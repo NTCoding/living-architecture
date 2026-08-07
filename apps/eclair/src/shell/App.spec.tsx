@@ -113,6 +113,12 @@ describe('App routing', () => {
     expect(links.length).toBeGreaterThan(0)
   })
 
+  it('renders ModulesPage at /modules route', async () => {
+    renderWithRouter('/modules', { graph: mockGraph })
+
+    expect(await screen.findByRole('heading', { name: 'Modules' })).toBeInTheDocument()
+  })
+
   it('renders with app shell sidebar', async () => {
     renderWithRouter('/flows', { graph: mockGraph })
 
@@ -165,6 +171,12 @@ describe('App routing without graph', () => {
 
   it('renders EmptyState at /events route when no graph loaded', () => {
     renderWithRouter('/events')
+
+    expect(screen.getByText(/welcome to éclair/i)).toBeInTheDocument()
+  })
+
+  it('renders EmptyState at /modules route when no graph loaded', () => {
+    renderWithRouter('/modules')
 
     expect(screen.getByText(/welcome to éclair/i)).toBeInTheDocument()
   })

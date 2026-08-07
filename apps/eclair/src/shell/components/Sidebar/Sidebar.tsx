@@ -191,6 +191,14 @@ export function Sidebar({
           collapsed={collapsed}
         />
         <NavItem
+          icon="stack"
+          label="Modules"
+          to="/modules"
+          active={currentPath === '/modules'}
+          disabled={!hasGraph}
+          collapsed={collapsed}
+        />
+        <NavItem
           icon="broadcast"
           label="Events"
           to="/events"

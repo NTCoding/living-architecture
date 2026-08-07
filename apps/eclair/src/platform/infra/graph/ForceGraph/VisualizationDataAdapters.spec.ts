@@ -55,6 +55,28 @@ describe('VisualizationDataAdapters', () => {
       })
       expect(result[0]?.originalNode).toBeDefined()
     })
+
+    it('adds the declared custom type and its description to simulation nodes', () => {
+      const nodes: Node[] = [
+        parseNode({
+          sourceLocation: testSourceLocation,
+          id: 'job-1',
+          type: 'Custom',
+          customTypeName: 'Job',
+          name: 'Load warehouse',
+          domain: 'operations',
+          module: 'Scheduler',
+        }),
+      ]
+
+      const result = createSimulationNodes(nodes, {Job: { description: 'A scheduled unit of work' },})
+
+      expect(result[0]).toMatchObject({
+        type: 'Custom',
+        effectiveType: 'Job',
+        typeDescription: 'A scheduled unit of work',
+      })
+    })
   })
 
   describe('createSimulationLinks', () => {

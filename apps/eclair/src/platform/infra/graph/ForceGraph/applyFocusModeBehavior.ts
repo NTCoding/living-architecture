@@ -5,108 +5,70 @@ import type {
 import type { Theme } from '@/types/theme'
 import { getThemeFocusColors } from '@/platform/domain/theme-focus-colors'
 import {
-  FOCUS_MODE_TRANSITIONS,
-  FOCUS_MODE_NODE_SCALES,
-  FOCUS_MODE_OPACITY,
-  FOCUS_MODE_STROKES,
-  FOCUS_MODE_TEXT,
-  UNFOCUSED_NODE_STROKE_COLOR,
-} from '@/platform/domain/focus-mode-constants'
-import {
-  applyFocusModeCircleStyles,
   applyResetModeCircleStyles,
-  applyFocusModeLinkStyles,
   applyResetModeLinkStyles,
-  applyFocusModeTextStyles,
   applyResetModeTextStyles,
-  calculateFocusModeZoom,
 } from './GraphRenderingSetup'
 import { getNodeRadius } from './VisualizationDataAdapters'
+import { FOCUS_MODE_TRANSITIONS } from '@/platform/domain/focus-mode-constants'
+import { getLinkNodeId } from './FocusModeStyling'
 
 export interface ApplyFocusModeParams {
-  svg: d3.Selection<SVGSVGElement, unknown, d3.BaseType, unknown>
   node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>
   link: d3.Selection<SVGPathElement, SimulationLink, SVGGElement, unknown>
-  zoom: d3.ZoomBehavior<SVGSVGElement, unknown>
-  nodes: SimulationNode[]
   domain: string
   theme: Theme
-  dimensions: {
-    width: number
-    height: number
-  }
 }
 
 export function applyFocusMode(params: ApplyFocusModeParams): void {
-  const {
-    svg, node, link, zoom, nodes, domain, theme, dimensions 
-  } = params
+  const node = params.node
+  const link = params.link
+  const domain = params.domain
+  const theme = params.theme
   const focusColors = getThemeFocusColors(theme)
+  const focusedNodeIds = new Set(
+    node
+      .data()
+      .filter((datum) => datum.domain === domain)
+      .map((datum) => datum.id),
+  )
 
-  applyFocusModeCircleStyles({
+  applyResetMode({
     node,
-    focusedDomain: domain,
-    focusColors,
-    transitionDuration: FOCUS_MODE_TRANSITIONS.elementAnimation,
-    nodeRadiusScale: FOCUS_MODE_NODE_SCALES,
-    opacityValues: FOCUS_MODE_OPACITY,
-    strokeWidths: FOCUS_MODE_STROKES,
-    getNodeRadius,
-    unfocusedStrokeColor: UNFOCUSED_NODE_STROKE_COLOR,
-  })
-
-  applyFocusModeTextStyles({
-    node,
-    focusedDomain: domain,
-    transitionDuration: FOCUS_MODE_TRANSITIONS.elementAnimation,
-    selector: '.node-label',
-    focusedOpacity: 1,
-    focusedFontSize: FOCUS_MODE_TEXT.focusedLabelSize,
-    focusedFontWeight: FOCUS_MODE_TEXT.focusedLabelWeight,
-    unfocusedFontSize: FOCUS_MODE_TEXT.unfocusedLabelSize,
-    unfocusedFontWeight: FOCUS_MODE_TEXT.unfocusedLabelWeight,
-  })
-
-  applyFocusModeTextStyles({
-    node,
-    focusedDomain: domain,
-    transitionDuration: FOCUS_MODE_TRANSITIONS.elementAnimation,
-    selector: '.node-domain-label',
-    focusedOpacity: 1,
-    focusedFontSize: FOCUS_MODE_TEXT.focusedDomainSize,
-    focusedFontWeight: FOCUS_MODE_TEXT.focusedDomainWeight,
-    unfocusedFontSize: FOCUS_MODE_TEXT.unfocusedDomainSize,
-    unfocusedFontWeight: FOCUS_MODE_TEXT.unfocusedDomainWeight,
-  })
-
-  applyFocusModeLinkStyles({
     link,
-    nodes,
-    focusedDomain: domain,
-    transitionDuration: FOCUS_MODE_TRANSITIONS.elementAnimation,
-    focusedOpacity: FOCUS_MODE_OPACITY.focusedEdge,
-    unfocusedOpacity: FOCUS_MODE_OPACITY.unfocusedEdge,
-    focusedStrokeWidth: FOCUS_MODE_STROKES.focusedEdgeWidth,
-    unfocusedStrokeWidth: FOCUS_MODE_STROKES.unfocusedEdgeWidth,
   })
+  node
+    .selectAll<SVGCircleElement, SimulationNode>('circle')
+    .transition()
+    .duration(FOCUS_MODE_TRANSITIONS.elementAnimation)
+    .attr('stroke', (datum) =>
+      datum.domain === domain ? focusColors.glowColor : 'rgba(128, 128, 128, 0.12)',
+    )
+    .attr('stroke-width', (datum) => (datum.domain === domain ? 8 : 1))
+    .attr('opacity', (datum) => (datum.domain === domain ? 1 : 0.22))
+    .attr('filter', (datum) => (datum.domain === domain ? 'url(#focused-glow)' : 'none'))
 
-  const focusZoom = calculateFocusModeZoom({
-    nodes,
-    focusedDomain: domain,
-    dimensions,
-  })
+  node
+    .selectAll<SVGTextElement, SimulationNode>('.node-label, .node-domain-label')
+    .transition()
+    .duration(FOCUS_MODE_TRANSITIONS.elementAnimation)
+    .attr('opacity', (datum) => (datum.domain === domain ? 1 : 0.16))
 
-  if (focusZoom) {
-    svg
-      .transition()
-      .duration(FOCUS_MODE_TRANSITIONS.zoomAnimation)
-      .call(
-        zoom.transform,
-        d3.zoomIdentity
-          .translate(focusZoom.translateX, focusZoom.translateY)
-          .scale(focusZoom.scale),
-      )
-  }
+  link
+    .transition()
+    .duration(FOCUS_MODE_TRANSITIONS.elementAnimation)
+    .attr('opacity', (datum) => {
+      const connectsFocusedNode =
+        focusedNodeIds.has(getLinkNodeId(datum.source)) ||
+        focusedNodeIds.has(getLinkNodeId(datum.target))
+      return connectsFocusedNode ? 0.75 : 0.08
+    })
+    .attr('stroke-width', (datum) => {
+      const connectsFocusedNode =
+        focusedNodeIds.has(getLinkNodeId(datum.source)) ||
+        focusedNodeIds.has(getLinkNodeId(datum.target))
+      return connectsFocusedNode ? 2.5 : 1
+    })
 }
 
 export interface ApplyResetModeParams {

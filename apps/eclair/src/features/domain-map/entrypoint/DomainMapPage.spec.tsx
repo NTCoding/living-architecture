@@ -7,6 +7,7 @@ import {
 import { MemoryRouter } from 'react-router-dom'
 import { DomainMapPage } from './DomainMapPage'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
+import { ThemeProvider } from '@/platform/infra/theme/ThemeContext'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode, parseEdge, parseDomainMetadata 
@@ -22,8 +23,12 @@ function createTestGraph(): RiviereGraph {
     version: '1.0',
     metadata: {
       domains: parseDomainMetadata({
-        'test-domain': {
-          description: 'Test domain',
+        orders: {
+          description: 'Orders domain',
+          systemType: 'domain',
+        },
+        payments: {
+          description: 'Payments domain',
           systemType: 'domain',
         },
       }),
@@ -59,9 +64,11 @@ function createTestGraph(): RiviereGraph {
 function renderWithRouter(graph: RiviereGraph, initialEntry = '/'): ReturnType<typeof render> {
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
-      <ExportProvider>
-        <DomainMapPage graph={graph} />
-      </ExportProvider>
+      <ThemeProvider>
+        <ExportProvider>
+          <DomainMapPage graph={graph} />
+        </ExportProvider>
+      </ThemeProvider>
     </MemoryRouter>,
   )
 }
@@ -89,6 +96,37 @@ describe('DomainMapPage', () => {
     renderWithRouter(graph)
 
     expect(screen.getByText('1 connection')).toBeInTheDocument()
+  })
+
+  it('displays every relationship when a domain pair has multiple connections', () => {
+    const graph = createTestGraph()
+    const graphWithMultipleConnections: RiviereGraph = {
+      ...graph,
+      components: [
+        ...graph.components,
+        parseNode({
+          sourceLocation: testSourceLocation,
+          id: 'n3',
+          type: 'Custom',
+          name: 'Worker 1',
+          domain: 'orders',
+          module: 'm1',
+          customTypeName: 'Worker',
+        }),
+      ],
+      links: [
+        ...graph.links,
+        parseEdge({
+          source: 'n3',
+          target: 'n2',
+          type: 'sync',
+        }),
+      ],
+    }
+
+    renderWithRouter(graphWithMultipleConnections)
+
+    expect(screen.getByText('2 connections')).toBeInTheDocument()
   })
 
   it('renders React Flow container', () => {

@@ -1,37 +1,38 @@
-import type { NodeType } from '@/platform/domain/eclair-types'
+import { getNodeTypeColor } from '@/platform/domain/node-type-presentation'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
-interface NodeTypeBadgeProps {readonly type: NodeType}
-
-function getBadgeClass(type: NodeType): string {
-  switch (type) {
-    case 'UI':
-      return 'badge-ui'
-    case 'API':
-      return 'badge-api'
-    case 'UseCase':
-      return 'badge-usecase'
-    case 'DomainOp':
-      return 'badge-domainop'
-    case 'Event':
-      return 'badge-event'
-    case 'EventHandler':
-      return 'badge-eventhandler'
-    case 'Custom':
-      return 'badge-custom'
-  }
+interface NodeTypeBadgeProps {
+  readonly type: string
+  readonly description?: string | undefined
+  readonly theme?: Theme
 }
 
-function getDisplayLabel(type: NodeType): string {
-  if (type === 'Custom') return 'JOB'
-  return type
+const BADGE_CLASSES: Readonly<Record<string, string>> = {
+  UI: 'badge-ui',
+  API: 'badge-api',
+  UseCase: 'badge-usecase',
+  DomainOp: 'badge-domainop',
+  Event: 'badge-event',
+  EventHandler: 'badge-eventhandler',
+  Custom: 'badge-custom',
 }
 
-export function NodeTypeBadge({ type }: Readonly<NodeTypeBadgeProps>): React.ReactElement {
-  const badgeClass = getBadgeClass(type)
+export function NodeTypeBadge({
+  type,
+  description,
+  theme = DEFAULT_THEME,
+}: Readonly<NodeTypeBadgeProps>): React.ReactElement {
+  const badgeClass = BADGE_CLASSES[type] ?? 'badge-custom'
 
   return (
-    <span data-testid="node-type-badge" className={`node-type-badge ${badgeClass}`}>
-      {getDisplayLabel(type)}
+    <span
+      data-testid="node-type-badge"
+      className={`node-type-badge ${badgeClass}`}
+      style={{ backgroundColor: getNodeTypeColor(type, theme) }}
+      title={description}
+    >
+      {type}
     </span>
   )
 }

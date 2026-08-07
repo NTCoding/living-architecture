@@ -52,7 +52,7 @@ function calculatePositions(
 }
 
 function calculateViewBox(positions: DomainPosition[]): string {
-  const padding = 20
+  const padding = 60
   const maxNodeRadius = 40
 
   const xs = positions.map((p) => p.x)
@@ -242,6 +242,11 @@ export function DomainContextGraph({
             const isOutgoing = conn.direction === 'outgoing'
             const fromPos = isOutgoing ? currentPosition : targetPosition
             const toPos = isOutgoing ? targetPosition : currentPosition
+            const isBidirectional = connections.some(
+              (candidate) =>
+                candidate.targetDomain === conn.targetDomain &&
+                candidate.direction !== conn.direction,
+            )
 
             return (
               <EdgeLine
@@ -252,6 +257,8 @@ export function DomainContextGraph({
                 toRadius={toPos.isCurrent ? 40 : 30}
                 testId={`edge-${domainId}-${conn.targetDomain}`}
                 direction={conn.direction}
+                relationshipCount={conn.relationshipCount}
+                isBidirectional={isBidirectional}
               />
             )
           })}

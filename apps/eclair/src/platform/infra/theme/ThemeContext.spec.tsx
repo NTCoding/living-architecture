@@ -3,7 +3,7 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
-  ThemeProvider, useTheme 
+  ThemeProvider, useTheme,
 } from './ThemeContext'
 
 function TestConsumer(): React.ReactElement {
@@ -110,4 +110,5 @@ describe('ThemeContext', () => {
 
     consoleError.mockRestore()
   })
+
 })

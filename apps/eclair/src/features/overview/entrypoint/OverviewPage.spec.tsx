@@ -297,8 +297,39 @@ describe('OverviewPage', () => {
 
     expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Domain' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'UI' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'BFF' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'UI' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'BFF' })).not.toBeInTheDocument()
+  })
+
+  it('labels system-type filters as domain types', () => {
+    const graph = createTestGraph()
+
+    renderWithRouter(<OverviewPage graph={graph} />)
+
+    expect(screen.getByText('Domain type:')).toBeInTheDocument()
+  })
+
+  it('renders multiple system types as sorted filter tags', () => {
+    const graph = createTestGraph({
+      metadata: {
+        name: 'Test Architecture',
+        domains: parseDomainMetadata({
+          'order-domain': {
+            description: 'Order management',
+            systemType: 'domain',
+          },
+          'payment-domain': {
+            description: 'Payment processing',
+            systemType: 'other',
+          },
+        }),
+      },
+    })
+
+    renderWithRouter(<OverviewPage graph={graph} />)
+
+    expect(screen.getByRole('button', { name: 'Domain' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Other' })).toBeInTheDocument()
   })
 
   it('renders stats with icons', () => {
@@ -437,6 +468,21 @@ describe('OverviewPage', () => {
 
       expect(domainButton).toHaveClass('active')
       expect(allButton).not.toHaveClass('active')
+    })
+
+    it('returns to all domains when the All filter is clicked', async () => {
+      const user = userEvent.setup()
+      const graph = createTestGraph()
+
+      renderWithRouter(<OverviewPage graph={graph} />)
+
+      await user.click(screen.getByRole('button', { name: 'Domain' }))
+      const allButton = screen.getByRole('button', { name: 'All' })
+      await user.click(allButton)
+
+      expect(allButton).toHaveClass('active')
+      expect(screen.getByText('order-domain')).toBeInTheDocument()
+      expect(screen.getByText('payment-domain')).toBeInTheDocument()
     })
   })
 

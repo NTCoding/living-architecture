@@ -30,6 +30,8 @@ import type {
 } from '../queries/extract-domain-map'
 import { DomainNode } from '@/platform/infra/ui/DomainNode/DomainNode'
 import { useDomainMapInteractions } from '../hooks/useDomainMapInteractions'
+import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
+import { useTheme } from '@/platform/infra/theme/ThemeContext'
 
 interface DomainMapPageProps {readonly graph: RiviereGraph}
 
@@ -38,6 +40,7 @@ const nodeTypes = { domain: DomainNode }
 export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { theme } = useTheme()
   const {
     registerExportHandlers, clearExportHandlers 
   } = useExport()
@@ -58,7 +61,11 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
     setEdges(initialEdges)
   }, [initialNodes, initialEdges, setNodes, setEdges])
 
-  const connectionText = pluralizeConnection(initialEdges.length)
+  const connectionCount = initialEdges.reduce(
+    (total, edge) => total + edge.data.connectionCount,
+    0,
+  )
+  const connectionText = pluralizeConnection(connectionCount)
 
   const nodeCountMap = useMemo(() => {
     const map = new Map<string, number>()
@@ -104,8 +111,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
         event.clientY,
         edge.source,
         edge.target,
-        edge.data.apiCount,
-        edge.data.eventCount,
+        edge.data.connectionCount,
       )
     },
     [showEdgeTooltip],
@@ -131,6 +137,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
         sourceNodeCount,
         targetNodeCount,
         edge.data.connections,
+        edge.data.connectionCount,
       )
     },
     [selectEdge, nodeCountMap],
@@ -181,7 +188,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
     })
   }, [edges, focusedDomain])
 
-  const totalConnections = inspector.apiCount + inspector.eventCount
+  const totalConnections = inspector.connectionCount
 
   useEffect(() => {
     const graphName = graph.metadata.name ?? UNNAMED_GRAPH_EXPORT_NAME
@@ -328,18 +335,16 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
             <div className="inspector-section-title">Connections</div>
             <div className="inspector-connection-list">
               {inspector.connections.map((conn) => {
-                const isEvent = conn.targetNodeType === 'EventHandler'
                 return (
                   <div
                     key={`${conn.sourceName}-${conn.targetName}-${conn.type}-${conn.targetNodeType}`}
                     className="inspector-connection-item"
                   >
                     <div className="flex items-center gap-2">
-                      <span
-                        className={isEvent ? 'badge-integration-event' : 'badge-integration-api'}
-                      >
-                        {isEvent ? 'EVENT' : 'API'}
-                      </span>
+                      <NodeTypeBadge
+                        type={conn.targetNodeType}
+                        theme={theme}
+                      />
                     </div>
                     <div className="mt-2 text-sm text-[var(--text-primary)]">{conn.sourceName}</div>
                     <div className="text-xs text-[var(--text-secondary)]">→ {conn.targetName}</div>

@@ -17,6 +17,8 @@ import { EntitiesPage } from '@/features/entities/entrypoint/EntitiesPage'
 import { EventsPage } from '@/features/events/entrypoint/EventsPage'
 import { ComparisonPage } from '@/features/comparison/entrypoint/ComparisonPage'
 import { GraphError } from '@/platform/infra/errors/errors'
+import { ModulesPage } from '@/features/modules/entrypoint/ModulesPage'
+import { useTheme } from '@/platform/infra/theme/ThemeContext'
 
 export function useRequiredGraph(): RiviereGraph {
   const { graph } = useGraph()
@@ -29,7 +31,8 @@ export function useRequiredGraph(): RiviereGraph {
 }
 
 function Overview(): React.ReactElement {
-  return <OverviewPage graph={useRequiredGraph()} />
+  const { theme } = useTheme()
+  return <OverviewPage graph={useRequiredGraph()} theme={theme} />
 }
 
 function FullGraph(): React.ReactElement {
@@ -41,11 +44,13 @@ function DomainMap(): React.ReactElement {
 }
 
 function Flows(): React.ReactElement {
-  return <FlowsPage graph={useRequiredGraph()} />
+  const { theme } = useTheme()
+  return <FlowsPage graph={useRequiredGraph()} theme={theme} />
 }
 
 function DomainDetail(): React.ReactElement {
-  return <DomainDetailPage graph={useRequiredGraph()} />
+  const { theme } = useTheme()
+  return <DomainDetailPage graph={useRequiredGraph()} theme={theme} />
 }
 
 function Entities(): React.ReactElement {
@@ -54,6 +59,11 @@ function Entities(): React.ReactElement {
 
 function Events(): React.ReactElement {
   return <EventsPage graph={useRequiredGraph()} />
+}
+
+function Modules(): React.ReactElement {
+  const { theme } = useTheme()
+  return <ModulesPage graph={useRequiredGraph()} theme={theme} />
 }
 
 export function AppContent(): React.ReactElement {
@@ -81,6 +91,7 @@ export function AppContent(): React.ReactElement {
         <Route path="/flows" element={hasGraph ? <Flows /> : <EmptyState />} />
         <Route path="/entities" element={hasGraph ? <Entities /> : <EmptyState />} />
         <Route path="/events" element={hasGraph ? <Events /> : <EmptyState />} />
+        <Route path="/modules" element={hasGraph ? <Modules /> : <EmptyState />} />
         <Route path="/domains/:domainId" element={hasGraph ? <DomainDetail /> : <EmptyState />} />
         <Route path="/compare" element={<ComparisonPage />} />
       </Routes>

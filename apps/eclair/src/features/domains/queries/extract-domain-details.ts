@@ -25,6 +25,7 @@ export interface AggregatedConnection {
   direction: 'incoming' | 'outgoing'
   apiCount: number
   eventCount: number
+  relationshipCount: number
 }
 
 interface KnownSourceEventInfo {
@@ -116,7 +117,7 @@ export function extractDomainDetails(
   const domainNodes = graph.components.filter((n) => n.domain === domainId)
 
   const breakdown = countNodesByType(domainNodes)
-  const nodes = formatDomainNodes(domainNodes)
+  const nodes = formatDomainNodes(domainNodes, graph.metadata.customTypes)
   const entities = query.entities(domainId)
 
   const queryPublished = query.publishedEvents(domainId)
@@ -166,7 +167,7 @@ export function extractDomainDetails(
   }
 
   const crossDomainEdges = buildCrossDomainEdges(graph, domainId)
-  const aggregatedConnections = query.domainConnections(domainId)
+  const aggregatedConnections = buildAggregatedConnections(graph, domainId)
   const entryPoints = extractEntryPoints(domainNodes)
 
   const repository = domainNodes.find((node) => node.sourceLocation?.repository)?.sourceLocation
@@ -185,4 +186,41 @@ export function extractDomainDetails(
     entryPoints,
     repository,
   }
+}
+
+function buildAggregatedConnections(graph: RiviereGraph, domainId: string): AggregatedConnection[] {
+  const componentById = new Map(graph.components.map((component) => [component.id, component]))
+  const connections = new Map<string, AggregatedConnection>()
+
+  for (const link of graph.links) {
+    const source = componentById.get(link.source)
+    const target = componentById.get(link.target)
+    if (source === undefined || target === undefined || source.domain === target.domain) continue
+
+    const isOutgoing = source.domain === domainId
+    const isIncoming = target.domain === domainId
+    if (!isOutgoing && !isIncoming) continue
+
+    const direction = isOutgoing ? 'outgoing' : 'incoming'
+    const targetDomain = isOutgoing ? target.domain : source.domain
+    const key = `${direction}:${targetDomain}`
+    const existing = connections.get(key) ?? {
+      targetDomain,
+      direction,
+      apiCount: 0,
+      eventCount: 0,
+      relationshipCount: 0,
+    }
+
+    existing.relationshipCount += 1
+    if (target.type === 'API') existing.apiCount += 1
+    if (target.type === 'EventHandler') existing.eventCount += 1
+    connections.set(key, existing)
+  }
+
+  return [...connections.values()].sort((left, right) => {
+    const domainOrder = compareByCodePoint(left.targetDomain, right.targetDomain)
+    if (domainOrder !== 0) return domainOrder
+    return compareByCodePoint(left.direction, right.direction)
+  })
 }

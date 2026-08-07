@@ -4,8 +4,10 @@ import {
 import { useSearchParams } from 'react-router-dom'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type {
-  NodeType, Node, Edge 
+  Node, Edge,
 } from '../queries/eclair-types'
+import { extractNodeTypes } from '../queries/extract-node-types'
+import { compareByCodePoint } from '../queries/compare-by-code-point'
 import { useTheme } from '@/platform/infra/theme/ThemeContext'
 import { useExport } from '@/platform/infra/export/ExportContext'
 import {
@@ -19,15 +21,9 @@ import { GraphTooltip } from '@/platform/infra/graph/GraphTooltip/GraphTooltip'
 import { DomainFilters } from '../components/DomainFilters/DomainFilters'
 import { NodeTypeFilters } from '../components/NodeTypeFilters/NodeTypeFilters'
 import {
-  filterByNodeType, getThemeFocusColors
+  filterByNodeType, getThemeFocusColors,
 } from '../queries/graph-focusing'
 import type { TooltipData } from '@/platform/infra/graph/graph-types'
-
-function compareByCodePoint(a: string, b: string): number {
-  if (a < b) return -1
-  if (a > b) return 1
-  return 0
-}
 
 function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
   const connectedNodeIds = new Set<string>()
@@ -52,11 +48,6 @@ interface DomainInfo {
   nodeCount: number
 }
 
-interface NodeTypeInfo {
-  type: NodeType
-  nodeCount: number
-}
-
 function extractDomains(graph: RiviereGraph): DomainInfo[] {
   const domainCounts = new Map<string, number>()
 
@@ -73,27 +64,6 @@ function extractDomains(graph: RiviereGraph): DomainInfo[] {
     .sort((a, b) => compareByCodePoint(a.name, b.name))
 }
 
-function extractNodeTypes(graph: RiviereGraph): NodeTypeInfo[] {
-  const typeCounts = new Map<NodeType, number>()
-
-  for (const node of graph.components) {
-    const count = typeCounts.get(node.type) ?? 0
-    typeCounts.set(node.type, count + 1)
-  }
-
-  if (graph.externalLinks !== undefined && graph.externalLinks.length > 0) {
-    const uniqueExternals = new Set(graph.externalLinks.map((l) => l.target.name))
-    typeCounts.set('External', uniqueExternals.size)
-  }
-
-  return Array.from(typeCounts.entries())
-    .map(([type, nodeCount]) => ({
-      type,
-      nodeCount,
-    }))
-    .sort((a, b) => compareByCodePoint(a.type, b.type))
-}
-
 export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.ReactElement {
   const { theme } = useTheme()
   const {
@@ -105,13 +75,9 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
   const exportContainerRef = useRef<HTMLDivElement>(null)
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null)
   const [filterPanelOpen, setFilterPanelOpen] = useState(false)
-  const [visibleTypes, setVisibleTypes] = useState<Set<NodeType>>(() => {
-    const types = new Set(graph.components.map((n) => n.type))
-    if (graph.externalLinks !== undefined && graph.externalLinks.length > 0) {
-      types.add('External')
-    }
-    return types
-  })
+  const [visibleTypes, setVisibleTypes] = useState<Set<string>>(
+    () => new Set(extractNodeTypes(graph).map((nodeType) => nodeType.type)),
+  )
   const HIDE_ALL_DOMAINS = '__HIDE_ALL__'
   const [focusedDomain, setFocusedDomain] = useState<string | null>(null)
 
@@ -143,6 +109,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
     return {
       nodes: nonOrphanNodes,
       edges: nonOrphanEdges,
+      externalLinks: visibleTypes.has('External') ? graph.externalLinks : [],
     }
   }, [graph, visibleTypes])
 
@@ -215,7 +182,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
 
   const focusColors = getThemeFocusColors(theme)
 
-  const handleToggleType = useCallback((type: NodeType) => {
+  const handleToggleType = useCallback((type: string) => {
     setVisibleTypes((prev) => {
       const next = new Set(prev)
       if (next.has(type)) {
@@ -281,6 +248,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
           ...graph,
           components: filteredGraph.nodes,
           links: filteredGraph.edges,
+          externalLinks: filteredGraph.externalLinks,
         }}
         theme={theme}
         highlightedNodeIds={highlightedNodeIds}
@@ -291,13 +259,6 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
         onBackgroundClick={handleBackgroundClick}
       />
 
-      {focusedDomain !== null && focusedDomain !== HIDE_ALL_DOMAINS && (
-        <div
-          className="pointer-events-none absolute inset-0 transition-opacity duration-600"
-          style={{ backgroundColor: focusColors.overlayBackground }}
-        />
-      )}
-
       <GraphTooltip
         data={tooltipData}
         onMouseEnter={handleTooltipMouseEnter}
@@ -306,40 +267,31 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
 
       {focusedDomain !== null && focusedDomain !== HIDE_ALL_DOMAINS && (
         <div
-          className="floating-panel absolute left-2 right-2 top-4 animate-fade-in border-l-8 px-8 py-6 md:left-4 md:right-auto md:max-w-md"
-          style={{
-            borderLeftColor: focusColors.borderColor,
-            boxShadow: `0 0 60px ${focusColors.shadowColor}, 0 8px 24px rgba(0, 0, 0, ${theme === 'voltage' ? 0.3 : 0.12})`,
-            background: theme === 'voltage' ? 'rgba(26, 26, 36, 0.95)' : undefined,
-          }}
+          className="floating-panel focused-domain-indicator animate-fade-in"
+          style={{ borderColor: focusColors.borderColor }}
           data-testid="focused-domain-banner"
         >
-          <div className="flex items-center gap-4">
-            <div
-              className="h-4 w-4 animate-pulse rounded-full"
-              style={{
-                backgroundColor: focusColors.glowColor,
-                boxShadow: `0 0 20px ${focusColors.shadowColor}`,
-              }}
-            />
-            <div className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)] md:text-4xl">
-              {focusedDomain}
+          <div
+            className="h-3 w-3 shrink-0 rounded-full"
+            style={{
+              backgroundColor: focusColors.glowColor,
+              boxShadow: `0 0 10px ${focusColors.shadowColor}`,
+            }}
+          />
+          <div className="min-w-0 flex-1">
+            <div className="focused-domain-indicator-name">{focusedDomain}</div>
+            <div className="focused-domain-indicator-count">
+              {filteredGraph.nodes.filter((node) => node.domain === focusedDomain).length} nodes
             </div>
-          </div>
-          <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)] md:text-base">
-            <i className="ph ph-circles-three text-base md:text-lg" />
-            <span>
-              {filteredGraph.nodes.filter((n) => n.domain === focusedDomain).length} nodes focused
-            </span>
           </div>
           <button
             type="button"
             onClick={handleShowAllDomains}
-            className="mt-4 flex items-center gap-2 text-sm font-medium transition-colors"
-            style={{ color: focusColors.borderColor }}
+            className="focused-domain-indicator-clear"
+            title="Clear focus"
+            aria-label="Clear focus"
           >
-            <i className="ph ph-x-circle text-base" />
-            <span>Clear focus</span>
+            <i className="ph ph-x" aria-hidden="true" />
           </button>
         </div>
       )}
@@ -373,7 +325,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
 
       {filterPanelOpen && (
         <div
-          className="floating-panel absolute right-2 top-20 w-full max-w-xs space-y-3 md:right-4 md:w-56"
+          className="floating-panel full-graph-filter-panel space-y-3"
           data-testid="filter-panel"
         >
           <DomainFilters
@@ -389,6 +341,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
             onToggleType={handleToggleType}
             onShowAll={handleShowAllTypes}
             onHideAll={handleHideAllTypes}
+            theme={theme}
           />
         </div>
       )}

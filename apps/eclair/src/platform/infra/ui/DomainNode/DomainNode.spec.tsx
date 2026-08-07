@@ -6,6 +6,7 @@ import {
 } from '@testing-library/react'
 import { ReactFlowProvider } from '@xyflow/react'
 import { DomainNode } from './DomainNode'
+import type { DomainMapSystemType } from '@/platform/domain/domain-node-types'
 
 function renderWithProvider(ui: React.ReactElement): ReturnType<typeof render> {
   return render(<ReactFlowProvider>{ui}</ReactFlowProvider>)
@@ -18,6 +19,7 @@ describe('DomainNode', () => {
         data={{
           label: 'orders',
           nodeCount: 5,
+          systemType: 'domain',
         }}
       />,
     )
@@ -32,6 +34,7 @@ describe('DomainNode', () => {
         data={{
           label: 'orders',
           nodeCount: 5,
+          systemType: 'domain',
         }}
       />,
     )
@@ -45,6 +48,7 @@ describe('DomainNode', () => {
         data={{
           label: 'verylongdomainname',
           nodeCount: 5,
+          systemType: 'domain',
         }}
       />,
     )
@@ -58,6 +62,7 @@ describe('DomainNode', () => {
         data={{
           label: 'verylongdomainname',
           nodeCount: 5,
+          systemType: 'domain',
         }}
       />,
     )
@@ -72,6 +77,7 @@ describe('DomainNode', () => {
         data={{
           label: 'orders',
           nodeCount: 5,
+          systemType: 'domain',
         }}
       />,
     )
@@ -86,6 +92,7 @@ describe('DomainNode', () => {
         data={{
           label: 'orders',
           nodeCount: 5,
+          systemType: 'domain',
           dimmed: true,
         }}
       />,
@@ -102,6 +109,7 @@ describe('DomainNode', () => {
           data={{
             label: 'orders',
             nodeCount: 5,
+            systemType: 'domain',
           }}
         />,
       )
@@ -119,6 +127,7 @@ describe('DomainNode', () => {
           data={{
             label: 'orders',
             nodeCount: 5,
+            systemType: 'domain',
             calculatedSize: 200,
           }}
         />,
@@ -139,6 +148,7 @@ describe('DomainNode', () => {
           data={{
             label: 'Stripe',
             nodeCount: 3,
+            systemType: 'external',
             isExternal: true,
           }}
         />,
@@ -154,6 +164,7 @@ describe('DomainNode', () => {
           data={{
             label: 'Stripe',
             nodeCount: 3,
+            systemType: 'external',
             isExternal: true,
           }}
         />,
@@ -172,6 +183,7 @@ describe('DomainNode', () => {
           data={{
             label: 'Stripe',
             nodeCount: 3,
+            systemType: 'external',
             isExternal: true,
           }}
         />,
@@ -187,6 +199,7 @@ describe('DomainNode', () => {
           data={{
             label: 'Stripe',
             nodeCount: 3,
+            systemType: 'external',
             isExternal: true,
           }}
         />,
@@ -202,6 +215,7 @@ describe('DomainNode', () => {
           data={{
             label: 'orders',
             nodeCount: 5,
+            systemType: 'domain',
             isExternal: false,
           }}
         />,
@@ -217,6 +231,7 @@ describe('DomainNode', () => {
           data={{
             label: 'orders',
             nodeCount: 5,
+            systemType: 'domain',
           }}
         />,
       )
@@ -225,4 +240,46 @@ describe('DomainNode', () => {
       expect(icon).not.toBeInTheDocument()
     })
   })
+
+  const domainTypeCases: ReadonlyArray<{
+    systemType: DomainMapSystemType
+    borderClass: string
+  }> = [
+    {
+      systemType: 'domain',
+      borderClass: 'border-[var(--primary)]',
+    },
+    {
+      systemType: 'bff',
+      borderClass: 'domain-node-bff',
+    },
+    {
+      systemType: 'ui',
+      borderClass: 'domain-node-ui',
+    },
+    {
+      systemType: 'other',
+      borderClass: 'domain-node-other',
+    },
+  ]
+
+  it.each(domainTypeCases)(
+    'shows the $systemType domain type with its border class',
+    ({
+      systemType, borderClass,
+    }) => {
+      const { container } = renderWithProvider(
+        <DomainNode
+          data={{
+            label: 'warehouse',
+            nodeCount: 2,
+            systemType,
+          }}
+        />,
+      )
+
+      expect(screen.getByText(systemType)).toHaveClass('domain-node-system-type')
+      expect(container.querySelector('div.flex[title]')).toHaveClass(borderClass)
+    },
+  )
 })

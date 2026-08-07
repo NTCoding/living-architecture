@@ -1,16 +1,18 @@
 import {
   useMemo, useState, useCallback, useRef 
 } from 'react'
-import { useTheme } from '@/platform/infra/theme/ThemeContext'
 import { ForceGraph } from '@/platform/infra/graph/ForceGraph/ForceGraph'
 import { GraphTooltip } from '@/platform/infra/graph/GraphTooltip/GraphTooltip'
 import type { TooltipData } from '@/platform/infra/graph/graph-types'
 import type { FlowStep } from '../../queries/extract-flows'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
 interface FlowGraphViewProps {
   readonly steps: readonly FlowStep[]
   readonly graph: RiviereGraph
+  readonly theme?: Theme
 }
 
 function extractSubgraph(steps: FlowStep[], graph: RiviereGraph): RiviereGraph {
@@ -29,9 +31,8 @@ function extractSubgraph(steps: FlowStep[], graph: RiviereGraph): RiviereGraph {
 }
 
 export function FlowGraphView({
-  steps, graph 
+  steps, graph, theme = DEFAULT_THEME,
 }: Readonly<FlowGraphViewProps>): React.ReactElement {
-  const { theme } = useTheme()
   const subgraph = useMemo(() => extractSubgraph(steps, graph), [steps, graph])
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null)
   const tooltipHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)

@@ -420,6 +420,7 @@ describe('extractDomainDetails - advanced tests', () => {
         direction: 'outgoing',
         apiCount: 1,
         eventCount: 1,
+        relationshipCount: 2,
       })
     })
 
@@ -467,6 +468,7 @@ describe('extractDomainDetails - advanced tests', () => {
         direction: 'incoming',
         apiCount: 1,
         eventCount: 0,
+        relationshipCount: 1,
       })
     })
 

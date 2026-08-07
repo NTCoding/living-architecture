@@ -191,6 +191,14 @@ describe('FlowTrace', () => {
   })
 
   describe('step circles', () => {
+    it('labels the module, domain, and type metadata', () => {
+      render(<FlowTrace steps={createTestSteps()} graph={createTestGraph()} />)
+
+      expect(screen.getAllByText('Module')).toHaveLength(4)
+      expect(screen.getAllByText('Domain')).toHaveLength(4)
+      expect(screen.getAllByText('Type')).toHaveLength(4)
+    })
+
     it('renders step circles with flow-step-circle class', () => {
       render(<FlowTrace steps={createTestSteps()} graph={createTestGraph()} />)
 
@@ -254,9 +262,11 @@ describe('FlowTrace', () => {
     })
 
     it('renders step metadata with flow-step-meta class', () => {
-      render(<FlowTrace steps={createTestSteps()} graph={createTestGraph()} />)
+      const { container } = render(
+        <FlowTrace steps={createTestSteps()} graph={createTestGraph()} />,
+      )
 
-      expect(screen.getByText('ui · checkout · UI')).toHaveClass('flow-step-meta')
+      expect(container.querySelectorAll('.flow-step-meta')).toHaveLength(4)
     })
 
     it('displays title attribute with full node name for tooltip', () => {

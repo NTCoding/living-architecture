@@ -37,6 +37,7 @@ describe('Sidebar', () => {
     'Domain Map',
     'Full Graph',
     'Entities',
+    'Modules',
     'Events',
     'About Rivière',
   ])('renders %s navigation link', (linkName) => {
@@ -69,6 +70,7 @@ describe('Sidebar', () => {
     'Domain Map',
     'Full Graph',
     'Entities',
+    'Modules',
     'Events',
   ])('disables %s when no graph loaded', (itemName) => {
     renderWithRouter(<Sidebar hasGraph={false} />)
@@ -85,6 +87,7 @@ describe('Sidebar', () => {
     'Domain Map',
     'Full Graph',
     'Entities',
+    'Modules',
     'Events',
   ])('enables %s link when graph is loaded', (linkName) => {
     renderWithRouter(<Sidebar hasGraph={true} />)

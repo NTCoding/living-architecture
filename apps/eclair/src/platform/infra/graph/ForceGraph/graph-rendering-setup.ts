@@ -11,11 +11,8 @@ import {
 
 export {
   getLinkNodeId,
-  applyFocusModeCircleStyles,
   applyResetModeCircleStyles,
-  applyFocusModeLinkStyles,
   applyResetModeLinkStyles,
-  applyFocusModeTextStyles,
   applyResetModeTextStyles,
 } from './FocusModeStyling'
 
@@ -88,7 +85,7 @@ export interface SetupNodesParams {
   nodeGroup: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>
   nodes: SimulationNode[]
   theme: Theme
-  getNodeColor: (type: NodeType, theme: Theme) => string
+  getNodeColor: (type: string, theme: Theme) => string
   getNodeRadius: (type: NodeType) => number
   getDomainColor: (domain: string, uniqueDomains: string[]) => string
   uniqueDomains: string[]
@@ -116,7 +113,7 @@ export function setupNodes({
     .append('circle')
     .attr('class', 'node-circle')
     .attr('r', (d) => getNodeRadius(d.type))
-    .attr('fill', (d) => getNodeColor(d.type, theme))
+    .attr('fill', (d) => getNodeColor(d.effectiveType ?? d.type, theme))
     .attr('stroke', 'rgba(255, 255, 255, 0.3)')
     .attr('stroke-width', 2)
 

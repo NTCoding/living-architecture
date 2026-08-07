@@ -7,7 +7,11 @@ interface EdgeLineProps {
   readonly toRadius: number
   readonly testId: string
   readonly direction: 'incoming' | 'outgoing'
+  readonly relationshipCount: number
+  readonly isBidirectional: boolean
 }
+
+const BIDIRECTIONAL_EDGE_SEPARATION = 8
 
 export function EdgeLine({
   from,
@@ -16,6 +20,8 @@ export function EdgeLine({
   toRadius,
   testId,
   direction,
+  relationshipCount,
+  isBidirectional,
 }: Readonly<EdgeLineProps>): React.ReactElement {
   const dx = to.x - from.x
   const dy = to.y - from.y
@@ -25,14 +31,17 @@ export function EdgeLine({
 
   const startOffset = fromRadius / length
   const endOffset = toRadius / length
+  const edgeSeparation = isBidirectional ? BIDIRECTIONAL_EDGE_SEPARATION : 0
+  const separationX = (-dy / length) * edgeSeparation
+  const separationY = (dx / length) * edgeSeparation
 
-  const startX = from.x + dx * startOffset
-  const startY = from.y + dy * startOffset
-  const endX = to.x - dx * endOffset
-  const endY = to.y - dy * endOffset
+  const startX = from.x + dx * startOffset + separationX
+  const startY = from.y + dy * startOffset + separationY
+  const endX = to.x - dx * endOffset + separationX
+  const endY = to.y - dy * endOffset + separationY
 
   return (
-    <g data-testid={testId} data-direction={direction}>
+    <g data-testid={testId} data-direction={direction} data-bidirectional={isBidirectional}>
       <line
         x1={startX}
         y1={startY}
@@ -43,6 +52,14 @@ export function EdgeLine({
         strokeOpacity="0.6"
         markerEnd="url(#arrow-marker)"
       />
+      <text
+        x={(startX + endX) / 2}
+        y={(startY + endY) / 2 - 6}
+        textAnchor="middle"
+        className="fill-[var(--text-secondary)] text-[10px] font-semibold"
+      >
+        {relationshipCount} {relationshipCount === 1 ? 'relationship' : 'relationships'}
+      </text>
     </g>
   )
 }

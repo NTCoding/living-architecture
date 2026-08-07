@@ -21,13 +21,15 @@ const testSourceLocation = {
 }
 
 const {
-  capturedOnNodeHover, capturedOnBackgroundClick 
+  capturedOnNodeHover, capturedOnBackgroundClick, capturedGraph,
 } = vi.hoisted(() => {
   const hoverRef: { current: ((data: TooltipData | null) => void) | undefined } = {current: undefined,}
   const backgroundClickRef: { current: (() => void) | undefined } = { current: undefined }
+  const graphRef: { current: RiviereGraph | undefined } = { current: undefined }
   return {
     capturedOnNodeHover: hoverRef,
     capturedOnBackgroundClick: backgroundClickRef,
+    capturedGraph: graphRef,
   }
 })
 
@@ -96,10 +98,12 @@ vi.mock('@/platform/infra/theme/ThemeContext', () => ({
 
 vi.mock('@/platform/infra/graph/ForceGraph/ForceGraph', () => ({
   ForceGraph: (props: {
+    graph: RiviereGraph
     onNodeHover?: (data: TooltipData | null) => void
     onBackgroundClick?: () => void
     highlightedNodeId?: string | null
   }) => {
+    capturedGraph.current = props.graph
     if (props.onNodeHover !== undefined) {
       capturedOnNodeHover.current = props.onNodeHover
     }
@@ -245,7 +249,7 @@ describe('FullGraphPage', () => {
       const ordersCheckbox = screen.getByTestId('domain-checkbox-orders')
       await user.click(ordersCheckbox)
 
-      expect(screen.getByText('2 nodes focused')).toBeInTheDocument()
+      expect(screen.getByText('2 nodes')).toBeInTheDocument()
     })
 
     it('hides stats panel when domain is focused', async () => {
@@ -273,7 +277,7 @@ describe('FullGraphPage', () => {
 
       expect(screen.getByTestId('focused-domain-banner')).toBeInTheDocument()
 
-      const clearButton = screen.getByText('Clear focus')
+      const clearButton = screen.getByRole('button', { name: 'Clear focus' })
       await user.click(clearButton)
 
       expect(screen.queryByTestId('focused-domain-banner')).not.toBeInTheDocument()
@@ -445,6 +449,24 @@ describe('FullGraphPage', () => {
       await user.click(externalCheckbox)
 
       expect(externalCheckbox).not.toBeChecked()
+    })
+
+    it('removes and restores external links when External visibility changes', async () => {
+      const user = userEvent.setup()
+      renderWithExternals()
+
+      await user.click(screen.getByTestId('filter-toggle'))
+      const externalCheckbox = screen.getByTestId('node-type-checkbox-External')
+
+      expect(capturedGraph.current?.externalLinks).toStrictEqual(mockGraphWithExternals.externalLinks)
+
+      await user.click(externalCheckbox)
+
+      expect(capturedGraph.current?.externalLinks).toStrictEqual([])
+
+      await user.click(externalCheckbox)
+
+      expect(capturedGraph.current?.externalLinks).toStrictEqual(mockGraphWithExternals.externalLinks)
     })
   })
 

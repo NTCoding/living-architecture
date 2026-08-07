@@ -8,15 +8,21 @@ import {
 } from '../queries/extract-domain-details'
 import { parseDomainKey } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import { DomainContextGraph } from '../components/DomainContextGraph/DomainContextGraph'
-import {
-  DomainDetailView, type NodeTypeFilter
-} from '../components/DomainDetailView/DomainDetailView'
+import {DomainDetailView} from '../components/DomainDetailView/DomainDetailView'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
 type ViewMode = 'graph' | 'detail'
 
-interface DomainDetailPageProps {readonly graph: RiviereGraph}
+interface DomainDetailPageProps {
+  readonly graph: RiviereGraph
+  readonly theme?: Theme
+}
 
-export function DomainDetailPage({ graph }: DomainDetailPageProps): React.ReactElement {
+export function DomainDetailPage({
+  graph,
+  theme = DEFAULT_THEME,
+}: DomainDetailPageProps): React.ReactElement {
   const { domainId } = useParams<{ domainId: string }>()
 
   if (domainId === undefined) {
@@ -30,17 +36,23 @@ export function DomainDetailPage({ graph }: DomainDetailPageProps): React.ReactE
     return <DomainNotFound />
   }
 
-  return <DomainDetailContent domain={domain} />
+  return <DomainDetailContent domain={domain} theme={theme} />
 }
 
-interface DomainDetailContentProps {readonly domain: DomainDetails}
+interface DomainDetailContentProps {
+  readonly domain: DomainDetails
+  readonly theme: Theme
+}
 
-function DomainDetailContent({ domain }: DomainDetailContentProps): React.ReactElement {
+function DomainDetailContent({
+  domain,
+  theme,
+}: DomainDetailContentProps): React.ReactElement {
   const [viewMode, setViewMode] = useState<ViewMode>('detail')
   const tabRefs = useRef<Map<ViewMode, HTMLButtonElement | null>>(new Map())
 
   const [nodeSearch, setNodeSearch] = useState('')
-  const [nodeTypeFilter, setNodeTypeFilter] = useState<NodeTypeFilter>('all')
+  const [nodeTypeFilter, setNodeTypeFilter] = useState('all')
   const [entitySearch, setEntitySearch] = useState('')
   const [eventSearch, setEventSearch] = useState('')
 
@@ -88,7 +100,7 @@ function DomainDetailContent({ domain }: DomainDetailContentProps): React.ReactE
       />
 
       {viewMode === 'graph' ? (
-        <div data-testid="graph-panel">
+        <div data-testid="graph-panel" className="h-[min(70vh,720px)] min-h-[500px]">
           <DomainContextGraph domainId={domain.id} connections={domain.aggregatedConnections} />
         </div>
       ) : (
@@ -102,6 +114,7 @@ function DomainDetailContent({ domain }: DomainDetailContentProps): React.ReactE
           setEntitySearch={setEntitySearch}
           eventSearch={eventSearch}
           setEventSearch={setEventSearch}
+          theme={theme}
         />
       )}
     </div>

@@ -1,10 +1,7 @@
 export {
   getLinkNodeId,
-  applyFocusModeCircleStyles,
   applyResetModeCircleStyles,
-  applyFocusModeLinkStyles,
   applyResetModeLinkStyles,
-  applyFocusModeTextStyles,
   applyResetModeTextStyles,
   setupLinks,
   setupNodes,
