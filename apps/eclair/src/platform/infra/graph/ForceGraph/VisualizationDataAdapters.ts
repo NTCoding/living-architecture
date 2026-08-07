@@ -1,18 +1,16 @@
-import type { ExternalLink } from '@living-architecture/riviere-schema'
+import type * as RiviereSchema from '@living-architecture/riviere-schema'
 import type {
   Node, NodeType, Edge 
 } from '@/platform/domain/eclair-types'
-import type {
-  SimulationNode, SimulationLink 
-} from '../graph-types'
+import * as GraphTypes from '../graph-types'
 import type { Theme } from '@/types/theme'
 import {
-  EDGE_COLORS,
-  SEMANTIC_EDGE_COLORS,
-  NODE_COLORS,
-  NODE_RADII,
-  getDomainColor,
-} from '../graph-types'
+  getEffectiveNodeType,
+  getNodeTypeColor as getPresentationNodeTypeColor,
+} from '@/platform/domain/node-type-presentation'
+
+type SimulationNode = GraphTypes.SimulationNode
+type SimulationLink = GraphTypes.SimulationLink
 
 interface ExternalNode {
   id: string
@@ -26,10 +24,16 @@ interface ExternalNode {
   url?: string
 }
 
-export function createSimulationNodes(nodes: Node[]): SimulationNode[] {
+export function createSimulationNodes(
+  nodes: Node[],
+  customTypes: Record<string, RiviereSchema.CustomTypeDefinition> | undefined = undefined,
+): SimulationNode[] {
   return nodes.map((node) => ({
     id: node.id,
     type: node.type,
+    effectiveType: getEffectiveNodeType(node),
+    typeDescription:
+      node.type === 'Custom' ? customTypes?.[node.customTypeName]?.description : undefined,
     name: node.name,
     domain: node.domain,
     originalNode: node,
@@ -49,7 +53,7 @@ function createExternalNodeId(name: string): string {
   return `external:${name}`
 }
 
-function createExternalNodeFromLink(link: ExternalLink): ExternalNode {
+function createExternalNodeFromLink(link: RiviereSchema.ExternalLink): ExternalNode {
   return {
     id: createExternalNodeId(link.target.name),
     type: 'External',
@@ -63,7 +67,9 @@ function createExternalNodeFromLink(link: ExternalLink): ExternalNode {
   }
 }
 
-export function createExternalNodes(externalLinks: ExternalLink[] | undefined): SimulationNode[] {
+export function createExternalNodes(
+  externalLinks: RiviereSchema.ExternalLink[] | undefined,
+): SimulationNode[] {
   if (externalLinks === undefined) {
     return []
   }
@@ -82,6 +88,8 @@ export function createExternalNodes(externalLinks: ExternalLink[] | undefined): 
     externalNodes.push({
       id: externalNode.id,
       type: 'External',
+      effectiveType: 'External',
+      typeDescription: undefined,
       name: externalNode.name,
       domain: 'external',
       originalNode: externalNode,
@@ -91,7 +99,9 @@ export function createExternalNodes(externalLinks: ExternalLink[] | undefined): 
   return externalNodes
 }
 
-export function createExternalLinks(externalLinks: ExternalLink[] | undefined): SimulationLink[] {
+export function createExternalLinks(
+  externalLinks: RiviereSchema.ExternalLink[] | undefined,
+): SimulationLink[] {
   if (externalLinks === undefined) {
     return []
   }
@@ -113,16 +123,16 @@ export function createExternalLinks(externalLinks: ExternalLink[] | undefined): 
   })
 }
 
-export function getNodeColor(type: NodeType, theme: Theme): string {
-  return NODE_COLORS[theme][type]
+export function getNodeColor(type: string, theme: Theme): string {
+  return getPresentationNodeTypeColor(type, theme)
 }
 
 export function getNodeRadius(type: NodeType): number {
-  return NODE_RADII[type]
+  return GraphTypes.NODE_RADII[type]
 }
 
 export function getEdgeColor(type: string | undefined, theme: Theme): string {
-  const colors = EDGE_COLORS[theme]
+  const colors = GraphTypes.EDGE_COLORS[theme]
   if (type === 'async') {
     return colors.async
   }
@@ -146,7 +156,7 @@ export function getSemanticEdgeColor(
   theme: Theme,
 ): string {
   const semanticType = getSemanticEdgeType(sourceType, targetType)
-  return SEMANTIC_EDGE_COLORS[theme][semanticType]
+  return GraphTypes.SEMANTIC_EDGE_COLORS[theme][semanticType]
 }
 
 export function truncateName(name: string, maxLength: number): string {
@@ -161,7 +171,7 @@ interface LayoutEdge {
 
 export function createLayoutEdges(
   internalEdges: Edge[],
-  externalLinks: ExternalLink[] | undefined,
+  externalLinks: RiviereSchema.ExternalLink[] | undefined,
 ): LayoutEdge[] {
   const layoutEdges: LayoutEdge[] = internalEdges.map((e) => ({
     source: e.source,
@@ -180,4 +190,4 @@ export function createLayoutEdges(
   return layoutEdges
 }
 
-export { getDomainColor }
+export const getDomainColor = GraphTypes.getDomainColor

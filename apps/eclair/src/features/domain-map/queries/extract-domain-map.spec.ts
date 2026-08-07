@@ -394,6 +394,14 @@ describe('external edges', () => {
     const result = extractDomainMap(graph)
 
     const stripeEdge = result.domainEdges.find((e) => e.target === 'external:Stripe')
+    expect(stripeEdge).toMatchObject({
+      label: '2 relationships',
+      data: {
+        connectionCount: 2,
+        apiCount: 0,
+        eventCount: 0,
+      },
+    })
     expect(stripeEdge?.data?.connections).toHaveLength(2)
     expect(stripeEdge?.data?.connections).toContainEqual({
       sourceName: 'PlaceOrder',
@@ -426,6 +434,7 @@ describe('getConnectedDomains', () => {
         source: 'orders',
         target: 'payments',
         data: {
+          connectionCount: 1,
           apiCount: 1,
           eventCount: 0,
           connections: [],
@@ -436,6 +445,7 @@ describe('getConnectedDomains', () => {
         source: 'orders',
         target: 'shipping',
         data: {
+          connectionCount: 1,
           apiCount: 0,
           eventCount: 1,
           connections: [],
@@ -456,6 +466,7 @@ describe('getConnectedDomains', () => {
         source: 'orders',
         target: 'payments',
         data: {
+          connectionCount: 1,
           apiCount: 1,
           eventCount: 0,
           connections: [],
@@ -466,6 +477,7 @@ describe('getConnectedDomains', () => {
         source: 'shipping',
         target: 'payments',
         data: {
+          connectionCount: 1,
           apiCount: 1,
           eventCount: 0,
           connections: [],
@@ -486,6 +498,7 @@ describe('getConnectedDomains', () => {
         source: 'orders',
         target: 'payments',
         data: {
+          connectionCount: 1,
           apiCount: 1,
           eventCount: 0,
           connections: [],
@@ -496,6 +509,7 @@ describe('getConnectedDomains', () => {
         source: 'payments',
         target: 'notifications',
         data: {
+          connectionCount: 1,
           apiCount: 1,
           eventCount: 0,
           connections: [],

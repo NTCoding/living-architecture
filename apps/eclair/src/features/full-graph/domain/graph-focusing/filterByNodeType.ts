@@ -1,6 +1,9 @@
-import type {
-  Node, Edge, NodeType, NodeId 
-} from '@/platform/domain/eclair-types'
+import type * as EclairTypes from '@/platform/domain/eclair-types'
+import { getEffectiveNodeType } from '@/platform/domain/node-type-presentation'
+
+type Node = EclairTypes.Node
+type Edge = EclairTypes.Edge
+type NodeId = EclairTypes.NodeId
 
 export interface FilteredGraph {
   nodes: Node[]
@@ -102,9 +105,6 @@ function processEdgeForRewiring(
     if (originalEdge.type !== undefined) {
       rewiredEdge.type = originalEdge.type
     }
-    if (originalEdge.type !== undefined) {
-      rewiredEdge.type = originalEdge.type
-    }
     rewiredEdges.push(rewiredEdge)
     addedEdgePairs.add(edgeKey)
   }
@@ -113,9 +113,9 @@ function processEdgeForRewiring(
 export function filterByNodeType(
   nodes: Node[],
   edges: Edge[],
-  visibleTypes: Set<NodeType>,
+  visibleTypes: Set<string>,
 ): FilteredGraph {
-  const visibleNodes = nodes.filter((n) => visibleTypes.has(n.type))
+  const visibleNodes = nodes.filter((n) => visibleTypes.has(getEffectiveNodeType(n)))
   const visibleNodeIds = new Set(visibleNodes.map((n) => n.id))
 
   const outgoingEdges = buildOutgoingEdgesMap(edges)

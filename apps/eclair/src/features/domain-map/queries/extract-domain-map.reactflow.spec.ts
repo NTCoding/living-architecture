@@ -308,7 +308,7 @@ describe('extractDomainMap React Flow compatibility', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it('includes label with API count', () => {
+  it('labels a single cross-domain relationship', () => {
     const graph = createMinimalGraph({
       components: [
         parseNode({
@@ -341,10 +341,10 @@ describe('extractDomainMap React Flow compatibility', () => {
 
     const result = extractDomainMap(graph)
 
-    expect(result.domainEdges[0]?.label).toBe('1 API')
+    expect(result.domainEdges[0]?.label).toBe('1 relationship')
   })
 
-  it('includes label with event count', () => {
+  it('counts an event relationship without changing its meaning', () => {
     const graph = createMinimalGraph({
       components: [
         parseNode({
@@ -377,10 +377,10 @@ describe('extractDomainMap React Flow compatibility', () => {
 
     const result = extractDomainMap(graph)
 
-    expect(result.domainEdges[0]?.label).toBe('1 Event')
+    expect(result.domainEdges[0]?.label).toBe('1 relationship')
   })
 
-  it('includes combined label with both API and event counts', () => {
+  it('labels the total across different endpoint types', () => {
     const graph = createMinimalGraph({
       components: [
         parseNode({
@@ -427,7 +427,7 @@ describe('extractDomainMap React Flow compatibility', () => {
 
     const result = extractDomainMap(graph)
 
-    expect(result.domainEdges[0]?.label).toBe('1 API · 1 Event')
+    expect(result.domainEdges[0]?.label).toBe('2 relationships')
   })
 
   it('uses cyan style for API-only edges', () => {

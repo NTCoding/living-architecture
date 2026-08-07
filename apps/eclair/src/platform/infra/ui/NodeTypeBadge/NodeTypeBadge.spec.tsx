@@ -62,11 +62,11 @@ describe('NodeTypeBadge', () => {
     expect(badge).toHaveClass('badge-eventhandler')
   })
 
-  it('renders Custom type as JOB badge with indigo gradient', () => {
+  it('does not mislabel an unresolved Custom type as a Job', () => {
     render(<NodeTypeBadge type="Custom" />)
 
     const badge = screen.getByTestId('node-type-badge')
-    expect(badge).toHaveTextContent('JOB')
+    expect(badge).toHaveTextContent('Custom')
     expect(badge).toHaveClass('badge-custom')
   })
 })

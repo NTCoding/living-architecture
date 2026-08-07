@@ -118,29 +118,29 @@ describe('FlowsPage', () => {
       expect(totalValue).toHaveTextContent('3')
     })
 
-    it('renders UI Entries stat with icon and count', () => {
+    it('renders UI entry-point stat with icon and count', () => {
       renderWithRouter(createTestGraph())
 
-      expect(screen.getByText('UI Entries')).toHaveClass('stats-bar-label')
-      const uiValue = screen.getByTestId('stat-ui-entries')
+      expect(screen.getByText('UI entries')).toHaveClass('stats-bar-label')
+      const uiValue = screen.getByTestId('stat-UI')
       expect(uiValue).toHaveClass('stats-bar-value')
       expect(uiValue).toHaveTextContent('1')
     })
 
-    it('renders API Entries stat with icon and count', () => {
+    it('renders API entry-point stat with icon and count', () => {
       renderWithRouter(createTestGraph())
 
-      expect(screen.getByText('API Entries')).toHaveClass('stats-bar-label')
-      const apiValue = screen.getByTestId('stat-api-entries')
+      expect(screen.getByText('API entries')).toHaveClass('stats-bar-label')
+      const apiValue = screen.getByTestId('stat-API')
       expect(apiValue).toHaveClass('stats-bar-value')
       expect(apiValue).toHaveTextContent('1')
     })
 
-    it('renders Scheduled Jobs stat with icon and count', () => {
+    it('renders the declared custom entry-point type with icon and count', () => {
       renderWithRouter(createTestGraph())
 
-      expect(screen.getByText('Scheduled Jobs')).toHaveClass('stats-bar-label')
-      const jobsValue = screen.getByTestId('stat-scheduled-jobs')
+      expect(screen.getByText('ScheduledJob entries')).toHaveClass('stats-bar-label')
+      const jobsValue = screen.getByTestId('stat-ScheduledJob')
       expect(jobsValue).toHaveClass('stats-bar-value')
       expect(jobsValue).toHaveTextContent('1')
     })
@@ -183,12 +183,12 @@ describe('FlowsPage', () => {
       expect(screen.queryByText('Daily Report')).not.toBeInTheDocument()
     })
 
-    it('filters by Jobs type', async () => {
+    it('filters by the declared custom type', async () => {
       const user = userEvent.setup()
 
       renderWithRouter(createTestGraph())
 
-      await user.click(screen.getByRole('button', { name: 'Jobs' }))
+      await user.click(screen.getByRole('button', { name: 'ScheduledJob' }))
 
       expect(screen.queryByText('Order Form')).not.toBeInTheDocument()
       expect(screen.queryByText('GET /health')).not.toBeInTheDocument()

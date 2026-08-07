@@ -52,7 +52,7 @@ function calculatePositions(
 }
 
 function calculateViewBox(positions: DomainPosition[]): string {
-  const padding = 20
+  const padding = 60
   const maxNodeRadius = 40
 
   const xs = positions.map((p) => p.x)
@@ -252,6 +252,7 @@ export function DomainContextGraph({
                 toRadius={toPos.isCurrent ? 40 : 30}
                 testId={`edge-${domainId}-${conn.targetDomain}`}
                 direction={conn.direction}
+                relationshipCount={conn.relationshipCount}
               />
             )
           })}

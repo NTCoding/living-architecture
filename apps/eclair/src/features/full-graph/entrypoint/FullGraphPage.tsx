@@ -4,8 +4,9 @@ import {
 import { useSearchParams } from 'react-router-dom'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type {
-  NodeType, Node, Edge 
+  Node, Edge,
 } from '../queries/eclair-types'
+import { extractNodeTypes } from '../queries/extract-node-types'
 import { useTheme } from '@/platform/infra/theme/ThemeContext'
 import { useExport } from '@/platform/infra/export/ExportContext'
 import {
@@ -19,7 +20,7 @@ import { GraphTooltip } from '@/platform/infra/graph/GraphTooltip/GraphTooltip'
 import { DomainFilters } from '../components/DomainFilters/DomainFilters'
 import { NodeTypeFilters } from '../components/NodeTypeFilters/NodeTypeFilters'
 import {
-  filterByNodeType, getThemeFocusColors
+  filterByNodeType, getThemeFocusColors,
 } from '../queries/graph-focusing'
 import type { TooltipData } from '@/platform/infra/graph/graph-types'
 
@@ -52,11 +53,6 @@ interface DomainInfo {
   nodeCount: number
 }
 
-interface NodeTypeInfo {
-  type: NodeType
-  nodeCount: number
-}
-
 function extractDomains(graph: RiviereGraph): DomainInfo[] {
   const domainCounts = new Map<string, number>()
 
@@ -73,27 +69,6 @@ function extractDomains(graph: RiviereGraph): DomainInfo[] {
     .sort((a, b) => compareByCodePoint(a.name, b.name))
 }
 
-function extractNodeTypes(graph: RiviereGraph): NodeTypeInfo[] {
-  const typeCounts = new Map<NodeType, number>()
-
-  for (const node of graph.components) {
-    const count = typeCounts.get(node.type) ?? 0
-    typeCounts.set(node.type, count + 1)
-  }
-
-  if (graph.externalLinks !== undefined && graph.externalLinks.length > 0) {
-    const uniqueExternals = new Set(graph.externalLinks.map((l) => l.target.name))
-    typeCounts.set('External', uniqueExternals.size)
-  }
-
-  return Array.from(typeCounts.entries())
-    .map(([type, nodeCount]) => ({
-      type,
-      nodeCount,
-    }))
-    .sort((a, b) => compareByCodePoint(a.type, b.type))
-}
-
 export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.ReactElement {
   const { theme } = useTheme()
   const {
@@ -105,13 +80,9 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
   const exportContainerRef = useRef<HTMLDivElement>(null)
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null)
   const [filterPanelOpen, setFilterPanelOpen] = useState(false)
-  const [visibleTypes, setVisibleTypes] = useState<Set<NodeType>>(() => {
-    const types = new Set(graph.components.map((n) => n.type))
-    if (graph.externalLinks !== undefined && graph.externalLinks.length > 0) {
-      types.add('External')
-    }
-    return types
-  })
+  const [visibleTypes, setVisibleTypes] = useState<Set<string>>(
+    () => new Set(extractNodeTypes(graph).map((nodeType) => nodeType.type)),
+  )
   const HIDE_ALL_DOMAINS = '__HIDE_ALL__'
   const [focusedDomain, setFocusedDomain] = useState<string | null>(null)
 
@@ -215,7 +186,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
 
   const focusColors = getThemeFocusColors(theme)
 
-  const handleToggleType = useCallback((type: NodeType) => {
+  const handleToggleType = useCallback((type: string) => {
     setVisibleTypes((prev) => {
       const next = new Set(prev)
       if (next.has(type)) {
@@ -290,13 +261,6 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
         onNodeHover={handleNodeHover}
         onBackgroundClick={handleBackgroundClick}
       />
-
-      {focusedDomain !== null && focusedDomain !== HIDE_ALL_DOMAINS && (
-        <div
-          className="pointer-events-none absolute inset-0 transition-opacity duration-600"
-          style={{ backgroundColor: focusColors.overlayBackground }}
-        />
-      )}
 
       <GraphTooltip
         data={tooltipData}
@@ -389,6 +353,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
             onToggleType={handleToggleType}
             onShowAll={handleShowAllTypes}
             onHideAll={handleHideAllTypes}
+            theme={theme}
           />
         </div>
       )}

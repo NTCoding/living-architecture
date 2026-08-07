@@ -4,12 +4,16 @@ import type { Flow } from '../../queries/extract-flows'
 import { CodeLinkMenu } from '@/platform/infra/ui/CodeLinkMenu/CodeLinkMenu'
 import { FlowTrace } from '../FlowTrace/FlowTrace'
 import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
+import { getNodeTypeDescription } from '@/platform/domain/node-type-presentation'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
 interface FlowCardProps {
   readonly flow: Flow
   readonly graph: RiviereGraph
   readonly expanded: boolean
   readonly onToggle: () => void
+  readonly theme?: Theme
 }
 
 export function FlowCard({
@@ -17,6 +21,7 @@ export function FlowCard({
   graph,
   expanded,
   onToggle,
+  theme = DEFAULT_THEME,
 }: Readonly<FlowCardProps>): React.ReactElement {
   const navigate = useNavigate()
   const { entryPoint } = flow
@@ -35,7 +40,11 @@ export function FlowCard({
         className="flow-item-header"
       >
         <div data-testid="flow-item-left" className="flow-item-left">
-          <NodeTypeBadge type={entryPoint.type} />
+          <NodeTypeBadge
+            type={entryPoint.type}
+            description={getNodeTypeDescription(graph, entryPoint.type)}
+            theme={theme}
+          />
           <span className="flow-item-title" title={entryPoint.name}>
             {entryPoint.name}
           </span>
@@ -65,7 +74,7 @@ export function FlowCard({
           />
         </div>
       </button>
-      {expanded && <FlowTrace steps={flow.steps} graph={graph} />}
+      {expanded && <FlowTrace steps={flow.steps} graph={graph} theme={theme} />}
     </div>
   )
 }

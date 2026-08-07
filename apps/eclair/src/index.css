@@ -437,7 +437,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(circle, rgba(13, 148, 136, 0.25) 1.5px, transparent 1.5px);
+    background-image: radial-gradient(circle, rgba(100, 116, 139, 0.22) 1.5px, transparent 1.5px);
     background-size: 24px 24px;
     pointer-events: none;
   }
@@ -447,7 +447,7 @@
   }
 
   .theme-voltage .canvas-background::before {
-    background-image: radial-gradient(circle, rgba(0, 212, 255, 0.15) 1.5px, transparent 1.5px);
+    background-image: radial-gradient(circle, rgba(160, 160, 176, 0.18) 1.5px, transparent 1.5px);
   }
 
   .theme-circuit .canvas-background {

@@ -1,33 +1,25 @@
 import { useMemo } from 'react'
-import type { NodeType } from '@/platform/domain/eclair-types'
 import type { DomainDetails } from '../../queries/extract-domain-details'
 import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
 import { CodeLinkMenu } from '@/platform/infra/ui/CodeLinkMenu/CodeLinkMenu'
 import { EntityAccordion } from '@/platform/infra/ui/EntityAccordion/EntityAccordion'
 import { EventsSection } from './DomainDetailViewEvents'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
 type DomainDetailsNode = DomainDetails['nodes'][number]
 type DomainDetailsEntity = DomainDetails['entities'][number]
-export type NodeTypeFilter = NodeType | 'all'
-const NODE_TYPES: NodeType[] = [
-  'UI',
-  'API',
-  'UseCase',
-  'DomainOp',
-  'Event',
-  'EventHandler',
-  'Custom',
-]
 interface DomainDetailViewProps {
   readonly domain: DomainDetails
   readonly nodeSearch: string
   readonly setNodeSearch: (search: string) => void
-  readonly nodeTypeFilter: NodeTypeFilter
-  readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
+  readonly nodeTypeFilter: string
+  readonly setNodeTypeFilter: (filter: string) => void
   readonly entitySearch: string
   readonly setEntitySearch: (search: string) => void
   readonly eventSearch: string
   readonly setEventSearch: (search: string) => void
+  readonly theme?: Theme
 }
 
 export function DomainDetailView({
@@ -40,6 +32,7 @@ export function DomainDetailView({
   setEntitySearch,
   eventSearch,
   setEventSearch,
+  theme = DEFAULT_THEME,
 }: DomainDetailViewProps): React.ReactElement {
   const filteredNodes = useMemo(() => {
     return domain.nodes.filter((node) => {
@@ -81,6 +74,10 @@ export function DomainDetailView({
   const hasEvents = domain.events.published.length > 0 || domain.events.consumed.length > 0
   const operationsCount = domain.entities.reduce((sum, e) => sum + e.operations.length, 0)
   const eventsCount = domain.events.published.length + domain.events.consumed.length
+  const nodeTypes = useMemo(
+    () => [...new Set(domain.nodes.map((node) => node.type))].sort((a, b) => a.localeCompare(b)),
+    [domain.nodes],
+  )
 
   return (
     <>
@@ -96,6 +93,8 @@ export function DomainDetailView({
         setNodeSearch={setNodeSearch}
         nodeTypeFilter={nodeTypeFilter}
         setNodeTypeFilter={setNodeTypeFilter}
+        nodeTypes={nodeTypes}
+        theme={theme}
       />
       <EntitiesSection
         filteredEntities={filteredEntities}
@@ -167,8 +166,10 @@ interface NodesSectionProps {
   readonly domain: DomainDetails
   readonly nodeSearch: string
   readonly setNodeSearch: (search: string) => void
-  readonly nodeTypeFilter: NodeTypeFilter
-  readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
+  readonly nodeTypeFilter: string
+  readonly setNodeTypeFilter: (filter: string) => void
+  readonly nodeTypes: readonly string[]
+  readonly theme: Theme
 }
 function NodesSection({
   filteredNodes,
@@ -177,6 +178,8 @@ function NodesSection({
   setNodeSearch,
   nodeTypeFilter,
   setNodeTypeFilter,
+  nodeTypes,
+  theme,
 }: NodesSectionProps): React.ReactElement {
   return (
     <section data-testid="detail-panel">
@@ -190,8 +193,9 @@ function NodesSection({
         setNodeSearch={setNodeSearch}
         nodeTypeFilter={nodeTypeFilter}
         setNodeTypeFilter={setNodeTypeFilter}
+        nodeTypes={nodeTypes}
       />
-      <NodesListOrEmpty filteredNodes={filteredNodes} domain={domain} />
+      <NodesListOrEmpty filteredNodes={filteredNodes} domain={domain} theme={theme} />
     </section>
   )
 }
@@ -199,14 +203,16 @@ function NodesSection({
 interface NodeFilterBarProps {
   readonly nodeSearch: string
   readonly setNodeSearch: (search: string) => void
-  readonly nodeTypeFilter: NodeTypeFilter
-  readonly setNodeTypeFilter: (filter: NodeTypeFilter) => void
+  readonly nodeTypeFilter: string
+  readonly setNodeTypeFilter: (filter: string) => void
+  readonly nodeTypes: readonly string[]
 }
 function NodeFilterBar({
   nodeSearch,
   setNodeSearch,
   nodeTypeFilter,
   setNodeTypeFilter,
+  nodeTypes,
 }: NodeFilterBarProps): React.ReactElement {
   return (
     <div data-testid="filters-section" className="filters-section mb-4">
@@ -230,7 +236,7 @@ function NodeFilterBar({
         >
           All
         </button>
-        {NODE_TYPES.map((type) => (
+        {nodeTypes.map((type) => (
           <button
             key={type}
             type="button"
@@ -248,15 +254,16 @@ function NodeFilterBar({
 interface NodesListOrEmptyProps {
   readonly filteredNodes: Array<DomainDetailsNode>
   readonly domain: DomainDetails
+  readonly theme: Theme
 }
 function NodesListOrEmpty({
-  filteredNodes, domain 
+  filteredNodes, domain, theme,
 }: NodesListOrEmptyProps): React.ReactElement {
   if (filteredNodes.length > 0) {
     return (
       <div data-testid="nodes-list" className="max-h-[320px] space-y-2 overflow-y-auto">
         {filteredNodes.map((node) => (
-          <NodeListItem key={node.id} node={node} />
+          <NodeListItem key={node.id} node={node} theme={theme} />
         ))}
       </div>
     )
@@ -269,8 +276,14 @@ function NodesListOrEmpty({
   )
 }
 
-interface NodeListItemProps {readonly node: DomainDetailsNode}
-function NodeListItem({ node }: NodeListItemProps): React.ReactElement {
+interface NodeListItemProps {
+  readonly node: DomainDetailsNode
+  readonly theme: Theme
+}
+function NodeListItem({
+  node,
+  theme,
+}: NodeListItemProps): React.ReactElement {
   const sourceLocation = node.sourceLocation
   const hasSourceLocation = sourceLocation?.lineNumber !== undefined
   const hasNodeLocation = node.location !== undefined
@@ -305,7 +318,7 @@ function NodeListItem({ node }: NodeListItemProps): React.ReactElement {
   return (
     <div className="flex items-center justify-between gap-4 rounded-[var(--radius)] border border-[var(--border-color)] bg-[var(--bg-secondary)] px-3 py-2 shadow-sm">
       <div className="flex min-w-0 items-center gap-3">
-        <NodeTypeBadge type={node.type} />
+        <NodeTypeBadge type={node.type} description={node.typeDescription} theme={theme} />
         <span className="truncate text-sm font-medium text-[var(--text-primary)]">{node.name}</span>
       </div>
       {nodeAction}

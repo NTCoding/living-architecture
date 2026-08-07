@@ -35,6 +35,12 @@ interface DomainMapPageProps {readonly graph: RiviereGraph}
 
 const nodeTypes = { domain: DomainNode }
 
+function getConnectionTypeLabel(targetNodeType: string): string {
+  if (targetNodeType === 'EventHandler') return 'EVENT'
+  if (targetNodeType === 'API') return 'API'
+  return targetNodeType
+}
+
 export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -104,8 +110,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
         event.clientY,
         edge.source,
         edge.target,
-        edge.data.apiCount,
-        edge.data.eventCount,
+        edge.data.connectionCount,
       )
     },
     [showEdgeTooltip],
@@ -131,6 +136,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
         sourceNodeCount,
         targetNodeCount,
         edge.data.connections,
+        edge.data.connectionCount,
       )
     },
     [selectEdge, nodeCountMap],
@@ -181,7 +187,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
     })
   }, [edges, focusedDomain])
 
-  const totalConnections = inspector.apiCount + inspector.eventCount
+  const totalConnections = inspector.connectionCount
 
   useEffect(() => {
     const graphName = graph.metadata.name ?? UNNAMED_GRAPH_EXPORT_NAME
@@ -338,7 +344,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
                       <span
                         className={isEvent ? 'badge-integration-event' : 'badge-integration-api'}
                       >
-                        {isEvent ? 'EVENT' : 'API'}
+                        {getConnectionTypeLabel(conn.targetNodeType)}
                       </span>
                     </div>
                     <div className="mt-2 text-sm text-[var(--text-primary)]">{conn.sourceName}</div>

@@ -1,6 +1,7 @@
 import type {
   Node, Edge, NodeType 
 } from '@/platform/domain/eclair-types'
+import { getNodeTypeColor } from '@/platform/domain/node-type-presentation'
 import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import type {
   SimulationNodeDatum, SimulationLinkDatum 
@@ -9,6 +10,8 @@ import type {
 export interface SimulationNode extends SimulationNodeDatum {
   id: string
   type: NodeType
+  effectiveType?: string | undefined
+  typeDescription?: string | undefined
   name: string
   domain: string
   originalNode: Node
@@ -38,44 +41,44 @@ interface NodeColors {
 /*
  * NODE TYPE COLORS - MUST STAY IN SYNC WITH CSS VARIABLES
  * =========================================================
- * Source of truth: /apps/eclair/src/index.css (CSS variables)
+ * Source of truth: /apps/eclair/src/platform/domain/node-type-presentation.ts
  * Documentation: /apps/eclair/docs/brand/graph-visualization.md
  *
  * When updating colors:
- * 1. Update index.css :root and theme classes
- * 2. Update this NODE_COLORS object to match
- * 3. Update brand docs table
+ * 1. Update node-type-presentation.ts
+ * 2. Update matching CSS variables where they are still used
+ * 3. Update the brand docs table
  */
 export const NODE_COLORS: NodeColors = {
   stream: {
-    UI: '#F43F5E',
-    API: '#0D9488',
-    UseCase: '#A78BFA',
-    DomainOp: '#06B6D4',
-    Event: '#F59E0B',
-    EventHandler: '#EAB308',
-    Custom: '#78716C',
-    External: '#94A3B8',
+    UI: getNodeTypeColor('UI', 'stream'),
+    API: getNodeTypeColor('API', 'stream'),
+    UseCase: getNodeTypeColor('UseCase', 'stream'),
+    DomainOp: getNodeTypeColor('DomainOp', 'stream'),
+    Event: getNodeTypeColor('Event', 'stream'),
+    EventHandler: getNodeTypeColor('EventHandler', 'stream'),
+    Custom: getNodeTypeColor('Custom', 'stream'),
+    External: getNodeTypeColor('External', 'stream'),
   },
   voltage: {
-    UI: '#FB7185',
-    API: '#00D4FF',
-    UseCase: '#C4B5FD',
-    DomainOp: '#22D3EE',
-    Event: '#F97316',
-    EventHandler: '#FACC15',
-    Custom: '#A8A29E',
-    External: '#94A3B8',
+    UI: getNodeTypeColor('UI', 'voltage'),
+    API: getNodeTypeColor('API', 'voltage'),
+    UseCase: getNodeTypeColor('UseCase', 'voltage'),
+    DomainOp: getNodeTypeColor('DomainOp', 'voltage'),
+    Event: getNodeTypeColor('Event', 'voltage'),
+    EventHandler: getNodeTypeColor('EventHandler', 'voltage'),
+    Custom: getNodeTypeColor('Custom', 'voltage'),
+    External: getNodeTypeColor('External', 'voltage'),
   },
   circuit: {
-    UI: '#E11D48',
-    API: '#0969DA',
-    UseCase: '#A78BFA',
-    DomainOp: '#0550AE',
-    Event: '#BF8700',
-    EventHandler: '#9A6700',
-    Custom: '#57534E',
-    External: '#9CA3AF',
+    UI: getNodeTypeColor('UI', 'circuit'),
+    API: getNodeTypeColor('API', 'circuit'),
+    UseCase: getNodeTypeColor('UseCase', 'circuit'),
+    DomainOp: getNodeTypeColor('DomainOp', 'circuit'),
+    Event: getNodeTypeColor('Event', 'circuit'),
+    EventHandler: getNodeTypeColor('EventHandler', 'circuit'),
+    Custom: getNodeTypeColor('Custom', 'circuit'),
+    External: getNodeTypeColor('External', 'circuit'),
   },
 }
 

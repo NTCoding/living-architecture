@@ -165,23 +165,9 @@ export function ForceGraph({
       zoom: d3.ZoomBehavior<SVGSVGElement, unknown>,
       svg: d3.Selection<SVGSVGElement, unknown, d3.BaseType, unknown>,
       nodes: SimulationNode[],
-      domain: string | null | undefined,
       highlightIds: Set<string> | undefined,
       shouldFitViewport: boolean,
     ) => {
-      if (domain) {
-        applyFocusMode({
-          svg,
-          node,
-          link,
-          zoom,
-          nodes,
-          domain,
-          theme,
-          dimensions,
-        })
-        return
-      }
       if (highlightIds) {
         return
       }
@@ -193,7 +179,7 @@ export function ForceGraph({
         fitViewportFn(svg, zoom, nodes)
       }
     },
-    [fitViewportFn, dimensions, theme],
+    [fitViewportFn, dimensions],
   )
 
   const setupNodeEvents = useCallback(
@@ -229,7 +215,7 @@ export function ForceGraph({
     const svg = d3.select(svgRef.current)
     svg.selectAll('*').remove()
 
-    const regularNodes = createSimulationNodes(filteredNodes)
+    const regularNodes = createSimulationNodes(filteredNodes, graph.metadata.customTypes)
     const regularLinks = createSimulationLinks(filteredEdges)
     const externalNodes = createExternalNodes(graph.externalLinks)
     const externalSimLinks = createExternalLinks(graph.externalLinks)
@@ -343,7 +329,7 @@ export function ForceGraph({
     zoomRef.current = zoom
     nodesRef.current = nodes
 
-    applyVisualization(node, link, zoom, svg, nodes, focusedDomain, undefined, isGraphDataChange)
+    applyVisualization(node, link, zoom, svg, nodes, undefined, isGraphDataChange)
     svg.on('click', handleBackgroundClick)
   }, [
     filteredNodes,
@@ -351,11 +337,31 @@ export function ForceGraph({
     allEdgesForTracing,
     theme,
     dimensions,
-    focusedDomain,
     applyVisualization,
     setupNodeEvents,
     handleBackgroundClick,
   ])
+
+  useEffect(() => {
+    const node = nodeSelectionRef.current
+    const link = linkSelectionRef.current
+    if (node === null || link === null) return
+
+    if (focusedDomain) {
+      applyFocusMode({
+        node,
+        link,
+        domain: focusedDomain,
+        theme,
+      })
+      return
+    }
+
+    applyResetMode({
+      node,
+      link,
+    })
+  }, [focusedDomain, theme, filteredNodes])
 
   useEffect(() => {
     const node = nodeSelectionRef.current

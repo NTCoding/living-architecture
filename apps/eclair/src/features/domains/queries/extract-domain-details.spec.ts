@@ -155,7 +155,7 @@ describe('extractDomainDetails', () => {
       })
     })
 
-    it('sorts nodes by type priority (UI, API, UseCase, DomainOp, Event, EventHandler, Custom)', () => {
+    it('sorts built-in nodes by type priority', () => {
       const graph = createMinimalGraph({
         metadata: {
           domains: parseDomainMetadata({
@@ -487,10 +487,6 @@ describe('extractDomainDetails', () => {
         UI: 1,
         API: 2,
         UseCase: 1,
-        DomainOp: 0,
-        Event: 0,
-        EventHandler: 0,
-        Custom: 0,
       })
     })
   })

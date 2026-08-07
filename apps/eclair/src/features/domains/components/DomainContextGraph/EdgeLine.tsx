@@ -7,6 +7,7 @@ interface EdgeLineProps {
   readonly toRadius: number
   readonly testId: string
   readonly direction: 'incoming' | 'outgoing'
+  readonly relationshipCount: number
 }
 
 export function EdgeLine({
@@ -16,6 +17,7 @@ export function EdgeLine({
   toRadius,
   testId,
   direction,
+  relationshipCount,
 }: Readonly<EdgeLineProps>): React.ReactElement {
   const dx = to.x - from.x
   const dy = to.y - from.y
@@ -43,6 +45,14 @@ export function EdgeLine({
         strokeOpacity="0.6"
         markerEnd="url(#arrow-marker)"
       />
+      <text
+        x={(startX + endX) / 2}
+        y={(startY + endY) / 2 - 6}
+        textAnchor="middle"
+        className="fill-[var(--text-secondary)] text-[10px] font-semibold"
+      >
+        {relationshipCount} {relationshipCount === 1 ? 'relationship' : 'relationships'}
+      </text>
     </g>
   )
 }

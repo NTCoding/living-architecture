@@ -194,7 +194,7 @@ describe('extractFlows', () => {
     expect(flows).toHaveLength(2)
   })
 
-  it('includes Custom nodes as entry points', () => {
+  it('includes declared custom types as entry points', () => {
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
@@ -222,7 +222,7 @@ describe('extractFlows', () => {
     const flows = extractFlows(graph)
 
     expect(flows).toHaveLength(1)
-    expect(flows[0]?.entryPoint.type).toBe('Custom')
+    expect(flows[0]?.entryPoint.type).toBe('ScheduledJob')
   })
 
   it('preserves httpMethod and path for API entry points', () => {

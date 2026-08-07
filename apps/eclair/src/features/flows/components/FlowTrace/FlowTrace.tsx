@@ -1,32 +1,36 @@
 import { useState } from 'react'
 import type { FlowStep } from '../../queries/extract-flows'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type { NodeType } from '@/platform/domain/eclair-types'
 import { FlowGraphView } from './FlowGraphView'
+import { getNodeTypeColor } from '@/platform/domain/node-type-presentation'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
 type ViewMode = 'waterfall' | 'graph'
 
 interface FlowTraceProps {
   readonly steps: readonly FlowStep[]
   readonly graph: RiviereGraph
+  readonly theme?: Theme
 }
 
-function getCircleTypeClass(nodeType: NodeType): string {
-  const typeClassMap: Record<NodeType, string> = {
-    UI: 'flow-step-circle-ui',
-    API: 'flow-step-circle-api',
-    UseCase: 'flow-step-circle-usecase',
-    DomainOp: 'flow-step-circle-domainop',
-    Event: 'flow-step-circle-event',
-    EventHandler: 'flow-step-circle-eventhandler',
-    Custom: 'flow-step-circle-custom',
-    External: 'flow-step-circle-external',
-  }
-  return typeClassMap[nodeType]
+const CIRCLE_CLASSES: Readonly<Record<string, string>> = {
+  UI: 'flow-step-circle-ui',
+  API: 'flow-step-circle-api',
+  UseCase: 'flow-step-circle-usecase',
+  DomainOp: 'flow-step-circle-domainop',
+  Event: 'flow-step-circle-event',
+  EventHandler: 'flow-step-circle-eventhandler',
+  Custom: 'flow-step-circle-custom',
+  External: 'flow-step-circle-external',
+}
+
+function getCircleTypeClass(type: string): string {
+  return CIRCLE_CLASSES[type] ?? 'flow-step-circle-custom'
 }
 
 export function FlowTrace({
-  steps, graph 
+  steps, graph, theme = DEFAULT_THEME,
 }: Readonly<FlowTraceProps>): React.ReactElement {
   const [viewMode, setViewMode] = useState<ViewMode>('waterfall')
 
@@ -65,7 +69,10 @@ export function FlowTrace({
           {steps.map((step, index) => (
             <div key={step.node.id}>
               <div className="flow-step">
-                <div className={`flow-step-circle ${getCircleTypeClass(step.node.type)}`}>
+                <div
+                  className={`flow-step-circle ${getCircleTypeClass(step.node.type)}`}
+                  style={{ backgroundColor: getNodeTypeColor(step.node.type, theme) }}
+                >
                   {index + 1}
                 </div>
                 <div className="flow-step-content">
@@ -106,7 +113,7 @@ export function FlowTrace({
 
       {viewMode === 'graph' && (
         <div data-testid="flow-graph-view" className="flow-graph-view">
-          <FlowGraphView steps={steps} graph={graph} />
+          <FlowGraphView steps={steps} graph={graph} theme={theme} />
         </div>
       )}
     </div>

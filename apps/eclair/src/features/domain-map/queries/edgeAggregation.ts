@@ -5,19 +5,6 @@ export interface ConnectionDetail {
   targetNodeType: string
 }
 
-export function formatEdgeLabel(apiCount: number, eventCount: number): string | undefined {
-  if (apiCount > 0 && eventCount > 0) {
-    return `${apiCount} API · ${eventCount} Event`
-  }
-  if (apiCount > 0) {
-    return `${apiCount} API`
-  }
-  if (eventCount > 0) {
-    return `${eventCount} Event`
-  }
-  return undefined
-}
-
 export function getEdgeType(type: string | undefined): 'sync' | 'async' | 'unknown' {
   if (type === 'sync') return 'sync'
   if (type === 'async') return 'async'
@@ -27,6 +14,7 @@ export function getEdgeType(type: string | undefined): 'sync' | 'async' | 'unkno
 export interface EdgeAggregation {
   source: string
   target: string
+  connectionCount: number
   apiCount: number
   eventCount: number
   connections: ConnectionDetail[]
@@ -54,6 +42,7 @@ export function recordEdgeAggregation(
     aggregation.set(key, {
       source: sourceInfo.domain,
       target: targetInfo.domain,
+      connectionCount: 1,
       apiCount: isApi ? 1 : 0,
       eventCount: isEventHandler ? 1 : 0,
       connections: [connection],
@@ -61,6 +50,7 @@ export function recordEdgeAggregation(
     return
   }
 
+  existing.connectionCount += 1
   if (isApi) {
     existing.apiCount += 1
   }

@@ -2,13 +2,11 @@ import {
   useState, useCallback 
 } from 'react'
 
-export type FlowFilter = 'all' | 'ui' | 'api' | 'jobs'
-
 interface FlowsState {
   searchQuery: string
   setSearchQuery: (query: string) => void
-  activeFilter: FlowFilter
-  setActiveFilter: (filter: FlowFilter) => void
+  activeFilter: string
+  setActiveFilter: (filter: string) => void
   expandedFlowIds: Set<string>
   toggleFlow: (flowId: string) => void
   activeDomains: Set<string>
@@ -17,7 +15,7 @@ interface FlowsState {
 
 export function useFlowsState(): FlowsState {
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeFilter, setActiveFilter] = useState<FlowFilter>('all')
+  const [activeFilter, setActiveFilter] = useState('all')
   const [expandedFlowIds, setExpandedFlowIds] = useState<Set<string>>(new Set())
   const [activeDomains, setActiveDomains] = useState<Set<string>>(new Set())
 

@@ -31,18 +31,10 @@ function createNode(overrides: Partial<RawNode> = {}): ReturnType<typeof parseNo
 
 describe('domainNodeBreakdown', () => {
   describe('countNodesByType', () => {
-    it('returns zero counts for all types with empty array', () => {
+    it('returns no type buckets for an empty array', () => {
       const result = countNodesByType([])
 
-      const expected: NodeBreakdown = {
-        UI: 0,
-        API: 0,
-        UseCase: 0,
-        DomainOp: 0,
-        Event: 0,
-        EventHandler: 0,
-        Custom: 0,
-      }
+      const expected: NodeBreakdown = {}
       expect(result).toStrictEqual(expected)
     })
 
@@ -92,7 +84,7 @@ describe('domainNodeBreakdown', () => {
         DomainOp: 1,
         Event: 1,
         EventHandler: 1,
-        Custom: 1,
+        TestCustomType: 1,
       })
     })
 
@@ -115,7 +107,7 @@ describe('domainNodeBreakdown', () => {
       const result = countNodesByType(nodes)
 
       expect(result.API).toBe(3)
-      expect(result.UI).toBe(0)
+      expect(result.UI).toBeUndefined()
     })
 
     it('handles mixed node types', () => {
@@ -152,7 +144,6 @@ describe('domainNodeBreakdown', () => {
         API: 2,
         Event: 1,
         EventHandler: 1,
-        UseCase: 0,
       })
     })
   })
@@ -215,7 +206,7 @@ describe('domainNodeBreakdown', () => {
       expect(result[0]?.location).toBe('src/api/orders.ts')
     })
 
-    it('sorts by type priority (UI, API, UseCase, DomainOp, Event, EventHandler, Custom)', () => {
+    it('sorts built-ins by type priority and then declared custom types', () => {
       const nodes = [
         createNode({
           id: 'handler-1',
@@ -262,7 +253,7 @@ describe('domainNodeBreakdown', () => {
         'DomainOp',
         'Event',
         'EventHandler',
-        'Custom',
+        'TestCustomType',
       ])
     })
 

@@ -77,7 +77,7 @@ export function DomainDetailModal({
                 {domain.nodes.map((node) => (
                   <div key={node.id} className="domain-node-item">
                     <div className="domain-node-info">
-                      <NodeTypeBadge type={node.type} />
+                      <NodeTypeBadge type={node.type} description={node.typeDescription} />
                       <span className="domain-node-name">{node.name}</span>
                     </div>
                     {node.location !== undefined && (

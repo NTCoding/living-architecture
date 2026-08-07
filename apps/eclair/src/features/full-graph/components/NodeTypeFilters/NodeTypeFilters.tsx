@@ -1,19 +1,22 @@
 import {
   useState, useCallback 
 } from 'react'
-import type { NodeType } from '@/platform/domain/eclair-types'
+import { getNodeTypeColor } from '@/platform/domain/node-type-presentation'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
 interface NodeTypeInfo {
-  readonly type: NodeType
+  readonly type: string
   readonly nodeCount: number
 }
 
 interface NodeTypeFiltersProps {
   readonly nodeTypes: readonly NodeTypeInfo[]
-  readonly visibleTypes: Set<NodeType>
-  readonly onToggleType: (type: NodeType) => void
+  readonly visibleTypes: Set<string>
+  readonly onToggleType: (type: string) => void
   readonly onShowAll: () => void
   readonly onHideAll: () => void
+  readonly theme?: Theme
 }
 
 export function NodeTypeFilters({
@@ -22,6 +25,7 @@ export function NodeTypeFilters({
   onToggleType,
   onShowAll,
   onHideAll,
+  theme = DEFAULT_THEME,
 }: Readonly<NodeTypeFiltersProps>): React.ReactElement {
   const [isOpen, setIsOpen] = useState(true)
 
@@ -100,6 +104,11 @@ export function NodeTypeFilters({
                     onChange={() => onToggleType(nodeType.type)}
                     className="h-4 w-4 rounded border-[var(--border-color)] accent-[var(--primary)]"
                     data-testid={`node-type-checkbox-${nodeType.type}`}
+                  />
+                  <span
+                    className="h-3 w-3 shrink-0 rounded-full"
+                    style={{ backgroundColor: getNodeTypeColor(nodeType.type, theme) }}
+                    aria-hidden="true"
                   />
                   <span className="flex-1 text-sm text-[var(--text-primary)]">{nodeType.type}</span>
                   <span className="text-xs text-[var(--text-tertiary)]">{nodeType.nodeCount}</span>
