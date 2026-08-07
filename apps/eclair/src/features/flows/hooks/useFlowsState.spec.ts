@@ -29,17 +29,23 @@ describe('useFlowsState', () => {
     it('initializes with all filter', () => {
       const { result } = renderHook(() => useFlowsState())
 
-      expect(result.current.activeFilter).toBe('all')
+      expect(result.current.activeFilter).toStrictEqual({ kind: 'all' })
     })
 
     it('updates active filter', () => {
       const { result } = renderHook(() => useFlowsState())
 
       act(() => {
-        result.current.setActiveFilter('api')
+        result.current.setActiveFilter({
+          kind: 'type',
+          value: 'api',
+        })
       })
 
-      expect(result.current.activeFilter).toBe('api')
+      expect(result.current.activeFilter).toStrictEqual({
+        kind: 'type',
+        value: 'api',
+      })
     })
   })
 

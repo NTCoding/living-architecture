@@ -7,6 +7,7 @@ import type {
   Node, Edge,
 } from '../queries/eclair-types'
 import { extractNodeTypes } from '../queries/extract-node-types'
+import { compareByCodePoint } from '../queries/compare-by-code-point'
 import { useTheme } from '@/platform/infra/theme/ThemeContext'
 import { useExport } from '@/platform/infra/export/ExportContext'
 import {
@@ -23,12 +24,6 @@ import {
   filterByNodeType, getThemeFocusColors,
 } from '../queries/graph-focusing'
 import type { TooltipData } from '@/platform/infra/graph/graph-types'
-
-function compareByCodePoint(a: string, b: string): number {
-  if (a < b) return -1
-  if (a > b) return 1
-  return 0
-}
 
 function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
   const connectedNodeIds = new Set<string>()
@@ -114,6 +109,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
     return {
       nodes: nonOrphanNodes,
       edges: nonOrphanEdges,
+      externalLinks: visibleTypes.has('External') ? graph.externalLinks : [],
     }
   }, [graph, visibleTypes])
 
@@ -252,6 +248,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
           ...graph,
           components: filteredGraph.nodes,
           links: filteredGraph.edges,
+          externalLinks: filteredGraph.externalLinks,
         }}
         theme={theme}
         highlightedNodeIds={highlightedNodeIds}

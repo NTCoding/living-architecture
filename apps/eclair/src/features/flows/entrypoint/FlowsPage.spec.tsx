@@ -195,6 +195,41 @@ describe('FlowsPage', () => {
       expect(screen.getByText('Daily Report')).toBeInTheDocument()
     })
 
+    it('filters a declared custom type named all independently from the All filter', async () => {
+      const user = userEvent.setup()
+      const graph = createTestGraph()
+      const graphWithAllType: RiviereGraph = {
+        ...graph,
+        components: graph.components.map((component) =>
+          component.id === 'job-1'
+            ? parseNode({
+              sourceLocation: testSourceLocation,
+              id: 'job-1',
+              type: 'Custom',
+              name: 'Daily Report',
+              domain: 'reporting',
+              module: 'jobs',
+              customTypeName: 'all',
+            })
+            : component,
+        ),
+      }
+
+      renderWithRouter(graphWithAllType)
+
+      expect(screen.getByTestId('stat-all')).toHaveTextContent('1')
+      await user.click(
+        screen.getByRole('button', {
+          name: 'all',
+          exact: true,
+        }),
+      )
+
+      expect(screen.queryByText('Order Form')).not.toBeInTheDocument()
+      expect(screen.queryByText('GET /health')).not.toBeInTheDocument()
+      expect(screen.getByText('Daily Report')).toBeInTheDocument()
+    })
+
     it('shows all flows when All filter selected', async () => {
       const user = userEvent.setup()
 

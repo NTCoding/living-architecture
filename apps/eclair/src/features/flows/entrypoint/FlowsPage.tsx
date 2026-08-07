@@ -3,9 +3,18 @@ import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import { compareByCodePoint } from '../queries/compare-by-code-point'
 import { extractFlows } from '../queries/extract-flows'
 import { FlowCard } from '../components/FlowCard/FlowCard'
-import { useFlowsState } from '../hooks/useFlowsState'
+import {
+  type FlowTypeFilter,
+  useFlowsState,
+} from '../hooks/useFlowsState'
 import type { Theme } from '@/types/theme'
 import { DEFAULT_THEME } from '@/types/theme'
+
+function isActiveFilter(activeFilter: FlowTypeFilter, candidateFilter: FlowTypeFilter): boolean {
+  if (activeFilter.kind === 'all') return candidateFilter.kind === 'all'
+
+  return candidateFilter.kind === 'type' && activeFilter.value === candidateFilter.value
+}
 
 interface FlowsPageProps {
   readonly graph: RiviereGraph
@@ -40,7 +49,7 @@ export function FlowsPage({
 
       if (!matchesSearch) return false
 
-      if (activeFilter !== 'all' && flow.entryPoint.type !== activeFilter) return false
+      if (activeFilter.kind === 'type' && flow.entryPoint.type !== activeFilter.value) return false
 
       if (activeDomains.size > 0 && !activeDomains.has(flow.entryPoint.domain)) return false
 
@@ -59,14 +68,20 @@ export function FlowsPage({
   const filters: Array<{
     key: string
     label: string
+    filter: FlowTypeFilter
   }> = [
     {
-      key: 'all',
+      key: 'filter:all',
       label: 'All',
+      filter: { kind: 'all' },
     },
     ...typeCounts.map(([type]) => ({
-      key: type,
+      key: `type:${type}`,
       label: type,
+      filter: {
+        kind: 'type' as const,
+        value: type,
+      },
     })),
   ]
 
@@ -118,8 +133,8 @@ export function FlowsPage({
             <button
               key={filter.key}
               type="button"
-              className={`filter-tag ${activeFilter === filter.key ? 'active' : ''}`}
-              onClick={() => setActiveFilter(filter.key)}
+              className={`filter-tag ${isActiveFilter(activeFilter, filter.filter) ? 'active' : ''}`}
+              onClick={() => setActiveFilter(filter.filter)}
             >
               {filter.label}
             </button>

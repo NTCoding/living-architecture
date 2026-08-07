@@ -98,6 +98,37 @@ describe('DomainMapPage', () => {
     expect(screen.getByText('1 connection')).toBeInTheDocument()
   })
 
+  it('displays every relationship when a domain pair has multiple connections', () => {
+    const graph = createTestGraph()
+    const graphWithMultipleConnections: RiviereGraph = {
+      ...graph,
+      components: [
+        ...graph.components,
+        parseNode({
+          sourceLocation: testSourceLocation,
+          id: 'n3',
+          type: 'Custom',
+          name: 'Worker 1',
+          domain: 'orders',
+          module: 'm1',
+          customTypeName: 'Worker',
+        }),
+      ],
+      links: [
+        ...graph.links,
+        parseEdge({
+          source: 'n3',
+          target: 'n2',
+          type: 'sync',
+        }),
+      ],
+    }
+
+    renderWithRouter(graphWithMultipleConnections)
+
+    expect(screen.getByText('2 connections')).toBeInTheDocument()
+  })
+
   it('renders React Flow container', () => {
     const graph = createTestGraph()
 

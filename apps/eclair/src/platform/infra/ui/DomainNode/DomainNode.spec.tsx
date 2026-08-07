@@ -6,6 +6,7 @@ import {
 } from '@testing-library/react'
 import { ReactFlowProvider } from '@xyflow/react'
 import { DomainNode } from './DomainNode'
+import type { DomainMapSystemType } from '@/platform/domain/domain-node-types'
 
 function renderWithProvider(ui: React.ReactElement): ReturnType<typeof render> {
   return render(<ReactFlowProvider>{ui}</ReactFlowProvider>)
@@ -240,17 +241,45 @@ describe('DomainNode', () => {
     })
   })
 
-  it('shows the declared domain type below the domain name', () => {
-    renderWithProvider(
-      <DomainNode
-        data={{
-          label: 'warehouse',
-          nodeCount: 2,
-          systemType: 'other',
-        }}
-      />,
-    )
+  const domainTypeCases: ReadonlyArray<{
+    systemType: DomainMapSystemType
+    borderClass: string
+  }> = [
+    {
+      systemType: 'domain',
+      borderClass: 'border-[var(--primary)]',
+    },
+    {
+      systemType: 'bff',
+      borderClass: 'domain-node-bff',
+    },
+    {
+      systemType: 'ui',
+      borderClass: 'domain-node-ui',
+    },
+    {
+      systemType: 'other',
+      borderClass: 'domain-node-other',
+    },
+  ]
 
-    expect(screen.getByText('other')).toHaveClass('domain-node-system-type')
-  })
+  it.each(domainTypeCases)(
+    'shows the $systemType domain type with its border class',
+    ({
+      systemType, borderClass,
+    }) => {
+      const { container } = renderWithProvider(
+        <DomainNode
+          data={{
+            label: 'warehouse',
+            nodeCount: 2,
+            systemType,
+          }}
+        />,
+      )
+
+      expect(screen.getByText(systemType)).toHaveClass('domain-node-system-type')
+      expect(container.querySelector('div.flex[title]')).toHaveClass(borderClass)
+    },
+  )
 })

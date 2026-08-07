@@ -19,18 +19,21 @@ function createConnections(
       direction: 'outgoing',
       apiCount: 2,
       eventCount: 1,
+      relationshipCount: 3,
     },
     {
       targetDomain: 'payment-domain',
       direction: 'outgoing',
       apiCount: 1,
       eventCount: 0,
+      relationshipCount: 1,
     },
     {
       targetDomain: 'shipping-domain',
       direction: 'incoming',
       apiCount: 0,
       eventCount: 2,
+      relationshipCount: 2,
     },
   ]
   if (overrides.length === 0) return defaults
@@ -133,6 +136,30 @@ describe('DomainContextGraph', () => {
 
       const edge = screen.getByTestId('edge-order-domain-shipping-domain')
       expect(edge).toHaveAttribute('data-direction', 'incoming')
+    })
+
+    it('marks both edges as bidirectional when domains connect in both directions', () => {
+      const connections = createConnections([
+        {
+          targetDomain: 'inventory-domain',
+          direction: 'outgoing',
+          apiCount: 1,
+          eventCount: 0,
+        },
+        {
+          targetDomain: 'inventory-domain',
+          direction: 'incoming',
+          apiCount: 0,
+          eventCount: 1,
+        },
+      ])
+
+      renderWithRouter(<DomainContextGraph domainId="order-domain" connections={connections} />)
+
+      const edges = screen.getAllByTestId('edge-order-domain-inventory-domain')
+      expect(edges).toHaveLength(2)
+      expect(edges[0]).toHaveAttribute('data-bidirectional', 'true')
+      expect(edges[1]).toHaveAttribute('data-bidirectional', 'true')
     })
   })
 

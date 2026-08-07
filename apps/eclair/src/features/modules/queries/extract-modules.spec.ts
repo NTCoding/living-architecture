@@ -116,4 +116,39 @@ describe('extractModules', () => {
       },
     ])
   })
+
+  it('orders module names by Unicode code point', () => {
+    const firstModule = '\uFFFF'
+    const secondModule = '\u{10000}'
+    const graphWithUnicodeModules: RiviereGraph = {
+      ...graph,
+      components: [
+        {
+          id: 'unicode-2',
+          type: 'Custom',
+          name: 'Second',
+          domain: 'unicode',
+          module: secondModule,
+          customTypeName: 'Worker',
+          sourceLocation: { filePath: 'second.sql' },
+        },
+        {
+          id: 'unicode-1',
+          type: 'Custom',
+          name: 'First',
+          domain: 'unicode',
+          module: firstModule,
+          customTypeName: 'Worker',
+          sourceLocation: { filePath: 'first.sql' },
+        },
+      ],
+    }
+
+    const unicodeDomain = extractModules(graphWithUnicodeModules)[0]
+
+    expect(unicodeDomain?.modules.map((module) => module.name)).toStrictEqual([
+      firstModule,
+      secondModule,
+    ])
+  })
 })

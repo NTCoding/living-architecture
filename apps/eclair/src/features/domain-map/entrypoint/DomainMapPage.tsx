@@ -61,7 +61,11 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
     setEdges(initialEdges)
   }, [initialNodes, initialEdges, setNodes, setEdges])
 
-  const connectionText = pluralizeConnection(initialEdges.length)
+  const connectionCount = initialEdges.reduce(
+    (total, edge) => total + edge.data.connectionCount,
+    0,
+  )
+  const connectionText = pluralizeConnection(connectionCount)
 
   const nodeCountMap = useMemo(() => {
     const map = new Map<string, number>()

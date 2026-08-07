@@ -3,6 +3,7 @@ import {
   getEffectiveNodeType,
   getNodeTypeDescription,
 } from '@/platform/domain/node-type-presentation'
+import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 
 export interface ModuleNode {
   id: string
@@ -49,10 +50,4 @@ export function extractModules(graph: RiviereGraph): DomainModules[] {
           nodes: nodes.toSorted((left, right) => compareByCodePoint(left.name, right.name)),
         })),
     }))
-}
-
-function compareByCodePoint(left: string, right: string): number {
-  if (left < right) return -1
-  if (left > right) return 1
-  return 0
 }

@@ -242,6 +242,11 @@ export function DomainContextGraph({
             const isOutgoing = conn.direction === 'outgoing'
             const fromPos = isOutgoing ? currentPosition : targetPosition
             const toPos = isOutgoing ? targetPosition : currentPosition
+            const isBidirectional = connections.some(
+              (candidate) =>
+                candidate.targetDomain === conn.targetDomain &&
+                candidate.direction !== conn.direction,
+            )
 
             return (
               <EdgeLine
@@ -253,6 +258,7 @@ export function DomainContextGraph({
                 testId={`edge-${domainId}-${conn.targetDomain}`}
                 direction={conn.direction}
                 relationshipCount={conn.relationshipCount}
+                isBidirectional={isBidirectional}
               />
             )
           })}
