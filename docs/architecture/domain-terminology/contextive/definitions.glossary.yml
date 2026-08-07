@@ -20,7 +20,7 @@ contexts:
 
       # Domain/boundary concepts
       - name: Domain
-        definition: A logical grouping of related components. Each component belongs to exactly one domain. Domains have a systemType (domain, bff, ui, other).
+        definition: A logical grouping of related components. Each component belongs to exactly one domain. Domains have a systemType (domain, bff, ui, external-service, other).
 
       - name: Cross-domain Link
         definition: A link where source and target components belong to different domains. Represents integration between separate parts of the system.

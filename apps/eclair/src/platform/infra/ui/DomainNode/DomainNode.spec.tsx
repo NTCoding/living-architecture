@@ -258,6 +258,10 @@ describe('DomainNode', () => {
       borderClass: 'domain-node-ui',
     },
     {
+      systemType: 'external-service',
+      borderClass: 'domain-node-external',
+    },
+    {
       systemType: 'other',
       borderClass: 'domain-node-other',
     },

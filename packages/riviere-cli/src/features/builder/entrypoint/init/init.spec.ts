@@ -133,6 +133,36 @@ describe('riviere builder init', () => {
       })
     })
 
+    it('includes an external-service domain', async () => {
+      const program = createProgram()
+
+      await program.parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'init',
+        '--source',
+        'https://github.com/org/repo',
+        '--domain',
+        '{"name":"alerts","description":"External alert service","systemType":"external-service"}',
+      ])
+
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json')
+      const content = await readFile(graphPath, 'utf-8')
+      const graph: unknown = JSON.parse(content)
+
+      expect(graph).toMatchObject({
+        metadata: {
+          domains: {
+            alerts: {
+              description: 'External alert service',
+              systemType: 'external-service',
+            },
+          },
+        },
+      })
+    })
+
     it('includes multiple domains when multiple --domain flags provided', async () => {
       const program = createProgram()
 

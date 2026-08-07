@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import type { SystemType } from '@living-architecture/riviere-schema'
 import {
   formatError, formatSuccess 
 } from '../../../../platform/infra/cli/presentation/output'
@@ -19,7 +20,7 @@ interface InitOptions {
 interface DomainInputParsed {
   description: string
   name: string
-  systemType: 'domain' | 'bff' | 'ui' | 'other'
+  systemType: SystemType
 }
 
 /** @riviere-role cli-entrypoint */

@@ -23,6 +23,7 @@ const DOMAIN_TYPE_CLASSES: Readonly<Record<DomainMapSystemType, string>> = {
   domain: 'border-[var(--primary)]',
   bff: 'domain-node-bff',
   ui: 'domain-node-ui',
+  'external-service': 'domain-node-external',
   other: 'domain-node-other',
   external: 'domain-node-external',
 }

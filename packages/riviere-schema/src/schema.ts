@@ -143,7 +143,7 @@ export interface ExternalLink {
   sourceLocation?: SourceLocation
 }
 
-export type SystemType = 'domain' | 'bff' | 'ui' | 'other'
+export type SystemType = 'domain' | 'bff' | 'ui' | 'external-service' | 'other'
 
 export interface DomainMetadata {
   description: string

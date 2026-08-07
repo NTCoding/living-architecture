@@ -251,7 +251,7 @@ Domains represent system boundaries (an ownership or deployment area you want to
 ```typescript
 interface DomainMetadata {
   description: string
-  systemType: 'domain' | 'bff' | 'ui' | 'other'
+  systemType: 'domain' | 'bff' | 'ui' | 'external-service' | 'other'
 }
 ```
 

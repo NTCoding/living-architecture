@@ -74,6 +74,26 @@ describe('parseRiviereGraph()', () => {
     expect(result.components).toHaveLength(0)
   })
 
+  it('parses a domain with the external-service system type', () => {
+    const input = {
+      version: '1.0',
+      metadata: {
+        domains: {
+          alerts: {
+            description: 'External alert service',
+            systemType: 'external-service',
+          },
+        },
+      },
+      components: [],
+      links: [],
+    }
+
+    const result = parseRiviereGraph(input)
+
+    expect(result.metadata.domains['alerts']?.systemType).toBe('external-service')
+  })
+
   it('throws RiviereSchemaValidationError on invalid component type', () => {
     const input = {
       version: '1.0',
