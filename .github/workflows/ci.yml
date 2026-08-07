@@ -220,13 +220,11 @@ jobs:
           node-version: 24
           cache: 'pnpm'
 
-      # pnpm 10 delegates publishing to npm. Trusted publishing requires npm 11.5.1+.
-      - name: Install npm with trusted publishing support
-        run: |
-          npm install --global --ignore-scripts npm@12.0.2
-          test "$(npm --version)" = "12.0.2"
-
       - run: pnpm install --frozen-lockfile
+
+      # pnpm 10 delegates publishing to npm. This lockfile-managed version supports OIDC.
+      - name: Verify npm trusted publishing support
+        run: test "$(pnpm exec npm --version)" = "12.0.2"
 
       - name: Configure git
         run: |

@@ -1,6 +1,6 @@
 {
   "$schema": "https://knip.dev/reference/knip-json",
-  "ignoreDependencies": ["tailwindcss", "oxlint"],
+  "ignoreDependencies": ["tailwindcss", "oxlint", "npm"],
   "workspaces": {
     ".": {
       "entry": [".opencode/plugins/dev-workflow-v2.js"]
