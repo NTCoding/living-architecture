@@ -1,4 +1,8 @@
-# Task Workflow
+# Maintainer Workflow
+
+This workflow is for members of the maintainer team. It includes planning, GitHub issue creation and the `dev-workflow-v2` development harness.
+
+External contributors use the lightweight public workflow in [`CONTRIBUTING.md`](../../CONTRIBUTING.md) instead.
 
 Canonical workflow guidance lives in `tools/dev-workflow-v2/README.md`.
 
