@@ -110,7 +110,12 @@ export function NodeTypeFilters({
                     style={{ backgroundColor: getNodeTypeColor(nodeType.type, theme) }}
                     aria-hidden="true"
                   />
-                  <span className="flex-1 text-sm text-[var(--text-primary)]">{nodeType.type}</span>
+                  <span
+                    className="min-w-0 flex-1 break-words text-sm leading-tight text-[var(--text-primary)]"
+                    title={nodeType.type}
+                  >
+                    {nodeType.type}
+                  </span>
                   <span className="text-xs text-[var(--text-tertiary)]">{nodeType.nodeCount}</span>
                 </label>
               )

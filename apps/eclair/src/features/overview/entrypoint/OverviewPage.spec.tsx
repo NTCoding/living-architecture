@@ -301,6 +301,14 @@ describe('OverviewPage', () => {
     expect(screen.queryByRole('button', { name: 'BFF' })).not.toBeInTheDocument()
   })
 
+  it('labels system-type filters as domain types', () => {
+    const graph = createTestGraph()
+
+    renderWithRouter(<OverviewPage graph={graph} />)
+
+    expect(screen.getByText('Domain type:')).toBeInTheDocument()
+  })
+
   it('renders multiple system types as sorted filter tags', () => {
     const graph = createTestGraph({
       metadata: {

@@ -1,6 +1,7 @@
 import {
   render, screen,
 } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import {
   describe, expect, it,
 } from 'vitest'
@@ -45,5 +46,25 @@ describe('ModulesPage', () => {
     expect(screen.getByRole('heading', { name: 'Scheduler' })).toBeInTheDocument()
     expect(screen.getByText('Load warehouse')).toBeInTheDocument()
     expect(screen.getByText('Job')).toHaveAttribute('title', 'A scheduled unit of work')
+  })
+
+  it('lets domains and modules be collapsed independently', async () => {
+    const user = userEvent.setup()
+    render(
+      <ThemeProvider>
+        <ModulesPage graph={graph} />
+      </ThemeProvider>,
+    )
+
+    const domainGroup = screen.getByTestId('domain-group-operations')
+    const moduleGroup = screen.getByTestId('module-group-Scheduler')
+    expect(domainGroup).toHaveAttribute('open')
+    expect(moduleGroup).toHaveAttribute('open')
+
+    await user.click(screen.getByRole('heading', { name: 'Scheduler' }))
+    expect(moduleGroup).not.toHaveAttribute('open')
+
+    await user.click(screen.getByRole('heading', { name: 'operations' }))
+    expect(domainGroup).not.toHaveAttribute('open')
   })
 })

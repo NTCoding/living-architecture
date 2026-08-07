@@ -17,8 +17,8 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
     version: '1.0',
     metadata: {
       domains: parseDomainMetadata({
-        'test-domain': {
-          description: 'Test domain',
+        orders: {
+          description: 'Orders domain',
           systemType: 'domain',
         },
       }),
@@ -72,10 +72,12 @@ describe('extractDomainMap external links integration', () => {
     expect(stripeNode?.data).toMatchObject({
       label: 'Stripe',
       isExternal: true,
+      systemType: 'external',
     })
     expect(twilioNode?.data).toMatchObject({
       label: 'Twilio',
       isExternal: true,
+      systemType: 'external',
     })
   })
 

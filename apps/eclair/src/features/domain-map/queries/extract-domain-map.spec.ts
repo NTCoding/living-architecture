@@ -22,9 +22,13 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
     version: '1.0',
     metadata: {
       domains: parseDomainMetadata({
-        'test-domain': {
-          description: 'Test domain',
+        orders: {
+          description: 'Orders domain',
           systemType: 'domain',
+        },
+        payments: {
+          description: 'Payments domain',
+          systemType: 'bff',
         },
       }),
     },
@@ -151,7 +155,31 @@ describe('extractDomainMap', () => {
       const result = extractDomainMap(graph)
 
       expect(result.domainNodes[0]?.data).toStrictEqual(
-        expect.objectContaining({ label: 'orders' }),
+        expect.objectContaining({
+          label: 'orders',
+          systemType: 'domain',
+        }),
+      )
+    })
+
+    it('includes the declared domain type in node data', () => {
+      const graph = createMinimalGraph({
+        components: [
+          parseNode({
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'API 1',
+            domain: 'payments',
+            module: 'm1',
+          }),
+        ],
+      })
+
+      const result = extractDomainMap(graph)
+
+      expect(result.domainNodes[0]?.data).toStrictEqual(
+        expect.objectContaining({ systemType: 'bff' }),
       )
     })
   })
@@ -345,6 +373,54 @@ describe('extractDomainMap', () => {
 
       expect(result.domainEdges).toHaveLength(1)
       expect(result.domainEdges[0]?.data?.connections[0]?.type).toBe('unknown')
+    })
+
+    it('uses the effective custom type in connection details', () => {
+      const graph = createMinimalGraph({
+        metadata: {
+          domains: parseDomainMetadata({
+            orders: {
+              description: 'Orders domain',
+              systemType: 'domain',
+            },
+            payments: {
+              description: 'Payments domain',
+              systemType: 'bff',
+            },
+          }),
+          customTypes: { Job: { description: 'A scheduled unit of work' } },
+        },
+        components: [
+          parseNode({
+            sourceLocation: testSourceLocation,
+            id: 'n1',
+            type: 'API',
+            name: 'Trigger',
+            domain: 'orders',
+            module: 'm1',
+          }),
+          parseNode({
+            sourceLocation: testSourceLocation,
+            id: 'n2',
+            type: 'Custom',
+            customTypeName: 'Job',
+            name: 'Process order',
+            domain: 'payments',
+            module: 'm2',
+          }),
+        ],
+        links: [
+          parseEdge({
+            source: 'n1',
+            target: 'n2',
+            type: 'sync',
+          }),
+        ],
+      })
+
+      const result = extractDomainMap(graph)
+
+      expect(result.domainEdges[0]?.data?.connections[0]?.targetNodeType).toBe('Job')
     })
   })
 })

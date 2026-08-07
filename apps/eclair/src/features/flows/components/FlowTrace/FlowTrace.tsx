@@ -79,9 +79,20 @@ export function FlowTrace({
                   <div className="flow-step-name" title={step.node.name}>
                     {step.node.name}
                   </div>
-                  <div className="flow-step-meta">
-                    {step.node.module} · {step.node.domain} · {step.node.type}
-                  </div>
+                  <dl className="flow-step-meta">
+                    <div className="flow-step-meta-item">
+                      <dt>Module</dt>
+                      <dd>{step.node.module}</dd>
+                    </div>
+                    <div className="flow-step-meta-item">
+                      <dt>Domain</dt>
+                      <dd>{step.node.domain}</dd>
+                    </div>
+                    <div className="flow-step-meta-item">
+                      <dt>Type</dt>
+                      <dd>{step.node.type}</dd>
+                    </div>
+                  </dl>
                   {step.node.subscribedEvents !== undefined &&
                     step.node.subscribedEvents.length > 0 && (
                     <div className="flow-step-subscribed-events">

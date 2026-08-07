@@ -18,6 +18,7 @@ describe('DomainNode', () => {
         data={{
           label: 'orders',
           nodeCount: 5,
+          systemType: 'domain',
         }}
       />,
     )
@@ -32,6 +33,7 @@ describe('DomainNode', () => {
         data={{
           label: 'orders',
           nodeCount: 5,
+          systemType: 'domain',
         }}
       />,
     )
@@ -45,6 +47,7 @@ describe('DomainNode', () => {
         data={{
           label: 'verylongdomainname',
           nodeCount: 5,
+          systemType: 'domain',
         }}
       />,
     )
@@ -58,6 +61,7 @@ describe('DomainNode', () => {
         data={{
           label: 'verylongdomainname',
           nodeCount: 5,
+          systemType: 'domain',
         }}
       />,
     )
@@ -72,6 +76,7 @@ describe('DomainNode', () => {
         data={{
           label: 'orders',
           nodeCount: 5,
+          systemType: 'domain',
         }}
       />,
     )
@@ -86,6 +91,7 @@ describe('DomainNode', () => {
         data={{
           label: 'orders',
           nodeCount: 5,
+          systemType: 'domain',
           dimmed: true,
         }}
       />,
@@ -102,6 +108,7 @@ describe('DomainNode', () => {
           data={{
             label: 'orders',
             nodeCount: 5,
+            systemType: 'domain',
           }}
         />,
       )
@@ -119,6 +126,7 @@ describe('DomainNode', () => {
           data={{
             label: 'orders',
             nodeCount: 5,
+            systemType: 'domain',
             calculatedSize: 200,
           }}
         />,
@@ -139,6 +147,7 @@ describe('DomainNode', () => {
           data={{
             label: 'Stripe',
             nodeCount: 3,
+            systemType: 'external',
             isExternal: true,
           }}
         />,
@@ -154,6 +163,7 @@ describe('DomainNode', () => {
           data={{
             label: 'Stripe',
             nodeCount: 3,
+            systemType: 'external',
             isExternal: true,
           }}
         />,
@@ -172,6 +182,7 @@ describe('DomainNode', () => {
           data={{
             label: 'Stripe',
             nodeCount: 3,
+            systemType: 'external',
             isExternal: true,
           }}
         />,
@@ -187,6 +198,7 @@ describe('DomainNode', () => {
           data={{
             label: 'Stripe',
             nodeCount: 3,
+            systemType: 'external',
             isExternal: true,
           }}
         />,
@@ -202,6 +214,7 @@ describe('DomainNode', () => {
           data={{
             label: 'orders',
             nodeCount: 5,
+            systemType: 'domain',
             isExternal: false,
           }}
         />,
@@ -217,6 +230,7 @@ describe('DomainNode', () => {
           data={{
             label: 'orders',
             nodeCount: 5,
+            systemType: 'domain',
           }}
         />,
       )
@@ -224,5 +238,19 @@ describe('DomainNode', () => {
       const icon = container.querySelector('i.ph-arrow-square-out')
       expect(icon).not.toBeInTheDocument()
     })
+  })
+
+  it('shows the declared domain type below the domain name', () => {
+    renderWithProvider(
+      <DomainNode
+        data={{
+          label: 'warehouse',
+          nodeCount: 2,
+          systemType: 'other',
+        }}
+      />,
+    )
+
+    expect(screen.getByText('other')).toHaveClass('domain-node-system-type')
   })
 })

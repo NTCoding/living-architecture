@@ -30,20 +30,17 @@ import type {
 } from '../queries/extract-domain-map'
 import { DomainNode } from '@/platform/infra/ui/DomainNode/DomainNode'
 import { useDomainMapInteractions } from '../hooks/useDomainMapInteractions'
+import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
+import { useTheme } from '@/platform/infra/theme/ThemeContext'
 
 interface DomainMapPageProps {readonly graph: RiviereGraph}
 
 const nodeTypes = { domain: DomainNode }
 
-function getConnectionTypeLabel(targetNodeType: string): string {
-  if (targetNodeType === 'EventHandler') return 'EVENT'
-  if (targetNodeType === 'API') return 'API'
-  return targetNodeType
-}
-
 export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { theme } = useTheme()
   const {
     registerExportHandlers, clearExportHandlers 
   } = useExport()
@@ -334,18 +331,16 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
             <div className="inspector-section-title">Connections</div>
             <div className="inspector-connection-list">
               {inspector.connections.map((conn) => {
-                const isEvent = conn.targetNodeType === 'EventHandler'
                 return (
                   <div
                     key={`${conn.sourceName}-${conn.targetName}-${conn.type}-${conn.targetNodeType}`}
                     className="inspector-connection-item"
                   >
                     <div className="flex items-center gap-2">
-                      <span
-                        className={isEvent ? 'badge-integration-event' : 'badge-integration-api'}
-                      >
-                        {getConnectionTypeLabel(conn.targetNodeType)}
-                      </span>
+                      <NodeTypeBadge
+                        type={conn.targetNodeType}
+                        theme={theme}
+                      />
                     </div>
                     <div className="mt-2 text-sm text-[var(--text-primary)]">{conn.sourceName}</div>
                     <div className="text-xs text-[var(--text-secondary)]">→ {conn.targetName}</div>

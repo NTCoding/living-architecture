@@ -100,7 +100,12 @@ export function DomainFilters({
                     className="h-4 w-4 rounded border-[var(--border-color)] accent-[var(--primary)]"
                     data-testid={`domain-checkbox-${domain.name}`}
                   />
-                  <span className="flex-1 text-sm text-[var(--text-primary)]">{domain.name}</span>
+                  <span
+                    className="min-w-0 flex-1 break-words text-sm leading-tight text-[var(--text-primary)]"
+                    title={domain.name}
+                  >
+                    {domain.name}
+                  </span>
                   <span className="text-xs text-[var(--text-tertiary)]">{domain.nodeCount}</span>
                 </label>
               )

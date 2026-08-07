@@ -42,26 +42,37 @@ export function ModulesPage({
       </div>
 
       {domains.map((domain) => (
-        <section key={domain.domain} aria-labelledby={`domain-${domain.domain}`} className="space-y-3">
-          <h2
-            id={`domain-${domain.domain}`}
-            className="font-[var(--font-heading)] text-xl font-bold text-[var(--text-primary)]"
-          >
-            {domain.domain}
-          </h2>
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <details
+          key={domain.domain}
+          open
+          data-testid={`domain-group-${domain.domain}`}
+          className="module-domain-group"
+        >
+          <summary className="module-tree-summary module-domain-summary">
+            <i className="ph ph-caret-right module-tree-caret" aria-hidden="true" />
+            <h2 className="font-[var(--font-heading)] text-xl font-bold text-[var(--text-primary)]">
+              {domain.domain}
+            </h2>
+            <span className="ml-auto text-xs text-[var(--text-tertiary)]">
+              {domain.modules.length} {domain.modules.length === 1 ? 'module' : 'modules'}
+            </span>
+          </summary>
+          <div className="grid grid-cols-1 gap-4 pl-6 xl:grid-cols-2">
             {domain.modules.map((module) => (
-              <article
+              <details
                 key={module.name}
-                className="rounded-[var(--radius)] border border-[var(--border-color)] bg-[var(--bg-secondary)] p-4"
+                open
+                data-testid={`module-group-${module.name}`}
+                className="module-card"
               >
-                <div className="mb-3 flex items-center justify-between gap-3">
+                <summary className="module-tree-summary module-card-summary">
+                  <i className="ph ph-caret-right module-tree-caret" aria-hidden="true" />
                   <h3 className="font-semibold text-[var(--text-primary)]">{module.name}</h3>
-                  <span className="text-xs text-[var(--text-tertiary)]">
+                  <span className="ml-auto text-xs text-[var(--text-tertiary)]">
                     {module.nodes.length} {module.nodes.length === 1 ? 'node' : 'nodes'}
                   </span>
-                </div>
-                <div className="space-y-2">
+                </summary>
+                <div className="space-y-2 px-4 pb-4">
                   {module.nodes.map((node) => (
                     <div
                       key={node.id}
@@ -78,10 +89,10 @@ export function ModulesPage({
                     </div>
                   ))}
                 </div>
-              </article>
+              </details>
             ))}
           </div>
-        </section>
+        </details>
       ))}
     </div>
   )

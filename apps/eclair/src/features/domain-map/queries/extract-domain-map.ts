@@ -11,6 +11,7 @@ import { aggregateDomainEdges } from './edge-aggregation'
 import {
   aggregateExternalEdges, createExternalNodeId 
 } from './external-domain-handling'
+import { getEffectiveNodeType } from '@/platform/domain/node-type-presentation'
 
 export type ConnectionDetail = DomainMapEdgeTypes.ConnectionDetail
 
@@ -119,7 +120,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
     nodeInfo.set(node.id, {
       domain: node.domain,
       name: node.name,
-      type: node.type,
+      type: getEffectiveNodeType(node),
     })
   }
 
@@ -163,6 +164,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       throw new LayoutError(`Domain ${domain} missing from layout computation`)
     }
     const calculatedSize = nodeSizes.get(domain)
+    const domainMetadata = graph.metadata.domains[domain]
     return {
       id: domain,
       type: 'domain',
@@ -170,6 +172,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       data: {
         label: domain,
         nodeCount,
+        systemType: domainMetadata?.systemType ?? 'other',
         calculatedSize,
         isExternal: false,
       },
@@ -190,6 +193,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       data: {
         label: ed.name,
         nodeCount: ed.connectionCount,
+        systemType: 'external',
         calculatedSize,
         isExternal: true,
       },

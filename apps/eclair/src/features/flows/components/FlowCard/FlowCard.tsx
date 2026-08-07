@@ -33,23 +33,31 @@ export function FlowCard({
 
   return (
     <div data-testid="flow-card" className="flow-item">
-      <button
-        type="button"
-        data-testid="flow-card-header"
-        onClick={onToggle}
-        className="flow-item-header"
-      >
-        <div data-testid="flow-item-left" className="flow-item-left">
-          <NodeTypeBadge
-            type={entryPoint.type}
-            description={getNodeTypeDescription(graph, entryPoint.type)}
-            theme={theme}
+      <div className="flow-item-header">
+        <button
+          type="button"
+          data-testid="flow-card-header"
+          onClick={onToggle}
+          className="flow-item-toggle"
+          aria-expanded={expanded}
+        >
+          <div data-testid="flow-item-left" className="flow-item-left">
+            <NodeTypeBadge
+              type={entryPoint.type}
+              description={getNodeTypeDescription(graph, entryPoint.type)}
+              theme={theme}
+            />
+            <span className="flow-item-title" title={entryPoint.name}>
+              {entryPoint.name}
+            </span>
+            <span className="flow-item-domain">{entryPoint.domain}</span>
+          </div>
+          <i
+            data-testid="flow-card-chevron"
+            className={`ph ph-caret-down flow-item-chevron ${expanded ? 'rotate-180' : ''}`}
+            aria-hidden="true"
           />
-          <span className="flow-item-title" title={entryPoint.name}>
-            {entryPoint.name}
-          </span>
-          <span className="flow-item-domain">{entryPoint.domain}</span>
-        </div>
+        </button>
         <div data-testid="flow-item-actions" className="flow-item-actions">
           {entryPoint.sourceLocation?.lineNumber !== undefined && (
             <CodeLinkMenu
@@ -62,18 +70,13 @@ export function FlowCard({
             type="button"
             className="graph-link-btn"
             title="View on Full Graph"
+            aria-label="View on Full Graph"
             onClick={handleViewOnGraph}
           >
             <i className="ph ph-graph" aria-hidden="true" />
-            View on Graph
           </button>
-          <i
-            data-testid="flow-card-chevron"
-            className={`ph ph-caret-down text-[var(--text-tertiary)] transition-transform ${expanded ? 'rotate-180' : ''}`}
-            aria-hidden="true"
-          />
         </div>
-      </button>
+      </div>
       {expanded && <FlowTrace steps={flow.steps} graph={graph} theme={theme} />}
     </div>
   )

@@ -11,6 +11,7 @@ import {
 } from './GraphRenderingSetup'
 import { getNodeRadius } from './VisualizationDataAdapters'
 import { FOCUS_MODE_TRANSITIONS } from '@/platform/domain/focus-mode-constants'
+import { getLinkNodeId } from './FocusModeStyling'
 
 export interface ApplyFocusModeParams {
   node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>
@@ -25,6 +26,12 @@ export function applyFocusMode(params: ApplyFocusModeParams): void {
   const domain = params.domain
   const theme = params.theme
   const focusColors = getThemeFocusColors(theme)
+  const focusedNodeIds = new Set(
+    node
+      .data()
+      .filter((datum) => datum.domain === domain)
+      .map((datum) => datum.id),
+  )
 
   applyResetMode({
     node,
@@ -35,10 +42,33 @@ export function applyFocusMode(params: ApplyFocusModeParams): void {
     .transition()
     .duration(FOCUS_MODE_TRANSITIONS.elementAnimation)
     .attr('stroke', (datum) =>
-      datum.domain === domain ? focusColors.glowColor : 'rgba(255, 255, 255, 0.3)',
+      datum.domain === domain ? focusColors.glowColor : 'rgba(128, 128, 128, 0.12)',
     )
-    .attr('stroke-width', (datum) => (datum.domain === domain ? 5 : 2))
+    .attr('stroke-width', (datum) => (datum.domain === domain ? 8 : 1))
+    .attr('opacity', (datum) => (datum.domain === domain ? 1 : 0.22))
     .attr('filter', (datum) => (datum.domain === domain ? 'url(#focused-glow)' : 'none'))
+
+  node
+    .selectAll<SVGTextElement, SimulationNode>('.node-label, .node-domain-label')
+    .transition()
+    .duration(FOCUS_MODE_TRANSITIONS.elementAnimation)
+    .attr('opacity', (datum) => (datum.domain === domain ? 1 : 0.16))
+
+  link
+    .transition()
+    .duration(FOCUS_MODE_TRANSITIONS.elementAnimation)
+    .attr('opacity', (datum) => {
+      const connectsFocusedNode =
+        focusedNodeIds.has(getLinkNodeId(datum.source)) ||
+        focusedNodeIds.has(getLinkNodeId(datum.target))
+      return connectsFocusedNode ? 0.75 : 0.08
+    })
+    .attr('stroke-width', (datum) => {
+      const connectsFocusedNode =
+        focusedNodeIds.has(getLinkNodeId(datum.source)) ||
+        focusedNodeIds.has(getLinkNodeId(datum.target))
+      return connectsFocusedNode ? 2.5 : 1
+    })
 }
 
 export interface ApplyResetModeParams {

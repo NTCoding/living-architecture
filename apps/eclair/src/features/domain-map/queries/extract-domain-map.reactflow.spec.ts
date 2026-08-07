@@ -19,8 +19,20 @@ function createMinimalGraph(overrides: Partial<RiviereGraph> = {}): RiviereGraph
     version: '1.0',
     metadata: {
       domains: parseDomainMetadata({
-        'test-domain': {
-          description: 'Test domain',
+        orders: {
+          description: 'Orders domain',
+          systemType: 'domain',
+        },
+        payments: {
+          description: 'Payments domain',
+          systemType: 'domain',
+        },
+        inventory: {
+          description: 'Inventory domain',
+          systemType: 'domain',
+        },
+        shipping: {
+          description: 'Shipping domain',
           systemType: 'domain',
         },
       }),

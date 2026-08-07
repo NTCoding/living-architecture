@@ -245,7 +245,7 @@ describe('FullGraphPage', () => {
       const ordersCheckbox = screen.getByTestId('domain-checkbox-orders')
       await user.click(ordersCheckbox)
 
-      expect(screen.getByText('2 nodes focused')).toBeInTheDocument()
+      expect(screen.getByText('2 nodes')).toBeInTheDocument()
     })
 
     it('hides stats panel when domain is focused', async () => {
@@ -273,7 +273,7 @@ describe('FullGraphPage', () => {
 
       expect(screen.getByTestId('focused-domain-banner')).toBeInTheDocument()
 
-      const clearButton = screen.getByText('Clear focus')
+      const clearButton = screen.getByRole('button', { name: 'Clear focus' })
       await user.click(clearButton)
 
       expect(screen.queryByTestId('focused-domain-banner')).not.toBeInTheDocument()

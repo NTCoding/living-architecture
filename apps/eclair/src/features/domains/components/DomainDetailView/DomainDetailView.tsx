@@ -215,7 +215,7 @@ function NodeFilterBar({
   nodeTypes,
 }: NodeFilterBarProps): React.ReactElement {
   return (
-    <div data-testid="filters-section" className="filters-section mb-4">
+    <div data-testid="filters-section" className="filters-section node-filter-bar mb-4">
       <div className="search-container">
         <i className="ph ph-magnifying-glass search-icon" aria-hidden="true" />
         <input

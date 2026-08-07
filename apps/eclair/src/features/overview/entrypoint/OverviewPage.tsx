@@ -164,7 +164,7 @@ export function OverviewPage({
           />
         </div>
         <div className="filter-divider" />
-        <span className="filter-label">Type:</span>
+        <span className="filter-label">Domain type:</span>
         <div className="filter-group">
           <button
             className={`filter-tag ${activeFilter === 'all' ? 'active' : ''}`}
