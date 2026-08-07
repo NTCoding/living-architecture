@@ -222,7 +222,9 @@ jobs:
 
       # pnpm 10 delegates publishing to npm. Trusted publishing requires npm 11.5.1+.
       - name: Install npm with trusted publishing support
-        run: npm install --global npm@12.0.2
+        run: |
+          npm install --global --ignore-scripts npm@12.0.2
+          test "$(npm --version)" = "12.0.2"
 
       - run: pnpm install --frozen-lockfile
 
