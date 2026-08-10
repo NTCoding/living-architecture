@@ -99,7 +99,7 @@ export const config = roleEnforcement({
       .subLocation('/domain', domainRoles)
       .subLocation('/infra', [], { mayImportRoles: [] })
       .subLocation('/infra/external-clients/{client}', externalClientRoles)
-      .subLocation('/infra/cli/input-parser', ['generic-cli-input-parser'])
+      .subLocation('/infra/cli/input', ['generic-cli-input-parser'])
       .subLocation('/infra/cli/presentation', cliPresentationRoles),
 
     location<RoleName>('src/entrypoint').subLocation('/_platform', entrypointRoles),

@@ -33,7 +33,7 @@ location<RoleName>('src/platform')
     mayImportRoles: [],
   })
   .subLocation('/infra/external-clients/{client}', externalClientRoles)
-  .subLocation('/infra/cli/input-parser', ['generic-cli-input-parser'])
+  .subLocation('/infra/cli/input', ['generic-cli-input-parser'])
 ```
 
 The `/infra` location owns the import rule directly. Imports within that location, including its child locations, are allowed normally. `mayImportRoles: []` says that no application-owned role may cross into infra from outside that location; external packages remain allowed. Its child locations refine role placement without redefining the infra path in a second rule system. A nested `dependencyRule`, a repeated `locationName: 'infra'`, or a separate `layerRule('infra', { matches: ['**/infra/**'] })` is invalid because each duplicates information already expressed by the location.
