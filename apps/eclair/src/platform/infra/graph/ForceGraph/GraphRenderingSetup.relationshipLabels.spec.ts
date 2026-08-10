@@ -30,7 +30,7 @@ describe('relationship labels', () => {
     expect(group.select('text').attr('dy')).toBe('0')
   })
 
-  it('stacks labels for parallel relationships between the same nodes', () => {
+  it('shows each relationship type once and stacks the unique labels', () => {
     const group = d3.select(document.body).append('svg').append('g')
     const links: GraphTypes.SimulationLink[] = ['reads', 'writes', 'writes'].map(
       (relationshipType) => ({
@@ -49,9 +49,54 @@ describe('relationship labels', () => {
     GraphRenderingSetup.setupLinkLabels(group, links, 'semantic-only')
 
     const labels = group.selectAll<SVGTextElement, GraphTypes.SimulationLink>('text')
-    expect(labels.filter((_link, index) => index === 0).attr('dy')).toBe('-16')
-    expect(labels.filter((_link, index) => index === 1).attr('dy')).toBe('0')
-    expect(labels.filter((_link, index) => index === 2).attr('dy')).toBe('16')
+    expect(labels.size()).toBe(2)
+    expect(labels.nodes().map((label) => label.childNodes[0]?.textContent)).toStrictEqual([
+      'reads',
+      'writes',
+    ])
+    expect(labels.filter((_link, index) => index === 0).attr('dy')).toBe('-8')
+    expect(labels.filter((_link, index) => index === 1).attr('dy')).toBe('8')
+  })
+
+  it('combines distinct details behind a unique relationship label', () => {
+    const group = d3.select(document.body).append('svg').append('g')
+    const links: GraphTypes.SimulationLink[] = [
+      {
+        source: 'source',
+        target: 'target',
+        type: 'sync',
+        originalEdge: {
+          source: 'source',
+          target: 'target',
+          type: 'sync',
+          relationshipType: 'executes',
+          condition: 'ready',
+        },
+      },
+      {
+        source: 'source',
+        target: 'target',
+        type: 'async',
+        originalEdge: {
+          source: 'source',
+          target: 'target',
+          type: 'async',
+          relationshipType: 'executes',
+          condition: 'forced',
+        },
+      },
+    ]
+
+    GraphRenderingSetup.setupLinkLabels(group, links, 'semantic-only')
+
+    const label = group.select('text')
+    expect(group.selectAll('text').size()).toBe(1)
+    expect(label.attr('aria-label')).toBe(
+      'executes · sync · when ready\nexecutes · async · when forced',
+    )
+    expect(label.select('title').text()).toBe(
+      'executes · sync · when ready\nexecutes · async · when forced',
+    )
   })
 
   it('stacks labels when relationships run in opposite directions', () => {

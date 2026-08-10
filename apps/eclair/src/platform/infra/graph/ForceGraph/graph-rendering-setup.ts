@@ -3,13 +3,13 @@ import type {
   SimulationNode, SimulationLink 
 } from '../graph-types'
 import type { NodeType } from '@/platform/domain/eclair-types'
-import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import type { Theme } from '@/types/theme'
 import { getLinkNodeId } from './FocusModeStyling'
 import {
   LayoutError, RenderingError 
 } from '@/platform/infra/errors/errors'
 import * as relationshipPresentation from '@/platform/domain/relationship-presentation'
+import * as linkLabelPositioning from './link-label-positioning'
 
 export {
   getLinkNodeId,
@@ -19,21 +19,6 @@ export {
 } from './FocusModeStyling'
 
 type SemanticEdgeType = 'event' | 'eventHandler' | 'external' | 'default'
-
-const PARALLEL_LABEL_GAP = 16
-
-function getVerticalLabelOffsets(
-  links: SimulationLink[],
-  getGroupKey: (link: SimulationLink) => string,
-): Map<SimulationLink, number> {
-  const offsets = new Map<SimulationLink, number>()
-  for (const groupedLinks of d3.group(links, getGroupKey).values()) {
-    groupedLinks.forEach((link, index) => {
-      offsets.set(link, (index - (groupedLinks.length - 1) / 2) * PARALLEL_LABEL_GAP)
-    })
-  }
-  return offsets
-}
 
 export interface SetupLinksParams {
   linkGroup: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>
@@ -103,9 +88,13 @@ export function setupLinkLabels(
   links: SimulationLink[],
   mode: 'detailed' | 'semantic-only' = 'detailed',
 ): d3.Selection<SVGTextElement, SimulationLink, SVGGElement, unknown> {
+  const labelLinks =
+    mode === 'semantic-only'
+      ? linkLabelPositioning.getUniqueRelationshipLabelLinks(links)
+      : links.filter((link) => link.originalEdge.relationshipType !== undefined)
   const labels = linkGroup
     .selectAll<SVGTextElement, SimulationLink>('text')
-    .data(links.filter((link) => link.originalEdge.relationshipType !== undefined))
+    .data(labelLinks)
     .join('text')
     .attr('class', 'graph-link-label')
     .attr('text-anchor', 'middle')
@@ -121,20 +110,18 @@ export function setupLinkLabels(
         : relationshipPresentation.relationshipDetail(link.originalEdge),
     )
 
-  const verticalOffsets = getVerticalLabelOffsets(labels.data(), (link) => {
-    const nodePair = [getLinkNodeId(link.source), getLinkNodeId(link.target)].sort(
-      compareByCodePoint,
-    )
-    return JSON.stringify(nodePair)
-  })
+  const verticalOffsets = linkLabelPositioning.getVerticalLabelOffsets(
+    labels.data(),
+    linkLabelPositioning.getUnorderedNodePairKey,
+  )
   labels.attr('dy', (link) => verticalOffsets.get(link) ?? 0)
 
   if (mode === 'semantic-only') {
-    labels
-      .attr('cursor', 'help')
-      .attr('aria-label', (link) => relationshipPresentation.relationshipDetail(link.originalEdge))
-      .append('title')
-      .text((link) => relationshipPresentation.relationshipDetail(link.originalEdge))
+    const getDetails = (link: SimulationLink): string =>
+      linkLabelPositioning.getRelationshipLabelDetails(links, link, (detailLink) =>
+        relationshipPresentation.relationshipDetail(detailLink.originalEdge),
+      )
+    labels.attr('cursor', 'help').attr('aria-label', getDetails).append('title').text(getDetails)
   }
 
   return labels
@@ -278,14 +265,17 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
         return ((source?.y ?? 0) + (target?.y ?? 0)) / 2 - 6
       })
 
-      const verticalOffsets = getVerticalLabelOffsets(linkLabel.data(), (labelLink) => {
-        const source = nodePositionMap.get(getLinkNodeId(labelLink.source))
-        const target = nodePositionMap.get(getLinkNodeId(labelLink.target))
-        return JSON.stringify([
-          (source?.x ?? 0) + (target?.x ?? 0),
-          (source?.y ?? 0) + (target?.y ?? 0),
-        ])
-      })
+      const verticalOffsets = linkLabelPositioning.getVerticalLabelOffsets(
+        linkLabel.data(),
+        (labelLink) => {
+          const source = nodePositionMap.get(getLinkNodeId(labelLink.source))
+          const target = nodePositionMap.get(getLinkNodeId(labelLink.target))
+          return JSON.stringify([
+            (source?.x ?? 0) + (target?.x ?? 0),
+            (source?.y ?? 0) + (target?.y ?? 0),
+          ])
+        },
+      )
       linkLabel.attr('dy', (labelLink) => verticalOffsets.get(labelLink) ?? 0)
     }
 
