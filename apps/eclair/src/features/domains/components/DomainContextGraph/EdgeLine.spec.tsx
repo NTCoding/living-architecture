@@ -108,7 +108,7 @@ describe('EdgeLine', () => {
     expect(group).toBeInTheDocument()
   })
 
-  it('separates the paths and labels for opposite relationship directions', () => {
+  it('separates long labels for opposite relationship directions', () => {
     const { container } = render(
       <svg>
         <EdgeLine
@@ -119,6 +119,8 @@ describe('EdgeLine', () => {
           testId="outgoing-edge"
           direction="outgoing"
           relationshipCount={2}
+          relationshipTypes={['proxies']}
+          deliveryTypes={['sync']}
           isBidirectional
         />
         <EdgeLine
@@ -129,6 +131,8 @@ describe('EdgeLine', () => {
           testId="incoming-edge"
           direction="incoming"
           relationshipCount={1}
+          relationshipTypes={['proxies']}
+          deliveryTypes={['sync']}
           isBidirectional
         />
       </svg>,
@@ -140,7 +144,17 @@ describe('EdgeLine', () => {
     const incomingLabel = container.querySelector('[data-testid="incoming-edge"] text')
 
     expect(outgoingLine?.getAttribute('x1')).not.toBe(incomingLine?.getAttribute('x2'))
-    expect(outgoingLabel?.getAttribute('x')).not.toBe(incomingLabel?.getAttribute('x'))
-    expect(outgoingLabel?.getAttribute('y')).not.toBe(incomingLabel?.getAttribute('y'))
+    const outgoingLabelX = Number(outgoingLabel?.getAttribute('x'))
+    const outgoingLabelY = Number(outgoingLabel?.getAttribute('y'))
+    const incomingLabelX = Number(incomingLabel?.getAttribute('x'))
+    const incomingLabelY = Number(incomingLabel?.getAttribute('y'))
+    const labelSeparation = Math.hypot(
+      outgoingLabelX - incomingLabelX,
+      outgoingLabelY - incomingLabelY,
+    )
+
+    expect(outgoingLabel).toHaveTextContent('proxies · sync')
+    expect(incomingLabel).toHaveTextContent('proxies · sync')
+    expect(labelSeparation).toBeGreaterThan(24)
   })
 })

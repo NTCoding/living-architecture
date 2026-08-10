@@ -171,6 +171,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
         data: {
           ...node.data,
           dimmed: isDimmed,
+          focused: isFocused,
         },
       }
     })

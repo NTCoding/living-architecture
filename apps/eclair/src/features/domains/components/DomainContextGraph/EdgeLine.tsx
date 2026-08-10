@@ -14,6 +14,7 @@ interface EdgeLineProps {
 }
 
 const BIDIRECTIONAL_EDGE_SEPARATION = 8
+const BIDIRECTIONAL_LABEL_POSITION_FROM_SOURCE = 0.35
 
 function formatEdgeLabel(
   relationshipCount: number,
@@ -58,6 +59,9 @@ export function EdgeLine({
   const endX = to.x - dx * endOffset + separationX
   const endY = to.y - dy * endOffset + separationY
   const edgeLabel = formatEdgeLabel(relationshipCount, relationshipTypes, deliveryTypes)
+  const labelPosition = isBidirectional ? BIDIRECTIONAL_LABEL_POSITION_FROM_SOURCE : 0.5
+  const labelX = startX + (endX - startX) * labelPosition
+  const labelY = startY + (endY - startY) * labelPosition - 6
 
   return (
     <g data-testid={testId} data-direction={direction} data-bidirectional={isBidirectional}>
@@ -73,8 +77,8 @@ export function EdgeLine({
         markerEnd="url(#arrow-marker)"
       />
       <text
-        x={(startX + endX) / 2}
-        y={(startY + endY) / 2 - 6}
+        x={labelX}
+        y={labelY}
         textAnchor="middle"
         className="fill-[var(--text-secondary)] text-[10px] font-semibold"
       >

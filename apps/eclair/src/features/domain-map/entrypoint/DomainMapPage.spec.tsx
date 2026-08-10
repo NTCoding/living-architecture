@@ -163,9 +163,11 @@ describe('DomainMapPage', () => {
 
     const ordersNode = container.querySelector('[data-id="orders"]')
     const paymentsNode = container.querySelector('[data-id="payments"]')
+    const ordersDomain = ordersNode?.querySelector('[title="orders"]')
+    const paymentsDomain = paymentsNode?.querySelector('[title="payments"]')
 
-    expect(ordersNode).toBeInTheDocument()
-    expect(paymentsNode).toBeInTheDocument()
+    expect(ordersDomain).toHaveAttribute('data-focused', 'true')
+    expect(paymentsDomain).toHaveAttribute('data-focused', 'false')
   })
 
   describe('inspector panel design', () => {

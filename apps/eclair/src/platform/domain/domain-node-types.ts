@@ -8,5 +8,6 @@ export interface DomainNodeData {
   systemType: DomainMapSystemType
   calculatedSize?: number
   dimmed?: boolean
+  focused?: boolean
   isExternal?: boolean
 }

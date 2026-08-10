@@ -102,6 +102,24 @@ describe('DomainNode', () => {
     expect(nodeDiv).toHaveStyle({ opacity: '0.3' })
   })
 
+  it('renders a visible halo without replacing the domain type border when focused', () => {
+    const { container } = renderWithProvider(
+      <DomainNode
+        data={{
+          label: 'orders',
+          nodeCount: 5,
+          systemType: 'other',
+          focused: true,
+        }}
+      />,
+    )
+
+    const nodeDiv = container.querySelector('div.flex[title]')
+    expect(nodeDiv).toHaveAttribute('data-focused', 'true')
+    expect(nodeDiv).toHaveClass('domain-node-other')
+    expect(nodeDiv).toHaveStyle({ boxShadow: '0 0 0 6px var(--primary), 0 0 24px var(--primary)' })
+  })
+
   describe('consistent sizing', () => {
     it('uses consistent 120px size for all domain nodes', () => {
       const { container } = renderWithProvider(
