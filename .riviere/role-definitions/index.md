@@ -13,7 +13,7 @@ These resources inform how roles are classified and where code should live:
 
 Dependencies point inward:
 - `entrypoint/` → commands and queries; never domain or data access directly
-- `commands/` → domain ports, domain, and data access
+- `commands/` → domain and data access
 - `queries/` → query models and data access
 - `domain/` → domain code and domain ports only; never adapters or infrastructure
 - `data-access/` → reconstructs aggregates or query models from persisted data
