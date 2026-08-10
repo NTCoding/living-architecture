@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ValidationResult
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:110](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L110)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:116](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L116)
 
 Result of graph validation.
 
@@ -18,7 +18,7 @@ query-model
 
 > **errors**: [`ValidationError`](ValidationError.md)[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:114](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L114)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:120](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L120)
 
 List of validation errors (empty if valid).
 
@@ -28,6 +28,6 @@ List of validation errors (empty if valid).
 
 > **valid**: `boolean`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:112](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L112)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:118](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L118)
 
 Whether the graph passed validation.

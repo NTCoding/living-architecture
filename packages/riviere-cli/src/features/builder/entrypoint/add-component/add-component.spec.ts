@@ -359,6 +359,32 @@ describe('riviere builder add-component', () => {
       const graph: unknown = JSON.parse(content)
       expect(graph).toMatchObject({ components: [{ sourceLocation: { lineNumber: 42 } }] })
     })
+
+    it('includes columnNumber in sourceLocation when --column-number provided', async () => {
+      await createGraphWithDomain(ctx.testDir, 'orders')
+      const program = createProgram()
+      await program.parseAsync(
+        buildAddComponentArgs({ extraArgs: ['--route', '/test', '--column-number', '17'] }),
+      )
+
+      const graphPath = join(ctx.testDir, '.riviere', 'graph.json')
+      const content = await readFile(graphPath, 'utf-8')
+      const graph: unknown = JSON.parse(content)
+
+      expect(graph).toMatchObject({ components: [{ sourceLocation: { columnNumber: 17 } }] })
+    })
+
+    it('rejects a fractional --column-number', async () => {
+      await createGraphWithDomain(ctx.testDir, 'orders')
+      const program = createProgram()
+      await program.parseAsync(
+        buildAddComponentArgs({ extraArgs: ['--route', '/test', '--column-number', '3.14'] }),
+      )
+
+      expect(ctx.consoleOutput.join('\n')).toContain(
+        'Invalid column number: must be a positive integer',
+      )
+    })
   })
 
   describe('getErrorMessage', () => {

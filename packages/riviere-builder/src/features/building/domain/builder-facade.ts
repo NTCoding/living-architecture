@@ -22,6 +22,7 @@ import type {
   DomainOpInput,
   EventHandlerInput,
   EventInput,
+  RelationshipTypeInput,
   UpsertOptions,
   UIInput,
   UseCaseInput,
@@ -52,6 +53,7 @@ export type {
   EnrichmentInput,
   EventHandlerInput,
   EventInput,
+  RelationshipTypeInput,
   ExternalLinkInput,
   LinkInput,
   NearMatchMismatch,
@@ -248,6 +250,15 @@ export class RiviereBuilder {
    */
   defineCustomType(input: CustomTypeInput): void {
     this.delegate.construction.defineCustomType(input)
+  }
+
+  /**
+   * Defines a relationship type for the graph.
+   *
+   * @param input - Relationship type name and description
+   */
+  defineRelationshipType(input: RelationshipTypeInput): void {
+    this.delegate.construction.defineRelationshipType(input)
   }
 
   /**

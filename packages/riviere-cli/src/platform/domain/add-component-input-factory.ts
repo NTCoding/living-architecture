@@ -16,6 +16,7 @@ interface AddComponentCommandInput {
   repository: string
   filePath: string
   lineNumber?: number
+  columnNumber?: number
   route?: string
   apiType?: string
   httpMethod?: string
@@ -78,6 +79,7 @@ function createCommonInput(input: AddComponentCommandInput): CommonInput {
     repository: input.repository,
     filePath: input.filePath,
     ...(input.lineNumber === undefined ? {} : { lineNumber: input.lineNumber }),
+    ...(input.columnNumber === undefined ? {} : { columnNumber: input.columnNumber }),
   }
 
   return {

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: GraphDiff
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:191](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L191)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:197](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L197)
 
 Complete diff between two graph versions.
 
@@ -18,7 +18,7 @@ query-model
 
 > **components**: `object`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:193](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L193)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:199](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L199)
 
 Component changes.
 
@@ -46,7 +46,7 @@ Components present in old graph but not new.
 
 > **links**: `object`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:202](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L202)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:208](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L208)
 
 Link changes.
 
@@ -68,6 +68,6 @@ Links present in old graph but not new.
 
 > **stats**: [`DiffStats`](DiffStats.md)
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:209](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L209)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:215](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L215)
 
 Summary statistics.

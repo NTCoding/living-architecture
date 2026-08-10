@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: DiffStats
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:174](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L174)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:180](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L180)
 
 Summary statistics of differences between graphs.
 
@@ -18,7 +18,7 @@ query-model
 
 > **componentsAdded**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:176](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L176)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:182](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L182)
 
 Number of components added.
 
@@ -28,7 +28,7 @@ Number of components added.
 
 > **componentsModified**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:180](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L180)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:186](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L186)
 
 Number of components modified.
 
@@ -38,7 +38,7 @@ Number of components modified.
 
 > **componentsRemoved**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:178](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L178)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:184](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L184)
 
 Number of components removed.
 
@@ -48,7 +48,7 @@ Number of components removed.
 
 > **linksAdded**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:182](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L182)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:188](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L188)
 
 Number of links added.
 
@@ -58,6 +58,6 @@ Number of links added.
 
 > **linksRemoved**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:184](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L184)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:190](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L190)
 
 Number of links removed.

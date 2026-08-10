@@ -88,7 +88,13 @@ export type HandlerName = z.infer<typeof handlerNameSchema>
  * Error codes for graph validation failures.
  * @riviere-role query-model
  */
-export type ValidationErrorCode = 'INVALID_LINK_SOURCE' | 'INVALID_LINK_TARGET' | 'INVALID_TYPE'
+export type ValidationErrorCode =
+  | 'INVALID_LINK_SOURCE'
+  | 'INVALID_LINK_TARGET'
+  | 'INVALID_TYPE'
+  | 'INVALID_RELATIONSHIP_TYPE'
+  | 'DUPLICATE_LINK_ID'
+  | 'DUPLICATE_LINK'
 
 /**
  * A validation error found in the graph.

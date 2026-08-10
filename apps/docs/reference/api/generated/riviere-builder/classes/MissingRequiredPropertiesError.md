@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: MissingRequiredPropertiesError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:109](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L109)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:148](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L148)
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new MissingRequiredPropertiesError**(`customTypeName`, `missingKeys`): `MissingRequiredPropertiesError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:113](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L113)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:152](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L152)
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **customTypeName**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:110](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L110)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:149](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L149)
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **missingKeys**: `string`[]
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:111](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L111)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:150](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L150)
 
 ***
 

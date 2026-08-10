@@ -1,12 +1,17 @@
 import type {
   ExternalLink, Link 
 } from '@living-architecture/riviere-schema'
+import { createLinkId } from '@living-architecture/riviere-schema'
 import type { BuilderGraph } from '../builder-graph'
 import type { BuilderWarning } from '../inspection/inspection-types'
 import type {
   ExternalLinkInput, LinkInput 
 } from './linking-types'
 import { createComponentNotFoundError } from '../construction/builder-internals'
+import {
+  DuplicateLinkError,
+  RelationshipTypeNotFoundError,
+} from '../construction/construction-errors'
 
 /** @riviere-role domain-service */
 export class GraphLinking {
@@ -24,26 +29,33 @@ export class GraphLinking {
       throw createComponentNotFoundError(this.graph.components, input.from)
     }
 
-    const duplicate = this.graph.links.find(
-      (link) => link.source === input.from && link.target === input.to && link.type === input.type,
-    )
+    if (
+      input.relationshipType !== undefined &&
+      !Object.hasOwn(this.graph.metadata.relationshipTypes, input.relationshipType)
+    ) {
+      throw new RelationshipTypeNotFoundError(
+        input.relationshipType,
+        Object.keys(this.graph.metadata.relationshipTypes),
+      )
+    }
 
-    if (duplicate) {
-      this.operationWarnings.push({
-        code: 'DUPLICATE_LINK_SKIPPED',
-        message: `Duplicate link '${input.from}' -> '${input.to}' (${input.type ?? 'unspecified'}) skipped`,
-        source: input.from,
-        target: input.to,
-        ...(input.type !== undefined && { linkType: input.type }),
-      })
-
-      return duplicate
+    const id = createLinkId({
+      source: input.from,
+      target: input.to,
+      ...(input.sourceLocation !== undefined && { sourceLocation: input.sourceLocation }),
+    })
+    if (this.graph.links.some((link) => link.id === id || createLinkId(link) === id)) {
+      throw new DuplicateLinkError(id)
     }
 
     const link: Link = {
+      id,
       source: input.from,
       target: input.to,
       ...(input.type !== undefined && { type: input.type }),
+      ...(input.relationshipType !== undefined && { relationshipType: input.relationshipType }),
+      ...(input.condition !== undefined && { condition: input.condition }),
+      ...(input.sourceLocation !== undefined && { sourceLocation: input.sourceLocation }),
     }
     this.graph.links.push(link)
     return link

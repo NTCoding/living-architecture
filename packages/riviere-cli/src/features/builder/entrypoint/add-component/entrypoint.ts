@@ -29,6 +29,7 @@ interface CliOptions {
   customProperty?: string[]
   description?: string
   lineNumber?: string
+  columnNumber?: string
   graph?: string
   json?: boolean
 }
@@ -64,6 +65,7 @@ export function createAddComponentCommand(addComponent: AddComponent): Command {
     )
     .option('--description <desc>', 'Component description')
     .option('--line-number <n>', 'Source line number')
+    .option('--column-number <n>', 'Source column number')
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CliOptions) => {

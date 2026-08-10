@@ -2,6 +2,7 @@ export interface SourceLocation {
   repository: string
   filePath: string
   lineNumber?: number
+  columnNumber?: number
   endLineNumber?: number
   methodName?: string
   url?: string
@@ -121,6 +122,8 @@ export interface Link {
   source: string
   target: string
   type?: LinkType
+  relationshipType?: string
+  condition?: string
   payload?: PayloadDefinition
   sourceLocation?: SourceLocation
 }
@@ -164,6 +167,8 @@ export interface CustomTypeDefinition {
   optionalProperties?: Record<string, CustomPropertyDefinition>
 }
 
+export interface RelationshipTypeDefinition {description: string}
+
 export interface SourceInfo {
   repository: string
   commit?: string
@@ -177,6 +182,7 @@ export interface GraphMetadata {
   sources?: SourceInfo[]
   domains: Record<string, DomainMetadata>
   customTypes?: Record<string, CustomTypeDefinition>
+  relationshipTypes?: Record<string, RelationshipTypeDefinition>
 }
 
 export interface RiviereGraph {

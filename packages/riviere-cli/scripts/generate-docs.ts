@@ -51,7 +51,7 @@ function extractOptions(cmd: Command): readonly OptionInfo[] {
     .map((opt) => ({
       flags: opt.flags,
       description: opt.description ?? '(no description)',
-      required: opt.required ?? false,
+      required: opt.mandatory,
     }))
 }
 

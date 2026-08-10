@@ -37,9 +37,16 @@ export class AddComponent {
 
     if (
       input.lineNumber !== undefined &&
-      (!Number.isInteger(input.lineNumber) || input.lineNumber < 1)
+      (!Number.isSafeInteger(input.lineNumber) || input.lineNumber < 1)
     ) {
       return failure('VALIDATION_ERROR', 'Invalid line number: must be a positive integer')
+    }
+
+    if (
+      input.columnNumber !== undefined &&
+      (!Number.isSafeInteger(input.columnNumber) || input.columnNumber < 1)
+    ) {
+      return failure('VALIDATION_ERROR', 'Invalid column number: must be a positive integer')
     }
 
     try {

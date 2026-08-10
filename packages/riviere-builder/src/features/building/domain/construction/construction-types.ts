@@ -112,6 +112,12 @@ export interface CustomTypeInput {
 }
 
 /** @riviere-role value-object */
+export interface RelationshipTypeInput {
+  name: string
+  description: string
+}
+
+/** @riviere-role value-object */
 export interface CustomInput {
   customTypeName: string
   name: string

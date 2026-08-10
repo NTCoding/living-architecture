@@ -94,6 +94,44 @@ describe('parseRiviereGraph()', () => {
     expect(result.metadata.domains['alerts']?.systemType).toBe('external-service')
   })
 
+  it('parses relationship types and a Link source occurrence', () => {
+    const input = {
+      version: '1.0',
+      metadata: {
+        domains: {
+          orders: {
+            description: 'Orders',
+            systemType: 'domain',
+          },
+        },
+        relationshipTypes: { executes: { description: 'Invokes the target during execution' } },
+      },
+      components: [],
+      links: [
+        {
+          id: 'component-a->component-b@src/a.ts:12:5',
+          source: 'component-a',
+          target: 'component-b',
+          relationshipType: 'executes',
+          condition: 'success',
+          sourceLocation: {
+            repository: 'test-repo',
+            filePath: 'src/a.ts',
+            lineNumber: 12,
+            columnNumber: 5,
+          },
+        },
+      ],
+    }
+
+    const result = parseRiviereGraph(input)
+
+    expect(result.metadata.relationshipTypes?.['executes']?.description).toBe(
+      'Invokes the target during execution',
+    )
+    expect(result.links[0]).toStrictEqual(input.links[0])
+  })
+
   it('throws RiviereSchemaValidationError on invalid component type', () => {
     const input = {
       version: '1.0',
@@ -263,13 +301,34 @@ describe('riviere-schema types', () => {
 
   it('enforces link structure', () => {
     const link: Link = {
+      id: 'component-a->component-b@src/a.ts:12:5',
       source: 'component-a',
       target: 'component-b',
       type: 'sync',
+      relationshipType: 'executes',
+      condition: 'success',
+      sourceLocation: {
+        repository: 'test-repo',
+        filePath: 'src/a.ts',
+        lineNumber: 12,
+        columnNumber: 5,
+      },
     }
 
-    expect(link.source).toBe('component-a')
-    expect(link.target).toBe('component-b')
+    expect(link).toStrictEqual({
+      id: 'component-a->component-b@src/a.ts:12:5',
+      source: 'component-a',
+      target: 'component-b',
+      type: 'sync',
+      relationshipType: 'executes',
+      condition: 'success',
+      sourceLocation: {
+        repository: 'test-repo',
+        filePath: 'src/a.ts',
+        lineNumber: 12,
+        columnNumber: 5,
+      },
+    })
   })
 
   it('enforces metadata structure with required domains', () => {
@@ -280,8 +339,12 @@ describe('riviere-schema types', () => {
           systemType: 'domain',
         },
       },
+      relationshipTypes: { executes: { description: 'Invokes the target during execution' } },
     }
 
     expect(metadata.domains['orders']?.systemType).toBe('domain')
+    expect(metadata.relationshipTypes?.['executes']?.description).toBe(
+      'Invokes the target during execution',
+    )
   })
 })

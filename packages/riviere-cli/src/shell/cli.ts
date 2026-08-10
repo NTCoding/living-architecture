@@ -7,6 +7,7 @@ import { CheckConsistency } from '../features/builder/commands/check-consistency
 import { ComponentChecklist } from '../features/builder/commands/component-checklist'
 import { ComponentSummary } from '../features/builder/commands/component-summary'
 import { DefineCustomType } from '../features/builder/commands/define-custom-type'
+import { DefineRelationshipType } from '../features/builder/commands/define-relationship-type'
 import { EnrichComponent } from '../features/builder/commands/enrich-component'
 import { FinalizeGraph } from '../features/builder/commands/finalize-graph'
 import { InitGraph } from '../features/builder/commands/init-graph'
@@ -22,6 +23,7 @@ import { createCheckConsistencyCommand } from '../features/builder/entrypoint/ch
 import { createComponentChecklistCommand } from '../features/builder/entrypoint/component-checklist/entrypoint'
 import { createComponentSummaryCommand } from '../features/builder/entrypoint/component-summary/entrypoint'
 import { createDefineCustomTypeCommand } from '../features/builder/entrypoint/define-custom-type/entrypoint'
+import { createDefineRelationshipTypeCommand } from '../features/builder/entrypoint/define-relationship-type/entrypoint'
 import { createEnrichCommand } from '../features/builder/entrypoint/enrich/entrypoint'
 import { createFinalizeCommand } from '../features/builder/entrypoint/finalize/entrypoint'
 import { createInitCommand } from '../features/builder/entrypoint/init/entrypoint'
@@ -104,6 +106,9 @@ export function createProgram(): Command {
   builderCmd.addCommand(createComponentChecklistCommand(new ComponentChecklist(builderRepository)))
   builderCmd.addCommand(createCheckConsistencyCommand(new CheckConsistency(builderRepository)))
   builderCmd.addCommand(createDefineCustomTypeCommand(new DefineCustomType(builderRepository)))
+  builderCmd.addCommand(
+    createDefineRelationshipTypeCommand(new DefineRelationshipType(builderRepository)),
+  )
 
   const queryCmd = program.command('query').description('Commands for querying a graph')
 

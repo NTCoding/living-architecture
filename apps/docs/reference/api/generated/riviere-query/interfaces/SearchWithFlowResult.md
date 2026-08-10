@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: SearchWithFlowResult
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:248](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L248)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:254](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L254)
 
 Result of searchWithFlow containing matches and their flow context.
 
@@ -18,7 +18,7 @@ query-model
 
 > **matchingIds**: `string` & `$brand`\<`"ComponentId"`\>[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:250](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L250)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:256](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L256)
 
 IDs of components that matched the search.
 
@@ -28,6 +28,6 @@ IDs of components that matched the search.
 
 > **visibleIds**: `string` & `$brand`\<`"ComponentId"`\>[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:252](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L252)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:258](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L258)
 
 IDs of all components visible in the matching flows.

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ExternalDomain
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:307](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L307)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:313](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L313)
 
 An external domain that components connect to.
 
@@ -21,7 +21,7 @@ query-model
 
 > **connectionCount**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:313](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L313)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:319](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L319)
 
 Total number of connections to this external domain.
 
@@ -31,7 +31,7 @@ Total number of connections to this external domain.
 
 > **name**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:309](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L309)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:315](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L315)
 
 Name of the external domain (e.g., "Stripe", "Twilio").
 
@@ -41,6 +41,6 @@ Name of the external domain (e.g., "Stripe", "Twilio").
 
 > **sourceDomains**: `string` & `$brand`\<`"DomainName"`\>[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:311](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L311)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:317](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L317)
 
 Domains that have connections to this external domain.

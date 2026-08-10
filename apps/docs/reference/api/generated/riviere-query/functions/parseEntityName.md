@@ -6,7 +6,7 @@ pageClass: reference
 
 > **parseEntityName**(`value`): `string` & `$brand`\<`"EntityName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:345](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L345)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:351](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L351)
 
 Parses a string as an EntityName.
 
