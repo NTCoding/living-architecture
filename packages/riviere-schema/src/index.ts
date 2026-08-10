@@ -8,3 +8,6 @@ export {
 export {
   ComponentId, InvalidComponentIdError, type ComponentIdParts 
 } from './component-id'
+export {
+  createLinkId, type LinkIdentity 
+} from './link-id'

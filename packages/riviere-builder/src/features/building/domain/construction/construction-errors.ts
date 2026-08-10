@@ -106,6 +106,45 @@ export class CustomTypeAlreadyDefinedError extends Error {
 }
 
 /** @riviere-role domain-error */
+export class RelationshipTypeAlreadyDefinedError extends Error {
+  readonly typeName: string
+
+  constructor(typeName: string) {
+    super(`Relationship type '${typeName}' already defined`)
+    this.name = 'RelationshipTypeAlreadyDefinedError'
+    this.typeName = typeName
+  }
+}
+
+/** @riviere-role domain-error */
+export class RelationshipTypeNotFoundError extends Error {
+  readonly relationshipType: string
+  readonly definedTypes: string[]
+
+  constructor(relationshipType: string, definedTypes: string[]) {
+    const suffix =
+      definedTypes.length === 0
+        ? 'No relationship types have been defined.'
+        : `Defined types: ${definedTypes.join(', ')}`
+    super(`Relationship type '${relationshipType}' not defined. ${suffix}`)
+    this.name = 'RelationshipTypeNotFoundError'
+    this.relationshipType = relationshipType
+    this.definedTypes = definedTypes
+  }
+}
+
+/** @riviere-role domain-error */
+export class DuplicateLinkError extends Error {
+  readonly linkId: string
+
+  constructor(linkId: string) {
+    super(`Link with ID '${linkId}' already exists`)
+    this.name = 'DuplicateLinkError'
+    this.linkId = linkId
+  }
+}
+
+/** @riviere-role domain-error */
 export class MissingRequiredPropertiesError extends Error {
   readonly customTypeName: string
   readonly missingKeys: string[]

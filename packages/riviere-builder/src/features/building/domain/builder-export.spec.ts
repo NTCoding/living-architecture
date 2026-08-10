@@ -101,6 +101,7 @@ describe('RiviereBuilder', () => {
         } = buildValidGraph()
 
         expect(graph.links).toContainEqual({
+          id: `${sourceId}->${targetId}`,
           source: sourceId,
           target: targetId,
         })
@@ -174,6 +175,18 @@ describe('RiviereBuilder', () => {
           },
         },
       })
+    })
+
+    it('includes relationshipTypes when defined', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+      builder.defineRelationshipType({
+        name: 'reads',
+        description: 'Reads data from the target',
+      })
+
+      const graph = builder.build()
+
+      expect(graph.metadata.relationshipTypes).toStrictEqual({reads: { description: 'Reads data from the target' },})
     })
 
     it('excludes externalLinks when none present', () => {

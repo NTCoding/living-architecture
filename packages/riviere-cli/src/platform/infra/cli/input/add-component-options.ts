@@ -18,6 +18,7 @@ interface AddComponentOptions {
   customProperty?: string[]
   description?: string
   lineNumber?: string
+  columnNumber?: string
   graph?: string
 }
 
@@ -30,6 +31,7 @@ interface AddComponentCommandInput {
   filePath: string
   graphPathOption?: string
   lineNumber?: number
+  columnNumber?: number
   route?: string
   apiType?: string
   httpMethod?: string
@@ -61,6 +63,7 @@ export function toAddComponentInput(options: AddComponentOptions): AddComponentC
     ...withOptional('httpMethod', options.httpMethod),
     ...withOptional('httpPath', options.httpPath),
     ...withParsedLineNumber(options.lineNumber),
+    ...withParsedColumnNumber(options.columnNumber),
     module: options.module,
     name: options.name,
     ...withOptional('operationName', options.operationName),
@@ -85,5 +88,11 @@ function withNonEmptyArray<Key extends keyof AddComponentCommandInput>(
 }
 
 function withParsedLineNumber(lineNumber: string | undefined): Partial<AddComponentCommandInput> {
-  return lineNumber === undefined ? {} : { lineNumber: Number.parseInt(lineNumber, 10) }
+  return lineNumber === undefined ? {} : { lineNumber: Number(lineNumber) }
+}
+
+function withParsedColumnNumber(
+  columnNumber: string | undefined,
+): Partial<AddComponentCommandInput> {
+  return columnNumber === undefined ? {} : { columnNumber: Number(columnNumber) }
 }

@@ -333,6 +333,7 @@ describe('RiviereBuilder', () => {
 
       expect(resumed.stats().componentCount).toBe(0)
       expect(resumed.serialize()).toContain('"customTypes": {}')
+      expect(resumed.serialize()).toContain('"relationshipTypes": {}')
       expect(resumed.serialize()).toContain('"externalLinks": []')
     })
   })

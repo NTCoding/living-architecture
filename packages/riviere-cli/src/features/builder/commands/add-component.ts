@@ -42,6 +42,13 @@ export class AddComponent {
       return failure('VALIDATION_ERROR', 'Invalid line number: must be a positive integer')
     }
 
+    if (
+      input.columnNumber !== undefined &&
+      (!Number.isInteger(input.columnNumber) || input.columnNumber < 1)
+    ) {
+      return failure('VALIDATION_ERROR', 'Invalid column number: must be a positive integer')
+    }
+
     try {
       const builder = this.repository.load(input.graphPathOption)
       const componentId = addComponentToBuilder(builder, createDomainInput(input))

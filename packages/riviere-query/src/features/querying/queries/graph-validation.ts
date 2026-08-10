@@ -1,3 +1,4 @@
+import { createLinkId } from '@living-architecture/riviere-schema'
 import type {
   RiviereGraph, CustomComponent 
 } from '@living-architecture/riviere-schema'
@@ -33,11 +34,76 @@ export function validateGraph(graph: RiviereGraph): ValidationResult {
   })
 
   errors.push(...validateCustomTypes(graph))
+  errors.push(...validateRelationshipTypes(graph))
+  errors.push(...validateUniqueLinkIds(graph))
+  errors.push(...validateUniqueLinkOccurrences(graph))
 
   return {
     valid: errors.length === 0,
     errors,
   }
+}
+
+function validateRelationshipTypes(graph: RiviereGraph): ValidationError[] {
+  const errors: ValidationError[] = []
+  const relationshipTypes = graph.metadata.relationshipTypes
+
+  graph.links.forEach((link, index) => {
+    if (
+      link.relationshipType !== undefined &&
+      (relationshipTypes === undefined || !(link.relationshipType in relationshipTypes))
+    ) {
+      errors.push({
+        path: `/links/${index}/relationshipType`,
+        message: `Relationship type '${link.relationshipType}' is not defined in metadata.relationshipTypes`,
+        code: 'INVALID_RELATIONSHIP_TYPE',
+      })
+    }
+  })
+
+  return errors
+}
+
+function validateUniqueLinkIds(graph: RiviereGraph): ValidationError[] {
+  const errors: ValidationError[] = []
+  const seen = new Set<string>()
+
+  graph.links.forEach((link, index) => {
+    if (link.id === undefined) {
+      return
+    }
+    if (seen.has(link.id)) {
+      errors.push({
+        path: `/links/${index}/id`,
+        message: `Duplicate Link ID: ${link.id}`,
+        code: 'DUPLICATE_LINK_ID',
+      })
+      return
+    }
+    seen.add(link.id)
+  })
+
+  return errors
+}
+
+function validateUniqueLinkOccurrences(graph: RiviereGraph): ValidationError[] {
+  const errors: ValidationError[] = []
+  const seen = new Set<string>()
+
+  graph.links.forEach((link, index) => {
+    const occurrenceId = createLinkId(link)
+    if (seen.has(occurrenceId)) {
+      errors.push({
+        path: `/links/${index}`,
+        message: `Duplicate Link occurrence: ${occurrenceId}`,
+        code: 'DUPLICATE_LINK',
+      })
+      return
+    }
+    seen.add(occurrenceId)
+  })
+
+  return errors
 }
 
 function validateCustomTypes(graph: RiviereGraph): ValidationError[] {

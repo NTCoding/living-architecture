@@ -6,6 +6,7 @@ import type {
   Link,
   RiviereGraph,
   SourceInfo,
+  RelationshipTypeDefinition,
 } from '@living-architecture/riviere-schema'
 import {
   RiviereQuery, type ValidationResult 
@@ -23,6 +24,7 @@ interface InspectionGraph {
     sources: SourceInfo[]
     domains: Record<string, DomainMetadata>
     customTypes: Record<string, CustomTypeDefinition>
+    relationshipTypes: Record<string, RelationshipTypeDefinition>
   }
   components: Component[]
   links: Link[]
@@ -151,6 +153,7 @@ export function findWarnings(graph: InspectionGraph): BuilderWarning[] {
 export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
   const hasCustomTypes = Object.keys(graph.metadata.customTypes).length > 0
   const hasExternalLinks = graph.externalLinks.length > 0
+  const hasRelationshipTypes = Object.keys(graph.metadata.relationshipTypes).length > 0
 
   return {
     version: graph.version,
@@ -160,6 +163,7 @@ export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
       sources: graph.metadata.sources,
       domains: graph.metadata.domains,
       ...(hasCustomTypes && { customTypes: graph.metadata.customTypes }),
+      ...(hasRelationshipTypes && { relationshipTypes: graph.metadata.relationshipTypes }),
     },
     components: graph.components,
     links: graph.links,

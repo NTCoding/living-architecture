@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: RiviereBuilder
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:74](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L74)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:76](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L76)
 
 Programmatically construct Riviere architecture graphs.
 
@@ -21,7 +21,7 @@ aggregate
 
 > `readonly` **graphPath**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:77](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L77)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:79](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L79)
 
 ## Methods
 
@@ -29,7 +29,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/builder-facad
 
 > **addApi**(`input`): `APIComponent`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:150](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L150)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:152](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L152)
 
 Adds an API component to the graph.
 
@@ -53,7 +53,7 @@ The created API component
 
 > **addCustom**(`input`): `CustomComponent`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:259](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L259)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:270](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L270)
 
 Adds a Custom component to the graph.
 
@@ -77,7 +77,7 @@ The created Custom component
 
 > **addDomain**(`input`): `void`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:120](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L120)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:122](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L122)
 
 Adds a new domain to the graph.
 
@@ -99,7 +99,7 @@ Domain name and description
 
 > **addDomainOp**(`input`): `DomainOpComponent`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:190](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L190)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:192](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L192)
 
 Adds a DomainOp component to the graph.
 
@@ -123,7 +123,7 @@ The created DomainOp component
 
 > **addEvent**(`input`): `EventComponent`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:210](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L210)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:212](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L212)
 
 Adds an Event component to the graph.
 
@@ -147,7 +147,7 @@ The created Event component
 
 > **addEventHandler**(`input`): `EventHandlerComponent`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:230](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L230)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:232](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L232)
 
 Adds an EventHandler component to the graph.
 
@@ -171,7 +171,7 @@ The created EventHandler component
 
 > **addSource**(`source`): `void`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:111](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L111)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:113](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L113)
 
 Adds an additional source repository to the graph.
 
@@ -193,7 +193,7 @@ Source repository information
 
 > **addUI**(`input`): `UIComponent`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:130](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L130)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:132](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L132)
 
 Adds a UI component to the graph.
 
@@ -217,7 +217,7 @@ The created UI component
 
 > **addUseCase**(`input`): `UseCaseComponent`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:170](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L170)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:172](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L172)
 
 Adds a UseCase component to the graph.
 
@@ -241,7 +241,7 @@ The created UseCase component
 
 > **build**(): `RiviereGraph`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:373](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L373)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:384](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L384)
 
 Validates and returns the completed graph.
 
@@ -257,7 +257,7 @@ Valid RiviereGraph object
 
 > **defineCustomType**(`input`): `void`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:249](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L249)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:251](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L251)
 
 Defines a custom component type for the graph.
 
@@ -275,11 +275,33 @@ Custom type definition
 
 ***
 
+### defineRelationshipType()
+
+> **defineRelationshipType**(`input`): `void`
+
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:260](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L260)
+
+Defines a relationship type for the graph.
+
+#### Parameters
+
+##### input
+
+[`RelationshipTypeInput`](../interfaces/RelationshipTypeInput.md)
+
+Relationship type name and description
+
+#### Returns
+
+`void`
+
+***
+
 ### enrichComponent()
 
 > **enrichComponent**(`id`, `enrichment`): `void`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:279](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L279)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:290](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L290)
 
 Enriches a DomainOp component with additional domain details.
 
@@ -307,7 +329,7 @@ State changes and business rules to add
 
 > **link**(`input`): `Link`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:300](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L300)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:311](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L311)
 
 Creates a link between two components in the graph.
 
@@ -331,7 +353,7 @@ The created link
 
 > **linkExternal**(`input`): `ExternalLink`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:310](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L310)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:321](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L321)
 
 Creates a link from a component to an external system.
 
@@ -355,7 +377,7 @@ The created external link
 
 > **nearMatches**(`query`, `options?`): [`NearMatchResult`](../interfaces/NearMatchResult.md)[]
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:290](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L290)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:301](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L301)
 
 Finds components similar to a query for error recovery.
 
@@ -385,7 +407,7 @@ Array of similar components with similarity scores
 
 > **orphans**(): `string`[]
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:346](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L346)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:357](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L357)
 
 Returns IDs of components with no incoming or outgoing links.
 
@@ -401,7 +423,7 @@ Array of orphaned component IDs
 
 > **query**(): `RiviereQuery`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:355](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L355)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:366](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L366)
 
 Returns a RiviereQuery instance for the current graph state.
 
@@ -417,7 +439,7 @@ RiviereQuery instance for the current graph
 
 > **serialize**(): `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:364](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L364)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:375](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L375)
 
 Serializes the current graph state as a JSON string.
 
@@ -433,7 +455,7 @@ JSON string representation of the graph
 
 > **stats**(): [`BuilderStats`](../interfaces/BuilderStats.md)
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:328](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L328)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:339](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L339)
 
 Returns statistics about the current graph state.
 
@@ -449,7 +471,7 @@ Counts of components by type, domains, and links
 
 > **upsertApi**(`input`, `options?`): `object`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:154](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L154)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:156](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L156)
 
 #### Parameters
 
@@ -479,7 +501,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/builder-facad
 
 > **upsertCustom**(`input`, `options?`): `object`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:263](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L263)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:274](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L274)
 
 #### Parameters
 
@@ -509,7 +531,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/builder-facad
 
 > **upsertDomainOp**(`input`, `options?`): `object`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:194](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L194)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:196](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L196)
 
 #### Parameters
 
@@ -539,7 +561,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/builder-facad
 
 > **upsertEvent**(`input`, `options?`): `object`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:214](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L214)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:216](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L216)
 
 #### Parameters
 
@@ -569,7 +591,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/builder-facad
 
 > **upsertEventHandler**(`input`, `options?`): `object`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:234](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L234)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:236](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L236)
 
 #### Parameters
 
@@ -599,7 +621,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/builder-facad
 
 > **upsertUI**(`input`, `options?`): `object`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:134](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L134)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:136](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L136)
 
 #### Parameters
 
@@ -629,7 +651,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/builder-facad
 
 > **upsertUseCase**(`input`, `options?`): `object`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:174](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L174)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:176](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L176)
 
 #### Parameters
 
@@ -659,7 +681,7 @@ Defined in: [packages/riviere-builder/src/features/building/domain/builder-facad
 
 > **validate**(): `ValidationResult`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:337](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L337)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:348](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L348)
 
 Runs full validation on the graph.
 
@@ -675,7 +697,7 @@ Validation result with valid flag and error details
 
 > **warnings**(): [`BuilderWarning`](../interfaces/BuilderWarning.md)[]
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:319](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L319)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:330](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L330)
 
 Returns non-fatal issues found in the graph.
 
@@ -691,7 +713,7 @@ Array of warning objects with type and message
 
 > `static` **new**(`options`, `graphPath`): `RiviereBuilder`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:102](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L102)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:104](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L104)
 
 Creates a new builder with initial configuration.
 
@@ -721,7 +743,7 @@ A new RiviereBuilder instance
 
 > `static` **resume**(`graph`, `graphPath`): `RiviereBuilder`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:91](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L91)
+Defined in: [packages/riviere-builder/src/features/building/domain/builder-facade.ts:93](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/builder-facade.ts#L93)
 
 Restores a builder from a previously serialized graph.
 

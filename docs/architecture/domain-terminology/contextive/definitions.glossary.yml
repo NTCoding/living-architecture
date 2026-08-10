@@ -7,7 +7,13 @@ contexts:
         definition: A discrete unit of software functionality in a Riviere graph. Has a type, belongs to a domain, and connects to other components via links.
 
       - name: Link
-        definition: A directed connection between two components, representing a call, dependency, or event flow. Has a source and target component ID, and optionally a type (sync/async).
+        definition: A directed relationship from one source Component to one target Component. Each Link represents one source occurrence and may have a Relationship Type, condition, sync or async type, and Source Location.
+
+      - name: Relationship Type
+        definition: A project-defined name and description for the meaning of a Link.
+
+      - name: Source Location
+        definition: The repository, file path, and optional line and column where a Component or Link occurs in source.
 
       - name: Flow
         definition: A connected path through components and links, typically starting from an entry point and traversing downstream through the graph.

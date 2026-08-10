@@ -27,7 +27,7 @@ npx riviere builder add-source --repository "https://github.com/your-org/your-re
 
 Add additional domains if needed:
 ```bash
-npx riviere builder add-domain --name "[name]" --system-type "[domain|bff|ui|other]" --description "[desc]"
+npx riviere builder add-domain --name "[name]" --system-type "[domain|bff|ui|external-service|other]" --description "[desc]"
 ```
 
 Define custom types (for accepted proposals in component-definitions.md):
@@ -79,7 +79,8 @@ npx riviere builder add-component \
   --name "[name]" \
   --repository "[repo]" \
   --file-path "[path]" \
-  --line-number "[line]"
+  --line-number "[line]" \
+  --column-number "[column]"
 ```
 
 Type-specific options:

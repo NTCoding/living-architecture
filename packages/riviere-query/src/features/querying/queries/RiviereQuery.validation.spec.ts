@@ -113,4 +113,93 @@ describe('RiviereQuery validate()', () => {
     expect(result.valid).toBe(true)
     expect(result.errors).toStrictEqual([])
   })
+
+  it('returns valid when Link uses a defined relationship type', () => {
+    const graph = createMinimalValidGraph()
+    graph.metadata.relationshipTypes = { reads: { description: 'Reads data from the target' } }
+    graph.links = [
+      {
+        id: 'test:mod:ui:page->test:mod:ui:page@page.ts:1:1',
+        source: 'test:mod:ui:page',
+        target: 'test:mod:ui:page',
+        relationshipType: 'reads',
+      },
+    ]
+
+    const result = new RiviereQuery(graph).validate()
+
+    expect(result).toStrictEqual({
+      valid: true,
+      errors: [],
+    })
+  })
+
+  it('returns INVALID_RELATIONSHIP_TYPE when Link type is not defined', () => {
+    const graph = createMinimalValidGraph()
+    graph.links = [
+      {
+        source: 'test:mod:ui:page',
+        target: 'test:mod:ui:page',
+        relationshipType: 'reads',
+      },
+    ]
+
+    const result = new RiviereQuery(graph).validate()
+
+    expect(result.errors).toContainEqual({
+      path: '/links/0/relationshipType',
+      message: "Relationship type 'reads' is not defined in metadata.relationshipTypes",
+      code: 'INVALID_RELATIONSHIP_TYPE',
+    })
+  })
+
+  it('returns DUPLICATE_LINK_ID for the repeated Link ID', () => {
+    const graph = createMinimalValidGraph()
+    const link = {
+      id: 'test:mod:ui:page->test:mod:ui:page',
+      source: 'test:mod:ui:page',
+      target: 'test:mod:ui:page',
+    }
+    graph.links = [link, { ...link }]
+
+    const result = new RiviereQuery(graph).validate()
+
+    expect(result.errors).toContainEqual({
+      path: '/links/1/id',
+      message: 'Duplicate Link ID: test:mod:ui:page->test:mod:ui:page',
+      code: 'DUPLICATE_LINK_ID',
+    })
+  })
+
+  it('returns DUPLICATE_LINK when stored IDs differ for the same source occurrence', () => {
+    const graph = createMinimalValidGraph()
+    const sourceLocation = {
+      repository: 'test-repo',
+      filePath: 'src/page.ts',
+      lineNumber: 12,
+      columnNumber: 5,
+    }
+    graph.links = [
+      {
+        id: 'legacy-link-a',
+        source: 'test:mod:ui:page',
+        target: 'test:mod:ui:page',
+        sourceLocation,
+      },
+      {
+        id: 'legacy-link-b',
+        source: 'test:mod:ui:page',
+        target: 'test:mod:ui:page',
+        sourceLocation,
+      },
+    ]
+
+    const result = new RiviereQuery(graph).validate()
+
+    expect(result.errors).toContainEqual({
+      path: '/links/1',
+      message: 'Duplicate Link occurrence: test:mod:ui:page->test:mod:ui:page@src/page.ts:12:5',
+      code: 'DUPLICATE_LINK',
+    })
+  })
 })

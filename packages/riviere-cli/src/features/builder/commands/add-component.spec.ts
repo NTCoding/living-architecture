@@ -98,6 +98,40 @@ describe('addComponent command', () => {
     })
   })
 
+  describe('column number validation', () => {
+    it.each([
+      ['NaN', NaN],
+      ['Infinity', Infinity],
+      ['negative Infinity', -Infinity],
+      ['fractional', 3.14],
+      ['negative', -1],
+      ['zero', 0],
+    ])('returns VALIDATION_ERROR when columnNumber is %s', async (_label, value) => {
+      const result = new AddComponent(new RiviereBuilderRepository()).execute({
+        ...inputWithGraphPath(),
+        columnNumber: value,
+      })
+
+      expect(result).toMatchObject({
+        ...failureShape('VALIDATION_ERROR'),
+        message: expect.stringContaining('Invalid column number'),
+      })
+    })
+
+    it.each([
+      ['small positive', 1],
+      ['typical', 42],
+      ['large', Number.MAX_SAFE_INTEGER],
+    ])('valid columnNumber (%s) reaches graph check', async (_label, value) => {
+      const result = new AddComponent(new RiviereBuilderRepository()).execute({
+        ...inputWithGraphPath(),
+        columnNumber: value,
+      })
+
+      expect(result).toMatchObject(failureShape('GRAPH_NOT_FOUND'))
+    })
+  })
+
   describe('malformed JSON handling', () => {
     it('returns VALIDATION_ERROR when graph file contains invalid JSON', async () => {
       const graphDir = join(ctx.testDir, '.riviere')

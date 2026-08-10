@@ -14,6 +14,7 @@ import {
 } from '../../../../platform/infra/cli/input/validation'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import type { LinkComponents } from '../../commands/link-components'
+import { parseLinkSourceLocation } from '../../../../platform/infra/cli/input/link-source-location-options'
 
 interface LinkOptions {
   from: string
@@ -22,6 +23,12 @@ interface LinkOptions {
   toType: string
   toName: string
   linkType?: string
+  relationshipType?: string
+  condition?: string
+  repository?: string
+  filePath?: string
+  lineNumber?: string
+  columnNumber?: string
   graph?: string
   json?: boolean
 }
@@ -54,6 +61,12 @@ Examples:
     )
     .requiredOption('--to-name <name>', 'Target component name')
     .option('--link-type <type>', 'Link type (sync, async)')
+    .option('--relationship-type <name>', 'Project-defined relationship type')
+    .option('--condition <condition>', 'Condition retained exactly as supplied')
+    .option('--repository <repository>', 'Source repository identifier')
+    .option('--file-path <path>', 'Source file path')
+    .option('--line-number <n>', 'Source line number')
+    .option('--column-number <n>', 'Source column number')
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: LinkOptions) => {
@@ -74,9 +87,22 @@ Examples:
           ? options.linkType
           : undefined
 
+      const sourceLocationResult = parseLinkSourceLocation(options)
+      if (!sourceLocationResult.success) {
+        console.log(
+          JSON.stringify(
+            formatError(CliErrorCode.ValidationError, sourceLocationResult.message, []),
+          ),
+        )
+        return
+      }
+
       const result = linkComponents.execute({
+        condition: options.condition,
         from: options.from,
         graphPathOption: options.graph,
+        relationshipType: options.relationshipType,
+        sourceLocation: sourceLocationResult.sourceLocation,
         to: ComponentId.create({
           domain: options.toDomain,
           module: options.toModule,
@@ -90,6 +116,7 @@ Examples:
           COMPONENT_NOT_FOUND: CliErrorCode.ComponentNotFound,
           GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
           GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
+          VALIDATION_ERROR: CliErrorCode.ValidationError,
         } as const
         const errorCode = errorCodeByResult[result.code]
 

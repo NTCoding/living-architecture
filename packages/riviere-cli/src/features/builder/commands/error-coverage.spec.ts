@@ -20,6 +20,7 @@ import { AddSource } from './add-source'
 import { CheckConsistency } from './check-consistency'
 import { ComponentSummary } from './component-summary'
 import { DefineCustomType } from './define-custom-type'
+import { DefineRelationshipType } from './define-relationship-type'
 import { EnrichComponent } from './enrich-component'
 import { LinkComponents } from './link-components'
 import { LinkExternal } from './link-external'
@@ -114,6 +115,37 @@ describe('builder command coverage', () => {
     })
   })
 
+  it('returns graph corrupted for define-relationship-type', async () => {
+    const graphPath = await createInvalidGraphPath(ctx.testDir)
+
+    expect(
+      new DefineRelationshipType(new RiviereBuilderRepository()).execute({
+        description: 'Reads data from the target',
+        graphPathOption: graphPath,
+        name: 'reads',
+      }),
+    ).toMatchObject({
+      code: 'GRAPH_CORRUPTED',
+      success: false,
+    })
+  })
+
+  it('rethrows unknown define-relationship-type errors', () => {
+    const builder = createLoadedBuilder(ctx.testDir)
+    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
+    vi.spyOn(builder, 'defineRelationshipType').mockImplementation(() => {
+      throw new UnexpectedBuilderFailure('relationship explode')
+    })
+
+    expect(() =>
+      new DefineRelationshipType(new RiviereBuilderRepository()).execute({
+        description: 'Reads data from the target',
+        graphPathOption: undefined,
+        name: 'reads',
+      }),
+    ).toThrow('relationship explode')
+  })
+
   it('rethrows unknown define-custom-type errors', () => {
     const builder = createLoadedBuilder(ctx.testDir)
     vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
@@ -167,8 +199,11 @@ describe('builder command coverage', () => {
     ).toThrow('enrich explode')
     expect(() =>
       new LinkComponents(new RiviereBuilderRepository()).execute({
+        condition: undefined,
         from: 'a',
         graphPathOption: undefined,
+        relationshipType: undefined,
+        sourceLocation: undefined,
         to: 'b',
         type: undefined,
       }),

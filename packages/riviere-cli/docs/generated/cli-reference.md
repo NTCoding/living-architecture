@@ -61,6 +61,7 @@ riviere builder add-component [options]
 | `--custom-property <key:value>` | Custom property (repeatable) |
 | `--description <desc>` | Component description |
 | `--line-number <n>` | Source line number |
+| `--column-number <n>` | Source column number |
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
 **Optional:**
@@ -179,6 +180,12 @@ riviere builder link [options]
 | `--to-type <type>` | Target component type (UI, API, UseCase, DomainOp, Event, EventHandler, Custom) |
 | `--to-name <name>` | Target component name |
 | `--link-type <type>` | Link type (sync, async) |
+| `--relationship-type <name>` | Project-defined relationship type |
+| `--condition <condition>` | Condition retained exactly as supplied |
+| `--repository <repository>` | Source repository identifier |
+| `--file-path <path>` | Source file path |
+| `--line-number <n>` | Source line number |
+| `--column-number <n>` | Source column number |
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
 **Optional:**
@@ -470,6 +477,28 @@ riviere builder define-custom-type [options]
 | `--description <desc>` | Custom type description |
 | `--required-property <spec>` | Required property (format: name:type[:description]) |
 | `--optional-property <spec>` | Optional property (format: name:type[:description]) |
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
+
+**Optional:**
+| Flag | Description |
+|------|-------------|
+| `--json` | Output result as JSON |
+
+---
+
+### `define-relationship-type`
+
+Define a project relationship type
+
+```bash
+riviere builder define-relationship-type [options]
+```
+
+**Required:**
+| Flag | Description |
+|------|-------------|
+| `--name <name>` | Relationship type name |
+| `--description <description>` | Relationship type description |
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
 **Optional:**

@@ -15,6 +15,9 @@ import {
   MissingSourcesError,
   MissingDomainsError,
   BuildValidationError,
+  DuplicateLinkError,
+  RelationshipTypeAlreadyDefinedError,
+  RelationshipTypeNotFoundError,
 } from './construction-errors'
 import { InvalidEnrichmentTargetError } from '../enrichment/enrichment-errors'
 
@@ -139,6 +142,39 @@ describe('errors', () => {
       expect(error.message).toBe("Custom type 'Worker' already defined")
       expect(error.typeName).toBe('Worker')
       expect(error.name).toBe('CustomTypeAlreadyDefinedError')
+    })
+  })
+
+  describe('RelationshipTypeAlreadyDefinedError', () => {
+    it('includes the relationship type name in the message', () => {
+      const error = new RelationshipTypeAlreadyDefinedError('reads')
+
+      expect(error.message).toBe("Relationship type 'reads' already defined")
+      expect(error.typeName).toBe('reads')
+      expect(error.name).toBe('RelationshipTypeAlreadyDefinedError')
+    })
+  })
+
+  describe('RelationshipTypeNotFoundError', () => {
+    it('includes the relationship type and available types in the message', () => {
+      const error = new RelationshipTypeNotFoundError('queries', ['reads', 'writes'])
+
+      expect(error.message).toBe(
+        "Relationship type 'queries' not defined. Defined types: reads, writes",
+      )
+      expect(error.relationshipType).toBe('queries')
+      expect(error.definedTypes).toStrictEqual(['reads', 'writes'])
+      expect(error.name).toBe('RelationshipTypeNotFoundError')
+    })
+  })
+
+  describe('DuplicateLinkError', () => {
+    it('includes the Link ID in the message', () => {
+      const error = new DuplicateLinkError('source->target@file.sql:12:5')
+
+      expect(error.message).toBe("Link with ID 'source->target@file.sql:12:5' already exists")
+      expect(error.linkId).toBe('source->target@file.sql:12:5')
+      expect(error.name).toBe('DuplicateLinkError')
     })
   })
 

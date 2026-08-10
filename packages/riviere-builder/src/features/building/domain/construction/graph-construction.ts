@@ -18,6 +18,7 @@ import type {
   DomainOpInput,
   EventHandlerInput,
   EventInput,
+  RelationshipTypeInput,
   UpsertOptions,
   UIInput,
   UseCaseInput,
@@ -28,6 +29,7 @@ import {
   DuplicateComponentError,
   DuplicateDomainError,
   SourceConflictError,
+  RelationshipTypeAlreadyDefinedError,
 } from './construction-errors'
 import {
   generateComponentId,
@@ -175,6 +177,14 @@ export class GraphConstruction {
       ...(input.optionalProperties !== undefined && {optionalProperties: input.optionalProperties,}),
       ...(input.description !== undefined && { description: input.description }),
     }
+  }
+
+  defineRelationshipType(input: RelationshipTypeInput): void {
+    if (this.graph.metadata.relationshipTypes[input.name]) {
+      throw new RelationshipTypeAlreadyDefinedError(input.name)
+    }
+
+    this.graph.metadata.relationshipTypes[input.name] = { description: input.description }
   }
 
   addCustom(input: CustomInput): CustomComponent {
