@@ -1,9 +1,5 @@
-import {
-  describe, expect, it, vi 
-} from 'vitest'
-import {
-  location, role, roleEnforcement 
-} from '../domain/role-enforcement-builder'
+import { describe, expect, it, vi } from 'vitest'
+import { location, role, roleEnforcement } from '../domain/role-enforcement-builder'
 import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
 import { RoleEnforcementProject } from '../domain/role-enforcement-project'
 import { RoleEnforcementProjectRepository } from './role-enforcement-project-repository'

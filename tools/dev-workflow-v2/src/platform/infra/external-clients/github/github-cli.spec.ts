@@ -1,6 +1,4 @@
-import {
-  expect, it, vi 
-} from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { runGh } from './index'
 
 it('executes GitHub CLI arguments without interpreting them in a shell', () => {

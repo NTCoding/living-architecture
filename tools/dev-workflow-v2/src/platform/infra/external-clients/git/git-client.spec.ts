@@ -1,6 +1,4 @@
-import {
-  describe, expect, it, vi 
-} from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { readGitRepositoryStatus } from './index'
 
 describe('readGitRepositoryStatus', () => {

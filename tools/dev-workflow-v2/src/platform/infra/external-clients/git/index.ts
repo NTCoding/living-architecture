@@ -1,3 +1,1 @@
-export {
-  readGitRepositoryStatus, type GitRepositoryStatus 
-} from './git-client'
+export { readGitRepositoryStatus, type GitRepositoryStatus } from './git-client'

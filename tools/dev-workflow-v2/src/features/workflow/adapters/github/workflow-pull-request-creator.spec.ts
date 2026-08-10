@@ -1,6 +1,4 @@
-import {
-  expect, it, vi 
-} from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { createWorkflowPullRequestCreator } from './workflow-pull-request-creator'
 
 it('translates workflow pull request details into a GitHub request', () => {

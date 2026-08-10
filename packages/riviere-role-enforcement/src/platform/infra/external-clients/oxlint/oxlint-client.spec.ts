@@ -1,6 +1,4 @@
-import {
-  expect, it, vi 
-} from 'vitest'
+import { expect, it, vi } from 'vitest'
 import type { OxlintConfig } from './oxlint-config'
 import { runOxlint } from './oxlint-client'
 import { OxlintExecutionError } from './oxlint-execution-error'

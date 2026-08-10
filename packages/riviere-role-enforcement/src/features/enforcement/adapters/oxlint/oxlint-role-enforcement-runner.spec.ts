@@ -1,6 +1,4 @@
-import {
-  expect, it, vi 
-} from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { OxlintExecutionError } from '../../../../platform/infra/external-clients/oxlint/index'
 import type { RoleEnforcementRunnerInput } from '../../domain/ports/role-enforcement-runner'
 import { createOxlintRoleEnforcementRunner } from './oxlint-role-enforcement-runner'

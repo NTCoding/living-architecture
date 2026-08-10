@@ -1,6 +1,4 @@
-import {
-  expect, it, vi 
-} from 'vitest'
+import { expect, it, vi } from 'vitest'
 import type { RoleEnforcementResult } from './role-enforcement-builder'
 import { RoleEnforcementProject } from './role-enforcement-project'
 

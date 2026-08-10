@@ -1,16 +1,8 @@
-import {
-  mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync 
-} from 'node:fs'
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import {
-  join, resolve 
-} from 'node:path'
-import {
-  afterEach, describe, expect, it 
-} from 'vitest'
-import {
-  PackageFileResolveError, resolveFileOrPackagePath 
-} from './index'
+import { join, resolve } from 'node:path'
+import { afterEach, describe, expect, it } from 'vitest'
+import { PackageFileResolveError, resolveFileOrPackagePath } from './index'
 
 const temporaryDirectories: string[] = []
 

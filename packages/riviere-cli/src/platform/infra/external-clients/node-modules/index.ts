@@ -1,3 +1,1 @@
-export {
-  PackageFileResolveError, resolveFileOrPackagePath 
-} from './node-module-file-resolver'
+export { PackageFileResolveError, resolveFileOrPackagePath } from './node-module-file-resolver'

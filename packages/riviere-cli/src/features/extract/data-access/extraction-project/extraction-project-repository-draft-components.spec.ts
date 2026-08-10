@@ -1,11 +1,7 @@
-import {
-  mkdtempSync, rmSync, writeFileSync 
-} from 'node:fs'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import {
-  expect, it 
-} from 'vitest'
+import { expect, it } from 'vitest'
 import { ExtractionProjectRepository } from './extraction-project-repository'
 
 it('rejects JSON that is not a draft-component array', () => {

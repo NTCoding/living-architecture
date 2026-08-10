@@ -1,6 +1,4 @@
-import {
-  expect, it 
-} from 'vitest'
+import { expect, it } from 'vitest'
 import { createWorkflowPullRequestFeedbackReader } from './workflow-pull-request-feedback-reader'
 
 it('translates GitHub feedback into workflow feedback', () => {

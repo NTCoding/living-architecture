@@ -1,7 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import {
-  rmSync, writeFileSync 
-} from 'node:fs'
+import { rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { findFileUp } from '../filesystem/find-file-up'

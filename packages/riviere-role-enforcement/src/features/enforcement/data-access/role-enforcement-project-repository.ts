@@ -1,6 +1,4 @@
-import {
-  readdirSync, realpathSync 
-} from 'node:fs'
+import { readdirSync, realpathSync } from 'node:fs'
 import type { findFilesMatchingPatterns } from '../../../platform/infra/external-clients/filesystem/find-files-matching-patterns'
 import { findFilesMatchingPatterns as defaultFindFilesMatchingPatterns } from '../../../platform/infra/external-clients/filesystem/find-files-matching-patterns'
 import type { RoleEnforcementResult } from '../domain/role-enforcement-builder'

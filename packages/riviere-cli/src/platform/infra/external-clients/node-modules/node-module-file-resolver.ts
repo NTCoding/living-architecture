@@ -1,7 +1,5 @@
 import { createRequire } from 'node:module'
-import {
-  dirname, resolve 
-} from 'node:path'
+import { dirname, resolve } from 'node:path'
 import { fileExists } from '../filesystem/index'
 
 /** @riviere-role external-client-error */

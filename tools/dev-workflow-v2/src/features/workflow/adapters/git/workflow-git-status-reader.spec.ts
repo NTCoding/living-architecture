@@ -1,6 +1,4 @@
-import {
-  expect, it 
-} from 'vitest'
+import { expect, it } from 'vitest'
 import { createWorkflowGitStatusReader } from './workflow-git-status-reader'
 
 it('translates Git repository status into workflow status', () => {

@@ -1,6 +1,4 @@
-import {
-  expect, it 
-} from 'vitest'
+import { expect, it } from 'vitest'
 import { findFileUp } from './find-file-up'
 
 it('returns undefined after reaching the filesystem root', () => {
