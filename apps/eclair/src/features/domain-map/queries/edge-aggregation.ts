@@ -33,6 +33,8 @@ export function aggregateDomainEdges(
       type: getEdgeType(edge.type),
       targetNodeType: targetInfo.type,
     }
+    if (edge.relationshipType !== undefined) connection.relationshipType = edge.relationshipType
+    if (edge.condition !== undefined) connection.condition = edge.condition
 
     recordEdgeAggregation(
       edgeAggregation,

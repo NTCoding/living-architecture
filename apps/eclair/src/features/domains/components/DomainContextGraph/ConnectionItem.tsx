@@ -43,6 +43,13 @@ export function ConnectionItem({
           </div>
         )}
       </div>
+      {connection.relationshipTypes !== undefined && connection.relationshipTypes.length > 0 && (
+        <div className="mt-2 text-xs font-semibold text-[var(--text-secondary)]">
+          {connection.relationshipTypes.join(', ')}
+          {connection.deliveryTypes !== undefined && connection.deliveryTypes.length > 0 &&
+            ` · ${connection.deliveryTypes.join('/')}`}
+        </div>
+      )}
     </div>
   )
 }

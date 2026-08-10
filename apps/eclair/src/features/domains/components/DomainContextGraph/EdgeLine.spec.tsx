@@ -39,6 +39,27 @@ describe('EdgeLine', () => {
     expect(group).toBeInTheDocument()
   })
 
+  it('uses semantic relationship types as the primary label', () => {
+    const { getByText } = render(
+      <svg>
+        <EdgeLine
+          from={from}
+          to={to}
+          fromRadius={30}
+          toRadius={30}
+          testId="semantic-edge"
+          direction="outgoing"
+          relationshipCount={2}
+          relationshipTypes={['reads', 'writes']}
+          deliveryTypes={['sync', 'async']}
+          isBidirectional={false}
+        />
+      </svg>,
+    )
+
+    expect(getByText('reads, writes · sync/async')).toBeInTheDocument()
+  })
+
   it('returns empty group when positions are identical', () => {
     const same: DomainPosition = {
       id: 'test',

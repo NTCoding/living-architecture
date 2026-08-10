@@ -16,6 +16,7 @@ import {
   getLinkNodeId,
   calculateFitViewportTransform,
   setupLinks,
+  setupLinkLabels,
   setupNodes,
   createUpdatePositionsFunction,
   applyDagrePositions,
@@ -38,6 +39,7 @@ import {
   truncateName,
   getDomainColor,
 } from './VisualizationDataAdapters'
+import { RelationshipLegend } from '@/platform/infra/ui/RelationshipLegend/RelationshipLegend'
 
 interface ForceGraphProps {
   readonly graph: RiviereGraph
@@ -294,6 +296,7 @@ export function ForceGraph({
       getSemanticEdgeColor,
       isAsyncEdge,
     })
+    const linkLabel = setupLinkLabels(linkGroup, links)
 
     const node = setupNodes({
       nodeGroup,
@@ -347,6 +350,7 @@ export function ForceGraph({
 
     const updatePositions = createUpdatePositionsFunction({
       link,
+      linkLabel,
       node,
       nodePositionMap: nodeMap,
       getNodeRadius,
@@ -430,6 +434,7 @@ export function ForceGraph({
         className="relative z-10"
         data-testid="force-graph-svg"
       />
+      <RelationshipLegend />
     </div>
   )
 }

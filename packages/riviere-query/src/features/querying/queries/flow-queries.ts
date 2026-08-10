@@ -1,5 +1,8 @@
 import type {
-  RiviereGraph, Component, ExternalLink 
+  RiviereGraph,
+  Component,
+  ExternalLink,
+  Link,
 } from '@living-architecture/riviere-schema'
 import type {
   ComponentId, LinkId, Flow, SearchWithFlowResult 
@@ -77,22 +80,18 @@ export function queryFlows(graph: RiviereGraph): Flow[] {
       const component = componentByIdMap.get(nodeId)
       if (!component) return
 
-      const edges = outgoingEdges.get(nodeId)
-      const firstEdge = edges !== undefined && edges.length > 0 ? edges[0] : undefined
-      const linkType = firstEdge === undefined ? undefined : firstEdge.type
+      const edges = outgoingEdges.get(nodeId) ?? []
       const externalLinks = externalLinksBySource.get(nodeId) ?? []
 
       steps.push({
         component,
-        linkType,
+        outgoingLinks: edges,
         depth,
         externalLinks,
       })
 
-      if (edges) {
-        for (const edge of edges) {
-          traverse(edge.target, depth + 1)
-        }
+      for (const edge of edges) {
+        traverse(edge.target, depth + 1)
       }
     }
 
@@ -122,30 +121,14 @@ function buildExternalLinksBySource(graph: RiviereGraph): Map<string, ExternalLi
   return bySource
 }
 
-function buildOutgoingEdges(graph: RiviereGraph): Map<
-  string,
-  Array<{
-    target: string
-    type: 'sync' | 'async' | undefined
-  }>
-> {
-  const edges = new Map<
-    string,
-    Array<{
-      target: string
-      type: 'sync' | 'async' | undefined
-    }>
-  >()
+function buildOutgoingEdges(graph: RiviereGraph): Map<string, Link[]> {
+  const edges = new Map<string, Link[]>()
   for (const link of graph.links) {
-    const entry = {
-      target: link.target,
-      type: link.type,
-    }
     const existing = edges.get(link.source)
     if (existing) {
-      existing.push(entry)
+      existing.push(link)
     } else {
-      edges.set(link.source, [entry])
+      edges.set(link.source, [link])
     }
   }
   return edges

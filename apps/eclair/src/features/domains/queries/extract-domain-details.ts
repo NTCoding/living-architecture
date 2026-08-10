@@ -26,6 +26,8 @@ export interface AggregatedConnection {
   apiCount: number
   eventCount: number
   relationshipCount: number
+  relationshipTypes?: string[]
+  deliveryTypes?: EdgeType[]
 }
 
 interface KnownSourceEventInfo {
@@ -58,6 +60,8 @@ export interface DomainEvents {
 export interface CrossDomainEdge {
   targetDomain: string
   edgeType: EdgeType | undefined
+  relationshipType?: string
+  condition?: string
 }
 
 export interface DomainDetails {
@@ -91,14 +95,21 @@ function buildCrossDomainEdges(graph: RiviereGraph, domainId: DomainName): Cross
       continue
     }
 
-    const key = `${targetDomain}:${edge.type ?? 'unknown'}`
+    const key = `${targetDomain}:${edge.relationshipType ?? 'relationship'}:${edge.type ?? 'unknown'}:${edge.condition ?? 'unconditional'}`
     if (crossDomainEdgeSet.has(key)) continue
 
     crossDomainEdgeSet.add(key)
-    crossDomainEdges.push({
+    const crossDomainEdge: CrossDomainEdge = {
       targetDomain,
       edgeType: edge.type,
-    })
+    }
+    if (edge.relationshipType !== undefined) {
+      crossDomainEdge.relationshipType = edge.relationshipType
+    }
+    if (edge.condition !== undefined) {
+      crossDomainEdge.condition = edge.condition
+    }
+    crossDomainEdges.push(crossDomainEdge)
   }
 
   return crossDomainEdges.sort((a, b) => compareByCodePoint(a.targetDomain, b.targetDomain))
@@ -212,9 +223,7 @@ function buildAggregatedConnections(graph: RiviereGraph, domainId: string): Aggr
       relationshipCount: 0,
     }
 
-    existing.relationshipCount += 1
-    if (target.type === 'API') existing.apiCount += 1
-    if (target.type === 'EventHandler') existing.eventCount += 1
+    updateAggregatedConnection(existing, link, target)
     connections.set(key, existing)
   }
 
@@ -223,4 +232,26 @@ function buildAggregatedConnections(graph: RiviereGraph, domainId: string): Aggr
     if (domainOrder !== 0) return domainOrder
     return compareByCodePoint(left.direction, right.direction)
   })
+}
+
+function appendUnique<T>(values: T[] | undefined, value: T | undefined): T[] | undefined {
+  if (value === undefined) return values
+  const currentValues = values ?? []
+  return currentValues.includes(value) ? currentValues : [...currentValues, value]
+}
+
+function updateAggregatedConnection(
+  connection: AggregatedConnection,
+  link: RiviereGraph['links'][number],
+  target: RiviereGraph['components'][number],
+): void {
+  connection.relationshipCount += 1
+  const relationshipTypes = appendUnique(connection.relationshipTypes, link.relationshipType)
+  if (relationshipTypes !== undefined) connection.relationshipTypes = relationshipTypes
+  if (link.relationshipType !== undefined) {
+    const deliveryTypes = appendUnique(connection.deliveryTypes, link.type)
+    if (deliveryTypes !== undefined) connection.deliveryTypes = deliveryTypes
+  }
+  if (target.type === 'API') connection.apiCount += 1
+  if (target.type === 'EventHandler') connection.eventCount += 1
 }

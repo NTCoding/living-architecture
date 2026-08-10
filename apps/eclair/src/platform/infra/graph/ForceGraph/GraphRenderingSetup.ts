@@ -4,6 +4,7 @@ export {
   applyResetModeLinkStyles,
   applyResetModeTextStyles,
   setupLinks,
+  setupLinkLabels,
   setupNodes,
   createUpdatePositionsFunction,
 } from './graph-rendering-setup'

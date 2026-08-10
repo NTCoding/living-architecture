@@ -3,6 +3,19 @@ export interface ConnectionDetail {
   targetName: string
   type: 'sync' | 'async' | 'unknown'
   targetNodeType: string
+  relationshipType?: string
+  condition?: string
+}
+
+export function semanticRelationshipSummary(connections: ConnectionDetail[]): string | undefined {
+  const types = [
+    ...new Set(
+      connections.flatMap((connection) =>
+        connection.relationshipType === undefined ? [] : [connection.relationshipType],
+      ),
+    ),
+  ]
+  return types.length === 0 ? undefined : types.join(', ')
 }
 
 export function getEdgeType(type: string | undefined): 'sync' | 'async' | 'unknown' {

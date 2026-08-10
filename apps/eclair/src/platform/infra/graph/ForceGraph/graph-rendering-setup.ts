@@ -8,6 +8,7 @@ import { getLinkNodeId } from './FocusModeStyling'
 import {
   LayoutError, RenderingError 
 } from '@/platform/infra/errors/errors'
+import { relationshipDetail } from '@/platform/domain/relationship-presentation'
 
 export {
   getLinkNodeId,
@@ -81,6 +82,25 @@ export function setupLinks({
     })
 }
 
+export function setupLinkLabels(
+  linkGroup: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>,
+  links: SimulationLink[],
+): d3.Selection<SVGTextElement, SimulationLink, SVGGElement, unknown> {
+  return linkGroup
+    .selectAll<SVGTextElement, SimulationLink>('text')
+    .data(links.filter((link) => link.originalEdge.relationshipType !== undefined))
+    .join('text')
+    .attr('class', 'graph-link-label')
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '10px')
+    .attr('font-weight', 600)
+    .attr('fill', 'var(--text-secondary)')
+    .attr('stroke', 'var(--surface-primary)')
+    .attr('stroke-width', 3)
+    .attr('paint-order', 'stroke')
+    .text((link) => relationshipDetail(link.originalEdge))
+}
+
 export interface SetupNodesParams {
   nodeGroup: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>
   nodes: SimulationNode[]
@@ -142,6 +162,7 @@ export function setupNodes({
 
 export interface UpdatePositionsParams {
   link: d3.Selection<SVGPathElement, SimulationLink, SVGGElement, unknown>
+  linkLabel?: d3.Selection<SVGTextElement, SimulationLink, SVGGElement, unknown>
   node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>
   nodePositionMap: Map<string, SimulationNode>
   getNodeRadius: (type: NodeType) => number
@@ -149,7 +170,7 @@ export interface UpdatePositionsParams {
 
 export function createUpdatePositionsFunction(params: UpdatePositionsParams): () => void {
   const {
-    link, node, nodePositionMap, getNodeRadius 
+    link, linkLabel, node, nodePositionMap, getNodeRadius 
   } = params
 
   return function updatePositions(): void {
@@ -204,6 +225,17 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
       const endY = targetY - (dy / dist) * targetRadius
 
       return `M${startX},${startY}L${endX},${endY}`
+    })
+
+    linkLabel?.attr('x', (d) => {
+      const source = nodePositionMap.get(getLinkNodeId(d.source))
+      const target = nodePositionMap.get(getLinkNodeId(d.target))
+      return ((source?.x ?? 0) + (target?.x ?? 0)) / 2
+    })
+    linkLabel?.attr('y', (d) => {
+      const source = nodePositionMap.get(getLinkNodeId(d.source))
+      const target = nodePositionMap.get(getLinkNodeId(d.target))
+      return ((source?.y ?? 0) + (target?.y ?? 0)) / 2 - 6
     })
 
     node.attr('transform', (d) => {

@@ -32,6 +32,8 @@ import { DomainNode } from '@/platform/infra/ui/DomainNode/DomainNode'
 import { useDomainMapInteractions } from '../hooks/useDomainMapInteractions'
 import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
 import { useTheme } from '@/platform/infra/theme/ThemeContext'
+import { relationshipDetail } from '../queries/relationship-presentation'
+import { RelationshipLegend } from '@/platform/infra/ui/RelationshipLegend/RelationshipLegend'
 
 interface DomainMapPageProps {readonly graph: RiviereGraph}
 
@@ -279,6 +281,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
           <span>{connectionText}</span>
         </div>
       </div>
+      <RelationshipLegend />
 
       {tooltip.visible &&
         (() => {
@@ -337,7 +340,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
               {inspector.connections.map((conn) => {
                 return (
                   <div
-                    key={`${conn.sourceName}-${conn.targetName}-${conn.type}-${conn.targetNodeType}`}
+                    key={`${conn.sourceName}-${conn.targetName}-${conn.type}-${conn.relationshipType ?? 'relationship'}-${conn.targetNodeType}`}
                     className="inspector-connection-item"
                   >
                     <div className="flex items-center gap-2">
@@ -348,6 +351,9 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
                     </div>
                     <div className="mt-2 text-sm text-[var(--text-primary)]">{conn.sourceName}</div>
                     <div className="text-xs text-[var(--text-secondary)]">→ {conn.targetName}</div>
+                    <div className="mt-1 text-xs font-semibold text-[var(--text-secondary)]">
+                      {relationshipDetail(conn)}
+                    </div>
                   </div>
                 )
               })}
