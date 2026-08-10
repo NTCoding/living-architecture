@@ -31,7 +31,7 @@ export class GraphLinking {
 
     if (
       input.relationshipType !== undefined &&
-      this.graph.metadata.relationshipTypes[input.relationshipType] === undefined
+      !Object.hasOwn(this.graph.metadata.relationshipTypes, input.relationshipType)
     ) {
       throw new RelationshipTypeNotFoundError(
         input.relationshipType,

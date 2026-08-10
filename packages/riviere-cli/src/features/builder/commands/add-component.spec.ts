@@ -72,6 +72,7 @@ describe('addComponent command', () => {
       ['fractional', 3.14],
       ['negative', -1],
       ['zero', 0],
+      ['unsafe integer', Number.MAX_SAFE_INTEGER + 1],
     ])('returns VALIDATION_ERROR when lineNumber is %s', async (_label, value) => {
       const result = new AddComponent(new RiviereBuilderRepository()).execute({
         ...inputWithGraphPath(),
@@ -106,6 +107,7 @@ describe('addComponent command', () => {
       ['fractional', 3.14],
       ['negative', -1],
       ['zero', 0],
+      ['unsafe integer', Number.MAX_SAFE_INTEGER + 1],
     ])('returns VALIDATION_ERROR when columnNumber is %s', async (_label, value) => {
       const result = new AddComponent(new RiviereBuilderRepository()).execute({
         ...inputWithGraphPath(),

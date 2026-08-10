@@ -44,4 +44,38 @@ describe('RiviereBuilder relationship types', () => {
       "Relationship type 'executes' already defined",
     )
   })
+
+  it.each(['constructor', '__proto__'])('stores inherited name %s as its own type', (name) => {
+    const builder = RiviereBuilder.new(createValidOptions())
+
+    builder.defineRelationshipType({
+      name,
+      description: 'Project-defined relationship',
+    })
+
+    const relationshipTypes = builder.build().metadata.relationshipTypes
+    expect(Object.hasOwn(relationshipTypes ?? {}, name)).toBe(true)
+    expect(relationshipTypes?.[name]?.description).toBe('Project-defined relationship')
+  })
+
+  it('rejects an inherited relationship type name that is not declared', () => {
+    const builder = RiviereBuilder.new(createValidOptions())
+    const source = builder.addUseCase({
+      name: 'Create Order',
+      domain: 'orders',
+      module: 'checkout',
+      sourceLocation: {
+        repository: 'test/repo',
+        filePath: 'src/create-order.ts',
+      },
+    })
+
+    expect(() =>
+      builder.link({
+        from: source.id,
+        to: 'orders:checkout:usecase:confirm-order',
+        relationshipType: 'constructor',
+      }),
+    ).toThrow("Relationship type 'constructor' not defined")
+  })
 })

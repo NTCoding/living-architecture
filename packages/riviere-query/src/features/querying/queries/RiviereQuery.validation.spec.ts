@@ -153,6 +153,26 @@ describe('RiviereQuery validate()', () => {
     })
   })
 
+  it('rejects an inherited relationship type name that is not declared', () => {
+    const graph = createMinimalValidGraph()
+    graph.metadata.relationshipTypes = {}
+    graph.links = [
+      {
+        source: 'test:mod:ui:page',
+        target: 'test:mod:ui:page',
+        relationshipType: 'constructor',
+      },
+    ]
+
+    const result = new RiviereQuery(graph).validate()
+
+    expect(result.errors).toContainEqual({
+      path: '/links/0/relationshipType',
+      message: "Relationship type 'constructor' is not defined in metadata.relationshipTypes",
+      code: 'INVALID_RELATIONSHIP_TYPE',
+    })
+  })
+
   it('returns DUPLICATE_LINK_ID for the repeated Link ID', () => {
     const graph = createMinimalValidGraph()
     const link = {

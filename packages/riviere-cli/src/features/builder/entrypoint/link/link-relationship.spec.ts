@@ -106,21 +106,24 @@ describe('riviere builder link relationship fields', () => {
     expect(ctx.consoleOutput.join('\n')).toContain('--repository and --file-path are required')
   })
 
-  it('returns VALIDATION_ERROR when source line is not a positive integer', async () => {
-    await createGraphWithComponent(ctx.testDir, sourceComponent)
+  it.each(['0', String(Number.MAX_SAFE_INTEGER + 1)])(
+    'returns VALIDATION_ERROR when source line is %s',
+    async (lineNumber) => {
+      await createGraphWithComponent(ctx.testDir, sourceComponent)
 
-    await createProgram().parseAsync([
-      ...baseLinkArgs,
-      '--repository',
-      'https://github.com/org/repo',
-      '--file-path',
-      'src/api/orders.ts',
-      '--line-number',
-      '0',
-    ])
+      await createProgram().parseAsync([
+        ...baseLinkArgs,
+        '--repository',
+        'https://github.com/org/repo',
+        '--file-path',
+        'src/api/orders.ts',
+        '--line-number',
+        lineNumber,
+      ])
 
-    expect(ctx.consoleOutput.join('\n')).toContain('--line-number must be a positive integer')
-  })
+      expect(ctx.consoleOutput.join('\n')).toContain('--line-number must be a positive integer')
+    },
+  )
 
   it('accepts a Link source location without line or column', async () => {
     await createGraphWithComponent(ctx.testDir, sourceComponent)
@@ -142,19 +145,22 @@ describe('riviere builder link relationship fields', () => {
     })
   })
 
-  it('returns VALIDATION_ERROR when source column is not a positive integer', async () => {
-    await createGraphWithComponent(ctx.testDir, sourceComponent)
+  it.each(['0', String(Number.MAX_SAFE_INTEGER + 1)])(
+    'returns VALIDATION_ERROR when source column is %s',
+    async (columnNumber) => {
+      await createGraphWithComponent(ctx.testDir, sourceComponent)
 
-    await createProgram().parseAsync([
-      ...baseLinkArgs,
-      '--repository',
-      'https://github.com/org/repo',
-      '--file-path',
-      'src/api/orders.ts',
-      '--column-number',
-      '0',
-    ])
+      await createProgram().parseAsync([
+        ...baseLinkArgs,
+        '--repository',
+        'https://github.com/org/repo',
+        '--file-path',
+        'src/api/orders.ts',
+        '--column-number',
+        columnNumber,
+      ])
 
-    expect(ctx.consoleOutput.join('\n')).toContain('--column-number must be a positive integer')
-  })
+      expect(ctx.consoleOutput.join('\n')).toContain('--column-number must be a positive integer')
+    },
+  )
 })

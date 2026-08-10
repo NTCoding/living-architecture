@@ -51,7 +51,7 @@ function validateRelationshipTypes(graph: RiviereGraph): ValidationError[] {
   graph.links.forEach((link, index) => {
     if (
       link.relationshipType !== undefined &&
-      (relationshipTypes === undefined || !(link.relationshipType in relationshipTypes))
+      (relationshipTypes === undefined || !Object.hasOwn(relationshipTypes, link.relationshipType))
     ) {
       errors.push({
         path: `/links/${index}/relationshipType`,

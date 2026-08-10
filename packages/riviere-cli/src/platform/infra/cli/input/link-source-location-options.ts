@@ -78,7 +78,7 @@ function parsePositiveInteger(
     }
   }
   const value = Number(raw)
-  if (!Number.isInteger(value) || value < 1) {
+  if (!Number.isSafeInteger(value) || value < 1) {
     return {
       success: false,
       message: `${optionName} must be a positive integer`,

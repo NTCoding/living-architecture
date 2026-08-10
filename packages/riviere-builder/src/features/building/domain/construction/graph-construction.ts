@@ -180,11 +180,17 @@ export class GraphConstruction {
   }
 
   defineRelationshipType(input: RelationshipTypeInput): void {
-    if (this.graph.metadata.relationshipTypes[input.name]) {
+    const relationshipTypes = this.graph.metadata.relationshipTypes
+    if (Object.hasOwn(relationshipTypes, input.name)) {
       throw new RelationshipTypeAlreadyDefinedError(input.name)
     }
 
-    this.graph.metadata.relationshipTypes[input.name] = { description: input.description }
+    Object.defineProperty(relationshipTypes, input.name, {
+      value: { description: input.description },
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    })
   }
 
   addCustom(input: CustomInput): CustomComponent {

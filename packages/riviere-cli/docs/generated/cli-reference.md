@@ -48,6 +48,10 @@ riviere builder add-component [options]
 | `--module <module>` | Module name |
 | `--repository <url>` | Source repository URL |
 | `--file-path <path>` | Source file path |
+
+**Optional:**
+| Flag | Description |
+|------|-------------|
 | `--route <route>` | UI route path |
 | `--api-type <type>` | API type (REST, GraphQL, other) |
 | `--http-method <method>` | HTTP method |
@@ -63,10 +67,6 @@ riviere builder add-component [options]
 | `--line-number <n>` | Source line number |
 | `--column-number <n>` | Source column number |
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
-
-**Optional:**
-| Flag | Description |
-|------|-------------|
 | `--json` | Output result as JSON |
 
 ---
@@ -85,11 +85,11 @@ riviere builder add-domain [options]
 | `--name <name>` | Domain name |
 | `--description <description>` | Domain description |
 | `--system-type <type>` | System type (domain, bff, ui, external-service, other) |
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -114,11 +114,11 @@ riviere builder add-source [options]
 | Flag | Description |
 |------|-------------|
 | `--repository <url>` | Source repository URL |
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -137,18 +137,14 @@ Initialize a new graph
 riviere builder init [options]
 ```
 
-**Required:**
+**Optional:**
 | Flag | Description |
 |------|-------------|
 | `--name <name>` | System name |
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
+| `--json` | Output result as JSON |
 | `--source <url>` | Source repository URL (repeatable) |
 | `--domain <json>` | Domain as JSON (repeatable) |
-
-**Optional:**
-| Flag | Description |
-|------|-------------|
-| `--json` | Output result as JSON |
 
 **Examples:**
 ```bash
@@ -179,6 +175,10 @@ riviere builder link [options]
 | `--to-module <module>` | Target module |
 | `--to-type <type>` | Target component type (UI, API, UseCase, DomainOp, Event, EventHandler, Custom) |
 | `--to-name <name>` | Target component name |
+
+**Optional:**
+| Flag | Description |
+|------|-------------|
 | `--link-type <type>` | Link type (sync, async) |
 | `--relationship-type <name>` | Project-defined relationship type |
 | `--condition <condition>` | Condition retained exactly as supplied |
@@ -187,10 +187,6 @@ riviere builder link [options]
 | `--line-number <n>` | Source line number |
 | `--column-number <n>` | Source column number |
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
-
-**Optional:**
-| Flag | Description |
-|------|-------------|
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -220,14 +216,14 @@ riviere builder link-external [options]
 |------|-------------|
 | `--from <component-id>` | Source component ID |
 | `--target-name <name>` | External target name |
-| `--target-domain <domain>` | External target domain |
-| `--target-url <url>` | External target URL |
-| `--link-type <type>` | Link type (sync, async) |
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--target-domain <domain>` | External target domain |
+| `--target-url <url>` | External target URL |
+| `--link-type <type>` | Link type (sync, async) |
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -262,13 +258,13 @@ riviere builder link-http [options]
 | `--to-module <module>` | Target module |
 | `--to-type <type>` | Target component type |
 | `--to-name <name>` | Target component name |
-| `--method <method>` | Filter by HTTP method (GET, POST, PUT, PATCH, DELETE) |
-| `--link-type <type>` | Link type (sync, async) |
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--method <method>` | Filter by HTTP method (GET, POST, PUT, PATCH, DELETE) |
+| `--link-type <type>` | Link type (sync, async) |
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -292,14 +288,10 @@ Validate the graph for errors and warnings
 riviere builder validate [options]
 ```
 
-**Required:**
-| Flag | Description |
-|------|-------------|
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
-
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -319,15 +311,11 @@ Validate and export the final graph
 riviere builder finalize [options]
 ```
 
-**Required:**
+**Optional:**
 | Flag | Description |
 |------|-------------|
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--output <path>` | Output path for finalized graph (defaults to input path) |
-
-**Optional:**
-| Flag | Description |
-|------|-------------|
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -351,6 +339,10 @@ riviere builder enrich [options]
 | Flag | Description |
 |------|-------------|
 | `--id <component-id>` | Component ID to enrich |
+
+**Optional:**
+| Flag | Description |
+|------|-------------|
 | `--entity <name>` | Entity name |
 | `--state-change <from:to>` | State transition (repeatable) |
 | `--business-rule <rule>` | Business rule (repeatable) |
@@ -360,10 +352,6 @@ riviere builder enrich [options]
 | `--emits <value>` | What the operation emits (repeatable) |
 | `--signature <dsl>` | Operation signature (e.g., "orderId:string, amount:number -> Order") |
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
-
-**Optional:**
-| Flag | Description |
-|------|-------------|
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -395,7 +383,7 @@ Show component counts by type and domain
 riviere builder component-summary [options]
 ```
 
-**Required:**
+**Optional:**
 | Flag | Description |
 |------|-------------|
 | `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
@@ -416,16 +404,12 @@ List components as a checklist for linking/enrichment
 riviere builder component-checklist [options]
 ```
 
-**Required:**
-| Flag | Description |
-|------|-------------|
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
-| `--type <type>` | Filter by component type |
-
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
+| `--type <type>` | Filter by component type |
 
 **Examples:**
 ```bash
@@ -444,14 +428,10 @@ Check for structural issues in the graph
 riviere builder check-consistency [options]
 ```
 
-**Required:**
-| Flag | Description |
-|------|-------------|
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
-
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -474,14 +454,14 @@ riviere builder define-custom-type [options]
 | Flag | Description |
 |------|-------------|
 | `--name <name>` | Custom type name |
-| `--description <desc>` | Custom type description |
-| `--required-property <spec>` | Required property (format: name:type[:description]) |
-| `--optional-property <spec>` | Optional property (format: name:type[:description]) |
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--description <desc>` | Custom type description |
+| `--required-property <spec>` | Required property (format: name:type[:description]) |
+| `--optional-property <spec>` | Optional property (format: name:type[:description]) |
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 ---
@@ -499,11 +479,11 @@ riviere builder define-relationship-type [options]
 |------|-------------|
 | `--name <name>` | Relationship type name |
 | `--description <description>` | Relationship type description |
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 ---
@@ -520,14 +500,10 @@ List entry points (APIs, UIs, EventHandlers with no incoming links)
 riviere query entry-points [options]
 ```
 
-**Required:**
-| Flag | Description |
-|------|-------------|
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
-
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -546,14 +522,10 @@ List domains with component counts
 riviere query domains [options]
 ```
 
-**Required:**
-| Flag | Description |
-|------|-------------|
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
-
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -577,14 +549,10 @@ riviere query trace <componentId> [options]
 |----------|-------------|
 | `<componentId>` | Component ID to trace from |
 
-**Required:**
-| Flag | Description |
-|------|-------------|
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
-
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -603,14 +571,10 @@ Find orphan components with no links
 riviere query orphans [options]
 ```
 
-**Required:**
-| Flag | Description |
-|------|-------------|
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
-
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -629,17 +593,13 @@ List components with optional filtering
 riviere query components [options]
 ```
 
-**Required:**
-| Flag | Description |
-|------|-------------|
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
-| `--domain <name>` | Filter by domain name |
-| `--type <type>` | Filter by component type |
-
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
+| `--domain <name>` | Filter by domain name |
+| `--type <type>` | Filter by component type |
 
 **Examples:**
 ```bash
@@ -664,14 +624,10 @@ riviere query search <term> [options]
 |----------|-------------|
 | `<term>` | Search term |
 
-**Required:**
-| Flag | Description |
-|------|-------------|
-| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
-
 **Optional:**
 | Flag | Description |
 |------|-------------|
+| `--graph <path>` | Custom graph file path (default: .riviere/graph.json) |
 | `--json` | Output result as JSON |
 
 **Examples:**
@@ -698,19 +654,19 @@ riviere extract [options]
 | Flag | Description |
 |------|-------------|
 | `--config <path>` | Path to extraction config file |
-| `-o, --output <file>` | Write output to file instead of stdout |
-| `--enrich <file>` | Read draft components from file and enrich with extraction rules |
-| `--base <branch>` | Override base branch for --pr (default: auto-detect) |
-| `--files <paths...>` | Extract from specific files |
-| `--format <type>` | Output format: json (default) or markdown |
 
 **Optional:**
 | Flag | Description |
 |------|-------------|
 | `--dry-run` | Show component counts per domain without full output |
+| `-o, --output <file>` | Write output to file instead of stdout |
 | `--components-only` | Output only component identity (no metadata enrichment) |
+| `--enrich <file>` | Read draft components from file and enrich with extraction rules |
 | `--allow-incomplete` | Output components even when some extraction fields fail |
 | `--pr` | Extract from files changed in current branch vs base branch |
+| `--base <branch>` | Override base branch for --pr (default: auto-detect) |
+| `--files <paths...>` | Extract from specific files |
+| `--format <type>` | Output format: json (default) or markdown |
 | `--stats` | Show extraction statistics on stderr |
 | `--no-ts-config` | Skip tsconfig.json auto-discovery (disables full type resolution) |
 
