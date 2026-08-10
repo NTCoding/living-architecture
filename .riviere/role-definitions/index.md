@@ -18,8 +18,10 @@ Dependencies point inward:
 - `domain/` → domain code and domain ports only; never adapters or infrastructure
 - `data-access/` → reconstructs aggregates or query models from persisted data
 - `adapters/` → one domain port and one generic client API; never external packages directly
-- `infra/` → infra and external packages only; never entrypoint, use-case, domain, or data access
+- `infra/` → external packages and generic technical capabilities whose APIs use only language primitives or external-system types; never application-owned code from entrypoint, commands, queries, domain, data access, adapters, or shell
 - `shell/` → constructs concrete dependencies and passes them into entrypoints
+
+Concrete test: `readJsonFile(filePath): unknown` and `resolveFileOrPackagePath(...): string` qualify because their contracts contain only primitives and external technical concepts. `loadDraftComponentsFromFile(filePath): DraftComponent[]` does not qualify because its contract and validation use an application-owned type. See the [full extraction repository example](../../project-memory/architecture/memories/prefer-layer-based-rules.md).
 
 ## Automated Enforcement
 
