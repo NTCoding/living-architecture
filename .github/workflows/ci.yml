@@ -25,7 +25,7 @@ jobs:
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         name: Install pnpm
         with:
-          version: 10.30.2
+          version: 11.21.0
           run_install: false
 
       # This enables task distribution via Nx Cloud
@@ -41,15 +41,6 @@ jobs:
           cache: 'pnpm'
 
       - run: pnpm install --frozen-lockfile
-
-      # pnpm v10 does not run better-sqlite3's install script despite onlyBuiltDependencies.
-      # Manually trigger prebuild-install to download prebuilt native bindings.
-      - name: Build better-sqlite3 native bindings
-        run: |
-          BS3_DIR=$(find node_modules/.pnpm -path "*/better-sqlite3@*/node_modules/better-sqlite3/package.json" -exec dirname {} \; | head -1)
-          if [ -n "$BS3_DIR" ]; then
-            cd "$BS3_DIR" && npx --yes prebuild-install || npx --yes node-gyp rebuild --release
-          fi
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: pnpm exec nx-cloud record -- echo Hello World
@@ -93,7 +84,7 @@ jobs:
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         name: Install pnpm
         with:
-          version: 10.30.2
+          version: 11.21.0
           run_install: false
 
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
@@ -131,7 +122,7 @@ jobs:
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
-          version: 10.30.2
+          version: 11.21.0
           run_install: false
 
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
@@ -153,7 +144,7 @@ jobs:
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
-          version: 10.30.2
+          version: 11.21.0
           run_install: false
 
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
@@ -213,7 +204,7 @@ jobs:
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
-          version: 10.30.2
+          version: 11.21.0
 
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:

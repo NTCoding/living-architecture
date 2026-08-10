@@ -1,6 +1,6 @@
 # living-architecture
 
-> ⚠️ **NEW WORKTREE?** Run `pnpm install --frozen-lockfile` then run the **"Build better-sqlite3 native bindings"** step from `.github/workflows/ci.yml` — otherwise `dev-workflow-v2` tests will fail.
+> ⚠️ **NEW WORKTREE?** Run `pnpm install --frozen-lockfile` before running tests or verification.
 
 Extract software architecture from code as living documentation, using Riviere schema for flow-based (not structural) architecture
 

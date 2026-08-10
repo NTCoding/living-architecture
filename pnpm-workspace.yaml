@@ -5,5 +5,9 @@ packages:
 
 autoInstallPeers: true
 
-onlyBuiltDependencies:
-  - better-sqlite3
+allowBuilds:
+  '@swc/core': true
+  better-sqlite3: true
+  esbuild: true
+  nx: true
+  unrs-resolver: true
