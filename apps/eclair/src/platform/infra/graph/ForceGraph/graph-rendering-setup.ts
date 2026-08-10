@@ -3,6 +3,7 @@ import type {
   SimulationNode, SimulationLink 
 } from '../graph-types'
 import type { NodeType } from '@/platform/domain/eclair-types'
+import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import type { Theme } from '@/types/theme'
 import { getLinkNodeId } from './FocusModeStyling'
 import {
@@ -18,6 +19,21 @@ export {
 } from './FocusModeStyling'
 
 type SemanticEdgeType = 'event' | 'eventHandler' | 'external' | 'default'
+
+const PARALLEL_LABEL_GAP = 16
+
+function getVerticalLabelOffsets(
+  links: SimulationLink[],
+  getGroupKey: (link: SimulationLink) => string,
+): Map<SimulationLink, number> {
+  const offsets = new Map<SimulationLink, number>()
+  for (const groupedLinks of d3.group(links, getGroupKey).values()) {
+    groupedLinks.forEach((link, index) => {
+      offsets.set(link, (index - (groupedLinks.length - 1) / 2) * PARALLEL_LABEL_GAP)
+    })
+  }
+  return offsets
+}
 
 export interface SetupLinksParams {
   linkGroup: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>
@@ -104,6 +120,14 @@ export function setupLinkLabels(
         ? relationshipPresentation.relationshipLabel(link.originalEdge)
         : relationshipPresentation.relationshipDetail(link.originalEdge),
     )
+
+  const verticalOffsets = getVerticalLabelOffsets(labels.data(), (link) => {
+    const nodePair = [getLinkNodeId(link.source), getLinkNodeId(link.target)].sort(
+      compareByCodePoint,
+    )
+    return JSON.stringify(nodePair)
+  })
+  labels.attr('dy', (link) => verticalOffsets.get(link) ?? 0)
 
   if (mode === 'semantic-only') {
     labels
@@ -242,16 +266,28 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
       return `M${startX},${startY}L${endX},${endY}`
     })
 
-    linkLabel?.attr('x', (d) => {
-      const source = nodePositionMap.get(getLinkNodeId(d.source))
-      const target = nodePositionMap.get(getLinkNodeId(d.target))
-      return ((source?.x ?? 0) + (target?.x ?? 0)) / 2
-    })
-    linkLabel?.attr('y', (d) => {
-      const source = nodePositionMap.get(getLinkNodeId(d.source))
-      const target = nodePositionMap.get(getLinkNodeId(d.target))
-      return ((source?.y ?? 0) + (target?.y ?? 0)) / 2 - 6
-    })
+    if (linkLabel !== undefined) {
+      linkLabel.attr('x', (d) => {
+        const source = nodePositionMap.get(getLinkNodeId(d.source))
+        const target = nodePositionMap.get(getLinkNodeId(d.target))
+        return ((source?.x ?? 0) + (target?.x ?? 0)) / 2
+      })
+      linkLabel.attr('y', (d) => {
+        const source = nodePositionMap.get(getLinkNodeId(d.source))
+        const target = nodePositionMap.get(getLinkNodeId(d.target))
+        return ((source?.y ?? 0) + (target?.y ?? 0)) / 2 - 6
+      })
+
+      const verticalOffsets = getVerticalLabelOffsets(linkLabel.data(), (labelLink) => {
+        const source = nodePositionMap.get(getLinkNodeId(labelLink.source))
+        const target = nodePositionMap.get(getLinkNodeId(labelLink.target))
+        return JSON.stringify([
+          (source?.x ?? 0) + (target?.x ?? 0),
+          (source?.y ?? 0) + (target?.y ?? 0),
+        ])
+      })
+      linkLabel.attr('dy', (labelLink) => verticalOffsets.get(labelLink) ?? 0)
+    }
 
     node.attr('transform', (d) => {
       /* v8 ignore next 3 -- @preserve defensive: D3 callback, coordinates set by simulation */
