@@ -102,7 +102,7 @@ Keep the three responsibilities separate:
 - A `domain-port` under `domain/ports/` defines the capability the domain needs in domain language.
 - A `domain-port-adapter` under `adapters/{client}/` implements one domain port using one generic client API.
 
-The adapter translates between the two contracts. It does not contain domain decisions, application orchestration, direct Node API calls, or third-party package calls. It must not coordinate multiple clients.
+The adapter translates between the two contracts. It does not contain domain decisions, application orchestration, direct Node API calls, or third-party package calls. It must not coordinate multiple clients. The Node and third-party restriction is specific to this architecture's deliberate split between a domain-port adapter and a generic external client; it is not a claim that all adapters everywhere must avoid technology imports. See [`domain-port-adapter`](role-definitions/domain-port-adapter.md) for the concrete Oxlint and GitHub examples and the failure caused by combining the two roles.
 
 The use case or domain receives the port. The shell constructs the generic client and adapter, then supplies the adapter at the application boundary.
 
