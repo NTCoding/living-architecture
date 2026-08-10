@@ -23,6 +23,24 @@ A `_platform` folder is a private internal package within its containing layer. 
 
 Prefer a small number of broad, target-based layer rules with minimal configuration. Do not replace a layer boundary with lists of projects, locations, roles, or forbidden dependencies when one generic layer rule can express it.
 
+A layer dependency rule is a location rule. Define it on the existing `location(...)` or `subLocation(...)` that owns the boundary. Do not create a separate collection of path matchers that classifies the same files again. Source and target locations must both be resolved from the configured location tree, otherwise role placement and dependency enforcement can drift apart.
+
+For example, generic infrastructure is defined once as the parent location of its more specific role locations:
+
+```ts
+location<RoleName>('src/platform')
+  .subLocation('/infra', [], {
+    dependencyRule: {
+      locationName: 'infra',
+      mayImportLocations: ['infra'],
+    },
+  })
+  .subLocation('/infra/external-clients/{client}', externalClientRoles)
+  .subLocation('/infra/cli/input-parser', ['generic-cli-input-parser'])
+```
+
+The `/infra` location owns the dependency rule. Its child locations refine role placement without redefining the infra path in a second rule system. A configuration such as `layerRule('infra', { matches: ['**/infra/**'] })` alongside these sublocations is invalid because it creates two independent definitions of the same architectural boundary.
+
 A file-size limit is not an architectural role. Do not create helper/component roles, unannotated-export exemptions, barrel-based privacy, or `_platform` folders solely to split a large file. First extract genuinely generic technical capabilities into infra, then re-evaluate the remaining code against the actual lint limit. If it fits, keep it inside the existing role. If it does not, identify the genuinely separate responsibilities and give each a real role.
 
 The `ExtractionProjectRepository` refactor is the canonical example. See commit [`2474599b` — refactor: enforce architecture layer boundaries](https://github.com/NTCoding/living-architecture/commit/2474599b591df037d5e3e5d665e171db65f459a0) for the complete change.

@@ -92,7 +92,6 @@ it('preserves optional enforcement configuration', () => {
     ...input,
     config: {
       ...input.config,
-      layerRules: [],
       workspacePackageSources: { '@generic/package': 'packages/generic/src/index.ts' },
     },
   })
@@ -109,10 +108,7 @@ it('preserves optional enforcement configuration', () => {
         rules: {
           'riviere-role-enforcement/enforce-roles': [
             'error',
-            expect.objectContaining({
-              layerRules: [],
-              workspacePackageSources: { '@generic/package': 'packages/generic/src/index.ts' },
-            }),
+            expect.objectContaining({workspacePackageSources: { '@generic/package': 'packages/generic/src/index.ts' },}),
           ],
         },
       }),

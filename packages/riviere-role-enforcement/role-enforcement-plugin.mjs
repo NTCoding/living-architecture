@@ -39,7 +39,13 @@ export default {
         const [options] = context.options
         const roleMap = new Map(options.roles.map((role) => [role.name, role]))
         const layerEntries = Object.entries(options.layers ?? {})
-        const layerRules = options.layerRules ?? []
+        const dependencyLocations = layerEntries
+          .filter(([, location]) => location.dependencyRule !== undefined)
+          .map(([, location]) => ({
+            ...location.dependencyRule,
+            paths: location.paths,
+          }))
+          .sort((left, right) => longestPattern(right.paths) - longestPattern(left.paths))
         const sourceCode = context.sourceCode
         const fileCache = new Map()
         const importCache = new Map()
@@ -73,7 +79,7 @@ export default {
           },
           ImportDeclaration(node) {
             validateForbiddenImports(node)
-            validateLayerImport(node)
+            validateLocationImport(node)
           },
           'Program:exit'() {
             validateForbiddenDependencies()
@@ -120,15 +126,15 @@ export default {
           }
         }
 
-        function validateLayerImport(node) {
-          const sourceLayer = layerRules.find(
-            (rule) =>
-              rule.enforceDependencies !== false &&
-              rule.matches.some((pattern) =>
+        function validateLocationImport(node) {
+          const sourceLocation = dependencyLocations.find(
+            (location) =>
+              location.enforceDependencies !== false &&
+              location.paths.some((pattern) =>
                 matchesExpandedPattern(relativeFilePath, pattern),
               ),
           )
-          if (sourceLayer === undefined) {
+          if (sourceLocation === undefined) {
             return
           }
 
@@ -140,12 +146,12 @@ export default {
           const resolvedImport = resolveImportFile(filename, importSource)
           if (resolvedImport === null || !isInsideDirectory(resolvedImport, options.configDir)) {
             if (
-              sourceLayer.mayImportExternalPackages === false &&
+              sourceLocation.mayImportExternalPackages === false &&
               isExternalImport(importSource)
             ) {
               report(
                 node,
-                `Forbidden external import: '${sourceLayer.name}' cannot import external package '${importSource}'.`,
+                `Forbidden external import: '${sourceLocation.locationName}' cannot import external package '${importSource}'.`,
               )
             }
             return
@@ -154,23 +160,29 @@ export default {
           const resolvedImportRelative = normalizePath(
             readRelativeFilePath(resolvedImport, options.configDir),
           )
-          const targetLayers = layerRules
-            .filter((rule) =>
-              rule.matches.some((pattern) =>
+          const targetLocations = dependencyLocations
+            .filter((location) =>
+              location.paths.some((pattern) =>
                 matchesExpandedPattern(resolvedImportRelative, pattern),
               ),
             )
-            .map((rule) => rule.name)
+            .map((location) => location.locationName)
 
-          if (targetLayers.some((targetLayer) => sourceLayer.mayImportLayers.includes(targetLayer))) {
+          if (
+            targetLocations.some((targetLocation) =>
+              sourceLocation.mayImportLocations.includes(targetLocation),
+            )
+          ) {
             return
           }
 
           const targetDescription =
-            targetLayers.length === 0 ? 'no allowed layer' : `[${targetLayers.join(', ')}]`
+            targetLocations.length === 0
+              ? 'no allowed location'
+              : `[${targetLocations.join(', ')}]`
           report(
             node,
-            `Forbidden layer import: '${sourceLayer.name}' may only import layers [${sourceLayer.mayImportLayers.join(', ')}], but '${resolvedImportRelative}' belongs to ${targetDescription}.`,
+            `Forbidden location import: '${sourceLocation.locationName}' may only import locations [${sourceLocation.mayImportLocations.join(', ')}], but '${resolvedImportRelative}' belongs to ${targetDescription}.`,
           )
         }
 
@@ -994,6 +1006,10 @@ function matchesExpandedPattern(fileDir, pattern) {
       minimatch(fileDir, expanded, { dot: true }) ||
       minimatch(fileDir, `${expanded}/**`, { dot: true }),
   )
+}
+
+function longestPattern(patterns) {
+  return Math.max(...patterns.map((pattern) => pattern.length))
 }
 
 function expandCommaPath(pattern) {

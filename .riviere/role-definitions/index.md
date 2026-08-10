@@ -27,6 +27,8 @@ Concrete test: `readJsonFile(filePath): unknown` and `resolveFileOrPackagePath(.
 
 Role enforcement is automated via an oxlint plugin. It checks annotations, location constraints, dependency rules, and I/O contracts at lint time. The enforcement config at `.riviere/role-enforcement.config.ts` is the source of truth for what's enforced. The separation-of-concerns skill defines the architectural principles; role enforcement automates their verification.
 
+Dependency rules belong directly to their `location(...)` or `subLocation(...)` definitions. RLE derives both sides of an import from those configured locations; it must not maintain a second list of path matchers for architectural layers.
+
 ## Classification Decision Tree
 
 When classifying a declaration:

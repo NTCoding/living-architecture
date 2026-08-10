@@ -62,7 +62,6 @@ function createOxlintConfig(
           configDir,
           configDisplayPath: 'role-enforcement.config.ts',
           layers: config.layers,
-          ...(config.layerRules !== undefined && { layerRules: config.layerRules }),
           roleDefinitionsDir: config.roleDefinitionsDir,
           roles: config.roles,
           ...(config.workspacePackageSources !== undefined && {workspacePackageSources: config.workspacePackageSources,}),

@@ -1,13 +1,12 @@
 export {
   createRoleFactory,
-  layerRule,
   location,
   role,
   roleEnforcement,
 } from './features/enforcement/domain/role-enforcement-builder'
 export type {
   BuiltLocation,
-  BuiltLayerRule,
+  BuiltLocationDependencyRule,
   BuiltRole,
   LocationBuilder,
   RoleEnforcementResult,

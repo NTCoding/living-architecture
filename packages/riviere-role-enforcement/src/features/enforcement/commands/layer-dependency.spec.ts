@@ -13,18 +13,24 @@ const layerTestConfig = enforcementBuilder.roleEnforcement({
   packages: ['packages/pkg-a'],
   canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
   ignorePatterns: [],
-  layerRules: [
-    enforcementBuilder.layerRule('infra', {
-      matches: ['**/infra/**'],
-      mayImportLayers: ['infra'],
-    }),
-  ],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: layerTestRoles,
   locations: [
-    enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>('src', [
-      'technical-service',
-    ]),
+    enforcementBuilder
+      .location<(typeof layerTestRoles)[number]['name']>('src')
+      .subLocation('/platform/infra', ['technical-service'], {
+        dependencyRule: {
+          locationName: 'infra',
+          mayImportLocations: ['infra'],
+        },
+      })
+      .subLocation('/domain', [], {
+        dependencyRule: {
+          enforceDependencies: false,
+          locationName: 'domain',
+          mayImportLocations: [],
+        },
+      }),
   ],
 })
 
@@ -141,7 +147,7 @@ export function createOxlintAdapter(): string {
     assert.equal(result.exitCode, 1)
     assert.match(
       result.stdout,
-      /Forbidden layer import: 'adapters' may only import layers \[domain-port, external-client-api\]/,
+      /Forbidden location import: 'adapters' may only import locations \[domain-port, external-client-api\]/,
     )
   })
 })
@@ -170,7 +176,10 @@ export function consume(): string {
 
     assert.equal(result.exitCode, 1)
     assert.equal(result.stderr, '')
-    assert.match(result.stdout, /Forbidden layer import: 'infra' may only import layers \[infra\]/)
+    assert.match(
+      result.stdout,
+      /Forbidden location import: 'infra' may only import locations \[infra\]/,
+    )
     assert.match(result.stdout, /packages\/pkg-a\/src\/domain\/domain-value\.ts/)
   })
 })
@@ -234,19 +243,39 @@ function createAdapterLayerConfig() {
     packages: ['packages/pkg-a'],
     canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
     ignorePatterns: [],
-    layerRules: [
-      enforcementBuilder.layerRule('adapters', {
-        matches: ['**/adapters/**'],
-        mayImportExternalPackages: false,
-        mayImportLayers: ['domain-port', 'external-client-api'],
-      }),
-    ],
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: layerTestRoles,
     locations: [
       enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>('src', [
         'technical-service',
       ]),
+      enforcementBuilder
+        .location<(typeof layerTestRoles)[number]['name']>('src')
+        .subLocation('/adapters', [], {
+          dependencyRule: {
+            locationName: 'adapters',
+            mayImportExternalPackages: false,
+            mayImportLocations: ['domain-port', 'external-client-api'],
+          },
+        })
+        .subLocation('/domain/ports', [], {
+          dependencyRule: {
+            locationName: 'domain-port',
+            mayImportLocations: ['domain-port'],
+          },
+        })
+        .subLocation('/platform/infra', [], {
+          dependencyRule: {
+            locationName: 'infra',
+            mayImportLocations: ['infra'],
+          },
+        })
+        .subLocation('/platform/infra/external-clients/{client}/index.ts', [], {
+          dependencyRule: {
+            locationName: 'external-client-api',
+            mayImportLocations: ['external-client-api', 'infra'],
+          },
+        }),
     ],
   })
 }

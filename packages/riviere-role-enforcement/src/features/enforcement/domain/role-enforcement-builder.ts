@@ -60,6 +60,7 @@ export function createRoleFactory<R extends string>() {
 
 interface SubLocationEntry {
   readonly allowedRoles: readonly string[]
+  readonly dependencyRule?: BuiltLocationDependencyRule
   readonly forbiddenImports?: readonly string[]
   readonly path: string
 }
@@ -71,33 +72,24 @@ export interface BuiltLocation {
 }
 
 /** @riviere-role value-object */
-export interface BuiltLayerRule {
+export interface BuiltLocationDependencyRule {
   readonly enforceDependencies: boolean
-  readonly matches: readonly string[]
+  readonly locationName: string
   readonly mayImportExternalPackages: boolean
-  readonly mayImportLayers: readonly string[]
-  readonly name: string
+  readonly mayImportLocations: readonly string[]
 }
 
-interface LayerRuleOptions {
+interface LocationDependencyRuleOptions {
   readonly enforceDependencies?: boolean
-  readonly matches: readonly string[]
+  readonly locationName: string
   readonly mayImportExternalPackages?: boolean
-  readonly mayImportLayers: readonly string[]
+  readonly mayImportLocations: readonly string[]
 }
 
-/** @riviere-role domain-service */
-export function layerRule(name: string, options: LayerRuleOptions): BuiltLayerRule {
-  return {
-    enforceDependencies: options.enforceDependencies ?? true,
-    matches: options.matches,
-    mayImportExternalPackages: options.mayImportExternalPackages ?? true,
-    mayImportLayers: options.mayImportLayers,
-    name,
-  }
+interface SubLocationOptions {
+  readonly dependencyRule?: LocationDependencyRuleOptions
+  readonly forbiddenImports?: readonly string[]
 }
-
-interface SubLocationOptions {readonly forbiddenImports?: readonly string[]}
 
 /** @riviere-role value-object */
 export type LocationBuilder<R extends string> = BuiltLocation & {
@@ -112,21 +104,18 @@ export function location<R extends string>(basePath: string): LocationBuilder<R>
 export function location<R extends string>(
   basePath: string,
   allowedRoles: readonly R[],
+  options?: SubLocationOptions,
 ): BuiltLocation
 /** @riviere-role domain-service */
 export function location<R extends string>(
   basePath: string,
   allowedRoles?: readonly R[],
+  options?: SubLocationOptions,
 ): BuiltLocation | LocationBuilder<R> {
   if (allowedRoles !== undefined) {
     return {
       basePath,
-      subLocations: [
-        {
-          allowedRoles,
-          path: '',
-        },
-      ],
+      subLocations: [buildSubLocation('', allowedRoles, options)],
     }
   }
 
@@ -147,13 +136,29 @@ function createLocationBuilder<R extends string>(
     ): LocationBuilder<R> {
       return createLocationBuilder(basePath, [
         ...subLocations,
-        {
-          allowedRoles,
-          path,
-          ...(options?.forbiddenImports !== undefined && {forbiddenImports: options.forbiddenImports,}),
-        },
+        buildSubLocation(path, allowedRoles, options),
       ])
     },
+  }
+}
+
+function buildSubLocation(
+  path: string,
+  allowedRoles: readonly string[],
+  options?: SubLocationOptions,
+): SubLocationEntry {
+  return {
+    allowedRoles,
+    path,
+    ...(options?.dependencyRule !== undefined && {
+      dependencyRule: {
+        enforceDependencies: options.dependencyRule.enforceDependencies ?? true,
+        locationName: options.dependencyRule.locationName,
+        mayImportExternalPackages: options.dependencyRule.mayImportExternalPackages ?? true,
+        mayImportLocations: options.dependencyRule.mayImportLocations,
+      },
+    }),
+    ...(options?.forbiddenImports !== undefined && { forbiddenImports: options.forbiddenImports }),
   }
 }
 
@@ -161,15 +166,15 @@ interface RoleEnforcementInput<R extends string> {
   readonly canonicalConfigurationsFile: string
   readonly ignorePatterns: readonly string[]
   readonly locations: readonly BuiltLocation[]
-  readonly layerRules?: readonly BuiltLayerRule[]
   readonly packages: readonly string[]
   readonly roleDefinitionsDir: string
   readonly roles: readonly BuiltRole<R>[]
   readonly workspacePackageSources?: Record<string, string>
 }
 
-interface LayerEntry {
+interface LocationEntry {
   readonly allowedRoles: readonly string[]
+  readonly dependencyRule?: BuiltLocationDependencyRule
   readonly forbiddenImports?: readonly string[]
   readonly paths: readonly string[]
 }
@@ -178,8 +183,7 @@ interface LayerEntry {
 export interface RoleEnforcementResult {
   readonly ignorePatterns: readonly string[]
   readonly include: readonly string[]
-  readonly layers: Record<string, LayerEntry>
-  readonly layerRules?: readonly BuiltLayerRule[]
+  readonly layers: Record<string, LocationEntry>
   readonly roleDefinitionsDir: string
   readonly roles: readonly BuiltRole[]
   readonly workspacePackageSources?: Record<string, string>
@@ -189,7 +193,7 @@ export interface RoleEnforcementResult {
 export function roleEnforcement<const R extends string>(
   input: RoleEnforcementInput<R>,
 ): RoleEnforcementResult {
-  const layers: Record<string, LayerEntry> = {}
+  const layers: Record<string, LocationEntry> = {}
 
   for (const pkg of input.packages) {
     for (const loc of input.locations) {
@@ -200,6 +204,7 @@ export function roleEnforcement<const R extends string>(
         layers[fullPath] = {
           allowedRoles: sub.allowedRoles,
           paths: [resolvedPath],
+          ...(sub.dependencyRule !== undefined && { dependencyRule: sub.dependencyRule }),
           ...(sub.forbiddenImports !== undefined && { forbiddenImports: sub.forbiddenImports }),
         }
       }
@@ -210,7 +215,6 @@ export function roleEnforcement<const R extends string>(
     ignorePatterns: input.ignorePatterns,
     include: input.packages.map((pkg) => `${pkg}/src/**/*.ts`),
     layers,
-    ...(input.layerRules !== undefined && { layerRules: input.layerRules }),
     roleDefinitionsDir: input.roleDefinitionsDir,
     roles: input.roles,
     ...(input.workspacePackageSources !== undefined && {workspacePackageSources: input.workspacePackageSources,}),

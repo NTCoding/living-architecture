@@ -1,50 +1,5 @@
-import {
-  describe, expect, it 
-} from 'vitest'
-import {
-  createRoleFactory,
-  layerRule,
-  location,
-  role,
-  roleEnforcement,
-} from './role-enforcement-builder'
-
-describe('layerRule', () => {
-  it('defines allowed dependency directions for a layer', () => {
-    const result = layerRule('infra', {
-      matches: ['**/infra/**'],
-      mayImportLayers: ['infra'],
-    })
-
-    expect(result).toStrictEqual({
-      enforceDependencies: true,
-      matches: ['**/infra/**'],
-      mayImportExternalPackages: true,
-      mayImportLayers: ['infra'],
-      name: 'infra',
-    })
-  })
-
-  it('can classify a layer without enforcing its dependencies', () => {
-    const result = layerRule('domain', {
-      enforceDependencies: false,
-      matches: ['**/domain/**'],
-      mayImportLayers: [],
-    })
-
-    expect(result.enforceDependencies).toBe(false)
-  })
-
-  it('can prohibit direct external package imports', () => {
-    const result = layerRule('adapters', {
-      matches: ['**/adapters/**'],
-      mayImportExternalPackages: false,
-      mayImportLayers: ['domain-port', 'external-client-api'],
-    })
-
-    expect(result.mayImportExternalPackages).toBe(false)
-  })
-})
+import { describe, expect, it } from 'vitest'
+import { createRoleFactory, location, role, roleEnforcement } from './role-enforcement-builder'
 
 describe('role', () => {
   it('produces a role definition with the given name and options', () => {
@@ -249,6 +204,50 @@ describe('location with subLocation builder', () => {
         allowedRoles: ['cli-entrypoint'],
         forbiddenImports: ['**/infra/persistence/**'],
         path: '/entrypoint',
+      },
+    ])
+  })
+
+  it('includes dependency policy in the location definition', () => {
+    const builder = location('src/platform').subLocation('/infra', [], {
+      dependencyRule: {
+        locationName: 'infra',
+        mayImportLocations: ['infra'],
+      },
+    })
+
+    expect(builder.subLocations).toStrictEqual([
+      {
+        allowedRoles: [],
+        dependencyRule: {
+          enforceDependencies: true,
+          locationName: 'infra',
+          mayImportExternalPackages: true,
+          mayImportLocations: ['infra'],
+        },
+        path: '/infra',
+      },
+    ])
+  })
+
+  it('includes dependency policy on a root location', () => {
+    const result = location('src/shell', ['cli-entrypoint'], {
+      dependencyRule: {
+        locationName: 'shell',
+        mayImportLocations: ['commands'],
+      },
+    })
+
+    expect(result.subLocations).toStrictEqual([
+      {
+        allowedRoles: ['cli-entrypoint'],
+        dependencyRule: {
+          enforceDependencies: true,
+          locationName: 'shell',
+          mayImportExternalPackages: true,
+          mayImportLocations: ['commands'],
+        },
+        path: '',
       },
     ])
   })

@@ -1,4 +1,4 @@
-import { layerRule, location, roleEnforcement } from '@living-architecture/riviere-role-enforcement'
+import { location, roleEnforcement } from '@living-architecture/riviere-role-enforcement'
 import { allRoles, type RoleName } from './roles'
 
 const commandRoles: RoleName[] = [
@@ -56,6 +56,22 @@ const packages = [
   'tools/dev-workflow-v2',
 ]
 
+const domainDependencyRule = {
+  enforceDependencies: false,
+  locationName: 'domain',
+  mayImportLocations: [] as const,
+}
+
+const domainPortDependencyRule = {
+  locationName: 'domain-port',
+  mayImportLocations: ['domain', 'domain-port'],
+}
+
+const infraDependencyRule = {
+  locationName: 'infra',
+  mayImportLocations: ['infra'],
+}
+
 export const config = roleEnforcement({
   packages,
   canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
@@ -65,30 +81,6 @@ export const config = roleEnforcement({
     '**/*-fixtures.ts',
     '**/test-fixtures.ts',
     '**/test-fixture-*.ts',
-  ],
-  layerRules: [
-    layerRule('adapters', {
-      matches: ['**/adapters/**'],
-      mayImportExternalPackages: false,
-      mayImportLayers: ['domain-port', 'external-client-api'],
-    }),
-    layerRule('domain-port', {
-      matches: ['**/domain/ports/**'],
-      mayImportLayers: ['domain', 'domain-port'],
-    }),
-    layerRule('external-client-api', {
-      matches: ['**/platform/infra/external-clients/*/index.ts'],
-      mayImportLayers: ['external-client-api', 'infra'],
-    }),
-    layerRule('infra', {
-      matches: ['**/infra/**'],
-      mayImportLayers: ['infra'],
-    }),
-    layerRule('domain', {
-      enforceDependencies: false,
-      matches: ['**/domain/**'],
-      mayImportLayers: [],
-    }),
   ],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: allRoles,
@@ -104,14 +96,29 @@ export const config = roleEnforcement({
       })
       .subLocation('/commands', commandRoles, { forbiddenImports: ['**/infra/cli/**'] })
       .subLocation('/queries', queryRoles, { forbiddenImports: ['**/infra/cli/**'] })
-      .subLocation('/domain', domainRoles)
-      .subLocation('/domain/ports', ['domain-port'])
+      .subLocation('/domain', domainRoles, { dependencyRule: domainDependencyRule })
+      .subLocation('/domain/ports', ['domain-port'], {
+        dependencyRule: domainPortDependencyRule,
+      })
       .subLocation('/data-access', ['aggregate-repository', 'query-model-loader'])
-      .subLocation('/adapters/{adapter}', ['domain-port-adapter']),
+      .subLocation('/adapters/{adapter}', ['domain-port-adapter'], {
+        dependencyRule: {
+          locationName: 'adapters',
+          mayImportExternalPackages: false,
+          mayImportLocations: ['domain-port', 'external-client-api'],
+        },
+      }),
 
     location<RoleName>('src/platform')
-      .subLocation('/domain', domainRoles)
+      .subLocation('/domain', domainRoles, { dependencyRule: domainDependencyRule })
+      .subLocation('/infra', [], { dependencyRule: infraDependencyRule })
       .subLocation('/infra/external-clients/{client}', externalClientRoles)
+      .subLocation('/infra/external-clients/{client}/index.ts', [], {
+        dependencyRule: {
+          locationName: 'external-client-api',
+          mayImportLocations: ['external-client-api', 'infra'],
+        },
+      })
       .subLocation('/infra/cli/input-parser', ['generic-cli-input-parser'])
       .subLocation('/infra/cli/presentation', cliPresentationRoles),
 
