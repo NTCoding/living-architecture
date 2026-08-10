@@ -257,6 +257,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
         onBackgroundClick={handleBackgroundClick}
+        relationshipLabelMode="semantic-only"
       />
 
       <GraphTooltip

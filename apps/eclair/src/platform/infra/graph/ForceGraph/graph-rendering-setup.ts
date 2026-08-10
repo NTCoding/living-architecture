@@ -8,7 +8,7 @@ import { getLinkNodeId } from './FocusModeStyling'
 import {
   LayoutError, RenderingError 
 } from '@/platform/infra/errors/errors'
-import { relationshipDetail } from '@/platform/domain/relationship-presentation'
+import * as relationshipPresentation from '@/platform/domain/relationship-presentation'
 
 export {
   getLinkNodeId,
@@ -85,20 +85,35 @@ export function setupLinks({
 export function setupLinkLabels(
   linkGroup: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>,
   links: SimulationLink[],
+  mode: 'detailed' | 'semantic-only' = 'detailed',
 ): d3.Selection<SVGTextElement, SimulationLink, SVGGElement, unknown> {
-  return linkGroup
+  const labels = linkGroup
     .selectAll<SVGTextElement, SimulationLink>('text')
     .data(links.filter((link) => link.originalEdge.relationshipType !== undefined))
     .join('text')
     .attr('class', 'graph-link-label')
     .attr('text-anchor', 'middle')
     .attr('font-size', '10px')
-    .attr('font-weight', 600)
+    .attr('font-weight', mode === 'semantic-only' ? 500 : 600)
     .attr('fill', 'var(--text-secondary)')
     .attr('stroke', 'var(--surface-primary)')
     .attr('stroke-width', 3)
     .attr('paint-order', 'stroke')
-    .text((link) => relationshipDetail(link.originalEdge))
+    .text((link) =>
+      mode === 'semantic-only'
+        ? relationshipPresentation.relationshipLabel(link.originalEdge)
+        : relationshipPresentation.relationshipDetail(link.originalEdge),
+    )
+
+  if (mode === 'semantic-only') {
+    labels
+      .attr('cursor', 'help')
+      .attr('aria-label', (link) => relationshipPresentation.relationshipDetail(link.originalEdge))
+      .append('title')
+      .text((link) => relationshipPresentation.relationshipDetail(link.originalEdge))
+  }
+
+  return labels
 }
 
 export interface SetupNodesParams {
