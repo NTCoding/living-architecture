@@ -12,6 +12,7 @@ import {
   aggregateExternalEdges, createExternalNodeId 
 } from './external-domain-handling'
 import { getEffectiveNodeType } from '@/platform/domain/node-type-presentation'
+import { semanticRelationshipSummary } from './edgeAggregation'
 
 export type ConnectionDetail = DomainMapEdgeTypes.ConnectionDetail
 
@@ -215,6 +216,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
     const isEventOnly = agg.eventCount > 0 && agg.apiCount === 0
     const strokeColor = isEventOnly ? '#F59E0B' : '#06B6D4'
     const arrowMarker = isEventOnly ? 'url(#arrow-amber)' : 'url(#arrow-cyan)'
+    const semanticSummary = semanticRelationshipSummary(agg.connections)
 
     return {
       id: key,
@@ -222,7 +224,9 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       target: agg.target,
       sourceHandle: handles.sourceHandle,
       targetHandle: handles.targetHandle,
-      label: `${agg.connectionCount} ${agg.connectionCount === 1 ? 'relationship' : 'relationships'}`,
+      label:
+        semanticSummary ??
+        `${agg.connectionCount} ${agg.connectionCount === 1 ? 'relationship' : 'relationships'}`,
       data: {
         connectionCount: agg.connectionCount,
         apiCount: agg.apiCount,

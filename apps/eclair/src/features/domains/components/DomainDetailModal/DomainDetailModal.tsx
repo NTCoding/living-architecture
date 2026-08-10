@@ -3,6 +3,7 @@ import {
 } from 'react'
 import type { DomainDetails } from '../../queries/extract-domain-details'
 import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
+import { relationshipLabel } from '@/platform/domain/relationship-presentation'
 
 interface DomainDetailModalProps {
   readonly domain: DomainDetails | null
@@ -181,7 +182,7 @@ export function DomainDetailModal({
               <div className="domain-edges-list">
                 {domain.crossDomainEdges.map((edge) => (
                   <div
-                    key={`${edge.targetDomain}-${edge.edgeType ?? 'unknown'}`}
+                    key={`${edge.targetDomain}-${edge.relationshipType ?? 'relationship'}-${edge.edgeType ?? 'unknown'}-${edge.condition ?? 'unconditional'}`}
                     className="domain-edge-item"
                   >
                     <span
@@ -202,7 +203,14 @@ export function DomainDetailModal({
                         color: 'var(--text-tertiary)',
                       }}
                     >
-                      {edge.edgeType ?? 'unknown'}
+                      <strong>{relationshipLabel(edge)}</strong>
+                      {edge.edgeType !== undefined && (
+                        <>
+                          {' · '}
+                          <span>{edge.edgeType}</span>
+                        </>
+                      )}
+                      {edge.condition !== undefined && <> · when {edge.condition}</>}
                     </span>
                   </div>
                 ))}

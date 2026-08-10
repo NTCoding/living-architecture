@@ -44,10 +44,10 @@ External links from this component to external systems.
 
 ***
 
-### linkType
+### outgoingLinks
 
-> **linkType**: [`LinkType`](../type-aliases/LinkType.md) \| `undefined`
+> **outgoingLinks**: `Link`[]
 
 Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:232](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L232)
 
-Type of link leading to this step (undefined for entry point).
+Exact links leaving this component, preserving branching relationship semantics.

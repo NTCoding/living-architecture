@@ -16,6 +16,7 @@ import {
   getLinkNodeId,
   calculateFitViewportTransform,
   setupLinks,
+  setupLinkLabels,
   setupNodes,
   createUpdatePositionsFunction,
   applyDagrePositions,
@@ -38,6 +39,7 @@ import {
   truncateName,
   getDomainColor,
 } from './VisualizationDataAdapters'
+import { RelationshipLegend } from '@/platform/infra/ui/RelationshipLegend/RelationshipLegend'
 
 interface ForceGraphProps {
   readonly graph: RiviereGraph
@@ -49,6 +51,7 @@ interface ForceGraphProps {
   readonly onNodeClick?: (nodeId: string) => void
   readonly onNodeHover?: (data: TooltipData | null) => void
   readonly onBackgroundClick?: () => void
+  readonly relationshipLabelMode?: 'detailed' | 'semantic-only'
 }
 
 interface ApplyDomainFocusParams {
@@ -90,6 +93,7 @@ export function ForceGraph({
   onNodeClick,
   onNodeHover,
   onBackgroundClick,
+  relationshipLabelMode = 'detailed',
 }: Readonly<ForceGraphProps>): React.ReactElement {
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -162,9 +166,7 @@ export function ForceGraph({
     [onNodeClick],
   )
 
-  const handleNodeHover = useCallback((data: TooltipData | null) => {
-    onNodeHoverRef.current?.(data)
-  }, [])
+  const handleNodeHover = useCallback((data: TooltipData | null) => onNodeHoverRef.current?.(data), [])
 
   const handleBackgroundClick = useCallback(() => {
     onBackgroundClick?.()
@@ -294,6 +296,7 @@ export function ForceGraph({
       getSemanticEdgeColor,
       isAsyncEdge,
     })
+    const linkLabel = setupLinkLabels(linkGroup, links, relationshipLabelMode)
 
     const node = setupNodes({
       nodeGroup,
@@ -347,6 +350,7 @@ export function ForceGraph({
 
     const updatePositions = createUpdatePositionsFunction({
       link,
+      linkLabel,
       node,
       nodePositionMap: nodeMap,
       getNodeRadius,
@@ -377,6 +381,7 @@ export function ForceGraph({
     applyVisualization,
     setupNodeEvents,
     handleBackgroundClick,
+    relationshipLabelMode,
   ])
 
   useEffect(() => {
@@ -430,6 +435,7 @@ export function ForceGraph({
         className="relative z-10"
         data-testid="force-graph-svg"
       />
+      <RelationshipLegend />
     </div>
   )
 }

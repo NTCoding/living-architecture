@@ -8,6 +8,8 @@ import { getLinkNodeId } from './FocusModeStyling'
 import {
   LayoutError, RenderingError 
 } from '@/platform/infra/errors/errors'
+import * as relationshipPresentation from '@/platform/domain/relationship-presentation'
+import * as linkLabelPositioning from './link-label-positioning'
 
 export {
   getLinkNodeId,
@@ -81,6 +83,50 @@ export function setupLinks({
     })
 }
 
+export function setupLinkLabels(
+  linkGroup: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>,
+  links: SimulationLink[],
+  mode: 'detailed' | 'semantic-only' = 'detailed',
+): d3.Selection<SVGTextElement, SimulationLink, SVGGElement, unknown> {
+  const labelLinks =
+    mode === 'semantic-only'
+      ? linkLabelPositioning.getUniqueRelationshipLabelLinks(links)
+      : links.filter((link) => link.originalEdge.relationshipType !== undefined)
+  const labels = linkGroup
+    .selectAll<SVGTextElement, SimulationLink>('text')
+    .data(labelLinks)
+    .join('text')
+    .attr('class', 'graph-link-label')
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '10px')
+    .attr('font-weight', mode === 'semantic-only' ? 500 : 600)
+    .attr('fill', 'var(--text-secondary)')
+    .attr('stroke', 'var(--surface-primary)')
+    .attr('stroke-width', 3)
+    .attr('paint-order', 'stroke')
+    .text((link) =>
+      mode === 'semantic-only'
+        ? relationshipPresentation.relationshipLabel(link.originalEdge)
+        : relationshipPresentation.relationshipDetail(link.originalEdge),
+    )
+
+  const verticalOffsets = linkLabelPositioning.getVerticalLabelOffsets(
+    labels.data(),
+    linkLabelPositioning.getUnorderedNodePairKey,
+  )
+  labels.attr('dy', (link) => verticalOffsets.get(link) ?? 0)
+
+  if (mode === 'semantic-only') {
+    const getDetails = (link: SimulationLink): string =>
+      linkLabelPositioning.getRelationshipLabelDetails(links, link, (detailLink) =>
+        relationshipPresentation.relationshipDetail(detailLink.originalEdge),
+      )
+    labels.attr('cursor', 'help').attr('aria-label', getDetails).append('title').text(getDetails)
+  }
+
+  return labels
+}
+
 export interface SetupNodesParams {
   nodeGroup: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>
   nodes: SimulationNode[]
@@ -142,6 +188,7 @@ export function setupNodes({
 
 export interface UpdatePositionsParams {
   link: d3.Selection<SVGPathElement, SimulationLink, SVGGElement, unknown>
+  linkLabel?: d3.Selection<SVGTextElement, SimulationLink, SVGGElement, unknown>
   node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>
   nodePositionMap: Map<string, SimulationNode>
   getNodeRadius: (type: NodeType) => number
@@ -149,7 +196,7 @@ export interface UpdatePositionsParams {
 
 export function createUpdatePositionsFunction(params: UpdatePositionsParams): () => void {
   const {
-    link, node, nodePositionMap, getNodeRadius 
+    link, linkLabel, node, nodePositionMap, getNodeRadius 
   } = params
 
   return function updatePositions(): void {
@@ -205,6 +252,32 @@ export function createUpdatePositionsFunction(params: UpdatePositionsParams): ()
 
       return `M${startX},${startY}L${endX},${endY}`
     })
+
+    if (linkLabel !== undefined) {
+      linkLabel.attr('x', (d) => {
+        const source = nodePositionMap.get(getLinkNodeId(d.source))
+        const target = nodePositionMap.get(getLinkNodeId(d.target))
+        return ((source?.x ?? 0) + (target?.x ?? 0)) / 2
+      })
+      linkLabel.attr('y', (d) => {
+        const source = nodePositionMap.get(getLinkNodeId(d.source))
+        const target = nodePositionMap.get(getLinkNodeId(d.target))
+        return ((source?.y ?? 0) + (target?.y ?? 0)) / 2 - 6
+      })
+
+      const verticalOffsets = linkLabelPositioning.getVerticalLabelOffsets(
+        linkLabel.data(),
+        (labelLink) => {
+          const source = nodePositionMap.get(getLinkNodeId(labelLink.source))
+          const target = nodePositionMap.get(getLinkNodeId(labelLink.target))
+          return JSON.stringify([
+            (source?.x ?? 0) + (target?.x ?? 0),
+            (source?.y ?? 0) + (target?.y ?? 0),
+          ])
+        },
+      )
+      linkLabel.attr('dy', (labelLink) => verticalOffsets.get(labelLink) ?? 0)
+    }
 
     node.attr('transform', (d) => {
       /* v8 ignore next 3 -- @preserve defensive: D3 callback, coordinates set by simulation */

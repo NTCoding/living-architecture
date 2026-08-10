@@ -7,6 +7,7 @@ import { DomainNode } from './DomainNode'
 import { DomainInfoModal } from './DomainInfoModal'
 import { LayoutError } from '@/platform/infra/errors/errors'
 import type { DomainPosition } from './domain-position'
+import { RelationshipLegend } from '@/platform/infra/ui/RelationshipLegend/RelationshipLegend'
 
 interface ViewTransform {
   scale: number
@@ -258,6 +259,8 @@ export function DomainContextGraph({
                 testId={`edge-${domainId}-${conn.targetDomain}`}
                 direction={conn.direction}
                 relationshipCount={conn.relationshipCount}
+                relationshipTypes={conn.relationshipTypes}
+                deliveryTypes={conn.deliveryTypes}
                 isBidirectional={isBidirectional}
               />
             )
@@ -322,6 +325,8 @@ export function DomainContextGraph({
           />
         </button>
       </div>
+
+      <RelationshipLegend />
 
       {selectedPosition !== undefined && selectedNodeId !== null && (
         <DomainInfoModal

@@ -21,15 +21,17 @@ const testSourceLocation = {
 }
 
 const {
-  capturedOnNodeHover, capturedOnBackgroundClick, capturedGraph,
+  capturedOnNodeHover, capturedOnBackgroundClick, capturedGraph, capturedRelationshipLabelMode,
 } = vi.hoisted(() => {
   const hoverRef: { current: ((data: TooltipData | null) => void) | undefined } = {current: undefined,}
   const backgroundClickRef: { current: (() => void) | undefined } = { current: undefined }
   const graphRef: { current: RiviereGraph | undefined } = { current: undefined }
+  const relationshipLabelModeRef: { current: 'detailed' | 'semantic-only' | undefined } = { current: undefined }
   return {
     capturedOnNodeHover: hoverRef,
     capturedOnBackgroundClick: backgroundClickRef,
     capturedGraph: graphRef,
+    capturedRelationshipLabelMode: relationshipLabelModeRef,
   }
 })
 
@@ -102,8 +104,10 @@ vi.mock('@/platform/infra/graph/ForceGraph/ForceGraph', () => ({
     onNodeHover?: (data: TooltipData | null) => void
     onBackgroundClick?: () => void
     highlightedNodeId?: string | null
+    relationshipLabelMode?: 'detailed' | 'semantic-only'
   }) => {
     capturedGraph.current = props.graph
+    capturedRelationshipLabelMode.current = props.relationshipLabelMode
     if (props.onNodeHover !== undefined) {
       capturedOnNodeHover.current = props.onNodeHover
     }
@@ -162,6 +166,12 @@ describe('FullGraphPage', () => {
   it('renders ForceGraph component', () => {
     renderWithRouter()
     expect(screen.getByTestId('force-graph-container')).toBeInTheDocument()
+  })
+
+  it('uses semantic-only relationship labels', () => {
+    renderWithRouter()
+
+    expect(capturedRelationshipLabelMode.current).toBe('semantic-only')
   })
 
   it('renders filter toggle button', () => {

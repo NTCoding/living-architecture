@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import type { FlowStep } from '../../queries/extract-flows'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import {
+  createLinkId, type RiviereGraph
+} from '@living-architecture/riviere-schema'
 import { FlowGraphView } from './FlowGraphView'
 import { getNodeTypeColor } from '@/platform/domain/node-type-presentation'
 import type { Theme } from '@/types/theme'
 import { DEFAULT_THEME } from '@/types/theme'
+import { relationshipDetail } from '@/platform/domain/relationship-presentation'
 
 type ViewMode = 'waterfall' | 'graph'
 
@@ -33,6 +36,7 @@ export function FlowTrace({
   steps, graph, theme = DEFAULT_THEME,
 }: Readonly<FlowTraceProps>): React.ReactElement {
   const [viewMode, setViewMode] = useState<ViewMode>('waterfall')
+  const componentNames = new Map(graph.components.map((component) => [component.id, component.name]))
 
   if (steps.length === 0) {
     return (
@@ -100,7 +104,19 @@ export function FlowTrace({
                     </div>
                   )}
                 </div>
-                {step.edgeType !== null && <div className="flow-step-edge">{step.edgeType} →</div>}
+                {(step.outgoingLinks?.length ?? 0) > 0 && (
+                  <div className="flow-step-edge">
+                    {step.outgoingLinks?.map((link) => (
+                      <div key={link.id ?? createLinkId(link)}>
+                        {relationshipDetail(link)} → {componentNames.get(link.target) ?? link.target}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {step.outgoingLinks === undefined && step.edgeType !== null &&
+                  step.edgeType !== undefined && (
+                  <div className="flow-step-edge">{step.edgeType} →</div>
+                )}
               </div>
               {step.externalLinks.length > 0 && (
                 <div className="flow-external-links">

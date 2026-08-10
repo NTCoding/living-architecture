@@ -320,7 +320,7 @@ describe('extractDomainMap React Flow compatibility', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it('labels a single cross-domain relationship', () => {
+  it('uses the semantic type as the primary cross-domain relationship label', () => {
     const graph = createMinimalGraph({
       components: [
         parseNode({
@@ -347,13 +347,14 @@ describe('extractDomainMap React Flow compatibility', () => {
           source: 'n1',
           target: 'n2',
           type: 'sync',
+          relationshipType: 'executes',
         }),
       ],
     })
 
     const result = extractDomainMap(graph)
 
-    expect(result.domainEdges[0]?.label).toBe('1 relationship')
+    expect(result.domainEdges[0]?.label).toBe('executes')
   })
 
   it('counts an event relationship without changing its meaning', () => {

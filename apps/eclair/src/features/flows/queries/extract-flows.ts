@@ -6,6 +6,7 @@ import {
 import type {
   Component,
   ExternalLink,
+  Link,
   RiviereGraph,
   SourceLocation,
 } from '@living-architecture/riviere-schema'
@@ -33,7 +34,9 @@ export interface FlowStepNode {
 
 export interface FlowStep {
   node: FlowStepNode
-  edgeType: 'sync' | 'async' | null
+  outgoingLinks?: Link[]
+  /** Compatibility for callers constructing legacy view fixtures. */
+  edgeType?: 'sync' | 'async' | null
   depth: number
   externalLinks: ExternalLink[]
 }
@@ -61,11 +64,9 @@ function componentToFlowStepNode(component: Component): FlowStepNode {
 
 function adaptFlowStep(queryStep: QueryFlowStep): FlowStep {
   const component = queryStep.component
-  const linkType = queryStep.linkType
-
   return {
     node: componentToFlowStepNode(component),
-    edgeType: linkType ?? null,
+    outgoingLinks: queryStep.outgoingLinks,
     depth: queryStep.depth,
     externalLinks: queryStep.externalLinks,
   }

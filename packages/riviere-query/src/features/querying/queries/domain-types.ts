@@ -228,8 +228,8 @@ export type LinkType = 'sync' | 'async'
 export interface FlowStep {
   /** The component at this step. */
   component: Component
-  /** Type of link leading to this step (undefined for entry point). */
-  linkType: LinkType | undefined
+  /** Exact links leaving this component, preserving branching relationship semantics. */
+  outgoingLinks: Link[]
   /** Depth from entry point (0 = entry point). */
   depth: number
   /** External links from this component to external systems. */
