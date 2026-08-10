@@ -18,7 +18,9 @@ type RoleName =
   | 'command-use-case-result-value'
   | 'domain-error'
   | 'domain-event'
+  | 'domain-port'
   | 'domain-service'
+  | 'domain-port-adapter'
   | 'external-client-error'
   | 'external-client-model'
   | 'external-client-service'
@@ -79,6 +81,10 @@ export const allRoles = [
         name: 'RiviereBuilder',
         userHasApproved: true,
       },
+      {
+        name: 'RoleEnforcementProject',
+        userHasApproved: true,
+      },
     ],
   }),
   role('value-object', {
@@ -94,7 +100,9 @@ export const allRoles = [
     targets: ['type-alias'],
     nameMatches: '.*Event$',
   }),
+  role('domain-port', { targets: ['interface', 'type-alias'] }),
   role('domain-service', { targets: ['function', 'class'] }),
+  role('domain-port-adapter', { targets: ['function', 'class'] }),
   role('query-model-use-case', {
     targets: ['class'],
     allowedInputs: ['query-model-use-case-input'],

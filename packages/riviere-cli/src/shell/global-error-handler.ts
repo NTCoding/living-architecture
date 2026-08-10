@@ -5,7 +5,7 @@ import {
   ConfigValidationError,
 } from '../platform/infra/cli/presentation/error-codes'
 import { GitError } from '../platform/infra/external-clients/git/git-errors'
-import { DraftComponentLoadError } from '../features/extract/infra/external-clients/draft-components/draft-component-loader'
+import { FileReadError } from '../platform/infra/external-clients/filesystem/index'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
 
 /** @riviere-role cli-error-handler */
@@ -22,7 +22,7 @@ export function handleGlobalError(error: unknown): never {
     process.exit(ExitCode.RuntimeError)
   }
 
-  if (error instanceof DraftComponentLoadError) {
+  if (error instanceof FileReadError) {
     console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message)))
     process.exit(ExitCode.RuntimeError)
   }

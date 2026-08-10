@@ -72,20 +72,26 @@ export interface BuiltLocation {
 
 /** @riviere-role value-object */
 export interface BuiltLayerRule {
+  readonly enforceDependencies: boolean
   readonly matches: readonly string[]
+  readonly mayImportExternalPackages: boolean
   readonly mayImportLayers: readonly string[]
   readonly name: string
 }
 
 interface LayerRuleOptions {
+  readonly enforceDependencies?: boolean
   readonly matches: readonly string[]
+  readonly mayImportExternalPackages?: boolean
   readonly mayImportLayers: readonly string[]
 }
 
 /** @riviere-role domain-service */
 export function layerRule(name: string, options: LayerRuleOptions): BuiltLayerRule {
   return {
+    enforceDependencies: options.enforceDependencies ?? true,
     matches: options.matches,
+    mayImportExternalPackages: options.mayImportExternalPackages ?? true,
     mayImportLayers: options.mayImportLayers,
     name,
   }

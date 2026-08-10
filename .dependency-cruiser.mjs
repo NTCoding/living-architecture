@@ -17,8 +17,8 @@ export default {
     {
       name: "feature-structure",
       severity: "error",
-      comment: "Features contain only entrypoint/, commands/, queries/, domain/, infra/",
-      from: { path: "features/[^/]+/(?!entrypoint/|commands/|queries/|domain/|infra/)[^/]+/.+" },
+      comment: "Features contain only entrypoint/, commands/, queries/, domain/, data-access/, adapters/, infra/",
+      from: { path: "features/[^/]+/(?!entrypoint/|commands/|queries/|domain/|data-access/|adapters/|infra/)[^/]+/.+" },
       to: {}
     },
     {

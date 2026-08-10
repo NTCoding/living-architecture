@@ -12,10 +12,14 @@ These resources inform how roles are classified and where code should live:
 ## Dependency Rules
 
 Dependencies point inward:
-- `entrypoint/` → commands, queries, own feature infra, platform infra
-- `commands/` → domain, platform infra, platform domain, own feature infra
-- `domain/` → platform domain ONLY (no infra)
-- `infra/` → external libraries, platform infra
+- `entrypoint/` → commands and queries; never domain or data access directly
+- `commands/` → domain ports, domain, and data access
+- `queries/` → query models and data access
+- `domain/` → domain code and domain ports only; never adapters or infrastructure
+- `data-access/` → reconstructs aggregates or query models from persisted data
+- `adapters/` → one domain port and one generic client API; never external packages directly
+- `infra/` → infra and external packages only; never entrypoint, use-case, domain, or data access
+- `shell/` → constructs concrete dependencies and passes them into entrypoints
 
 ## Automated Enforcement
 

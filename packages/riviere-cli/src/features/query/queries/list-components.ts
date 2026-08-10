@@ -1,4 +1,4 @@
-import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repository'
+import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
 import type { ListComponentsInput } from './list-components-input'
 import type { ListComponentsResult } from './list-components-result'
 import { loadQueryGraph } from './query-graph-load-failure'

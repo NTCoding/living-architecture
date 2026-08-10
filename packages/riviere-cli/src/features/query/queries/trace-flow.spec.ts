@@ -10,7 +10,7 @@ import {
   setupCommandTest,
 } from '../../../platform/__fixtures__/command-test-fixtures'
 import { TraceFlow } from './trace-flow'
-import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repository'
+import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
 
 describe('traceFlow command', () => {
   const ctx: TestContext = createTestContext()

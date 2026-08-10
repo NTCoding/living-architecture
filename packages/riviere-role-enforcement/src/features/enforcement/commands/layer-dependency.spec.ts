@@ -3,11 +3,10 @@ import * as fs from 'node:fs'
 import path from 'node:path'
 import { it } from 'vitest'
 import * as enforcementBuilder from '../domain/role-enforcement-builder'
-import { RunRoleEnforcement } from './run-role-enforcement'
 import * as fixtureWorkspace from './test-fixture-workspace'
 
 const layerTestRoles = [
-  enforcementBuilder.role('technical-service', { targets: ['function'] }),
+  enforcementBuilder.role('technical-service', {targets: ['function', 'interface', 'type-alias'],}),
 ] as const
 
 const layerTestConfig = enforcementBuilder.roleEnforcement({
@@ -23,7 +22,7 @@ const layerTestConfig = enforcementBuilder.roleEnforcement({
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: layerTestRoles,
   locations: [
-    enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>('src/platform/infra', [
+    enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>('src', [
       'technical-service',
     ]),
   ],
@@ -80,6 +79,70 @@ export function consume(): string {
 
     assert.equal(result.exitCode, 0)
     assert.equal(result.stderr, '')
+  })
+})
+
+it('rejects direct external package imports from adapters', () => {
+  fixtureWorkspace.withWorkspaceFixture(layerTestBootstrap, (workspaceDir) => {
+    const adapterConfig = createAdapterLayerConfig()
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-a/src/adapters/oxlint/oxlint-adapter.ts',
+      `import path from 'node:path'
+
+/** @riviere-role technical-service */
+export function run(): string {
+  return path.basename('/tmp/example.txt')
+}
+`,
+    )
+
+    const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
+      configDir: workspaceDir,
+      configModule: { config: adapterConfig },
+    })
+
+    assert.equal(result.exitCode, 1)
+    assert.match(
+      result.stdout,
+      /Forbidden external import: 'adapters' cannot import external package 'node:path'/,
+    )
+  })
+})
+
+it('rejects imports between domain-port adapters', () => {
+  fixtureWorkspace.withWorkspaceFixture(layerTestBootstrap, (workspaceDir) => {
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-a/src/adapters/github/github-adapter.ts',
+      `/** @riviere-role technical-service */
+export function createGithubAdapter(): string {
+  return 'github'
+}
+`,
+    )
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-a/src/adapters/oxlint/oxlint-adapter.ts',
+      `import { createGithubAdapter } from '../github/github-adapter'
+
+/** @riviere-role technical-service */
+export function createOxlintAdapter(): string {
+  return createGithubAdapter()
+}
+`,
+    )
+
+    const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
+      configDir: workspaceDir,
+      configModule: { config: createAdapterLayerConfig() },
+    })
+
+    assert.equal(result.exitCode, 1)
+    assert.match(
+      result.stdout,
+      /Forbidden layer import: 'adapters' may only import layers \[domain-port, external-client-api\]/,
+    )
   })
 })
 
@@ -160,8 +223,30 @@ export function consume(): string {
 })
 
 function runLayerEnforcement(workspaceDir: string) {
-  return new RunRoleEnforcement().execute({
+  return fixtureWorkspace.createTestRoleEnforcementApplication().execute({
     configDir: workspaceDir,
     configModule: { config: layerTestConfig },
+  })
+}
+
+function createAdapterLayerConfig() {
+  return enforcementBuilder.roleEnforcement({
+    packages: ['packages/pkg-a'],
+    canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
+    ignorePatterns: [],
+    layerRules: [
+      enforcementBuilder.layerRule('adapters', {
+        matches: ['**/adapters/**'],
+        mayImportExternalPackages: false,
+        mayImportLayers: ['domain-port', 'external-client-api'],
+      }),
+    ],
+    roleDefinitionsDir: '.riviere/role-definitions',
+    roles: layerTestRoles,
+    locations: [
+      enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>('src', [
+        'technical-service',
+      ]),
+    ],
   })
 }

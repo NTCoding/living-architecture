@@ -1,14 +1,18 @@
 import { createDefaultProcessDeps } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { createClaudeCodeWorkflowCli } from '@nt-ai-lab/deterministic-agent-workflow-claude-code'
-import { WORKFLOW_DEFINITION } from '../features/workflow/infra/persistence/workflow-definition'
+import { WORKFLOW_DEFINITION } from '../features/workflow/data-access/workflow-definition'
 import {
   ROUTES, PRE_TOOL_USE_POLICY 
 } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { createWorkflowGitStatusReader } from '../features/workflow/adapters/git/workflow-git-status-reader'
+import { createWorkflowPullRequestCreator } from '../features/workflow/adapters/github/workflow-pull-request-creator'
+import { createWorkflowPullRequestFeedbackReader } from '../features/workflow/adapters/github/workflow-pull-request-feedback-reader'
+import { readGitRepositoryStatus } from '../platform/infra/external-clients/git/index'
 import {
-  getGitInfo, runGh 
-} from '../features/workflow/infra/external-clients/git/git'
-import { createGetPrFeedback } from '../features/workflow/infra/external-clients/github/get-pr-feedback'
-import { createPullRequestCreator } from '../features/workflow/infra/external-clients/github/create-pull-request'
+  createGithubPullRequestClient,
+  createGithubPullRequestFeedbackClient,
+  runGh,
+} from '../platform/infra/external-clients/github/index'
 
 /**
  * Performs an intentionally synchronous sleep for CLI polling.
@@ -33,9 +37,11 @@ createClaudeCodeWorkflowCli({
   isWriteAllowed: PRE_TOOL_USE_POLICY.isWriteAllowed,
   processDeps: createDefaultProcessDeps(),
   buildWorkflowDeps: (platform) => ({
-    getGitInfo,
-    getPrFeedback: createGetPrFeedback(runGh),
-    createPullRequest: createPullRequestCreator(runGh),
+    getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),
+    getPrFeedback: createWorkflowPullRequestFeedbackReader(
+      createGithubPullRequestFeedbackClient(runGh),
+    ),
+    createPullRequest: createWorkflowPullRequestCreator(createGithubPullRequestClient(runGh)),
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,

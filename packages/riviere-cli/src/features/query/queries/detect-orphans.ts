@@ -1,4 +1,4 @@
-import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repository'
+import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
 import type { DetectOrphansInput } from './detect-orphans-input'
 import type { DetectOrphansResult } from './detect-orphans-result'
 import { loadQueryGraph } from './query-graph-load-failure'

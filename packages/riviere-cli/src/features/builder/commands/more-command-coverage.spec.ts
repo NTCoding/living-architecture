@@ -18,7 +18,7 @@ import { FinalizeGraph } from './finalize-graph'
 import { InitGraph } from './init-graph'
 import { LinkComponents } from './link-components'
 import { LinkExternal } from './link-external'
-import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 
 class UnexpectedError extends Error {
   constructor(message: string) {

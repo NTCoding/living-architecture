@@ -4,7 +4,7 @@ import {
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereQuery } from '@living-architecture/riviere-query'
-import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repository'
+import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
 import {
   loadQueryGraph, toQueryGraphLoadFailure 
 } from './query-graph-load-failure'

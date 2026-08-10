@@ -6,7 +6,7 @@ import {
   describe, expect, it 
 } from 'vitest'
 import { AddComponent } from './add-component'
-import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 import type { AddComponentErrorCode } from './add-component-result'
 import {
   type TestContext,

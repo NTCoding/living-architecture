@@ -121,8 +121,12 @@ export default {
         }
 
         function validateLayerImport(node) {
-          const sourceLayer = layerRules.find((rule) =>
-            rule.matches.some((pattern) => matchesExpandedPattern(relativeFilePath, pattern)),
+          const sourceLayer = layerRules.find(
+            (rule) =>
+              rule.enforceDependencies !== false &&
+              rule.matches.some((pattern) =>
+                matchesExpandedPattern(relativeFilePath, pattern),
+              ),
           )
           if (sourceLayer === undefined) {
             return
@@ -135,6 +139,15 @@ export default {
 
           const resolvedImport = resolveImportFile(filename, importSource)
           if (resolvedImport === null || !isInsideDirectory(resolvedImport, options.configDir)) {
+            if (
+              sourceLayer.mayImportExternalPackages === false &&
+              isExternalImport(importSource)
+            ) {
+              report(
+                node,
+                `Forbidden external import: '${sourceLayer.name}' cannot import external package '${importSource}'.`,
+              )
+            }
             return
           }
 
@@ -159,6 +172,10 @@ export default {
             node,
             `Forbidden layer import: '${sourceLayer.name}' may only import layers [${sourceLayer.mayImportLayers.join(', ')}], but '${resolvedImportRelative}' belongs to ${targetDescription}.`,
           )
+        }
+
+        function isExternalImport(importSource) {
+          return !importSource.startsWith('.') && !path.isAbsolute(importSource)
         }
 
         function validateDeclaration(node, target) {

@@ -4,7 +4,7 @@ import {
 import {
   ComponentNotFoundError, parseComponentId 
 } from '@living-architecture/riviere-query'
-import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repository'
+import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
 import type { TraceFlowInput } from './trace-flow-input'
 import type { TraceFlowResult } from './trace-flow-result'
 import { loadQueryGraph } from './query-graph-load-failure'

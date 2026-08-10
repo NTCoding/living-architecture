@@ -20,6 +20,7 @@ const domainRoles: RoleName[] = [
   'aggregate',
   'value-object',
   'domain-event',
+  'domain-port',
   'domain-service',
   'domain-error',
 ]
@@ -66,9 +67,27 @@ export const config = roleEnforcement({
     '**/test-fixture-*.ts',
   ],
   layerRules: [
+    layerRule('adapters', {
+      matches: ['**/adapters/**'],
+      mayImportExternalPackages: false,
+      mayImportLayers: ['domain-port', 'external-client-api'],
+    }),
+    layerRule('domain-port', {
+      matches: ['**/domain/ports/**'],
+      mayImportLayers: ['domain', 'domain-port'],
+    }),
+    layerRule('external-client-api', {
+      matches: ['**/platform/infra/external-clients/*/index.ts'],
+      mayImportLayers: ['external-client-api', 'infra'],
+    }),
     layerRule('infra', {
-      matches: ['**/platform/infra/**'],
+      matches: ['**/infra/**'],
       mayImportLayers: ['infra'],
+    }),
+    layerRule('domain', {
+      enforceDependencies: false,
+      matches: ['**/domain/**'],
+      mayImportLayers: [],
     }),
   ],
   roleDefinitionsDir: '.riviere/role-definitions',
@@ -81,13 +100,14 @@ export const config = roleEnforcement({
   locations: [
     location<RoleName>('src/features/{feature}')
       .subLocation('/entrypoint/{entrypoint}', entrypointRoles, {
-        forbiddenImports: ['**/domain/**', '**/infra/persistence/**'],
+        forbiddenImports: ['**/domain/**', '**/data-access/**'],
       })
       .subLocation('/commands', commandRoles, { forbiddenImports: ['**/infra/cli/**'] })
       .subLocation('/queries', queryRoles, { forbiddenImports: ['**/infra/cli/**'] })
       .subLocation('/domain', domainRoles)
-      .subLocation('/infra/external-clients/{client}', externalClientRoles)
-      .subLocation('/infra/persistence', ['aggregate-repository', 'query-model-loader']),
+      .subLocation('/domain/ports', ['domain-port'])
+      .subLocation('/data-access', ['aggregate-repository', 'query-model-loader'])
+      .subLocation('/adapters/{adapter}', ['domain-port-adapter']),
 
     location<RoleName>('src/platform')
       .subLocation('/domain', domainRoles)

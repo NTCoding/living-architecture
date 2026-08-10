@@ -17,10 +17,32 @@ describe('layerRule', () => {
     })
 
     expect(result).toStrictEqual({
+      enforceDependencies: true,
       matches: ['**/infra/**'],
+      mayImportExternalPackages: true,
       mayImportLayers: ['infra'],
       name: 'infra',
     })
+  })
+
+  it('can classify a layer without enforcing its dependencies', () => {
+    const result = layerRule('domain', {
+      enforceDependencies: false,
+      matches: ['**/domain/**'],
+      mayImportLayers: [],
+    })
+
+    expect(result.enforceDependencies).toBe(false)
+  })
+
+  it('can prohibit direct external package imports', () => {
+    const result = layerRule('adapters', {
+      matches: ['**/adapters/**'],
+      mayImportExternalPackages: false,
+      mayImportLayers: ['domain-port', 'external-client-api'],
+    })
+
+    expect(result.mayImportExternalPackages).toBe(false)
   })
 })
 

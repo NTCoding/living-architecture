@@ -94,7 +94,21 @@ If yes, it is part of the query side. Ask: does it orchestrate the query, or doe
 
 **Critical distinction from aggregates:** A class that holds state and exposes methods is NOT automatically an aggregate. If none of its methods modify state, it is a `query-model`. Aggregates must enforce behavioral invariants through state-modifying operations.
 
-## 5. Processing the result
+## 5. Invoking an external capability from the domain
+
+Keep the three responsibilities separate:
+
+- A generic client under `platform/infra/external-clients/{client}/` knows only the external system's API and types.
+- A `domain-port` under `domain/ports/` defines the capability the domain needs in domain language.
+- A `domain-port-adapter` under `adapters/{client}/` implements one domain port using one generic client API.
+
+The adapter translates between the two contracts. It does not contain domain decisions, application orchestration, direct Node API calls, or third-party package calls. It must not coordinate multiple clients.
+
+The use case or domain receives the port. The shell constructs the generic client and adapter, then supplies the adapter at the application boundary.
+
+Repositories and query-model loaders belong in `data-access/`, not `adapters/`. Their responsibility is reconstructing or persisting application state, not implementing an external capability used during domain execution.
+
+## 6. Processing the result
 
 Is this code used to process the result after a `command-use-case` has completed?
 

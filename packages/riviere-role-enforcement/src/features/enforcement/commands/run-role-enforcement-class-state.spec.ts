@@ -5,12 +5,13 @@ import {
   configWithGenericClassStateConstraints, genericTestConfig 
 } from './test-fixture-config'
 import {
-  withGenericFixtureWorkspace, writeDomainFile 
+  createTestRoleEnforcementApplication,
+  withGenericFixtureWorkspace,
+  writeDomainFile,
 } from './test-fixture-workspace'
-import { RunRoleEnforcement } from './run-role-enforcement'
 
 function runWith(config: typeof genericTestConfig, workspaceDir: string) {
-  return new RunRoleEnforcement().execute({
+  return createTestRoleEnforcementApplication().execute({
     configDir: workspaceDir,
     configModule: { config },
   })

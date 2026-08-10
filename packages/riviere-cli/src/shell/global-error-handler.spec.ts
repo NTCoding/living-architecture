@@ -3,7 +3,7 @@ import {
 } from 'vitest'
 import { handleGlobalError } from './global-error-handler'
 import { GitError } from '../platform/infra/external-clients/git/git-errors'
-import { DraftComponentLoadError } from '../features/extract/infra/external-clients/draft-components/draft-component-loader'
+import { FileReadError } from '../platform/infra/external-clients/filesystem/index'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
 import {
   CliErrorCode,
@@ -39,8 +39,8 @@ describe('handleGlobalError', () => {
     expect(process.exit).toHaveBeenCalledWith(ExitCode.RuntimeError)
   })
 
-  it('formats DraftComponentLoadError with runtime exit code', () => {
-    const error = new DraftComponentLoadError('Invalid draft components')
+  it('formats FileReadError with runtime exit code', () => {
+    const error = new FileReadError('Invalid draft components')
 
     expect(() => handleGlobalError(error)).toThrow('process.exit')
 

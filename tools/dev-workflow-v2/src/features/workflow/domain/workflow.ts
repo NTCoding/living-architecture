@@ -1,6 +1,5 @@
 import type {
   PreconditionResult,
-  GitInfo,
   RecordingOpDefinition,
   TransitionContext,
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
@@ -29,12 +28,16 @@ import { parseWorkflowEvent } from './workflow-events'
 import {
   applyEvent, EMPTY_STATE 
 } from './fold'
-import type { PRFeedbackResult } from '../infra/external-clients/github/get-pr-feedback'
 import {
   buildPullRequestCreationRequest,
   parsePullRequestDescriptionOptions,
-  type PullRequestCreationRequest,
 } from './pull-request-description'
+import type {
+  CreateWorkflowPullRequest,
+  ReadWorkflowGitStatus,
+  ReadWorkflowPullRequestFeedback,
+  WorkflowPullRequestFeedback,
+} from './ports/workflow-external-capabilities'
 
 const PR_FEEDBACK_POLL_INTERVAL_MS = 15_000
 const PR_FEEDBACK_TIMEOUT_MS = 300_000
@@ -77,18 +80,12 @@ const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOpera
 )
 
 type WorkflowDeps = {
-  readonly getGitInfo: () => GitInfo
-  readonly getPrFeedback: (prNumber: number) => PRFeedbackResult
-  readonly createPullRequest: (request: PullRequestCreationRequest) => CreatedPullRequest
+  readonly getGitInfo: ReadWorkflowGitStatus
+  readonly getPrFeedback: ReadWorkflowPullRequestFeedback
+  readonly createPullRequest: CreateWorkflowPullRequest
   readonly listSessionReviews: () => readonly StoredReview[]
   readonly sleepMs: (ms: number) => void
   readonly now: () => string
-}
-
-type CreatedPullRequest = {
-  readonly prNumber: number
-  readonly prUrl: string
-  readonly isDraft: boolean
 }
 
 function diffStateOverrides(
@@ -106,17 +103,17 @@ function diffStateOverrides(
   return overrides
 }
 
-function isFeedbackClear(feedback: PRFeedbackResult): boolean {
+function isFeedbackClear(feedback: WorkflowPullRequestFeedback): boolean {
   return feedback.reviewDecision !== 'CHANGES_REQUESTED' && feedback.unresolvedCount === 0
 }
 
 function readPrFeedback(
-  getPrFeedback: (prNumber: number) => PRFeedbackResult,
+  getPrFeedback: ReadWorkflowPullRequestFeedback,
   prNumber: number,
 ):
   | {
     ok: true
-    feedback: PRFeedbackResult
+    feedback: WorkflowPullRequestFeedback
   }
   | {
     ok: false
