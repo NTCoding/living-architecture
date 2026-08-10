@@ -425,6 +425,7 @@ describe('extractDomainDetails - advanced tests', () => {
         apiCount: 1,
         eventCount: 1,
         relationshipCount: 2,
+        deliveryTypes: ['sync', 'async'],
       })
     })
 
@@ -473,6 +474,7 @@ describe('extractDomainDetails - advanced tests', () => {
         apiCount: 1,
         eventCount: 0,
         relationshipCount: 1,
+        deliveryTypes: ['sync'],
       })
     })
 

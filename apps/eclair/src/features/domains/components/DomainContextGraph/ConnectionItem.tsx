@@ -6,6 +6,14 @@ interface ConnectionItemProps {
   readonly targetDomainId: string
 }
 
+function connectionMetadata(connection: AggregatedConnection): string | undefined {
+  const values = [
+    connection.relationshipTypes?.join(', '),
+    connection.deliveryTypes?.join('/'),
+  ].filter((value): value is string => value !== undefined && value.length > 0)
+  return values.length > 0 ? values.join(' · ') : undefined
+}
+
 export function ConnectionItem({
   connection,
   currentDomainId,
@@ -14,6 +22,7 @@ export function ConnectionItem({
   const isOutgoing = connection.direction === 'outgoing'
   const fromDomain = isOutgoing ? currentDomainId : targetDomainId
   const toDomain = isOutgoing ? targetDomainId : currentDomainId
+  const metadata = connectionMetadata(connection)
 
   return (
     <div className="rounded-md bg-[var(--bg-tertiary)] p-3">
@@ -43,11 +52,9 @@ export function ConnectionItem({
           </div>
         )}
       </div>
-      {connection.relationshipTypes !== undefined && connection.relationshipTypes.length > 0 && (
+      {metadata !== undefined && (
         <div className="mt-2 text-xs font-semibold text-[var(--text-secondary)]">
-          {connection.relationshipTypes.join(', ')}
-          {connection.deliveryTypes !== undefined && connection.deliveryTypes.length > 0 &&
-            ` · ${connection.deliveryTypes.join('/')}`}
+          {metadata}
         </div>
       )}
     </div>

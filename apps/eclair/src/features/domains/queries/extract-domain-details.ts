@@ -95,7 +95,7 @@ function buildCrossDomainEdges(graph: RiviereGraph, domainId: DomainName): Cross
       continue
     }
 
-    const key = `${targetDomain}:${edge.relationshipType ?? 'relationship'}:${edge.type ?? 'unknown'}:${edge.condition ?? 'unconditional'}`
+    const key = JSON.stringify([targetDomain, edge.relationshipType, edge.type, edge.condition])
     if (crossDomainEdgeSet.has(key)) continue
 
     crossDomainEdgeSet.add(key)
@@ -248,10 +248,8 @@ function updateAggregatedConnection(
   connection.relationshipCount += 1
   const relationshipTypes = appendUnique(connection.relationshipTypes, link.relationshipType)
   if (relationshipTypes !== undefined) connection.relationshipTypes = relationshipTypes
-  if (link.relationshipType !== undefined) {
-    const deliveryTypes = appendUnique(connection.deliveryTypes, link.type)
-    if (deliveryTypes !== undefined) connection.deliveryTypes = deliveryTypes
-  }
+  const deliveryTypes = appendUnique(connection.deliveryTypes, link.type)
+  if (deliveryTypes !== undefined) connection.deliveryTypes = deliveryTypes
   if (target.type === 'API') connection.apiCount += 1
   if (target.type === 'EventHandler') connection.eventCount += 1
 }

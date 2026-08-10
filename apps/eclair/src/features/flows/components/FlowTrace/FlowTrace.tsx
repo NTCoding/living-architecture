@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { FlowStep } from '../../queries/extract-flows'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import {
+  createLinkId, type RiviereGraph
+} from '@living-architecture/riviere-schema'
 import { FlowGraphView } from './FlowGraphView'
 import { getNodeTypeColor } from '@/platform/domain/node-type-presentation'
 import type { Theme } from '@/types/theme'
@@ -105,7 +107,7 @@ export function FlowTrace({
                 {(step.outgoingLinks?.length ?? 0) > 0 && (
                   <div className="flow-step-edge">
                     {step.outgoingLinks?.map((link) => (
-                      <div key={link.id ?? `${link.source}->${link.target}`}>
+                      <div key={link.id ?? createLinkId(link)}>
                         {relationshipDetail(link)} → {componentNames.get(link.target) ?? link.target}
                       </div>
                     ))}

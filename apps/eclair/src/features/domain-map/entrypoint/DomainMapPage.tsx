@@ -340,7 +340,14 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
               {inspector.connections.map((conn) => {
                 return (
                   <div
-                    key={`${conn.sourceName}-${conn.targetName}-${conn.type}-${conn.relationshipType ?? 'relationship'}-${conn.targetNodeType}`}
+                    key={JSON.stringify([
+                      conn.sourceName,
+                      conn.targetName,
+                      conn.type,
+                      conn.relationshipType,
+                      conn.condition,
+                      conn.targetNodeType,
+                    ])}
                     className="inspector-connection-item"
                   >
                     <div className="flex items-center gap-2">
