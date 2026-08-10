@@ -56,22 +56,6 @@ const packages = [
   'tools/dev-workflow-v2',
 ]
 
-const domainDependencyRule = {
-  enforceDependencies: false,
-  locationName: 'domain',
-  mayImportLocations: [] as const,
-}
-
-const domainPortDependencyRule = {
-  locationName: 'domain-port',
-  mayImportLocations: ['domain', 'domain-port'],
-}
-
-const infraDependencyRule = {
-  locationName: 'infra',
-  mayImportLocations: ['infra'],
-}
-
 export const config = roleEnforcement({
   packages,
   canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
@@ -94,31 +78,27 @@ export const config = roleEnforcement({
       .subLocation('/entrypoint/{entrypoint}', entrypointRoles, {
         forbiddenImports: ['**/domain/**', '**/data-access/**'],
       })
-      .subLocation('/commands', commandRoles, { forbiddenImports: ['**/infra/cli/**'] })
-      .subLocation('/queries', queryRoles, { forbiddenImports: ['**/infra/cli/**'] })
-      .subLocation('/domain', domainRoles, { dependencyRule: domainDependencyRule })
-      .subLocation('/domain/ports', ['domain-port'], {
-        dependencyRule: domainPortDependencyRule,
+      .subLocation('/commands', commandRoles, {
+        forbiddenImports: ['**/infra/cli/**'],
       })
+      .subLocation('/queries', queryRoles, { forbiddenImports: ['**/infra/cli/**'] })
+      .subLocation('/domain', domainRoles)
+      .subLocation('/domain/ports', ['domain-port'])
       .subLocation('/data-access', ['aggregate-repository', 'query-model-loader'])
       .subLocation('/adapters/{adapter}', ['domain-port-adapter'], {
-        dependencyRule: {
-          locationName: 'adapters',
-          mayImportExternalPackages: false,
-          mayImportLocations: ['domain-port', 'external-client-api'],
-        },
+        mayImportExternalPackages: false,
+        mayImportRoles: [
+          'domain-port',
+          'external-client-error',
+          'external-client-model',
+          'external-client-service',
+        ],
       }),
 
     location<RoleName>('src/platform')
-      .subLocation('/domain', domainRoles, { dependencyRule: domainDependencyRule })
-      .subLocation('/infra', [], { dependencyRule: infraDependencyRule })
+      .subLocation('/domain', domainRoles)
+      .subLocation('/infra', [], { mayImportRoles: [] })
       .subLocation('/infra/external-clients/{client}', externalClientRoles)
-      .subLocation('/infra/external-clients/{client}/index.ts', [], {
-        dependencyRule: {
-          locationName: 'external-client-api',
-          mayImportLocations: ['external-client-api', 'infra'],
-        },
-      })
       .subLocation('/infra/cli/input-parser', ['generic-cli-input-parser'])
       .subLocation('/infra/cli/presentation', cliPresentationRoles),
 

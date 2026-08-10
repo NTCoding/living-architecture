@@ -30,16 +30,13 @@ For example, generic infrastructure is defined once as the parent location of it
 ```ts
 location<RoleName>('src/platform')
   .subLocation('/infra', [], {
-    dependencyRule: {
-      locationName: 'infra',
-      mayImportLocations: ['infra'],
-    },
+    mayImportRoles: [],
   })
   .subLocation('/infra/external-clients/{client}', externalClientRoles)
   .subLocation('/infra/cli/input-parser', ['generic-cli-input-parser'])
 ```
 
-The `/infra` location owns the dependency rule. Its child locations refine role placement without redefining the infra path in a second rule system. A configuration such as `layerRule('infra', { matches: ['**/infra/**'] })` alongside these sublocations is invalid because it creates two independent definitions of the same architectural boundary.
+The `/infra` location owns the import rule directly. Imports within that location, including its child locations, are allowed normally. `mayImportRoles: []` says that no application-owned role may cross into infra from outside that location; external packages remain allowed. Its child locations refine role placement without redefining the infra path in a second rule system. A nested `dependencyRule`, a repeated `locationName: 'infra'`, or a separate `layerRule('infra', { matches: ['**/infra/**'] })` is invalid because each duplicates information already expressed by the location.
 
 A file-size limit is not an architectural role. Do not create helper/component roles, unannotated-export exemptions, barrel-based privacy, or `_platform` folders solely to split a large file. First extract genuinely generic technical capabilities into infra, then re-evaluate the remaining code against the actual lint limit. If it fits, keep it inside the existing role. If it does not, identify the genuinely separate responsibilities and give each a real role.
 

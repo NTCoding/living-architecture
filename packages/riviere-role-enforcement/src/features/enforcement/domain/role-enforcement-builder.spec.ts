@@ -208,45 +208,25 @@ describe('location with subLocation builder', () => {
     ])
   })
 
-  it('includes dependency policy in the location definition', () => {
-    const builder = location('src/platform').subLocation('/infra', [], {
-      dependencyRule: {
-        locationName: 'infra',
-        mayImportLocations: ['infra'],
-      },
-    })
+  it('includes import rules in the location definition', () => {
+    const builder = location('src/platform').subLocation('/infra', [], { mayImportRoles: [] })
 
     expect(builder.subLocations).toStrictEqual([
       {
         allowedRoles: [],
-        dependencyRule: {
-          enforceDependencies: true,
-          locationName: 'infra',
-          mayImportExternalPackages: true,
-          mayImportLocations: ['infra'],
-        },
+        mayImportRoles: [],
         path: '/infra',
       },
     ])
   })
 
-  it('includes dependency policy on a root location', () => {
-    const result = location('src/shell', ['cli-entrypoint'], {
-      dependencyRule: {
-        locationName: 'shell',
-        mayImportLocations: ['commands'],
-      },
-    })
+  it('includes import rules on a root location', () => {
+    const result = location('src/shell', ['cli-entrypoint'], { mayImportExternalPackages: false })
 
     expect(result.subLocations).toStrictEqual([
       {
         allowedRoles: ['cli-entrypoint'],
-        dependencyRule: {
-          enforceDependencies: true,
-          locationName: 'shell',
-          mayImportExternalPackages: true,
-          mayImportLocations: ['commands'],
-        },
+        mayImportExternalPackages: false,
         path: '',
       },
     ])

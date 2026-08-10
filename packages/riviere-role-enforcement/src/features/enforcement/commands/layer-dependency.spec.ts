@@ -7,6 +7,16 @@ import * as fixtureWorkspace from './test-fixture-workspace'
 
 const layerTestRoles = [
   enforcementBuilder.role('technical-service', {targets: ['function', 'interface', 'type-alias'],}),
+  enforcementBuilder.role('domain-port', { targets: ['interface', 'type-alias'] }),
+  enforcementBuilder.role('domain-port-adapter', {
+    targets: ['function'],
+    forbiddenDependencies: ['domain-port-adapter'],
+  }),
+  enforcementBuilder.role('command-use-case', {
+    targets: ['function'],
+    forbiddenDependencies: ['domain-port-adapter'],
+  }),
+  enforcementBuilder.role('external-client-service', { targets: ['function'] }),
 ] as const
 
 const layerTestConfig = enforcementBuilder.roleEnforcement({
@@ -18,19 +28,7 @@ const layerTestConfig = enforcementBuilder.roleEnforcement({
   locations: [
     enforcementBuilder
       .location<(typeof layerTestRoles)[number]['name']>('src')
-      .subLocation('/platform/infra', ['technical-service'], {
-        dependencyRule: {
-          locationName: 'infra',
-          mayImportLocations: ['infra'],
-        },
-      })
-      .subLocation('/domain', [], {
-        dependencyRule: {
-          enforceDependencies: false,
-          locationName: 'domain',
-          mayImportLocations: [],
-        },
-      }),
+      .subLocation('/platform/infra', ['technical-service'], { mayImportRoles: [] }),
   ],
 })
 
@@ -96,7 +94,7 @@ it('rejects direct external package imports from adapters', () => {
       'packages/pkg-a/src/adapters/oxlint/oxlint-adapter.ts',
       `import path from 'node:path'
 
-/** @riviere-role technical-service */
+/** @riviere-role domain-port-adapter */
 export function run(): string {
   return path.basename('/tmp/example.txt')
 }
@@ -111,7 +109,7 @@ export function run(): string {
     assert.equal(result.exitCode, 1)
     assert.match(
       result.stdout,
-      /Forbidden external import: 'adapters' cannot import external package 'node:path'/,
+      /Forbidden external import: files in 'packages\/pkg-a\/src\/adapters' cannot import external package 'node:path'/,
     )
   })
 })
@@ -121,7 +119,7 @@ it('rejects imports between domain-port adapters', () => {
     fixtureWorkspace.writeFixtureFile(
       workspaceDir,
       'packages/pkg-a/src/adapters/github/github-adapter.ts',
-      `/** @riviere-role technical-service */
+      `/** @riviere-role domain-port-adapter */
 export function createGithubAdapter(): string {
   return 'github'
 }
@@ -132,7 +130,7 @@ export function createGithubAdapter(): string {
       'packages/pkg-a/src/adapters/oxlint/oxlint-adapter.ts',
       `import { createGithubAdapter } from '../github/github-adapter'
 
-/** @riviere-role technical-service */
+/** @riviere-role domain-port-adapter */
 export function createOxlintAdapter(): string {
   return createGithubAdapter()
 }
@@ -147,7 +145,43 @@ export function createOxlintAdapter(): string {
     assert.equal(result.exitCode, 1)
     assert.match(
       result.stdout,
-      /Forbidden location import: 'adapters' may only import locations \[domain-port, external-client-api\]/,
+      /Forbidden dependency: this file \(domain-port-adapter\) cannot import from a file exporting 'domain-port-adapter'/,
+    )
+  })
+})
+
+it('rejects commands importing concrete domain-port adapters', () => {
+  fixtureWorkspace.withWorkspaceFixture(layerTestBootstrap, (workspaceDir) => {
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-a/src/adapters/oxlint/oxlint-adapter.ts',
+      `/** @riviere-role domain-port-adapter */
+export function createOxlintAdapter(): string {
+  return 'oxlint'
+}
+`,
+    )
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-a/src/commands/run.ts',
+      `import { createOxlintAdapter } from '../adapters/oxlint/oxlint-adapter'
+
+/** @riviere-role command-use-case */
+export function run(): string {
+  return createOxlintAdapter()
+}
+`,
+    )
+
+    const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
+      configDir: workspaceDir,
+      configModule: { config: createAdapterLayerConfig() },
+    })
+
+    assert.equal(result.exitCode, 1)
+    assert.match(
+      result.stdout,
+      /Forbidden dependency: this file \(command-use-case\) cannot import from a file exporting 'domain-port-adapter'/,
     )
   })
 })
@@ -156,18 +190,21 @@ it('rejects imports from infra to another internal layer', () => {
   fixtureWorkspace.withWorkspaceFixture(layerTestBootstrap, (workspaceDir) => {
     fixtureWorkspace.writeFixtureFile(
       workspaceDir,
-      'packages/pkg-a/src/domain/domain-value.ts',
-      `export const domainValue = 'domain'
+      'packages/pkg-a/src/domain/domain-port.ts',
+      `/** @riviere-role domain-port */
+export interface DomainPort {
+  value(): string
+}
 `,
     )
     fixtureWorkspace.writeFixtureFile(
       workspaceDir,
       'packages/pkg-a/src/platform/infra/consumer.ts',
-      `import { domainValue } from '../../domain/domain-value'
+      `import type { DomainPort } from '../../domain/domain-port'
 
 /** @riviere-role technical-service */
-export function consume(): string {
-  return domainValue
+export function consume(port: DomainPort): string {
+  return port.value()
 }
 `,
     )
@@ -178,9 +215,9 @@ export function consume(): string {
     assert.equal(result.stderr, '')
     assert.match(
       result.stdout,
-      /Forbidden location import: 'infra' may only import locations \[infra\]/,
+      /Forbidden role import: files in 'packages\/pkg-a\/src\/platform\/infra' may only import roles \[\] across that location boundary/,
     )
-    assert.match(result.stdout, /packages\/pkg-a\/src\/domain\/domain-value\.ts/)
+    assert.match(result.stdout, /packages\/pkg-a\/src\/domain\/domain-port\.ts/)
   })
 })
 
@@ -201,17 +238,26 @@ it('rejects workspace package imports from infra when the target is not infra', 
     fixtureWorkspace.writeFixtureFile(
       workspaceDir,
       'packages/pkg-domain/src/index.ts',
-      `export const domainValue = 'domain'
+      `export type { DomainPort } from './domain/domain-port'
+`,
+    )
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-domain/src/domain/domain-port.ts',
+      `/** @riviere-role domain-port */
+export interface DomainPort {
+  value(): string
+}
 `,
     )
     fixtureWorkspace.writeFixtureFile(
       workspaceDir,
       'packages/pkg-a/src/platform/infra/consumer.ts',
-      `import { domainValue } from '@generic/pkg-domain'
+      `import type { DomainPort } from '@generic/pkg-domain'
 
 /** @riviere-role technical-service */
-export function consume(): string {
-  return domainValue
+export function consume(port: DomainPort): string {
+  return port.value()
 }
 `,
     )
@@ -247,35 +293,17 @@ function createAdapterLayerConfig() {
     roles: layerTestRoles,
     locations: [
       enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>('src', [
+        'command-use-case',
         'technical-service',
       ]),
       enforcementBuilder
         .location<(typeof layerTestRoles)[number]['name']>('src')
-        .subLocation('/adapters', [], {
-          dependencyRule: {
-            locationName: 'adapters',
-            mayImportExternalPackages: false,
-            mayImportLocations: ['domain-port', 'external-client-api'],
-          },
+        .subLocation('/adapters', ['domain-port-adapter'], {
+          mayImportExternalPackages: false,
+          mayImportRoles: ['domain-port', 'external-client-service'],
         })
-        .subLocation('/domain/ports', [], {
-          dependencyRule: {
-            locationName: 'domain-port',
-            mayImportLocations: ['domain-port'],
-          },
-        })
-        .subLocation('/platform/infra', [], {
-          dependencyRule: {
-            locationName: 'infra',
-            mayImportLocations: ['infra'],
-          },
-        })
-        .subLocation('/platform/infra/external-clients/{client}/index.ts', [], {
-          dependencyRule: {
-            locationName: 'external-client-api',
-            mayImportLocations: ['external-client-api', 'infra'],
-          },
-        }),
+        .subLocation('/domain/ports', ['domain-port'])
+        .subLocation('/platform/infra', ['external-client-service']),
     ],
   })
 }

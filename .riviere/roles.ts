@@ -40,7 +40,7 @@ export const allRoles = [
     targets: ['class', 'function'],
     allowedInputs: ['command-use-case-input'],
     allowedOutputs: ['command-use-case-result'],
-    forbiddenDependencies: ['command-use-case'],
+    forbiddenDependencies: ['command-use-case', 'domain-port-adapter'],
     minPublicMethods: 1,
     maxPublicMethods: 1,
   }),
@@ -102,7 +102,10 @@ export const allRoles = [
   }),
   role('domain-port', { targets: ['interface', 'type-alias'] }),
   role('domain-service', { targets: ['function', 'class'] }),
-  role('domain-port-adapter', { targets: ['function', 'class'] }),
+  role('domain-port-adapter', {
+    targets: ['function', 'class'],
+    forbiddenDependencies: ['domain-port-adapter'],
+  }),
   role('query-model-use-case', {
     targets: ['class'],
     allowedInputs: ['query-model-use-case-input'],

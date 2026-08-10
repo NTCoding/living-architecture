@@ -12,6 +12,7 @@ A narrow implementation of one domain port using one generic external-client API
 4. Translates the external-client result or error into the port result or error.
 5. Contains no domain decisions, application orchestration, or direct infrastructure calls.
 6. Lives in `adapters/{adapter}/`.
+7. Does not import another `domain-port-adapter`.
 
 ## Canonical Example
 
@@ -92,5 +93,6 @@ The restriction is intentionally structural: a domain-port adapter may import it
 
 - Importing an aggregate or domain service directly.
 - Importing Node APIs or third-party packages instead of using the external-client API.
+- Importing another domain-port adapter instead of implementing its own single port-to-client translation.
 - Coordinating multiple external clients.
 - Implementing the external client itself.

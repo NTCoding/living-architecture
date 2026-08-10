@@ -60,8 +60,9 @@ export function createRoleFactory<R extends string>() {
 
 interface SubLocationEntry {
   readonly allowedRoles: readonly string[]
-  readonly dependencyRule?: BuiltLocationDependencyRule
   readonly forbiddenImports?: readonly string[]
+  readonly mayImportExternalPackages?: boolean
+  readonly mayImportRoles?: readonly string[]
   readonly path: string
 }
 
@@ -71,24 +72,10 @@ export interface BuiltLocation {
   readonly subLocations: readonly SubLocationEntry[]
 }
 
-/** @riviere-role value-object */
-export interface BuiltLocationDependencyRule {
-  readonly enforceDependencies: boolean
-  readonly locationName: string
-  readonly mayImportExternalPackages: boolean
-  readonly mayImportLocations: readonly string[]
-}
-
-interface LocationDependencyRuleOptions {
-  readonly enforceDependencies?: boolean
-  readonly locationName: string
-  readonly mayImportExternalPackages?: boolean
-  readonly mayImportLocations: readonly string[]
-}
-
-interface SubLocationOptions {
-  readonly dependencyRule?: LocationDependencyRuleOptions
+interface SubLocationOptions<R extends string> {
   readonly forbiddenImports?: readonly string[]
+  readonly mayImportExternalPackages?: boolean
+  readonly mayImportRoles?: readonly R[]
 }
 
 /** @riviere-role value-object */
@@ -96,7 +83,7 @@ export type LocationBuilder<R extends string> = BuiltLocation & {
   readonly subLocation: (
     path: string,
     allowedRoles: readonly R[],
-    options?: SubLocationOptions,
+    options?: SubLocationOptions<R>,
   ) => LocationBuilder<R>
 }
 
@@ -104,13 +91,13 @@ export function location<R extends string>(basePath: string): LocationBuilder<R>
 export function location<R extends string>(
   basePath: string,
   allowedRoles: readonly R[],
-  options?: SubLocationOptions,
+  options?: SubLocationOptions<R>,
 ): BuiltLocation
 /** @riviere-role domain-service */
 export function location<R extends string>(
   basePath: string,
   allowedRoles?: readonly R[],
-  options?: SubLocationOptions,
+  options?: SubLocationOptions<R>,
 ): BuiltLocation | LocationBuilder<R> {
   if (allowedRoles !== undefined) {
     return {
@@ -132,7 +119,7 @@ function createLocationBuilder<R extends string>(
     subLocation(
       path: string,
       allowedRoles: readonly R[],
-      options?: SubLocationOptions,
+      options?: SubLocationOptions<R>,
     ): LocationBuilder<R> {
       return createLocationBuilder(basePath, [
         ...subLocations,
@@ -142,23 +129,17 @@ function createLocationBuilder<R extends string>(
   }
 }
 
-function buildSubLocation(
+function buildSubLocation<R extends string>(
   path: string,
-  allowedRoles: readonly string[],
-  options?: SubLocationOptions,
+  allowedRoles: readonly R[],
+  options?: SubLocationOptions<R>,
 ): SubLocationEntry {
   return {
     allowedRoles,
     path,
-    ...(options?.dependencyRule !== undefined && {
-      dependencyRule: {
-        enforceDependencies: options.dependencyRule.enforceDependencies ?? true,
-        locationName: options.dependencyRule.locationName,
-        mayImportExternalPackages: options.dependencyRule.mayImportExternalPackages ?? true,
-        mayImportLocations: options.dependencyRule.mayImportLocations,
-      },
-    }),
     ...(options?.forbiddenImports !== undefined && { forbiddenImports: options.forbiddenImports }),
+    ...(options?.mayImportExternalPackages !== undefined && {mayImportExternalPackages: options.mayImportExternalPackages,}),
+    ...(options?.mayImportRoles !== undefined && { mayImportRoles: options.mayImportRoles }),
   }
 }
 
@@ -174,8 +155,9 @@ interface RoleEnforcementInput<R extends string> {
 
 interface LocationEntry {
   readonly allowedRoles: readonly string[]
-  readonly dependencyRule?: BuiltLocationDependencyRule
   readonly forbiddenImports?: readonly string[]
+  readonly mayImportExternalPackages?: boolean
+  readonly mayImportRoles?: readonly string[]
   readonly paths: readonly string[]
 }
 
@@ -204,8 +186,9 @@ export function roleEnforcement<const R extends string>(
         layers[fullPath] = {
           allowedRoles: sub.allowedRoles,
           paths: [resolvedPath],
-          ...(sub.dependencyRule !== undefined && { dependencyRule: sub.dependencyRule }),
           ...(sub.forbiddenImports !== undefined && { forbiddenImports: sub.forbiddenImports }),
+          ...(sub.mayImportExternalPackages !== undefined && {mayImportExternalPackages: sub.mayImportExternalPackages,}),
+          ...(sub.mayImportRoles !== undefined && { mayImportRoles: sub.mayImportRoles }),
         }
       }
     }

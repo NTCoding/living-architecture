@@ -39,12 +39,9 @@ export default {
         const [options] = context.options
         const roleMap = new Map(options.roles.map((role) => [role.name, role]))
         const layerEntries = Object.entries(options.layers ?? {})
-        const dependencyLocations = layerEntries
-          .filter(([, location]) => location.dependencyRule !== undefined)
-          .map(([, location]) => ({
-            ...location.dependencyRule,
-            paths: location.paths,
-          }))
+        const importRuleLocations = layerEntries
+          .map(([, location]) => location)
+          .filter((location) => hasImportRules(location))
           .sort((left, right) => longestPattern(right.paths) - longestPattern(left.paths))
         const sourceCode = context.sourceCode
         const fileCache = new Map()
@@ -127,12 +124,9 @@ export default {
         }
 
         function validateLocationImport(node) {
-          const sourceLocation = dependencyLocations.find(
+          const sourceLocation = importRuleLocations.find(
             (location) =>
-              location.enforceDependencies !== false &&
-              location.paths.some((pattern) =>
-                matchesExpandedPattern(relativeFilePath, pattern),
-              ),
+              location.paths.some((pattern) => matchesExpandedPattern(relativeFilePath, pattern)),
           )
           if (sourceLocation === undefined) {
             return
@@ -151,7 +145,7 @@ export default {
             ) {
               report(
                 node,
-                `Forbidden external import: '${sourceLocation.locationName}' cannot import external package '${importSource}'.`,
+                `Forbidden external import: files in '${sourceLocation.paths.join(', ')}' cannot import external package '${importSource}'.`,
               )
             }
             return
@@ -160,30 +154,51 @@ export default {
           const resolvedImportRelative = normalizePath(
             readRelativeFilePath(resolvedImport, options.configDir),
           )
-          const targetLocations = dependencyLocations
-            .filter((location) =>
-              location.paths.some((pattern) =>
-                matchesExpandedPattern(resolvedImportRelative, pattern),
-              ),
-            )
-            .map((location) => location.locationName)
-
+          const importedRoles = readImportedRoles(node, resolvedImport)
           if (
-            targetLocations.some((targetLocation) =>
-              sourceLocation.mayImportLocations.includes(targetLocation),
+            sourceLocation.paths.some((pattern) =>
+              matchesExpandedPattern(resolvedImportRelative, pattern),
             )
           ) {
             return
           }
 
+          if (!Array.isArray(sourceLocation.mayImportRoles)) {
+            return
+          }
+
+          const disallowedRole = importedRoles.find(
+            (role) => !sourceLocation.mayImportRoles.includes(role),
+          )
+          if (importedRoles.length > 0 && disallowedRole === undefined) {
+            return
+          }
+
           const targetDescription =
-            targetLocations.length === 0
-              ? 'no allowed location'
-              : `[${targetLocations.join(', ')}]`
+            importedRoles.length === 0 ? 'no classified role' : `[${importedRoles.join(', ')}]`
           report(
             node,
-            `Forbidden location import: '${sourceLocation.locationName}' may only import locations [${sourceLocation.mayImportLocations.join(', ')}], but '${resolvedImportRelative}' belongs to ${targetDescription}.`,
+            `Forbidden role import: files in '${sourceLocation.paths.join(', ')}' may only import roles [${sourceLocation.mayImportRoles.join(', ')}] across that location boundary, but '${resolvedImportRelative}' provides ${targetDescription}.`,
           )
+        }
+
+        function readImportedRoles(node, resolvedImport) {
+          const roles = []
+          for (const specifier of node.specifiers ?? []) {
+            if (specifier.type === 'ImportSpecifier') {
+              const importedName =
+                specifier.imported.type === 'Identifier'
+                  ? specifier.imported.name
+                  : specifier.imported.value
+              const importedRole = readExportedRole(resolvedImport, importedName)
+              if (importedRole !== null) {
+                roles.push(importedRole)
+              }
+            } else if (specifier.type === 'ImportNamespaceSpecifier') {
+              roles.push(...readAllExportedRoles(resolvedImport))
+            }
+          }
+          return [...new Set(roles)]
         }
 
         function isExternalImport(importSource) {
@@ -1005,6 +1020,12 @@ function matchesExpandedPattern(fileDir, pattern) {
     (expanded) =>
       minimatch(fileDir, expanded, { dot: true }) ||
       minimatch(fileDir, `${expanded}/**`, { dot: true }),
+  )
+}
+
+function hasImportRules(location) {
+  return (
+    location.mayImportExternalPackages === false || Array.isArray(location.mayImportRoles)
   )
 }
 

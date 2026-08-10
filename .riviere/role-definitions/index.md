@@ -13,7 +13,7 @@ These resources inform how roles are classified and where code should live:
 
 Dependencies point inward:
 - `entrypoint/` → commands and queries; never domain or data access directly
-- `commands/` → domain and data access
+- `commands/` → domain and data access; never concrete domain-port adapters
 - `queries/` → query models and data access
 - `domain/` → domain code and domain ports only; never adapters or infrastructure
 - `data-access/` → reconstructs aggregates or query models from persisted data
@@ -27,7 +27,7 @@ Concrete test: `readJsonFile(filePath): unknown` and `resolveFileOrPackagePath(.
 
 Role enforcement is automated via an oxlint plugin. It checks annotations, location constraints, dependency rules, and I/O contracts at lint time. The enforcement config at `.riviere/role-enforcement.config.ts` is the source of truth for what's enforced. The separation-of-concerns skill defines the architectural principles; role enforcement automates their verification.
 
-Dependency rules belong directly to their `location(...)` or `subLocation(...)` definitions. RLE derives both sides of an import from those configured locations; it must not maintain a second list of path matchers for architectural layers.
+Import rules belong directly to their `location(...)` or `subLocation(...)` definitions. Imports within the same configured location are allowed normally. A location may restrict imports crossing its boundary to specific target roles or forbid direct external-package imports. Role-specific exceptions, such as command-to-command and adapter-to-adapter imports, use the existing role `forbiddenDependencies` rule. RLE must not maintain a second list of path matchers for architectural layers.
 
 ## Classification Decision Tree
 

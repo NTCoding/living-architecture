@@ -6,7 +6,6 @@ export {
 } from './features/enforcement/domain/role-enforcement-builder'
 export type {
   BuiltLocation,
-  BuiltLocationDependencyRule,
   BuiltRole,
   LocationBuilder,
   RoleEnforcementResult,
