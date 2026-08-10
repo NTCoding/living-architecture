@@ -25,21 +25,57 @@ Prefer a small number of broad, target-based layer rules with minimal configurat
 
 A file-size limit is not an architectural role. Do not create helper/component roles, unannotated-export exemptions, barrel-based privacy, or `_platform` folders solely to split a large file. First extract genuinely generic technical capabilities into infra, then re-evaluate the remaining code against the actual lint limit. If it fits, keep it inside the existing role. If it does not, identify the genuinely separate responsibilities and give each a real role.
 
-The `ExtractionProjectRepository` refactor is the canonical example. The repository exceeded the 400-line ESLint limit while also containing generic file and Node-module operations. Only these responsibilities moved to `platform/infra/external-clients/`:
+The `ExtractionProjectRepository` refactor is the canonical example. See commit [`2474599b` — refactor: enforce architecture layer boundaries](https://github.com/NTCoding/living-architecture/commit/2474599b591df037d5e3e5d665e171db65f459a0) for the complete change.
 
-- `filesystem`: checking file existence, reading UTF-8 text, parsing JSON to `unknown`, and reporting generic file-read failures.
-- `node-modules`: resolving an installed package from a base directory and resolving a caller-supplied relative file within that package.
+All paths below are repository-relative. Before that commit, extraction-specific loaders lived under `packages/riviere-cli/src/features/extract/infra/external-clients/`. The refactor did not preserve those false abstractions. It deleted:
 
-The following responsibilities remained in `data-access/extraction-project/extraction-project-repository.ts` because they contain extraction or repository meaning:
+- `packages/riviere-cli/src/features/extract/infra/external-clients/draft-components/draft-component-loader.ts`
+- `packages/riviere-cli/src/features/extract/infra/external-clients/extraction-config/load-extended-module.ts`
 
-- Validating that parsed JSON represents `DraftComponent[]`.
-- Giving a file the application meaning `Enrich file`.
-- Choosing `src/default-extraction.config.json` as the package convention.
-- Recognising supported extended extraction-config formats.
-- Translating those formats into partial `Module` rules.
-- Resolving nested extraction configuration and merging extended module rules.
+It moved the aggregate repository from `packages/riviere-cli/src/features/extract/infra/persistence/extraction-project/extraction-project-repository.ts` to `packages/riviere-cli/src/features/extract/data-access/extraction-project/extraction-project-repository.ts`. The repository reconstructs an `ExtractionProject`, so it is data access, not generic infra.
 
-Do not move code to infra merely because some statements use the file system, paths, JSON, YAML, packages, or another technical API. Infra must remain generic. If the extracted code imports or names `DraftComponent`, `Module`, `ExtractionConfig`, a use case, an aggregate, an entrypoint type, or a repository callback, it is not generic infrastructure and must remain in the application-owned layer.
+Only the following concrete, domain-ignorant functions were extracted to generic infra:
+
+```ts
+// packages/riviere-cli/src/platform/infra/external-clients/filesystem/file-reader.ts
+readTextFile(filePath: string): string
+readJsonFile(filePath: string, description = 'File'): unknown
+
+// packages/riviere-cli/src/platform/infra/external-clients/node-modules/node-module-file-resolver.ts
+resolveFileOrPackagePath(params: {
+  baseDirectory: string
+  packageRelativePath: string
+  source: string
+}): string
+```
+
+These functions accept paths and strings, return strings or `unknown`, and know only filesystem, JSON, and Node-module resolution. They do not import or name any extraction, repository, use-case, domain, or entrypoint type.
+
+The application meaning stays in the repository. This real code remains in `packages/riviere-cli/src/features/extract/data-access/extraction-project/extraction-project-repository.ts`:
+
+```ts
+private loadDraftComponentsFromFile(filePath: string): DraftComponent[] {
+  const parsed = readJsonFile(filePath, 'Enrich file')
+  if (!this.isDraftComponentArray(parsed)) {
+    throw new FileReadError(
+      `Enrich file does not contain valid draft components: ${filePath}`,
+    )
+  }
+  return parsed
+}
+```
+
+`readJsonFile` belongs in infra because it parses a file to `unknown`. `loadDraftComponentsFromFile` does not belong in infra because it gives that file the application meaning `Enrich file`, validates `DraftComponent[]`, and returns domain-shaped data. Renaming the latter to a generic-sounding role would not make the dependency valid; the layer rule must reject it under `infra`.
+
+The same boundary applies to package resolution. `resolveFileOrPackagePath` generically resolves a caller-supplied package-relative path. The repository's `loadExtendedModule` remains in data access because it:
+
+- chooses the application convention `src/default-extraction.config.json`;
+- recognises the supported extraction-config formats;
+- validates `ExtractionConfig` and `Module` values;
+- translates top-level rules into a partial `Module`;
+- recursively resolves and merges extended module rules.
+
+Do not move code to infra merely because some statements use the filesystem, paths, JSON, YAML, packages, or another technical API. The test is the concrete API and its imports. If extracted code imports or names `DraftComponent`, `Module`, `ExtractionConfig`, a use case, an aggregate, an entrypoint type, or a repository callback, it is not generic infrastructure and must remain in the application-owned layer. Infra APIs should expose only the external system's own concepts and language primitives, as `readJsonFile(...): unknown` and `resolveFileOrPackagePath(...): string` do above.
 
 The canonical example is `_platform` privacy:
 
