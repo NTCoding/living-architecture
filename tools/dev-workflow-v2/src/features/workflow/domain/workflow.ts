@@ -32,12 +32,10 @@ import {
   buildPullRequestCreationRequest,
   parsePullRequestDescriptionOptions,
 } from './pull-request-description'
-import type {
-  CreateWorkflowPullRequest,
-  ReadWorkflowGitStatus,
-  ReadWorkflowPullRequestFeedback,
-  WorkflowPullRequestFeedback,
-} from './ports/workflow-external-capabilities'
+import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
+import type { ReadWorkflowGitStatus } from './ports/read-git-status'
+import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
+import type { WorkflowPullRequestFeedback } from './pull-request-feedback'
 
 const PR_FEEDBACK_POLL_INTERVAL_MS = 15_000
 const PR_FEEDBACK_TIMEOUT_MS = 300_000

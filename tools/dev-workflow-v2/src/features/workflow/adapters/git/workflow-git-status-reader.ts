@@ -1,5 +1,5 @@
 import type { GitRepositoryStatus } from '../../../../platform/infra/external-clients/git/index'
-import type { ReadWorkflowGitStatus } from '../../domain/ports/workflow-external-capabilities'
+import type { ReadWorkflowGitStatus } from '../../domain/ports/read-git-status'
 
 /** @riviere-role domain-port-adapter */
 export function createWorkflowGitStatusReader(

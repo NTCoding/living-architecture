@@ -2,7 +2,7 @@ import type {
   GithubPullRequest,
   GithubPullRequestCreationInput,
 } from '../../../../platform/infra/external-clients/github/index'
-import type { CreateWorkflowPullRequest } from '../../domain/ports/workflow-external-capabilities'
+import type { CreateWorkflowPullRequest } from '../../domain/ports/create-pull-request'
 
 /** @riviere-role domain-port-adapter */
 export function createWorkflowPullRequestCreator(

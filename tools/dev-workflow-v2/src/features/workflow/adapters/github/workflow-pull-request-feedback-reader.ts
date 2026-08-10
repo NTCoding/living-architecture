@@ -1,5 +1,5 @@
 import type { GithubPullRequestFeedback } from '../../../../platform/infra/external-clients/github/index'
-import type { ReadWorkflowPullRequestFeedback } from '../../domain/ports/workflow-external-capabilities'
+import type { ReadWorkflowPullRequestFeedback } from '../../domain/ports/read-pull-request-feedback'
 
 /** @riviere-role domain-port-adapter */
 export function createWorkflowPullRequestFeedbackReader(
