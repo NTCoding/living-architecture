@@ -1,6 +1,6 @@
 import type { HttpMethod } from '@living-architecture/riviere-schema'
-import { CliErrorCode } from '../presentation/error-codes'
-import { formatError } from '../presentation/output'
+import { CliErrorCode } from '../../../../../platform/infra/cli/presentation/error-codes'
+import { formatError } from '../../../../../platform/infra/cli/presentation/output'
 import {
   isValidComponentType,
   isValidLinkType,
@@ -8,14 +8,14 @@ import {
   VALID_COMPONENT_TYPES,
   VALID_LINK_TYPES,
   VALID_SYSTEM_TYPES,
-} from './component-types'
+} from '../../../../../entrypoint/_platform/cli/component-types'
 
 interface ValidationResult {
   errorJson?: string
   valid: boolean
 }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function validateComponentType(componentType: string): ValidationResult {
   if (isValidComponentType(componentType)) return { valid: true }
   return {
@@ -28,7 +28,7 @@ export function validateComponentType(componentType: string): ValidationResult {
   }
 }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function validateLinkType(linkType: string | undefined): ValidationResult {
   if (linkType === undefined || isValidLinkType(linkType)) return { valid: true }
   return {
@@ -41,7 +41,7 @@ export function validateLinkType(linkType: string | undefined): ValidationResult
   }
 }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function validateSystemType(systemType: string): ValidationResult {
   if (isValidSystemType(systemType)) return { valid: true }
   return {
@@ -64,12 +64,12 @@ const VALID_HTTP_METHODS: readonly HttpMethod[] = [
   'OPTIONS',
 ]
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function isValidHttpMethod(value: string): value is HttpMethod {
   return VALID_HTTP_METHODS.some((m) => m === value.toUpperCase())
 }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function validateHttpMethod(method: string | undefined): ValidationResult {
   if (method === undefined || isValidHttpMethod(method)) return { valid: true }
   return {

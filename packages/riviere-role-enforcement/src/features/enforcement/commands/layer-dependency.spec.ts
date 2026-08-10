@@ -1,0 +1,167 @@
+import assert from 'node:assert/strict'
+import * as fs from 'node:fs'
+import path from 'node:path'
+import { it } from 'vitest'
+import * as enforcementBuilder from '../domain/role-enforcement-builder'
+import { RunRoleEnforcement } from './run-role-enforcement'
+import * as fixtureWorkspace from './test-fixture-workspace'
+
+const layerTestRoles = [
+  enforcementBuilder.role('technical-service', { targets: ['function'] }),
+] as const
+
+const layerTestConfig = enforcementBuilder.roleEnforcement({
+  packages: ['packages/pkg-a'],
+  canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
+  ignorePatterns: [],
+  layerRules: [
+    enforcementBuilder.layerRule('infra', {
+      matches: ['**/infra/**'],
+      mayImportLayers: ['infra'],
+    }),
+  ],
+  roleDefinitionsDir: '.riviere/role-definitions',
+  roles: layerTestRoles,
+  locations: [
+    enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>('src/platform/infra', [
+      'technical-service',
+    ]),
+  ],
+})
+
+const layerTestBootstrap = {
+  prefix: 'role-enforcement-layer-',
+  roles: layerTestRoles,
+  files: {
+    'packages/pkg-a/src/platform/infra/source.ts': `/** @riviere-role technical-service */
+export function source(): string {
+  return 'source'
+}
+`,
+  },
+}
+
+it('accepts imports within the infra layer', () => {
+  fixtureWorkspace.withWorkspaceFixture(layerTestBootstrap, (workspaceDir) => {
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-a/src/platform/infra/consumer.ts',
+      `import { source } from './source'
+
+/** @riviere-role technical-service */
+export function consume(): string {
+  return source()
+}
+`,
+    )
+
+    const result = runLayerEnforcement(workspaceDir)
+
+    assert.equal(result.exitCode, 0)
+    assert.equal(result.stderr, '')
+  })
+})
+
+it('accepts external library imports from infra', () => {
+  fixtureWorkspace.withWorkspaceFixture(layerTestBootstrap, (workspaceDir) => {
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-a/src/platform/infra/consumer.ts',
+      `import path from 'node:path'
+
+/** @riviere-role technical-service */
+export function consume(): string {
+  return path.basename('/tmp/example.txt')
+}
+`,
+    )
+
+    const result = runLayerEnforcement(workspaceDir)
+
+    assert.equal(result.exitCode, 0)
+    assert.equal(result.stderr, '')
+  })
+})
+
+it('rejects imports from infra to another internal layer', () => {
+  fixtureWorkspace.withWorkspaceFixture(layerTestBootstrap, (workspaceDir) => {
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-a/src/domain/domain-value.ts',
+      `export const domainValue = 'domain'
+`,
+    )
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-a/src/platform/infra/consumer.ts',
+      `import { domainValue } from '../../domain/domain-value'
+
+/** @riviere-role technical-service */
+export function consume(): string {
+  return domainValue
+}
+`,
+    )
+
+    const result = runLayerEnforcement(workspaceDir)
+
+    assert.equal(result.exitCode, 1)
+    assert.equal(result.stderr, '')
+    assert.match(result.stdout, /Forbidden layer import: 'infra' may only import layers \[infra\]/)
+    assert.match(result.stdout, /packages\/pkg-a\/src\/domain\/domain-value\.ts/)
+  })
+})
+
+it('rejects workspace package imports from infra when the target is not infra', () => {
+  fixtureWorkspace.withWorkspaceFixture(layerTestBootstrap, (workspaceDir) => {
+    const packageManifest = {
+      name: '@generic/pkg-domain',
+      exports: {
+        '.': { '@living-architecture/source': './src/index.ts' },
+        './package.json': './package.json',
+      },
+    }
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-domain/package.json',
+      JSON.stringify(packageManifest),
+    )
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-domain/src/index.ts',
+      `export const domainValue = 'domain'
+`,
+    )
+    fixtureWorkspace.writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-a/src/platform/infra/consumer.ts',
+      `import { domainValue } from '@generic/pkg-domain'
+
+/** @riviere-role technical-service */
+export function consume(): string {
+  return domainValue
+}
+`,
+    )
+    const packageScopeDir = path.join(workspaceDir, 'node_modules/@generic')
+    fs.mkdirSync(packageScopeDir, { recursive: true })
+    fs.symlinkSync(
+      path.join(workspaceDir, 'packages/pkg-domain'),
+      path.join(packageScopeDir, 'pkg-domain'),
+      'dir',
+    )
+
+    const result = runLayerEnforcement(workspaceDir)
+
+    assert.equal(result.exitCode, 1)
+    assert.equal(result.stderr, '')
+    assert.match(result.stdout, /packages\/pkg-domain\/src\/index\.ts/)
+  })
+})
+
+function runLayerEnforcement(workspaceDir: string) {
+  return new RunRoleEnforcement().execute({
+    configDir: workspaceDir,
+    configModule: { config: layerTestConfig },
+  })
+}

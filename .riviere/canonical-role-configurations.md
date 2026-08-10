@@ -10,7 +10,7 @@ These configurations show how roles compose together in standard patterns. When 
 raw CLI args
      │
      ▼
-[cli-input-validator]
+[entrypoint-cli-input-parser]
      │ validated args
      ▼
 [command-input-factory]
@@ -30,7 +30,7 @@ raw CLI args
 The [cli-entrypoint] orchestrates EVERYTHING. It is the only caller.
 
 ```text
-[cli-entrypoint] calls [cli-input-validator]     ← validates raw CLI args/options
+[cli-entrypoint] calls [entrypoint-cli-input-parser] ← parses raw CLI args/options
 [cli-entrypoint] calls [command-input-factory]   ← builds typed input from validated args
 [cli-entrypoint] calls [command-use-case]        ← executes with typed input
 [cli-entrypoint] calls [cli-output-formatter]    ← formats result or error
@@ -67,7 +67,7 @@ aggregate method
 raw CLI args
      │
      ▼
-[cli-input-validator]
+[entrypoint-cli-input-parser]
      │ validated args
      ▼
 [cli-entrypoint]

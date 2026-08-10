@@ -1,4 +1,4 @@
-import { location, roleEnforcement } from '@living-architecture/riviere-role-enforcement'
+import { layerRule, location, roleEnforcement } from '@living-architecture/riviere-role-enforcement'
 import { allRoles, type RoleName } from './roles'
 
 const commandRoles: RoleName[] = [
@@ -35,6 +35,7 @@ const entrypointRoles: RoleName[] = [
   'cli-error-handler',
   'cli-output-formatter',
   'command-input-factory',
+  'entrypoint-cli-input-parser',
 ]
 
 const cliPresentationRoles: RoleName[] = [
@@ -64,6 +65,12 @@ export const config = roleEnforcement({
     '**/test-fixtures.ts',
     '**/test-fixture-*.ts',
   ],
+  layerRules: [
+    layerRule('infra', {
+      matches: ['**/platform/infra/**'],
+      mayImportLayers: ['infra'],
+    }),
+  ],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: allRoles,
   workspacePackageSources: {
@@ -85,9 +92,11 @@ export const config = roleEnforcement({
     location<RoleName>('src/platform')
       .subLocation('/domain', domainRoles)
       .subLocation('/infra/external-clients/{client}', externalClientRoles)
-      .subLocation('/infra/cli/input', ['cli-input-validator'])
+      .subLocation('/infra/cli/input-parser', ['generic-cli-input-parser'])
       .subLocation('/infra/cli/presentation', cliPresentationRoles),
 
-    location<RoleName>('src/shell', ['main']),
+    location<RoleName>('src/entrypoint').subLocation('/_platform', entrypointRoles),
+
+    location<RoleName>('src/shell', ['main', 'cli-error-handler']),
   ],
 })

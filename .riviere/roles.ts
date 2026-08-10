@@ -6,7 +6,8 @@ type RoleName =
   | 'cli-entrypoint'
   | 'cli-error'
   | 'cli-error-handler'
-  | 'cli-input-validator'
+  | 'entrypoint-cli-input-parser'
+  | 'generic-cli-input-parser'
   | 'cli-output-formatter'
   | 'cli-response-formatter'
   | 'cli-response-writer'
@@ -117,7 +118,8 @@ export const allRoles = [
   }),
   role('external-client-model', { targets: ['interface', 'type-alias', 'class'] }),
   role('external-client-error', { targets: ['class'] }),
-  role('cli-input-validator', { targets: ['function'] }),
+  role('entrypoint-cli-input-parser', { targets: ['function'] }),
+  role('generic-cli-input-parser', { targets: ['function'] }),
   role('cli-error', { targets: ['class'] }),
   role('main', {
     targets: ['function'],

@@ -1,5 +1,5 @@
 import type { SystemType } from '@living-architecture/riviere-schema'
-import { isValidSystemType } from './component-types'
+import { isValidSystemType } from '../../../../entrypoint/_platform/cli/component-types'
 
 class InvalidDomainJsonError extends Error {
   readonly value: string
@@ -30,7 +30,7 @@ function isDomainInputParsed(value: unknown): value is DomainInputParsed {
   )
 }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function parseDomainJson(value: string, previous: DomainInputParsed[]): DomainInputParsed[] {
   const parsed: unknown = JSON.parse(value)
   if (!isDomainInputParsed(parsed)) throw new InvalidDomainJsonError(value)

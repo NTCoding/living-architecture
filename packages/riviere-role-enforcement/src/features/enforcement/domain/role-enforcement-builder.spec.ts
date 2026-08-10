@@ -2,8 +2,27 @@ import {
   describe, expect, it 
 } from 'vitest'
 import {
-  createRoleFactory, location, role, roleEnforcement 
+  createRoleFactory,
+  layerRule,
+  location,
+  role,
+  roleEnforcement,
 } from './role-enforcement-builder'
+
+describe('layerRule', () => {
+  it('defines allowed dependency directions for a layer', () => {
+    const result = layerRule('infra', {
+      matches: ['**/infra/**'],
+      mayImportLayers: ['infra'],
+    })
+
+    expect(result).toStrictEqual({
+      matches: ['**/infra/**'],
+      mayImportLayers: ['infra'],
+      name: 'infra',
+    })
+  })
+})
 
 describe('role', () => {
   it('produces a role definition with the given name and options', () => {

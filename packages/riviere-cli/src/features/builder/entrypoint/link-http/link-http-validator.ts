@@ -1,6 +1,8 @@
 import {
-  validateComponentType, validateHttpMethod, validateLinkType 
-} from './validation'
+  validateComponentType,
+  validateHttpMethod,
+  validateLinkType,
+} from '../_platform/cli/validation'
 
 interface LinkHttpOptions {
   linkType?: string
@@ -8,7 +10,7 @@ interface LinkHttpOptions {
   toType: string
 }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function validateOptions(options: LinkHttpOptions): string | undefined {
   const componentTypeValidation = validateComponentType(options.toType)
   if (!componentTypeValidation.valid) return componentTypeValidation.errorJson

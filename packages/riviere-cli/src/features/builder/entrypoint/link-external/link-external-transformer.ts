@@ -6,7 +6,7 @@ interface LinkExternalOptions {
   targetUrl?: string
 }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function buildExternalTarget(options: LinkExternalOptions): ExternalTarget {
   return {
     ...(options.targetDomain ? { domain: options.targetDomain } : {}),

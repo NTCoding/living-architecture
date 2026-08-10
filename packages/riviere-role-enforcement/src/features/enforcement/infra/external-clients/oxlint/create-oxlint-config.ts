@@ -5,6 +5,7 @@ interface OxlintRuleOptions {
   configDir: string
   configDisplayPath: string
   layers: RoleEnforcementResult['layers']
+  layerRules?: RoleEnforcementResult['layerRules']
   roleDefinitionsDir: string
   roles: RoleEnforcementResult['roles']
   workspacePackageSources?: Record<string, string>
@@ -42,6 +43,7 @@ export function createOxlintConfig(
           configDir,
           configDisplayPath,
           layers: config.layers,
+          ...(config.layerRules !== undefined && { layerRules: config.layerRules }),
           roleDefinitionsDir: config.roleDefinitionsDir,
           roles: config.roles,
           ...(config.workspacePackageSources !== undefined && {workspacePackageSources: config.workspacePackageSources,}),

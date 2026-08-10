@@ -7,9 +7,9 @@ import {
   validateSystemType,
   validateHttpMethod,
   isValidHttpMethod,
-} from '../input/validation'
-import { VALID_SYSTEM_TYPES } from '../input/component-types'
-import { CliErrorCode } from './error-codes'
+} from './validation'
+import { VALID_SYSTEM_TYPES } from '../../../../../entrypoint/_platform/cli/component-types'
+import { CliErrorCode } from '../../../../../platform/infra/cli/presentation/error-codes'
 
 function parseErrorJson(errorJson: string | undefined): unknown {
   expect(errorJson).toBeTruthy()

@@ -46,7 +46,7 @@ interface AddComponentCommandInput {
   description?: string
 }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function toAddComponentInput(options: AddComponentOptions): AddComponentCommandInput {
   return {
     ...withOptional('apiType', options.apiType),

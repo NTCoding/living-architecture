@@ -3,15 +3,15 @@ export default {
     {
       name: "root-structure",
       severity: "error",
-      comment: "src/ root must only contain structural folders (features/, platform/, shell/, domain/, queries/) and index.ts",
-      from: { path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/)[^/]+/src/(?!features/|platform/|shell/|domain/|queries/|main\\.tsx$|test/).+" },
+      comment: "src/ root must only contain structural folders (features/, entrypoint/, platform/, shell/, domain/, queries/) and index.ts",
+      from: { path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/)[^/]+/src/(?!features/|entrypoint/|platform/|shell/|domain/|queries/|main\\.tsx$|test/).+" },
       to: {}
     },
     {
       name: "platform-structure",
       severity: "error",
       comment: "platform/ contains only domain/ and infra/",
-      from: { path: "platform/(?!domain/|infra/)[^/]+/.+" },
+      from: { path: "src/platform/(?!domain/|infra/)[^/]+/.+" },
       to: {}
     },
     {
@@ -45,11 +45,11 @@ export default {
     {
       name: "entrypoint-restricted-deps",
       severity: "error",
-      comment: "Entrypoint may only import from own entrypoint/, commands/, queries/, components/, hooks/, platform/infra/",
+      comment: "Entrypoint may only import from own feature layers, shared entrypoint code, and platform/infra/",
       from: { path: "features/([^/]+)/entrypoint/.+" },
       to: {
-        path: "(features|platform|shell)/",
-        pathNot: "(features/$1/(entrypoint|commands|queries|components|hooks)/|platform/infra/)"
+        path: "src/(features|entrypoint|platform|shell)/",
+        pathNot: "(features/$1/(entrypoint|commands|queries|components|hooks)/|entrypoint/_platform/|platform/infra/)"
       }
     },
     {

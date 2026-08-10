@@ -4,9 +4,9 @@ import {
 } from '../../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
-import { collectOption } from '../../../../platform/infra/cli/input/option-collectors'
-import { parseStateChanges } from '../../../../platform/infra/cli/input/enrichment-parser'
-import { parseSignature } from '../../../../platform/infra/cli/input/signature-parser'
+import { collectOption } from '../_platform/cli/option-collectors'
+import { parseStateChanges } from './enrichment-parser'
+import { parseSignature } from './signature-parser'
 import type { EnrichComponent } from '../../commands/enrich-component'
 
 interface EnrichOptions {

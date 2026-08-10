@@ -23,7 +23,7 @@ import {
 } from '../../../../../platform/infra/cli/presentation/error-codes'
 import { detectChangedTypeScriptFiles } from '../../../../../platform/infra/external-clients/git/git-changed-files'
 import { getRepositoryInfo } from '../../../../../platform/infra/external-clients/git/git-repository-info'
-import { loadDraftComponentsFromFile } from '../../../../../platform/infra/external-clients/draft-components/draft-component-loader'
+import { loadDraftComponentsFromFile } from '../../external-clients/draft-components/draft-component-loader'
 import { ExtractionProject } from '../../../domain/extraction-project'
 import { loadExtendedModule } from '../../external-clients/extraction-config/load-extended-module'
 import { createConfiguredProject } from '../../external-clients/ts-morph/create-configured-project'

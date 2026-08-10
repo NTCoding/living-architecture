@@ -17,7 +17,7 @@ type LinkSourceLocationResult =
     message: string
   }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function parseLinkSourceLocation(
   options: LinkSourceLocationOptions,
 ): LinkSourceLocationResult {

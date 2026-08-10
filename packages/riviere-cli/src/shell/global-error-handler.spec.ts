@@ -2,18 +2,20 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { handleGlobalError } from './global-error-handler'
-import { GitError } from '../../external-clients/git/git-errors'
-import { DraftComponentLoadError } from '../../external-clients/draft-components/draft-component-loader'
+import { GitError } from '../platform/infra/external-clients/git/git-errors'
+import { DraftComponentLoadError } from '../features/extract/infra/external-clients/draft-components/draft-component-loader'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
 import {
-  CliErrorCode, ConfigValidationError, ExitCode 
-} from './error-codes'
+  CliErrorCode,
+  ConfigValidationError,
+  ExitCode,
+} from '../platform/infra/cli/presentation/error-codes'
 import {
   TestAssertionError,
   createTestContext,
   setupCommandTest,
-} from '../../../__fixtures__/command-test-fixtures'
-import type { TestContext } from '../../../__fixtures__/command-test-fixtures'
+} from '../platform/__fixtures__/command-test-fixtures'
+import type { TestContext } from '../platform/__fixtures__/command-test-fixtures'
 
 function firstConsoleOutput(consoleOutput: string[]): unknown {
   const first = consoleOutput[0]

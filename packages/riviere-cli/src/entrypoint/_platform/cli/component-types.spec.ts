@@ -12,7 +12,7 @@ import {
   VALID_LINK_TYPES,
   VALID_API_TYPES,
   VALID_SYSTEM_TYPES,
-} from '../input/component-types'
+} from './component-types'
 
 describe('component-types', () => {
   describe('VALID_COMPONENT_TYPES', () => {

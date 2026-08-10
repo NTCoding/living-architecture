@@ -70,6 +70,27 @@ export interface BuiltLocation {
   readonly subLocations: readonly SubLocationEntry[]
 }
 
+/** @riviere-role value-object */
+export interface BuiltLayerRule {
+  readonly matches: readonly string[]
+  readonly mayImportLayers: readonly string[]
+  readonly name: string
+}
+
+interface LayerRuleOptions {
+  readonly matches: readonly string[]
+  readonly mayImportLayers: readonly string[]
+}
+
+/** @riviere-role domain-service */
+export function layerRule(name: string, options: LayerRuleOptions): BuiltLayerRule {
+  return {
+    matches: options.matches,
+    mayImportLayers: options.mayImportLayers,
+    name,
+  }
+}
+
 interface SubLocationOptions {readonly forbiddenImports?: readonly string[]}
 
 /** @riviere-role value-object */
@@ -134,6 +155,7 @@ interface RoleEnforcementInput<R extends string> {
   readonly canonicalConfigurationsFile: string
   readonly ignorePatterns: readonly string[]
   readonly locations: readonly BuiltLocation[]
+  readonly layerRules?: readonly BuiltLayerRule[]
   readonly packages: readonly string[]
   readonly roleDefinitionsDir: string
   readonly roles: readonly BuiltRole<R>[]
@@ -151,6 +173,7 @@ export interface RoleEnforcementResult {
   readonly ignorePatterns: readonly string[]
   readonly include: readonly string[]
   readonly layers: Record<string, LayerEntry>
+  readonly layerRules?: readonly BuiltLayerRule[]
   readonly roleDefinitionsDir: string
   readonly roles: readonly BuiltRole[]
   readonly workspacePackageSources?: Record<string, string>
@@ -181,6 +204,7 @@ export function roleEnforcement<const R extends string>(
     ignorePatterns: input.ignorePatterns,
     include: input.packages.map((pkg) => `${pkg}/src/**/*.ts`),
     layers,
+    ...(input.layerRules !== undefined && { layerRules: input.layerRules }),
     roleDefinitionsDir: input.roleDefinitionsDir,
     roles: input.roles,
     ...(input.workspacePackageSources !== undefined && {workspacePackageSources: input.workspacePackageSources,}),

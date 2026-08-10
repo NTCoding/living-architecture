@@ -66,7 +66,7 @@ function buildSignatureObject(
   return signature
 }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function parseSignature(input: string): SignatureParseResult {
   const trimmed = input.trim()
   if (trimmed.startsWith('->')) {

@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { formatSuccess } from '../../../../platform/infra/cli/presentation/output'
 import { formatQueryGraphLoadFailure } from '../../../../platform/infra/cli/presentation/query-graph-load-failure-output'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
-import { toComponentOutput } from '../../../../platform/infra/cli/presentation/component-output'
+import { toComponentOutput } from '../_platform/cli/component-output'
 import type { SearchComponents } from '../../queries/search-components'
 
 interface SearchOptions {

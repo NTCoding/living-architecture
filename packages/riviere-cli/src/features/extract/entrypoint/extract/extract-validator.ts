@@ -1,6 +1,7 @@
 import {
-  CliErrorCode, ConfigValidationError 
-} from '../presentation/error-codes'
+  CliErrorCode,
+  ConfigValidationError,
+} from '../../../../platform/infra/cli/presentation/error-codes'
 
 interface ExtractOptions {
   allowIncomplete?: boolean
@@ -64,7 +65,7 @@ function validateFormatOption(options: ExtractOptions): void {
   }
 }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function validateFlagCombinations(options: ExtractOptions): void {
   validateMutualExclusions(options)
   if (options.base !== undefined && !options.pr) {

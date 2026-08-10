@@ -19,7 +19,7 @@ type ParseResult =
     success: false
   }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function parseStateChanges(inputs: string[]): ParseResult {
   const stateChanges: StateTransition[] = []
   for (const sc of inputs) {

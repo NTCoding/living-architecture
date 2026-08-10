@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { minimatch } from 'minimatch'
 
@@ -38,6 +39,7 @@ export default {
         const [options] = context.options
         const roleMap = new Map(options.roles.map((role) => [role.name, role]))
         const layerEntries = Object.entries(options.layers ?? {})
+        const layerRules = options.layerRules ?? []
         const sourceCode = context.sourceCode
         const fileCache = new Map()
         const importCache = new Map()
@@ -71,6 +73,7 @@ export default {
           },
           ImportDeclaration(node) {
             validateForbiddenImports(node)
+            validateLayerImport(node)
           },
           'Program:exit'() {
             validateForbiddenDependencies()
@@ -115,6 +118,47 @@ export default {
               }
             }
           }
+        }
+
+        function validateLayerImport(node) {
+          const sourceLayer = layerRules.find((rule) =>
+            rule.matches.some((pattern) => matchesExpandedPattern(relativeFilePath, pattern)),
+          )
+          if (sourceLayer === undefined) {
+            return
+          }
+
+          const importSource = node.source.value
+          if (typeof importSource !== 'string') {
+            return
+          }
+
+          const resolvedImport = resolveImportFile(filename, importSource)
+          if (resolvedImport === null || !isInsideDirectory(resolvedImport, options.configDir)) {
+            return
+          }
+
+          const resolvedImportRelative = normalizePath(
+            readRelativeFilePath(resolvedImport, options.configDir),
+          )
+          const targetLayers = layerRules
+            .filter((rule) =>
+              rule.matches.some((pattern) =>
+                matchesExpandedPattern(resolvedImportRelative, pattern),
+              ),
+            )
+            .map((rule) => rule.name)
+
+          if (targetLayers.some((targetLayer) => sourceLayer.mayImportLayers.includes(targetLayer))) {
+            return
+          }
+
+          const targetDescription =
+            targetLayers.length === 0 ? 'no allowed layer' : `[${targetLayers.join(', ')}]`
+          report(
+            node,
+            `Forbidden layer import: '${sourceLayer.name}' may only import layers [${sourceLayer.mayImportLayers.join(', ')}], but '${resolvedImportRelative}' belongs to ${targetDescription}.`,
+          )
         }
 
         function validateDeclaration(node, target) {
@@ -1063,6 +1107,46 @@ function resolveTypeFile(currentFile, importSource) {
       }
     }) ?? null
   )
+}
+
+function resolveImportFile(currentFile, importSource) {
+  if (importSource.startsWith('.')) {
+    return resolveTypeFile(currentFile, importSource)
+  }
+
+  return resolveWorkspacePackageSource(currentFile, importSource)
+}
+
+function resolveWorkspacePackageSource(currentFile, importSource) {
+  const packageName = readPackageName(importSource)
+  if (packageName === null) {
+    return null
+  }
+
+  try {
+    const packageJsonPath = createRequire(currentFile).resolve(`${packageName}/package.json`)
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+    const sourceEntry = packageJson.exports?.['.']?.['@living-architecture/source']
+    if (typeof sourceEntry !== 'string') {
+      return null
+    }
+    return resolveTypeFile(packageJsonPath, sourceEntry)
+  } catch {
+    return null
+  }
+}
+
+function readPackageName(importSource) {
+  const segments = importSource.split('/')
+  if (importSource.startsWith('@')) {
+    return segments.length >= 2 ? `${segments[0]}/${segments[1]}` : null
+  }
+  return segments[0] ?? null
+}
+
+function isInsideDirectory(filePath, directoryPath) {
+  const relativePath = path.relative(directoryPath, filePath)
+  return relativePath !== '' && !relativePath.startsWith('..') && !path.isAbsolute(relativePath)
 }
 
 function normalizePath(value) {

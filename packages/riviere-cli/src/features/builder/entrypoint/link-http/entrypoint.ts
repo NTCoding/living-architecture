@@ -7,9 +7,9 @@ import {
 import {
   isValidLinkType,
   normalizeComponentType,
-} from '../../../../platform/infra/cli/input/component-types'
-import { isValidHttpMethod } from '../../../../platform/infra/cli/input/validation'
-import { validateOptions } from '../../../../platform/infra/cli/input/link-http-validator'
+} from '../../../../entrypoint/_platform/cli/component-types'
+import { isValidHttpMethod } from '../_platform/cli/validation'
+import { validateOptions } from './link-http-validator'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import type { LinkHttp } from '../../commands/link-http'
 

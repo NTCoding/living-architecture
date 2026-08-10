@@ -46,7 +46,7 @@ type ParsePropertiesResult =
     success: false
   }
 
-/** @riviere-role cli-input-validator */
+/** @riviere-role entrypoint-cli-input-parser */
 export function parsePropertySpecs(specs: string[] | undefined): ParsePropertiesResult {
   if (specs === undefined || specs.length === 0)
     return {

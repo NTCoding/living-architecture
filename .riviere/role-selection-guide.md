@@ -23,7 +23,8 @@ If yes, it is:
 
 - `cli-entrypoint`, or
 - a component used by the `cli-entrypoint` to process the raw inputs, such as:
-  - `cli-input-validator`
+  - `entrypoint-cli-input-parser`
+  - `generic-cli-input-parser` when the parsing is primitive technical machinery with no entrypoint meaning
   - `command-input-factory`
 
 ## 2. Loading previously stored state

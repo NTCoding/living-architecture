@@ -5,7 +5,7 @@
 ## Sources of Truth
 
 - **Code placement and layer rules:** [`development-skills:separation-of-concerns`](https://github.com/NTCoding/claude-skillz/blob/main/separation-of-concerns/SKILL.md) skill
-- **Dependency enforcement:** `.dependency-cruiser.mjs`
+- **Dependency enforcement:** `.riviere/role-enforcement.config.ts` and `.dependency-cruiser.mjs`
 
 ## Standard Structure
 
@@ -23,6 +23,10 @@ features/
 │       ├── mappers/       ← persistence/external-client mapping, not entrypoint DTOs
 │       ├── middleware/    ← feature-specific middleware
 │       └── persistence/   ← repository implementations
+│
+entrypoint/
+└── _platform/             ← private entrypoint code shared across features
+│   └── cli/
 │
 platform/
 ├── domain/                ← shared business rules (depends on nothing)
@@ -44,6 +48,8 @@ All sub-folders within a feature are optional — include only what the feature 
 
 **entrypoint/** — Contains one folder per external entrypoint: `entrypoint/{entrypoint}/entrypoint.ts`. Opening `entrypoint/` should show the available entrypoints as folders. Entrypoint-specific DTOs, input mappers, and output mappers live under the relevant entrypoint folder. This layer translates between external and internal formats: it parses HTTP requests, CLI arguments, or queue messages into command/query inputs and maps results back to external responses. If you changed protocols (HTTP → CLI), you'd rewrite this layer but keep commands/ and domain/ unchanged. Entrypoints must not import `domain/` or persistence infrastructure directly.
 
+Package-level `entrypoint/_platform/` contains private entrypoint code shared across features. Feature-level `entrypoint/_platform/` contains private entrypoint code shared by entrypoints within one feature. Sharing changes scope, not layer.
+
 **commands/** — Orchestrates write operations. Loads data, invokes domain logic, persists the result. All business rules delegated to domain/. Each command has a dedicated input type — no sharing of input DTOs, no dependency on external input types.
 
 **queries/** — Reads and returns data without modifying anything. Can query the database directly or load domain objects for their state. No side effects, no state changes.
@@ -54,7 +60,7 @@ All sub-folders within a feature are optional — include only what the feature 
 
 **platform/domain/** — Shared business rules used across features. Depends on nothing.
 
-**platform/infra/** — Shared technical concerns used across features. HTTP clients, database wrappers, logging, config, messaging.
+**platform/infra/** — Shared generic technical concerns used across features. It may depend only on other `platform/infra/` code and external libraries. It must not import entrypoint, use-case, domain, or unclassified internal application code.
 
 For CLI code, platform CLI infrastructure owns shared response-envelope formatting and output side effects. Generic `formatSuccess`/`formatError` style functions are CLI response formatters. Writing to stdout, stderr, files, or exiting belongs to CLI response writers. CLI error handlers are only for uncaught CLI-boundary exceptions and must not handle regular command/query failure control flow.
 

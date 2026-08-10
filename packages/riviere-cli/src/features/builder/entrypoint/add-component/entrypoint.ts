@@ -5,7 +5,7 @@ import {
   formatError, formatSuccess 
 } from '../../../../platform/infra/cli/presentation/output'
 import { getAddComponentHints } from '../../../../platform/infra/cli/presentation/add-component-hints'
-import { toAddComponentInput } from '../../../../platform/infra/cli/input/add-component-options'
+import { toAddComponentInput } from './add-component-options'
 import type { AddComponent } from '../../commands/add-component'
 import type { AddComponentErrorCode } from '../../commands/add-component-result'
 

@@ -1,20 +1,15 @@
 import { Command } from 'commander'
 import { ComponentId } from '@living-architecture/riviere-builder'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
-import {
-  formatSuccess, formatError 
-} from '../../../../platform/infra/cli/presentation/output'
+import * as cliOutput from '../../../../platform/infra/cli/presentation/output'
 import {
   isValidLinkType,
   normalizeComponentType,
-} from '../../../../platform/infra/cli/input/component-types'
-import {
-  validateComponentType,
-  validateLinkType,
-} from '../../../../platform/infra/cli/input/validation'
+} from '../../../../entrypoint/_platform/cli/component-types'
+import * as linkOptionValidation from '../_platform/cli/validation'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import type { LinkComponents } from '../../commands/link-components'
-import { parseLinkSourceLocation } from '../../../../platform/infra/cli/input/link-source-location-options'
+import { parseLinkSourceLocation } from './link-source-location-options'
 
 interface LinkOptions {
   from: string
@@ -70,13 +65,13 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: LinkOptions) => {
-      const componentTypeValidation = validateComponentType(options.toType)
+      const componentTypeValidation = linkOptionValidation.validateComponentType(options.toType)
       if (!componentTypeValidation.valid) {
         console.log(componentTypeValidation.errorJson)
         return
       }
 
-      const linkTypeValidation = validateLinkType(options.linkType)
+      const linkTypeValidation = linkOptionValidation.validateLinkType(options.linkType)
       if (!linkTypeValidation.valid) {
         console.log(linkTypeValidation.errorJson)
         return
@@ -91,7 +86,7 @@ Examples:
       if (!sourceLocationResult.success) {
         console.log(
           JSON.stringify(
-            formatError(CliErrorCode.ValidationError, sourceLocationResult.message, []),
+            cliOutput.formatError(CliErrorCode.ValidationError, sourceLocationResult.message, []),
           ),
         )
         return
@@ -120,12 +115,14 @@ Examples:
         } as const
         const errorCode = errorCodeByResult[result.code]
 
-        console.log(JSON.stringify(formatError(errorCode, result.message, result.suggestions)))
+        console.log(
+          JSON.stringify(cliOutput.formatError(errorCode, result.message, result.suggestions)),
+        )
         return
       }
 
       if (options.json) {
-        console.log(JSON.stringify(formatSuccess({ link: result.link })))
+        console.log(JSON.stringify(cliOutput.formatSuccess({ link: result.link })))
       }
     })
 }

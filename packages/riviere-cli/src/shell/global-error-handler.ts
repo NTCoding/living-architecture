@@ -1,9 +1,11 @@
-import { formatError } from './output'
+import { formatError } from '../platform/infra/cli/presentation/output'
 import {
-  CliErrorCode, ExitCode, ConfigValidationError 
-} from './error-codes'
-import { GitError } from '../../external-clients/git/git-errors'
-import { DraftComponentLoadError } from '../../external-clients/draft-components/draft-component-loader'
+  CliErrorCode,
+  ExitCode,
+  ConfigValidationError,
+} from '../platform/infra/cli/presentation/error-codes'
+import { GitError } from '../platform/infra/external-clients/git/git-errors'
+import { DraftComponentLoadError } from '../features/extract/infra/external-clients/draft-components/draft-component-loader'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
 
 /** @riviere-role cli-error-handler */
