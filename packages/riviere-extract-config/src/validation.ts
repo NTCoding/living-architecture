@@ -205,12 +205,57 @@ function validateEventPublishers(
   })
 }
 
+function validateHttpLinks(
+  connections: ConnectionsConfig,
+  customTypeFields: Map<string, Set<string>>,
+): ValidationError[] {
+  if (connections.httpLinks === undefined) {
+    return []
+  }
+  return connections.httpLinks.flatMap((httpLink, index) => {
+    const extractedFields = customTypeFields.get(httpLink.fromCustomType)
+    if (extractedFields === undefined) {
+      return [
+        {
+          path: `/connections/httpLinks/${index}/fromCustomType`,
+          message:
+            `"${httpLink.fromCustomType}" is not defined as a customType in any module. ` +
+            `Add a customType named "${httpLink.fromCustomType}" to at least one module.`,
+        },
+      ]
+    }
+    const errors: ValidationError[] = []
+    if (!extractedFields.has(httpLink.matchDomainBy)) {
+      errors.push({
+        path: `/connections/httpLinks/${index}/matchDomainBy`,
+        message:
+          `customType "${httpLink.fromCustomType}" does not extract "${httpLink.matchDomainBy}". ` +
+          `Add extract["${httpLink.matchDomainBy}"] to that custom type.`,
+      })
+    }
+    for (const field of httpLink.matchApiBy) {
+      if (!extractedFields.has(field)) {
+        errors.push({
+          path: `/connections/httpLinks/${index}/matchApiBy`,
+          message:
+            `customType "${httpLink.fromCustomType}" does not extract "${field}". ` +
+            `Add extract["${field}"] to that custom type.`,
+        })
+      }
+    }
+    return errors
+  })
+}
+
 function validateConnectionsConfig(config: ExtractionConfig): ValidationError[] {
   if (config.connections === undefined) {
     return []
   }
   const customTypeFields = collectCustomTypeExtractedFields(config)
-  return validateEventPublishers(config.connections, customTypeFields)
+  return [
+    ...validateEventPublishers(config.connections, customTypeFields),
+    ...validateHttpLinks(config.connections, customTypeFields),
+  ]
 }
 
 /**

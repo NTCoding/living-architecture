@@ -1,5 +1,5 @@
 #!/bin/bash
-# archive-prd.sh - Move a PRD from active to archived and close milestone
+# archive-prd.sh - Mark a folder-based PRD complete and close milestone
 # Usage: ./scripts/archive-prd.sh <prd-name>
 
 set -euo pipefail
@@ -11,12 +11,17 @@ if [[ -z "$1" ]]; then
 fi
 
 PRD_NAME="$1"
-PRD_FILE="PRD-${PRD_NAME}.md"
-SOURCE="docs/project/PRD/active/${PRD_FILE}"
-DEST="docs/project/PRD/archived/${PRD_FILE}"
+PRD_FOLDER="docs/project/PRD/${PRD_NAME}"
+PRD_FILE="${PRD_FOLDER}/PRD.md"
+MARKER_FILE="${PRD_FOLDER}/marker.yml"
 
-if [[ ! -f "$SOURCE" ]]; then
-    echo "Error: PRD not found at $SOURCE" >&2
+if [[ ! -f "$PRD_FILE" ]]; then
+    echo "Error: PRD not found at $PRD_FILE" >&2
+    exit 1
+fi
+
+if [[ ! -f "$MARKER_FILE" ]]; then
+    echo "Error: marker not found at $MARKER_FILE" >&2
     exit 1
 fi
 
@@ -25,8 +30,9 @@ echo "Archiving PRD: $PRD_NAME"
 # Get repository from git remote
 REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
 
-# Move the file
-git mv "$SOURCE" "$DEST"
+# Mark the PRD complete
+sed -i.bak 's/^stage: .*/stage: planning-complete/' "$MARKER_FILE"
+rm -f "${MARKER_FILE}.bak"
 
 # Find and close the milestone
 MILESTONE_NUMBER=$(gh api "repos/${REPO}/milestones" --jq ".[] | select(.title == \"$PRD_NAME\") | .number")
@@ -40,7 +46,12 @@ else
     echo "Warning: Milestone '$PRD_NAME' not found"
 fi
 
-# Commit only the moved file
+# Set status to Archived
+sed -i.bak 's/^\*\*Status:\*\* .*/**Status:** Archived/' "$PRD_FILE"
+rm -f "${PRD_FILE}.bak"
+git add "$PRD_FILE" "$MARKER_FILE"
+
+# Commit the PRD and marker update
 git commit -m "chore: archive PRD $PRD_NAME"
 
 echo ""

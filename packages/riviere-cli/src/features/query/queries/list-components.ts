@@ -1,15 +1,19 @@
-import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repository'
+import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
 import type { ListComponentsInput } from './list-components-input'
 import type { ListComponentsResult } from './list-components-result'
+import { loadQueryGraph } from './query-graph-load-failure'
 
 /** @riviere-role query-model-use-case */
 export class ListComponents {
   constructor(private readonly repository: RiviereQueryRepository) {}
 
   execute(input: ListComponentsInput): ListComponentsResult {
-    const query = this.repository.load(input.graphPathOption)
+    const loaded = loadQueryGraph(this.repository, input.graphPathOption)
+    if (loaded.kind !== 'loaded') {
+      return loaded
+    }
 
-    const allComponents = query.components()
+    const allComponents = loaded.query.components()
     const filteredByDomain =
       input.domain === undefined
         ? allComponents

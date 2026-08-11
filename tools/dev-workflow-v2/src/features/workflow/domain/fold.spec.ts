@@ -209,15 +209,13 @@ describe('applyEvent — feedback-checked', () => {
 })
 
 describe('applyEvent — feedback-addressed', () => {
-  it('sets feedbackAddressed to true and stores addressedCount', () => {
+  it('sets feedbackAddressed to true', () => {
     const event: WorkflowEvent = {
       type: 'feedback-addressed',
       at: AT,
-      addressedCount: 3,
     }
     const result = applyEvent(EMPTY_STATE, event)
     expect(result.feedbackAddressed).toStrictEqual(true)
-    expect(result.feedbackAddressedCount).toStrictEqual(3)
   })
 })
 
@@ -229,18 +227,6 @@ describe('applyEvent — task-check-passed', () => {
     }
     const result = applyEvent(EMPTY_STATE, event)
     expect(result.taskCheckPassed).toStrictEqual(true)
-  })
-})
-
-describe('applyEvent — reflection-written', () => {
-  it('sets reflectionPath', () => {
-    const event: WorkflowEvent = {
-      type: 'reflection-written',
-      at: AT,
-      path: '/test-output/r.md',
-    }
-    const result = applyEvent(EMPTY_STATE, event)
-    expect(result.reflectionPath).toStrictEqual('/test-output/r.md')
   })
 })
 
@@ -328,26 +314,23 @@ describe('applyEvent — transitioned', () => {
 
   it('applies ADDRESSING_FEEDBACK stateOverrides resets', () => {
     const state = makeState({
-      currentStateMachineState: 'CHECKING_FEEDBACK',
+      currentStateMachineState: 'AWAITING_PR_FEEDBACK',
       feedbackAddressed: true,
       feedbackClean: true,
-      feedbackAddressedCount: 5,
     })
     const result = applyEvent(state, {
       type: 'transitioned',
       at: AT,
-      from: 'CHECKING_FEEDBACK',
+      from: 'AWAITING_PR_FEEDBACK',
       to: 'ADDRESSING_FEEDBACK',
       stateOverrides: {
         feedbackAddressed: false,
         feedbackClean: false,
-        feedbackAddressedCount: undefined,
       },
     })
     expect(result.currentStateMachineState).toStrictEqual('ADDRESSING_FEEDBACK')
     expect(result.feedbackAddressed).toStrictEqual(false)
     expect(result.feedbackClean).toStrictEqual(false)
-    expect(result.feedbackAddressedCount).toBeUndefined()
   })
 
   it('currentStateMachineState in stateOverrides does not override fold logic', () => {

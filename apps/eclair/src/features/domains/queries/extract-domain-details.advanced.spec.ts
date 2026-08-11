@@ -117,6 +117,8 @@ describe('extractDomainDetails - advanced tests', () => {
             source: 'order-evt',
             target: 'inv-handler',
             type: 'async',
+            relationshipType: 'publishes',
+            condition: 'reserved',
           }),
           createEdge({
             source: 'order-evt',
@@ -132,6 +134,8 @@ describe('extractDomainDetails - advanced tests', () => {
       expect(result?.crossDomainEdges).toContainEqual({
         targetDomain: 'inventory-domain',
         edgeType: 'async',
+        relationshipType: 'publishes',
+        condition: 'reserved',
       })
       expect(result?.crossDomainEdges).toContainEqual({
         targetDomain: 'shipping-domain',
@@ -420,6 +424,8 @@ describe('extractDomainDetails - advanced tests', () => {
         direction: 'outgoing',
         apiCount: 1,
         eventCount: 1,
+        relationshipCount: 2,
+        deliveryTypes: ['sync', 'async'],
       })
     })
 
@@ -467,6 +473,8 @@ describe('extractDomainDetails - advanced tests', () => {
         direction: 'incoming',
         apiCount: 1,
         eventCount: 0,
+        relationshipCount: 1,
+        deliveryTypes: ['sync'],
       })
     })
 

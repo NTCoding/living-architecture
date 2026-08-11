@@ -3,25 +3,20 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import type { Module } from '@living-architecture/riviere-extract-config'
-import {
-  ExtractionProject, type ModuleContext 
-} from './extraction-project'
+import { ExtractionProject } from './extraction-project'
 
 const {
   mockExtractComponents,
   mockEnrichComponents,
-  mockMatchesGlob,
   mockDeduplicateCrossStrategy,
   mockDetectCrossModule,
   mockDetectPerModule,
-  mockStripHttpCallComponents,
 } = vi.hoisted(() => ({
   mockExtractComponents: vi.fn().mockReturnValue([]),
   mockEnrichComponents: vi.fn().mockReturnValue({
     components: [],
     failures: [],
   }),
-  mockMatchesGlob: vi.fn(),
   mockDeduplicateCrossStrategy: vi.fn((links: { source: string }[]) => links),
   mockDetectPerModule: vi.fn().mockReturnValue({
     links: [
@@ -34,26 +29,22 @@ const {
     externalLinks: [],
     timings: {
       callGraphMs: 1,
-      configurableMs: 0,
       setupMs: 0,
     },
   }),
   mockDetectCrossModule: vi.fn().mockReturnValue({
     links: [],
-    externalLinks: [],
     timings: { asyncDetectionMs: 0 },
   }),
-  mockStripHttpCallComponents: vi.fn((components: unknown[]) => components),
 }))
 
 vi.mock('@living-architecture/riviere-extract-ts', () => ({
   extractComponents: mockExtractComponents,
   enrichComponents: mockEnrichComponents,
-  matchesGlob: mockMatchesGlob,
   detectPerModuleConnections: mockDetectPerModule,
   detectCrossModuleConnections: mockDetectCrossModule,
   deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
-  stripHttpCallComponents: mockStripHttpCallComponents,
+  stripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
 }))
 
 function createModule(name: string): Module {
@@ -70,7 +61,7 @@ function createModule(name: string): Module {
   }
 }
 
-function createModuleContext(moduleName: string): ModuleContext {
+function createModuleContext(moduleName: string) {
   return {
     files: [`/src/${moduleName}/test.ts`],
     module: createModule(moduleName),
@@ -123,12 +114,11 @@ describe('ExtractionProject.extractDraftComponents', () => {
       externalLinks: [],
       timings: {
         callGraphMs: 1,
-        configurableMs: 0,
         setupMs: 0,
       },
     })
 
-    const project = new ExtractionProject('/config', [ctx], { modules: [] }, 'test-repo')
+    const project = new ExtractionProject([ctx], { modules: [] }, 'test-repo')
     const result = project.extractDraftComponents({
       allowIncomplete: true,
       includeConnections: true,
@@ -139,13 +129,30 @@ describe('ExtractionProject.extractDraftComponents', () => {
 
   it('returns no links when includeConnections is false', () => {
     const ctx = createModuleContext('orders')
+    mockExtractComponents.mockReturnValue([
+      {
+        name: 'OrderService',
+        domain: 'orders',
+        type: 'useCase',
+        location: {
+          file: 'test.ts',
+          line: 1,
+        },
+      },
+    ])
 
-    const project = new ExtractionProject('/config', [ctx], { modules: [] }, 'test-repo')
+    const project = new ExtractionProject([ctx], { modules: [] }, 'test-repo')
     const result = project.extractDraftComponents({
       allowIncomplete: true,
       includeConnections: false,
     })
 
     expect(result.kind).toBe('draftOnly')
+    expect(result.components).toStrictEqual([
+      expect.objectContaining({
+        type: 'useCase',
+        name: 'OrderService',
+      }),
+    ])
   })
 })

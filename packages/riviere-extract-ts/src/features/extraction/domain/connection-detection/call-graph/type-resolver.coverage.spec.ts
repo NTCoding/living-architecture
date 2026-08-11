@@ -28,7 +28,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: 'Call expression has no property access receiver',
     })
@@ -68,7 +68,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('any'),
     })
@@ -96,7 +96,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'ChainResult2',
     })
@@ -116,7 +116,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('any'),
     })
@@ -134,7 +134,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('any'),
     })
@@ -155,7 +155,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('any'),
     })
@@ -176,7 +176,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('any'),
     })
@@ -204,7 +204,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'NoAnnotResult',
     })
@@ -234,7 +234,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('any'),
     })
@@ -255,7 +255,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('any'),
     })
@@ -283,7 +283,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'GenericResult',
     })
@@ -307,7 +307,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'BareResult',
     })
@@ -327,7 +327,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'string',
     })
@@ -352,7 +352,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('any'),
     })
@@ -380,7 +380,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: false,
       reason: expect.stringContaining('any'),
     })
@@ -407,7 +407,7 @@ describe('resolveCallExpressionReceiverType coverage', () => {
 
     const result = resolveCallExpressionReceiverType(callExpr, sourceFile, { strict: false })
 
-    expect(result).toStrictEqual({
+    expect(result).toMatchObject({
       resolved: true,
       typeName: 'InterfaceChainResult',
     })

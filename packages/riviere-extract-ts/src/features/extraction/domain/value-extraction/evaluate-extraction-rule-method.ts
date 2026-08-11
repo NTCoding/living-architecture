@@ -8,30 +8,16 @@ import type {
 } from 'ts-morph'
 import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
 import { ExtractionError } from '../../../../platform/domain/ast-literals/literal-detection'
-
-/** @riviere-role value-object */
-export type ParameterInfo = {
-  name: string
-  type: string
-}
-
-/** @riviere-role value-object */
-export type MethodSignature = {
-  parameters: ParameterInfo[]
-  returnType: string
-}
-
-type MethodExtractionValue = string | ParameterInfo[] | MethodSignature
-
-/** @riviere-role value-object */
-export type MethodExtractionResult = { value: MethodExtractionValue }
+import {
+  MethodExtractionResult, MethodSignature, ParameterInfo 
+} from './method-extraction-result'
 
 function extractParameterInfo(param: ParameterDeclaration): ParameterInfo {
   const typeNode = param.getTypeNode()
-  return {
+  return new ParameterInfo({
     name: param.getName(),
     type: typeNode?.getText() ?? 'unknown',
-  }
+  })
 }
 
 /** @riviere-role domain-service */
@@ -42,12 +28,12 @@ export function evaluateFromMethodSignatureRule(
   const parameters = methodDecl.getParameters().map(extractParameterInfo)
   const returnTypeNode = methodDecl.getReturnTypeNode()
 
-  return {
-    value: {
+  return new MethodExtractionResult({
+    value: new MethodSignature({
       parameters,
       returnType: returnTypeNode?.getText() ?? 'unknown',
-    },
-  }
+    }),
+  })
 }
 
 /** @riviere-role domain-service */
@@ -57,11 +43,11 @@ export function evaluateFromConstructorParamsRule(
 ): MethodExtractionResult {
   const ctor = classDecl.getConstructors()[0]
   if (ctor === undefined) {
-    return { value: [] }
+    return new MethodExtractionResult({ value: [] })
   }
 
   const parameters = ctor.getParameters().map(extractParameterInfo)
-  return { value: parameters }
+  return new MethodExtractionResult({ value: parameters })
 }
 
 /** @riviere-role domain-service */
@@ -87,8 +73,8 @@ export function evaluateFromParameterTypeRule(
   const typeName = typeNode?.getText() ?? 'unknown'
 
   if (transform === undefined) {
-    return { value: typeName }
+    return new MethodExtractionResult({ value: typeName })
   }
 
-  return { value: applyTransforms(typeName, transform) }
+  return new MethodExtractionResult({ value: applyTransforms(typeName, transform) })
 }

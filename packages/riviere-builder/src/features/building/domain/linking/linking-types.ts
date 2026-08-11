@@ -7,6 +7,9 @@ export interface LinkInput {
   from: string
   to: string
   type?: LinkType
+  relationshipType?: string
+  condition?: string
+  sourceLocation?: SourceLocation
 }
 
 /** @riviere-role value-object */

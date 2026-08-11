@@ -83,3 +83,55 @@ export function configWithGenericApprovedAggregates(approvedNames: string[]) {
     })),
   })
 }
+
+export function configWithGenericRequiredPrivateMembers(requiredPrivateMembers: string[]) {
+  return configWithGenericAggregateOverride({
+    targets: ['class'],
+    minPublicMethods: 1,
+    requiredPrivateMembers,
+  })
+}
+
+export function configWithGenericClassStateConstraints() {
+  return configWithGenericAggregateOverride({
+    targets: ['class'],
+    requiredPrivateMembers: ['brand'],
+    requiresDataMembers: true,
+    forbiddenCallableMembers: true,
+  })
+}
+
+export function configWithGenericRepositoryMethodInputs(allowedInputs: string[]) {
+  return roleEnforcement({
+    packages: ['packages/pkg-a'],
+    canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
+    ignorePatterns: ['**/*.spec.ts'],
+    roleDefinitionsDir: '.riviere/role-definitions',
+    roles: [
+      ...genericTestRoles.filter((r) => r.name !== 'role-b-repository'),
+      role('role-b-repository', {
+        targets: ['class'],
+        allowedInputs,
+        allowedOutputs: ['role-b'],
+      }),
+    ],
+    locations: genericTestLocations,
+  })
+}
+
+export function configWithGenericRepositoryMethodInputsOnly(allowedInputs: string[]) {
+  return roleEnforcement({
+    packages: ['packages/pkg-a'],
+    canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
+    ignorePatterns: ['**/*.spec.ts'],
+    roleDefinitionsDir: '.riviere/role-definitions',
+    roles: [
+      ...genericTestRoles.filter((r) => r.name !== 'role-b-repository'),
+      role('role-b-repository', {
+        targets: ['class'],
+        allowedInputs,
+      }),
+    ],
+    locations: genericTestLocations,
+  })
+}

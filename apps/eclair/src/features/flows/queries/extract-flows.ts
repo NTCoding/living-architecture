@@ -6,14 +6,15 @@ import {
 import type {
   Component,
   ExternalLink,
+  Link,
   RiviereGraph,
   SourceLocation,
 } from '@living-architecture/riviere-schema'
-import type { NodeType } from '@/platform/domain/eclair-types'
+import { getEffectiveNodeType } from '@/platform/domain/node-type-presentation'
 
 export interface EntryPoint {
   id: string
-  type: NodeType
+  type: string
   name: string
   domain: string
   module?: string
@@ -24,7 +25,7 @@ export interface EntryPoint {
 
 export interface FlowStepNode {
   id: string
-  type: NodeType
+  type: string
   name: string
   module: string
   domain: string
@@ -33,7 +34,9 @@ export interface FlowStepNode {
 
 export interface FlowStep {
   node: FlowStepNode
-  edgeType: 'sync' | 'async' | null
+  outgoingLinks?: Link[]
+  /** Compatibility for callers constructing legacy view fixtures. */
+  edgeType?: 'sync' | 'async' | null
   depth: number
   externalLinks: ExternalLink[]
 }
@@ -46,7 +49,7 @@ export interface Flow {
 function componentToFlowStepNode(component: Component): FlowStepNode {
   const node: FlowStepNode = {
     id: component.id,
-    type: component.type,
+    type: getEffectiveNodeType(component),
     name: component.name,
     module: component.module,
     domain: component.domain,
@@ -61,11 +64,9 @@ function componentToFlowStepNode(component: Component): FlowStepNode {
 
 function adaptFlowStep(queryStep: QueryFlowStep): FlowStep {
   const component = queryStep.component
-  const linkType = queryStep.linkType
-
   return {
     node: componentToFlowStepNode(component),
-    edgeType: linkType ?? null,
+    outgoingLinks: queryStep.outgoingLinks,
     depth: queryStep.depth,
     externalLinks: queryStep.externalLinks,
   }
@@ -76,7 +77,7 @@ function adaptFlow(queryFlow: QueryFlow): Flow {
 
   const entryPoint: EntryPoint = {
     id: component.id,
-    type: component.type,
+    type: getEffectiveNodeType(component),
     name: component.name,
     domain: component.domain,
     module: component.module,

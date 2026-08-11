@@ -415,7 +415,7 @@
         },
         "systemType": {
           "type": "string",
-          "enum": ["domain", "bff", "ui", "other"],
+          "enum": ["domain", "bff", "ui", "external-service", "other"],
           "description": "Classification of domain's role in system"
         }
       },

@@ -2,6 +2,7 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { detectCrossModuleConnections } from './detect-connections'
+import { CrossModuleConnectionOptions } from './connection-detection-values'
 import { buildComponent } from './call-graph/call-graph-fixtures'
 import { ConnectionDetectionError } from './connection-detection-error'
 
@@ -11,6 +12,20 @@ const publisherConfig = [
     metadataKey: 'publishedEventType',
   },
 ]
+
+function createOptions(params: {
+  allowIncomplete?: boolean
+  eventPublishers?: {
+    fromType: string
+    metadataKey: string
+  }[]
+}): CrossModuleConnectionOptions {
+  return new CrossModuleConnectionOptions({
+    repository: 'test-repo',
+    ...(params.allowIncomplete !== undefined && { allowIncomplete: params.allowIncomplete }),
+    ...(params.eventPublishers !== undefined && { eventPublishers: params.eventPublishers }),
+  })
+}
 
 describe('detectCrossModuleConnections', () => {
   it('resolves cross-module subscribe links', () => {
@@ -25,12 +40,12 @@ describe('detectCrossModuleConnections', () => {
       metadata: { subscribedEvents: ['ShipmentDispatched'] },
     })
 
-    const result = detectCrossModuleConnections([event, handler], { repository: 'test-repo' })
+    const result = detectCrossModuleConnections([event, handler], createOptions({}))
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'shipping:event:ShipmentDispatched',
-        target: 'orders:eventHandler:handle',
+        source: 'shipping:orders-module:event:shipmentdispatched',
+        target: 'orders:orders-module:eventHandler:handle',
         type: 'async',
       }),
     ])
@@ -48,15 +63,15 @@ describe('detectCrossModuleConnections', () => {
       metadata: { eventName: 'OrderPlaced' },
     })
 
-    const result = detectCrossModuleConnections([publisher, event], {
-      repository: 'test-repo',
-      eventPublishers: publisherConfig,
-    })
+    const result = detectCrossModuleConnections(
+      [publisher, event],
+      createOptions({ eventPublishers: publisherConfig }),
+    )
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:eventSender:OrderPublisher',
-        target: 'shipping:event:OrderPlacedEvent',
+        source: 'orders:orders-module:eventSender:orderpublisher',
+        target: 'shipping:orders-module:event:orderplacedevent',
         type: 'async',
       }),
     ])
@@ -74,19 +89,19 @@ describe('detectCrossModuleConnections', () => {
       metadata: { eventName: 'OrderPlaced' },
     })
 
-    const result = detectCrossModuleConnections([publisher, event], { repository: 'test-repo' })
+    const result = detectCrossModuleConnections([publisher, event], createOptions({}))
 
     expect(result.links).toStrictEqual([])
   })
 
   it('returns empty links for empty components array', () => {
-    const result = detectCrossModuleConnections([], { repository: 'test-repo' })
+    const result = detectCrossModuleConnections([], createOptions({}))
 
     expect(result.links).toStrictEqual([])
   })
 
   it('returns non-negative asyncDetectionMs timing', () => {
-    const result = detectCrossModuleConnections([], { repository: 'test-repo' })
+    const result = detectCrossModuleConnections([], createOptions({}))
 
     expect(result.timings.asyncDetectionMs).toBeGreaterThanOrEqual(0)
   })
@@ -98,10 +113,10 @@ describe('detectCrossModuleConnections', () => {
     })
 
     expect(() =>
-      detectCrossModuleConnections([publisher], {
-        repository: 'test-repo',
-        eventPublishers: publisherConfig,
-      }),
+      detectCrossModuleConnections(
+        [publisher],
+        createOptions({ eventPublishers: publisherConfig }),
+      ),
     ).toThrow(ConnectionDetectionError)
   })
 
@@ -111,15 +126,17 @@ describe('detectCrossModuleConnections', () => {
       metadata: {},
     })
 
-    const result = detectCrossModuleConnections([publisher], {
-      allowIncomplete: true,
-      repository: 'test-repo',
-      eventPublishers: publisherConfig,
-    })
+    const result = detectCrossModuleConnections(
+      [publisher],
+      createOptions({
+        allowIncomplete: true,
+        eventPublishers: publisherConfig,
+      }),
+    )
 
     expect(result.links).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:eventSender:BadPublisher',
+        source: 'orders:orders-module:eventSender:badpublisher',
         target: '_unresolved',
         _uncertain: expect.stringContaining('missing required "publishedEventType" metadata'),
       }),
@@ -132,7 +149,7 @@ describe('detectCrossModuleConnections', () => {
       metadata: { subscribedEvents: ['NonExistentEvent'] },
     })
 
-    expect(() => detectCrossModuleConnections([handler], { repository: 'test-repo' })).toThrow(
+    expect(() => detectCrossModuleConnections([handler], createOptions({}))).toThrow(
       ConnectionDetectionError,
     )
   })

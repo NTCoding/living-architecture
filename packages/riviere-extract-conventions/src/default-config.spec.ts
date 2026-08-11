@@ -75,6 +75,7 @@ describe('Default extraction config', () => {
 
     const requiredKeys = [
       'name',
+      'domain',
       'path',
       'glob',
       'api',
@@ -87,7 +88,7 @@ describe('Default extraction config', () => {
     ]
     const moduleKeys = Object.keys(module)
     expect(moduleKeys).toStrictEqual(expect.arrayContaining(requiredKeys))
-    expect(moduleKeys).toHaveLength(10)
+    expect(moduleKeys).toHaveLength(11)
     expect(module.customTypes).toHaveProperty('eventPublisher')
     expect(module.customTypes).toHaveProperty('httpCall')
   })
@@ -128,6 +129,12 @@ describe('Default extraction config', () => {
           fromDecoratorArg: {
             decorator: 'HttpCall',
             position: 0,
+          },
+        },
+        method: {
+          fromDecoratorArg: {
+            decorator: 'HttpCall',
+            position: 1,
           },
         },
       },
@@ -207,6 +214,27 @@ describe('Default extraction config', () => {
   })
 
   describe('Extraction rules', () => {
+    it('api extracts apiType, route, and method from instance properties', () => {
+      const config = loadDefaultConfig()
+      const module = getFirstModule(config)
+
+      assertExtractionConfig(module.api, {
+        apiType: { literal: 'REST' },
+        route: {
+          fromProperty: {
+            name: 'route',
+            kind: 'instance',
+          },
+        },
+        method: {
+          fromProperty: {
+            name: 'method',
+            kind: 'instance',
+          },
+        },
+      })
+    })
+
     it('eventHandler extracts subscribedEvents from instance property', () => {
       const config = loadDefaultConfig()
       const module = getFirstModule(config)

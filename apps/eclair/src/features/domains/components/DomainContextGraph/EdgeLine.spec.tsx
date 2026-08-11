@@ -29,12 +29,35 @@ describe('EdgeLine', () => {
           toRadius={30}
           testId="test-edge"
           direction="outgoing"
+          relationshipCount={2}
+          isBidirectional={false}
         />
       </svg>,
     )
 
     const group = container.querySelector('[data-testid="test-edge"]')
     expect(group).toBeInTheDocument()
+  })
+
+  it('uses semantic relationship types as the primary label', () => {
+    const { getByText } = render(
+      <svg>
+        <EdgeLine
+          from={from}
+          to={to}
+          fromRadius={30}
+          toRadius={30}
+          testId="semantic-edge"
+          direction="outgoing"
+          relationshipCount={2}
+          relationshipTypes={['reads', 'writes']}
+          deliveryTypes={['sync', 'async']}
+          isBidirectional={false}
+        />
+      </svg>,
+    )
+
+    expect(getByText('reads, writes · sync/async')).toBeInTheDocument()
   })
 
   it('returns empty group when positions are identical', () => {
@@ -54,6 +77,8 @@ describe('EdgeLine', () => {
           toRadius={30}
           testId="same-edge"
           direction="outgoing"
+          relationshipCount={1}
+          isBidirectional={false}
         />
       </svg>,
     )
@@ -73,11 +98,49 @@ describe('EdgeLine', () => {
           toRadius={30}
           testId="directed-edge"
           direction="incoming"
+          relationshipCount={1}
+          isBidirectional={false}
         />
       </svg>,
     )
 
     const group = container.querySelector('[data-direction="incoming"]')
     expect(group).toBeInTheDocument()
+  })
+
+  it('separates the paths and labels for opposite relationship directions', () => {
+    const { container } = render(
+      <svg>
+        <EdgeLine
+          from={from}
+          to={to}
+          fromRadius={40}
+          toRadius={30}
+          testId="outgoing-edge"
+          direction="outgoing"
+          relationshipCount={2}
+          isBidirectional
+        />
+        <EdgeLine
+          from={to}
+          to={from}
+          fromRadius={30}
+          toRadius={40}
+          testId="incoming-edge"
+          direction="incoming"
+          relationshipCount={1}
+          isBidirectional
+        />
+      </svg>,
+    )
+
+    const outgoingLine = container.querySelector('[data-testid="outgoing-edge"] line')
+    const incomingLine = container.querySelector('[data-testid="incoming-edge"] line')
+    const outgoingLabel = container.querySelector('[data-testid="outgoing-edge"] text')
+    const incomingLabel = container.querySelector('[data-testid="incoming-edge"] text')
+
+    expect(outgoingLine?.getAttribute('x1')).not.toBe(incomingLine?.getAttribute('x2'))
+    expect(outgoingLabel?.getAttribute('x')).not.toBe(incomingLabel?.getAttribute('x'))
+    expect(outgoingLabel?.getAttribute('y')).not.toBe(incomingLabel?.getAttribute('y'))
   })
 })

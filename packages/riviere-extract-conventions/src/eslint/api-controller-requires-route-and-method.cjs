@@ -1,5 +1,5 @@
 const {
-  implementsInterface,
+  hasDecorator,
   findInstanceProperty,
   hasStringLiteralValue,
   getLiteralValue,
@@ -11,11 +11,11 @@ const VALID_HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 module.exports = {
   meta: {
     type: 'problem',
-    docs: { description: 'Require APIControllerDef implementations to have route and method with literal values' },
+    docs: { description: 'Require @APIContainer classes to have route and method with literal values' },
     schema: [],
     messages: {
-      missingRoute: "Class '{{className}}' implements APIControllerDef but is missing 'route' property",
-      missingMethod: "Class '{{className}}' implements APIControllerDef but is missing 'method' property",
+      missingRoute: "Class '{{className}}' decorated with @APIContainer but is missing 'route' property",
+      missingMethod: "Class '{{className}}' decorated with @APIContainer but is missing 'method' property",
       routeNotLiteral: "Class '{{className}}' has 'route' property but value must be a string literal, not {{actualType}}",
       methodNotLiteral: "Class '{{className}}' has 'method' property but value must be a string literal, not {{actualType}}",
       invalidHttpMethod: "Class '{{className}}' has invalid HTTP method '{{value}}'. Must be one of: GET, POST, PUT, PATCH, DELETE",
@@ -26,7 +26,7 @@ module.exports = {
       ClassDeclaration(node) {
         /* v8 ignore next -- ClassDeclaration always has id (name) */
         if (!node.id) return
-        if (!implementsInterface(node, 'APIControllerDef')) return
+        if (!hasDecorator(node, 'APIContainer')) return
 
         const className = node.id.name
         const routeProperty = findInstanceProperty(node, 'route')

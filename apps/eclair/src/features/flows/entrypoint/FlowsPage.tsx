@@ -4,12 +4,27 @@ import { compareByCodePoint } from '../queries/compare-by-code-point'
 import { extractFlows } from '../queries/extract-flows'
 import { FlowCard } from '../components/FlowCard/FlowCard'
 import {
-  useFlowsState, type FlowFilter 
+  type FlowTypeFilter,
+  useFlowsState,
 } from '../hooks/useFlowsState'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
-interface FlowsPageProps {readonly graph: RiviereGraph}
+function isActiveFilter(activeFilter: FlowTypeFilter, candidateFilter: FlowTypeFilter): boolean {
+  if (activeFilter.kind === 'all') return candidateFilter.kind === 'all'
 
-export function FlowsPage({ graph }: Readonly<FlowsPageProps>): React.ReactElement {
+  return candidateFilter.kind === 'type' && activeFilter.value === candidateFilter.value
+}
+
+interface FlowsPageProps {
+  readonly graph: RiviereGraph
+  readonly theme?: Theme
+}
+
+export function FlowsPage({
+  graph,
+  theme = DEFAULT_THEME,
+}: Readonly<FlowsPageProps>): React.ReactElement {
   const {
     searchQuery,
     setSearchQuery,
@@ -34,9 +49,7 @@ export function FlowsPage({ graph }: Readonly<FlowsPageProps>): React.ReactEleme
 
       if (!matchesSearch) return false
 
-      if (activeFilter === 'ui' && flow.entryPoint.type !== 'UI') return false
-      if (activeFilter === 'api' && flow.entryPoint.type !== 'API') return false
-      if (activeFilter === 'jobs' && flow.entryPoint.type !== 'Custom') return false
+      if (activeFilter.kind === 'type' && flow.entryPoint.type !== activeFilter.value) return false
 
       if (activeDomains.size > 0 && !activeDomains.has(flow.entryPoint.domain)) return false
 
@@ -44,30 +57,32 @@ export function FlowsPage({ graph }: Readonly<FlowsPageProps>): React.ReactEleme
     })
   }, [flows, searchQuery, activeFilter, activeDomains])
 
-  const uiCount = flows.filter((f) => f.entryPoint.type === 'UI').length
-  const apiCount = flows.filter((f) => f.entryPoint.type === 'API').length
-  const jobsCount = flows.filter((f) => f.entryPoint.type === 'Custom').length
+  const typeCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const flow of flows) {
+      counts.set(flow.entryPoint.type, (counts.get(flow.entryPoint.type) ?? 0) + 1)
+    }
+    return [...counts.entries()].sort(([left], [right]) => left.localeCompare(right))
+  }, [flows])
 
   const filters: Array<{
-    key: FlowFilter
+    key: string
     label: string
+    filter: FlowTypeFilter
   }> = [
     {
-      key: 'all',
+      key: 'filter:all',
       label: 'All',
+      filter: { kind: 'all' },
     },
-    {
-      key: 'ui',
-      label: 'UI',
-    },
-    {
-      key: 'api',
-      label: 'API',
-    },
-    {
-      key: 'jobs',
-      label: 'Jobs',
-    },
+    ...typeCounts.map(([type]) => ({
+      key: `type:${type}`,
+      label: type,
+      filter: {
+        kind: 'type' as const,
+        value: type,
+      },
+    })),
   ]
 
   return (
@@ -87,33 +102,17 @@ export function FlowsPage({ graph }: Readonly<FlowsPageProps>): React.ReactEleme
             </div>
           </div>
         </div>
-        <div className="stats-bar-item">
-          <i className="ph ph-browser stats-bar-icon" aria-hidden="true" />
-          <div className="stats-bar-content">
-            <div className="stats-bar-label">UI Entries</div>
-            <div data-testid="stat-ui-entries" className="stats-bar-value">
-              {uiCount}
+        {typeCounts.map(([type, count]) => (
+          <div key={type} className="stats-bar-item">
+            <i className="ph ph-cube stats-bar-icon" aria-hidden="true" />
+            <div className="stats-bar-content">
+              <div className="stats-bar-label">{type} entries</div>
+              <div data-testid={`stat-${type}`} className="stats-bar-value">
+                {count}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="stats-bar-item">
-          <i className="ph ph-plug stats-bar-icon" aria-hidden="true" />
-          <div className="stats-bar-content">
-            <div className="stats-bar-label">API Entries</div>
-            <div data-testid="stat-api-entries" className="stats-bar-value">
-              {apiCount}
-            </div>
-          </div>
-        </div>
-        <div className="stats-bar-item">
-          <i className="ph ph-clock stats-bar-icon" aria-hidden="true" />
-          <div className="stats-bar-content">
-            <div className="stats-bar-label">Scheduled Jobs</div>
-            <div data-testid="stat-scheduled-jobs" className="stats-bar-value">
-              {jobsCount}
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       <div className="filters-section">
@@ -134,8 +133,8 @@ export function FlowsPage({ graph }: Readonly<FlowsPageProps>): React.ReactEleme
             <button
               key={filter.key}
               type="button"
-              className={`filter-tag ${activeFilter === filter.key ? 'active' : ''}`}
-              onClick={() => setActiveFilter(filter.key)}
+              className={`filter-tag ${isActiveFilter(activeFilter, filter.filter) ? 'active' : ''}`}
+              onClick={() => setActiveFilter(filter.filter)}
             >
               {filter.label}
             </button>
@@ -169,6 +168,7 @@ export function FlowsPage({ graph }: Readonly<FlowsPageProps>): React.ReactEleme
             graph={graph}
             expanded={expandedFlowIds.has(flow.entryPoint.id)}
             onToggle={() => toggleFlow(flow.entryPoint.id)}
+            theme={theme}
           />
         ))}
       </section>

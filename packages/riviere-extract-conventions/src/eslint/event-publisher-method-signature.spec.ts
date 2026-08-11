@@ -51,8 +51,8 @@ const notTypeReferenceError = (methodName: string, className: string) => ({
   },
 })
 
-const notEventDefError = (methodName: string, className: string, typeName: string) => ({
-  messageId: 'notEventDef' as const,
+const invalidEventTypeError = (methodName: string, className: string, typeName: string) => ({
+  messageId: 'invalidEventType' as const,
   data: {
     methodName,
     className,
@@ -78,9 +78,10 @@ describe('event-publisher-method-signature', () => {
     valid: [
       // --- Core valid cases ---
       {
-        name: 'passes when public method has one typed parameter',
+        name: 'passes when @EventPublisherContainer class public method has one typed parameter',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrderPlaced(event: OrderPlacedEvent): void {}
           }
         `,
@@ -88,7 +89,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'passes with multiple methods each having one typed parameter',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrderPlaced(event: OrderPlacedEvent): void {}
             publishOrderCancelled(event: OrderCancelledEvent): void {}
           }
@@ -97,7 +99,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'passes with explicit public accessibility',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             public publishOrderPlaced(event: OrderPlacedEvent): void {}
           }
         `,
@@ -107,7 +110,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'passes when constructor has no parameters (constructors are exempt)',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             constructor() {}
             publishOrderPlaced(event: OrderPlacedEvent): void {}
           }
@@ -116,7 +120,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'passes when constructor has multiple parameters (constructors are exempt)',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             constructor(private bus: EventBus, private logger: Logger) {}
             publishOrderPlaced(event: OrderPlacedEvent): void {}
           }
@@ -125,7 +130,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'passes when class only has a constructor (no methods to check)',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             constructor(private bus: EventBus) {}
           }
         `,
@@ -135,7 +141,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'passes when class has getter (getters are not methods)',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             get eventCount(): number { return 0 }
             publishOrderPlaced(event: OrderPlacedEvent): void {}
           }
@@ -144,16 +151,17 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'passes when class has setter (setters are not methods)',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             set eventCount(value: number) {}
             publishOrderPlaced(event: OrderPlacedEvent): void {}
           }
         `,
       },
 
-      // --- Non-EventPublisherDef classes (no false positives) ---
+      // --- Non-EventPublisherContainer classes (no false positives) ---
       {
-        name: 'ignores classes not implementing EventPublisherDef',
+        name: 'ignores classes without @EventPublisherContainer decorator',
         code: `
           class SomeService {
             doSomething(): void {}
@@ -161,29 +169,11 @@ describe('event-publisher-method-signature', () => {
         `,
       },
       {
-        name: 'ignores classes implementing a different interface',
+        name: 'ignores classes with a different decorator',
         code: `
-          class OrderHandler implements EventHandlerDef {
-            readonly subscribedEvents = ['OrderPlaced']
+          @EventHandlerContainer
+          class OrderHandler {
             handle(): void {}
-          }
-        `,
-      },
-      {
-        name: 'ignores classes implementing qualified non-EventPublisherDef interface',
-        code: `
-          class SomeClass implements Domain.OtherDef {
-            doSomething(): void {}
-          }
-        `,
-      },
-
-      // --- Multiple interfaces ---
-      {
-        name: 'passes when class implements multiple interfaces including EventPublisherDef',
-        code: `
-          class OrderPublisher implements Serializable, EventPublisherDef {
-            publishOrderPlaced(event: OrderPlacedEvent): void {}
           }
         `,
       },
@@ -193,7 +183,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'reports error when method has zero parameters',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrderPlaced(): void {}
           }
         `,
@@ -204,7 +195,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'reports error when method has two parameters',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrderPlaced(event: OrderPlacedEvent, correlationId: string): void {}
           }
         `,
@@ -213,7 +205,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'reports error when method has three parameters',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrderPlaced(event: OrderPlacedEvent, correlationId: string, timestamp: Date): void {}
           }
         `,
@@ -224,7 +217,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'reports error when parameter has no type annotation',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrderPlaced(event): void {}
           }
         `,
@@ -235,7 +229,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'reports error when parameter type is a primitive (string)',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrderPlaced(event: string): void {}
           }
         `,
@@ -244,7 +239,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'reports error when parameter type is a primitive (number)',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrderPlaced(event: number): void {}
           }
         `,
@@ -253,7 +249,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'reports error when parameter type is a union type',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrderPlaced(event: string | number): void {}
           }
         `,
@@ -264,7 +261,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'reports error for private method',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             private publishOrderPlaced(event: OrderPlacedEvent): void {}
           }
         `,
@@ -273,7 +271,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'reports error for protected method',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             protected publishOrderPlaced(event: OrderPlacedEvent): void {}
           }
         `,
@@ -284,7 +283,8 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'reports multiple errors for multiple invalid methods',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrderPlaced(): void {}
             publishOrderCancelled(event: OrderCancelledEvent, extra: string): void {}
           }
@@ -299,22 +299,12 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'reports error for private method even with valid parameter signature',
         code: `
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             private internalPublish(event: OrderPlacedEvent): void {}
           }
         `,
         errors: [nonPublicMethodError('internalPublish', 'OrderPublisher', 'private')],
-      },
-
-      // --- Multiple interfaces including EventPublisherDef with invalid method ---
-      {
-        name: 'reports error when implementing multiple interfaces including EventPublisherDef',
-        code: `
-          class OrderPublisher implements Serializable, EventPublisherDef {
-            publishOrderPlaced(): void {}
-          }
-        `,
-        errors: [missingParameterError('publishOrderPlaced', 'OrderPublisher')],
       },
     ],
   })
@@ -328,12 +318,11 @@ describe('event-publisher-method-signature', () => {
   typedRuleTester.run('event-publisher-method-signature (typed)', rule, {
     valid: [
       {
-        name: 'passes when parameter type implements EventDef (has readonly type: string)',
+        name: 'passes when parameter type has readonly type: string',
         code: `
-          interface EventDef { readonly type: string }
-          interface OrderPlacedEvent extends EventDef { readonly type: 'OrderPlaced' }
-          interface EventPublisherDef {}
-          class OrderPublisher implements EventPublisherDef {
+          interface OrderPlacedEvent { readonly type: 'OrderPlaced' }
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrder(event: OrderPlacedEvent): void {}
           }
         `,
@@ -341,10 +330,9 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'passes when parameter type has type: string (non-readonly, structural compatibility)',
         code: `
-          interface EventDef { readonly type: string }
           interface OrderPlacedEvent { type: string }
-          interface EventPublisherDef {}
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrder(event: OrderPlacedEvent): void {}
           }
         `,
@@ -352,10 +340,9 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'passes when parameter type has string literal type property',
         code: `
-          interface EventDef { readonly type: string }
           interface OrderPlacedEvent { readonly type: 'OrderPlaced' }
-          interface EventPublisherDef {}
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrder(event: OrderPlacedEvent): void {}
           }
         `,
@@ -365,35 +352,35 @@ describe('event-publisher-method-signature', () => {
       {
         name: 'reports error when parameter type does not have type property',
         code: `
-          interface EventPublisherDef {}
           interface SomeRandomClass { name: string }
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrder(event: SomeRandomClass): void {}
           }
         `,
-        errors: [notEventDefError('publishOrder', 'OrderPublisher', 'SomeRandomClass')],
+        errors: [invalidEventTypeError('publishOrder', 'OrderPublisher', 'SomeRandomClass')],
       },
       {
         name: 'reports error when parameter type has type property but it is number not string',
         code: `
-          interface EventPublisherDef {}
           interface BadEvent { type: number }
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrder(event: BadEvent): void {}
           }
         `,
-        errors: [notEventDefError('publishOrder', 'OrderPublisher', 'BadEvent')],
+        errors: [invalidEventTypeError('publishOrder', 'OrderPublisher', 'BadEvent')],
       },
       {
-        name: 'reports error when qualified type name does not implement EventDef',
+        name: 'reports error when qualified type name does not have type: string property',
         code: `
-          interface EventPublisherDef {}
           declare namespace Domain { interface NotAnEvent { name: string } }
-          class OrderPublisher implements EventPublisherDef {
+          @EventPublisherContainer
+          class OrderPublisher {
             publishOrder(event: Domain.NotAnEvent): void {}
           }
         `,
-        errors: [notEventDefError('publishOrder', 'OrderPublisher', 'NotAnEvent')],
+        errors: [invalidEventTypeError('publishOrder', 'OrderPublisher', 'NotAnEvent')],
       },
     ],
   })

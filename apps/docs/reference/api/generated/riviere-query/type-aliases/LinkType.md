@@ -6,7 +6,7 @@ pageClass: reference
 
 > **LinkType** = `"sync"` \| `"async"`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:216](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L216)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:222](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L222)
 
 Type of link between components.
 

@@ -1,9 +1,14 @@
 {
   "name": "@living-architecture/riviere-role-enforcement",
-  "version": "0.1.7",
+  "version": "0.3.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NTCoding/living-architecture.git",
+    "directory": "packages/riviere-role-enforcement"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",

@@ -10,7 +10,7 @@ import {
 } from '../../../platform/domain/add-component-input-factory'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
-import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 import type { AddComponentInput } from './add-component-input'
 import type {
   AddComponentErrorCode, AddComponentResult 
@@ -37,9 +37,16 @@ export class AddComponent {
 
     if (
       input.lineNumber !== undefined &&
-      (!Number.isInteger(input.lineNumber) || input.lineNumber < 1)
+      (!Number.isSafeInteger(input.lineNumber) || input.lineNumber < 1)
     ) {
       return failure('VALIDATION_ERROR', 'Invalid line number: must be a positive integer')
+    }
+
+    if (
+      input.columnNumber !== undefined &&
+      (!Number.isSafeInteger(input.columnNumber) || input.columnNumber < 1)
+    ) {
+      return failure('VALIDATION_ERROR', 'Invalid column number: must be a positive integer')
     }
 
     try {

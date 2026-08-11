@@ -1,19 +1,3 @@
-function implementsInterface(node, interfaceName) {
-  if (!node.implements || node.implements.length === 0) {
-    return false
-  }
-  return node.implements.some((impl) => {
-    if (impl.expression && impl.expression.type === 'Identifier') {
-      return impl.expression.name === interfaceName
-    }
-    /* v8 ignore next 4 -- TSQualifiedName branch requires qualified module syntax (SomeModule.Interface) which no current rule uses; keeping for completeness since the ESLint AST spec allows it */
-    if (impl.expression && impl.expression.type === 'TSQualifiedName') {
-      return impl.expression.right.name === interfaceName
-    }
-    return false
-  })
-}
-
 function hasDecorator(node, decoratorName) {
   if (!node.decorators || node.decorators.length === 0) {
     return false
@@ -90,7 +74,6 @@ function getValueTypeDescription(property) {
 }
 
 module.exports = {
-  implementsInterface,
   hasDecorator,
   findInstanceProperty,
   hasStringLiteralValue,

@@ -2,14 +2,14 @@ import { z } from 'zod'
 import type {
   WorkflowStateDefinition,
   WorkflowRegistry,
-} from '@ntcoding/agentic-workflow-builder/dsl'
+} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
 export const STATE_NAMES = [
   'IMPLEMENTING',
   'REVIEWING',
   'SUBMITTING_PR',
   'AWAITING_CI',
-  'CHECKING_FEEDBACK',
+  'AWAITING_PR_FEEDBACK',
   'ADDRESSING_FEEDBACK',
   'REFLECTING',
   'COMPLETE',
@@ -20,6 +20,18 @@ export const STATE_NAMES = [
 export type StateName = (typeof STATE_NAMES)[number]
 
 export const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
+
+const LIVING_ARCHITECTURE_REVIEW_TYPES = [
+  'architecture-review',
+  'code-review',
+  'bug-scanner',
+  'task-check',
+] as const
+
+export const LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA = z.enum(LIVING_ARCHITECTURE_REVIEW_TYPES)
+
+/** @riviere-role value-object */
+export type LivingArchitectureReviewType = (typeof LIVING_ARCHITECTURE_REVIEW_TYPES)[number]
 
 /** @riviere-role domain-service */
 export function createWorkflowStateSchema<T extends readonly [string, ...string[]]>(stateNames: T) {
@@ -38,8 +50,7 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
     feedbackClean: z.boolean(),
     feedbackAddressed: z.boolean(),
     feedbackUnresolvedCount: z.number().optional(),
-    feedbackAddressedCount: z.number().optional(),
-    reflectionPath: z.string().optional(),
+    prFeedbackVerificationFailedReason: z.string().optional(),
     preBlockedState: z.string().optional(),
     transcriptPath: z.string().optional(),
   })
@@ -62,8 +73,7 @@ export type WorkflowState = {
   feedbackClean: boolean
   feedbackAddressed: boolean
   feedbackUnresolvedCount?: number | undefined
-  feedbackAddressedCount?: number | undefined
-  reflectionPath?: string | undefined
+  prFeedbackVerificationFailedReason?: string | undefined
   preBlockedState?: string | undefined
   transcriptPath?: string | undefined
 }
@@ -72,27 +82,19 @@ export type WorkflowState = {
 export type WorkflowOperation =
   | 'record-issue'
   | 'record-branch'
-  | 'record-architecture-review-passed'
-  | 'record-architecture-review-failed'
-  | 'record-code-review-passed'
-  | 'record-code-review-failed'
-  | 'record-bug-scanner-passed'
-  | 'record-bug-scanner-failed'
-  | 'record-task-check-passed'
+  | 'record-review'
   | 'record-pr'
   | 'record-ci-passed'
   | 'record-ci-failed'
-  | 'record-feedback-clean'
-  | 'record-feedback-exists'
-  | 'record-feedback-addressed'
-  | 'record-reflection'
+  | 'create-pr'
+  | 'verify-feedback-addressed'
 
 /** @riviere-role value-object */
 export type ConcreteStateDefinition = WorkflowStateDefinition<
   WorkflowState,
   StateName,
   WorkflowOperation
->
+> & { allowIdle?: boolean }
 
 /** @riviere-role value-object */
 export type ConcreteRegistry = WorkflowRegistry<WorkflowState, StateName, WorkflowOperation>

@@ -1,6 +1,6 @@
 # dev-workflow-v2
 
-An event-sourced state machine plugin for Claude Code that enforces a structured task lifecycle: implement, verify, review, submit PR, await CI, check feedback, reflect, complete.
+An event-sourced state machine plugin for Claude Code that enforces a structured task lifecycle: planning, implementation, verification, review, submit PR, await CI, await PR feedback, reflect, complete.
 
 ## How to Start
 
@@ -14,15 +14,102 @@ Claude Code creates the worktree. The plugin owns everything from task selection
 
 ## Commands
 
-### 1. Choose a task
+### Planning lifecycle
+
+```bash
+/dev-workflow-v2:start-planning <topic>
+```
+
+Creates the planning folder, marker, and problem definition file for a new planning topic.
+
+```bash
+/dev-workflow-v2:planning-status
+```
+
+Prints the active planning marker, current stage, derived artifact paths, blockers, and next command.
+
+#### Planning marker
+
+Planning topics use one folder per product planning topic at `docs/project/PRD/<slug>/`.
+
+Derive `<slug>` from the planning topic by lowercasing it, replacing non-alphanumeric characters with hyphens, collapsing repeated hyphens, and trimming leading and trailing hyphens.
+
+Each PRD folder stores all related planning files:
+
+- marker: `docs/project/PRD/<slug>/marker.yml`
+- problem definition: `docs/project/PRD/<slug>/problem-definition.md`
+- solution exploration: `docs/project/PRD/<slug>/solution-exploration.md`
+- PRD: `docs/project/PRD/<slug>/PRD.md`
+- architecture: `docs/project/PRD/<slug>/ARCH.md`
+- dogfooding: `docs/project/PRD/<slug>/dogfooding.md`
+- delivery plan: `docs/project/PRD/<slug>/delivery.md`
+
+The workflow selects the active planning marker from `docs/project/PRD/*/marker.yml`, where active means `stage != planning-complete`.
+
+If there is exactly one active marker, `planning-status` and `continue-planning` use it.
+
+If there is no active marker, `planning-status` and `continue-planning` stop, and `start-planning` can create the first one.
+
+If there is more than one active marker, the planning commands stop and report all of them.
+
+The marker stores only:
+
+- `planningId`
+- `stage`
+- `githubMilestone`
+- `githubIssuesCreated`
+- `githubIssueNumbers`
+
+Artifact paths are derived from `planningId`.
+
+#### Planning stages
+
+1. problem definition
+2. solution exploration
+3. PRD drafting as a product decision record
+4. PRD approval
+5. architecture drafting
+6. architecture approval
+7. dogfooding
+8. delivery planning
+9. task creation on GitHub
+10. planning complete
+
+The PRD is intentionally not where discovery happens. It records the product decision once `problem-definition.md` and `solution-exploration.md` are approved.
+
+Solution exploration includes market/comparable/open-source research where relevant and a required review of Marty Cagan's four big product risks: value, usability, feasibility, and business viability.
+
+Architecture remains after PRD approval, but architecture may return the workflow to `solution-exploration` or `prd-drafting` if feasibility invalidates product assumptions.
+
+Dogfooding owns exact dogfooding deliverables before delivery planning. Delivery planning owns milestones, deliverables, dependencies, parallelisation, and task creation readiness.
+
+#### Project memory
+
+Planning commands use `project-memory/` as the persistent cross-PRD planning memory layer.
+
+Project memory stores deferred ideas, future-work candidates, confirmed priorities, dependencies, and links to relevant research or implementation evidence.
+
+Project memory also includes `project-memory/architecture/`, which stores approved reusable architectural reasoning for planning. Architecture memories use frontmatter for retrieval and human-readable body text for nuance. They are advisory, not automatic rules; when applicability is unclear, `continue-planning` must clarify with the user before relying on them.
+
+When `continue-planning` identifies work that is out of scope for the current PRD, it triages whether the work is explicitly not needed, probably needed later, definitely needed later, or uncertain. Work that is probably or definitely needed later is captured under `project-memory/ideas/` rather than being lost inside the current PRD.
+
+Completed work is not manually duplicated into project memory. Future planning should retrieve completed-work context from PRDs, git history, GitHub issues, GitHub PRs, and linked evidence.
+
+```bash
+/dev-workflow-v2:continue-planning
+```
+
+Checks the current planning stage once and advances only when the current artifact passes its checks.
+
+### Planning to implementation bridge
 
 ```bash
 /dev-workflow-v2:choose-next-task
 ```
 
-Analyzes parallel work streams across active PRDs, recommends a task from an idle track, and assigns the issue after confirmation.
+Analyzes parallel work streams across approved delivery plans, including completed planning folders with open GitHub issues, recommends a task from a ready track, and assigns the issue after confirmation.
 
-### 2. Start implementation
+### Start implementation
 
 ```bash
 /dev-workflow-v2:start-implementation <issue-number>
@@ -30,37 +117,41 @@ Analyzes parallel work streams across active PRDs, recommends a task from an idl
 
 Renames the worktree branch to match the issue, reads the issue details, initializes the workflow state machine, and begins the IMPLEMENTING state.
 
-### 3. Code review
+### Reusable workflow actions
 
 ```bash
 /dev-workflow-v2:code-review
 ```
 
-Runs the reusable automated review bundle for the current branch and writes reports under `reviews/<branch-name>/`.
-
-### 4. List review threads
+Runs the required workflow review bundle and records each valid verdict.
 
 ```bash
 /dev-workflow-v2:list-review-threads
 ```
 
-Lists unresolved review threads for the current PR in a structured, human-friendly format.
-
-### 5. Create PR
+Lists unresolved review threads for the pull request recorded in workflow state.
 
 ```bash
 /dev-workflow-v2:create-pr
 ```
 
-Pushes the current branch and creates a PR using the repo's standard title/body structure.
+Pushes the recorded feature branch, then delegates standard PR creation and recording to the workflow.
 
-### 6. Workflow (internal)
+### Workflow (internal)
 
 ```bash
 /dev-workflow-v2:workflow <command>
 ```
 
 Low-level state machine CLI. Used by the other commands and state instructions — not called directly by users.
+
+Useful internal command for state-driven instructions:
+
+```bash
+/dev-workflow-v2:workflow get-state
+```
+
+This returns the current workflow state as JSON so state instructions can extract exact values such as `githubIssue`, `prNumber`, and `taskCheckPassed` without guessing.
 
 ## State Machine
 
@@ -71,10 +162,10 @@ stateDiagram-v2
     REVIEWING --> SUBMITTING_PR : all reviews passed
     REVIEWING --> IMPLEMENTING : review failed
     SUBMITTING_PR --> AWAITING_CI
-    AWAITING_CI --> CHECKING_FEEDBACK : CI passed
+    AWAITING_CI --> AWAITING_PR_FEEDBACK : CI passed
     AWAITING_CI --> IMPLEMENTING : CI failed
-    CHECKING_FEEDBACK --> REFLECTING : no feedback
-    CHECKING_FEEDBACK --> ADDRESSING_FEEDBACK : feedback exists
+    AWAITING_PR_FEEDBACK --> REFLECTING : no feedback
+    AWAITING_PR_FEEDBACK --> ADDRESSING_FEEDBACK : feedback exists
     ADDRESSING_FEEDBACK --> REVIEWING
     REFLECTING --> COMPLETE
     COMPLETE --> [*]
@@ -83,7 +174,7 @@ stateDiagram-v2
     REVIEWING --> BLOCKED
     SUBMITTING_PR --> BLOCKED
     AWAITING_CI --> BLOCKED
-    CHECKING_FEEDBACK --> BLOCKED
+    AWAITING_PR_FEEDBACK --> BLOCKED
     ADDRESSING_FEEDBACK --> BLOCKED
     REFLECTING --> BLOCKED
     BLOCKED --> IMPLEMENTING : returns to pre-blocked state
@@ -101,8 +192,8 @@ Most of the workflow is automated. You interact at these points:
 
 ## Troubleshooting
 
-| Problem | Where to look |
-|---------|---------------|
-| Workflow state seems wrong | Event store: `~/.claude/workflow-events.db` |
+| Problem                       | Where to look                                          |
+| ----------------------------- | ------------------------------------------------------ |
+| Workflow state seems wrong    | Event store: `~/.claude/workflow-events.db`            |
 | Hook errors / silent failures | Error log: `~/.claude/dev-workflow-v2-hook-errors.log` |
-| Stale NX cache | Run `pnpm nx reset` |
+| Stale NX cache                | Run `pnpm nx reset`                                    |

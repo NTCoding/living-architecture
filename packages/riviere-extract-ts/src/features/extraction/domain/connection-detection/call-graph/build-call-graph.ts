@@ -6,13 +6,13 @@ import {
   type Project,
   SyntaxKind,
 } from 'ts-morph'
-import type { EnrichedComponent } from '../../value-extraction/enrich-components'
+import type { EnrichedComponent } from '../../value-extraction/enriched-component'
 import type { ComponentIndex } from '../component-index'
 import type { ExtractedLink } from '../extracted-link'
-import type {
+import {
   CallGraphOptions, CallSite, RawLink, UncertainRawLink 
 } from './call-graph-types'
-import { componentIdentity } from './call-graph-types'
+import { componentIdentity } from './component-identity'
 import {
   findClassInProject,
   findFunctionInProject,
@@ -45,37 +45,45 @@ function processCallExpression(
   const sourceFile = callExpr.getSourceFile()
   const typeResult = resolveCallExpressionReceiverType(callExpr, sourceFile, {strict: options.strict,})
 
-  const currentCallSite: CallSite = {
+  const currentCallSite = new CallSite({
     filePath: component.location.file,
     lineNumber: callExpr.getStartLineNumber(),
     methodName,
-  }
+  })
 
   if (!typeResult.resolved) {
-    uncertainLinks.push({
-      source: component,
-      reason: typeResult.reason,
-      callSite: currentCallSite,
-    })
+    uncertainLinks.push(
+      new UncertainRawLink({
+        source: component,
+        reason: typeResult.reason ?? 'Receiver type unresolved',
+        callSite: currentCallSite,
+      }),
+    )
     return
   }
 
-  const typeName = typeResult.typeName
+  const typeName = requireResolvedTypeName(typeResult)
   const calledMethodName = getCalledMethodName(callExpr)
 
-  const {
-    component: targetComponent,
-    resolvedTypeName,
-    uncertain,
-  } = resolveTypeThroughInterface(typeName, project, componentIndex, options)
+  const interfaceResolution = resolveTypeThroughInterface(
+    typeName,
+    project,
+    componentIndex,
+    options,
+  )
+  const targetComponent = interfaceResolution.component
+  const resolvedTypeName = interfaceResolution.resolvedTypeName
+  const uncertain = interfaceResolution.uncertain
 
   if (targetComponent !== undefined) {
     if (componentIdentity(component) !== componentIdentity(targetComponent)) {
-      rawLinks.push({
-        source: component,
-        target: targetComponent,
-        callSite: currentCallSite,
-      })
+      rawLinks.push(
+        new RawLink({
+          source: component,
+          target: targetComponent,
+          callSite: currentCallSite,
+        }),
+      )
     }
     return
   }
@@ -88,11 +96,13 @@ function processCallExpression(
   )
   if (containerTarget !== undefined) {
     if (componentIdentity(component) !== componentIdentity(containerTarget)) {
-      rawLinks.push({
-        source: component,
-        target: containerTarget,
-        callSite: currentCallSite,
-      })
+      rawLinks.push(
+        new RawLink({
+          source: component,
+          target: containerTarget,
+          callSite: currentCallSite,
+        }),
+      )
     }
     return
   }
@@ -109,6 +119,17 @@ function processCallExpression(
     uncertain,
     options,
   )
+}
+
+function requireResolvedTypeName(
+  typeResolution: ReturnType<typeof resolveCallExpressionReceiverType>,
+): string {
+  const typeName = typeResolution.typeName
+  if (typeName === undefined) {
+    throw new TypeError('Expected resolved type name')
+  }
+
+  return typeName
 }
 
 function processFunction(
@@ -248,10 +269,12 @@ function traceNonComponent(
   }
 
   if (!classFound && interfaceUncertainty !== undefined) {
-    uncertainLinks.push({
-      source,
-      reason: interfaceUncertainty,
-      callSite,
-    })
+    uncertainLinks.push(
+      new UncertainRawLink({
+        source,
+        reason: interfaceUncertainty,
+        callSite,
+      }),
+    )
   }
 }

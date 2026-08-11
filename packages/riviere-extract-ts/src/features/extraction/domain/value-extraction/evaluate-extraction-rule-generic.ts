@@ -3,8 +3,7 @@ import type { ClassDeclaration } from 'ts-morph'
 import { SyntaxKind } from 'ts-morph'
 import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
 import { ExtractionError } from '../../../../platform/domain/ast-literals/literal-detection'
-
-type GenericExtractionResult = { value: string[] }
+import { ExtractionResult } from './extraction-result'
 
 function getInterfaceTypeArgs(
   classDecl: ClassDeclaration,
@@ -43,7 +42,7 @@ function extractTypeNames(typeNode: import('ts-morph').TypeNode): string[] {
 export function evaluateFromGenericArgRule(
   rule: FromGenericArgExtractionRule,
   classDecl: ClassDeclaration,
-): GenericExtractionResult {
+): ExtractionResult {
   const {
     interface: interfaceName, position, transform 
   } = rule.fromGenericArg
@@ -92,8 +91,8 @@ export function evaluateFromGenericArgRule(
   const typeNames = extractTypeNames(typeArg)
 
   if (transform === undefined) {
-    return { value: typeNames }
+    return new ExtractionResult({ value: typeNames })
   }
 
-  return { value: typeNames.map((name) => applyTransforms(name, transform)) }
+  return new ExtractionResult({ value: typeNames.map((name) => applyTransforms(name, transform)) })
 }

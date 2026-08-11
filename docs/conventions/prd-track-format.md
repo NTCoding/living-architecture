@@ -61,7 +61,7 @@ const tracksSchema = z.object({
 
 ## Error Handling
 
-If a PRD in `docs/project/PRD/active/` is missing YAML track definitions, the `list-tasks` command will throw an error with a message indicating which PRD needs track definitions added.
+If a PRD folder's `PRD.md` file is missing YAML track definitions, the `list-tasks` command will throw an error with a message indicating which PRD needs track definitions added.
 
 ## Example PRD Section
 

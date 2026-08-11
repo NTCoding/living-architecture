@@ -35,19 +35,19 @@ describe('useDomainMapInteractions', () => {
       const { result } = renderHook(() => useDomainMapInteractions())
 
       act(() => {
-        result.current.showEdgeTooltip(100, 200, 'orders', 'payments', 3, 2)
+        result.current.showEdgeTooltip(100, 200, 'orders', 'payments', 7)
       })
 
       expect(result.current.tooltip.visible).toBe(true)
       expect(result.current.tooltip.title).toBe('orders → payments')
-      expect(result.current.tooltip.detail).toBe('5 connections · Click for details')
+      expect(result.current.tooltip.detail).toBe('7 connections · Click for details')
     })
 
     it('uses singular connection for count of 1', () => {
       const { result } = renderHook(() => useDomainMapInteractions())
 
       act(() => {
-        result.current.showEdgeTooltip(100, 200, 'orders', 'payments', 1, 0)
+        result.current.showEdgeTooltip(100, 200, 'orders', 'payments', 1)
       })
 
       expect(result.current.tooltip.detail).toBe('1 connection · Click for details')
@@ -106,7 +106,7 @@ describe('useDomainMapInteractions', () => {
       const { result } = renderHook(() => useDomainMapInteractions())
 
       act(() => {
-        result.current.selectEdge('orders', 'payments', 3, 2, 10, 5, [])
+        result.current.selectEdge('orders', 'payments', 3, 2, 10, 5, [], 7)
       })
 
       expect(result.current.inspector).toMatchObject({
@@ -115,6 +115,7 @@ describe('useDomainMapInteractions', () => {
         target: 'payments',
         apiCount: 3,
         eventCount: 2,
+        connectionCount: 7,
         sourceNodeCount: 10,
         targetNodeCount: 5,
       })
@@ -124,12 +125,12 @@ describe('useDomainMapInteractions', () => {
       const { result } = renderHook(() => useDomainMapInteractions())
 
       act(() => {
-        result.current.showEdgeTooltip(100, 200, 'orders', 'payments', 3, 2)
+        result.current.showEdgeTooltip(100, 200, 'orders', 'payments', 7)
       })
       expect(result.current.tooltip.visible).toBe(true)
 
       act(() => {
-        result.current.selectEdge('orders', 'payments', 3, 2, 10, 5, [])
+        result.current.selectEdge('orders', 'payments', 3, 2, 10, 5, [], 7)
       })
       expect(result.current.tooltip.visible).toBe(false)
     })
@@ -138,7 +139,7 @@ describe('useDomainMapInteractions', () => {
       const { result } = renderHook(() => useDomainMapInteractions())
 
       act(() => {
-        result.current.selectEdge('orders', 'payments', 3, 2, 10, 5, [])
+        result.current.selectEdge('orders', 'payments', 3, 2, 10, 5, [], 7)
       })
       expect(result.current.inspector.visible).toBe(true)
 
@@ -166,7 +167,7 @@ describe('useDomainMapInteractions', () => {
       ]
 
       act(() => {
-        result.current.selectEdge('orders', 'payments', 1, 1, 10, 5, connections)
+        result.current.selectEdge('orders', 'payments', 1, 1, 10, 5, connections, 2)
       })
 
       expect(result.current.inspector.connections).toStrictEqual(connections)

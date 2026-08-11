@@ -188,7 +188,7 @@ describe('Method-level decorators', () => {
     it('preserves method behavior when class and method are decorated', () => {
       @HttpClient('Fraud Detection Service')
       class FraudClient {
-        @HttpCall('/api/check')
+        @HttpCall('/api/check', 'POST')
         check(): string {
           return 'ok'
         }

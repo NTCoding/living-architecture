@@ -1,19 +1,17 @@
 import {
   describe, it, expect 
 } from 'vitest'
-import {
-  deduplicateCrossStrategy, stripHttpCallComponents 
-} from './detect-connections'
-import type { ExtractedLink } from './extracted-link'
-import { buildComponent } from './call-graph/call-graph-fixtures'
+import { deduplicateCrossStrategy } from './detect-connections'
+import { ExtractedLink } from './extracted-link'
 
 function createLink(overrides: Partial<ExtractedLink> = {}): ExtractedLink {
-  return {
-    source: 'orders:useCase:OrderService',
-    target: 'orders:event:EventBus',
-    type: 'sync',
-    ...overrides,
-  }
+  return new ExtractedLink({
+    source: 'orders:orders-module:useCase:orderservice',
+    target: overrides.target ?? 'orders:orders-module:event:eventbus',
+    type: overrides.type ?? 'sync',
+    ...(overrides._uncertain !== undefined && { _uncertain: overrides._uncertain }),
+    ...(overrides.sourceLocation !== undefined && { sourceLocation: overrides.sourceLocation }),
+  })
 }
 
 describe('deduplicateCrossStrategy', () => {
@@ -24,7 +22,7 @@ describe('deduplicateCrossStrategy', () => {
     const result = deduplicateCrossStrategy([uncertain, certain])
 
     expect(result).toHaveLength(1)
-    expect(result[0]).not.toHaveProperty('_uncertain')
+    expect(result[0]?._uncertain).toBeUndefined()
   })
 
   it('keeps certain link when uncertain link arrives second', () => {
@@ -34,7 +32,7 @@ describe('deduplicateCrossStrategy', () => {
     const result = deduplicateCrossStrategy([certain, uncertain])
 
     expect(result).toHaveLength(1)
-    expect(result[0]).not.toHaveProperty('_uncertain')
+    expect(result[0]?._uncertain).toBeUndefined()
   })
 
   it('keeps first uncertain link when no certain alternative exists', () => {
@@ -48,26 +46,11 @@ describe('deduplicateCrossStrategy', () => {
   })
 
   it('deduplicates links with different keys independently', () => {
-    const linkA = createLink({ target: 'orders:event:EventBusA' })
-    const linkB = createLink({ target: 'orders:event:EventBusB' })
+    const linkA = createLink({ target: 'orders:orders-module:event:eventbusa' })
+    const linkB = createLink({ target: 'orders:orders-module:event:eventbusb' })
 
     const result = deduplicateCrossStrategy([linkA, linkB])
 
     expect(result).toHaveLength(2)
-  })
-})
-
-describe('stripHttpCallComponents', () => {
-  it('removes httpCall components and keeps non-httpCall components', () => {
-    const filePath = '/src/http.ts'
-    const useCase = buildComponent('PlaceOrder', filePath, 1)
-    const httpCall = buildComponent('check', filePath, 2, {
-      type: 'httpCall',
-      metadata: { serviceName: 'Fraud Detection Service' },
-    })
-
-    const result = stripHttpCallComponents([useCase, httpCall])
-
-    expect(result).toStrictEqual([useCase])
   })
 })

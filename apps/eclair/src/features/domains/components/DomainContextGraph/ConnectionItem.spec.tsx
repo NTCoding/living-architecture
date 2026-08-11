@@ -81,4 +81,48 @@ describe('ConnectionItem', () => {
     expect(screen.getByText('1 API call')).toBeInTheDocument()
     expect(screen.getByText('1 event')).toBeInTheDocument()
   })
+
+  it('displays delivery type without a relationship type', () => {
+    const connection: AggregatedConnection = {
+      targetDomain: 'inventory',
+      direction: 'outgoing',
+      apiCount: 0,
+      eventCount: 0,
+      relationshipCount: 1,
+      deliveryTypes: ['sync'],
+    }
+
+    render(
+      <ConnectionItem
+        connection={connection}
+        currentDomainId="orders"
+        targetDomainId="inventory"
+      />,
+    )
+
+    expect(screen.getByText('sync')).toBeInTheDocument()
+    expect(screen.queryByText(/·/)).not.toBeInTheDocument()
+  })
+
+  it('separates relationship and delivery types when both are present', () => {
+    const connection: AggregatedConnection = {
+      targetDomain: 'inventory',
+      direction: 'outgoing',
+      apiCount: 0,
+      eventCount: 0,
+      relationshipCount: 1,
+      relationshipTypes: ['calls'],
+      deliveryTypes: ['sync'],
+    }
+
+    render(
+      <ConnectionItem
+        connection={connection}
+        currentDomainId="orders"
+        targetDomainId="inventory"
+      />,
+    )
+
+    expect(screen.getByText('calls · sync')).toBeInTheDocument()
+  })
 })

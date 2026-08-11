@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: InvalidGraphError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:94](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L94)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:161](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L161)
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new InvalidGraphError**(`reason`): `InvalidGraphError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:95](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L95)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:162](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L162)
 
 #### Parameters
 

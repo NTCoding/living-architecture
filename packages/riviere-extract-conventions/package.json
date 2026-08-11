@@ -1,9 +1,14 @@
 {
   "name": "@living-architecture/riviere-extract-conventions",
-  "version": "0.5.6",
+  "version": "0.6.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NTCoding/living-architecture.git",
+    "directory": "packages/riviere-extract-conventions"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",

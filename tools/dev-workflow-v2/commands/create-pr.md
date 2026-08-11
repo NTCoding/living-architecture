@@ -1,6 +1,6 @@
 # create-pr
 
-Push the current branch and create a PR using the standard repo format.
+Push the current workflow branch and create its pull request.
 
 ## Usage
 
@@ -10,56 +10,33 @@ Push the current branch and create a PR using the standard repo format.
 
 ## Instructions
 
-1. Read the current branch name: `git branch --show-current`
-1. Fail if the current branch is `main`.
-1. Extract the GitHub issue number from the branch name pattern `issue-<N>-...`
-   - If no issue number can be inferred, stop and tell the user the command requires an issue-based branch name.
-1. Get a GitHub token: `gh auth token`
-1. Check whether a PR already exists for the current branch with `gh pr view --json number,url`
-   - Run the command as `GITHUB_TOKEN=<token> gh pr view ...`
-   - If a PR already exists, report the PR number and URL, then stop without updating it.
-1. Read the issue title and body with `GITHUB_TOKEN=<token> gh issue view <issue-number> --json title,body`
-1. Inspect the actual branch changes before drafting the PR:
+1. Read `/dev-workflow-v2:workflow get-state` and extract `currentStateMachineState`, `githubIssue`, `featureBranch`, and `prNumber`. Stop unless the state is `SUBMITTING_PR`.
+2. Stop if `githubIssue` or `featureBranch` is missing. Do not infer either value from the branch name.
+3. Stop if `prNumber` is already present. This command creates a new pull request; updating an existing pull request is a separate operation.
+4. Inspect the actual branch changes:
    - `git log --oneline $(git merge-base HEAD main)..HEAD`
    - `git diff --stat $(git merge-base HEAD main)..HEAD`
-1. Draft the PR title in this format:
+5. Draft the required PR fields from the issue as source context and the branch diff as source truth. Do not copy the issue body verbatim.
+6. Push the recorded feature branch: `git push -u origin <featureBranch>`.
+7. Create and record the ready-for-review PR through the workflow:
 
-```text
-<type>(<scope>): <implemented summary> (#<issue-number>)
+```bash
+/dev-workflow-v2:workflow create-pr \
+  --title "<title>" \
+  --description "<what this PR changes>" \
+  --problem "<problem and why this change is needed>" \
+  --acceptance-criteria "<acceptance criteria satisfied>" \
+  --key-changes "<important implementation changes>" \
+  --architecture-impact "<architecture impact, or None>" \
+  --validation "<validation commands and results>" \
+  --notes "<follow-ups, caveats, or None>"
 ```
 
-1. Draft the PR body using the issue as source context and the branch diff as source truth. Do **not** copy the full issue body verbatim. Rewrite it into this structure:
-
-```md
-Closes #<issue-number>
-
-## Summary
-- <2-4 bullets describing the actual implemented changes>
-
-## Context
-<1 short paragraph explaining the problem and why this PR exists>
-
-## Traceability
-- PRD: <path or —>
-- PRD Section: <section refs or —>
-- Dependencies: <dependencies or omit if none>
-
-## Verification
-~~~bash
-<verification commands from the issue, preserved when present>
-~~~
-```
-
-1. Push the branch: `git push -u origin <branch-name>`
-1. Create the PR with `GITHUB_TOKEN=<token> gh pr create --title "<title>" --body "$(cat <<'EOF'
-<body>
-EOF
-)"`
-1. Return the created PR number and URL.
+8. Return the recorded PR number and URL.
 
 ## Scope
 
-- This command owns the push + PR creation flow.
-- Use the issue for intent, but summarize the actual diff in `## Summary`.
-- Do not copy the full issue body into the PR description.
-- Do not record workflow state here.
+- This command owns the push plus PR creation flow for `SUBMITTING_PR`.
+- `workflow create-pr` owns the PR body format, issue linkage, GitHub creation, and PR recording.
+- Do not call `gh pr create`, `gh pr edit`, or `workflow record-pr` directly.
+- Do not transition workflow state here.

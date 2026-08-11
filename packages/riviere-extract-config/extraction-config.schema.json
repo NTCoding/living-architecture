@@ -21,7 +21,7 @@
     },
     "connections": {
       "$ref": "#/$defs/connectionsConfig",
-      "description": "Global connection detection patterns inherited by all modules"
+      "description": "Connection detection configuration"
     }
   },
   "$defs": {
@@ -41,18 +41,28 @@
     "module": {
       "type": "object",
       "description": "A module defines extraction rules for a path pattern",
-      "required": ["name", "path", "glob"],
+      "required": ["name", "domain", "path", "glob"],
       "additionalProperties": false,
       "properties": {
         "name": {
           "type": "string",
-          "description": "Module name, used as the domain for extracted components",
+          "description": "Extraction config module identifier",
+          "minLength": 1
+        },
+        "domain": {
+          "type": "string",
+          "description": "Riviere graph domain this module belongs to",
           "minLength": 1
         },
         "path": {
           "type": "string",
           "description": "Module root directory relative to config file",
           "minLength": 1
+        },
+        "modules": {
+          "type": "string",
+          "description": "Path pattern with {module} placeholder for resolving module names from file paths",
+          "pattern": "\\{module\\}"
         },
         "glob": {
           "type": "string",
@@ -94,10 +104,6 @@
           "additionalProperties": {
             "$ref": "#/$defs/detectionRule"
           }
-        },
-        "connections": {
-          "$ref": "#/$defs/moduleConnectionsConfig",
-          "description": "Module-level connection detection patterns additive to global"
         }
       },
       "if": {
@@ -630,17 +636,9 @@
     },
     "connectionsConfig": {
       "type": "object",
-      "description": "Connection detection configuration with pattern definitions",
+      "description": "Connection detection configuration",
       "additionalProperties": false,
       "properties": {
-        "patterns": {
-          "type": "array",
-          "description": "Connection detection patterns",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/connectionPattern"
-          }
-        },
         "eventPublishers": {
           "type": "array",
           "description": "Declares which custom component types publish events and how to detect the connections",
@@ -648,21 +646,41 @@
           "items": {
             "$ref": "#/$defs/eventPublisherConfig"
           }
+        },
+        "httpLinks": {
+          "type": "array",
+          "description": "Declares how to resolve HTTP client calls into cross-domain Links",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/httpLinkConfig"
+          }
         }
       }
     },
-    "moduleConnectionsConfig": {
+    "httpLinkConfig": {
       "type": "object",
-      "description": "Module-level connection detection configuration (patterns only — eventPublishers is top-level only)",
+      "description": "Declares how to resolve HTTP client calls into cross-domain Links",
+      "required": ["fromCustomType", "matchDomainBy", "matchApiBy"],
       "additionalProperties": false,
       "properties": {
-        "patterns": {
+        "fromCustomType": {
+          "type": "string",
+          "description": "Custom component type name for HTTP clients — must be defined in customTypes in at least one module",
+          "minLength": 1
+        },
+        "matchDomainBy": {
+          "type": "string",
+          "description": "Metadata key whose value identifies the target domain",
+          "minLength": 1
+        },
+        "matchApiBy": {
           "type": "array",
-          "description": "Connection detection patterns",
-          "minItems": 1,
+          "description": "Metadata keys used to match the target API component",
           "items": {
-            "$ref": "#/$defs/connectionPattern"
-          }
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
         }
       }
     },
@@ -681,130 +699,6 @@
           "type": "string",
           "description": "The metadata key on this component type that holds the published event type name",
           "minLength": 1
-        }
-      }
-    },
-    "connectionPattern": {
-      "type": "object",
-      "description": "A pattern for detecting connections between components",
-      "required": ["name", "find", "where", "linkType"],
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Pattern identifier",
-          "minLength": 1
-        },
-        "find": {
-          "$ref": "#/$defs/connectionFinder"
-        },
-        "where": {
-          "$ref": "#/$defs/connectionWhereClause"
-        },
-        "extract": {
-          "$ref": "#/$defs/connectionExtractBlock",
-          "description": "Extraction rules for connection metadata"
-        },
-        "linkType": {
-          "type": "string",
-          "description": "Type of connection: sync or async",
-          "enum": ["sync", "async"]
-        }
-      }
-    },
-    "connectionFinder": {
-      "type": "string",
-      "description": "The connection detection strategy",
-      "enum": ["methodCalls"]
-    },
-    "connectionWhereClause": {
-      "type": "object",
-      "description": "Filters for matching method calls",
-      "additionalProperties": false,
-      "minProperties": 1,
-      "properties": {
-        "methodName": {
-          "type": "string",
-          "description": "Method name to match",
-          "minLength": 1
-        },
-        "receiverType": {
-          "type": "string",
-          "description": "Type of the object being called",
-          "minLength": 1
-        },
-        "callerHasDecorator": {
-          "type": "array",
-          "description": "Decorators the calling class must have",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "minItems": 1
-        },
-        "calleeType": {
-          "type": "object",
-          "description": "Constraints on the callee type",
-          "required": ["hasDecorator"],
-          "additionalProperties": false,
-          "properties": {
-            "hasDecorator": {
-              "type": "string",
-              "description": "Decorator the callee type must have",
-              "minLength": 1
-            }
-          }
-        }
-      }
-    },
-    "connectionExtractBlock": {
-      "type": "object",
-      "description": "Extraction rules for connection metadata fields",
-      "additionalProperties": {
-        "$ref": "#/$defs/connectionExtractRule"
-      }
-    },
-    "connectionExtractRule": {
-      "oneOf": [
-        { "$ref": "#/$defs/fromArgumentExtractionRule" },
-        { "$ref": "#/$defs/fromReceiverTypeExtractionRule" },
-        { "$ref": "#/$defs/fromCallerTypeExtractionRule" }
-      ]
-    },
-    "fromArgumentExtractionRule": {
-      "type": "object",
-      "description": "Extracts static type of argument at position",
-      "required": ["fromArgument"],
-      "additionalProperties": false,
-      "properties": {
-        "fromArgument": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Argument position (zero-based)"
-        }
-      }
-    },
-    "fromReceiverTypeExtractionRule": {
-      "type": "object",
-      "description": "Extracts the static type name of the receiver",
-      "required": ["fromReceiverType"],
-      "additionalProperties": false,
-      "properties": {
-        "fromReceiverType": {
-          "type": "boolean",
-          "const": true
-        }
-      }
-    },
-    "fromCallerTypeExtractionRule": {
-      "type": "object",
-      "description": "Extracts the static type name of the caller",
-      "required": ["fromCallerType"],
-      "additionalProperties": false,
-      "properties": {
-        "fromCallerType": {
-          "type": "boolean",
-          "const": true
         }
       }
     }

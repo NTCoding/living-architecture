@@ -1,12 +1,10 @@
 export {
   getLinkNodeId,
-  applyFocusModeCircleStyles,
   applyResetModeCircleStyles,
-  applyFocusModeLinkStyles,
   applyResetModeLinkStyles,
-  applyFocusModeTextStyles,
   applyResetModeTextStyles,
   setupLinks,
+  setupLinkLabels,
   setupNodes,
   createUpdatePositionsFunction,
 } from './graph-rendering-setup'

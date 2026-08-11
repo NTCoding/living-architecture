@@ -1,7 +1,11 @@
-import { ComponentNotFoundError } from '@living-architecture/riviere-builder'
+import {
+  ComponentNotFoundError,
+  DuplicateLinkError,
+  RelationshipTypeNotFoundError,
+} from '@living-architecture/riviere-builder'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
-import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 import type { LinkComponentsInput } from './link-components-input'
 import type {
   LinkComponentsErrorCode, LinkComponentsResult 
@@ -18,12 +22,24 @@ export class LinkComponents {
         from: string
         to: string
         type?: 'sync' | 'async'
+        relationshipType?: string
+        condition?: string
+        sourceLocation?: NonNullable<LinkComponentsInput['sourceLocation']>
       } = {
         from: input.from,
         to: input.to,
       }
       if (input.type !== undefined) {
         linkInput.type = input.type
+      }
+      if (input.relationshipType !== undefined) {
+        linkInput.relationshipType = input.relationshipType
+      }
+      if (input.condition !== undefined) {
+        linkInput.condition = input.condition
+      }
+      if (input.sourceLocation !== undefined) {
+        linkInput.sourceLocation = input.sourceLocation
       }
       const link = builder.link(linkInput)
       this.repository.save(builder)
@@ -40,6 +56,9 @@ export class LinkComponents {
       }
       if (error instanceof ComponentNotFoundError) {
         return failure('COMPONENT_NOT_FOUND', error.message, error.suggestions)
+      }
+      if (error instanceof DuplicateLinkError || error instanceof RelationshipTypeNotFoundError) {
+        return failure('VALIDATION_ERROR', error.message)
       }
       throw error
     }

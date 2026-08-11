@@ -16,16 +16,16 @@ jobs:
       group: ci-${{ github.ref }}
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
 
-      - uses: nrwl/nx-set-shas@v4
+      - uses: nrwl/nx-set-shas@3e9ad7370203c1e93d109be57f3b72eb0eb511b1 # v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         name: Install pnpm
         with:
-          version: 10.28.0
+          version: 11.21.0
           run_install: false
 
       # This enables task distribution via Nx Cloud
@@ -35,21 +35,12 @@ jobs:
       # - run: pnpm dlx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="build"
 
       # Cache node_modules
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
           cache: 'pnpm'
 
       - run: pnpm install --frozen-lockfile
-
-      # pnpm v10 does not run better-sqlite3's install script despite onlyBuiltDependencies.
-      # Manually trigger prebuild-install to download prebuilt native bindings.
-      - name: Build better-sqlite3 native bindings
-        run: |
-          BS3_DIR=$(find node_modules/.pnpm -path "*/better-sqlite3@*/node_modules/better-sqlite3/package.json" -exec dirname {} \; | head -1)
-          if [ -n "$BS3_DIR" ]; then
-            cd "$BS3_DIR" && npx --yes prebuild-install || npx --yes node-gyp rebuild --release
-          fi
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: pnpm exec nx-cloud record -- echo Hello World
@@ -84,19 +75,19 @@ jobs:
       group: browser-${{ matrix.browser }}-${{ github.ref }}
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
 
-      - uses: nrwl/nx-set-shas@v4
+      - uses: nrwl/nx-set-shas@3e9ad7370203c1e93d109be57f3b72eb0eb511b1 # v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         name: Install pnpm
         with:
-          version: 10.28.0
+          version: 11.21.0
           run_install: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -127,14 +118,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
-          version: 10.28.0
+          version: 11.21.0
           run_install: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -149,14 +140,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
-          version: 10.28.0
+          version: 11.21.0
           run_install: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -171,12 +162,23 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-      - name: ShellCheck
-        uses: ludeeus/action-shellcheck@master
-        with:
-          ignore_paths: '.husky --help'
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes shellcheck
+
+      - name: Run ShellCheck
+        run: |
+          shopt -s nullglob
+          script_files=(scripts/*.sh)
+          status=0
+          if ((${#script_files[@]})); then
+            shellcheck "${script_files[@]}" || status=$?
+          fi
+          shellcheck --shell=sh .husky/commit-msg .husky/pre-commit || status=$?
+          exit "$status"
 
   publish:
     needs: [main]
@@ -189,26 +191,25 @@ jobs:
       group: publish-${{ github.ref }}
       cancel-in-progress: false
     steps:
-      - uses: actions/create-github-app-token@v2
+      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
         id: app-token
         with:
           app-id: ${{ secrets.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
-          version: 10.28.0
+          version: 11.21.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
           cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org'
 
       - run: pnpm install --frozen-lockfile
 
@@ -220,9 +221,13 @@ jobs:
       - name: Sync with remote
         run: git pull --rebase origin main
 
-      - name: Release
-        run: pnpm exec nx release --yes
+      - name: Version and tag release
+        run: pnpm exec nx release --skip-publish
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           HUSKY: 0
+
+      # Keep publishing separate so a failed publish can be rerun without
+      # creating another set of versions and tags.
+      - name: Publish release
+        run: pnpm exec nx release publish

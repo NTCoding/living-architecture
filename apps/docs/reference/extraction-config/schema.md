@@ -16,7 +16,7 @@ Configuration for extracting architectural components from source code
 |-------|------|----------|-------------|
 | `$schema` | `string` | No | JSON Schema reference |
 | `modules` | `(module \| moduleRef)[]` | **Yes** | Module definitions for component extraction |
-| `connections` | `connectionsConfig` | No | Global connection detection patterns inherited by all modules |
+| `connections` | `connectionsConfig` | No | Connection detection configuration |
 
 ---
 
@@ -40,8 +40,10 @@ A module defines extraction rules for a path pattern
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `name` | `string` | **Yes** | Module name, used as the domain for extracted components |
+| `name` | `string` | **Yes** | Extraction config module identifier |
+| `domain` | `string` | **Yes** | Riviere graph domain this module belongs to |
 | `path` | `string` | **Yes** | Module root directory relative to config file |
+| `modules` | `string` | No | Path pattern with {module} placeholder for resolving module names from file paths |
 | `glob` | `string` | **Yes** | Glob pattern for source files within the module directory |
 | `extends` | `string` | No | Package name or file path to inherit component rules from |
 | `api` | `componentRule` | No | Detection rule for API components |
@@ -51,7 +53,6 @@ A module defines extraction rules for a path pattern
 | `eventHandler` | `componentRule` | No | Detection rule for EventHandler components |
 | `ui` | `componentRule` | No | Detection rule for UI components |
 | `customTypes` | `Record<string, detectionRule>` | No | User-defined component types with their detection rules |
-| `connections` | `moduleConnectionsConfig` | No | Module-level connection detection patterns additive to global |
 
 ---
 
@@ -290,26 +291,28 @@ The code construct to search for
 
 ### `connectionsConfig`
 
-Connection detection configuration with pattern definitions
+Connection detection configuration
 
 **Properties:**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `patterns` | `connectionPattern[]` | No | Connection detection patterns |
 | `eventPublishers` | `eventPublisherConfig[]` | No | Declares which custom component types publish events and how to detect the connections |
+| `httpLinks` | `httpLinkConfig[]` | No | Declares how to resolve HTTP client calls into cross-domain Links |
 
 ---
 
-### `moduleConnectionsConfig`
+### `httpLinkConfig`
 
-Module-level connection detection configuration (patterns only — eventPublishers is top-level only)
+Declares how to resolve HTTP client calls into cross-domain Links
 
 **Properties:**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `patterns` | `connectionPattern[]` | No | Connection detection patterns |
+| `fromCustomType` | `string` | **Yes** | Custom component type name for HTTP clients — must be defined in customTypes in at least one module |
+| `matchDomainBy` | `string` | **Yes** | Metadata key whose value identifies the target domain |
+| `matchApiBy` | `string[]` | **Yes** | Metadata keys used to match the target API component |
 
 ---
 
@@ -323,99 +326,6 @@ Declares a custom component type as an event publisher
 |-------|------|----------|-------------|
 | `fromType` | `string` | **Yes** | The custom component type name — must be defined in customTypes in at least one module |
 | `metadataKey` | `string` | **Yes** | The metadata key on this component type that holds the published event type name |
-
----
-
-### `connectionPattern`
-
-A pattern for detecting connections between components
-
-**Properties:**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | `string` | **Yes** | Pattern identifier |
-| `find` | `connectionFinder` | **Yes** | (no description) |
-| `where` | `connectionWhereClause` | **Yes** | (no description) |
-| `extract` | `connectionExtractBlock` | No | Extraction rules for connection metadata |
-| `linkType` | `"sync"` \| `"async"` | **Yes** | Type of connection: sync or async |
-
----
-
-### `connectionFinder`
-
-The connection detection strategy
-
-**Values:**
-
-- `"methodCalls"`
-
----
-
-### `connectionWhereClause`
-
-Filters for matching method calls
-
-**Properties:**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `methodName` | `string` | No | Method name to match |
-| `receiverType` | `string` | No | Type of the object being called |
-| `callerHasDecorator` | `string[]` | No | Decorators the calling class must have |
-| `calleeType` | `object` | No | Constraints on the callee type |
-
----
-
-### `connectionExtractBlock`
-
-Extraction rules for connection metadata fields
-
----
-
-### `connectionExtractRule`
-
-**One of:**
-
-- `fromArgumentExtractionRule` — Extracts static type of argument at position
-- `fromReceiverTypeExtractionRule` — Extracts the static type name of the receiver
-- `fromCallerTypeExtractionRule` — Extracts the static type name of the caller
-
----
-
-### `fromArgumentExtractionRule`
-
-Extracts static type of argument at position
-
-**Properties:**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `fromArgument` | `integer` | **Yes** | Argument position (zero-based) |
-
----
-
-### `fromReceiverTypeExtractionRule`
-
-Extracts the static type name of the receiver
-
-**Properties:**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `fromReceiverType` | `boolean` | **Yes** | (no description) |
-
----
-
-### `fromCallerTypeExtractionRule`
-
-Extracts the static type name of the caller
-
-**Properties:**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `fromCallerType` | `boolean` | **Yes** | (no description) |
 
 ---
 

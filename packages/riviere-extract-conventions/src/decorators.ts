@@ -105,6 +105,7 @@ export function HttpClient(
  */
 export function HttpCall(
   _route: string,
+  _method: string,
 ): <T extends Method>(target: T, context: ClassMethodDecoratorContext) => T {
   return function <T extends Method>(target: T, _: ClassMethodDecoratorContext): T {
     return target

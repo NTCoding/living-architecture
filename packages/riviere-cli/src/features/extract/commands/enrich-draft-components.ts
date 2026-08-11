@@ -1,4 +1,4 @@
-import { ExtractionProjectRepository } from '../infra/persistence/extraction-project/extraction-project-repository'
+import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
 import type { EnrichDraftComponentsInput } from './enrich-draft-components-input'
 import type { EnrichDraftComponentsResult } from './enrich-draft-components-result'
 

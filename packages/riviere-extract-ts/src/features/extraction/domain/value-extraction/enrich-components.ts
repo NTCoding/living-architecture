@@ -1,18 +1,25 @@
 import type {
   ClassDeclaration, MethodDeclaration, Project 
 } from 'ts-morph'
-import { posix } from 'node:path'
 import type {
-  ResolvedExtractionConfig,
   Module,
   ComponentRule,
   DetectionRule,
   ExtractionRule,
 } from '@living-architecture/riviere-extract-config'
+import type { DraftComponent } from '../component-extraction/draft-component'
+import { ExtractionResult } from './extraction-result'
 import type {
-  DraftComponent, GlobMatcher 
-} from '../component-extraction/extractor'
-import type { ExtractionResult } from './evaluate-extraction-rule'
+  EnrichedComponent,
+  EnrichmentFailure,
+  EnrichmentResult,
+  MetadataValue,
+} from './enriched-component'
+import {
+  EnrichedComponent as EnrichedComponentRecord,
+  EnrichmentFailure as EnrichmentFailureRecord,
+  EnrichmentResult as EnrichmentResultRecord,
+} from './enriched-component'
 import {
   evaluateLiteralRule,
   evaluateFromClassNameRule,
@@ -26,45 +33,6 @@ import {
 import { evaluateFromGenericArgRule } from './evaluate-extraction-rule-generic'
 import { ExtractionError } from '../../../../platform/domain/ast-literals/literal-detection'
 import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
-
-type MetadataValue = string | number | boolean | string[]
-
-/** @riviere-role value-object */
-export interface EnrichedComponent {
-  type: string
-  name: string
-  location: {
-    file: string
-    line: number
-  }
-  domain: string
-  metadata: Record<string, MetadataValue>
-  _missing?: string[]
-}
-
-/** @riviere-role value-object */
-export interface EnrichmentFailure {
-  component: DraftComponent
-  field: string
-  error: string
-}
-
-/** @riviere-role value-object */
-export interface EnrichmentResult {
-  components: EnrichedComponent[]
-  failures: EnrichmentFailure[]
-}
-
-function findMatchingModule(
-  filePath: string,
-  modules: Module[],
-  globMatcher: GlobMatcher,
-  configDir: string,
-): Module | undefined {
-  const normalized = filePath.replaceAll(/\\+/g, '/')
-  const pathToMatch = posix.relative(configDir.replaceAll(/\\+/g, '/'), normalized)
-  return modules.find((m) => globMatcher(pathToMatch, posix.join(m.path, m.glob)))
-}
 
 function getBuiltInRule(module: Module, componentType: string): DetectionRule | undefined {
   const ruleMap: Record<string, ComponentRule> = {
@@ -293,9 +261,9 @@ function evaluateMethodRule(
     const typeName = param.getTypeNode()?.getText() ?? 'unknown'
     const transform = rule.fromParameterType.transform
     if (transform === undefined) {
-      return { value: typeName }
+      return new ExtractionResult({ value: typeName })
     }
-    return { value: applyTransforms(typeName, transform) }
+    return new ExtractionResult({ value: applyTransforms(typeName, transform) })
   }
 
   return undefined
@@ -340,12 +308,31 @@ interface SingleComponentResult {
 
 function componentWithEmptyMetadata(draft: DraftComponent): SingleComponentResult {
   return {
-    enriched: {
-      ...draft,
+    enriched: new EnrichedComponentRecord({
+      type: draft.type,
+      name: draft.name,
+      location: draft.location,
+      domain: draft.domain,
+      module: draft.module,
       metadata: {},
-    },
+      _missing: undefined,
+    }),
     failures: [],
   }
+}
+
+function shouldIgnoreMissingMetadataField(
+  draft: DraftComponent,
+  fieldName: string,
+  extractionRule: ExtractionRule,
+  errorMessage: string,
+): boolean {
+  return (
+    draft.type === 'api' &&
+    (fieldName === 'route' || fieldName === 'method') &&
+    'fromProperty' in extractionRule &&
+    errorMessage.includes(`Property '${fieldName}' not found on class`)
+  )
 }
 
 function extractMetadataFields(
@@ -367,11 +354,18 @@ function extractMetadataFields(
     } catch (error: unknown) {
       /* istanbul ignore next -- @preserve: catch always receives Error instances from ExtractionError */
       const errorMessage = error instanceof Error ? error.message : String(error)
-      failures.push({
-        component: draft,
-        field: fieldName,
-        error: errorMessage,
-      })
+
+      if (shouldIgnoreMissingMetadataField(draft, fieldName, extractionRule, errorMessage)) {
+        continue
+      }
+
+      failures.push(
+        new EnrichmentFailureRecord({
+          component: draft,
+          field: fieldName,
+          error: errorMessage,
+        }),
+      )
       missing.push(fieldName)
     }
   }
@@ -385,17 +379,9 @@ function extractMetadataFields(
 
 function enrichSingleComponent(
   draft: DraftComponent,
-  config: ResolvedExtractionConfig,
+  module: Module,
   project: Project,
-  globMatcher: GlobMatcher,
-  configDir: string,
 ): SingleComponentResult {
-  const module = findMatchingModule(draft.location.file, config.modules, globMatcher, configDir)
-
-  if (module === undefined) {
-    return componentWithEmptyMetadata(draft)
-  }
-
   const detectionRule = findDetectionRule(module, draft.type)
 
   if (detectionRule?.extract === undefined) {
@@ -404,14 +390,15 @@ function enrichSingleComponent(
 
   const extracted = extractMetadataFields(detectionRule.extract, draft, project)
 
-  const enriched: EnrichedComponent = {
-    ...draft,
+  const enriched = new EnrichedComponentRecord({
+    type: draft.type,
+    name: draft.name,
+    location: draft.location,
+    domain: draft.domain,
+    module: draft.module,
     metadata: extracted.metadata,
-  }
-
-  if (extracted.missing.length > 0) {
-    enriched._missing = extracted.missing
-  }
+    _missing: extracted.missing.length > 0 ? extracted.missing : undefined,
+  })
 
   return {
     enriched,
@@ -422,22 +409,20 @@ function enrichSingleComponent(
 /** @riviere-role domain-service */
 export function enrichComponents(
   draftComponents: DraftComponent[],
-  config: ResolvedExtractionConfig,
+  module: Module,
   project: Project,
-  globMatcher: GlobMatcher,
-  configDir: string,
 ): EnrichmentResult {
   const allComponents: EnrichedComponent[] = []
   const allFailures: EnrichmentFailure[] = []
 
   for (const draft of draftComponents) {
-    const result = enrichSingleComponent(draft, config, project, globMatcher, configDir)
+    const result = enrichSingleComponent(draft, module, project)
     allComponents.push(result.enriched)
     allFailures.push(...result.failures)
   }
 
-  return {
+  return new EnrichmentResultRecord({
     components: allComponents,
     failures: allFailures,
-  }
+  })
 }

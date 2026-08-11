@@ -5,16 +5,16 @@ import type {
 import dagre from 'dagre'
 import { getClosestHandle } from '@/platform/infra/layout/handle-positioning'
 import { RiviereQuery } from '@living-architecture/riviere-query'
-import {
-  formatEdgeLabel, type ConnectionDetail, type EdgeAggregation 
-} from './edgeAggregation'
+import type * as DomainMapEdgeTypes from './edgeAggregation'
 import { LayoutError } from '@/platform/infra/errors/errors'
 import { aggregateDomainEdges } from './edge-aggregation'
 import {
   aggregateExternalEdges, createExternalNodeId 
 } from './external-domain-handling'
+import { getEffectiveNodeType } from '@/platform/domain/node-type-presentation'
+import { semanticRelationshipSummary } from './edgeAggregation'
 
-export type { ConnectionDetail } from './edgeAggregation'
+export type ConnectionDetail = DomainMapEdgeTypes.ConnectionDetail
 
 const LABEL_BG_PADDING: [number, number] = [4, 6]
 const DOMAIN_NODE_SIZE = 120
@@ -23,6 +23,7 @@ const EXTERNAL_NODE_SIZE = 100
 export type { DomainNodeData } from '@/platform/domain/domain-node-types'
 
 export interface DomainEdgeData {
+  connectionCount: number
   apiCount: number
   eventCount: number
   connections: ConnectionDetail[]
@@ -120,11 +121,11 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
     nodeInfo.set(node.id, {
       domain: node.domain,
       name: node.name,
-      type: node.type,
+      type: getEffectiveNodeType(node),
     })
   }
 
-  const edgeAggregation = new Map<string, EdgeAggregation>()
+  const edgeAggregation = new Map<string, DomainMapEdgeTypes.EdgeAggregation>()
   aggregateDomainEdges(graph.links, nodeInfo, edgeAggregation)
 
   const externalEdges = aggregateExternalEdges(graph, nodeInfo)
@@ -164,6 +165,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       throw new LayoutError(`Domain ${domain} missing from layout computation`)
     }
     const calculatedSize = nodeSizes.get(domain)
+    const domainMetadata = graph.metadata.domains[domain]
     return {
       id: domain,
       type: 'domain',
@@ -171,6 +173,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       data: {
         label: domain,
         nodeCount,
+        systemType: domainMetadata?.systemType ?? 'other',
         calculatedSize,
         isExternal: false,
       },
@@ -191,6 +194,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       data: {
         label: ed.name,
         nodeCount: ed.connectionCount,
+        systemType: 'external',
         calculatedSize,
         isExternal: true,
       },
@@ -212,6 +216,7 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
     const isEventOnly = agg.eventCount > 0 && agg.apiCount === 0
     const strokeColor = isEventOnly ? '#F59E0B' : '#06B6D4'
     const arrowMarker = isEventOnly ? 'url(#arrow-amber)' : 'url(#arrow-cyan)'
+    const semanticSummary = semanticRelationshipSummary(agg.connections)
 
     return {
       id: key,
@@ -219,8 +224,11 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       target: agg.target,
       sourceHandle: handles.sourceHandle,
       targetHandle: handles.targetHandle,
-      label: formatEdgeLabel(agg.apiCount, agg.eventCount),
+      label:
+        semanticSummary ??
+        `${agg.connectionCount} ${agg.connectionCount === 1 ? 'relationship' : 'relationships'}`,
       data: {
+        connectionCount: agg.connectionCount,
         apiCount: agg.apiCount,
         eventCount: agg.eventCount,
         connections: agg.connections,
@@ -260,9 +268,10 @@ export function extractDomainMap(graph: RiviereGraph): DomainMapData {
       target: targetId,
       sourceHandle: handles.sourceHandle,
       targetHandle: handles.targetHandle,
-      label: `${e.connectionCount} API`,
+      label: `${e.connectionCount} ${e.connectionCount === 1 ? 'relationship' : 'relationships'}`,
       data: {
-        apiCount: e.connectionCount,
+        connectionCount: e.connectionCount,
+        apiCount: 0,
         eventCount: 0,
         connections: e.connections,
       },

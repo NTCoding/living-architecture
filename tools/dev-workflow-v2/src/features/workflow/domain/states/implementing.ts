@@ -3,7 +3,7 @@ import type {
 } from '../workflow-types'
 import {
   pass, fail 
-} from '@ntcoding/agentic-workflow-builder/dsl'
+} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
 export const implementingState: ConcreteStateDefinition = {
   emoji: '🔨',
@@ -28,6 +28,7 @@ export const implementingState: ConcreteStateDefinition = {
     architectureReviewPassed: false,
     codeReviewPassed: false,
     bugScannerPassed: false,
+    taskCheckPassed: false,
     ciPassed: false,
     feedbackClean: false,
     feedbackAddressed: false,

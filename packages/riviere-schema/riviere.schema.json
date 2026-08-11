@@ -67,6 +67,13 @@
           "additionalProperties": {
             "$ref": "#/definitions/customTypeDefinition"
           }
+        },
+        "relationshipTypes": {
+          "type": "object",
+          "description": "Project-defined relationship types keyed by name",
+          "additionalProperties": {
+            "$ref": "#/definitions/relationshipTypeDefinition"
+          }
         }
       }
     },
@@ -342,6 +349,15 @@
           "enum": ["sync", "async"],
           "description": "Link type: sync (request/response) or async (fire-and-forget, events)"
         },
+        "relationshipType": {
+          "type": "string",
+          "description": "Project-defined relationship type name",
+          "minLength": 1
+        },
+        "condition": {
+          "type": "string",
+          "description": "Condition retained exactly as supplied"
+        },
         "payload": {
           "type": "object",
           "description": "Data transferred through this flow",
@@ -425,7 +441,7 @@
           "description": "URL to the external system"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": { "type": "string" }
     },
     "sourceLocation": {
       "type": "object",
@@ -444,6 +460,11 @@
         "lineNumber": {
           "type": "integer",
           "description": "Starting line number",
+          "minimum": 1
+        },
+        "columnNumber": {
+          "type": "integer",
+          "description": "Starting column number",
           "minimum": 1
         },
         "endLineNumber": {
@@ -475,7 +496,7 @@
         },
         "systemType": {
           "type": "string",
-          "enum": ["domain", "bff", "ui", "other"],
+          "enum": ["domain", "bff", "ui", "external-service", "other"],
           "description": "Classification of domain's role in system"
         }
       },
@@ -502,6 +523,19 @@
           "additionalProperties": {
             "$ref": "#/definitions/customPropertyDefinition"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "relationshipTypeDefinition": {
+      "type": "object",
+      "description": "Definition of a project-defined relationship type",
+      "required": ["description"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of this relationship type",
+          "minLength": 1
         }
       },
       "additionalProperties": false

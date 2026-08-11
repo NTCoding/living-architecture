@@ -3,12 +3,13 @@ import {
 } from 'vitest'
 import { detectEventPublisherConnections } from './detect-event-publisher-connections'
 import { ConnectionDetectionError } from '../connection-detection-error'
+import { AsyncDetectionOptions } from './async-detection-options'
 import { buildComponent } from '../call-graph/call-graph-fixtures'
 
-const defaultOptions = {
+const defaultOptions = new AsyncDetectionOptions({
   strict: false,
   repository: 'test-repo',
-}
+})
 
 function eventPublisherConfig(fromType = 'eventSender', metadataKey = 'publishedEventType') {
   return [
@@ -34,7 +35,7 @@ describe('detectEventPublisherConnections — missing/invalid metadata', () => {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:eventSender:NoMetaSender',
+        source: 'orders:orders-module:eventSender:nometasender',
         target: '_unresolved',
         _uncertain: expect.stringContaining('"publishedEventType" metadata'),
       }),
@@ -48,10 +49,14 @@ describe('detectEventPublisherConnections — missing/invalid metadata', () => {
     })
     const config = eventPublisherConfig()
     const act = () =>
-      detectEventPublisherConnections([publisher], config, {
-        strict: true,
-        repository: 'test-repo',
-      })
+      detectEventPublisherConnections(
+        [publisher],
+        config,
+        new AsyncDetectionOptions({
+          strict: true,
+          repository: 'test-repo',
+        }),
+      )
     expect(act).toThrow(ConnectionDetectionError)
     expect(act).toThrow(
       expect.objectContaining({ message: expect.stringContaining('"publishedEventType"') }),

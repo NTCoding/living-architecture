@@ -186,7 +186,7 @@ describe('FlowCard', () => {
   })
 
   describe('header', () => {
-    it('renders header with flow-item-header class', () => {
+    it('renders the expandable header as a dedicated toggle', () => {
       render(
         <FlowCard
           flow={createTestFlow()}
@@ -196,7 +196,9 @@ describe('FlowCard', () => {
         />,
       )
 
-      expect(screen.getByTestId('flow-card-header')).toHaveClass('flow-item-header')
+      const toggle = screen.getByTestId('flow-card-header')
+      expect(toggle).toHaveClass('flow-item-toggle')
+      expect(toggle.querySelector('button')).not.toBeInTheDocument()
     })
 
     it('renders left section with flow-item-left class', () => {
@@ -314,6 +316,8 @@ describe('FlowCard', () => {
 
       const graphBtn = screen.getByTitle('View on Full Graph')
       expect(graphBtn).toHaveClass('graph-link-btn')
+      expect(graphBtn).toHaveAccessibleName('View on Full Graph')
+      expect(screen.queryByText('View on Graph')).not.toBeInTheDocument()
     })
 
     it('navigates to full graph with node param when View on Graph clicked', async () => {

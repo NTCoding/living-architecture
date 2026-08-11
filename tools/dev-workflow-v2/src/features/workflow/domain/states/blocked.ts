@@ -1,18 +1,19 @@
 import type { ConcreteStateDefinition } from '../workflow-types'
 import {
   pass, fail 
-} from '@ntcoding/agentic-workflow-builder/dsl'
+} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
 export const blockedState: ConcreteStateDefinition = {
   emoji: '⚠️',
   agentInstructions: 'states/blocked.md',
+  allowIdle: true,
   forbidden: { write: true },
   canTransitionTo: [
     'IMPLEMENTING',
     'REVIEWING',
     'SUBMITTING_PR',
     'AWAITING_CI',
-    'CHECKING_FEEDBACK',
+    'AWAITING_PR_FEEDBACK',
     'ADDRESSING_FEEDBACK',
     'REFLECTING',
   ],

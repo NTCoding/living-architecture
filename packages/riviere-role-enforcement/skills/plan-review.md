@@ -51,7 +51,7 @@ Before reviewing the plan, read the full role enforcement context:
 
 Accept the plan from the user via one of:
 
-- A path to a plan document (e.g. `docs/project/PRD/active/X.md`, a task body file, a markdown file).
+- A path to a plan document (e.g. `docs/project/PRD/example-prd/PRD.md`, a task body file, a markdown file).
 - A GitHub issue number or URL — fetch with `gh issue view <n> --json body -q '.body'`.
 - An inline plan pasted into the conversation.
 
@@ -102,6 +102,7 @@ Review the plan for plan-level signals of architectural problems:
 - **Missing aggregate-repository concept.** The plan loads state without naming a repository, or loads via a free function directly from a database driver.
 - **Unapproved aggregate.** The plan proposes something that sounds like an aggregate (holds state, enforces invariants via state-modifying methods) without an explicit user-approval line. Flag for approval.
 - **Wrong-layer code.** The plan proposes code in `entrypoint/` that imports `infra/persistence/`, or code in `domain/` that imports an external library — would violate `forbiddenImports`.
+- **Consumer-owned mapping proposed as a domain abstraction.** The plan puts an adapter, presenter, formatter, write port, bridge, or translator in `domain/` even though its only job is to reshape domain results for a specific consumer such as CLI output, workflow updates, or builder writes. Flag it and show the simpler alternative where the use case performs its own mapping.
 - **Cross-role coupling.** The plan proposes a `command-use-case` that depends on another `command-use-case` — forbidden by the role's `forbiddenDependencies`.
 - **Repository calling another repository.** Same pattern — forbidden.
 - **`cli-entrypoint` importing `aggregate-repository` directly.** Per `role-selection-guide.md` Section 2, only `command-use-case` should depend on `aggregate-repository`.
@@ -111,7 +112,7 @@ Review the plan for plan-level signals of architectural problems:
 Output a markdown block the user can paste into the plan document or issue body. Exact structure:
 
 ```markdown
-## Architectural Annex (from `/arch-plan`)
+## Architectural Annex
 
 > Directional only — the plan will evolve during TDD. Re-consult `.riviere/role-enforcement.config.ts` as the code takes shape. Role enforcement is verified by oxlint at lint time; this annex surfaces architectural decisions upfront so they do not ambush the implementer mid-build.
 
@@ -171,6 +172,7 @@ Before applying the annex, scan its contents and classify each finding:
 4. **Forbidden-dependency violation.** Any Structural Concern where a proposed role's `forbiddenDependencies` would reject a dependency the plan requires (e.g. `command-use-case` → `command-use-case`).
 5. **Missing aggregate-repository concept.** Any Structural Concern flagging that the plan loads/persists state without naming a repository.
 6. **Changes to existing roles or the enforcement config.** Any finding that would require editing `.riviere/roles.ts`, `.riviere/role-enforcement.config.ts`, or role definition files.
+7. **Consumer-specific output formatting placed in `domain/`.** Any Structural Concern showing that a proposed `domain/` abstraction exists only to map domain results into the API of a specific consumer such as a CLI presenter, workflow builder, or graph builder.
 
 **Non-blocking findings** — directional information that should be auto-applied without user intervention:
 

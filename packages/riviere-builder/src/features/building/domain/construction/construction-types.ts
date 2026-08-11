@@ -27,6 +27,9 @@ export interface DomainInput {
 }
 
 /** @riviere-role value-object */
+export interface UpsertOptions {noOverwrite?: boolean}
+
+/** @riviere-role value-object */
 export interface UIInput {
   name: string
   domain: string
@@ -106,6 +109,12 @@ export interface CustomTypeInput {
   description?: string
   requiredProperties?: Record<string, CustomPropertyDefinition>
   optionalProperties?: Record<string, CustomPropertyDefinition>
+}
+
+/** @riviere-role value-object */
+export interface RelationshipTypeInput {
+  name: string
+  description: string
 }
 
 /** @riviere-role value-object */

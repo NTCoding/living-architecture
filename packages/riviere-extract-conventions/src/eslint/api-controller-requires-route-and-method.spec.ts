@@ -40,9 +40,10 @@ describe('api-controller-requires-route-and-method', () => {
   ruleTester.run('api-controller-requires-route-and-method', rule, {
     valid: [
       {
-        name: 'passes when class has route and method with literal values',
+        name: 'passes when @APIContainer class has route and method with literal values',
         code: `
-          class OrderController implements APIControllerDef {
+          @APIContainer
+          class OrderController {
             readonly route = '/orders'
             readonly method = 'GET'
             handle() {}
@@ -50,7 +51,7 @@ describe('api-controller-requires-route-and-method', () => {
         `,
       },
       {
-        name: 'ignores classes not implementing APIControllerDef',
+        name: 'ignores classes without @APIContainer decorator',
         code: `
           class SomeOtherClass {
             doSomething() {}
@@ -58,51 +59,45 @@ describe('api-controller-requires-route-and-method', () => {
         `,
       },
       {
-        name: 'passes when class implements multiple interfaces including APIControllerDef',
+        name: 'ignores classes with different decorator',
         code: `
-          class OrderController implements Serializable, APIControllerDef {
-            readonly route = '/orders'
-            readonly method = 'POST'
-            handle() {}
+          @UseCase
+          class SomeOtherClass {
+            doSomething() {}
           }
         `,
       },
       {
         name: 'passes with all valid HTTP methods',
         code: `
-          class GetController implements APIControllerDef {
+          @APIContainer
+          class GetController {
             readonly route = '/get'
             readonly method = 'GET'
             handle() {}
           }
-          class PostController implements APIControllerDef {
+          @APIContainer
+          class PostController {
             readonly route = '/post'
             readonly method = 'POST'
             handle() {}
           }
-          class PutController implements APIControllerDef {
+          @APIContainer
+          class PutController {
             readonly route = '/put'
             readonly method = 'PUT'
             handle() {}
           }
-          class PatchController implements APIControllerDef {
+          @APIContainer
+          class PatchController {
             readonly route = '/patch'
             readonly method = 'PATCH'
             handle() {}
           }
-          class DeleteController implements APIControllerDef {
+          @APIContainer
+          class DeleteController {
             readonly route = '/delete'
             readonly method = 'DELETE'
-            handle() {}
-          }
-        `,
-      },
-      {
-        name: 'passes when class implements qualified interface name',
-        code: `
-          class OrderController implements Domain.APIControllerDef {
-            readonly route = '/orders'
-            readonly method = 'GET'
             handle() {}
           }
         `,
@@ -112,7 +107,8 @@ describe('api-controller-requires-route-and-method', () => {
       {
         name: 'reports error when route property is missing',
         code: `
-          class OrderController implements APIControllerDef {
+          @APIContainer
+          class OrderController {
             readonly method = 'GET'
             handle() {}
           }
@@ -122,7 +118,8 @@ describe('api-controller-requires-route-and-method', () => {
       {
         name: 'reports error when method property is missing',
         code: `
-          class OrderController implements APIControllerDef {
+          @APIContainer
+          class OrderController {
             readonly route = '/orders'
             handle() {}
           }
@@ -133,7 +130,8 @@ describe('api-controller-requires-route-and-method', () => {
         name: 'reports error when route is not a literal (variable reference)',
         code: `
           const ROUTE = '/orders'
-          class OrderController implements APIControllerDef {
+          @APIContainer
+          class OrderController {
             readonly route = ROUTE
             readonly method = 'GET'
             handle() {}
@@ -144,7 +142,8 @@ describe('api-controller-requires-route-and-method', () => {
       {
         name: 'reports error when method is an enum value',
         code: `
-          class OrderController implements APIControllerDef {
+          @APIContainer
+          class OrderController {
             readonly route = '/orders'
             readonly method = HttpMethod.GET
             handle() {}
@@ -155,7 +154,8 @@ describe('api-controller-requires-route-and-method', () => {
       {
         name: 'reports error when method is invalid HTTP method',
         code: `
-          class OrderController implements APIControllerDef {
+          @APIContainer
+          class OrderController {
             readonly route = '/orders'
             readonly method = 'INVALID'
             handle() {}
@@ -166,7 +166,8 @@ describe('api-controller-requires-route-and-method', () => {
       {
         name: 'reports error when route is a function call',
         code: `
-          class OrderController implements APIControllerDef {
+          @APIContainer
+          class OrderController {
             readonly route = getRoute()
             readonly method = 'GET'
             handle() {}
@@ -177,7 +178,8 @@ describe('api-controller-requires-route-and-method', () => {
       {
         name: 'reports multiple errors when both route and method are missing',
         code: `
-          class OrderController implements APIControllerDef {
+          @APIContainer
+          class OrderController {
             handle() {}
           }
         `,
@@ -187,7 +189,8 @@ describe('api-controller-requires-route-and-method', () => {
         name: 'reports error when route is a template literal',
         code: `
           const id = '123'
-          class OrderController implements APIControllerDef {
+          @APIContainer
+          class OrderController {
             readonly route = \`/orders/\${id}\`
             readonly method = 'GET'
             handle() {}

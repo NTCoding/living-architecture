@@ -32,10 +32,12 @@ export interface ModuleContext {
 - **Not an aggregate**: if it owns behavior that enforces invariants and is loaded through a repository, it's an aggregate
 - **Not a command-use-case-input**: if it's specifically the parameter type for a command, use that more specific role
 - **Not an external-client-model**: if it represents an external service's data shape rather than a domain concept
+- **Not a consumer contract**: if it exists only to shape data for a builder, presenter, workflow, or CLI consumer, it is not a domain value object
 
 ### Mixed Responsibility Signals
 - If the type contains methods that call external services — likely an aggregate or misplaced infrastructure
 - If the type is only used as a function parameter for one command — consider command-use-case-input instead
+- If the type is named around a specific consumer API rather than a domain concept — move it out of `domain/`
 
 ## Decision Guidance
 - **vs aggregate**: Does it own behavior and enforce invariants? → aggregate. Is it a data structure? → value-object

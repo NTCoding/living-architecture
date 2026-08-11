@@ -40,7 +40,7 @@ Canvas, node, edge, and tooltip specifications for graph views.
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(13, 148, 136, 0.25) 1.5px, transparent 1.5px);
+  background-image: radial-gradient(circle, rgba(100, 116, 139, 0.22) 1.5px, transparent 1.5px);
   background-size: 24px 24px;
   pointer-events: none;
 }
@@ -57,7 +57,7 @@ Canvas, node, edge, and tooltip specifications for graph views.
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(0, 212, 255, 0.15) 1.5px, transparent 1.5px);
+  background-image: radial-gradient(circle, rgba(160, 160, 176, 0.18) 1.5px, transparent 1.5px);
   background-size: 24px 24px;
   pointer-events: none;
 }
@@ -149,7 +149,10 @@ Nodes must stand out from canvas through:
 
 See [Global Brand Colors](/docs/brand/colors.md#architectural-component-colors) for the authoritative color values per component type.
 
-In Éclair, these are implemented in `types.ts` as `NODE_COLORS` and used throughout the application.
+In Éclair, built-in and graph-defined custom types are resolved through
+`src/platform/domain/node-type-presentation.ts`. Built-in types use the documented brand colours;
+custom type names use one stable, theme-aware colour mapping shared by graphs, badges, filters and
+legends.
 
 ---
 

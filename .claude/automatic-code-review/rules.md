@@ -1,1 +1,1 @@
-Read: @/docs/workflow/code-review.md
+Read: @/docs/conventions/review-feedback-checks.md

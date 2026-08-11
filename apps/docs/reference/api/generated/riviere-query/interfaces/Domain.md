@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: Domain
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:144](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L144)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:150](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L150)
 
 Domain information with metadata and component counts.
 
@@ -18,7 +18,7 @@ query-model
 
 > **componentCounts**: [`ComponentCounts`](ComponentCounts.md)
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:152](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L152)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:158](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L158)
 
 Counts of components by type.
 
@@ -28,7 +28,7 @@ Counts of components by type.
 
 > **description**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:148](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L148)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:154](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L154)
 
 Domain description from graph metadata.
 
@@ -38,7 +38,7 @@ Domain description from graph metadata.
 
 > **name**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:146](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L146)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:152](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L152)
 
 Domain name.
 
@@ -46,8 +46,8 @@ Domain name.
 
 ### systemType
 
-> **systemType**: `"domain"` \| `"bff"` \| `"ui"` \| `"other"`
+> **systemType**: `SystemType`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:150](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L150)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:156](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L156)
 
 System type classification.

@@ -4,16 +4,18 @@ import {
 import { ComponentIndex } from '../component-index'
 import { ConnectionDetectionError } from '../connection-detection-error'
 import { buildCallGraph } from './build-call-graph'
-import type { CallGraphOptions } from './call-graph-types'
+import { CallGraphOptions } from './call-graph-types'
 import {
   sharedProject, nextFile, buildComponent, defaultOptions 
 } from './call-graph-fixtures'
 
 function strictOptions(): CallGraphOptions {
-  return {
-    ...defaultOptions(),
+  const defaults = defaultOptions()
+  return new CallGraphOptions({
     strict: true,
-  }
+    sourceFilePaths: defaults.sourceFilePaths,
+    repository: defaults.repository,
+  })
 }
 
 describe('buildCallGraph', () => {
@@ -57,8 +59,8 @@ class PlaceOrder {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:PlaceOrder',
-        target: 'orders:domainOp:OrderRepo',
+        source: 'orders:orders-module:useCase:placeorder',
+        target: 'orders:orders-module:domainOp:orderrepo',
         type: 'sync',
         sourceLocation: expect.objectContaining({
           filePath: file,
@@ -103,8 +105,8 @@ class SendEmail {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:SendEmail',
-        target: 'orders:domainOp:Notifier',
+        source: 'orders:orders-module:useCase:sendemail',
+        target: 'orders:orders-module:domainOp:notifier',
         sourceLocation: expect.objectContaining({
           filePath: file,
           lineNumber: 18,
@@ -163,8 +165,8 @@ class Origin {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:Origin',
-        target: 'orders:domainOp:Target',
+        source: 'orders:orders-module:useCase:origin',
+        target: 'orders:orders-module:domainOp:target',
       }),
     ])
   })
@@ -208,10 +210,14 @@ class CompA {
     const result = buildCallGraph(sharedProject, [compA, compB], index, defaultOptions())
 
     const aToB = result.find(
-      (l) => l.source === 'orders:useCase:CompA' && l.target === 'orders:domainOp:CompB',
+      (l) =>
+        l.source === 'orders:orders-module:useCase:compa' &&
+        l.target === 'orders:orders-module:domainOp:compb',
     )
     const bToA = result.find(
-      (l) => l.source === 'orders:domainOp:CompB' && l.target === 'orders:useCase:CompA',
+      (l) =>
+        l.source === 'orders:orders-module:domainOp:compb' &&
+        l.target === 'orders:orders-module:useCase:compa',
     )
     expect(aToB).toBeDefined()
     expect(bToA).toBeDefined()
@@ -258,8 +264,8 @@ class PlaceOrder {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:PlaceOrder',
-        target: 'orders:repository:OrderRepo',
+        source: 'orders:orders-module:useCase:placeorder',
+        target: 'orders:orders-module:repository:orderrepo',
         type: 'sync',
       }),
     ])
@@ -290,8 +296,8 @@ class SendNotification {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:SendNotification',
-        target: 'orders:domainOp:EmailNotifier',
+        source: 'orders:orders-module:useCase:sendnotification',
+        target: 'orders:orders-module:domainOp:emailnotifier',
       }),
     ])
   })
@@ -311,7 +317,7 @@ class UncertainCaller {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:UncertainCaller',
+        source: 'orders:orders-module:useCase:uncertaincaller',
         target: '_unresolved',
         _uncertain: expect.stringContaining('any'),
       }),
@@ -368,8 +374,8 @@ class PublishEvent {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:PublishEvent',
-        target: 'orders:repository:EventStore',
+        source: 'orders:orders-module:useCase:publishevent',
+        target: 'orders:orders-module:repository:eventstore',
       }),
     ])
   })
@@ -394,7 +400,7 @@ class AlertUser {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:AlertUser',
+        source: 'orders:orders-module:useCase:alertuser',
         target: '_unresolved',
         _uncertain: expect.stringContaining('No implementation found for AlertChannel'),
       }),

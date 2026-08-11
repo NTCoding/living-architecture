@@ -3,11 +3,9 @@ import {
 } from 'vitest'
 import { Project } from 'ts-morph'
 import type {
-  ResolvedExtractionConfig, Module 
+  Module, ExtractionRule 
 } from '@living-architecture/riviere-extract-config'
-import type {
-  DraftComponent, GlobMatcher 
-} from '../component-extraction/extractor'
+import { DraftComponent } from '../component-extraction/draft-component'
 import { enrichComponents } from './enrich-components'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
@@ -20,21 +18,47 @@ function nextFile(path: string, content: string) {
   return filePath
 }
 
-function alwaysMatchGlob(): GlobMatcher {
-  return () => true
-}
-
-function configWithModules(modules: Module[]): ResolvedExtractionConfig {
-  return { modules }
-}
-
-function notUsedModule(): Pick<Module, 'api' | 'useCase' | 'event' | 'ui'> {
+function httpCallModule(extract: Record<string, ExtractionRule>): Module {
   return {
     api: { notUsed: true },
     useCase: { notUsed: true },
     event: { notUsed: true },
     ui: { notUsed: true },
+    name: 'orders',
+    domain: 'orders-domain',
+    path: '/src/orders',
+    glob: '**',
+    domainOp: { notUsed: true },
+    eventHandler: { notUsed: true },
+    customTypes: {
+      httpCall: {
+        find: 'methods',
+        where: { nameEndsWith: { suffix: 'check' } },
+        extract,
+      },
+    },
   }
+}
+
+function httpCallDraft(file: string, line: number): DraftComponent {
+  return new DraftComponent({
+    type: 'httpCall',
+    name: 'check',
+    location: {
+      file,
+      line,
+    },
+    domain: 'orders',
+    module: 'orders-module',
+  })
+}
+
+function enrich(drafts: DraftComponent[], modules: Module[]) {
+  const [module] = modules
+  if (module === undefined) {
+    throw new TypeError('Expected one module in test config')
+  }
+  return enrichComponents(drafts, module, sharedProject)
 }
 
 describe('enrichComponents — httpCall metadata extraction', () => {
@@ -50,21 +74,13 @@ export class FraudClient {
 }`,
     )
 
-    const drafts: DraftComponent[] = [
-      {
-        type: 'httpCall',
-        name: 'check',
-        location: {
-          file,
-          line: 5,
-        },
-        domain: 'orders',
-      },
-    ]
-
     const module: Module = {
-      ...notUsedModule(),
+      api: { notUsed: true },
+      useCase: { notUsed: true },
+      event: { notUsed: true },
+      ui: { notUsed: true },
       name: 'orders',
+      domain: 'orders-domain',
       path: '/src/orders',
       glob: '**',
       domainOp: { notUsed: true },
@@ -90,68 +106,76 @@ export class FraudClient {
       },
     }
 
-    const config = configWithModules([module])
-    const result = enrichComponents(drafts, config, sharedProject, alwaysMatchGlob(), '/')
+    const result = enrich([httpCallDraft(file, 5)], [module])
 
-    expect(result.components[0]?.metadata).toStrictEqual({ serviceName: 'Fraud Detection Service' })
-    expect(result.failures).toStrictEqual([])
+    expect(result.components[0]?.metadata).toMatchObject({ serviceName: 'Fraud Detection Service' })
+    expect(result.failures).toMatchObject([])
   })
 
-  it('extracts method decorator positional arg with fromDecoratorArg', () => {
+  it('extracts route and method decorator positional args with fromDecoratorArg', () => {
     const file = nextFile(
       '/src/orders/http-client.ts',
-      `function HttpCall(_: string) { return () => {} }
+      `function HttpCall(_: string, __: string) { return () => {} }
+export class FraudClient {
+  @HttpCall('/api/check', 'POST')
+  check() {}
+}`,
+    )
+
+    const module = httpCallModule({
+      route: {
+        fromDecoratorArg: {
+          decorator: 'HttpCall',
+          position: 0,
+        },
+      },
+      method: {
+        fromDecoratorArg: {
+          decorator: 'HttpCall',
+          position: 1,
+        },
+      },
+    })
+
+    const result = enrich([httpCallDraft(file, 3)], [module])
+
+    expect(result.components[0]?.metadata).toMatchObject({
+      route: '/api/check',
+      method: 'POST',
+    })
+    expect(result.failures).toMatchObject([])
+  })
+
+  it('records failure when HttpCall method argument is missing', () => {
+    const file = nextFile(
+      '/src/orders/http-client.ts',
+      `function HttpCall(_: string, __?: string) { return () => {} }
 export class FraudClient {
   @HttpCall('/api/check')
   check() {}
 }`,
     )
 
-    const drafts: DraftComponent[] = [
-      {
-        type: 'httpCall',
-        name: 'check',
-        location: {
-          file,
-          line: 3,
-        },
-        domain: 'orders',
-      },
-    ]
-
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src/orders',
-      glob: '**',
-      domainOp: { notUsed: true },
-      eventHandler: { notUsed: true },
-      customTypes: {
-        httpCall: {
-          find: 'methods',
-          where: { nameEndsWith: { suffix: 'check' } },
-          extract: {
-            route: {
-              fromDecoratorArg: {
-                decorator: 'HttpCall',
-                position: 0,
-              },
-            },
-          },
+    const module = httpCallModule({
+      route: {
+        fromDecoratorArg: {
+          decorator: 'HttpCall',
+          position: 0,
         },
       },
-    }
+      method: {
+        fromDecoratorArg: {
+          decorator: 'HttpCall',
+          position: 1,
+        },
+      },
+    })
 
-    const result = enrichComponents(
-      drafts,
-      configWithModules([module]),
-      sharedProject,
-      alwaysMatchGlob(),
-      '/',
-    )
+    const result = enrich([httpCallDraft(file, 3)], [module])
 
-    expect(result.components[0]?.metadata).toStrictEqual({ route: '/api/check' })
-    expect(result.failures).toStrictEqual([])
+    expect(result.failures).toHaveLength(1)
+    expect(result.failures[0]?.field).toBe('method')
+    expect(result.components[0]?._missing).toMatchObject(['method'])
   })
 
   it('records failure when fromDecoratorArg decorator is missing on method', () => {
@@ -162,50 +186,20 @@ export class FraudClient {
 }`,
     )
 
-    const draft: DraftComponent = {
-      type: 'httpCall',
-      name: 'check',
-      location: {
-        file,
-        line: 2,
-      },
-      domain: 'orders',
-    }
-
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src/orders',
-      glob: '**',
-      domainOp: { notUsed: true },
-      eventHandler: { notUsed: true },
-      customTypes: {
-        httpCall: {
-          find: 'methods',
-          where: { nameEndsWith: { suffix: 'check' } },
-          extract: {
-            route: {
-              fromDecoratorArg: {
-                decorator: 'HttpCall',
-                position: 0,
-              },
-            },
-          },
+    const module = httpCallModule({
+      route: {
+        fromDecoratorArg: {
+          decorator: 'HttpCall',
+          position: 0,
         },
       },
-    }
+    })
 
-    const result = enrichComponents(
-      [draft],
-      configWithModules([module]),
-      sharedProject,
-      alwaysMatchGlob(),
-      '/',
-    )
+    const result = enrich([httpCallDraft(file, 2)], [module])
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.field).toBe('route')
-    expect(result.components[0]?._missing).toStrictEqual(['route'])
+    expect(result.components[0]?._missing).toMatchObject(['route'])
   })
 
   it('records failure when fromDecoratorArg decorator name does not match method decorator', () => {
@@ -218,50 +212,20 @@ export class FraudClient {
 }`,
     )
 
-    const draft: DraftComponent = {
-      type: 'httpCall',
-      name: 'check',
-      location: {
-        file,
-        line: 3,
-      },
-      domain: 'orders',
-    }
-
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src/orders',
-      glob: '**',
-      domainOp: { notUsed: true },
-      eventHandler: { notUsed: true },
-      customTypes: {
-        httpCall: {
-          find: 'methods',
-          where: { nameEndsWith: { suffix: 'check' } },
-          extract: {
-            route: {
-              fromDecoratorArg: {
-                decorator: 'HttpCall',
-                position: 0,
-              },
-            },
-          },
+    const module = httpCallModule({
+      route: {
+        fromDecoratorArg: {
+          decorator: 'HttpCall',
+          position: 0,
         },
       },
-    }
+    })
 
-    const result = enrichComponents(
-      [draft],
-      configWithModules([module]),
-      sharedProject,
-      alwaysMatchGlob(),
-      '/',
-    )
+    const result = enrich([httpCallDraft(file, 3)], [module])
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.field).toBe('route')
-    expect(result.components[0]?._missing).toStrictEqual(['route'])
+    expect(result.components[0]?._missing).toMatchObject(['route'])
   })
 
   it('extracts first method decorator name with fromDecoratorName', () => {
@@ -276,44 +240,12 @@ export class FraudClient {
 }`,
     )
 
-    const drafts: DraftComponent[] = [
-      {
-        type: 'httpCall',
-        name: 'check',
-        location: {
-          file,
-          line: 4,
-        },
-        domain: 'orders',
-      },
-    ]
+    const module = httpCallModule({ decoratorName: { fromDecoratorName: true } })
 
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src/orders',
-      glob: '**',
-      domainOp: { notUsed: true },
-      eventHandler: { notUsed: true },
-      customTypes: {
-        httpCall: {
-          find: 'methods',
-          where: { nameEndsWith: { suffix: 'check' } },
-          extract: { decoratorName: { fromDecoratorName: true } },
-        },
-      },
-    }
+    const result = enrich([httpCallDraft(file, 4)], [module])
 
-    const result = enrichComponents(
-      drafts,
-      configWithModules([module]),
-      sharedProject,
-      alwaysMatchGlob(),
-      '/',
-    )
-
-    expect(result.components[0]?.metadata).toStrictEqual({ decoratorName: 'First' })
-    expect(result.failures).toStrictEqual([])
+    expect(result.components[0]?.metadata).toMatchObject({ decoratorName: 'First' })
+    expect(result.failures).toMatchObject([])
   })
 
   it('records failure when fromDecoratorName is used on undecorated method', () => {
@@ -324,42 +256,12 @@ export class FraudClient {
 }`,
     )
 
-    const draft: DraftComponent = {
-      type: 'httpCall',
-      name: 'check',
-      location: {
-        file,
-        line: 2,
-      },
-      domain: 'orders',
-    }
+    const module = httpCallModule({ decoratorName: { fromDecoratorName: true } })
 
-    const module: Module = {
-      ...notUsedModule(),
-      name: 'orders',
-      path: '/src/orders',
-      glob: '**',
-      domainOp: { notUsed: true },
-      eventHandler: { notUsed: true },
-      customTypes: {
-        httpCall: {
-          find: 'methods',
-          where: { nameEndsWith: { suffix: 'check' } },
-          extract: { decoratorName: { fromDecoratorName: true } },
-        },
-      },
-    }
-
-    const result = enrichComponents(
-      [draft],
-      configWithModules([module]),
-      sharedProject,
-      alwaysMatchGlob(),
-      '/',
-    )
+    const result = enrich([httpCallDraft(file, 2)], [module])
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.field).toBe('decoratorName')
-    expect(result.components[0]?._missing).toStrictEqual(['decoratorName'])
+    expect(result.components[0]?._missing).toMatchObject(['decoratorName'])
   })
 })

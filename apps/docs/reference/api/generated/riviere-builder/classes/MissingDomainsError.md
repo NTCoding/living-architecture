@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: MissingDomainsError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:110](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L110)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:177](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L177)
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new MissingDomainsError**(): `MissingDomainsError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:111](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L111)
+Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:178](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L178)
 
 #### Returns
 

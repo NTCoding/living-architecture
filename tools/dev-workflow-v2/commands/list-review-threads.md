@@ -1,6 +1,6 @@
 # list-review-threads
 
-List unresolved review threads for the current PR in a structured format.
+List unresolved review threads for the pull request recorded in workflow state.
 
 ## Usage
 
@@ -10,11 +10,9 @@ List unresolved review threads for the current PR in a structured format.
 
 ## Instructions
 
-1. Read the current branch name: `git branch --show-current`
-2. Get a GitHub token: `gh auth token`
-3. Resolve the PR for the current branch with `gh pr view --json number,url,reviewThreads`
-   - Run the command as `GITHUB_TOKEN=<token> gh pr view ...`
-   - If no PR exists for the current branch, report that and stop.
+1. Read `/dev-workflow-v2:workflow get-state` and extract `prNumber`.
+2. Stop if `prNumber` is missing. Do not infer a PR from the current branch.
+3. Fetch the PR's `reviewDecision`, reviews, and `reviewThreads` through GitHub GraphQL.
 4. Filter to unresolved review threads only.
 5. Group the unresolved threads by file path. Use `no file` for threads without a path.
 6. For each unresolved thread, report:
@@ -38,7 +36,7 @@ Unresolved threads: <count>
 
 ## Scope
 
-- This command only lists current unresolved review threads.
+- This command only reads and lists current unresolved review threads.
 - Do not reply to threads.
 - Do not resolve threads.
 - Do not record workflow state here.

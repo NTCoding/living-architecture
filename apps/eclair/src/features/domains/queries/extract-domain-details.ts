@@ -25,6 +25,9 @@ export interface AggregatedConnection {
   direction: 'incoming' | 'outgoing'
   apiCount: number
   eventCount: number
+  relationshipCount: number
+  relationshipTypes?: string[]
+  deliveryTypes?: EdgeType[]
 }
 
 interface KnownSourceEventInfo {
@@ -57,6 +60,8 @@ export interface DomainEvents {
 export interface CrossDomainEdge {
   targetDomain: string
   edgeType: EdgeType | undefined
+  relationshipType?: string
+  condition?: string
 }
 
 export interface DomainDetails {
@@ -90,14 +95,21 @@ function buildCrossDomainEdges(graph: RiviereGraph, domainId: DomainName): Cross
       continue
     }
 
-    const key = `${targetDomain}:${edge.type ?? 'unknown'}`
+    const key = JSON.stringify([targetDomain, edge.relationshipType, edge.type, edge.condition])
     if (crossDomainEdgeSet.has(key)) continue
 
     crossDomainEdgeSet.add(key)
-    crossDomainEdges.push({
+    const crossDomainEdge: CrossDomainEdge = {
       targetDomain,
       edgeType: edge.type,
-    })
+    }
+    if (edge.relationshipType !== undefined) {
+      crossDomainEdge.relationshipType = edge.relationshipType
+    }
+    if (edge.condition !== undefined) {
+      crossDomainEdge.condition = edge.condition
+    }
+    crossDomainEdges.push(crossDomainEdge)
   }
 
   return crossDomainEdges.sort((a, b) => compareByCodePoint(a.targetDomain, b.targetDomain))
@@ -116,7 +128,7 @@ export function extractDomainDetails(
   const domainNodes = graph.components.filter((n) => n.domain === domainId)
 
   const breakdown = countNodesByType(domainNodes)
-  const nodes = formatDomainNodes(domainNodes)
+  const nodes = formatDomainNodes(domainNodes, graph.metadata.customTypes)
   const entities = query.entities(domainId)
 
   const queryPublished = query.publishedEvents(domainId)
@@ -166,7 +178,7 @@ export function extractDomainDetails(
   }
 
   const crossDomainEdges = buildCrossDomainEdges(graph, domainId)
-  const aggregatedConnections = query.domainConnections(domainId)
+  const aggregatedConnections = buildAggregatedConnections(graph, domainId)
   const entryPoints = extractEntryPoints(domainNodes)
 
   const repository = domainNodes.find((node) => node.sourceLocation?.repository)?.sourceLocation
@@ -185,4 +197,59 @@ export function extractDomainDetails(
     entryPoints,
     repository,
   }
+}
+
+function buildAggregatedConnections(graph: RiviereGraph, domainId: string): AggregatedConnection[] {
+  const componentById = new Map(graph.components.map((component) => [component.id, component]))
+  const connections = new Map<string, AggregatedConnection>()
+
+  for (const link of graph.links) {
+    const source = componentById.get(link.source)
+    const target = componentById.get(link.target)
+    if (source === undefined || target === undefined || source.domain === target.domain) continue
+
+    const isOutgoing = source.domain === domainId
+    const isIncoming = target.domain === domainId
+    if (!isOutgoing && !isIncoming) continue
+
+    const direction = isOutgoing ? 'outgoing' : 'incoming'
+    const targetDomain = isOutgoing ? target.domain : source.domain
+    const key = `${direction}:${targetDomain}`
+    const existing = connections.get(key) ?? {
+      targetDomain,
+      direction,
+      apiCount: 0,
+      eventCount: 0,
+      relationshipCount: 0,
+    }
+
+    updateAggregatedConnection(existing, link, target)
+    connections.set(key, existing)
+  }
+
+  return [...connections.values()].sort((left, right) => {
+    const domainOrder = compareByCodePoint(left.targetDomain, right.targetDomain)
+    if (domainOrder !== 0) return domainOrder
+    return compareByCodePoint(left.direction, right.direction)
+  })
+}
+
+function appendUnique<T>(values: T[] | undefined, value: T | undefined): T[] | undefined {
+  if (value === undefined) return values
+  const currentValues = values ?? []
+  return currentValues.includes(value) ? currentValues : [...currentValues, value]
+}
+
+function updateAggregatedConnection(
+  connection: AggregatedConnection,
+  link: RiviereGraph['links'][number],
+  target: RiviereGraph['components'][number],
+): void {
+  connection.relationshipCount += 1
+  const relationshipTypes = appendUnique(connection.relationshipTypes, link.relationshipType)
+  if (relationshipTypes !== undefined) connection.relationshipTypes = relationshipTypes
+  const deliveryTypes = appendUnique(connection.deliveryTypes, link.type)
+  if (deliveryTypes !== undefined) connection.deliveryTypes = deliveryTypes
+  if (target.type === 'API') connection.apiCount += 1
+  if (target.type === 'EventHandler') connection.eventCount += 1
 }

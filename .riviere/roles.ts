@@ -5,15 +5,22 @@ type RoleName =
   | 'aggregate-repository'
   | 'cli-entrypoint'
   | 'cli-error'
-  | 'cli-input-validator'
+  | 'cli-error-handler'
+  | 'entrypoint-cli-input-parser'
+  | 'generic-cli-input-parser'
   | 'cli-output-formatter'
+  | 'cli-response-formatter'
+  | 'cli-response-writer'
   | 'command-input-factory'
   | 'command-use-case'
   | 'command-use-case-input'
   | 'command-use-case-result'
   | 'command-use-case-result-value'
   | 'domain-error'
+  | 'domain-event'
+  | 'domain-port'
   | 'domain-service'
+  | 'domain-port-adapter'
   | 'external-client-error'
   | 'external-client-model'
   | 'external-client-service'
@@ -33,7 +40,7 @@ export const allRoles = [
     targets: ['class', 'function'],
     allowedInputs: ['command-use-case-input'],
     allowedOutputs: ['command-use-case-result'],
-    forbiddenDependencies: ['command-use-case'],
+    forbiddenDependencies: ['command-use-case', 'domain-port-adapter'],
     minPublicMethods: 1,
     maxPublicMethods: 1,
   }),
@@ -49,6 +56,9 @@ export const allRoles = [
     targets: ['interface', 'type-alias'],
   }),
   role('cli-output-formatter', { targets: ['function'] }),
+  role('cli-response-formatter', { targets: ['function'] }),
+  role('cli-response-writer', { targets: ['function'] }),
+  role('cli-error-handler', { targets: ['function'] }),
   role('command-input-factory', {
     targets: ['function'],
     allowedOutputs: ['command-use-case-input'],
@@ -71,11 +81,31 @@ export const allRoles = [
         name: 'RiviereBuilder',
         userHasApproved: true,
       },
+      {
+        name: 'RoleEnforcementProject',
+        userHasApproved: true,
+      },
     ],
   }),
-  role('value-object', { targets: ['interface', 'type-alias', 'class'] }),
+  role('value-object', {
+    targets: ['interface', 'type-alias', 'class'],
+    forbiddenCallableMembers: true,
+    forbiddenSupertypes: ['Error'],
+    requiredPrivateMembers: ['brand'],
+    requiresDataMembers: true,
+    forbiddenDependencies: ['aggregate', 'domain-service'],
+  }),
   role('domain-error', { targets: ['class'] }),
+  role('domain-event', {
+    targets: ['type-alias'],
+    nameMatches: '.*Event$',
+  }),
+  role('domain-port', { targets: ['interface', 'type-alias'] }),
   role('domain-service', { targets: ['function', 'class'] }),
+  role('domain-port-adapter', {
+    targets: ['function', 'class'],
+    forbiddenDependencies: ['domain-port-adapter'],
+  }),
   role('query-model-use-case', {
     targets: ['class'],
     allowedInputs: ['query-model-use-case-input'],
@@ -99,7 +129,8 @@ export const allRoles = [
   }),
   role('external-client-model', { targets: ['interface', 'type-alias', 'class'] }),
   role('external-client-error', { targets: ['class'] }),
-  role('cli-input-validator', { targets: ['function'] }),
+  role('entrypoint-cli-input-parser', { targets: ['function'] }),
+  role('generic-cli-input-parser', { targets: ['function'] }),
   role('cli-error', { targets: ['class'] }),
   role('main', {
     targets: ['function'],

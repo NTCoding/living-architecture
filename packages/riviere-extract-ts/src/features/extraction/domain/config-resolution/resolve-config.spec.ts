@@ -1,11 +1,8 @@
 import {
-  describe, it, expect, vi 
+  describe, it, expect 
 } from 'vitest'
-import type {
-  ExtractionConfig, Module 
-} from '@living-architecture/riviere-extract-config'
+import type { ExtractionConfig } from '@living-architecture/riviere-extract-config'
 import { resolveConfig } from './resolve-config'
-import type { ConfigLoader } from './resolve-config'
 
 describe('resolveConfig', () => {
   describe('modules without extends', () => {
@@ -14,6 +11,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             api: { notUsed: true },
@@ -32,6 +30,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             api: { notUsed: true },
@@ -50,6 +49,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             api: { notUsed: true },
@@ -71,6 +71,7 @@ describe('resolveConfig', () => {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
             api: { notUsed: true },
@@ -98,258 +99,29 @@ describe('resolveConfig', () => {
         },
       })
     })
-  })
 
-  describe('modules with extends', () => {
-    function createBaseModule(): Module {
-      return {
-        name: 'base',
-        path: '.',
-        glob: '**',
-        api: {
-          find: 'methods',
-          where: { hasDecorator: { name: 'API' } },
-        },
-        useCase: {
-          find: 'classes',
-          where: { hasDecorator: { name: 'UseCase' } },
-        },
-        domainOp: { notUsed: true },
-        event: { notUsed: true },
-        eventHandler: { notUsed: true },
-        ui: { notUsed: true },
-      }
-    }
-
-    it('inherits rules from extended config', () => {
+    it('includes modules pattern in resolved module', () => {
       const config: ExtractionConfig = {
         modules: [
           {
             name: 'orders',
+            domain: 'orders',
             path: 'orders',
             glob: '**',
-            extends: '@living-architecture/riviere-extract-conventions',
+            modules: '/src/{module}/',
+            api: { notUsed: true },
+            useCase: { notUsed: true },
+            domainOp: { notUsed: true },
+            event: { notUsed: true },
+            eventHandler: { notUsed: true },
+            ui: { notUsed: true },
           },
         ],
       }
 
-      const loader: ConfigLoader = vi.fn().mockReturnValue(createBaseModule())
+      const result = resolveConfig(config)
 
-      const result = resolveConfig(config, loader)
-
-      expect(loader).toHaveBeenCalledWith('@living-architecture/riviere-extract-conventions')
-      expect(result.modules[0]).toStrictEqual({
-        name: 'orders',
-        path: 'orders',
-        glob: '**',
-        api: {
-          find: 'methods',
-          where: { hasDecorator: { name: 'API' } },
-        },
-        useCase: {
-          find: 'classes',
-          where: { hasDecorator: { name: 'UseCase' } },
-        },
-        domainOp: { notUsed: true },
-        event: { notUsed: true },
-        eventHandler: { notUsed: true },
-        ui: { notUsed: true },
-      })
-    })
-
-    it('throws error when module uses extends but no loader provided', () => {
-      const config: ExtractionConfig = {
-        modules: [
-          {
-            name: 'orders',
-            path: 'orders',
-            glob: '**',
-            extends: '@living-architecture/riviere-extract-conventions',
-          },
-        ],
-      }
-
-      expect(() => resolveConfig(config)).toThrow(
-        "Module 'orders' uses extends but no config loader was provided.",
-      )
-    })
-
-    it('local rule overrides inherited rule', () => {
-      const config: ExtractionConfig = {
-        modules: [
-          {
-            name: 'orders',
-            path: 'orders',
-            glob: '**',
-            extends: '@living-architecture/riviere-extract-conventions',
-            api: {
-              find: 'methods',
-              where: { hasDecorator: { name: 'CustomAPI' } },
-            },
-          },
-        ],
-      }
-
-      const loader: ConfigLoader = vi.fn().mockReturnValue(createBaseModule())
-
-      const result = resolveConfig(config, loader)
-
-      expect(result.modules[0]?.api).toStrictEqual({
-        find: 'methods',
-        where: { hasDecorator: { name: 'CustomAPI' } },
-      })
-      expect(result.modules[0]?.useCase).toStrictEqual({
-        find: 'classes',
-        where: { hasDecorator: { name: 'UseCase' } },
-      })
-    })
-
-    it('includes customTypes in extended module', () => {
-      const config: ExtractionConfig = {
-        modules: [
-          {
-            name: 'orders',
-            path: 'orders',
-            glob: '**',
-            extends: '@living-architecture/riviere-extract-conventions',
-            customTypes: {
-              repository: {
-                find: 'classes',
-                where: { nameEndsWith: { suffix: 'Repository' } },
-              },
-            },
-          },
-        ],
-      }
-
-      const loader: ConfigLoader = vi.fn().mockReturnValue(createBaseModule())
-
-      const result = resolveConfig(config, loader)
-
-      expect(result.modules[0]?.customTypes).toStrictEqual({
-        repository: {
-          find: 'classes',
-          where: { nameEndsWith: { suffix: 'Repository' } },
-        },
-      })
-    })
-
-    it('inherits customTypes from base module when local has none', () => {
-      const baseWithCustomTypes: Module = {
-        ...createBaseModule(),
-        customTypes: {
-          service: {
-            find: 'classes',
-            where: { nameEndsWith: { suffix: 'Service' } },
-          },
-        },
-      }
-
-      const config: ExtractionConfig = {
-        modules: [
-          {
-            name: 'orders',
-            path: 'orders',
-            glob: '**',
-            extends: '@living-architecture/riviere-extract-conventions',
-          },
-        ],
-      }
-
-      const loader: ConfigLoader = vi.fn().mockReturnValue(baseWithCustomTypes)
-
-      const result = resolveConfig(config, loader)
-
-      expect(result.modules[0]?.customTypes).toStrictEqual({
-        service: {
-          find: 'classes',
-          where: { nameEndsWith: { suffix: 'Service' } },
-        },
-      })
-    })
-
-    it('merges customTypes from local and base module', () => {
-      const baseWithCustomTypes: Module = {
-        ...createBaseModule(),
-        customTypes: {
-          service: {
-            find: 'classes',
-            where: { nameEndsWith: { suffix: 'Service' } },
-          },
-        },
-      }
-
-      const config: ExtractionConfig = {
-        modules: [
-          {
-            name: 'orders',
-            path: 'orders',
-            glob: '**',
-            extends: '@living-architecture/riviere-extract-conventions',
-            customTypes: {
-              repository: {
-                find: 'classes',
-                where: { nameEndsWith: { suffix: 'Repository' } },
-              },
-            },
-          },
-        ],
-      }
-
-      const loader: ConfigLoader = vi.fn().mockReturnValue(baseWithCustomTypes)
-
-      const result = resolveConfig(config, loader)
-
-      expect(result.modules[0]?.customTypes).toStrictEqual({
-        service: {
-          find: 'classes',
-          where: { nameEndsWith: { suffix: 'Service' } },
-        },
-        repository: {
-          find: 'classes',
-          where: { nameEndsWith: { suffix: 'Repository' } },
-        },
-      })
-    })
-
-    it('local customType overrides inherited customType with same name', () => {
-      const baseWithCustomTypes: Module = {
-        ...createBaseModule(),
-        customTypes: {
-          repository: {
-            find: 'classes',
-            where: { nameEndsWith: { suffix: 'Repo' } },
-          },
-        },
-      }
-
-      const config: ExtractionConfig = {
-        modules: [
-          {
-            name: 'orders',
-            path: 'orders',
-            glob: '**',
-            extends: '@living-architecture/riviere-extract-conventions',
-            customTypes: {
-              repository: {
-                find: 'classes',
-                where: { nameEndsWith: { suffix: 'Repository' } },
-              },
-            },
-          },
-        ],
-      }
-
-      const loader: ConfigLoader = vi.fn().mockReturnValue(baseWithCustomTypes)
-
-      const result = resolveConfig(config, loader)
-
-      expect(result.modules[0]?.customTypes).toStrictEqual({
-        repository: {
-          find: 'classes',
-          where: { nameEndsWith: { suffix: 'Repository' } },
-        },
-      })
+      expect(result.modules[0]?.modules).toBe('/src/{module}/')
     })
   })
 })

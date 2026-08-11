@@ -25,7 +25,7 @@ describe('RiviereQuery.flows()', () => {
     expect(flow.steps[0]?.component.id).toBe('test:mod:ui:page')
   })
 
-  it('sets first step depth to 0 with undefined linkType', () => {
+  it('sets first step depth to 0 and preserves its outgoing links', () => {
     const query = new RiviereQuery(createMinimalValidGraph())
 
     const result = query.flows()
@@ -33,7 +33,7 @@ describe('RiviereQuery.flows()', () => {
     const flow = assertDefined(result[0], 'Expected flow to exist')
     const firstStep = assertDefined(flow.steps[0], 'Expected first step to exist')
     expect(firstStep.depth).toBe(0)
-    expect(firstStep.linkType).toBeUndefined()
+    expect(firstStep.outgoingLinks).toStrictEqual(createMinimalValidGraph().links)
   })
 
   describe('when entry point has outgoing links', () => {
@@ -106,7 +106,7 @@ describe('RiviereQuery.flows()', () => {
     )
   })
 
-  it('sets linkType from outgoing link and undefined for last step', () => {
+  it('preserves the exact outgoing links for every step', () => {
     const graph = createMinimalValidGraph()
     graph.components.push(
       createAPIComponent({
@@ -127,9 +127,11 @@ describe('RiviereQuery.flows()', () => {
         type: 'sync',
       },
       {
-        source: 'test:api:a',
+        source: 'test:mod:ui:page',
         target: 'test:uc:b',
         type: 'async',
+        relationshipType: 'publishes',
+        condition: 'on success',
       },
     ]
     const query = new RiviereQuery(graph)
@@ -141,9 +143,9 @@ describe('RiviereQuery.flows()', () => {
     const step0 = assertDefined(flow.steps[0], 'Expected step 0')
     const step1 = assertDefined(flow.steps[1], 'Expected step 1')
     const step2 = assertDefined(flow.steps[2], 'Expected step 2')
-    expect(step0.linkType).toBe('sync')
-    expect(step1.linkType).toBe('async')
-    expect(step2.linkType).toBeUndefined()
+    expect(step0.outgoingLinks).toStrictEqual(graph.links)
+    expect(step1.outgoingLinks).toStrictEqual([])
+    expect(step2.outgoingLinks).toStrictEqual([])
   })
 
   it('returns multiple flows when graph has multiple entry points with no incoming links', () => {

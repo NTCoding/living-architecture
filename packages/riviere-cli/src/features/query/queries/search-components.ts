@@ -1,13 +1,17 @@
-import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repository'
+import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
 import type { SearchComponentsInput } from './search-components-input'
 import type { SearchComponentsResult } from './search-components-result'
+import { loadQueryGraph } from './query-graph-load-failure'
 
 /** @riviere-role query-model-use-case */
 export class SearchComponents {
   constructor(private readonly repository: RiviereQueryRepository) {}
 
   execute(input: SearchComponentsInput): SearchComponentsResult {
-    const query = this.repository.load(input.graphPathOption)
-    return { components: query.search(input.term) }
+    const loaded = loadQueryGraph(this.repository, input.graphPathOption)
+    if (loaded.kind !== 'loaded') {
+      return loaded
+    }
+    return { components: loaded.query.search(input.term) }
   }
 }

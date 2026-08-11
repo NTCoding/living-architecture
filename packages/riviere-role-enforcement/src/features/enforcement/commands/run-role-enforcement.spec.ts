@@ -1,13 +1,20 @@
 import {
   expect, it, vi 
 } from 'vitest'
+import { createOxlintRoleEnforcementRunner } from '../adapters/oxlint/oxlint-role-enforcement-runner'
+import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement-project-repository'
 import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
+
 import {
   configWithGenericApprovedAggregates,
   configWithGenericMaxPublicMethods,
+  configWithGenericRequiredPrivateMembers,
+  configWithGenericRepositoryMethodInputs,
+  configWithGenericRepositoryMethodInputsOnly,
   genericTestConfig,
 } from './test-fixture-config'
 import {
+  createTestRoleEnforcementApplication,
   withGenericFixtureWorkspace,
   writeCommandFile,
   writeDomainFile,
@@ -16,9 +23,17 @@ import {
 import { RunRoleEnforcement } from './run-role-enforcement'
 
 function runWith(config: typeof genericTestConfig, workspaceDir: string) {
-  return new RunRoleEnforcement().execute({
+  return createTestRoleEnforcementApplication().execute({
     configDir: workspaceDir,
     configModule: { config },
+  })
+}
+
+function createEmptyProjectRepository() {
+  return new RoleEnforcementProjectRepository({
+    findFilesMatchingPatterns: () => [],
+    readDirectory: () => [],
+    realpath: (filePath) => filePath,
   })
 }
 
@@ -239,14 +254,79 @@ it('rejects aggregate when name is not in approvedInstances', () => {
   })
 })
 
+it('rejects classes missing required private members', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    const result = runWith(configWithGenericRequiredPrivateMembers(['brand']), workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
+    expect(result.stdout).toContain("requires private member 'brand'")
+  })
+})
+
+it('accepts classes that declare required private members', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    writeDomainFile(
+      workspaceDir,
+      `/** @riviere-role role-b */
+export class Beta {
+  private readonly brand = 'Beta'
+
+  cancel(): void {}
+}
+`,
+    )
+    const result = runWith(configWithGenericRequiredPrivateMembers(['brand']), workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
+  })
+})
+
+it('accepts required private members configured with leading hash', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    writeDomainFile(
+      workspaceDir,
+      `/** @riviere-role role-b */
+export class Beta {
+  #brand = 'Beta'
+
+  cancel(): void {}
+}
+`,
+    )
+    const result = runWith(configWithGenericRequiredPrivateMembers(['#brand']), workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
+  })
+})
+
+it('rejects class methods with disallowed inputs when class role defines allowedInputs', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    const result = runWith(configWithGenericRepositoryMethodInputs(['role-a-input']), workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
+    expect(result.stdout).toContain("Role 'role-b-repository' only allows inputs [role-a-input]")
+  })
+})
+
+it('rejects class methods with disallowed inputs when class role defines only allowedInputs', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    const result = runWith(
+      configWithGenericRepositoryMethodInputsOnly(['role-a-input']),
+      workspaceDir,
+    )
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toBe('')
+    expect(result.stdout).toContain("Role 'role-b-repository' only allows inputs [role-a-input]")
+  })
+})
+
 it('wraps RoleEnforcementExecutionError from the oxlint adapter into a failure result', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
     const nowSpy = vi.fn().mockReturnValueOnce(100).mockReturnValue(175)
     const result = new RunRoleEnforcement({
       now: nowSpy,
-      readdirSync: () => [],
-      realpathSync: (filePath) => filePath,
-      oxlintAdapter: () => {
+      projectRepository: createEmptyProjectRepository(),
+      runner: () => {
         throw new RoleEnforcementExecutionError('simulated oxlint failure')
       },
     }).execute({
@@ -266,9 +346,8 @@ it('rethrows non-domain errors from the oxlint adapter', () => {
     const unexpected = new TypeError('unexpected crash')
     const runner = new RunRoleEnforcement({
       now: () => 0,
-      readdirSync: () => [],
-      realpathSync: (filePath) => filePath,
-      oxlintAdapter: () => {
+      projectRepository: createEmptyProjectRepository(),
+      runner: () => {
         throw unexpected
       },
     })
@@ -281,9 +360,29 @@ it('rethrows non-domain errors from the oxlint adapter', () => {
   })
 })
 
+it('returns failure when role-enforcement-plugin.mjs cannot be found', () => {
+  const result = new RunRoleEnforcement({
+    now: () => 0,
+    projectRepository: createEmptyProjectRepository(),
+    runner: createOxlintRoleEnforcementRunner(
+      () => ({
+        exitCode: 0,
+        stderr: '',
+        stdout: '',
+      }),
+      undefined,
+    ),
+  }).execute({
+    configDir: '/var/folders/fake-dir',
+    configModule: { config: genericTestConfig },
+  })
+  expect(result.exitCode).toBe(1)
+  expect(result.stderr).toContain('Cannot find role-enforcement-plugin.mjs')
+})
+
 it('wraps RoleEnforcementExecutionError from readConfig into a failure result', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
-    const result = new RunRoleEnforcement().execute({
+    const result = createTestRoleEnforcementApplication().execute({
       configDir: workspaceDir,
       configModule: {},
     })
@@ -295,7 +394,7 @@ it('wraps RoleEnforcementExecutionError from readConfig into a failure result', 
 
 it('wraps RoleEnforcementExecutionError from readConfigForPackage into a failure result', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
-    const result = new RunRoleEnforcement().execute({
+    const result = createTestRoleEnforcementApplication().execute({
       configDir: workspaceDir,
       configModule: { config: genericTestConfig },
       packageFilter: 'packages/pkg-missing',

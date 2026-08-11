@@ -1,0 +1,128 @@
+import { Command } from 'commander'
+import { ComponentId } from '@living-architecture/riviere-builder'
+import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
+import * as cliOutput from '../../../../platform/infra/cli/presentation/output'
+import {
+  isValidLinkType,
+  normalizeComponentType,
+} from '../../../../entrypoint/_platform/cli/component-types'
+import * as linkOptionValidation from '../_platform/cli/validation'
+import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
+import type { LinkComponents } from '../../commands/link-components'
+import { parseLinkSourceLocation } from './link-source-location-options'
+
+interface LinkOptions {
+  from: string
+  toDomain: string
+  toModule: string
+  toType: string
+  toName: string
+  linkType?: string
+  relationshipType?: string
+  condition?: string
+  repository?: string
+  filePath?: string
+  lineNumber?: string
+  columnNumber?: string
+  graph?: string
+  json?: boolean
+}
+
+/** @riviere-role cli-entrypoint */
+export function createLinkCommand(linkComponents: LinkComponents): Command {
+  return new Command('link')
+    .description('Link two components')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ riviere builder link \\
+      --from "orders:api:api:postorders" \\
+      --to-domain orders --to-module checkout --to-type UseCase --to-name "place-order" \\
+      --link-type sync
+
+  $ riviere builder link \\
+      --from "orders:checkout:domainop:orderbegin" \\
+      --to-domain orders --to-module events --to-type Event --to-name "order-placed" \\
+      --link-type async
+`,
+    )
+    .requiredOption('--from <component-id>', 'Source component ID')
+    .requiredOption('--to-domain <domain>', 'Target domain')
+    .requiredOption('--to-module <module>', 'Target module')
+    .requiredOption(
+      '--to-type <type>',
+      'Target component type (UI, API, UseCase, DomainOp, Event, EventHandler, Custom)',
+    )
+    .requiredOption('--to-name <name>', 'Target component name')
+    .option('--link-type <type>', 'Link type (sync, async)')
+    .option('--relationship-type <name>', 'Project-defined relationship type')
+    .option('--condition <condition>', 'Condition retained exactly as supplied')
+    .option('--repository <repository>', 'Source repository identifier')
+    .option('--file-path <path>', 'Source file path')
+    .option('--line-number <n>', 'Source line number')
+    .option('--column-number <n>', 'Source column number')
+    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--json', 'Output result as JSON')
+    .action(async (options: LinkOptions) => {
+      const componentTypeValidation = linkOptionValidation.validateComponentType(options.toType)
+      if (!componentTypeValidation.valid) {
+        console.log(componentTypeValidation.errorJson)
+        return
+      }
+
+      const linkTypeValidation = linkOptionValidation.validateLinkType(options.linkType)
+      if (!linkTypeValidation.valid) {
+        console.log(linkTypeValidation.errorJson)
+        return
+      }
+
+      const linkType =
+        options.linkType !== undefined && isValidLinkType(options.linkType)
+          ? options.linkType
+          : undefined
+
+      const sourceLocationResult = parseLinkSourceLocation(options)
+      if (!sourceLocationResult.success) {
+        console.log(
+          JSON.stringify(
+            cliOutput.formatError(CliErrorCode.ValidationError, sourceLocationResult.message, []),
+          ),
+        )
+        return
+      }
+
+      const result = linkComponents.execute({
+        condition: options.condition,
+        from: options.from,
+        graphPathOption: options.graph,
+        relationshipType: options.relationshipType,
+        sourceLocation: sourceLocationResult.sourceLocation,
+        to: ComponentId.create({
+          domain: options.toDomain,
+          module: options.toModule,
+          type: normalizeComponentType(options.toType),
+          name: options.toName,
+        }).toString(),
+        type: linkType,
+      })
+      if (!result.success) {
+        const errorCodeByResult = {
+          COMPONENT_NOT_FOUND: CliErrorCode.ComponentNotFound,
+          GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
+          GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
+          VALIDATION_ERROR: CliErrorCode.ValidationError,
+        } as const
+        const errorCode = errorCodeByResult[result.code]
+
+        console.log(
+          JSON.stringify(cliOutput.formatError(errorCode, result.message, result.suggestions)),
+        )
+        return
+      }
+
+      if (options.json) {
+        console.log(JSON.stringify(cliOutput.formatSuccess({ link: result.link })))
+      }
+    })
+}

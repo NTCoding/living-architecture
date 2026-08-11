@@ -23,6 +23,18 @@ npx riviere builder component-checklist --output=".riviere/step-4-checklist.md"
 | `sync` | Direct call, waits for response | API→UseCase, UseCase→DomainOp |
 | `async` | Fire-and-forget, event-based | UseCase→Event, Event→EventHandler |
 
+## Relationship Types
+
+Define each project-specific Relationship Type before using it on a Link:
+
+```bash
+npx riviere builder define-relationship-type \
+  --name "[relationship-name]" \
+  --description "[description]"
+```
+
+A Relationship Type describes the meaning of a Link. The optional `sync` or `async` type remains separate.
+
 ## Two Types of Links
 
 When tracing code, you'll encounter two types of calls:
@@ -81,6 +93,25 @@ https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riv
 | `link` | Code calls (function/method invocations) |
 | `link-http` | Find API by HTTP path and link to target |
 | `link-external` | Links to systems not in this graph |
+
+Create one Link for each source occurrence:
+
+```bash
+npx riviere builder link \
+  --from "[source-component-id]" \
+  --to-domain "[target-domain]" \
+  --to-module "[target-module]" \
+  --to-type "[target-component-type]" \
+  --to-name "[target-name]" \
+  --relationship-type "[relationship-name]" \
+  --condition "[condition]" \
+  --repository "[repo]" \
+  --file-path "[path]" \
+  --line-number "[line]" \
+  --column-number "[column]"
+```
+
+The Link ID is generated from its source, target, file path, line and column. Repeating the same values is rejected as a duplicate; a different line or column is a separate Link.
 
 ## Update Checklist
 

@@ -194,7 +194,7 @@ describe('extractFlows', () => {
     expect(flows).toHaveLength(2)
   })
 
-  it('includes Custom nodes as entry points', () => {
+  it('includes declared custom types as entry points', () => {
     const graph: RiviereGraph = {
       version: '1.0',
       metadata: {
@@ -222,7 +222,7 @@ describe('extractFlows', () => {
     const flows = extractFlows(graph)
 
     expect(flows).toHaveLength(1)
-    expect(flows[0]?.entryPoint.type).toBe('Custom')
+    expect(flows[0]?.entryPoint.type).toBe('ScheduledJob')
   })
 
   it('preserves httpMethod and path for API entry points', () => {
@@ -258,24 +258,24 @@ describe('extractFlows', () => {
     expect(flows[0]?.entryPoint.path).toBe('/orders')
   })
 
-  it('steps include correct edge types', () => {
+  it('steps preserve outgoing links', () => {
     const graph = createTestGraph()
 
     const flows = extractFlows(graph)
     const steps = flows[0]?.steps
 
-    expect(steps?.[0]?.edgeType).toBe('sync')
-    expect(steps?.[3]?.edgeType).toBe('async')
+    expect(steps?.[0]?.outgoingLinks[0]?.type).toBe('sync')
+    expect(steps?.[3]?.outgoingLinks[0]?.type).toBe('async')
   })
 
-  it('last step has null edgeType', () => {
+  it('last step has no outgoing links', () => {
     const graph = createTestGraph()
 
     const flows = extractFlows(graph)
     const steps = flows[0]?.steps
     const lastStep = steps?.[steps.length - 1]
 
-    expect(lastStep?.edgeType).toBeNull()
+    expect(lastStep?.outgoingLinks).toStrictEqual([])
   })
 
   it('steps include correct depth values', () => {

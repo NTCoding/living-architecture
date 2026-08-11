@@ -2,9 +2,20 @@ import {
   describe, it, expect 
 } from 'vitest'
 import { detectPerModuleConnections } from './detect-connections'
+import { PerModuleConnectionOptions } from './connection-detection-values'
 import { buildComponent } from './call-graph/call-graph-fixtures'
-import { matchesGlob } from '../../../../platform/infra/external-clients/minimatch/minimatch-glob'
 import { createProject } from './detect-connections-fixtures'
+
+function createOptions(params: {
+  sourceFilePaths: string[]
+  allComponents?: readonly ReturnType<typeof buildComponent>[]
+}): PerModuleConnectionOptions {
+  return new PerModuleConnectionOptions({
+    repository: 'test-repo',
+    sourceFilePaths: params.sourceFilePaths,
+    ...(params.allComponents !== undefined && { allComponents: params.allComponents }),
+  })
+}
 
 describe('detectPerModuleConnections', () => {
   it('returns sync links from call graph without async links', () => {
@@ -40,17 +51,53 @@ class PlaceOrder {
     const result = detectPerModuleConnections(
       project,
       [repo, useCase, event, handler],
-      {
-        repository: 'test-repo',
-        moduleGlobs: ['/src/**/*.ts'],
-      },
-      matchesGlob,
+      createOptions({
+        sourceFilePaths: [filePath, '/src/event.ts', '/src/handler.ts'],
+        allComponents: [repo, useCase, event, handler],
+      }),
     )
 
-    expect(result.links).toStrictEqual([
+    expect(result.links).toMatchObject([
       expect.objectContaining({
-        source: 'orders:useCase:PlaceOrder',
-        target: 'orders:repository:OrderRepository',
+        source: 'orders:orders-module:useCase:placeorder',
+        target: 'orders:orders-module:repository:orderrepository',
+        type: 'sync',
+      }),
+    ])
+  })
+
+  it('supports module-local detection without allComponents option', () => {
+    const project = createProject()
+    const filePath = '/src/local-only.ts'
+    project.createSourceFile(
+      filePath,
+      `
+class OrderRepository {
+  save(): void {}
+}
+
+class PlaceOrder {
+  private repo: OrderRepository
+  constructor(repo: OrderRepository) { this.repo = repo }
+  execute(): void {
+    this.repo.save()
+  }
+}
+`,
+    )
+    const repo = buildComponent('OrderRepository', filePath, 2, { type: 'repository' })
+    const useCase = buildComponent('PlaceOrder', filePath, 6)
+
+    const result = detectPerModuleConnections(
+      project,
+      [repo, useCase],
+      createOptions({ sourceFilePaths: [filePath] }),
+    )
+
+    expect(result.links).toMatchObject([
+      expect.objectContaining({
+        source: 'orders:orders-module:useCase:placeorder',
+        target: 'orders:orders-module:repository:orderrepository',
         type: 'sync',
       }),
     ])
@@ -63,14 +110,13 @@ class PlaceOrder {
     const result = detectPerModuleConnections(
       project,
       [],
-      {
-        repository: 'test-repo',
-        moduleGlobs: ['/src/**/*.ts'],
-      },
-      matchesGlob,
+      createOptions({
+        sourceFilePaths: ['/src/empty-per-module.ts'],
+        allComponents: [],
+      }),
     )
 
-    expect(result.links).toStrictEqual([])
+    expect(result.links).toMatchObject([])
   })
 
   it('returns non-negative timing values', () => {
@@ -80,19 +126,17 @@ class PlaceOrder {
     const result = detectPerModuleConnections(
       project,
       [],
-      {
-        repository: 'test-repo',
-        moduleGlobs: ['/src/**/*.ts'],
-      },
-      matchesGlob,
+      createOptions({
+        sourceFilePaths: ['/src/timing-per-module.ts'],
+        allComponents: [],
+      }),
     )
 
     expect(result.timings.callGraphMs).toBeGreaterThanOrEqual(0)
-    expect(result.timings.configurableMs).toBeGreaterThanOrEqual(0)
     expect(result.timings.setupMs).toBeGreaterThanOrEqual(0)
   })
 
-  it('respects moduleGlobs filtering', () => {
+  it('respects sourceFilePaths filtering', () => {
     const project = createProject()
     const includedFile = '/src/included/comp.ts'
     const excludedFile = '/src/excluded/comp.ts'
@@ -130,68 +174,64 @@ class ExcludedUseCase {
     const result = detectPerModuleConnections(
       project,
       [repo, useCase],
-      {
-        repository: 'test-repo',
-        moduleGlobs: ['/src/included/**/*.ts'],
-      },
-      matchesGlob,
+      createOptions({
+        sourceFilePaths: [includedFile],
+        allComponents: [repo, useCase],
+      }),
     )
 
-    expect(result.links).toStrictEqual([
+    expect(result.links).toMatchObject([
       expect.objectContaining({
-        source: 'orders:useCase:IncludedUseCase',
-        target: 'orders:repository:IncludedRepo',
+        source: 'orders:orders-module:useCase:includedusecase',
+        target: 'orders:orders-module:repository:includedrepo',
       }),
     ])
   })
 
-  it('rewrites links targeting httpCall components into external links', () => {
+  it('returns sync link to component in another module when allComponents includes target', () => {
     const project = createProject()
-    const filePath = '/src/http.ts'
     project.createSourceFile(
-      filePath,
+      '/src/orders/repository.ts',
       `
-class FraudClient {
-  check(): void {}
+export class OrdersRepository {
+  save(): void {}
 }
+`,
+    )
+    project.createSourceFile(
+      '/src/bff/use-case.ts',
+      `
+import { OrdersRepository } from '../orders/repository'
 
 class PlaceOrder {
-  private fraud: FraudClient
-  constructor(fraud: FraudClient) { this.fraud = fraud }
+  private repo: OrdersRepository
+  constructor(repo: OrdersRepository) { this.repo = repo }
   execute(): void {
-    this.fraud.check()
+    this.repo.save()
   }
 }
 `,
     )
 
-    const useCase = buildComponent('PlaceOrder', filePath, 6)
-    const httpCall = buildComponent('check', filePath, 3, {
-      type: 'httpCall',
-      metadata: {
-        serviceName: 'Fraud Detection Service',
-        route: '/api/check',
-      },
+    const useCase = buildComponent('PlaceOrder', '/src/bff/use-case.ts', 4, { domain: 'bff' })
+    const repository = buildComponent('OrdersRepository', '/src/orders/repository.ts', 2, {
+      type: 'repository',
+      domain: 'orders',
     })
 
     const result = detectPerModuleConnections(
       project,
-      [useCase, httpCall],
-      {
-        repository: 'test-repo',
-        moduleGlobs: ['/src/**/*.ts'],
-      },
-      matchesGlob,
+      [useCase],
+      createOptions({
+        sourceFilePaths: ['/src/bff/use-case.ts'],
+        allComponents: [useCase, repository],
+      }),
     )
 
-    expect(result.links).toStrictEqual([])
-    expect(result.externalLinks).toStrictEqual([
+    expect(result.links).toMatchObject([
       expect.objectContaining({
-        source: 'orders:useCase:PlaceOrder',
-        target: {
-          name: 'Fraud Detection Service',
-          route: '/api/check',
-        },
+        source: 'bff:orders-module:useCase:placeorder',
+        target: 'orders:orders-module:repository:ordersrepository',
         type: 'sync',
       }),
     ])

@@ -1,134 +1,167 @@
+import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import {
   spec,
   eventsToReviewing,
   eventsToSubmittingPr,
   eventsToAwaitingCi,
+  makeDeps,
+  reviewRecorded,
 } from './fixtures/workflow-test-fixtures'
+import { Workflow } from './workflow'
+import { applyEvents } from './fold'
+import { reviewingState } from './states/reviewing'
+
+const CREATE_PR_OPTIONS = [
+  '--title',
+  'Add workflow create-pr',
+  '--description',
+  'Creates the PR through the workflow.',
+  '--problem',
+  'Agents could create draft PRs directly.',
+  '--acceptance-criteria',
+  '- PR is ready for review\n- PR body follows the workflow structure',
+  '--key-changes',
+  '- Add structured create-pr command',
+  '--architecture-impact',
+  'Workflow owns PR body creation.',
+  '--validation',
+  '- pnpm test',
+  '--notes',
+  'None.',
+] as const
+
+function getReviewingTransitionGuard(): NonNullable<typeof reviewingState.transitionGuard> {
+  const transitionGuard = reviewingState.transitionGuard
+  if (transitionGuard === undefined) {
+    throw new WorkflowStateError('Expected REVIEWING state to define a transition guard.')
+  }
+  return transitionGuard
+}
+
+function getFailureReason(result: {
+  readonly pass: boolean;
+  readonly reason?: string 
+}): string {
+  if (result.pass || result.reason === undefined) {
+    throw new WorkflowStateError('Expected failed REVIEWING transition guard result.')
+  }
+  return result.reason
+}
+
+function createStoredReview(
+  id: number,
+  reviewType: StoredReview['reviewType'],
+  verdict: StoredReview['verdict'],
+): StoredReview {
+  return {
+    id,
+    sessionId: 'test-session',
+    createdAt: new Date(Date.UTC(2026, 0, 1, 0, 0, 0) + id * 1000).toISOString(),
+    reviewType,
+    sourceState: 'REVIEWING',
+    verdict,
+    summary: `${reviewType} ${verdict}`,
+    findings: [],
+  }
+}
 
 describe('Workflow', () => {
+  describe('review details', () => {
+    it('returns recorded reviews from platform review storage', () => {
+      const reviews = [createStoredReview(1, 'task-check', 'PASS')]
+      const workflow = Workflow.createFresh(makeDeps({ listSessionReviews: () => reviews }))
+
+      expect(workflow.getRecordedReviews()).toStrictEqual(reviews)
+    })
+
+    it('returns review details when review id exists', () => {
+      const reviews = [createStoredReview(1, 'task-check', 'FAIL')]
+      const workflow = Workflow.createFresh(makeDeps({ listSessionReviews: () => reviews }))
+
+      expect(workflow.getReviewDetails(1)).toStrictEqual(reviews[0])
+    })
+
+    it('returns latest review when review type has multiple attempts', () => {
+      const reviews = [
+        createStoredReview(1, 'task-check', 'FAIL'),
+        createStoredReview(2, 'task-check', 'PASS'),
+      ]
+      const workflow = Workflow.createFresh(makeDeps({ listSessionReviews: () => reviews }))
+
+      expect(workflow.getLatestReviewByType('task-check')).toStrictEqual(reviews[1])
+    })
+
+    it('throws when requested review id does not exist', () => {
+      const workflow = Workflow.createFresh(makeDeps({ listSessionReviews: () => [] }))
+
+      expect(() => workflow.getReviewDetails(99)).toThrow('Review 99 not found in current session.')
+    })
+  })
+
   describe('REVIEWING state', () => {
-    it('records architecture review passed', () => {
-      const {
-        result, state, events 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-architecture-review-passed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.architectureReviewPassed).toBe(true)
-      expect(events).toStrictEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            type: 'architecture-review-completed',
-            passed: true,
-          }),
-        ]),
-      )
+    it('marks architecture review as passed when latest architecture review verdict passed', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      workflow.appendEvent(reviewRecorded('architecture-review', 'PASS'))
+
+      expect(workflow.getState().architectureReviewPassed).toBe(true)
     })
 
-    it('records architecture review failed', () => {
-      const {
-        result, state 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-architecture-review-failed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.architectureReviewPassed).toBe(false)
+    it('marks architecture review as failed when latest architecture review verdict failed', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      workflow.appendEvent(reviewRecorded('architecture-review', 'PASS'))
+      workflow.appendEvent(reviewRecorded('architecture-review', 'FAIL'))
+
+      expect(workflow.getState().architectureReviewPassed).toBe(false)
     })
 
-    it('records code review passed', () => {
-      const {
-        result, state 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-code-review-passed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.codeReviewPassed).toBe(true)
+    it('marks code review as passed when latest code review verdict passed', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      workflow.appendEvent(reviewRecorded('code-review', 'PASS'))
+
+      expect(workflow.getState().codeReviewPassed).toBe(true)
     })
 
-    it('records code review failed', () => {
-      const {
-        result, state 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-code-review-failed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.codeReviewPassed).toBe(false)
+    it('marks bug scanner as failed when latest bug scanner verdict failed', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      workflow.appendEvent(reviewRecorded('bug-scanner', 'FAIL'))
+
+      expect(workflow.getState().bugScannerPassed).toBe(false)
     })
 
-    it('records bug scanner passed', () => {
-      const {
-        result, state 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-bug-scanner-passed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.bugScannerPassed).toBe(true)
+    it('marks task check as passed when latest task check verdict passed', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      workflow.appendEvent(reviewRecorded('task-check', 'PASS'))
+
+      expect(workflow.getState().taskCheckPassed).toBe(true)
     })
 
-    it('records bug scanner failed', () => {
-      const {
-        result, state 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-bug-scanner-failed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.bugScannerPassed).toBe(false)
+    it('uses the latest task check review attempt when multiple attempts exist', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      workflow.appendEvent(reviewRecorded('task-check', 'FAIL'))
+      workflow.appendEvent(reviewRecorded('task-check', 'PASS'))
+
+      expect(workflow.getState().taskCheckPassed).toBe(true)
     })
 
-    it('fails record-architecture-review-passed in non-REVIEWING states', () => {
-      expect(
-        spec.given().when((wf) => wf.executeRecording('record-architecture-review-passed')).result
-          .pass,
-      ).toBe(false)
-    })
+    it('rejects SUBMITTING_PR without task check when no issue is recorded and required reviews failed', () => {
+      const result = getReviewingTransitionGuard()({
+        state: {
+          ...Workflow.createFresh(makeDeps()).getState(),
+          currentStateMachineState: 'REVIEWING',
+          architectureReviewPassed: false,
+          codeReviewPassed: false,
+          bugScannerPassed: false,
+        },
+        gitInfo: makeDeps().getGitInfo(),
+        from: 'REVIEWING',
+        to: 'SUBMITTING_PR',
+      })
 
-    it('fails record-code-review-passed in non-REVIEWING states', () => {
-      expect(
-        spec.given().when((wf) => wf.executeRecording('record-code-review-passed')).result.pass,
-      ).toBe(false)
-    })
-
-    it('fails record-bug-scanner-passed in non-REVIEWING states', () => {
-      expect(
-        spec.given().when((wf) => wf.executeRecording('record-bug-scanner-passed')).result.pass,
-      ).toBe(false)
-    })
-
-    it('fails record-architecture-review-failed in non-REVIEWING states', () => {
-      expect(
-        spec.given().when((wf) => wf.executeRecording('record-architecture-review-failed')).result
-          .pass,
-      ).toBe(false)
-    })
-
-    it('fails record-code-review-failed in non-REVIEWING states', () => {
-      expect(
-        spec.given().when((wf) => wf.executeRecording('record-code-review-failed')).result.pass,
-      ).toBe(false)
-    })
-
-    it('fails record-bug-scanner-failed in non-REVIEWING states', () => {
-      expect(
-        spec.given().when((wf) => wf.executeRecording('record-bug-scanner-failed')).result.pass,
-      ).toBe(false)
-    })
-
-    it('records task check passed', () => {
-      const {
-        result, state, events 
-      } = spec
-        .given(...eventsToReviewing())
-        .when((wf) => wf.executeRecording('record-task-check-passed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.taskCheckPassed).toBe(true)
-      expect(events).toStrictEqual(
-        expect.arrayContaining([expect.objectContaining({ type: 'task-check-passed' })]),
-      )
-    })
-
-    it('fails record-task-check-passed in non-REVIEWING states', () => {
-      const { result } = spec.given().when((wf) => wf.executeRecording('record-task-check-passed'))
-      expect(result.pass).toBe(false)
+      expect(result.pass).toStrictEqual(false)
+      expect(getFailureReason(result)).toContain('architecture-review')
+      expect(getFailureReason(result)).toContain('code-review')
+      expect(getFailureReason(result)).toContain('bug-scanner')
     })
   })
 
@@ -174,6 +207,151 @@ describe('Workflow', () => {
     it('fails record-pr in non-SUBMITTING_PR states', () => {
       const { result } = spec.given().when((wf) => wf.executeRecording('record-pr', 1))
       expect(result.pass).toBe(false)
+    })
+
+    it('blocks create-pr outside SUBMITTING_PR state', () => {
+      const workflow = Workflow.createFresh(makeDeps())
+
+      const result = workflow.createPr(CREATE_PR_OPTIONS)
+
+      expect(result.pass).toBe(false)
+      expect(workflow.getState().prNumber).toBeUndefined()
+    })
+
+    it('records ready pull request with structured body when create-pr succeeds', () => {
+      const capturedRequests: {
+        readonly title: string
+        readonly body: string
+      }[] = []
+      const workflow = Workflow.rehydrate(
+        applyEvents(eventsToSubmittingPr()),
+        makeDeps({
+          createPullRequest: (request) => {
+            capturedRequests.push(request)
+            return {
+              prNumber: 123,
+              prUrl: 'https://github.com/x/y/pull/123',
+              isDraft: false,
+            }
+          },
+        }),
+      )
+
+      const result = workflow.createPr(CREATE_PR_OPTIONS)
+
+      expect(result).toStrictEqual({ pass: true })
+      expect(capturedRequests).toStrictEqual([
+        {
+          title: 'Add workflow create-pr',
+          body: [
+            '## Description\n\nCreates the PR through the workflow.',
+            '## Linked Issue\n\nCloses #42',
+            '## What Problem Does This PR Solve?\n\nAgents could create draft PRs directly.',
+            '## Acceptance Criteria\n\n- PR is ready for review\n- PR body follows the workflow structure',
+            '## Key Changes\n\n- Add structured create-pr command',
+            '## Notable Architectural Changes / Impact\n\nWorkflow owns PR body creation.',
+            '## Validation\n\n- pnpm test',
+            '## Notes\n\nNone.',
+          ].join('\n\n'),
+        },
+      ])
+      expect(workflow.getState()).toMatchObject({
+        prNumber: 123,
+        prUrl: 'https://github.com/x/y/pull/123',
+      })
+    })
+
+    it('blocks create-pr when issue is not recorded', () => {
+      const workflow = Workflow.rehydrate(
+        {
+          ...applyEvents(eventsToSubmittingPr()),
+          githubIssue: undefined,
+        },
+        makeDeps(),
+      )
+
+      const result = workflow.createPr(CREATE_PR_OPTIONS)
+
+      expect(result.pass).toBe(false)
+      expect(workflow.getState().prNumber).toBeUndefined()
+    })
+
+    it('does not record pull request when create-pr returns draft pull request', () => {
+      const workflow = Workflow.rehydrate(
+        applyEvents(eventsToSubmittingPr()),
+        makeDeps({
+          createPullRequest: () => ({
+            prNumber: 123,
+            prUrl: 'https://github.com/x/y/pull/123',
+            isDraft: true,
+          }),
+        }),
+      )
+
+      const result = workflow.createPr(CREATE_PR_OPTIONS)
+
+      expect(result.pass).toBe(false)
+      expect(workflow.getState().prNumber).toBeUndefined()
+      expect(workflow.getPendingEvents()).toStrictEqual([])
+    })
+
+    it('rejects unknown options when creating pull request', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToSubmittingPr()), makeDeps())
+
+      const result = workflow.createPr(['--draft'])
+
+      expect(result.pass).toBe(false)
+      expect(workflow.getState().prNumber).toBeUndefined()
+    })
+
+    it('requires acceptance criteria when creating pull request', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToSubmittingPr()), makeDeps())
+
+      const result = workflow.createPr([
+        '--title',
+        'Add workflow create-pr',
+        '--description',
+        'Creates the PR through the workflow.',
+        '--problem',
+        'Agents could create draft PRs directly.',
+        '--key-changes',
+        '- Add structured create-pr command',
+        '--architecture-impact',
+        'Workflow owns PR body creation.',
+        '--validation',
+        '- pnpm test',
+        '--notes',
+        'None.',
+      ])
+
+      expect(result.pass).toBe(false)
+      expect(workflow.getState().prNumber).toBeUndefined()
+    })
+
+    it('rejects non-string arguments when creating pull request', () => {
+      const workflow = Workflow.rehydrate(applyEvents(eventsToSubmittingPr()), makeDeps())
+
+      const result = workflow.createPr([123])
+
+      expect(result.pass).toBe(false)
+      expect(workflow.getState().prNumber).toBeUndefined()
+    })
+
+    it('does not record pull request when create-pr command fails', () => {
+      const workflow = Workflow.rehydrate(
+        applyEvents(eventsToSubmittingPr()),
+        makeDeps({
+          createPullRequest: () => {
+            throw new WorkflowStateError('GitHub refused pull request creation')
+          },
+        }),
+      )
+
+      const result = workflow.createPr(CREATE_PR_OPTIONS)
+
+      expect(result.pass).toBe(false)
+      expect(workflow.getState().prNumber).toBeUndefined()
+      expect(workflow.getPendingEvents()).toStrictEqual([])
     })
   })
 

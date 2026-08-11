@@ -16,6 +16,7 @@ import {
   getLinkNodeId,
   calculateFitViewportTransform,
   setupLinks,
+  setupLinkLabels,
   setupNodes,
   createUpdatePositionsFunction,
   applyDagrePositions,
@@ -38,6 +39,7 @@ import {
   truncateName,
   getDomainColor,
 } from './VisualizationDataAdapters'
+import { RelationshipLegend } from '@/platform/infra/ui/RelationshipLegend/RelationshipLegend'
 
 interface ForceGraphProps {
   readonly graph: RiviereGraph
@@ -49,6 +51,36 @@ interface ForceGraphProps {
   readonly onNodeClick?: (nodeId: string) => void
   readonly onNodeHover?: (data: TooltipData | null) => void
   readonly onBackgroundClick?: () => void
+  readonly relationshipLabelMode?: 'detailed' | 'semantic-only'
+}
+
+interface ApplyDomainFocusParams {
+  readonly node: d3.Selection<SVGGElement, SimulationNode, SVGGElement, unknown>
+  readonly link: d3.Selection<SVGPathElement, SimulationLink, SVGGElement, unknown>
+  readonly focusedDomain: string | null | undefined
+  readonly theme: Theme
+}
+
+function applyDomainFocus({
+  node,
+  link,
+  focusedDomain,
+  theme,
+}: ApplyDomainFocusParams): void {
+  if (focusedDomain !== null && focusedDomain !== undefined) {
+    applyFocusMode({
+      node,
+      link,
+      domain: focusedDomain,
+      theme,
+    })
+    return
+  }
+
+  applyResetMode({
+    node,
+    link,
+  })
 }
 
 export function ForceGraph({
@@ -61,6 +93,7 @@ export function ForceGraph({
   onNodeClick,
   onNodeHover,
   onBackgroundClick,
+  relationshipLabelMode = 'detailed',
 }: Readonly<ForceGraphProps>): React.ReactElement {
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -85,7 +118,9 @@ export function ForceGraph({
   const nodesRef = useRef<SimulationNode[]>([])
   const wasHighlightedRef = useRef(false)
   const onNodeHoverRef = useRef(onNodeHover)
+  const focusedDomainRef = useRef(focusedDomain)
   onNodeHoverRef.current = onNodeHover
+  focusedDomainRef.current = focusedDomain
 
   const filteredNodes = visibleNodeIds
     ? graph.components.filter((n) => visibleNodeIds.has(n.id))
@@ -131,9 +166,7 @@ export function ForceGraph({
     [onNodeClick],
   )
 
-  const handleNodeHover = useCallback((data: TooltipData | null) => {
-    onNodeHoverRef.current?.(data)
-  }, [])
+  const handleNodeHover = useCallback((data: TooltipData | null) => onNodeHoverRef.current?.(data), [])
 
   const handleBackgroundClick = useCallback(() => {
     onBackgroundClick?.()
@@ -165,23 +198,9 @@ export function ForceGraph({
       zoom: d3.ZoomBehavior<SVGSVGElement, unknown>,
       svg: d3.Selection<SVGSVGElement, unknown, d3.BaseType, unknown>,
       nodes: SimulationNode[],
-      domain: string | null | undefined,
       highlightIds: Set<string> | undefined,
       shouldFitViewport: boolean,
     ) => {
-      if (domain) {
-        applyFocusMode({
-          svg,
-          node,
-          link,
-          zoom,
-          nodes,
-          domain,
-          theme,
-          dimensions,
-        })
-        return
-      }
       if (highlightIds) {
         return
       }
@@ -193,7 +212,7 @@ export function ForceGraph({
         fitViewportFn(svg, zoom, nodes)
       }
     },
-    [fitViewportFn, dimensions, theme],
+    [fitViewportFn, dimensions],
   )
 
   const setupNodeEvents = useCallback(
@@ -229,7 +248,7 @@ export function ForceGraph({
     const svg = d3.select(svgRef.current)
     svg.selectAll('*').remove()
 
-    const regularNodes = createSimulationNodes(filteredNodes)
+    const regularNodes = createSimulationNodes(filteredNodes, graph.metadata.customTypes)
     const regularLinks = createSimulationLinks(filteredEdges)
     const externalNodes = createExternalNodes(graph.externalLinks)
     const externalSimLinks = createExternalLinks(graph.externalLinks)
@@ -277,6 +296,7 @@ export function ForceGraph({
       getSemanticEdgeColor,
       isAsyncEdge,
     })
+    const linkLabel = setupLinkLabels(linkGroup, links, relationshipLabelMode)
 
     const node = setupNodes({
       nodeGroup,
@@ -330,6 +350,7 @@ export function ForceGraph({
 
     const updatePositions = createUpdatePositionsFunction({
       link,
+      linkLabel,
       node,
       nodePositionMap: nodeMap,
       getNodeRadius,
@@ -343,7 +364,13 @@ export function ForceGraph({
     zoomRef.current = zoom
     nodesRef.current = nodes
 
-    applyVisualization(node, link, zoom, svg, nodes, focusedDomain, undefined, isGraphDataChange)
+    applyVisualization(node, link, zoom, svg, nodes, undefined, isGraphDataChange)
+    applyDomainFocus({
+      node,
+      link,
+      focusedDomain: focusedDomainRef.current,
+      theme,
+    })
     svg.on('click', handleBackgroundClick)
   }, [
     filteredNodes,
@@ -351,11 +378,24 @@ export function ForceGraph({
     allEdgesForTracing,
     theme,
     dimensions,
-    focusedDomain,
     applyVisualization,
     setupNodeEvents,
     handleBackgroundClick,
+    relationshipLabelMode,
   ])
+
+  useEffect(() => {
+    const node = nodeSelectionRef.current
+    const link = linkSelectionRef.current
+    if (node === null || link === null) return
+
+    applyDomainFocus({
+      node,
+      link,
+      focusedDomain,
+      theme,
+    })
+  }, [focusedDomain, theme])
 
   useEffect(() => {
     const node = nodeSelectionRef.current
@@ -395,6 +435,7 @@ export function ForceGraph({
         className="relative z-10"
         data-testid="force-graph-svg"
       />
+      <RelationshipLegend />
     </div>
   )
 }

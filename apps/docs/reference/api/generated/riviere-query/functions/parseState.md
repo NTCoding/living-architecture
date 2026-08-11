@@ -6,7 +6,7 @@ pageClass: reference
 
 > **parseState**(`value`): `string` & `$brand`\<`"State"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:367](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L367)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:373](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L373)
 
 Parses a string as a State.
 

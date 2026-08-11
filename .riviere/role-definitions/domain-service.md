@@ -34,11 +34,13 @@ export function detectConnections(
 - **Not a command-use-case**: if it loads from a repository or saves results, it's orchestrating — that's a command
 - **Not an external-client-service**: if it calls external libraries, it belongs in infrastructure
 - **Not a command-input-factory**: if it transforms CLI options, it's a factory
+- **Not a consumer adapter**: if it only forwards domain results into builder, presenter, workflow, or CLI APIs, that mapping belongs to the consumer-owning layer
 
 ### Mixed Responsibility Signals
 - If the function accesses the file system, database, or network — infrastructure leaking in
 - If the function creates repositories or loads state — command-use-case behavior leaking in
 - If the function has side effects — either move side effects out or reclassify
+- If the function is pure but its inputs and outputs are shaped around one consumer API rather than domain concepts — it is misplaced mapping code, not a domain service
 
 ## Decision Guidance
 - **vs command-use-case**: Does it load/save state? → command-use-case. Is it pure logic? → domain-service

@@ -1,14 +1,17 @@
-import { workflowSpec } from '@ntcoding/agentic-workflow-builder/testing'
+import { workflowSpec } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowEvent } from '../workflow-events'
 import type {
-  WorkflowState, StateName 
+  WorkflowState, StateName, LivingArchitectureReviewType 
 } from '../workflow-types'
-import type { WorkflowDeps } from '../workflow'
 import { Workflow } from '../workflow'
 import { applyEvents } from '../fold'
-import type { GitInfo } from '@ntcoding/agentic-workflow-builder/dsl'
+import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+
+type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
 
 const AT = '2026-01-01T00:00:00Z'
+const recordedReviews: StoredReview[] = []
 
 const cleanGit: GitInfo = {
   currentBranch: 'issue-42',
@@ -22,9 +25,18 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
   return {
     getGitInfo: () => cleanGit,
     getPrFeedback: () => ({
+      reviewDecision: null,
+      coderabbitReviewSeen: true,
       unresolvedCount: 0,
       threads: [],
     }),
+    createPullRequest: () => ({
+      prNumber: 99,
+      prUrl: 'https://github.com/example/repo/pull/99',
+      isDraft: false,
+    }),
+    listSessionReviews: (): readonly StoredReview[] => [...recordedReviews],
+    sleepMs: () => undefined,
     now: () => AT,
     ...overrides,
   }
@@ -60,19 +72,45 @@ export function transitioned(
   }
 }
 
-function architectureReviewPassed(): WorkflowEvent {
+export function unresolvedThread(id: string): {
+  id: string
+  isResolved: false
+  isOutdated: false
+  path: string
+  line: number
+  comments: readonly []
+} {
   return {
-    type: 'architecture-review-completed',
-    at: AT,
-    passed: true,
+    id,
+    isResolved: false,
+    isOutdated: false,
+    path: `${id}.ts`,
+    line: 1,
+    comments: [],
   }
 }
 
-function codeReviewPassed(): WorkflowEvent {
+export function reviewRecorded(
+  reviewType: LivingArchitectureReviewType,
+  verdict: 'PASS' | 'FAIL',
+): WorkflowEvent {
+  const reviewId = Number(process.hrtime.bigint() % BigInt(Number.MAX_SAFE_INTEGER)) + 1
+  recordedReviews.push({
+    id: reviewId,
+    sessionId: 'test-session',
+    createdAt: AT,
+    reviewType,
+    sourceState: 'REVIEWING',
+    verdict,
+    summary: `${reviewType} ${verdict}`,
+    findings: [],
+  })
   return {
-    type: 'code-review-completed',
+    type: 'review-recorded',
     at: AT,
-    passed: true,
+    reviewId,
+    reviewType,
+    verdict,
   }
 }
 
@@ -84,16 +122,13 @@ export function codeReviewFailed(): WorkflowEvent {
   }
 }
 
-function bugScannerPassed(): WorkflowEvent {
-  return {
-    type: 'bug-scanner-completed',
-    at: AT,
-    passed: true,
-  }
-}
-
 function allReviewsPassed(): readonly WorkflowEvent[] {
-  return [architectureReviewPassed(), codeReviewPassed(), bugScannerPassed()]
+  return [
+    reviewRecorded('architecture-review', 'PASS'),
+    reviewRecorded('code-review', 'PASS'),
+    reviewRecorded('bug-scanner', 'PASS'),
+    reviewRecorded('task-check', 'PASS'),
+  ]
 }
 
 function prRecorded(n: number, url?: string): WorkflowEvent {
@@ -113,14 +148,6 @@ function ciPassed(): WorkflowEvent {
   }
 }
 
-function feedbackClean(): WorkflowEvent {
-  return {
-    type: 'feedback-checked',
-    at: AT,
-    clean: true,
-  }
-}
-
 function feedbackExists(count: number): WorkflowEvent {
   return {
     type: 'feedback-checked',
@@ -131,6 +158,7 @@ function feedbackExists(count: number): WorkflowEvent {
 }
 
 export function eventsToReviewing(): readonly WorkflowEvent[] {
+  recordedReviews.length = 0
   return [issueRecorded(42), branchRecorded('issue-42'), transitioned('IMPLEMENTING', 'REVIEWING')]
 }
 
@@ -142,27 +170,18 @@ export function eventsToAwaitingCi(): readonly WorkflowEvent[] {
   return [...eventsToSubmittingPr(), prRecorded(99), transitioned('SUBMITTING_PR', 'AWAITING_CI')]
 }
 
-export function eventsToCheckingFeedback(): readonly WorkflowEvent[] {
-  return [...eventsToAwaitingCi(), ciPassed(), transitioned('AWAITING_CI', 'CHECKING_FEEDBACK')]
+export function eventsToAwaitingPrFeedback(): readonly WorkflowEvent[] {
+  return [...eventsToAwaitingCi(), ciPassed(), transitioned('AWAITING_CI', 'AWAITING_PR_FEEDBACK')]
 }
 
 export function eventsToAddressingFeedback(): readonly WorkflowEvent[] {
   return [
-    ...eventsToCheckingFeedback(),
+    ...eventsToAwaitingPrFeedback(),
     feedbackExists(3),
-    transitioned('CHECKING_FEEDBACK', 'ADDRESSING_FEEDBACK', {
+    transitioned('AWAITING_PR_FEEDBACK', 'ADDRESSING_FEEDBACK', {
       feedbackAddressed: false,
       feedbackClean: false,
-      feedbackAddressedCount: undefined,
     }),
-  ]
-}
-
-export function eventsToReflecting(): readonly WorkflowEvent[] {
-  return [
-    ...eventsToCheckingFeedback(),
-    feedbackClean(),
-    transitioned('CHECKING_FEEDBACK', 'REFLECTING'),
   ]
 }
 

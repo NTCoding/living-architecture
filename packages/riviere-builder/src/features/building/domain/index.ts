@@ -4,11 +4,16 @@ export {
 } from '@living-architecture/riviere-schema'
 export {
   DuplicateDomainError,
+  SourceConflictError,
   DomainNotFoundError,
   CustomTypeNotFoundError,
   DuplicateComponentError,
+  ComponentTypeMismatchError,
   ComponentNotFoundError,
   CustomTypeAlreadyDefinedError,
+  RelationshipTypeAlreadyDefinedError,
+  RelationshipTypeNotFoundError,
+  DuplicateLinkError,
   MissingRequiredPropertiesError,
   InvalidGraphError,
   MissingSourcesError,

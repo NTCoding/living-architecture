@@ -3,19 +3,47 @@ import {
 } from 'ts-morph'
 import { ConnectionDetectionError } from '../connection-detection-error'
 
-interface InterfaceResolutionResult {
-  resolved: true
-  typeName: string
-}
-
-interface InterfaceUnresolved {
-  resolved: false
-  reason: string
-  typeDefinedInSource: boolean
-}
-
 /** @riviere-role value-object */
-export type InterfaceResolution = InterfaceResolutionResult | InterfaceUnresolved
+export class InterfaceResolution {
+  declare private brand: 'InterfaceResolution'
+  readonly resolved: boolean
+  readonly typeName: string | undefined
+  readonly reason: string | undefined
+  readonly typeDefinedInSource: boolean | undefined
+
+  private constructor(params: {
+    resolved: boolean
+    typeName: string | undefined
+    reason: string | undefined
+    typeDefinedInSource: boolean | undefined
+  }) {
+    this.resolved = params.resolved
+    this.typeName = params.typeName
+    this.reason = params.reason
+    this.typeDefinedInSource = params.typeDefinedInSource
+  }
+
+  static resolved(typeName: string): InterfaceResolution {
+    return new InterfaceResolution({
+      resolved: true,
+      typeName,
+      reason: undefined,
+      typeDefinedInSource: undefined,
+    })
+  }
+
+  static unresolved(params: {
+    reason: string;
+    typeDefinedInSource: boolean 
+  }): InterfaceResolution {
+    return new InterfaceResolution({
+      resolved: false,
+      typeName: undefined,
+      reason: params.reason,
+      typeDefinedInSource: params.typeDefinedInSource,
+    })
+  }
+}
 
 function isNodeModulesPath(filePath: string): boolean {
   return filePath.includes('node_modules')
@@ -95,10 +123,7 @@ export function resolveInterface(
 
   const [singleImpl] = implementations
   if (implementations.length === 1 && singleImpl) {
-    return {
-      resolved: true,
-      typeName: singleImpl,
-    }
+    return InterfaceResolution.resolved(singleImpl)
   }
 
   if (implementations.length === 0) {
@@ -107,20 +132,18 @@ export function resolveInterface(
     if (definedInSource && options.strict) {
       throw createError(interfaceName, reason)
     }
-    return {
-      resolved: false,
+    return InterfaceResolution.unresolved({
       reason,
       typeDefinedInSource: definedInSource,
-    }
+    })
   }
 
   const reason = `Multiple implementations found for ${interfaceName} (${implementations.length}): ${implementations.join(', ')}`
   if (options.strict) {
     throw createError(interfaceName, reason)
   }
-  return {
-    resolved: false,
+  return InterfaceResolution.unresolved({
     reason,
     typeDefinedInSource: true,
-  }
+  })
 }

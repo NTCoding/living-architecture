@@ -15,13 +15,15 @@ import {
 /** @riviere-role domain-service */
 export class GraphInspection {
   private readonly graph: BuilderGraph
+  private readonly operationWarnings: readonly BuilderWarning[]
 
-  constructor(graph: BuilderGraph) {
+  constructor(graph: BuilderGraph, operationWarnings: readonly BuilderWarning[]) {
     this.graph = graph
+    this.operationWarnings = operationWarnings
   }
 
   warnings(): BuilderWarning[] {
-    return findWarnings(this.graph)
+    return [...findWarnings(this.graph), ...this.operationWarnings]
   }
 
   stats(): BuilderStats {

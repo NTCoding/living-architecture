@@ -6,6 +6,7 @@ import { GraphLinking } from './linking/graph-linking'
 import { GraphInspection } from './inspection/graph-inspection'
 import { NearMatch } from './error-recovery/near-match'
 import type { BuilderOptions } from './construction/construction-types'
+import type { BuilderWarning } from './inspection/inspection-types'
 import {
   BuildValidationError,
   InvalidGraphError,
@@ -28,10 +29,11 @@ export class RiviereBuilder {
   private constructor(graph: BuilderGraph, graphPath: string) {
     this.graph = graph
     this.graphPath = graphPath
-    this.construction = new GraphConstruction(graph)
+    const operationWarnings: BuilderWarning[] = []
+    this.construction = new GraphConstruction(graph, operationWarnings)
     this.enrichment = new GraphEnrichment(graph)
-    this.linking = new GraphLinking(graph)
-    this.inspection = new GraphInspection(graph)
+    this.linking = new GraphLinking(graph, operationWarnings)
+    this.inspection = new GraphInspection(graph, operationWarnings)
     this.errorRecovery = new NearMatch(graph)
   }
 
@@ -46,6 +48,7 @@ export class RiviereBuilder {
         ...graph.metadata,
         sources: graph.metadata.sources,
         customTypes: graph.metadata.customTypes ?? {},
+        relationshipTypes: graph.metadata.relationshipTypes ?? {},
       },
       components: graph.components,
       links: graph.links,
@@ -71,6 +74,7 @@ export class RiviereBuilder {
         sources: options.sources,
         domains: options.domains,
         customTypes: {},
+        relationshipTypes: {},
       },
       components: [],
       links: [],

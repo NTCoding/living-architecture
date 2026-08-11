@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { minimatch } from 'minimatch'
 
@@ -38,6 +39,10 @@ export default {
         const [options] = context.options
         const roleMap = new Map(options.roles.map((role) => [role.name, role]))
         const layerEntries = Object.entries(options.layers ?? {})
+        const importRuleLocations = layerEntries
+          .map(([, location]) => location)
+          .filter((location) => hasImportRules(location))
+          .sort((left, right) => longestPattern(right.paths) - longestPattern(left.paths))
         const sourceCode = context.sourceCode
         const fileCache = new Map()
         const importCache = new Map()
@@ -71,6 +76,7 @@ export default {
           },
           ImportDeclaration(node) {
             validateForbiddenImports(node)
+            validateLocationImport(node)
           },
           'Program:exit'() {
             validateForbiddenDependencies()
@@ -115,6 +121,88 @@ export default {
               }
             }
           }
+        }
+
+        function validateLocationImport(node) {
+          const sourceLocation = importRuleLocations.find(
+            (location) =>
+              location.paths.some((pattern) => matchesExpandedPattern(relativeFilePath, pattern)),
+          )
+          if (sourceLocation === undefined) {
+            return
+          }
+
+          const importSource = node.source.value
+          if (typeof importSource !== 'string') {
+            return
+          }
+
+          const resolvedImport = resolveImportFile(filename, importSource)
+          if (resolvedImport === null || !isInsideDirectory(resolvedImport, options.configDir)) {
+            if (
+              sourceLocation.mayImportExternalPackages === false &&
+              isExternalImport(importSource)
+            ) {
+              report(
+                node,
+                `Forbidden external import: files in '${sourceLocation.paths.join(', ')}' cannot import external package '${importSource}'.`,
+              )
+            }
+            return
+          }
+
+          const resolvedImportRelative = normalizePath(
+            readRelativeFilePath(resolvedImport, options.configDir),
+          )
+          const importedRoles = readImportedRoles(node, resolvedImport)
+          if (
+            sourceLocation.paths.some((pattern) =>
+              matchesExpandedPattern(resolvedImportRelative, pattern),
+            )
+          ) {
+            return
+          }
+
+          if (!Array.isArray(sourceLocation.mayImportRoles)) {
+            return
+          }
+
+          const disallowedRole = importedRoles.find(
+            (role) => !sourceLocation.mayImportRoles.includes(role),
+          )
+          if (importedRoles.length > 0 && disallowedRole === undefined) {
+            return
+          }
+
+          const targetDescription =
+            importedRoles.length === 0 ? 'no classified role' : `[${importedRoles.join(', ')}]`
+          report(
+            node,
+            `Forbidden role import: files in '${sourceLocation.paths.join(', ')}' may only import roles [${sourceLocation.mayImportRoles.join(', ')}] across that location boundary, but '${resolvedImportRelative}' provides ${targetDescription}.`,
+          )
+        }
+
+        function readImportedRoles(node, resolvedImport) {
+          const roles = []
+          for (const specifier of node.specifiers ?? []) {
+            if (specifier.type === 'ImportSpecifier') {
+              const importedName =
+                specifier.imported.type === 'Identifier'
+                  ? specifier.imported.name
+                  : specifier.imported.value
+              const importedRole = readExportedRole(resolvedImport, importedName)
+              if (importedRole !== null) {
+                roles.push(importedRole)
+              }
+            } else if (specifier.type === 'ImportNamespaceSpecifier') {
+              roles.push(...readAllExportedRoles(resolvedImport))
+            }
+          }
+          return [...new Set(roles)]
+        }
+
+        function isExternalImport(importSource) {
+          return !importSource.startsWith('.') && !path.isAbsolute(importSource)
         }
 
         function validateDeclaration(node, target) {
@@ -179,6 +267,8 @@ export default {
             return
           }
 
+          validateForbiddenSupertypes(node, role, name)
+
           const approvedResult = matchesApprovedInstances(name, role)
           if (approvedResult.checked && !approvedResult.passed) {
             report(node, approvedResult.reason)
@@ -194,6 +284,59 @@ export default {
           if (target === 'class') {
             validateClassContract(node, role, name)
           }
+        }
+
+        function validateForbiddenSupertypes(node, role, name) {
+          if (!Array.isArray(role.forbiddenSupertypes) || role.forbiddenSupertypes.length === 0) {
+            return
+          }
+
+          const declarationSupertypes = readDeclaredSupertypes(node)
+          for (const supertype of declarationSupertypes) {
+            if (role.forbiddenSupertypes.includes(supertype)) {
+              report(
+                node,
+                `Role '${role.name}' forbids supertype '${supertype}' on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+              )
+            }
+          }
+        }
+
+        function readDeclaredSupertypes(node) {
+          const supertypes = []
+
+          if (node.type === 'ClassDeclaration') {
+            const superClassName = readNamedTypeReference(node.superClass)
+            if (superClassName !== null) {
+              supertypes.push(superClassName)
+            }
+
+            for (const implementedType of node.implements ?? []) {
+              const implementedName = readNamedTypeReference(implementedType.expression)
+              if (implementedName !== null) {
+                supertypes.push(implementedName)
+              }
+            }
+          }
+
+          if (node.type === 'TSInterfaceDeclaration') {
+            for (const extendedType of node.extends ?? []) {
+              const extendedName = readNamedTypeReference(extendedType.expression)
+              if (extendedName !== null) {
+                supertypes.push(extendedName)
+              }
+            }
+          }
+
+          return supertypes
+        }
+
+        function readNamedTypeReference(node) {
+          if (node?.type === 'Identifier') {
+            return node.name
+          }
+
+          return null
         }
 
         function isRoleAllowedInFile(roleName, filePath) {
@@ -388,6 +531,14 @@ export default {
         }
 
         function validateClassContract(node, role, name) {
+          validatePublicMethodCount(node, role, name)
+          validateRequiredPrivateMembers(node, role, name)
+          validateCallableMemberConstraints(node, role, name)
+          validateDataMemberRequirements(node, role, name)
+          validateClassMethodContracts(node, role, name)
+        }
+
+        function validatePublicMethodCount(node, role, name) {
           if (typeof role.minPublicMethods === 'number') {
             const publicMethodCount = countPublicMethods(node)
             if (publicMethodCount < role.minPublicMethods) {
@@ -407,19 +558,77 @@ export default {
               )
             }
           }
+        }
 
-          if (Array.isArray(role.allowedOutputs)) {
-            for (const member of node.body.body) {
-              if (
-                member.type === 'MethodDefinition' &&
-                member.kind !== 'constructor' &&
-                (member.accessibility === 'public' || member.accessibility == null)
-              ) {
-                const methodName = member.key?.name ?? '?'
-                validateFunctionContract(member.value, role, `${name}.${methodName}`)
-              }
+        function validateRequiredPrivateMembers(node, role, name) {
+          if (!Array.isArray(role.requiredPrivateMembers)) {
+            return
+          }
+
+          for (const privateMemberName of role.requiredPrivateMembers) {
+            if (!hasRequiredPrivateMember(node, privateMemberName)) {
+              report(
+                node,
+                `Role '${role.name}' requires private member '${privateMemberName}' on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+              )
             }
           }
+        }
+
+        function validateClassMethodContracts(node, role, name) {
+          if (!hasClassMethodContracts(role)) {
+            return
+          }
+
+          for (const member of node.body.body) {
+            if (
+              member.type === 'MethodDefinition' &&
+              member.kind !== 'constructor' &&
+              (member.accessibility === 'public' || member.accessibility == null)
+            ) {
+              const methodName = member.key?.name ?? '?'
+              validateFunctionContract(member.value, role, `${name}.${methodName}`)
+            }
+          }
+        }
+
+        function hasClassMethodContracts(role) {
+          return Array.isArray(role.allowedInputs) || Array.isArray(role.allowedOutputs)
+        }
+
+        function validateCallableMemberConstraints(node, role, name) {
+          if (role.forbiddenCallableMembers !== true) {
+            return
+          }
+
+          const callableMemberNames = readCallableInstanceMemberNames(node)
+          if (callableMemberNames.length === 0) {
+            return
+          }
+
+          report(
+            node,
+            `Role '${role.name}' forbids callable instance members on '${name}'. Found [${callableMemberNames.join(', ')}]. ${referenceForKnownRole(options, role.name)}`,
+          )
+        }
+
+        function validateDataMemberRequirements(node, role, name) {
+          if (role.requiresDataMembers !== true) {
+            return
+          }
+
+          const excludedMemberNames = new Set(normalizeRequiredPrivateMembers(role))
+          const hasDataMember = readInstanceDataMembers(node).some(
+            (member) => !member.callable && !excludedMemberNames.has(member.name),
+          )
+          if (hasDataMember) {
+            return
+          }
+
+          report(
+            node,
+            `Role '${role.name}' requires at least one non-callable instance data member on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+          )
         }
 
         function countPublicMethods(classNode) {
@@ -429,6 +638,140 @@ export default {
               member.kind !== 'constructor' &&
               (member.accessibility === 'public' || member.accessibility == null),
           ).length
+        }
+
+        function hasRequiredPrivateMember(classNode, privateMemberName) {
+          const normalizedPrivateMemberName = normalizeRequiredPrivateMemberName(privateMemberName)
+          return classNode.body.body.some(
+            (member) =>
+              isPrivateMember(member) &&
+              readMemberName(member.key) === normalizedPrivateMemberName,
+          )
+        }
+
+        function normalizeRequiredPrivateMemberName(privateMemberName) {
+          return privateMemberName.startsWith('#')
+            ? privateMemberName.slice(1)
+            : privateMemberName
+        }
+
+        function normalizeRequiredPrivateMembers(role) {
+          if (!Array.isArray(role.requiredPrivateMembers)) {
+            return []
+          }
+
+          return role.requiredPrivateMembers.map(normalizeRequiredPrivateMemberName)
+        }
+
+        function isPrivateMember(member) {
+          return (
+            member.accessibility === 'private' ||
+            member.key?.type === 'PrivateIdentifier'
+          )
+        }
+
+        function readCallableInstanceMemberNames(classNode) {
+          return readInstanceDataMembers(classNode)
+            .filter((member) => member.callable)
+            .map((member) => member.name)
+        }
+
+        function readInstanceDataMembers(classNode) {
+          return classNode.body.body.flatMap((member) => {
+            if (isStaticMember(member)) {
+              return []
+            }
+
+            if (isDataFieldMember(member)) {
+              const name = readMemberName(member.key)
+              return name === null
+                ? []
+                : [{
+                  callable: isCallableFieldMember(member),
+                  name,
+                }]
+            }
+
+            if (isConstructorDefinition(member)) {
+              return member.value.params.flatMap(readConstructorParameterProperty)
+            }
+
+            return []
+          })
+        }
+
+        function isStaticMember(member) {
+          return member.static === true
+        }
+
+        function isDataFieldMember(member) {
+          return (
+            member.type === 'PropertyDefinition' ||
+            member.type === 'AccessorProperty' ||
+            member.type === 'ClassProperty' ||
+            member.type === 'FieldDefinition'
+          )
+        }
+
+        function isConstructorDefinition(member) {
+          return member.type === 'MethodDefinition' && member.kind === 'constructor'
+        }
+
+        function readConstructorParameterProperty(param) {
+          if (param.type !== 'TSParameterProperty') {
+            return []
+          }
+
+          const parameter = unwrapParameterProperty(param.parameter)
+          if (parameter?.type !== 'Identifier') {
+            return []
+          }
+
+          return [{
+            callable: isCallableParameterProperty(param, parameter),
+            name: parameter.name,
+          }]
+        }
+
+        function unwrapParameterProperty(parameter) {
+          return parameter?.type === 'AssignmentPattern'
+            ? parameter.left
+            : parameter
+        }
+
+        function isCallableFieldMember(member) {
+          return (
+            isCallableTypeAnnotation(member.typeAnnotation) ||
+            isFunctionExpression(member.value)
+          )
+        }
+
+        function isCallableParameterProperty(param, parameter) {
+          return (
+            isCallableTypeAnnotation(parameter.typeAnnotation) ||
+            isFunctionExpression(param.parameter?.right)
+          )
+        }
+
+        function isCallableTypeAnnotation(typeAnnotation) {
+          return typeAnnotation?.type === 'TSTypeAnnotation' &&
+            typeAnnotation.typeAnnotation?.type === 'TSFunctionType'
+        }
+
+        function isFunctionExpression(node) {
+          return node?.type === 'ArrowFunctionExpression' || node?.type === 'FunctionExpression'
+        }
+
+        function readMemberName(key) {
+          if (key?.type === 'Identifier' || key?.type === 'PrivateIdentifier') {
+            return key.name
+          }
+
+          if (key?.type === 'Literal' && typeof key.value === 'string') {
+            return key.value
+          }
+
+          return null
         }
 
         function readOutputTypeRoles(typeAnnotation, currentFile) {
@@ -680,6 +1023,16 @@ function matchesExpandedPattern(fileDir, pattern) {
   )
 }
 
+function hasImportRules(location) {
+  return (
+    location.mayImportExternalPackages === false || Array.isArray(location.mayImportRoles)
+  )
+}
+
+function longestPattern(patterns) {
+  return Math.max(...patterns.map((pattern) => pattern.length))
+}
+
 function expandCommaPath(pattern) {
   const segments = pattern.split('/')
   const segmentAlternatives = segments.map((s) => s.split(','))
@@ -808,6 +1161,46 @@ function resolveTypeFile(currentFile, importSource) {
       }
     }) ?? null
   )
+}
+
+function resolveImportFile(currentFile, importSource) {
+  if (importSource.startsWith('.')) {
+    return resolveTypeFile(currentFile, importSource)
+  }
+
+  return resolveWorkspacePackageSource(currentFile, importSource)
+}
+
+function resolveWorkspacePackageSource(currentFile, importSource) {
+  const packageName = readPackageName(importSource)
+  if (packageName === null) {
+    return null
+  }
+
+  try {
+    const packageJsonPath = createRequire(currentFile).resolve(`${packageName}/package.json`)
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+    const sourceEntry = packageJson.exports?.['.']?.['@living-architecture/source']
+    if (typeof sourceEntry !== 'string') {
+      return null
+    }
+    return resolveTypeFile(packageJsonPath, sourceEntry)
+  } catch {
+    return null
+  }
+}
+
+function readPackageName(importSource) {
+  const segments = importSource.split('/')
+  if (importSource.startsWith('@')) {
+    return segments.length >= 2 ? `${segments[0]}/${segments[1]}` : null
+  }
+  return segments[0] ?? null
+}
+
+function isInsideDirectory(filePath, directoryPath) {
+  const relativePath = path.relative(directoryPath, filePath)
+  return relativePath !== '' && !relativePath.startsWith('..') && !path.isAbsolute(relativePath)
 }
 
 function normalizePath(value) {

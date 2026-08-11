@@ -1,5 +1,42 @@
 import type { WorkflowEvent } from './workflow-events'
-import type { WorkflowState } from './workflow-types'
+import {
+  LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA, type WorkflowState 
+} from './workflow-types'
+
+function applyRecordedReviewVerdict(
+  state: WorkflowState,
+  event: Extract<WorkflowEvent, { type: 'review-recorded' }>,
+): WorkflowState {
+  const parsedReviewType = LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA.safeParse(event.reviewType)
+  if (!parsedReviewType.success) {
+    return state
+  }
+
+  const passed = event.verdict === 'PASS'
+
+  switch (parsedReviewType.data) {
+    case 'architecture-review':
+      return {
+        ...state,
+        architectureReviewPassed: passed,
+      }
+    case 'code-review':
+      return {
+        ...state,
+        codeReviewPassed: passed,
+      }
+    case 'bug-scanner':
+      return {
+        ...state,
+        bugScannerPassed: passed,
+      }
+    case 'task-check':
+      return {
+        ...state,
+        taskCheckPassed: passed,
+      }
+  }
+}
 
 export const EMPTY_STATE: WorkflowState = {
   currentStateMachineState: 'IMPLEMENTING',
@@ -19,7 +56,7 @@ function applyTransitioned(
   const newPreBlockedState = event.to === 'BLOCKED' ? event.from : undefined
   return {
     ...state,
-    ...(event.stateOverrides ?? {}),
+    ...event.stateOverrides,
     currentStateMachineState: event.to,
     preBlockedState: newPreBlockedState,
   }
@@ -57,8 +94,14 @@ function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowS
       return {
         ...state,
         feedbackAddressed: true,
-        feedbackAddressedCount: event.addressedCount,
       }
+    case 'pr-feedback-verification-failed':
+      return {
+        ...state,
+        prFeedbackVerificationFailedReason: event.reason,
+      }
+    case 'review-recorded':
+      return applyRecordedReviewVerdict(state, event)
   }
 }
 
@@ -82,11 +125,6 @@ function applyRecordingEvent(state: WorkflowState, event: WorkflowEvent): Workfl
         prNumber: event.prNumber,
         prUrl: event.prUrl,
       }
-    case 'reflection-written':
-      return {
-        ...state,
-        reflectionPath: event.path,
-      }
     case 'task-check-passed':
       return {
         ...state,
@@ -95,7 +133,7 @@ function applyRecordingEvent(state: WorkflowState, event: WorkflowEvent): Workfl
     case 'session-started':
       return {
         ...state,
-        ...(event.transcriptPath === undefined ? {} : { transcriptPath: event.transcriptPath }),
+        ...(event.transcriptPath !== undefined && { transcriptPath: event.transcriptPath }),
       }
     default:
       return state

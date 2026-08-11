@@ -18,7 +18,7 @@ import { FinalizeGraph } from './finalize-graph'
 import { InitGraph } from './init-graph'
 import { LinkComponents } from './link-components'
 import { LinkExternal } from './link-external'
-import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 
 class UnexpectedError extends Error {
   constructor(message: string) {
@@ -67,8 +67,11 @@ describe('additional builder command coverage', () => {
     expect(new FinalizeGraph(repo).execute({ graphPathOption: graphPath })).toMatchObject({code: 'GRAPH_CORRUPTED',})
     expect(
       new LinkComponents(repo).execute({
+        condition: undefined,
         from: 'a',
         graphPathOption: graphPath,
+        relationshipType: undefined,
+        sourceLocation: undefined,
         to: 'b',
         type: undefined,
       }),
@@ -95,6 +98,51 @@ describe('additional builder command coverage', () => {
         name: 'Queue',
         optionalProperties: {},
         requiredProperties: {},
+      }),
+    ).toMatchObject({
+      code: 'VALIDATION_ERROR',
+      success: false,
+    })
+  })
+
+  it('returns validation errors for duplicate Links and undefined relationship types', () => {
+    const builder = createBuilder(ctx.testDir)
+    const source = builder.addUseCase({
+      domain: 'orders',
+      module: 'checkout',
+      name: 'Create Order',
+      sourceLocation: {
+        repository: 'https://github.com/org/repo',
+        filePath: 'src/create-order.ts',
+      },
+    })
+    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
+    const command = new LinkComponents(new RiviereBuilderRepository())
+    const input = {
+      condition: undefined,
+      from: source.id,
+      graphPathOption: undefined,
+      relationshipType: undefined,
+      sourceLocation: undefined,
+      to: source.id,
+      type: undefined,
+    }
+
+    expect(command.execute(input)).toMatchObject({ success: true })
+    expect(command.execute(input)).toMatchObject({
+      code: 'VALIDATION_ERROR',
+      success: false,
+    })
+    expect(
+      command.execute({
+        ...input,
+        relationshipType: 'reads',
+        sourceLocation: {
+          repository: 'https://github.com/org/repo',
+          filePath: 'src/create-order.ts',
+          lineNumber: 1,
+          columnNumber: 1,
+        },
       }),
     ).toMatchObject({
       code: 'VALIDATION_ERROR',

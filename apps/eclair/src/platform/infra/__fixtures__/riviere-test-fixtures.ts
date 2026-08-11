@@ -78,6 +78,8 @@ export interface RawEdge {
   source: string
   target: string
   type?: EdgeType
+  relationshipType?: string
+  condition?: string
   payload?: {
     type?: string
     schema?: string
@@ -257,6 +259,8 @@ export function parseEdge(data: RawEdge): Edge {
 
   if (id !== undefined) result.id = id
   if (data.type !== undefined) result.type = data.type
+  if (data.relationshipType !== undefined) result.relationshipType = data.relationshipType
+  if (data.condition !== undefined) result.condition = data.condition
   if (data.payload !== undefined) result.payload = data.payload
   if (data.sourceLocation !== undefined) result.sourceLocation = data.sourceLocation
   if (data.metadata !== undefined) result.metadata = data.metadata

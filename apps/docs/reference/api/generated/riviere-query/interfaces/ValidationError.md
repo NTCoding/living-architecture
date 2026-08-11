@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ValidationError
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:97](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L97)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:103](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L103)
 
 A validation error found in the graph.
 
@@ -18,7 +18,7 @@ query-model
 
 > **code**: [`ValidationErrorCode`](../type-aliases/ValidationErrorCode.md)
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:103](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L103)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:109](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L109)
 
 Machine-readable error code.
 
@@ -28,7 +28,7 @@ Machine-readable error code.
 
 > **message**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:101](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L101)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:107](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L107)
 
 Human-readable error description.
 
@@ -38,6 +38,6 @@ Human-readable error description.
 
 > **path**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:99](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L99)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:105](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L105)
 
 JSON path to the error location.

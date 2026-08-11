@@ -1,6 +1,6 @@
 import { Project } from 'ts-morph'
-import type { EnrichedComponent } from '../../value-extraction/enrich-components'
-import type { CallGraphOptions } from './call-graph-types'
+import { EnrichedComponent } from '../../value-extraction/enriched-component'
+import { CallGraphOptions } from './call-graph-types'
 
 export const sharedProject = new Project({
   useInMemoryFileSystem: true,
@@ -26,7 +26,7 @@ export function buildComponent(
   line: number,
   overrides: Partial<EnrichedComponent> = {},
 ): EnrichedComponent {
-  return {
+  return new EnrichedComponent({
     type: 'useCase',
     name,
     location: {
@@ -34,15 +34,17 @@ export function buildComponent(
       line,
     },
     domain: 'orders',
+    module: 'orders-module',
     metadata: {},
+    _missing: undefined,
     ...overrides,
-  }
+  })
 }
 
 export function defaultOptions(): CallGraphOptions {
-  return {
+  return new CallGraphOptions({
     strict: false,
     sourceFilePaths: sharedProject.getSourceFiles().map((sf) => sf.getFilePath()),
     repository: 'test-repo',
-  }
+  })
 }

@@ -1,11 +1,11 @@
 import {
   EVENT_NAME_FIELD, SUBSCRIBED_EVENTS_FIELD 
 } from '@living-architecture/riviere-schema'
-import type { EnrichedComponent } from '../../value-extraction/enrich-components'
-import type { ExtractedLink } from '../extracted-link'
+import type { EnrichedComponent } from '../../value-extraction/enriched-component'
+import { ExtractedLink } from '../extracted-link'
 import { ConnectionDetectionError } from '../connection-detection-error'
-import { componentIdentity } from '../call-graph/call-graph-types'
-import type { AsyncDetectionOptions } from './async-detection-types'
+import { componentIdentity } from '../call-graph/component-identity'
+import type { AsyncDetectionOptions } from './async-detection-options'
 import { toSourceLocation } from './async-detection-types'
 
 /** @riviere-role domain-service */
@@ -41,12 +41,15 @@ function resolveSubscription(
     return [handleAmbiguousMatch(handler, eventName, matchingEvents.length, options, repository)]
   }
 
-  return matchingEvents.map((event) => ({
-    source: componentIdentity(event),
-    target: componentIdentity(handler),
-    type: 'async',
-    sourceLocation: toSourceLocation(handler, repository),
-  }))
+  return matchingEvents.map(
+    (event) =>
+      new ExtractedLink({
+        source: componentIdentity(event),
+        target: componentIdentity(handler),
+        type: 'async',
+        sourceLocation: toSourceLocation(handler, repository),
+      }),
+  )
 }
 
 function handleAmbiguousMatch(
@@ -64,13 +67,13 @@ function handleAmbiguousMatch(
       reason: `subscribed event "${eventName}" matches ${matchCount} Event components (ambiguous)`,
     })
   }
-  return {
+  return new ExtractedLink({
     source: '_unresolved',
     target: componentIdentity(handler),
     type: 'async',
     sourceLocation: toSourceLocation(handler, repository),
     _uncertain: `ambiguous: ${matchCount} events match subscribed event name: ${eventName}`,
-  }
+  })
 }
 
 function handleNoMatch(
@@ -87,13 +90,13 @@ function handleNoMatch(
       reason: `subscribed event "${eventName}" does not match any Event component`,
     })
   }
-  return {
+  return new ExtractedLink({
     source: '_unresolved',
     target: componentIdentity(handler),
     type: 'async',
     sourceLocation: toSourceLocation(handler, repository),
     _uncertain: `no event found for subscribed event name: ${eventName}`,
-  }
+  })
 }
 
 function getSubscribedEvents(handler: EnrichedComponent): string[] {

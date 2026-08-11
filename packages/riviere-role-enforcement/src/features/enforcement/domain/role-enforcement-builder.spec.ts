@@ -1,6 +1,5 @@
-import {
-  createRoleFactory, location, role, roleEnforcement 
-} from './role-enforcement-builder'
+import { describe, expect, it } from 'vitest'
+import { createRoleFactory, location, role, roleEnforcement } from './role-enforcement-builder'
 
 describe('role', () => {
   it('produces a role definition with the given name and options', () => {
@@ -81,6 +80,34 @@ describe('role', () => {
           userHasApproved: true,
         },
       ],
+    })
+  })
+
+  it('includes requiredPrivateMembers when provided', () => {
+    const result = role('role-b', {
+      targets: ['class'],
+      requiredPrivateMembers: ['brand'],
+    })
+
+    expect(result).toStrictEqual({
+      name: 'role-b',
+      targets: ['class'],
+      requiredPrivateMembers: ['brand'],
+    })
+  })
+
+  it('includes generic class state constraints when provided', () => {
+    const result = role('role-b', {
+      targets: ['class'],
+      requiresDataMembers: true,
+      forbiddenCallableMembers: true,
+    })
+
+    expect(result).toStrictEqual({
+      name: 'role-b',
+      targets: ['class'],
+      requiresDataMembers: true,
+      forbiddenCallableMembers: true,
     })
   })
 
@@ -177,6 +204,30 @@ describe('location with subLocation builder', () => {
         allowedRoles: ['cli-entrypoint'],
         forbiddenImports: ['**/infra/persistence/**'],
         path: '/entrypoint',
+      },
+    ])
+  })
+
+  it('includes import rules in the location definition', () => {
+    const builder = location('src/platform').subLocation('/infra', [], { mayImportRoles: [] })
+
+    expect(builder.subLocations).toStrictEqual([
+      {
+        allowedRoles: [],
+        mayImportRoles: [],
+        path: '/infra',
+      },
+    ])
+  })
+
+  it('includes import rules on a root location', () => {
+    const result = location('src/shell', ['cli-entrypoint'], { mayImportExternalPackages: false })
+
+    expect(result.subLocations).toStrictEqual([
+      {
+        allowedRoles: ['cli-entrypoint'],
+        mayImportExternalPackages: false,
+        path: '',
       },
     ])
   })

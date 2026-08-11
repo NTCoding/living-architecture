@@ -29,8 +29,8 @@ class PlaceOrderEndpoint {
     expect(result).toStrictEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: 'orders:api:handle',
-          target: 'orders:useCase:PlaceOrderUseCase',
+          source: 'orders:orders-module:api:handle',
+          target: 'orders:orders-module:useCase:placeorderusecase',
           type: 'sync',
         }),
       ]),
@@ -68,12 +68,12 @@ class Container {
       defaultOptions(),
     )
 
-    const methodALinks = result.filter((l) => l.source === 'orders:api:methodA')
+    const methodALinks = result.filter((l) => l.source === 'orders:orders-module:api:methoda')
     expect(methodALinks).toHaveLength(1)
     expect(methodALinks[0]).toStrictEqual(
       expect.objectContaining({
-        source: 'orders:api:methodA',
-        target: 'orders:domainOp:TargetA',
+        source: 'orders:orders-module:api:methoda',
+        target: 'orders:orders-module:domainOp:targeta',
       }),
     )
   })
@@ -108,8 +108,8 @@ class PlaceOrderUseCase {
     expect(result).toStrictEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: 'orders:useCase:PlaceOrderUseCase',
-          target: 'orders:domainOp:begin',
+          source: 'orders:orders-module:useCase:placeorderusecase',
+          target: 'orders:orders-module:domainOp:begin',
           type: 'sync',
         }),
       ]),
@@ -144,8 +144,8 @@ class PlaceOrderUseCase {
     expect(result).toStrictEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: 'orders:useCase:PlaceOrderUseCase',
-          target: 'orders:eventPublisher:publishOrderPlaced',
+          source: 'orders:orders-module:useCase:placeorderusecase',
+          target: 'orders:orders-module:eventPublisher:publishorderplaced',
           type: 'sync',
         }),
       ]),
@@ -187,8 +187,8 @@ class DispatchShipmentUseCase {
     expect(result).toStrictEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: 'orders:useCase:DispatchShipmentUseCase',
-          target: 'orders:domainOp:dispatch',
+          source: 'orders:orders-module:useCase:dispatchshipmentusecase',
+          target: 'orders:orders-module:domainOp:dispatch',
         }),
       ]),
     )
@@ -224,8 +224,8 @@ class Caller {
     expect(result).toStrictEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: 'orders:useCase:Caller',
-          target: 'orders:domainOp:Target',
+          source: 'orders:orders-module:useCase:caller',
+          target: 'orders:orders-module:domainOp:target',
         }),
       ]),
     )
@@ -244,7 +244,9 @@ class Ledger {
     const result = buildCallGraph(sharedProject, [reconcileComp], index, defaultOptions())
 
     const selfLinks = result.filter(
-      (l) => l.source === 'orders:domainOp:reconcile' && l.target === 'orders:domainOp:reconcile',
+      (l) =>
+        l.source === 'orders:orders-module:domainOp:reconcile' &&
+        l.target === 'orders:orders-module:domainOp:reconcile',
     )
     expect(selfLinks).toHaveLength(0)
   })
@@ -292,8 +294,8 @@ class ApplyDiscountsUseCase {
     expect(result).toStrictEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: 'orders:useCase:ApplyDiscountsUseCase',
-          target: 'orders:domainOp:applyDiscount',
+          source: 'orders:orders-module:useCase:applydiscountsusecase',
+          target: 'orders:orders-module:domainOp:applydiscount',
           type: 'sync',
         }),
       ]),
@@ -320,8 +322,8 @@ export function runTrackingUpdate(useCase: UpdateTrackingUseCase): void {
     expect(result).toStrictEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          source: 'orders:backgroundJob:runTrackingUpdate',
-          target: 'orders:useCase:UpdateTrackingUseCase',
+          source: 'orders:orders-module:backgroundJob:runtrackingupdate',
+          target: 'orders:orders-module:useCase:updatetrackingusecase',
           type: 'sync',
         }),
       ]),

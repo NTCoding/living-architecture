@@ -7,7 +7,13 @@ contexts:
         definition: A discrete unit of software functionality in a Riviere graph. Has a type, belongs to a domain, and connects to other components via links.
 
       - name: Link
-        definition: A directed connection between two components, representing a call, dependency, or event flow. Has a source and target component ID, and optionally a type (sync/async).
+        definition: A directed relationship from one source Component to one target Component. Each Link represents one source occurrence and may have a Relationship Type, condition, sync or async type, and Source Location.
+
+      - name: Relationship Type
+        definition: A project-defined name and description for the meaning of a Link.
+
+      - name: Source Location
+        definition: The repository, file path, and optional line and column where a Component or Link occurs in source.
 
       - name: Flow
         definition: A connected path through components and links, typically starting from an entry point and traversing downstream through the graph.
@@ -20,7 +26,7 @@ contexts:
 
       # Domain/boundary concepts
       - name: Domain
-        definition: A logical grouping of related components. Each component belongs to exactly one domain. Domains have a systemType (domain, bff, ui, other).
+        definition: A logical grouping of related components. Each component belongs to exactly one domain. Domains have a systemType (domain, bff, ui, external-service, other).
 
       - name: Cross-domain Link
         definition: A link where source and target components belong to different domains. Represents integration between separate parts of the system.
@@ -77,3 +83,9 @@ contexts:
 
       - name: Lenient Mode
         definition: Optional extraction behavior (--allow-incomplete) where missing required fields are tracked in a _missing array rather than causing failure. Enables incremental adoption and AI-assisted completion workflows. Contrast with Strict Mode.
+
+      - name: Connection Detection
+        definition: The activity of identifying Links between Components from source code and extraction metadata.
+
+      - name: Golden Path
+        definition: Convention-based extraction that achieves high accuracy for supported patterns.

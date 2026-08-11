@@ -4,7 +4,7 @@ import {
 } from '@living-architecture/riviere-builder'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
-import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 import type { EnrichComponentInput } from './enrich-component-input'
 import type {
   EnrichComponentErrorCode, EnrichComponentResult 

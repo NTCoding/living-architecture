@@ -1,62 +1,64 @@
 # choose-next-task
 
-Find the next available task, considering parallel work streams.
+Find the next available task, considering delivery-plan parallel work streams.
 
 ## Workflow
 
-1. List tasks from all active PRD milestones:
-   - Scan `docs/project/PRD/active/` for active PRD files to find milestone names
-   - For each milestone: `gh issue list --milestone "<milestone>" --state open --json number,title,assignees,body,labels`
-   - Non-milestone tasks: `gh issue list --label "idea" --no-milestone --state open --json number,title,assignees,body,labels` (repeat for `bug`, `tech improvement`)
-2. Read active PRD(s) from `docs/project/PRD/active/`
-3. Parse each PRD's Parallelization section to identify tracks (requires YAML track definitions)
+1. List tasks from all planning folders with approved delivery plans, including folders whose planning marker is already `planning-complete`:
+   - Scan `docs/project/PRD/*/marker.yml` for planning folders
+   - Read `githubMilestone` from each folder's `marker.yml`
+   - Read `docs/project/PRD/<planningId>/delivery.md` for each folder that has one
+   - Use `docs/project/PRD/<planningId>/delivery.md` to find deliverables and YAML tracks
+   - For each planning folder's GitHub milestone: `gh issue list --milestone "<githubMilestone>" --state open --json number,title,assignees,body,labels`
+   - Non-milestone tasks: `gh issue list --search 'label:"idea" no:milestone state:open' --json number,title,assignees,body,labels` (repeat for `label:"bug"` and `label:"tech improvement"`)
+   - Merge non-milestone task results and deduplicate by issue `number` before counting or recommending tasks
+2. Read approved delivery plan(s) from `docs/project/PRD/<planningId>/delivery.md`
+3. Parse each delivery plan's Parallelisation section to identify tracks (requires YAML track definitions)
 4. Map tasks to tracks via deliverable refs in task body
 5. Identify busy tracks (tasks with assignees)
-6. Recommend task from idle track
+6. Recommend task from a ready track
 7. Present recommendation with alternatives
 
 ## Track Mapping
 
 Look for deliverable references in task body:
 
-- `PRD Section: M2.3` or `Traceability: M2-D3` - Milestone and deliverable reference
-- `Deliverable: D3.1` - Deliverable reference
-- `Research-R1` or `PRD Section: Research-R1` - Research track
-- Section numbers like `3.4`, `D2.5` - Match to PRD deliverable numbering
+- `Delivery plan: ... M2 (D2.1)` - milestone and deliverable reference
+- `Deliverable: D3.1` - deliverable reference
+- `Traceability: M2-D3` - milestone and deliverable reference
+- Section numbers like `D2.5` - match to delivery-plan deliverable numbering
 
-Match these to track definitions in the PRD Parallelization section. Tracks must be defined in YAML format:
+Match these to track definitions in the delivery plan Parallelisation section. Tracks must be defined in YAML format:
 
 ```yaml
 tracks:
-  - id: A
-    name: Extraction
-    deliverables: [M1, M2, D3.3, M5]
-  - id: B
-    name: Conventions
-    deliverables: [D3.1, D3.2, D4.1]
-  - id: C
-    name: Research
-    deliverables: [R1]
+  - name: Extraction
+    deliverables:
+      - D1.1
+      - D1.2
+    can_run_in_parallel_with:
+      - Conventions
+    coordination_risk: none
+  - name: Conventions
+    deliverables:
+      - D2.1
+    can_run_in_parallel_with:
+      - Extraction
+    coordination_risk: shared configuration decisions
 ```
-
-See `docs/conventions/prd-track-format.md` for the full YAML schema.
 
 ## Output Format
 
-Every item uses the same format - PRD tracks and non-milestone categories:
+Every item uses the same format - delivery tracks and non-milestone categories:
 
 ```text
-Track: PRD12-A (Extraction)
+Track: riviere-extraction-workflows-v1 — Extraction
 Status: in progress
 Issue: #165 (@NTCoding)
 ────────────────────────────────────────
-Track: PRD12-B (Conventions)
+Track: riviere-extraction-workflows-v1 — Conventions
 Status: ready
 Issue: #167
-────────────────────────────────────────
-Track: PRD12-C (Research)
-Status: ready
-Issue: #171
 ────────────────────────────────────────
 Track: Tech Improvements
 Status: 1 available
@@ -73,16 +75,16 @@ Issue: —
 
 ## Available tracks
 
-- PRD12-B: #167 - Create conventions interfaces
-- PRD12-C: #171 - Evaluate local LLM for metadata extraction
+- riviere-extraction-workflows-v1 — Conventions: #167 - Create conventions interfaces
 - Tech Improvements: #174 - Add RFC-008 to review checks
 
 ## Recommendation
 
-PRD12-B: #167 - Create conventions interfaces (earliest PRD track)
+riviere-extraction-workflows-v1 — Conventions: #167 - Create conventions interfaces (ready delivery track)
 ```
 
 **Status values:**
+
 - **in progress** - Assigned task (show issue # and @assignee)
 - **blocked by X** - Next task depends on another track
 - **ready** - Unassigned tasks available
@@ -92,11 +94,12 @@ PRD12-B: #167 - Create conventions interfaces (earliest PRD track)
 
 ## Edge Cases
 
-- **PRD without YAML track definitions**: Error thrown - add YAML tracks to the PRD's Parallelization section
-- **All tracks busy**: Recommend non-milestone task (bugs/tech/ideas) first
-- **No tasks available**: Report "No unassigned tasks available"
-- **Multiple active PRDs**: Analyze tracks across all PRDs, prefer earlier PRD
-- **No active PRD directory**: If `docs/project/PRD/active/` is empty or missing, report "No active PRDs found" and fall back to non-milestone tasks only
+- **Planning folder without approved delivery plan**: skip it for delivery-track recommendations
+- **Delivery plan without YAML track definitions**: report that `delivery.md` needs a Parallelisation section before track-aware recommendations are possible
+- **All tracks busy**: recommend non-milestone task (bugs/tech/ideas) first
+- **No tasks available**: report "No unassigned tasks available"
+- **Multiple planning folders with approved delivery plans**: analyze tracks across all approved delivery plans, prefer earlier planning folder unless user asks otherwise
+- **No planning folder with an approved delivery plan**: report "No approved delivery plans found" and fall back to non-milestone tasks only
 
 ## After Confirmation
 

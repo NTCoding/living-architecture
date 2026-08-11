@@ -1,5 +1,8 @@
 import {
-  describe, it, expect, vi 
+  // Keep expanded for ESLint.
+  describe,
+  expect,
+  it,
 } from 'vitest'
 import * as d3 from 'd3'
 import {
@@ -21,6 +24,8 @@ function createTestNode(id: string, type: SimulationNode['type'], domain: string
   return {
     id,
     type,
+    effectiveType: type,
+    typeDescription: undefined,
     name: `node-${id}`,
     domain,
     x: 100,
@@ -56,7 +61,6 @@ interface TestContext {
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>
   nodeGroup: d3.Selection<SVGGElement, unknown, null, undefined>
   linkGroup: d3.Selection<SVGGElement, unknown, null, undefined>
-  zoom: d3.ZoomBehavior<SVGSVGElement, unknown>
 }
 
 function createTestContext(): TestContext {
@@ -69,21 +73,11 @@ function createTestContext(): TestContext {
   const nodeGroup = svg.append('g').attr('class', 'nodes')
   const linkGroup = svg.append('g').attr('class', 'links')
 
-  const zoom = d3.zoom<SVGSVGElement, unknown>()
-
-  const originalTransition = svg.transition.bind(svg)
-  vi.spyOn(svg, 'transition').mockImplementation(() => {
-    const t = originalTransition()
-    vi.spyOn(t, 'call').mockReturnValue(t)
-    return t
-  })
-
   return {
     svgElement,
     svg,
     nodeGroup,
     linkGroup,
-    zoom,
   }
 }
 
@@ -118,17 +112,10 @@ describe('applyFocusModeBehavior', () => {
 
       expect(() =>
         applyFocusMode({
-          svg: ctx.svg,
           node: nodeSelection,
           link: linkSelection,
-          zoom: ctx.zoom,
-          nodes,
           domain: 'orders',
           theme: 'stream',
-          dimensions: {
-            width: 800,
-            height: 600,
-          },
         }),
       ).not.toThrow()
 
@@ -149,17 +136,10 @@ describe('applyFocusModeBehavior', () => {
 
       expect(() =>
         applyFocusMode({
-          svg: ctx.svg,
           node: nodeSelection,
           link: linkSelection,
-          zoom: ctx.zoom,
-          nodes,
           domain: 'nonexistent',
           theme: 'stream',
-          dimensions: {
-            width: 800,
-            height: 600,
-          },
         }),
       ).not.toThrow()
 
@@ -183,17 +163,10 @@ describe('applyFocusModeBehavior', () => {
 
       expect(() =>
         applyFocusMode({
-          svg: ctx.svg,
           node: nodeSelection,
           link: linkSelection,
-          zoom: ctx.zoom,
-          nodes,
           domain: 'orders',
           theme: 'voltage',
-          dimensions: {
-            width: 800,
-            height: 600,
-          },
         }),
       ).not.toThrow()
 
@@ -217,17 +190,10 @@ describe('applyFocusModeBehavior', () => {
 
       expect(() =>
         applyFocusMode({
-          svg: ctx.svg,
           node: nodeSelection,
           link: linkSelection,
-          zoom: ctx.zoom,
-          nodes,
           domain: 'orders',
           theme: 'circuit',
-          dimensions: {
-            width: 800,
-            height: 600,
-          },
         }),
       ).not.toThrow()
 
@@ -254,17 +220,10 @@ describe('applyFocusModeBehavior', () => {
 
       expect(() =>
         applyFocusMode({
-          svg: ctx.svg,
           node: nodeSelection,
           link: linkSelection,
-          zoom: ctx.zoom,
-          nodes,
           domain: 'nonexistent',
           theme: 'stream',
-          dimensions: {
-            width: 800,
-            height: 600,
-          },
         }),
       ).not.toThrow()
 
@@ -348,17 +307,10 @@ describe('applyFocusModeBehavior', () => {
         .join('path')
 
       applyFocusMode({
-        svg: ctx.svg,
         node: nodeSelection,
         link: linkSelection,
-        zoom: ctx.zoom,
-        nodes,
         domain: 'orders',
         theme: 'stream',
-        dimensions: {
-          width: 800,
-          height: 600,
-        },
       })
 
       expect(() =>

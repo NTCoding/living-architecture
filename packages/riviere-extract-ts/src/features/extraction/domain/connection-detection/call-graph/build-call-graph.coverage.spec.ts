@@ -3,6 +3,7 @@ import {
 } from 'vitest'
 import { ComponentIndex } from '../component-index'
 import { buildCallGraph } from './build-call-graph'
+import { CallGraphOptions } from './call-graph-types'
 import {
   sharedProject, nextFile, buildComponent, defaultOptions 
 } from './call-graph-fixtures'
@@ -109,8 +110,85 @@ class TCCaller1 {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:TCCaller1',
-        target: 'orders:domainOp:TCTarget1',
+        source: 'orders:orders-module:useCase:tccaller1',
+        target: 'orders:orders-module:domainOp:tctarget1',
+      }),
+    ])
+  })
+
+  it('does not throw on bare function call during non-component tracing in strict mode', () => {
+    const file = nextFile(`
+class StrictTarget {
+  run(): void {}
+}
+
+class StrictMiddle {
+  private target: StrictTarget
+  constructor(target: StrictTarget) { this.target = target }
+  go(): void {
+    fetch('https://example.com')
+    this.target.run()
+  }
+}
+
+class StrictCaller {
+  private mid: StrictMiddle
+  constructor(mid: StrictMiddle) { this.mid = mid }
+  execute(): void { this.mid.go() }
+}
+`)
+    const compTarget = buildComponent('StrictTarget', file, 2, { type: 'domainOp' })
+    const compCaller = buildComponent('StrictCaller', file, 15)
+    const index = new ComponentIndex([compTarget, compCaller])
+    const defaults = defaultOptions()
+    const strictOptions = new CallGraphOptions({
+      strict: true,
+      sourceFilePaths: defaults.sourceFilePaths,
+      repository: defaults.repository,
+    })
+
+    expect(() => buildCallGraph(sharedProject, [compCaller], index, strictOptions)).not.toThrow()
+
+    const result = buildCallGraph(sharedProject, [compCaller], index, strictOptions)
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: expect.stringContaining('strictcaller'),
+        target: expect.stringContaining('stricttarget'),
+      }),
+    ])
+  })
+
+  it('skips unresolvable-typed call during non-component tracing', () => {
+    const file = nextFile(`
+class AnyTarget {
+  run(): void {}
+}
+
+class AnyMiddle {
+  private target: AnyTarget
+  private helper: any
+  constructor(target: AnyTarget, helper: any) { this.target = target; this.helper = helper }
+  go(): void {
+    this.helper.doSomething()
+    this.target.run()
+  }
+}
+
+class AnyCaller {
+  private mid: AnyMiddle
+  constructor(mid: AnyMiddle) { this.mid = mid }
+  execute(): void { this.mid.go() }
+}
+`)
+    const compTarget = buildComponent('AnyTarget', file, 2, { type: 'domainOp' })
+    const compCaller = buildComponent('AnyCaller', file, 16)
+    const index = new ComponentIndex([compTarget, compCaller])
+    const result = buildCallGraph(sharedProject, [compCaller], index, defaultOptions())
+
+    expect(result).toStrictEqual([
+      expect.objectContaining({
+        source: expect.stringContaining('anycaller'),
+        target: expect.stringContaining('anytarget'),
       }),
     ])
   })
@@ -143,8 +221,8 @@ class TCCaller2 {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:TCCaller2',
-        target: 'orders:domainOp:TCTarget2',
+        source: 'orders:orders-module:useCase:tccaller2',
+        target: 'orders:orders-module:domainOp:tctarget2',
       }),
     ])
   })
@@ -255,8 +333,8 @@ class CovSelfSource {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:CovSelfSource',
-        target: 'orders:domainOp:CovSelfComp',
+        source: 'orders:orders-module:useCase:covselfsource',
+        target: 'orders:orders-module:domainOp:covselfcomp',
       }),
     ])
   })
@@ -295,8 +373,8 @@ class CovNC4Origin {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:CovNC4Origin',
-        target: 'orders:domainOp:CovNC4Target',
+        source: 'orders:orders-module:useCase:covnc4origin',
+        target: 'orders:orders-module:domainOp:covnc4target',
       }),
     ])
   })
@@ -327,7 +405,7 @@ class TCCallerNotify {
 
     expect(result).toStrictEqual([
       expect.objectContaining({
-        source: 'orders:useCase:TCCallerNotify',
+        source: 'orders:orders-module:useCase:tccallernotify',
         target: '_unresolved',
         _uncertain: expect.stringContaining('No implementation found for TCNotifier'),
       }),

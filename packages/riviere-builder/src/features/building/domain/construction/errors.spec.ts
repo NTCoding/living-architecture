@@ -7,12 +7,17 @@ import {
   DomainNotFoundError,
   DuplicateComponentError,
   DuplicateDomainError,
+  SourceConflictError,
+  ComponentTypeMismatchError,
   CustomTypeAlreadyDefinedError,
   MissingRequiredPropertiesError,
   InvalidGraphError,
   MissingSourcesError,
   MissingDomainsError,
   BuildValidationError,
+  DuplicateLinkError,
+  RelationshipTypeAlreadyDefinedError,
+  RelationshipTypeNotFoundError,
 } from './construction-errors'
 import { InvalidEnrichmentTargetError } from '../enrichment/enrichment-errors'
 
@@ -24,6 +29,16 @@ describe('errors', () => {
       expect(error.message).toBe("Domain 'orders' already exists")
       expect(error.domainName).toBe('orders')
       expect(error.name).toBe('DuplicateDomainError')
+    })
+  })
+
+  describe('SourceConflictError', () => {
+    it('includes repository in message', () => {
+      const error = new SourceConflictError('test/repo')
+
+      expect(error.message).toBe("Source 'test/repo' already exists with different values")
+      expect(error.repository).toBe('test/repo')
+      expect(error.name).toBe('SourceConflictError')
     })
   })
 
@@ -65,6 +80,19 @@ describe('errors', () => {
       )
       expect(error.componentId).toBe('orders:checkout:api:create-order')
       expect(error.name).toBe('DuplicateComponentError')
+    })
+  })
+
+  describe('ComponentTypeMismatchError', () => {
+    it('includes component identity and types in message', () => {
+      const error = new ComponentTypeMismatchError('orders:checkout:ui:checkout-page', 'UI', 'API')
+
+      expect(error.message).toBe(
+        "Component 'orders:checkout:ui:checkout-page' already exists as type 'UI'; cannot upsert as 'API'",
+      )
+      expect(error.componentId).toBe('orders:checkout:ui:checkout-page')
+      expect(error.existingType).toBe('UI')
+      expect(error.incomingType).toBe('API')
     })
   })
 
@@ -114,6 +142,39 @@ describe('errors', () => {
       expect(error.message).toBe("Custom type 'Worker' already defined")
       expect(error.typeName).toBe('Worker')
       expect(error.name).toBe('CustomTypeAlreadyDefinedError')
+    })
+  })
+
+  describe('RelationshipTypeAlreadyDefinedError', () => {
+    it('includes the relationship type name in the message', () => {
+      const error = new RelationshipTypeAlreadyDefinedError('reads')
+
+      expect(error.message).toBe("Relationship type 'reads' already defined")
+      expect(error.typeName).toBe('reads')
+      expect(error.name).toBe('RelationshipTypeAlreadyDefinedError')
+    })
+  })
+
+  describe('RelationshipTypeNotFoundError', () => {
+    it('includes the relationship type and available types in the message', () => {
+      const error = new RelationshipTypeNotFoundError('queries', ['reads', 'writes'])
+
+      expect(error.message).toBe(
+        "Relationship type 'queries' not defined. Defined types: reads, writes",
+      )
+      expect(error.relationshipType).toBe('queries')
+      expect(error.definedTypes).toStrictEqual(['reads', 'writes'])
+      expect(error.name).toBe('RelationshipTypeNotFoundError')
+    })
+  })
+
+  describe('DuplicateLinkError', () => {
+    it('includes the Link ID in the message', () => {
+      const error = new DuplicateLinkError('source->target@file.sql:12:5')
+
+      expect(error.message).toBe("Link with ID 'source->target@file.sql:12:5' already exists")
+      expect(error.linkId).toBe('source->target@file.sql:12:5')
+      expect(error.name).toBe('DuplicateLinkError')
     })
   })
 

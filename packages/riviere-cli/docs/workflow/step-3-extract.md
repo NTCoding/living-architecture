@@ -14,6 +14,7 @@ Find all component instances using patterns from Step 2 and add them to the grap
 ## Initialize Graph
 
 Create graph with sources and domains:
+
 ```bash
 npx riviere builder init \
   --source "https://github.com/your-org/your-repo" \
@@ -21,16 +22,19 @@ npx riviere builder init \
 ```
 
 Add additional sources if needed:
+
 ```bash
 npx riviere builder add-source --repository "https://github.com/your-org/your-repo"
 ```
 
 Add additional domains if needed:
+
 ```bash
-npx riviere builder add-domain --name "[name]" --system-type "[domain|bff|ui|other]" --description "[desc]"
+npx riviere builder add-domain --name "[name]" --system-type "[domain|bff|ui|external-service|other]" --description "[desc]"
 ```
 
 Define custom types (for accepted proposals in component-definitions.md):
+
 ```bash
 npx riviere builder define-custom-type \
   --name "[CustomTypeName]" \
@@ -40,6 +44,7 @@ npx riviere builder define-custom-type \
 ```
 
 Example (BackgroundJob with schedule property):
+
 ```bash
 npx riviere builder define-custom-type \
   --name "BackgroundJob" \
@@ -67,6 +72,7 @@ This gives file paths and line numbers for ALL occurrences.
 ### 2. Process Each Match
 
 For each grep result:
+
 1. Read the file at that location
 2. Extract component details (name, domain, HTTP method, etc.)
 3. Add via CLI
@@ -82,7 +88,10 @@ npx riviere builder add-component \
   --line-number "[line]"
 ```
 
+Add `--column-number "[column]"` when the source column is known.
+
 Type-specific options:
+
 - API: `--api-type` (required), `--http-method`, `--http-path`
 - DomainOp: `--entity`, `--operation-name`
 - Event: `--event-name`, `--event-schema`
@@ -104,11 +113,13 @@ UseCases (extends BaseUseCase): 8 matches → 8 use cases extracted
 ## Verify Extraction
 
 Generate summary:
+
 ```bash
 npx riviere builder component-summary > ".riviere/step-3-summary.json"
 ```
 
 Check for:
+
 - Domains with zero components
 - Component types with zero instances
 - Unexpected counts suggesting missed patterns

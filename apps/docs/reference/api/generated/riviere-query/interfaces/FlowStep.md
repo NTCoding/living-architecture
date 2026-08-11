@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: FlowStep
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:222](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L222)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:228](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L228)
 
 A step in an execution flow.
 
@@ -18,7 +18,7 @@ query-model
 
 > **component**: `Component`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:224](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L224)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:230](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L230)
 
 The component at this step.
 
@@ -28,7 +28,7 @@ The component at this step.
 
 > **depth**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:228](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L228)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:234](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L234)
 
 Depth from entry point (0 = entry point).
 
@@ -38,16 +38,16 @@ Depth from entry point (0 = entry point).
 
 > **externalLinks**: `ExternalLink`[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:230](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L230)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:236](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L236)
 
 External links from this component to external systems.
 
 ***
 
-### linkType
+### outgoingLinks
 
-> **linkType**: [`LinkType`](../type-aliases/LinkType.md) \| `undefined`
+> **outgoingLinks**: `Link`[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:226](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L226)
+Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:232](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L232)
 
-Type of link leading to this step (undefined for entry point).
+Exact links leaving this component, preserving branching relationship semantics.

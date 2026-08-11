@@ -75,8 +75,11 @@ export function GraphTooltip({
     >
       <div className="mb-2 text-sm font-bold text-[var(--text-primary)]">{node.name}</div>
       <div className="mb-1 text-xs text-[var(--text-secondary)]">
-        <span className="font-semibold">Type:</span> {node.type}
+        <span className="font-semibold">Type:</span> {node.effectiveType ?? node.type}
       </div>
+      {node.typeDescription !== undefined && (
+        <div className="mb-2 text-xs text-[var(--text-secondary)]">{node.typeDescription}</div>
+      )}
       <div className="mb-2 text-xs text-[var(--text-secondary)]">
         <span className="font-semibold">Domain:</span> {node.domain}
       </div>

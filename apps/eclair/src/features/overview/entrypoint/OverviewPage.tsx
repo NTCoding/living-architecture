@@ -6,7 +6,7 @@ import type {
   RiviereGraph, SystemType 
 } from '@living-architecture/riviere-schema'
 import {
-  domainNameSchema, type DomainName
+  domainNameSchema, type DomainName,
 } from '../queries/eclair-domain'
 import { useRiviereQuery } from '@/platform/infra/riviere-query/useRiviereQuery'
 import { useCodeLinkSettings } from '@/platform/infra/settings/use-code-link-settings'
@@ -14,33 +14,45 @@ import { StatsItem } from '../components/StatsItem'
 import {
   EntitiesSection, EntryPointsSection 
 } from '../components/DomainCardSections'
+import { NodeBreakdownSection } from '../components/NodeBreakdownSection'
+import {
+  getNodeTypeBreakdown, type NodeTypeBreakdown,
+} from '../queries/node-type-breakdown'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
 type ViewMode = 'grid' | 'list'
 type FilterType = 'all' | SystemType
 
-interface NodeBreakdown {
-  UI: number
-  API: number
-  UseCase: number
-  DomainOp: number
-  Event: number
-  EventHandler: number
-  Custom: number
+function formatSystemTypeLabel(systemType: string): string {
+  return systemType
+    .split('-')
+    .map((part) => {
+      if (part === 'ui' || part === 'bff') return part.toUpperCase()
+      return `${part.charAt(0).toUpperCase()}${part.slice(1)}`
+    })
+    .join(' ')
 }
 
 interface DomainInfo {
   id: DomainName
   description: string
   systemType: SystemType
-  nodeBreakdown: NodeBreakdown
+  nodeBreakdown: NodeTypeBreakdown
   entities: string[]
   entryPoints: string[]
   repository: string | undefined
 }
 
-interface OverviewPageProps {graph: RiviereGraph}
+interface OverviewPageProps {
+  graph: RiviereGraph
+  theme?: Theme
+}
 
-export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.ReactElement {
+export function OverviewPage({
+  graph,
+  theme = DEFAULT_THEME,
+}: Readonly<OverviewPageProps>): React.ReactElement {
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState<FilterType>('all')
@@ -88,7 +100,7 @@ export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.Reac
         id: domainId,
         description: domain.description,
         systemType: domain.systemType,
-        nodeBreakdown: domain.componentCounts,
+        nodeBreakdown: getNodeTypeBreakdown(domainComponents),
         entities,
         entryPoints,
         repository,
@@ -106,6 +118,14 @@ export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.Reac
       allDomains: domainInfos,
     }
   }, [query])
+
+  const domainTypes = useMemo(
+    () =>
+      [...new Set(allDomains.map((domain) => domain.systemType))].sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    [allDomains],
+  )
 
   const filteredDomains = allDomains.filter((domain) => {
     const matchesSearch =
@@ -144,7 +164,7 @@ export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.Reac
           />
         </div>
         <div className="filter-divider" />
-        <span className="filter-label">Type:</span>
+        <span className="filter-label">Domain type:</span>
         <div className="filter-group">
           <button
             className={`filter-tag ${activeFilter === 'all' ? 'active' : ''}`}
@@ -152,24 +172,15 @@ export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.Reac
           >
             All
           </button>
-          <button
-            className={`filter-tag ${activeFilter === 'domain' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('domain')}
-          >
-            Domain
-          </button>
-          <button
-            className={`filter-tag ${activeFilter === 'ui' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('ui')}
-          >
-            UI
-          </button>
-          <button
-            className={`filter-tag ${activeFilter === 'bff' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('bff')}
-          >
-            BFF
-          </button>
+          {domainTypes.map((domainType) => (
+            <button
+              key={domainType}
+              className={`filter-tag ${activeFilter === domainType ? 'active' : ''}`}
+              onClick={() => setActiveFilter(domainType)}
+            >
+              {formatSystemTypeLabel(domainType)}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -208,6 +219,7 @@ export function OverviewPage({ graph }: Readonly<OverviewPageProps>): React.Reac
               domain={domain}
               viewMode={viewMode}
               graphName={graph.metadata.name}
+              theme={theme}
             />
           ))}
         </div>
@@ -220,15 +232,16 @@ interface DomainCardProps {
   readonly domain: DomainInfo
   readonly viewMode: ViewMode
   readonly graphName: string | undefined
+  readonly theme: Theme
 }
 
 function DomainCard({
   domain,
   viewMode,
   graphName,
+  theme,
 }: Readonly<DomainCardProps>): React.ReactElement {
-  const repoName: string | undefined =
-    domain.repository ?? graphName
+  const repoName: string | undefined = domain.repository ?? graphName
   const { settings } = useCodeLinkSettings()
   const githubUrl =
     repoName === undefined || settings.githubOrg === null
@@ -303,7 +316,7 @@ function DomainCard({
         </p>
       </header>
 
-      <NodeBreakdownSection breakdown={domain.nodeBreakdown} />
+      <NodeBreakdownSection breakdown={domain.nodeBreakdown} theme={theme} />
 
       {domain.entities.length > 0 && <EntitiesSection entities={domain.entities} />}
 
@@ -344,55 +357,5 @@ function DomainCard({
         </div>
       </footer>
     </article>
-  )
-}
-
-interface NodeBreakdownSectionProps {readonly breakdown: DomainInfo['nodeBreakdown']}
-
-function NodeBreakdownSection({breakdown,}: Readonly<NodeBreakdownSectionProps>): React.ReactElement {
-  const items = [
-    {
-      label: 'UI',
-      value: breakdown.UI,
-    },
-    {
-      label: 'API',
-      value: breakdown.API,
-    },
-    {
-      label: 'UseCase',
-      value: breakdown.UseCase,
-    },
-    {
-      label: 'DomainOp',
-      value: breakdown.DomainOp,
-    },
-    {
-      label: 'Event',
-      value: breakdown.Event,
-    },
-    {
-      label: 'Handler',
-      value: breakdown.EventHandler,
-    },
-  ].filter((item) => item.value > 0)
-
-  return (
-    <div className="mb-3 border-b border-[var(--border-color)] pb-3">
-      <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wide text-[var(--text-tertiary)]">
-        Node Breakdown
-      </h4>
-      <div className="grid grid-cols-2 gap-1.5">
-        {items.map((item) => (
-          <div
-            key={item.label}
-            className="flex items-center justify-between rounded bg-[var(--bg-tertiary)] px-2 py-1 text-xs"
-          >
-            <span className="font-medium text-[var(--text-secondary)]">{item.label}</span>
-            <span className="font-bold text-[var(--text-primary)]">{item.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
   )
 }

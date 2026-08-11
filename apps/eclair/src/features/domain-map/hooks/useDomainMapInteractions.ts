@@ -20,6 +20,7 @@ interface InspectorState {
   target: string
   apiCount: number
   eventCount: number
+  connectionCount: number
   sourceNodeCount: number
   targetNodeCount: number
   connections: ConnectionDetail[]
@@ -38,8 +39,7 @@ interface UseDomainMapInteractionsResult {
     y: number,
     source: string,
     target: string,
-    apiCount: number,
-    eventCount: number,
+    connectionCount: number,
   ) => void
   hideTooltip: () => void
   selectEdge: (
@@ -50,6 +50,7 @@ interface UseDomainMapInteractionsResult {
     sourceNodeCount: number,
     targetNodeCount: number,
     connections: ConnectionDetail[],
+    connectionCount: number,
   ) => void
   closeInspector: () => void
   selectDomain: (domain: string) => void
@@ -78,6 +79,7 @@ export function useDomainMapInteractions(
     target: '',
     apiCount: 0,
     eventCount: 0,
+    connectionCount: 0,
     sourceNodeCount: 0,
     targetNodeCount: 0,
     connections: [],
@@ -109,21 +111,13 @@ export function useDomainMapInteractions(
   )
 
   const showEdgeTooltip = useCallback(
-    (
-      x: number,
-      y: number,
-      source: string,
-      target: string,
-      apiCount: number,
-      eventCount: number,
-    ) => {
-      const total = apiCount + eventCount
+    (x: number, y: number, source: string, target: string, connectionCount: number) => {
       setTooltip({
         visible: true,
         x: x + TOOLTIP_OFFSET_X,
         y: y + TOOLTIP_OFFSET_Y,
         title: `${source} → ${target}`,
-        detail: `${pluralizeConnection(total)} · Click for details`,
+        detail: `${pluralizeConnection(connectionCount)} · Click for details`,
       })
     },
     [],
@@ -145,6 +139,7 @@ export function useDomainMapInteractions(
       sourceNodeCount: number,
       targetNodeCount: number,
       connections: ConnectionDetail[],
+      connectionCount: number,
     ) => {
       setTooltip((prev) => ({
         ...prev,
@@ -156,6 +151,7 @@ export function useDomainMapInteractions(
         target,
         apiCount,
         eventCount,
+        connectionCount,
         sourceNodeCount,
         targetNodeCount,
         connections,

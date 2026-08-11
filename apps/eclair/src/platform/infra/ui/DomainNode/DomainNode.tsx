@@ -4,7 +4,9 @@ import {
 import type {
   NodeProps, Node 
 } from '@xyflow/react'
-import type { DomainNodeData } from '@/platform/domain/domain-node-types'
+import type {
+  DomainMapSystemType, DomainNodeData
+} from '@/platform/domain/domain-node-types'
 
 type DomainNodeProps = NodeProps<Node<DomainNodeData>>
 
@@ -16,6 +18,15 @@ const DIMMED_OPACITY = 0.3
 const FULL_OPACITY = 1
 const DOMAIN_FONT_SIZE = 14
 const EXTERNAL_FONT_SIZE = 12
+
+const DOMAIN_TYPE_CLASSES: Readonly<Record<DomainMapSystemType, string>> = {
+  domain: 'border-[var(--primary)]',
+  bff: 'domain-node-bff',
+  ui: 'domain-node-ui',
+  'external-service': 'domain-node-external',
+  other: 'domain-node-other',
+  external: 'domain-node-external',
+}
 
 export function DomainNode(props: DomainNodeProps): React.ReactElement {
   const { data } = props
@@ -29,9 +40,8 @@ export function DomainNode(props: DomainNodeProps): React.ReactElement {
 
   const baseClasses =
     'flex items-center justify-center rounded-full border-2 text-center shadow-lg transition-all hover:shadow-xl'
-  const internalClasses = 'border-[var(--primary)] bg-[var(--bg-secondary)]'
-  const externalClasses = 'domain-node-external'
-  const domainNodeClasses = `${baseClasses} ${isExternal ? externalClasses : internalClasses}`
+  const typeClasses = DOMAIN_TYPE_CLASSES[data.systemType]
+  const domainNodeClasses = `${baseClasses} ${typeClasses} bg-[var(--bg-secondary)]`
 
   return (
     <>
@@ -61,14 +71,18 @@ export function DomainNode(props: DomainNodeProps): React.ReactElement {
             >
               {displayLabel}
             </span>
+            <span className="domain-node-system-type">External</span>
           </div>
         ) : (
-          <span
-            className="max-w-full overflow-hidden px-3 font-bold text-[var(--text-primary)] leading-tight"
-            style={{ fontSize }}
-          >
-            {displayLabel}
-          </span>
+          <div className="flex flex-col items-center gap-1">
+            <span
+              className="max-w-full overflow-hidden px-3 font-bold text-[var(--text-primary)] leading-tight"
+              style={{ fontSize }}
+            >
+              {displayLabel}
+            </span>
+            <span className="domain-node-system-type">{data.systemType}</span>
+          </div>
         )}
       </div>
     </>

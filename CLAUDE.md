@@ -1,10 +1,12 @@
 # living-architecture
 
-> ⚠️ **NEW WORKTREE?** Run `pnpm install --frozen-lockfile` then run the **"Build better-sqlite3 native bindings"** step from `.github/workflows/ci.yml` — otherwise `dev-workflow-v2` tests will fail.
+> ⚠️ **NEW WORKTREE?** Run `pnpm install --frozen-lockfile` before running tests or verification.
 
 Extract software architecture from code as living documentation, using Riviere schema for flow-based (not structural) architecture
 
-Read `@docs/project/project-overview.md` then check `@docs/project/PRD/active/*.md` for the current PRD.
+Read `@docs/project/project-overview.md` then check `@docs/project/PRD/*/PRD.md` for the current PRD.
+
+For planning, discovery, PRD, architecture, delivery planning, or future-project discussion, read `@project-memory/AGENTS.md` and apply the project memory rules for deferred work.
 
 ## Monorepo Structure
 
@@ -27,7 +29,8 @@ Apps:
 - `living-architecture/docs` - Living architecture documentation website
 
 Key documents:
-- `docs/project/PRD/active/` - Current PRDs
+- `docs/project/PRD/` - Current PRD folders
+- `project-memory/` - Cross-PRD planning memory for deferred ideas, priorities, and future-work context
 - `docs/architecture/overview.md` - System design
 - `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`
 - `docs/architecture/adr/` - Decision records
@@ -90,7 +93,10 @@ After generating a new project:
 
 ## Task Workflow
 
-*CRUCIAL*: Whenever working on any task, follow `docs/workflow/task-workflow.md` from start to finish. Do not make any changes or commit any code without following these steps exactly.
+There are two contribution workflows. Team membership determines the workflow, not the agent provider or harness being used.
+
+- **Maintainer workflow:** when working as part of the maintainer team, follow `docs/workflow/task-workflow.md` from start to finish. Maintainers can create GitHub issues and use `dev-workflow-v2` to run the full planning and implementation lifecycle.
+- **External contribution workflow:** anyone not explicitly working as part of the maintainer team follows `CONTRIBUTING.md`. This is a lightweight pull-request workflow. Do not create a GitHub issue and do not attempt to use or install the maintainer harness. The pull request description is the specification for the change.
 
 ## Testing
 
@@ -154,7 +160,7 @@ The CLI (`riviere-cli`) bundles several packages via esbuild. To ensure users al
 ## General Guidelines
 
 - **Process before fix** - When you encounter a problem, improve the process/tooling first, then apply the fix. This ensures the same issue won't recur and benefits future work. Never just fix the symptom without addressing the root cause.
-- **Use scripts and dev-workflow-v2 for operations** - See `docs/workflow/task-workflow.md` for which commands to use. Direct `git add`/`git commit` is fine; `git push` and `gh pr` are blocked by hooks.
+- **Maintainer workflow operations** - Maintainers use the scripts and `dev-workflow-v2` commands documented in `docs/workflow/task-workflow.md`. Direct `git add`/`git commit` is fine; `git push` and `gh pr` are blocked by maintainer harness hooks. External contributors instead follow `CONTRIBUTING.md` and raise their pull request normally.
 - **Command failures vs code quality issues**:
   - **Command failures** (script doesn't exist, tool errors, missing dependencies) → STOP and consult with user
   - **Code quality issues** (lint errors, unused dependencies, test failures, knip warnings) → fix them directly
