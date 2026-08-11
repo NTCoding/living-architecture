@@ -10,7 +10,7 @@ import {
 } from '../../../platform/domain/add-component-input-factory'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
-import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 import type { AddComponentInput } from './add-component-input'
 import type {
   AddComponentErrorCode, AddComponentResult 

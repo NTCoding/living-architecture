@@ -7,14 +7,14 @@ const mocks = vi.hoisted(() => ({
   loadFromDraftEnrichmentMock: vi.fn(),
 }))
 
-vi.mock('../infra/persistence/extraction-project/extraction-project-repository', () => ({
+vi.mock('../data-access/extraction-project/extraction-project-repository', () => ({
   ExtractionProjectRepository: class {
     loadFromDraftEnrichment = mocks.loadFromDraftEnrichmentMock
   },
 }))
 
 import { EnrichDraftComponents } from './enrich-draft-components'
-import { ExtractionProjectRepository } from '../infra/persistence/extraction-project/extraction-project-repository'
+import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
 
 describe('enrichDraftComponents', () => {
   beforeEach(() => {

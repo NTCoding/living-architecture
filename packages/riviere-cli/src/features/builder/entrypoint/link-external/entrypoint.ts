@@ -4,9 +4,9 @@ import {
   formatError, formatSuccess 
 } from '../../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
-import { isValidLinkType } from '../../../../platform/infra/cli/input/component-types'
-import { validateLinkType } from '../../../../platform/infra/cli/input/validation'
-import { buildExternalTarget } from '../../../../platform/infra/cli/input/link-external-transformer'
+import { isValidLinkType } from '../../../../entrypoint/_platform/cli/component-types'
+import { validateLinkType } from '../_platform/cli/validation'
+import { buildExternalTarget } from './link-external-transformer'
 import type { LinkExternal } from '../../commands/link-external'
 
 interface LinkExternalOptions {

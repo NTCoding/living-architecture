@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   loadFromSelectedFilesMock: vi.fn(),
 }))
 
-vi.mock('../infra/persistence/extraction-project/extraction-project-repository', () => ({
+vi.mock('../data-access/extraction-project/extraction-project-repository', () => ({
   ExtractionProjectRepository: class {
     loadFromChangedProject = mocks.loadFromChangedProjectMock
     loadFromFullProject = mocks.loadFromFullProjectMock
@@ -18,7 +18,7 @@ vi.mock('../infra/persistence/extraction-project/extraction-project-repository',
 }))
 
 import { ExtractDraftComponents } from './extract-draft-components'
-import { ExtractionProjectRepository } from '../infra/persistence/extraction-project/extraction-project-repository'
+import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
 
 const DRAFT_ONLY_RESULT = {
   kind: 'draftOnly' as const,

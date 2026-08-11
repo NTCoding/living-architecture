@@ -7,7 +7,7 @@ import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/p
 import {
   isValidSystemType,
   VALID_SYSTEM_TYPES,
-} from '../../../../platform/infra/cli/input/component-types'
+} from '../../../../entrypoint/_platform/cli/component-types'
 import type { AddDomain } from '../../commands/add-domain'
 
 interface AddDomainOptions {

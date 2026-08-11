@@ -2,7 +2,7 @@ import { RiviereBuilder } from '@living-architecture/riviere-builder'
 import type { BuilderOptions } from '@living-architecture/riviere-builder'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
-import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 import type { InitGraphInput } from './init-graph-input'
 import type { InitGraphResult } from './init-graph-result'
 

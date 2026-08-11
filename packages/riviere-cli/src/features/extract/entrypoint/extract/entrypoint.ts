@@ -3,7 +3,7 @@ import {
   CliErrorCode, ExitCode 
 } from '../../../../platform/infra/cli/presentation/error-codes'
 import { exitWithCliError } from '../../../../platform/infra/cli/presentation/exit-with-cli-error'
-import { validateFlagCombinations } from '../../../../platform/infra/cli/input/extract-validator'
+import { validateFlagCombinations } from './extract-validator'
 import type { EnrichDraftComponents } from '../../commands/enrich-draft-components'
 import type { ExtractDraftComponents } from '../../commands/extract-draft-components'
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'

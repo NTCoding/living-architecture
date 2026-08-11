@@ -20,6 +20,7 @@ const domainRoles: RoleName[] = [
   'aggregate',
   'value-object',
   'domain-event',
+  'domain-port',
   'domain-service',
   'domain-error',
 ]
@@ -35,6 +36,7 @@ const entrypointRoles: RoleName[] = [
   'cli-error-handler',
   'cli-output-formatter',
   'command-input-factory',
+  'entrypoint-cli-input-parser',
 ]
 
 const cliPresentationRoles: RoleName[] = [
@@ -74,20 +76,34 @@ export const config = roleEnforcement({
   locations: [
     location<RoleName>('src/features/{feature}')
       .subLocation('/entrypoint/{entrypoint}', entrypointRoles, {
-        forbiddenImports: ['**/domain/**', '**/infra/persistence/**'],
+        forbiddenImports: ['**/domain/**', '**/data-access/**'],
       })
-      .subLocation('/commands', commandRoles, { forbiddenImports: ['**/infra/cli/**'] })
+      .subLocation('/commands', commandRoles, {
+        forbiddenImports: ['**/infra/cli/**'],
+      })
       .subLocation('/queries', queryRoles, { forbiddenImports: ['**/infra/cli/**'] })
       .subLocation('/domain', domainRoles)
-      .subLocation('/infra/external-clients/{client}', externalClientRoles)
-      .subLocation('/infra/persistence', ['aggregate-repository', 'query-model-loader']),
+      .subLocation('/domain/ports', ['domain-port'])
+      .subLocation('/data-access', ['aggregate-repository', 'query-model-loader'])
+      .subLocation('/adapters/{adapter}', ['domain-port-adapter'], {
+        mayImportExternalPackages: false,
+        mayImportRoles: [
+          'domain-port',
+          'external-client-error',
+          'external-client-model',
+          'external-client-service',
+        ],
+      }),
 
     location<RoleName>('src/platform')
       .subLocation('/domain', domainRoles)
+      .subLocation('/infra', [], { mayImportRoles: [] })
       .subLocation('/infra/external-clients/{client}', externalClientRoles)
-      .subLocation('/infra/cli/input', ['cli-input-validator'])
+      .subLocation('/infra/cli/input', ['generic-cli-input-parser'])
       .subLocation('/infra/cli/presentation', cliPresentationRoles),
 
-    location<RoleName>('src/shell', ['main']),
+    location<RoleName>('src/entrypoint').subLocation('/_platform', entrypointRoles),
+
+    location<RoleName>('src/shell', ['main', 'cli-error-handler']),
   ],
 })

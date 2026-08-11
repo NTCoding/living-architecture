@@ -26,7 +26,7 @@ import { LinkComponents } from './link-components'
 import { LinkExternal } from './link-external'
 import { LinkHttp } from './link-http'
 import { ValidateGraph } from './validate-graph'
-import { RiviereBuilderRepository } from '../infra/persistence/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 
 class UnexpectedBuilderFailure extends Error {
   constructor(message: string) {

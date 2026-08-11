@@ -1,8 +1,13 @@
 import { RunRoleEnforcement } from '../../commands/run-role-enforcement'
 
 /** @riviere-role cli-entrypoint */
-export function main(configModule: unknown, configDir: string, packageFilter?: string): number {
-  const result = new RunRoleEnforcement().execute({
+export function main(
+  application: RunRoleEnforcement,
+  configModule: unknown,
+  configDir: string,
+  packageFilter?: string,
+): number {
+  const result = application.execute({
     configDir,
     configModule,
     ...(packageFilter === undefined ? {} : { packageFilter }),

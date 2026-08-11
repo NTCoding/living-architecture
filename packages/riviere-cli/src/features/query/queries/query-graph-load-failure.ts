@@ -1,7 +1,7 @@
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import type { RiviereQuery } from '@living-architecture/riviere-query'
-import { RiviereQueryRepository } from '../infra/persistence/riviere-query-repository'
+import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
 
 /** @riviere-role query-model */
 export type QueryGraphLoadFailure =

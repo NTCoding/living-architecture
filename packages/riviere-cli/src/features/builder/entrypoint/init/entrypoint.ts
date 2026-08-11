@@ -5,8 +5,8 @@ import {
 } from '../../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
-import { collectOption } from '../../../../platform/infra/cli/input/option-collectors'
-import { parseDomainJson } from '../../../../platform/infra/cli/input/domain-input-parser'
+import { collectOption } from '../_platform/cli/option-collectors'
+import { parseDomainJson } from './domain-input-parser'
 import type { InitGraph } from '../../commands/init-graph'
 
 interface InitOptions {

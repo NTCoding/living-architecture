@@ -4,8 +4,8 @@ import {
   formatError, formatSuccess 
 } from '../../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
-import { parsePropertySpecs } from '../../../../platform/infra/cli/input/custom-type-parser'
-import { collectOption } from '../../../../platform/infra/cli/input/option-collectors'
+import { parsePropertySpecs } from './custom-type-parser'
+import { collectOption } from '../_platform/cli/option-collectors'
 import type { DefineCustomType } from '../../commands/define-custom-type'
 
 interface DefineCustomTypeOptions {

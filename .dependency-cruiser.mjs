@@ -3,22 +3,22 @@ export default {
     {
       name: "root-structure",
       severity: "error",
-      comment: "src/ root must only contain structural folders (features/, platform/, shell/) and index.ts barrel",
-      from: { path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/|riviere-role-enforcement/)[^/]+/src/(?!features/|platform/|shell/|index\\.ts).+" },
+      comment: "src/ root must only contain structural folders (features/, entrypoint/, platform/, shell/) and index.ts barrel",
+      from: { path: "(apps|packages|tools)/(?!riviere-schema/|riviere-extract-config/|riviere-extract-conventions/|riviere-role-enforcement/)[^/]+/src/(?!features/|entrypoint/|platform/|shell/|index\\.ts).+" },
       to: {}
     },
     {
       name: "platform-structure",
       severity: "error",
       comment: "platform/ contains only domain/ and infra/",
-      from: { path: "platform/(?!domain/|infra/)[^/]+/.+" },
+      from: { path: "src/platform/(?!domain/|infra/)[^/]+/.+" },
       to: {}
     },
     {
       name: "feature-structure",
       severity: "error",
-      comment: "Features contain only entrypoint/, commands/, queries/, domain/, infra/",
-      from: { path: "features/[^/]+/(?!entrypoint/|commands/|queries/|domain/|infra/)[^/]+/.+" },
+      comment: "Features contain only entrypoint/, commands/, queries/, domain/, data-access/, adapters/, infra/",
+      from: { path: "features/[^/]+/(?!entrypoint/|commands/|queries/|domain/|data-access/|adapters/|infra/)[^/]+/.+" },
       to: {}
     },
     {
@@ -45,11 +45,11 @@ export default {
     {
       name: "entrypoint-restricted-deps",
       severity: "error",
-      comment: "Entrypoint may only import from own entrypoint/, commands/, queries/, own infra/, platform/infra/",
+      comment: "Entrypoint may only import from own feature layers, shared entrypoint code, and platform/infra/",
       from: { path: "features/([^/]+)/entrypoint/.+" },
       to: {
-        path: "(features|platform|shell)/",
-        pathNot: "(features/$1/(entrypoint|commands|queries|infra)/|platform/infra/)"
+        path: "src/(features|entrypoint|platform|shell)/",
+        pathNot: "(features/$1/(entrypoint|commands|queries|infra)/|entrypoint/_platform/|platform/infra/)"
       }
     },
     {

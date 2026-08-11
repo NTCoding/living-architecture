@@ -43,6 +43,7 @@ export class ExtractDraftComponents {
 ### Mixed Responsibility Signals
 - If-else branches that decide WHAT operation to perform (not just how) — likely multiple command use cases merged into one
 - Direct calls to external libraries (ts-morph, fs, git) instead of going through a repository — infrastructure leaking into the command
+- Importing a `domain-port-adapter` — the command depends on the domain-owned port; the shell constructs the concrete adapter and injects it
 - Formatting or presenting results for output — cli-output-formatter responsibility leaking in
 - Constructing the input object from CLI flags — command-input-factory responsibility leaking in
 - Multiple unrelated aggregates being loaded and orchestrated — likely needs splitting into separate commands

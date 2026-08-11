@@ -268,8 +268,11 @@ export default tseslint.config(
       '@stylistic/object-curly-newline': [
         'error',
         {
-          multiline: true,
-          minProperties: 2,
+          ObjectExpression: { multiline: true, minProperties: 2 },
+          ObjectPattern: { multiline: true, minProperties: 2 },
+          TSTypeLiteral: { multiline: true, minProperties: 2 },
+          TSInterfaceBody: { multiline: true, minProperties: 2 },
+          TSEnumBody: { multiline: true, minProperties: 2 },
         },
       ],
       '@stylistic/object-property-newline': [

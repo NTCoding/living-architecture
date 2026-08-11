@@ -4,9 +4,10 @@ import {
 import {
   location, role, roleEnforcement 
 } from '../domain/role-enforcement-builder'
-import { RunRoleEnforcement } from './run-role-enforcement'
 import {
-  withWorkspaceFixture, writeFixtureFile 
+  createTestRoleEnforcementApplication,
+  withWorkspaceFixture,
+  writeFixtureFile,
 } from './test-fixture-workspace'
 
 const workspacePackageTestRoles = [
@@ -60,7 +61,7 @@ export class BetaRepository {
 
 it('accepts aggregate-repository returning aggregate from workspace package via barrel export', () => {
   withWorkspaceFixture(workspacePackageBootstrap, (workspaceDir) => {
-    const result = new RunRoleEnforcement().execute({
+    const result = createTestRoleEnforcementApplication().execute({
       configDir: workspaceDir,
       configModule: { config: workspacePackageConfig },
     })
@@ -81,7 +82,7 @@ it('rejects aggregate-repository returning unannotated class from workspace pack
 `,
     )
 
-    const result = new RunRoleEnforcement().execute({
+    const result = createTestRoleEnforcementApplication().execute({
       configDir: workspaceDir,
       configModule: { config: workspacePackageConfig },
     })

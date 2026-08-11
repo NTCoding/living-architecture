@@ -9,8 +9,8 @@ import {
   isValidComponentType,
   normalizeToSchemaComponentType,
   VALID_COMPONENT_TYPES,
-} from '../../../../platform/infra/cli/input/component-types'
-import { toComponentOutput } from '../../../../platform/infra/cli/presentation/component-output'
+} from '../../../../entrypoint/_platform/cli/component-types'
+import { toComponentOutput } from '../_platform/cli/component-output'
 import type { ListComponents } from '../../queries/list-components'
 
 interface ComponentsOptions {

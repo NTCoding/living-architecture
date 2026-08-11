@@ -1,6 +1,5 @@
-import {
-  filterConfigByPackage, PackageFilterError 
-} from './filter-config-by-package'
+import { describe, expect, it } from 'vitest'
+import { filterConfigByPackage, PackageFilterError } from './filter-config-by-package'
 import type { RoleEnforcementResult } from './role-enforcement-builder'
 import { role } from './role-enforcement-builder'
 

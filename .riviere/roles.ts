@@ -6,7 +6,8 @@ type RoleName =
   | 'cli-entrypoint'
   | 'cli-error'
   | 'cli-error-handler'
-  | 'cli-input-validator'
+  | 'entrypoint-cli-input-parser'
+  | 'generic-cli-input-parser'
   | 'cli-output-formatter'
   | 'cli-response-formatter'
   | 'cli-response-writer'
@@ -17,7 +18,9 @@ type RoleName =
   | 'command-use-case-result-value'
   | 'domain-error'
   | 'domain-event'
+  | 'domain-port'
   | 'domain-service'
+  | 'domain-port-adapter'
   | 'external-client-error'
   | 'external-client-model'
   | 'external-client-service'
@@ -37,7 +40,7 @@ export const allRoles = [
     targets: ['class', 'function'],
     allowedInputs: ['command-use-case-input'],
     allowedOutputs: ['command-use-case-result'],
-    forbiddenDependencies: ['command-use-case'],
+    forbiddenDependencies: ['command-use-case', 'domain-port-adapter'],
     minPublicMethods: 1,
     maxPublicMethods: 1,
   }),
@@ -78,6 +81,10 @@ export const allRoles = [
         name: 'RiviereBuilder',
         userHasApproved: true,
       },
+      {
+        name: 'RoleEnforcementProject',
+        userHasApproved: true,
+      },
     ],
   }),
   role('value-object', {
@@ -93,7 +100,12 @@ export const allRoles = [
     targets: ['type-alias'],
     nameMatches: '.*Event$',
   }),
+  role('domain-port', { targets: ['interface', 'type-alias'] }),
   role('domain-service', { targets: ['function', 'class'] }),
+  role('domain-port-adapter', {
+    targets: ['function', 'class'],
+    forbiddenDependencies: ['domain-port-adapter'],
+  }),
   role('query-model-use-case', {
     targets: ['class'],
     allowedInputs: ['query-model-use-case-input'],
@@ -117,7 +129,8 @@ export const allRoles = [
   }),
   role('external-client-model', { targets: ['interface', 'type-alias', 'class'] }),
   role('external-client-error', { targets: ['class'] }),
-  role('cli-input-validator', { targets: ['function'] }),
+  role('entrypoint-cli-input-parser', { targets: ['function'] }),
+  role('generic-cli-input-parser', { targets: ['function'] }),
   role('cli-error', { targets: ['class'] }),
   role('main', {
     targets: ['function'],

@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { minimatch } from 'minimatch'
 
@@ -38,6 +39,10 @@ export default {
         const [options] = context.options
         const roleMap = new Map(options.roles.map((role) => [role.name, role]))
         const layerEntries = Object.entries(options.layers ?? {})
+        const importRuleLocations = layerEntries
+          .map(([, location]) => location)
+          .filter((location) => hasImportRules(location))
+          .sort((left, right) => longestPattern(right.paths) - longestPattern(left.paths))
         const sourceCode = context.sourceCode
         const fileCache = new Map()
         const importCache = new Map()
@@ -71,6 +76,7 @@ export default {
           },
           ImportDeclaration(node) {
             validateForbiddenImports(node)
+            validateLocationImport(node)
           },
           'Program:exit'() {
             validateForbiddenDependencies()
@@ -115,6 +121,88 @@ export default {
               }
             }
           }
+        }
+
+        function validateLocationImport(node) {
+          const sourceLocation = importRuleLocations.find(
+            (location) =>
+              location.paths.some((pattern) => matchesExpandedPattern(relativeFilePath, pattern)),
+          )
+          if (sourceLocation === undefined) {
+            return
+          }
+
+          const importSource = node.source.value
+          if (typeof importSource !== 'string') {
+            return
+          }
+
+          const resolvedImport = resolveImportFile(filename, importSource)
+          if (resolvedImport === null || !isInsideDirectory(resolvedImport, options.configDir)) {
+            if (
+              sourceLocation.mayImportExternalPackages === false &&
+              isExternalImport(importSource)
+            ) {
+              report(
+                node,
+                `Forbidden external import: files in '${sourceLocation.paths.join(', ')}' cannot import external package '${importSource}'.`,
+              )
+            }
+            return
+          }
+
+          const resolvedImportRelative = normalizePath(
+            readRelativeFilePath(resolvedImport, options.configDir),
+          )
+          const importedRoles = readImportedRoles(node, resolvedImport)
+          if (
+            sourceLocation.paths.some((pattern) =>
+              matchesExpandedPattern(resolvedImportRelative, pattern),
+            )
+          ) {
+            return
+          }
+
+          if (!Array.isArray(sourceLocation.mayImportRoles)) {
+            return
+          }
+
+          const disallowedRole = importedRoles.find(
+            (role) => !sourceLocation.mayImportRoles.includes(role),
+          )
+          if (importedRoles.length > 0 && disallowedRole === undefined) {
+            return
+          }
+
+          const targetDescription =
+            importedRoles.length === 0 ? 'no classified role' : `[${importedRoles.join(', ')}]`
+          report(
+            node,
+            `Forbidden role import: files in '${sourceLocation.paths.join(', ')}' may only import roles [${sourceLocation.mayImportRoles.join(', ')}] across that location boundary, but '${resolvedImportRelative}' provides ${targetDescription}.`,
+          )
+        }
+
+        function readImportedRoles(node, resolvedImport) {
+          const roles = []
+          for (const specifier of node.specifiers ?? []) {
+            if (specifier.type === 'ImportSpecifier') {
+              const importedName =
+                specifier.imported.type === 'Identifier'
+                  ? specifier.imported.name
+                  : specifier.imported.value
+              const importedRole = readExportedRole(resolvedImport, importedName)
+              if (importedRole !== null) {
+                roles.push(importedRole)
+              }
+            } else if (specifier.type === 'ImportNamespaceSpecifier') {
+              roles.push(...readAllExportedRoles(resolvedImport))
+            }
+          }
+          return [...new Set(roles)]
+        }
+
+        function isExternalImport(importSource) {
+          return !importSource.startsWith('.') && !path.isAbsolute(importSource)
         }
 
         function validateDeclaration(node, target) {
@@ -935,6 +1023,16 @@ function matchesExpandedPattern(fileDir, pattern) {
   )
 }
 
+function hasImportRules(location) {
+  return (
+    location.mayImportExternalPackages === false || Array.isArray(location.mayImportRoles)
+  )
+}
+
+function longestPattern(patterns) {
+  return Math.max(...patterns.map((pattern) => pattern.length))
+}
+
 function expandCommaPath(pattern) {
   const segments = pattern.split('/')
   const segmentAlternatives = segments.map((s) => s.split(','))
@@ -1063,6 +1161,46 @@ function resolveTypeFile(currentFile, importSource) {
       }
     }) ?? null
   )
+}
+
+function resolveImportFile(currentFile, importSource) {
+  if (importSource.startsWith('.')) {
+    return resolveTypeFile(currentFile, importSource)
+  }
+
+  return resolveWorkspacePackageSource(currentFile, importSource)
+}
+
+function resolveWorkspacePackageSource(currentFile, importSource) {
+  const packageName = readPackageName(importSource)
+  if (packageName === null) {
+    return null
+  }
+
+  try {
+    const packageJsonPath = createRequire(currentFile).resolve(`${packageName}/package.json`)
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+    const sourceEntry = packageJson.exports?.['.']?.['@living-architecture/source']
+    if (typeof sourceEntry !== 'string') {
+      return null
+    }
+    return resolveTypeFile(packageJsonPath, sourceEntry)
+  } catch {
+    return null
+  }
+}
+
+function readPackageName(importSource) {
+  const segments = importSource.split('/')
+  if (importSource.startsWith('@')) {
+    return segments.length >= 2 ? `${segments[0]}/${segments[1]}` : null
+  }
+  return segments[0] ?? null
+}
+
+function isInsideDirectory(filePath, directoryPath) {
+  const relativePath = path.relative(directoryPath, filePath)
+  return relativePath !== '' && !relativePath.startsWith('..') && !path.isAbsolute(relativePath)
 }
 
 function normalizePath(value) {

@@ -1,4 +1,4 @@
-import { ExtractionProjectRepository } from '../infra/persistence/extraction-project/extraction-project-repository'
+import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
 import type { ExtractDraftComponentsInput } from './extract-draft-components-input'
 import type { ExtractDraftComponentsResult } from './extract-draft-components-result'
 

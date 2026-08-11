@@ -4,9 +4,10 @@ import {
 import {
   location, role, roleEnforcement 
 } from '../domain/role-enforcement-builder'
-import { RunRoleEnforcement } from './run-role-enforcement'
 import {
-  withWorkspaceFixture, writeFixtureFile 
+  createTestRoleEnforcementApplication,
+  withWorkspaceFixture,
+  writeFixtureFile,
 } from './test-fixture-workspace'
 
 const testRoles = [
@@ -69,7 +70,7 @@ export function runRoleMain(): void {
 }
 `,
     )
-    const result = new RunRoleEnforcement().execute({
+    const result = createTestRoleEnforcementApplication().execute({
       configDir: workspaceDir,
       configModule: { config: testConfig },
     })
@@ -92,7 +93,7 @@ export function runRoleMain(): void {
 }
 `,
     )
-    const result = new RunRoleEnforcement().execute({
+    const result = createTestRoleEnforcementApplication().execute({
       configDir: workspaceDir,
       configModule: { config: testConfig },
     })
@@ -114,7 +115,7 @@ export function runRoleMain(): void {
 }
 `,
     )
-    const result = new RunRoleEnforcement().execute({
+    const result = createTestRoleEnforcementApplication().execute({
       configDir: workspaceDir,
       configModule: { config: testConfig },
     })

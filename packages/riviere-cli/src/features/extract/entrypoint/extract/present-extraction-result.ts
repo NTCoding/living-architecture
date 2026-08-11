@@ -1,10 +1,10 @@
-import { categorizeComponents } from '../../../../platform/infra/cli/presentation/categorize-components'
+import { categorizeComponents } from './categorize-components'
 import {
   countLinksByType,
   formatExtractionStats,
   formatTimingLine,
-} from '../../../../platform/infra/cli/presentation/format-extraction-stats'
-import { formatDryRunOutput } from '../../../../platform/infra/cli/presentation/extract-output-formatter'
+} from './format-extraction-stats'
+import { formatDryRunOutput } from './extract-output-formatter'
 import { formatPrMarkdown } from '../../../../platform/infra/cli/presentation/format-pr-markdown'
 import { formatSuccess } from '../../../../platform/infra/cli/presentation/output'
 import { outputResult } from '../../../../platform/infra/cli/presentation/output-writer'

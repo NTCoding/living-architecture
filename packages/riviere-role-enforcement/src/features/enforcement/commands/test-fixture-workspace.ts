@@ -3,12 +3,28 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createOxlintRoleEnforcementRunner } from '../adapters/oxlint/oxlint-role-enforcement-runner'
+import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement-project-repository'
+import { findFileUp } from '../../../platform/infra/external-clients/filesystem/find-file-up'
+import { runOxlint } from '../../../platform/infra/external-clients/oxlint/index'
 import { genericTestRoles } from './test-fixture-config'
+import { RunRoleEnforcement } from './run-role-enforcement'
 
 interface WorkspaceBootstrap {
   readonly prefix: string
   readonly roles: readonly { readonly name: string }[]
   readonly files: Readonly<Record<string, string>>
+}
+
+export function createTestRoleEnforcementApplication(): RunRoleEnforcement {
+  const startDirectory = path.dirname(fileURLToPath(import.meta.url))
+  const pluginPath = findFileUp(startDirectory, 'role-enforcement-plugin.mjs')
+  return new RunRoleEnforcement({
+    now: () => 0,
+    projectRepository: new RoleEnforcementProjectRepository(),
+    runner: createOxlintRoleEnforcementRunner(runOxlint, pluginPath),
+  })
 }
 
 export function withWorkspaceFixture(

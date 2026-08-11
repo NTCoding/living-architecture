@@ -13,7 +13,7 @@ import { createStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store
 import { createWorkflowRunner } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { RunnerResult } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { Workflow } from '../../../domain/workflow'
-import { WORKFLOW_DEFINITION } from '../../../infra/persistence/workflow-definition'
+import { WORKFLOW_DEFINITION } from '../../../data-access/workflow-definition'
 import {
   ROUTES, PRE_TOOL_USE_POLICY 
 } from '../entrypoint'
