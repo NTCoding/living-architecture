@@ -51,7 +51,6 @@ interface ForceGraphProps {
   readonly onNodeClick?: (nodeId: string) => void
   readonly onNodeHover?: (data: TooltipData | null) => void
   readonly onBackgroundClick?: () => void
-  readonly relationshipLabelMode?: 'detailed' | 'semantic-only'
 }
 
 interface ApplyDomainFocusParams {
@@ -93,7 +92,6 @@ export function ForceGraph({
   onNodeClick,
   onNodeHover,
   onBackgroundClick,
-  relationshipLabelMode = 'detailed',
 }: Readonly<ForceGraphProps>): React.ReactElement {
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -296,7 +294,7 @@ export function ForceGraph({
       getSemanticEdgeColor,
       isAsyncEdge,
     })
-    const linkLabel = setupLinkLabels(linkGroup, links, relationshipLabelMode)
+    const linkLabel = setupLinkLabels(linkGroup, links)
 
     const node = setupNodes({
       nodeGroup,
@@ -381,7 +379,6 @@ export function ForceGraph({
     applyVisualization,
     setupNodeEvents,
     handleBackgroundClick,
-    relationshipLabelMode,
   ])
 
   useEffect(() => {

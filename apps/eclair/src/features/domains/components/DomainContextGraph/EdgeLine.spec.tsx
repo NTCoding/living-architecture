@@ -39,8 +39,8 @@ describe('EdgeLine', () => {
     expect(group).toBeInTheDocument()
   })
 
-  it('uses semantic relationship types as the primary label', () => {
-    const { getByText } = render(
+  it('shows only semantic relationships while retaining delivery details on hover', () => {
+    const { container } = render(
       <svg>
         <EdgeLine
           from={from}
@@ -57,7 +57,10 @@ describe('EdgeLine', () => {
       </svg>,
     )
 
-    expect(getByText('reads, writes · sync/async')).toBeInTheDocument()
+    const label = container.querySelector('[data-testid="semantic-edge"] text')
+    expect(label?.childNodes[0]?.textContent).toBe('reads, writes')
+    expect(label).toHaveAttribute('aria-label', 'reads, writes · sync/async')
+    expect(label?.querySelector('title')).toHaveTextContent('reads, writes · sync/async')
   })
 
   it('returns empty group when positions are identical', () => {
@@ -109,7 +112,9 @@ describe('EdgeLine', () => {
   })
 
   it('separates long labels for opposite relationship directions', () => {
-    const { container } = render(
+    const {
+      container, getAllByLabelText,
+    } = render(
       <svg>
         <EdgeLine
           from={from}
@@ -153,8 +158,9 @@ describe('EdgeLine', () => {
       outgoingLabelY - incomingLabelY,
     )
 
-    expect(outgoingLabel).toHaveTextContent('proxies · sync')
-    expect(incomingLabel).toHaveTextContent('proxies · sync')
+    expect(
+      getAllByLabelText('proxies · sync').map((label) => label.childNodes[0]?.textContent),
+    ).toStrictEqual(['proxies', 'proxies'])
     expect(labelSeparation).toBeGreaterThan(24)
   })
 })
