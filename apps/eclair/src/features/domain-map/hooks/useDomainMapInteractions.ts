@@ -1,10 +1,6 @@
-import {
-  useState, useCallback 
-} from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { ConnectionDetail } from '../queries/extract-domain-map'
-import {
-  pluralizeComponent, pluralizeConnection 
-} from '@/platform/domain/text/pluralize'
+import { pluralizeComponent, pluralizeConnection } from '@/platform/domain/text/pluralize'
 
 interface TooltipState {
   visible: boolean
@@ -86,6 +82,10 @@ export function useDomainMapInteractions(
   })
 
   const [focusedDomain, setFocusedDomain] = useState<string | null>(initialFocusedDomain)
+
+  useEffect(() => {
+    setFocusedDomain(initialFocusedDomain)
+  }, [initialFocusedDomain])
 
   const showNodeTooltip = useCallback((x: number, y: number, label: string, nodeCount: number) => {
     setTooltip({

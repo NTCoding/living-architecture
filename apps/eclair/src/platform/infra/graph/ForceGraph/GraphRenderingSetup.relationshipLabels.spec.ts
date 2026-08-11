@@ -1,13 +1,11 @@
 import * as d3 from 'd3'
-import {
-  describe, expect, it 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import * as GraphRenderingSetup from './GraphRenderingSetup'
 import type * as GraphTypes from '../graph-types'
 import { parseNode } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 describe('relationship labels', () => {
-  it('renders semantic type first with delivery and condition details', () => {
+  it('renders only the semantic type with delivery and condition details on hover', () => {
     const group = d3.select(document.body).append('svg').append('g')
     const links: GraphTypes.SimulationLink[] = [
       {
@@ -26,7 +24,10 @@ describe('relationship labels', () => {
 
     GraphRenderingSetup.setupLinkLabels(group, links)
 
-    expect(group.select('text').text()).toBe('publishes · async · when on success')
+    const label = group.select('text')
+    expect(label.html()).toBe('publishes<title>publishes · async · when on success</title>')
+    expect(label.attr('aria-label')).toBe('publishes · async · when on success')
+    expect(label.select('title').text()).toBe('publishes · async · when on success')
     expect(group.select('text').attr('dy')).toBe('0')
   })
 
@@ -46,7 +47,7 @@ describe('relationship labels', () => {
       }),
     )
 
-    GraphRenderingSetup.setupLinkLabels(group, links, 'semantic-only')
+    GraphRenderingSetup.setupLinkLabels(group, links)
 
     const labels = group.selectAll<SVGTextElement, GraphTypes.SimulationLink>('text')
     expect(labels.size()).toBe(2)
@@ -87,7 +88,7 @@ describe('relationship labels', () => {
       },
     ]
 
-    GraphRenderingSetup.setupLinkLabels(group, links, 'semantic-only')
+    GraphRenderingSetup.setupLinkLabels(group, links)
 
     const label = group.select('text')
     expect(group.selectAll('text').size()).toBe(1)
@@ -126,7 +127,7 @@ describe('relationship labels', () => {
       },
     ]
 
-    GraphRenderingSetup.setupLinkLabels(group, links, 'semantic-only')
+    GraphRenderingSetup.setupLinkLabels(group, links)
 
     const labels = group.selectAll<SVGTextElement, GraphTypes.SimulationLink>('text')
     expect(labels.filter((_link, index) => index === 0).attr('dy')).toBe('-8')
@@ -194,7 +195,7 @@ describe('relationship labels', () => {
       .selectAll<SVGPathElement, GraphTypes.SimulationLink>('path')
       .data(links)
       .join('path')
-    const linkLabel = GraphRenderingSetup.setupLinkLabels(group, links, 'semantic-only')
+    const linkLabel = GraphRenderingSetup.setupLinkLabels(group, links)
     const node = group.selectAll<SVGGElement, GraphTypes.SimulationNode>('g')
 
     GraphRenderingSetup.createUpdatePositionsFunction({
@@ -226,7 +227,7 @@ describe('relationship labels', () => {
       },
     ]
 
-    GraphRenderingSetup.setupLinkLabels(group, links, 'semantic-only')
+    GraphRenderingSetup.setupLinkLabels(group, links)
 
     const label = group.select('text')
     expect(label.html()).toBe('publishes<title>publishes · async · when on success</title>')

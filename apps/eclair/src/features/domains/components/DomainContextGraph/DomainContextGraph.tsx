@@ -261,6 +261,7 @@ export function DomainContextGraph({
                 relationshipCount={conn.relationshipCount}
                 relationshipTypes={conn.relationshipTypes}
                 deliveryTypes={conn.deliveryTypes}
+                conditions={conn.conditions}
                 isBidirectional={isBidirectional}
               />
             )

@@ -1,9 +1,5 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import {
-  renderHook, act 
-} from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+import { renderHook, act } from '@testing-library/react'
 import { useDomainMapInteractions } from './useDomainMapInteractions'
 import type { ConnectionDetail } from '../queries/extract-domain-map'
 
@@ -187,6 +183,17 @@ describe('useDomainMapInteractions', () => {
       )
 
       expect(result.current.focusedDomain).toBe('orders')
+    })
+
+    it('updates the focused domain when the route-provided domain changes', () => {
+      const hook = renderHook(
+        ({ initialFocusedDomain }: { initialFocusedDomain: string | null }) =>
+          useDomainMapInteractions({ initialFocusedDomain }),
+        { initialProps: { initialFocusedDomain: 'orders' } },
+      )
+      hook.rerender({ initialFocusedDomain: 'payments' })
+
+      expect(hook.result.current.focusedDomain).toBe('payments')
     })
 
     it('sets focused domain on selectDomain', () => {
