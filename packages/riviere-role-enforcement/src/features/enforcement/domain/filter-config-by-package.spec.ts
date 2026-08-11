@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { filterConfigByPackage, PackageFilterError } from './filter-config-by-package'
 import type { RoleEnforcementResult } from './role-enforcement-builder'
-import { role, roleEnforcement } from './role-enforcement-builder'
+import { location, locationConfiguration, role, roleEnforcement } from './role-enforcement-builder'
 
 const testRoles = [
   role('cli-entrypoint', { targets: ['function'] }),
@@ -10,27 +10,19 @@ const testRoles = [
 
 function createMultiPackageConfig(): RoleEnforcementResult {
   return roleEnforcement({
-    packages: ['packages/riviere-cli', 'packages/riviere-extract-ts'],
+    configurations: {
+      standard: {
+        packages: ['packages/riviere-cli', 'packages/riviere-extract-ts'],
+        locations: locationConfiguration(
+          location('src/features/{feature}')
+            .subLocation('/domain', ['aggregate'])
+            .subLocation('/entrypoint', ['cli-entrypoint']),
+        ),
+      },
+    },
     ignorePatterns: ['**/*.spec.ts'],
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: testRoles,
-    locations: {
-      source: {
-        path: 'src',
-        subLocations: {
-          features: {
-            subLocations: {
-              '{feature}': {
-                subLocations: {
-                  domain: { rules: { roles: ['aggregate'] } },
-                  entrypoint: { rules: { roles: ['cli-entrypoint'] } },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
   })
 }
 

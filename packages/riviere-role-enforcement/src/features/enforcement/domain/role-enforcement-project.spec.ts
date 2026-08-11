@@ -1,18 +1,22 @@
 import { expect, it, vi } from 'vitest'
-import { roleEnforcement, type RoleEnforcementResult } from './role-enforcement-builder'
+import {
+  location,
+  locationConfiguration,
+  roleEnforcement,
+  type RoleEnforcementResult,
+} from './role-enforcement-builder'
 import { RoleEnforcementProject } from './role-enforcement-project'
 
 const config: RoleEnforcementResult = roleEnforcement({
-  packages: ['packages/pkg-a', 'packages/pkg-b'],
+  configurations: {
+    test: {
+      packages: ['packages/pkg-a', 'packages/pkg-b'],
+      locations: locationConfiguration(location('src').subLocation('/domain', [])),
+    },
+  },
   ignorePatterns: ['**/*.spec.ts'],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: [],
-  locations: {
-    source: {
-      path: 'src',
-      subLocations: { domain: {} },
-    },
-  },
 })
 
 it('executes the complete project when no package filter is provided', () => {

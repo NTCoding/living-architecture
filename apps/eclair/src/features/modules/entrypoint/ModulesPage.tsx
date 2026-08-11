@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import { NodeTypeBadge } from '@/platform/domain/ui/NodeTypeBadge/NodeTypeBadge'
+import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
 import { extractModules } from '../queries/extract-modules'
-import type { Theme } from '@/platform/domain/theme/theme'
-import { DEFAULT_THEME } from '@/platform/domain/theme/theme'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
 interface ModulesPageProps {
   readonly graph: RiviereGraph

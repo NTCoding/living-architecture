@@ -2,13 +2,13 @@ import {
   useMemo, useState 
 } from 'react'
 import { Link } from 'react-router-dom'
-import { RiviereQuery } from '@living-architecture/riviere-query'
 import type {
   RiviereGraph, SystemType 
 } from '@living-architecture/riviere-schema'
 import {
   domainNameSchema, type DomainName,
 } from '../queries/eclair-domain'
+import { useRiviereQuery } from '@/platform/infra/riviere-query/useRiviereQuery'
 import { useCodeLinkSettings } from '@/platform/infra/settings/use-code-link-settings'
 import { StatsItem } from '../components/StatsItem'
 import {
@@ -18,8 +18,8 @@ import { NodeBreakdownSection } from '../components/NodeBreakdownSection'
 import {
   getNodeTypeBreakdown, type NodeTypeBreakdown,
 } from '../queries/node-type-breakdown'
-import type { Theme } from '@/platform/domain/theme/theme'
-import { DEFAULT_THEME } from '@/platform/domain/theme/theme'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
 type ViewMode = 'grid' | 'list'
 type FilterType = 'all' | SystemType
@@ -56,11 +56,24 @@ export function OverviewPage({
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState<FilterType>('all')
-  const query = useMemo(() => new RiviereQuery(graph), [graph])
+  const query = useRiviereQuery(graph)
 
   const {
     stats, allDomains 
   } = useMemo(() => {
+    if (query === null) {
+      return {
+        stats: {
+          totalNodes: 0,
+          totalDomains: 0,
+          totalApis: 0,
+          totalEntities: 0,
+          totalEvents: 0,
+        },
+        allDomains: [],
+      }
+    }
+
     const queryStats = query.stats()
     const domains = query.domains()
     const allEntities = query.entities()

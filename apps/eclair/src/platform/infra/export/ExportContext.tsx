@@ -1,13 +1,7 @@
 import {
   createContext, useContext, useState, useCallback, useMemo
 } from 'react'
-
-export class ExportContextError extends Error {
-  constructor() {
-    super('useExport must be used within an ExportProvider')
-    this.name = 'ExportContextError'
-  }
-}
+import { ContextError } from '@/platform/infra/errors/errors'
 
 interface ExportHandlers {
   readonly onPng: (() => void) | null
@@ -56,7 +50,7 @@ export function ExportProvider({ children }: ExportProviderProps): React.ReactEl
 export function useExport(): ExportContextValue {
   const context = useContext(exportContext)
   if (context === null) {
-    throw new ExportContextError()
+    throw new ContextError('useExport', 'ExportProvider')
   }
   return context
 }

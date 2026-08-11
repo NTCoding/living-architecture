@@ -1,4 +1,4 @@
-import type { Theme } from '@/platform/domain/theme/theme'
+import type { Theme } from '@/types/theme'
 
 interface ThemeFocusColors {
   borderColor: string

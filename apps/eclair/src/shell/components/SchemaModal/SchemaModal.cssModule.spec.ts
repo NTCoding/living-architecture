@@ -1,5 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
-import { CSSModuleError } from '@/platform/domain/errors/errors'
+import {
+  describe, it, expect, vi 
+} from 'vitest'
+import { CSSModuleError } from '@/platform/infra/errors/errors'
 
 vi.mock('./SchemaModal.module.css', () => ({
   default: {

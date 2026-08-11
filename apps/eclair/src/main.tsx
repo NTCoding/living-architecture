@@ -3,8 +3,8 @@ import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import './index.css'
 import { App } from './shell/App'
-import { ThemeProvider } from '@/platform/domain/theme/ThemeContext'
-import { DOMError } from '@/platform/domain/errors/errors'
+import { ThemeProvider } from '@/platform/infra/theme/ThemeContext'
+import { DOMError } from '@/platform/infra/errors/errors'
 
 const rootElement = document.getElementById('root')
 

@@ -1,5 +1,10 @@
 import { expect, it } from 'vitest'
-import { role, roleEnforcement } from '../domain/role-enforcement-builder'
+import {
+  location,
+  locationConfiguration,
+  role,
+  roleEnforcement,
+} from '../domain/role-enforcement-builder'
 import {
   createTestRoleEnforcementApplication,
   withWorkspaceFixture,
@@ -19,22 +24,22 @@ const testRoles = [
 
 type TestRoleName = (typeof testRoles)[number]['name']
 
-const testLocations = {
-  source: {
-    path: 'src',
-    subLocations: {
-      commands: { rules: { roles: ['role-a'] } },
-      shell: { rules: { roles: ['role-main'] } },
-    },
-  },
-} satisfies import('../domain/role-enforcement-builder').LocationStructure<TestRoleName>
+const testLocations = locationConfiguration(
+  location<TestRoleName>('src')
+    .subLocation('/commands', ['role-a'])
+    .subLocation('/shell', ['role-main']),
+)
 
 const testConfig = roleEnforcement({
-  packages: ['packages/pkg-a'],
+  configurations: {
+    test: {
+      packages: ['packages/pkg-a'],
+      locations: testLocations,
+    },
+  },
   ignorePatterns: ['**/*.spec.ts'],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: testRoles,
-  locations: testLocations,
 })
 
 const fixtureBootstrap = {

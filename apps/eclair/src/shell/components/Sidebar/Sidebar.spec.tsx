@@ -15,7 +15,7 @@ function LocationDisplay(): React.ReactElement {
   return <div data-testid="location">{location.pathname}</div>
 }
 
-vi.mock('@/platform/domain/theme/ThemeContext', () => ({
+vi.mock('@/platform/infra/theme/ThemeContext', () => ({
   useTheme: () => ({
     theme: 'stream',
     setTheme: vi.fn(),

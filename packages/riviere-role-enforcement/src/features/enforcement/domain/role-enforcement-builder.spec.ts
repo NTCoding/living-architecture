@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { createRoleFactory, role, roleEnforcement } from './role-enforcement-builder'
+import {
+  createRoleFactory,
+  location,
+  locationConfiguration,
+  role,
+  roleEnforcement,
+} from './role-enforcement-builder'
 
 describe('role', () => {
   it('produces a role definition with the given name and options', () => {
@@ -131,39 +137,108 @@ describe('roleEnforcement', () => {
     role('aggregate', { targets: ['class'] }),
   ] as const
 
-  it('builds the configured location hierarchy for every package', () => {
+  it('combines named configurations that extend common locations', () => {
+    const common = locationConfiguration(
+      location('src/features/{feature}').subLocation('/domain', ['aggregate']),
+    )
+    const standard = {
+      packages: ['packages/backend'],
+      locations: common.extend(
+        location('src/features/{feature}').subLocation('/commands', ['cli-entrypoint']),
+      ),
+    }
+    const frontend = {
+      packages: ['apps/frontend'],
+      locations: common.extend(location('src/features/{feature}').subLocation('/components', [])),
+    }
+
     const result = roleEnforcement({
-      packages: ['packages/app-a', 'packages/app-b'],
+      configurations: {
+        standard,
+        frontend,
+      },
       ignorePatterns: [],
       roleDefinitionsDir: '.riviere/role-definitions',
       roles: testRoles,
-      locations: {
-        source: {
-          path: 'src',
-          subLocations: {
-            features: {
-              subLocations: {
-                '{feature}': {
-                  subLocations: {
-                    domain: { rules: { roles: ['aggregate'] } },
-                    entrypoint: { rules: { roles: ['cli-entrypoint'] } },
-                  },
-                },
-              },
-            },
-          },
+    })
+
+    expect(result.locationHierarchy.map(({ pathTemplate }) => pathTemplate)).toStrictEqual([
+      'packages/backend/src/features/{feature}',
+      'packages/backend/src/features/{feature}/domain',
+      'packages/backend/src/features/{feature}/commands',
+      'apps/frontend/src/features/{feature}',
+      'apps/frontend/src/features/{feature}/domain',
+      'apps/frontend/src/features/{feature}/components',
+    ])
+    expect(result.include).toStrictEqual([
+      'packages/backend/src/**/*.ts',
+      'packages/backend/src/**/*.tsx',
+      'apps/frontend/src/**/*.ts',
+      'apps/frontend/src/**/*.tsx',
+    ])
+  })
+
+  it('preserves common rules unless an extension explicitly replaces them', () => {
+    const common = locationConfiguration(
+      location('src/features/{feature}', ['aggregate'], {dependencyRules: { canImportSiblings: false },}),
+    )
+    const preserved = roleEnforcement({
+      configurations: {
+        standard: {
+          packages: ['packages/preserved'],
+          locations: common.extend(location('src/features/{feature}')),
         },
       },
+      ignorePatterns: [],
+      roleDefinitionsDir: '.riviere/role-definitions',
+      roles: testRoles,
+    })
+    const replaced = roleEnforcement({
+      configurations: {
+        standard: {
+          packages: ['packages/replaced'],
+          locations: common.extend(
+            location('src/features/{feature}', ['cli-entrypoint'], {dependencyRules: { locations: [] },}),
+          ),
+        },
+      },
+      ignorePatterns: [],
+      roleDefinitionsDir: '.riviere/role-definitions',
+      roles: testRoles,
+    })
+
+    expect(preserved.locationHierarchy[0]).toMatchObject({
+      allowedRoles: ['aggregate'],
+      dependencyRules: { canImportSiblings: false },
+    })
+    expect(replaced.locationHierarchy[0]).toMatchObject({
+      allowedRoles: ['cli-entrypoint'],
+      dependencyRules: { locations: [] },
+    })
+  })
+
+  it('applies a named configuration to every assigned package', () => {
+    const locations = locationConfiguration(
+      location('src/features/{feature}')
+        .subLocation('/domain', ['aggregate'])
+        .subLocation('/entrypoint', ['cli-entrypoint']),
+    )
+    const result = roleEnforcement({
+      configurations: {
+        standard: {
+          packages: ['packages/app-a', 'packages/app-b'],
+          locations,
+        },
+      },
+      ignorePatterns: [],
+      roleDefinitionsDir: '.riviere/role-definitions',
+      roles: testRoles,
     })
 
     expect(result.locationHierarchy.map((location) => location.pathTemplate)).toStrictEqual([
-      'packages/app-a/src',
-      'packages/app-a/src/features',
       'packages/app-a/src/features/{feature}',
       'packages/app-a/src/features/{feature}/domain',
       'packages/app-a/src/features/{feature}/entrypoint',
-      'packages/app-b/src',
-      'packages/app-b/src/features',
       'packages/app-b/src/features/{feature}',
       'packages/app-b/src/features/{feature}/domain',
       'packages/app-b/src/features/{feature}/entrypoint',
@@ -171,28 +246,21 @@ describe('roleEnforcement', () => {
   })
 
   it('derives TypeScript and TSX include patterns from every enforced package', () => {
+    const locations = locationConfiguration(location('src', { allowAnySubLocations: true }))
     const result = roleEnforcement({
-      packages: ['packages/my-app'],
-      additionalLocationEnforcement: [
-        {
-          packages: ['apps/my-app'],
-          locations: {
-            source: {
-              path: 'src',
-              allowAnySubLocations: true,
-            },
-          },
+      configurations: {
+        standard: {
+          packages: ['packages/my-app'],
+          locations,
         },
-      ],
+        frontend: {
+          packages: ['apps/my-app'],
+          locations,
+        },
+      },
       ignorePatterns: [],
       roleDefinitionsDir: '.riviere/role-definitions',
       roles: testRoles,
-      locations: {
-        source: {
-          path: 'src',
-          allowAnySubLocations: true,
-        },
-      },
     })
 
     expect(result.include).toStrictEqual([
@@ -205,18 +273,17 @@ describe('roleEnforcement', () => {
 
   it('keeps configuration values needed by the runner', () => {
     const result = roleEnforcement({
-      packages: ['packages/my-app'],
+      configurations: {
+        standard: {
+          packages: ['packages/my-app'],
+          locations: locationConfiguration(location('src', { allowAnySubLocations: true })),
+        },
+      },
       ignorePatterns: ['**/__fixtures__/**'],
       importAliases: { '@/': 'packages/my-app/src/' },
       roleDefinitionsDir: '.riviere/role-definitions',
       roles: testRoles,
       workspacePackageSources: { '@generic/pkg': 'packages/pkg/src/index.ts' },
-      locations: {
-        source: {
-          path: 'src',
-          allowAnySubLocations: true,
-        },
-      },
     })
 
     expect(result).toMatchObject({

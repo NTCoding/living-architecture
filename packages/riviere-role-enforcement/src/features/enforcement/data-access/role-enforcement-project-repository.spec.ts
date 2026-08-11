@@ -1,20 +1,24 @@
 import { describe, expect, it, vi } from 'vitest'
-import { role, roleEnforcement } from '../domain/role-enforcement-builder'
+import {
+  location,
+  locationConfiguration,
+  role,
+  roleEnforcement,
+} from '../domain/role-enforcement-builder'
 import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
 import { RoleEnforcementProject } from '../domain/role-enforcement-project'
 import { RoleEnforcementProjectRepository } from './role-enforcement-project-repository'
 
 const minimalConfig = roleEnforcement({
-  packages: ['packages/pkg-a'],
+  configurations: {
+    test: {
+      packages: ['packages/pkg-a'],
+      locations: locationConfiguration(location('src').subLocation('/entrypoint', ['role-entry'])),
+    },
+  },
   ignorePatterns: [],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: [role('role-entry', { targets: ['function'] })] as const,
-  locations: {
-    source: {
-      path: 'src',
-      subLocations: { entrypoint: { rules: { roles: ['role-entry'] } } },
-    },
-  },
 })
 
 function createRepository() {

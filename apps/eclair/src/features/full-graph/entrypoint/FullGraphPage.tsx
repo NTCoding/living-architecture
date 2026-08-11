@@ -8,7 +8,7 @@ import type {
 } from '../queries/eclair-types'
 import { extractNodeTypes } from '../queries/extract-node-types'
 import { compareByCodePoint } from '../queries/compare-by-code-point'
-import { useTheme } from '@/platform/domain/theme/ThemeContext'
+import { useTheme } from '@/platform/infra/theme/ThemeContext'
 import { useExport } from '@/platform/infra/export/ExportContext'
 import {
   generateExportFilename,
@@ -16,17 +16,14 @@ import {
   exportSvgAsFile,
   UNNAMED_GRAPH_EXPORT_NAME,
 } from '@/platform/infra/export/export-graph'
-import { ForceGraph } from '@/platform/domain/graph/ForceGraph/ForceGraph'
-import {
-  GraphTooltip,
-  type GraphTooltipData,
-} from '@/platform/infra/presentation/GraphTooltip/GraphTooltip'
+import { ForceGraph } from '@/platform/infra/graph/ForceGraph/ForceGraph'
+import { GraphTooltip } from '@/platform/infra/graph/GraphTooltip/GraphTooltip'
 import { DomainFilters } from '../components/DomainFilters/DomainFilters'
 import { NodeTypeFilters } from '../components/NodeTypeFilters/NodeTypeFilters'
 import {
   filterByNodeType, getThemeFocusColors,
 } from '../queries/graph-focusing'
-import type { TooltipData } from '@/platform/domain/graph/graph-types'
+import type { TooltipData } from '@/platform/infra/graph/graph-types'
 
 function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
   const connectedNodeIds = new Set<string>()
@@ -49,30 +46,6 @@ interface FullGraphPageProps {readonly graph: RiviereGraph}
 interface DomainInfo {
   name: string
   nodeCount: number
-}
-
-function toGraphTooltipData(data: TooltipData | null): GraphTooltipData | null {
-  if (data === null) return null
-
-  const { node } = data
-  const sourceLocation = node.originalNode.sourceLocation
-  return {
-    domain: node.domain,
-    incomingCount: data.incomingCount,
-    name: node.name,
-    outgoingCount: data.outgoingCount,
-    ...(typeof sourceLocation.lineNumber === 'number' && {
-      sourceLocation: {
-        filePath: sourceLocation.filePath,
-        lineNumber: sourceLocation.lineNumber,
-        repository: sourceLocation.repository,
-      },
-    }),
-    type: node.effectiveType ?? node.type,
-    ...(node.typeDescription !== undefined && { typeDescription: node.typeDescription }),
-    x: data.x,
-    y: data.y,
-  }
 }
 
 function extractDomains(graph: RiviereGraph): DomainInfo[] {
@@ -288,7 +261,7 @@ export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.Re
       />
 
       <GraphTooltip
-        data={toGraphTooltipData(tooltipData)}
+        data={tooltipData}
         onMouseEnter={handleTooltipMouseEnter}
         onMouseLeave={handleTooltipMouseLeave}
       />

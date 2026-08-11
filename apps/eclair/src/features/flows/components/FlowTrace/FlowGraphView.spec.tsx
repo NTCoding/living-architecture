@@ -10,20 +10,20 @@ import {
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type { FlowStep } from '../../queries/extract-flows'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type { TooltipData } from '@/platform/domain/graph/graph-types'
+import type { TooltipData } from '@/platform/infra/graph/graph-types'
 
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
 }
 
-vi.mock('@/platform/domain/theme/ThemeContext', () => ({ useTheme: () => ({ theme: 'stream' }) }))
+vi.mock('@/platform/infra/theme/ThemeContext', () => ({ useTheme: () => ({ theme: 'stream' }) }))
 
 interface MockState {onNodeHover: ((data: TooltipData | null) => void) | undefined}
 
 const mockState: MockState = { onNodeHover: undefined }
 
-vi.mock('@/platform/domain/graph/ForceGraph/ForceGraph', () => ({
+vi.mock('@/platform/infra/graph/ForceGraph/ForceGraph', () => ({
   ForceGraph: ({
     graph,
     onNodeHover,
@@ -42,7 +42,7 @@ vi.mock('@/platform/domain/graph/ForceGraph/ForceGraph', () => ({
   },
 }))
 
-vi.mock('@/platform/infra/presentation/GraphTooltip/GraphTooltip', () => ({
+vi.mock('@/platform/infra/graph/GraphTooltip/GraphTooltip', () => ({
   GraphTooltip: ({
     data,
     onMouseEnter,
@@ -58,7 +58,7 @@ vi.mock('@/platform/infra/presentation/GraphTooltip/GraphTooltip', () => ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {data === null ? 'No tooltip' : `Tooltip: ${data.name}`}
+      {data === null ? 'No tooltip' : `Tooltip: ${data.node.name}`}
     </div>
   ),
 }))

@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict'
 import { it } from 'vitest'
-import { role, roleEnforcement } from '../domain/role-enforcement-builder'
+import {
+  location,
+  locationConfiguration,
+  role,
+  roleEnforcement,
+} from '../domain/role-enforcement-builder'
 import * as fixtureWorkspace from './test-fixture-workspace'
 
 const moduleFunction = role('module-function', { targets: ['function'] })
@@ -32,17 +37,17 @@ export function second(): string {
         configDir: workspaceDir,
         configModule: {
           config: roleEnforcement({
-            packages: ['packages/pkg-a'],
+            configurations: {
+              test: {
+                packages: ['packages/pkg-a'],
+                locations: locationConfiguration(
+                  location('src', ['module-function'], { allowAnySubLocations: true }),
+                ),
+              },
+            },
             ignorePatterns: [],
             roleDefinitionsDir: '.riviere/role-definitions',
             roles: [moduleFunction],
-            locations: {
-              source: {
-                path: 'src',
-                allowAnySubLocations: true,
-                rules: { roles: ['module-function'] },
-              },
-            },
           }),
         },
       })

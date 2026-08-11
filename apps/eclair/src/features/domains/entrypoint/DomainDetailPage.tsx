@@ -9,8 +9,8 @@ import {
 import { parseDomainKey } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import { DomainContextGraph } from '../components/DomainContextGraph/DomainContextGraph'
 import {DomainDetailView} from '../components/DomainDetailView/DomainDetailView'
-import type { Theme } from '@/platform/domain/theme/theme'
-import { DEFAULT_THEME } from '@/platform/domain/theme/theme'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
 type ViewMode = 'graph' | 'detail'
 

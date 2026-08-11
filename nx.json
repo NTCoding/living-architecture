@@ -60,6 +60,11 @@
         "^build"
       ]
     },
+    "depcruise-eclair": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
     "test": {
       "dependsOn": [
         "lint",

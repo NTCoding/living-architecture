@@ -2,7 +2,7 @@ import {
   useEffect, useId 
 } from 'react'
 import type { DomainDetails } from '../../queries/extract-domain-details'
-import { NodeTypeBadge } from '@/platform/domain/ui/NodeTypeBadge/NodeTypeBadge'
+import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
 import { relationshipLabel } from '@/platform/domain/relationship-presentation'
 
 interface DomainDetailModalProps {

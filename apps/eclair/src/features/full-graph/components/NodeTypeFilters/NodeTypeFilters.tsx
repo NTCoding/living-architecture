@@ -2,8 +2,8 @@ import {
   useState, useCallback 
 } from 'react'
 import { getNodeTypeColor } from '@/platform/domain/node-type-presentation'
-import type { Theme } from '@/platform/domain/theme/theme'
-import { DEFAULT_THEME } from '@/platform/domain/theme/theme'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
 interface NodeTypeInfo {
   readonly type: string

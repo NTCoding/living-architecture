@@ -6,7 +6,7 @@ import {
   describe, expect, it,
 } from 'vitest'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import { ThemeProvider } from '@/platform/domain/theme/ThemeContext'
+import { ThemeProvider } from '@/platform/infra/theme/ThemeContext'
 import { ModulesPage } from './ModulesPage'
 
 const graph: RiviereGraph = {

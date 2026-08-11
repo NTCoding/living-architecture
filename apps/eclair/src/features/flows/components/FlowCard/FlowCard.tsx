@@ -1,12 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type { Flow } from '../../queries/extract-flows'
-import { CodeLinkMenu } from '@/platform/infra/presentation/CodeLinkMenu/CodeLinkMenu'
+import { CodeLinkMenu } from '@/platform/infra/ui/CodeLinkMenu/CodeLinkMenu'
 import { FlowTrace } from '../FlowTrace/FlowTrace'
-import { NodeTypeBadge } from '@/platform/domain/ui/NodeTypeBadge/NodeTypeBadge'
+import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
 import { getNodeTypeDescription } from '@/platform/domain/node-type-presentation'
-import type { Theme } from '@/platform/domain/theme/theme'
-import { DEFAULT_THEME } from '@/platform/domain/theme/theme'
+import type { Theme } from '@/types/theme'
+import { DEFAULT_THEME } from '@/types/theme'
 
 interface FlowCardProps {
   readonly flow: Flow

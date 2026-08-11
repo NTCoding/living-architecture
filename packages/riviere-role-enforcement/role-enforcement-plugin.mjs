@@ -271,10 +271,7 @@ export default {
         }
 
         function validateDeclaration(node, target) {
-          if (
-            isTestFile ||
-            sourceLocationChain.some((location) => location.location.enforceRoles === false)
-          ) {
+          if (isTestFile) {
             return
           }
           if (!isTopLevelExported(node)) {

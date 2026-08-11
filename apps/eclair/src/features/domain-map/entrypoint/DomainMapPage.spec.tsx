@@ -7,7 +7,7 @@ import {
 import { MemoryRouter } from 'react-router-dom'
 import { DomainMapPage } from './DomainMapPage'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
-import { ThemeProvider } from '@/platform/domain/theme/ThemeContext'
+import { ThemeProvider } from '@/platform/infra/theme/ThemeContext'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode, parseEdge, parseDomainMetadata 

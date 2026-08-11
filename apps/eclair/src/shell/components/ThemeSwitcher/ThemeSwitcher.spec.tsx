@@ -2,7 +2,7 @@ import {
   render, screen 
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ThemeProvider } from '@/platform/domain/theme/ThemeContext'
+import { ThemeProvider } from '@/platform/infra/theme/ThemeContext'
 import { ThemeSwitcher } from './ThemeSwitcher'
 
 function renderWithProvider(): void {

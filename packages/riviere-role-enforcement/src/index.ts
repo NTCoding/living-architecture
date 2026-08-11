@@ -1,12 +1,15 @@
 export {
   createRoleFactory,
+  location,
+  locationConfiguration,
   role,
   roleEnforcement,
 } from './features/enforcement/domain/role-enforcement-builder'
 export type {
   BuiltLocationNode,
   BuiltRole,
-  LocationStructure,
+  LocationBuilder,
+  LocationConfiguration,
   RoleEnforcementResult,
   RoleTarget,
 } from './features/enforcement/domain/role-enforcement-builder'

@@ -16,16 +16,19 @@ const roles = [
 ] as const
 
 const config = enforcementBuilder.roleEnforcement({
-  packages: ['packages/pkg-a'],
+  configurations: {
+    test: {
+      packages: ['packages/pkg-a'],
+      locations: enforcementBuilder.locationConfiguration(
+        enforcementBuilder
+          .location('src')
+          .subLocation('/domain', ['role-value', 'role-service', 'role-restricted-service']),
+      ),
+    },
+  },
   ignorePatterns: [],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles,
-  locations: {
-    source: {
-      path: 'src',
-      subLocations: {domain: { rules: { roles: ['role-value', 'role-service', 'role-restricted-service'] } },},
-    },
-  },
 })
 
 const bootstrap = {

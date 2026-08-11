@@ -1,29 +1,64 @@
 import assert from 'node:assert/strict'
 import { it } from 'vitest'
-import { roleEnforcement, type LocationStructure } from '../domain/role-enforcement-builder'
+import {
+  location,
+  locationConfiguration,
+  role,
+  roleEnforcement,
+  type LocationConfiguration,
+} from '../domain/role-enforcement-builder'
 import * as fixtureWorkspace from './test-fixture-workspace'
 
-const baseLocations = {
-  source: {
-    path: 'src',
-    subLocations: {
-      first: {
-        subLocations: {
-          alpha: {},
-          beta: {},
-          gamma: {},
-        },
-      },
-      second: {
-        subLocations: {
-          alpha: {},
-          beta: {},
-          gamma: {},
-        },
+const baseLocations = locationConfiguration(
+  location<never>('src')
+    .subLocation('/first', [])
+    .subLocation('/first/alpha', [])
+    .subLocation('/first/beta', [])
+    .subLocation('/first/gamma', [])
+    .subLocation('/second', [])
+    .subLocation('/second/alpha', [])
+    .subLocation('/second/beta', [])
+    .subLocation('/second/gamma', []),
+)
+
+it('allows no roles when a location has no permitted roles', () => {
+  const roles = [role('role-a', { targets: ['function'] })] as const
+
+  fixtureWorkspace.withWorkspaceFixture(
+    {
+      prefix: 'role-enforcement-empty-location-roles-',
+      roles,
+      files: {
+        'packages/pkg-a/src/infra/source.ts': `/** @riviere-role role-a */
+export function source(): string {
+  return 'source'
+}
+`,
       },
     },
-  },
-} satisfies LocationStructure<never>
+    (workspaceDir) => {
+      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
+        configDir: workspaceDir,
+        configModule: {
+          config: roleEnforcement({
+            configurations: {
+              test: {
+                packages: ['packages/pkg-a'],
+                locations: locationConfiguration(location('src').subLocation('/infra', [])),
+              },
+            },
+            ignorePatterns: [],
+            roleDefinitionsDir: '.riviere/role-definitions',
+            roles,
+          }),
+        },
+      })
+
+      assert.equal(result.exitCode, 1)
+      assert.match(result.stdout, /role-a cannot live in packages\/pkg-a\/src\/infra\/source.ts/)
+    },
+  )
+})
 
 it('allows imports between locations by default', () => {
   runFixture(
@@ -40,25 +75,12 @@ it('allows imports between locations by default', () => {
 })
 
 it('prevents sibling location instances importing one another', () => {
-  const locations = {
-    source: {
-      path: 'src',
-      subLocations: {
-        features: {
-          subLocations: {
-            '{feature}': {
-              rules: { dependencyRules: { canImportSiblings: false } },
-              subLocations: {
-                commands: {},
-                domain: {},
-              },
-            },
-          },
-        },
-        platform: { subLocations: { domain: {} } },
-      },
-    },
-  } satisfies LocationStructure<never>
+  const locations = locationConfiguration(
+    location<never>('src/features/{feature}', { dependencyRules: { canImportSiblings: false } })
+      .subLocation('/commands', [])
+      .subLocation('/domain', []),
+    location<never>('src/platform').subLocation('/domain', []),
+  )
 
   runFixture(
     locations,
@@ -74,22 +96,10 @@ it('prevents sibling location instances importing one another', () => {
 })
 
 it('allows a location with sibling restrictions to import platform', () => {
-  const locations = {
-    source: {
-      path: 'src',
-      subLocations: {
-        features: {
-          subLocations: {
-            '{feature}': {
-              rules: { dependencyRules: { canImportSiblings: false } },
-              subLocations: { commands: {} },
-            },
-          },
-        },
-        platform: { subLocations: { domain: {} } },
-      },
-    },
-  } satisfies LocationStructure<never>
+  const locations = locationConfiguration(
+    location<never>('src/features/{feature}', {dependencyRules: { canImportSiblings: false },}).subLocation('/commands', []),
+    location<never>('src/platform').subLocation('/domain', []),
+  )
 
   runFixture(
     locations,
@@ -104,18 +114,13 @@ it('allows a location with sibling restrictions to import platform', () => {
 })
 
 it('inherits location restrictions in every sub-location', () => {
-  const locations = {
-    source: {
-      path: 'src',
-      subLocations: {
-        domain: {},
-        infra: {
-          rules: { dependencyRules: { locations: [] } },
-          subLocations: { 'external-clients': { subLocations: { '{client}': {} } } },
-        },
-      },
-    },
-  } satisfies LocationStructure<never>
+  const locations = locationConfiguration(
+    location<never>('src')
+      .subLocation('/domain', [])
+      .subLocation('/infra', [], { dependencyRules: { locations: [] } })
+      .subLocation('/infra/external-clients', [])
+      .subLocation('/infra/external-clients/{client}', []),
+  )
 
   runFixture(
     locations,
@@ -125,26 +130,18 @@ it('inherits location restrictions in every sub-location', () => {
     },
     (result) => {
       assert.equal(result.exitCode, 1)
-      assert.match(result.stdout, /cannot import location 'domain'/)
+      assert.match(result.stdout, /cannot import location '\/domain'/)
     },
   )
 })
 
 it('allows imports within a restricted location', () => {
-  const locations = {
-    source: {
-      path: 'src',
-      subLocations: {
-        infra: {
-          rules: { dependencyRules: { locations: [] } },
-          subLocations: {
-            cli: {},
-            'external-clients': {},
-          },
-        },
-      },
-    },
-  } satisfies LocationStructure<never>
+  const locations = locationConfiguration(
+    location<never>('src')
+      .subLocation('/infra', [], { dependencyRules: { locations: [] } })
+      .subLocation('/infra/cli', [])
+      .subLocation('/infra/external-clients', []),
+  )
 
   runFixture(
     locations,
@@ -170,12 +167,9 @@ it('rejects folders that are not configured sub-locations', () => {
 })
 
 it('allows any folder when allowAnySubLocations is enabled', () => {
-  const locations = {
-    source: {
-      path: 'src',
-      subLocations: { domain: { allowAnySubLocations: true } },
-    },
-  } satisfies LocationStructure<never>
+  const locations = locationConfiguration(
+    location<never>('src').subLocation('/domain', [], { allowAnySubLocations: true }),
+  )
 
   runFixture(
     locations,
@@ -187,22 +181,19 @@ it('allows any folder when allowAnySubLocations is enabled', () => {
 })
 
 it('rejects combining allowAnySubLocations with explicit sub-locations', () => {
-  const invalidLocations = {
-    source: {
-      path: 'src',
-      allowAnySubLocations: true,
-      subLocations: { invalid: {} },
-    },
-  }
+  assert.throws(() => {
+    location<never>('src', { allowAnySubLocations: true }).subLocation('/invalid', [])
+  }, /cannot define both allowAnySubLocations and subLocations/)
 
   assert.throws(() => {
-    // @ts-expect-error The runtime guard protects JavaScript configuration files too.
-    createConfig(invalidLocations)
+    location<never>('src')
+      .subLocation('/domain', [], { allowAnySubLocations: true })
+      .subLocation('/domain/invalid', [])
   }, /cannot define both allowAnySubLocations and subLocations/)
 })
 
 it('allows a location to be imported from within its parent location', () => {
-  const locations = privateLocationStructure()
+  const locations = privateLocationConfiguration()
 
   runFixture(
     locations,
@@ -217,7 +208,7 @@ it('allows a location to be imported from within its parent location', () => {
 })
 
 it('rejects importing a location from outside its parent location', () => {
-  const locations = privateLocationStructure()
+  const locations = privateLocationConfiguration()
 
   runFixture(
     locations,
@@ -232,21 +223,14 @@ it('rejects importing a location from outside its parent location', () => {
   )
 })
 
-function privateLocationStructure(): LocationStructure<never> {
-  return {
-    source: {
-      path: 'src',
-      subLocations: {
-        commands: {},
-        entrypoint: {
-          subLocations: {
-            _platform: { rules: { dependencyRules: { importableFrom: 'withinParentLocation' } } },
-            http: {},
-          },
-        },
-      },
-    },
-  }
+function privateLocationConfiguration(): LocationConfiguration<never> {
+  return locationConfiguration(
+    location<never>('src')
+      .subLocation('/commands', [])
+      .subLocation('/entrypoint', [])
+      .subLocation('/entrypoint/_platform', [], {dependencyRules: { importableFrom: 'withinParentLocation' },})
+      .subLocation('/entrypoint/http', []),
+  )
 }
 
 type FixtureResult = {
@@ -256,7 +240,7 @@ type FixtureResult = {
 }
 
 function runFixture(
-  locations: LocationStructure<never>,
+  locations: LocationConfiguration<never>,
   files: Readonly<Record<string, string>>,
   assertResult: (result: FixtureResult) => void,
 ): void {
@@ -279,12 +263,16 @@ function runFixture(
   )
 }
 
-function createConfig(locations: LocationStructure<never>) {
+function createConfig(locations: LocationConfiguration<never>) {
   return roleEnforcement({
-    packages: ['packages/pkg-a'],
+    configurations: {
+      test: {
+        packages: ['packages/pkg-a'],
+        locations,
+      },
+    },
     ignorePatterns: [],
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: [],
-    locations,
   })
 }

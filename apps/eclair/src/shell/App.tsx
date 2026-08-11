@@ -4,7 +4,7 @@ import {
 import { AppShell } from '@/shell/components/AppShell/AppShell'
 import {
   GraphProvider, useGraph
-} from '@/platform/domain/graph-state/GraphContext'
+} from '@/platform/infra/graph-state/GraphContext'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import { EmptyState } from '@/features/empty-state/entrypoint/EmptyState'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
@@ -16,9 +16,9 @@ import { DomainDetailPage } from '@/features/domains/entrypoint/DomainDetailPage
 import { EntitiesPage } from '@/features/entities/entrypoint/EntitiesPage'
 import { EventsPage } from '@/features/events/entrypoint/EventsPage'
 import { ComparisonPage } from '@/features/comparison/entrypoint/ComparisonPage'
-import { GraphError } from '@/platform/domain/errors/errors'
+import { GraphError } from '@/platform/infra/errors/errors'
 import { ModulesPage } from '@/features/modules/entrypoint/ModulesPage'
-import { useTheme } from '@/platform/domain/theme/ThemeContext'
+import { useTheme } from '@/platform/infra/theme/ThemeContext'
 
 export function useRequiredGraph(): RiviereGraph {
   const { graph } = useGraph()

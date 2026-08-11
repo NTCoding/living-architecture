@@ -17,7 +17,7 @@ const mockClearGraph = vi.fn()
 
 vi.mock('react-router-dom', () => ({ useNavigate: () => mockNavigate }))
 
-vi.mock('@/platform/domain/graph-state/GraphContext', () => ({ useGraph: () => ({ clearGraph: mockClearGraph }) }))
+vi.mock('@/platform/infra/graph-state/GraphContext', () => ({ useGraph: () => ({ clearGraph: mockClearGraph }) }))
 
 const testSourceLocation = {
   repository: 'test-repo',
