@@ -10,6 +10,7 @@ interface EdgeLineProps {
   readonly relationshipCount: number
   readonly relationshipTypes?: readonly string[]
   readonly deliveryTypes?: readonly ('sync' | 'async')[]
+  readonly conditions?: readonly string[]
   readonly isBidirectional: boolean
 }
 
@@ -30,9 +31,18 @@ function formatEdgeLabel(
 function formatEdgeDetail(
   edgeLabel: string,
   deliveryTypes: readonly ('sync' | 'async')[] | undefined,
+  conditions: readonly string[] | undefined,
 ): string {
-  if (deliveryTypes === undefined || deliveryTypes.length === 0) return edgeLabel
-  return `${edgeLabel} · ${deliveryTypes.join('/')}`
+  const details = [
+    edgeLabel,
+    deliveryTypes === undefined || deliveryTypes.length === 0
+      ? undefined
+      : deliveryTypes.join('/'),
+    conditions === undefined || conditions.length === 0
+      ? undefined
+      : `when ${conditions.join('/')}`,
+  ]
+  return details.filter((detail) => detail !== undefined).join(' · ')
 }
 
 export function EdgeLine({
@@ -45,6 +55,7 @@ export function EdgeLine({
   relationshipCount,
   relationshipTypes,
   deliveryTypes,
+  conditions,
   isBidirectional,
 }: Readonly<EdgeLineProps>): React.ReactElement {
   const dx = to.x - from.x
@@ -64,7 +75,7 @@ export function EdgeLine({
   const endX = to.x - dx * endOffset + separationX
   const endY = to.y - dy * endOffset + separationY
   const edgeLabel = formatEdgeLabel(relationshipCount, relationshipTypes)
-  const edgeDetail = formatEdgeDetail(edgeLabel, deliveryTypes)
+  const edgeDetail = formatEdgeDetail(edgeLabel, deliveryTypes, conditions)
   const labelPosition = isBidirectional ? BIDIRECTIONAL_LABEL_POSITION_FROM_SOURCE : 0.5
   const labelX = startX + (endX - startX) * labelPosition
   const labelY = startY + (endY - startY) * labelPosition - 6

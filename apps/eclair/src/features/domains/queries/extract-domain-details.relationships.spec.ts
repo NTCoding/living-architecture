@@ -1,6 +1,4 @@
-import {
-  describe, expect, it 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseDomainKey,
@@ -97,6 +95,38 @@ describe('extractDomainDetails relationship metadata', () => {
     })
     expect(result?.crossDomainEdges.map((edge) => edge.condition)).toStrictEqual(
       expect.arrayContaining(['status:ready', 'status:blocked']),
+    )
+  })
+
+  it('collects distinct conditions for aggregated domain connections', () => {
+    const graph = createGraph([
+      parseEdge({
+        source: 'source-api',
+        target: 'target-api',
+        relationshipType: 'calls',
+        condition: 'status:ready',
+      }),
+      parseEdge({
+        source: 'source-api',
+        target: 'target-api',
+        relationshipType: 'calls',
+        condition: 'status:blocked',
+      }),
+      parseEdge({
+        source: 'source-api',
+        target: 'target-api',
+        relationshipType: 'calls',
+        condition: 'status:ready',
+      }),
+    ])
+
+    const result = extractDomainDetails(graph, parseDomainKey('source-domain'))
+
+    expect(result?.aggregatedConnections).toContainEqual(
+      expect.objectContaining({
+        targetDomain: 'target-domain',
+        conditions: ['status:ready', 'status:blocked'],
+      }),
     )
   })
 

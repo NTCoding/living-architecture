@@ -1,6 +1,4 @@
-import type {
-  RiviereGraph, SystemType, SourceLocation 
-} from '@living-architecture/riviere-schema'
+import type { RiviereGraph, SystemType, SourceLocation } from '@living-architecture/riviere-schema'
 import {
   nodeIdSchema,
   type DomainName,
@@ -8,16 +6,10 @@ import {
   type EntryPoint,
   type NodeId,
 } from '@/platform/domain/eclair-types'
-import {
-  RiviereQuery, type Entity 
-} from '@living-architecture/riviere-query'
+import { RiviereQuery, type Entity } from '@living-architecture/riviere-query'
 import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
-import type {
-  NodeBreakdown, DomainNode 
-} from './domain-node-breakdown'
-import {
-  countNodesByType, formatDomainNodes, extractEntryPoints 
-} from './domain-node-breakdown'
+import type { NodeBreakdown, DomainNode } from './domain-node-breakdown'
+import { countNodesByType, formatDomainNodes, extractEntryPoints } from './domain-node-breakdown'
 import type { DomainEvent } from '@/platform/domain/domain-event-types'
 
 export interface AggregatedConnection {
@@ -28,6 +20,7 @@ export interface AggregatedConnection {
   relationshipCount: number
   relationshipTypes?: string[]
   deliveryTypes?: EdgeType[]
+  conditions?: string[]
 }
 
 interface KnownSourceEventInfo {
@@ -250,6 +243,8 @@ function updateAggregatedConnection(
   if (relationshipTypes !== undefined) connection.relationshipTypes = relationshipTypes
   const deliveryTypes = appendUnique(connection.deliveryTypes, link.type)
   if (deliveryTypes !== undefined) connection.deliveryTypes = deliveryTypes
+  const conditions = appendUnique(connection.conditions, link.condition)
+  if (conditions !== undefined) connection.conditions = conditions
   if (target.type === 'API') connection.apiCount += 1
   if (target.type === 'EventHandler') connection.eventCount += 1
 }

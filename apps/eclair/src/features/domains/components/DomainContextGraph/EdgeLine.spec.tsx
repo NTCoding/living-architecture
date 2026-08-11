@@ -39,7 +39,7 @@ describe('EdgeLine', () => {
     expect(group).toBeInTheDocument()
   })
 
-  it('shows only semantic relationships while retaining delivery details on hover', () => {
+  it('shows only semantic relationships while retaining delivery and condition details on hover', () => {
     const { container } = render(
       <svg>
         <EdgeLine
@@ -52,6 +52,7 @@ describe('EdgeLine', () => {
           relationshipCount={2}
           relationshipTypes={['reads', 'writes']}
           deliveryTypes={['sync', 'async']}
+          conditions={['ready', 'authorised']}
           isBidirectional={false}
         />
       </svg>,
@@ -59,8 +60,13 @@ describe('EdgeLine', () => {
 
     const label = container.querySelector('[data-testid="semantic-edge"] text')
     expect(label?.childNodes[0]?.textContent).toBe('reads, writes')
-    expect(label).toHaveAttribute('aria-label', 'reads, writes · sync/async')
-    expect(label?.querySelector('title')).toHaveTextContent('reads, writes · sync/async')
+    expect(label).toHaveAttribute(
+      'aria-label',
+      'reads, writes · sync/async · when ready/authorised',
+    )
+    expect(label?.querySelector('title')).toHaveTextContent(
+      'reads, writes · sync/async · when ready/authorised',
+    )
   })
 
   it('returns empty group when positions are identical', () => {
