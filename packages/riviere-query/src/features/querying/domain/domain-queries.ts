@@ -1,5 +1,5 @@
 import type { RiviereGraph, DomainOpComponent } from '@living-architecture/riviere-schema'
-import type { Entity, EntityTransition } from './event-types'
+import { Entity, type EntityTransition } from './event-types'
 import type { State } from './identifiers'
 import { parseEntityName, parseDomainName, parseState, parseOperationName } from './identifiers'
 import { componentsInDomain } from './component-queries'
@@ -95,14 +95,14 @@ function createEntity(graph: RiviereGraph, partial: PartialEntity): Entity {
   const sortedOperations = [...partial.operations].sort((a, b) =>
     compareByCodePoint(a.operationName, b.operationName),
   )
-  return {
-    name: parseEntityName(partial.name),
-    domain: parseDomainName(partial.domain),
-    operations: sortedOperations,
-    states: statesForEntity(graph, partial.name),
-    transitions: transitionsForEntity(graph, partial.name),
-    businessRules: businessRulesForEntity(graph, partial.name),
-  }
+  return new Entity(
+    parseEntityName(partial.name),
+    parseDomainName(partial.domain),
+    sortedOperations,
+    statesForEntity(graph, partial.name),
+    transitionsForEntity(graph, partial.name),
+    businessRulesForEntity(graph, partial.name),
+  )
 }
 
 /** @riviere-role domain-service */

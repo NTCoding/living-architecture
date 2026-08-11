@@ -11,13 +11,29 @@ import type {
 } from './identifiers'
 
 /** @riviere-role value-object */
-export interface Entity {
-  readonly name: EntityName
-  readonly domain: DomainName
-  readonly operations: readonly DomainOpComponent[]
-  readonly states: readonly State[]
-  readonly transitions: readonly EntityTransition[]
-  readonly businessRules: readonly string[]
+export class Entity {
+  declare private brand: 'Entity'
+
+  constructor(
+    public readonly name: EntityName,
+    public readonly domain: DomainName,
+    public readonly operations: readonly DomainOpComponent[],
+    public readonly states: readonly State[],
+    public readonly transitions: readonly EntityTransition[],
+    public readonly businessRules: readonly string[],
+  ) {}
+
+  hasStates(): boolean {
+    return this.states.length > 0
+  }
+
+  hasBusinessRules(): boolean {
+    return this.businessRules.length > 0
+  }
+
+  firstOperationId(): string | undefined {
+    return this.operations[0]?.id
+  }
 }
 
 /**

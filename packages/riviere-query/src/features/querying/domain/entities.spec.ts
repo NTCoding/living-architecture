@@ -261,7 +261,7 @@ describe('Entity methods', () => {
     const entities = query.entities()
 
     expect(entities).toHaveLength(1)
-    expect(entities[0]?.states.length).toBeGreaterThan(0)
+    expect(entities[0]?.hasStates()).toBe(true)
   })
 
   it('hasStates returns false when entity has no states', () => {
@@ -280,7 +280,7 @@ describe('Entity methods', () => {
     const entities = query.entities()
 
     expect(entities).toHaveLength(1)
-    expect(entities[0]?.states).toHaveLength(0)
+    expect(entities[0]?.hasStates()).toBe(false)
   })
 
   it('hasBusinessRules returns true when entity has business rules', () => {
@@ -300,7 +300,7 @@ describe('Entity methods', () => {
     const entities = query.entities()
 
     expect(entities).toHaveLength(1)
-    expect(entities[0]?.businessRules.length).toBeGreaterThan(0)
+    expect(entities[0]?.hasBusinessRules()).toBe(true)
   })
 
   it('hasBusinessRules returns false when entity has no business rules', () => {
@@ -319,7 +319,7 @@ describe('Entity methods', () => {
     const entities = query.entities()
 
     expect(entities).toHaveLength(1)
-    expect(entities[0]?.businessRules).toHaveLength(0)
+    expect(entities[0]?.hasBusinessRules()).toBe(false)
   })
 
   it('firstOperationId returns first operation id', () => {
@@ -345,7 +345,7 @@ describe('Entity methods', () => {
     const entities = query.entities()
 
     expect(entities).toHaveLength(1)
-    expect(entities[0]?.operations[0]?.id).toBe('orders:checkout:domainop:order.begin')
+    expect(entities[0]?.firstOperationId()).toBe('orders:checkout:domainop:order.begin')
   })
 
   it('firstOperationId returns undefined when no operations', () => {
