@@ -1,13 +1,6 @@
 import { Command } from 'commander'
-import { ComponentId } from '@living-architecture/riviere-builder'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
 import { formatError, formatSuccess } from '../../../../platform/infra/cli/presentation/output'
-import {
-  isValidLinkType,
-  normalizeComponentType,
-} from '../../../../platform/domain/component-types'
-import { isValidHttpMethod } from '../_platform/cli/validation'
-import { validateOptions } from './link-http-validator'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import type { LinkHttp } from '../../commands/link-http'
 
@@ -51,33 +44,15 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: LinkHttpOptions) => {
-      const validationError = validateOptions(options)
-      if (validationError) {
-        console.log(validationError)
-        return
-      }
-
-      const normalizedMethod = options.method?.toUpperCase()
-      const httpMethod =
-        normalizedMethod !== undefined && isValidHttpMethod(normalizedMethod)
-          ? normalizedMethod
-          : undefined
-      const linkType =
-        options.linkType !== undefined && isValidLinkType(options.linkType)
-          ? options.linkType
-          : undefined
-
       const result = linkHttp.execute({
         graphPathOption: options.graph,
-        httpMethod,
-        linkType,
+        httpMethod: options.method,
+        linkType: options.linkType,
         path: options.path,
-        targetId: ComponentId.create({
-          domain: options.toDomain,
-          module: options.toModule,
-          type: normalizeComponentType(options.toType),
-          name: options.toName,
-        }).toString(),
+        targetDomain: options.toDomain,
+        targetModule: options.toModule,
+        targetName: options.toName,
+        targetType: options.toType,
       })
       if (!result.success) {
         const errorCodeByResult = {

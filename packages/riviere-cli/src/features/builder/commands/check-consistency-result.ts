@@ -1,4 +1,4 @@
-import type { RiviereBuilder } from '@living-architecture/riviere-builder'
+import type { RiviereBuilder } from '@living-architecture/riviere-builder/features/building/domain/builder-facade'
 
 /** @riviere-role command-use-case-result-value */
 export type CheckConsistencyErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND'

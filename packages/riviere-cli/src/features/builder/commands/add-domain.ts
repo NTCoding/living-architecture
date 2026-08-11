@@ -1,30 +1,34 @@
-import { DuplicateDomainError } from '@living-architecture/riviere-builder'
+import { DuplicateDomainError } from '@living-architecture/riviere-builder/features/building/domain/construction/construction-errors'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { SystemType } from '../domain/system-type'
 import type { AddDomainInput } from './add-domain-input'
-import type {
-  AddDomainErrorCode, AddDomainResult 
-} from './add-domain-result'
+import type { AddDomainErrorCode, AddDomainResult } from './add-domain-result'
 
 /** @riviere-role command-use-case */
 export class AddDomain {
   constructor(private readonly repository: RiviereBuilderRepository) {}
 
   execute(input: AddDomainInput): AddDomainResult {
+    const systemType = SystemType.parse(input.systemType)
+    if (!systemType.success) {
+      return failure('VALIDATION_ERROR', `Invalid system type: ${input.systemType}`)
+    }
+
     try {
       const builder = this.repository.load(input.graphPathOption)
       builder.addDomain({
         description: input.description,
         name: input.name,
-        systemType: input.systemType,
+        systemType: systemType.data.value,
       })
       this.repository.save(builder)
       return {
         description: input.description,
         name: input.name,
         success: true,
-        systemType: input.systemType,
+        systemType: systemType.data.value,
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {

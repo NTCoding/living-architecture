@@ -20,6 +20,12 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./features/*": {
+      "@living-architecture/source": "./src/features/*.ts",
+      "types": "./dist/features/*.d.ts",
+      "import": "./dist/features/*.js",
+      "default": "./dist/features/*.js"
     }
   },
   "files": [

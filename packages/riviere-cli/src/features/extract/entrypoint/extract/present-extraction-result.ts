@@ -29,7 +29,11 @@ export function presentExtractionResult(
     return
   }
 
-  if (result.kind === 'fieldFailure') {
+  if (
+    result.kind === 'fieldFailure' ||
+    result.kind === 'configFailure' ||
+    result.kind === 'connectionDetectionFailure'
+  ) {
     return
   }
 

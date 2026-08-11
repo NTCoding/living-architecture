@@ -1,19 +1,9 @@
 import { createOpenCodeWorkflowPlugin } from '@nt-ai-lab/deterministic-agent-workflow-opencode'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import {
-  dirname, join 
-} from 'node:path'
-import type { Workflow } from '../features/workflow/domain/workflow'
-import type {
-  WorkflowState,
-  StateName,
-  WorkflowOperation,
-} from '../features/workflow/domain/workflow-types'
+import { dirname, join } from 'node:path'
 import { WORKFLOW_DEFINITION } from '../features/workflow/data-access/workflow-definition'
-import {
-  ROUTES, PRE_TOOL_USE_POLICY 
-} from '../features/workflow/entrypoint/workflow/entrypoint'
+import { ROUTES, PRE_TOOL_USE_POLICY } from '../features/workflow/entrypoint/workflow/entrypoint'
 import { createWorkflowGitStatusReader } from '../features/workflow/adapters/git/workflow-git-status-reader'
 import { createWorkflowPullRequestCreator } from '../features/workflow/adapters/github/workflow-pull-request-creator'
 import { createWorkflowPullRequestFeedbackReader } from '../features/workflow/adapters/github/workflow-pull-request-feedback-reader'
@@ -24,7 +14,11 @@ import {
   runGh,
 } from '../platform/infra/external-clients/github/index'
 
-type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
+type Workflow = ReturnType<typeof WORKFLOW_DEFINITION.buildWorkflow>
+type WorkflowState = ReturnType<typeof WORKFLOW_DEFINITION.initialState>
+type WorkflowDeps = Parameters<typeof WORKFLOW_DEFINITION.buildWorkflow>[1]
+type StateName = Parameters<typeof WORKFLOW_DEFINITION.buildTransitionContext>[1]
+type WorkflowOperation = Parameters<NonNullable<typeof WORKFLOW_DEFINITION.getOperationBody>>[0]
 
 function sleepMs(ms: number): void {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)

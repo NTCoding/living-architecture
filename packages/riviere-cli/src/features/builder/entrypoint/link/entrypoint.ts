@@ -1,12 +1,6 @@
 import { Command } from 'commander'
-import { ComponentId } from '@living-architecture/riviere-builder'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
 import * as cliOutput from '../../../../platform/infra/cli/presentation/output'
-import {
-  isValidLinkType,
-  normalizeComponentType,
-} from '../../../../platform/domain/component-types'
-import * as linkOptionValidation from '../_platform/cli/validation'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import type { LinkComponents } from '../../commands/link-components'
 import { parseLinkSourceLocation } from './link-source-location-options'
@@ -65,23 +59,6 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: LinkOptions) => {
-      const componentTypeValidation = linkOptionValidation.validateComponentType(options.toType)
-      if (!componentTypeValidation.valid) {
-        console.log(componentTypeValidation.errorJson)
-        return
-      }
-
-      const linkTypeValidation = linkOptionValidation.validateLinkType(options.linkType)
-      if (!linkTypeValidation.valid) {
-        console.log(linkTypeValidation.errorJson)
-        return
-      }
-
-      const linkType =
-        options.linkType !== undefined && isValidLinkType(options.linkType)
-          ? options.linkType
-          : undefined
-
       const sourceLocationResult = parseLinkSourceLocation(options)
       if (!sourceLocationResult.success) {
         console.log(
@@ -98,13 +75,11 @@ Examples:
         graphPathOption: options.graph,
         relationshipType: options.relationshipType,
         sourceLocation: sourceLocationResult.sourceLocation,
-        to: ComponentId.create({
-          domain: options.toDomain,
-          module: options.toModule,
-          type: normalizeComponentType(options.toType),
-          name: options.toName,
-        }).toString(),
-        type: linkType,
+        targetDomain: options.toDomain,
+        targetModule: options.toModule,
+        targetName: options.toName,
+        targetType: options.toType,
+        type: options.linkType,
       })
       if (!result.success) {
         const errorCodeByResult = {

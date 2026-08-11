@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { findNearMatches, ComponentId } from '@living-architecture/riviere-builder'
+import { findNearMatches } from '@living-architecture/riviere-builder/features/building/domain/error-recovery/component-suggestion'
+import { ComponentId } from '@living-architecture/riviere-schema/component-id'
 import {
   ComponentNotFoundError,
   parseComponentId,

@@ -256,7 +256,7 @@ Legend: gray = existing, yellow = changed, green = new, blue = explicit role/con
 
 | Component                     | Layer / path                                                                                             | Status                                                                 | .riviere role                     | Responsibilities                                                                                                                                                                                                                                                                                                                                             | Estimated size |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
-| `createWorkflowRunCommand`    | `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow.ts`                                  | New                                                                    | `cli-entrypoint`                  | Define the workflow CLI command, call input factory, use case, and formatter.                                                                                                                                                                                                                                                                                | Small          |
+| `createWorkflowRunCommand`    | `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/entrypoint.ts`                       | New                                                                    | `cli-entrypoint`                  | Define the workflow CLI command, call input factory, use case, and formatter.                                                                                                                                                                                                                                                                                | Small          |
 | `createRunWorkflowInput`      | `packages/riviere-cli/src/features/workflow/commands/create-run-workflow-input.ts`                       | New                                                                    | `command-input-factory`           | Convert a CLI-neutral parsed-options shape into typed workflow input without reading files. Must not depend on Commander/raw CLI option types directly.                                                                                                                                                                                                      | Small          |
 | `RunWorkflow`                 | `packages/riviere-cli/src/features/workflow/commands/run-workflow.ts`                                    | New                                                                    | `command-use-case`                | Load `RiviereProject` for `{ projectRoot, workflowName }`, call `rebuildGraph()`, return result. No stage loop, no builder construction, no graph/log file writing.                                                                                                                                                                                            | Small          |
 | `RunWorkflowInput`            | `packages/riviere-cli/src/features/workflow/commands/run-workflow-input.ts`                              | New                                                                    | `command-use-case-input`          | Project root, workflow name, and CLI output options.                                                                                                                                                                                                                                                                                                         | Small          |
@@ -539,14 +539,12 @@ export class RiviereProject {
 ##### Code shape
 
 ```text
-packages/riviere-cli/src/features/workflow/entrypoint/run-workflow.ts
+packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/entrypoint.ts
 packages/riviere-cli/src/features/workflow/commands/create-run-workflow-input.ts
 packages/riviere-cli/src/features/workflow/commands/run-workflow.ts
 packages/riviere-cli/src/features/workflow/commands/run-workflow-input.ts
 packages/riviere-cli/src/features/workflow/commands/run-workflow-result.ts
 packages/riviere-extract-ts/src/features/extraction/data-access/riviere-project-repository.ts
-packages/riviere-cli/src/features/workflow/data-access/workflow-run-log-writer.ts
-packages/riviere-cli/src/features/workflow/data-access/workflow-graph-output-writer.ts
 packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/present-workflow-run-result.ts
 packages/riviere-extract-ts/src/features/extraction/domain/riviere-project.ts
 packages/riviere-cli/src/features/workflow/domain/apply-extraction-to-graph.ts
@@ -696,7 +694,7 @@ Legend: gray = existing, yellow = changed, green = new, red = rejected design.
 
 | Component                         | Layer / path                                                                                                      | Status   | .riviere role                         | Responsibilities                                                                                                                                            | Estimated size |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| `createWorkflowRunCommand`        | `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow.ts`                                           | New      | `cli-entrypoint`                      | Define the workflow CLI command, call input factory, use case, and formatter.                                                                               | Small          |
+| `createWorkflowRunCommand`        | `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/entrypoint.ts`                                | New      | `cli-entrypoint`                      | Define the workflow CLI command, call input factory, use case, and formatter.                                                                               | Small          |
 | `createRunWorkflowInput`          | `packages/riviere-cli/src/features/workflow/commands/create-run-workflow-input.ts`                                | New      | `command-input-factory`               | Convert CLI options into typed workflow input without reading files.                                                                                        | Small          |
 | `RunWorkflow`                     | `packages/riviere-cli/src/features/workflow/commands/run-workflow.ts`                                             | New      | `command-use-case`                    | Load context, invoke one rebuilder, return result. No extraction loading and no stage loop.                                                                 | Small          |
 | `RiviereProjectContextRepository` | `packages/riviere-cli/src/features/workflow/data-access/riviere-project-context-repository.ts`              | Rejected | repository                        | Read workflow file and resolve graph metadata plus ordered stage definitions. Does not load extraction projects or execute stages.                          | Medium         |
@@ -799,7 +797,7 @@ export class RiviereProjectGraphRebuilder {
 ##### Code shape
 
 ```text
-packages/riviere-cli/src/features/workflow/entrypoint/run-workflow.ts
+packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/entrypoint.ts
 packages/riviere-cli/src/features/workflow/commands/create-run-workflow-input.ts
 packages/riviere-cli/src/features/workflow/commands/run-workflow.ts
 packages/riviere-cli/src/features/workflow/data-access/riviere-project-context-repository.ts
@@ -901,7 +899,7 @@ Legend: gray = existing, yellow = changed, green = new, red = rejected design.
 
 | Component | Layer / path | Status | .riviere role | Responsibilities | Estimated size |
 |---|---|---|---|---|---|
-| `createWorkflowRunCommand` | `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow.ts` | New | `cli-entrypoint` | Define the workflow CLI command, call input factory, use case, and formatter. | Small |
+| `createWorkflowRunCommand` | `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/entrypoint.ts` | New | `cli-entrypoint` | Define the workflow CLI command, call input factory, use case, and formatter. | Small |
 | `createRunWorkflowInput` | `packages/riviere-cli/src/features/workflow/commands/create-run-workflow-input.ts` | New | `command-input-factory` | Convert CLI options into typed workflow input without reading files. | Small |
 | `RunWorkflow` | `packages/riviere-cli/src/features/workflow/commands/run-workflow.ts` | New | `command-use-case` | Load workflow definition, invoke orchestrator, return result. No stage loop if possible. | Small |
 | `WorkflowDefinitionRepository` | `packages/riviere-cli/src/features/workflow/data-access/workflow-definition-repository.ts` | Rejected | repository | Read workflow file and resolve graph metadata plus ordered stage definitions. Does not execute stages. | Medium |
@@ -1004,7 +1002,7 @@ export class WorkflowGraphBuildOrchestrator {
 ##### Code shape
 
 ```text
-packages/riviere-cli/src/features/workflow/entrypoint/run-workflow.ts
+packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/entrypoint.ts
 packages/riviere-cli/src/features/workflow/commands/create-run-workflow-input.ts
 packages/riviere-cli/src/features/workflow/commands/run-workflow.ts
 packages/riviere-cli/src/features/workflow/data-access/workflow-definition-repository.ts

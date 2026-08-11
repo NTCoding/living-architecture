@@ -3,11 +3,6 @@ import { formatSuccess, formatError } from '../../../../platform/infra/cli/prese
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import { formatQueryGraphLoadFailure } from '../../../../platform/infra/cli/presentation/query-graph-load-failure-output'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
-import {
-  isValidComponentType,
-  normalizeToSchemaComponentType,
-  VALID_COMPONENT_TYPES,
-} from '../../../../platform/domain/component-types'
 import { toComponentOutput } from '../_platform/cli/component-output'
 import type { ListComponents } from '../../queries/list-components'
 
@@ -37,24 +32,24 @@ Examples:
     .option('--domain <name>', 'Filter by domain name')
     .option('--type <type>', 'Filter by component type')
     .action(async (options: ComponentsOptions) => {
-      if (options.type !== undefined && !isValidComponentType(options.type)) {
-        const errorMessage = `Invalid component type: ${options.type}. Valid types: ${VALID_COMPONENT_TYPES.join(', ')}`
-        if (options.json) {
-          console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, errorMessage)))
-        } else {
-          console.error(`Error: ${errorMessage}`)
-        }
-        return
-      }
-
       const result = listComponents.execute({
         domain: options.domain,
         graphPathOption: options.graph,
-        type: options.type === undefined ? undefined : normalizeToSchemaComponentType(options.type),
+        type: options.type,
       })
 
       if ('kind' in result) {
-        console.log(JSON.stringify(formatQueryGraphLoadFailure(result)))
+        if (result.kind === 'invalidComponentType' && options.json !== true) {
+          console.error(`Error: ${result.message}`)
+          return
+        }
+        console.log(
+          JSON.stringify(
+            result.kind === 'invalidComponentType'
+              ? formatError(CliErrorCode.ValidationError, result.message)
+              : formatQueryGraphLoadFailure(result),
+          ),
+        )
         return
       }
 

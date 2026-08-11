@@ -8,4 +8,10 @@ export type ListedComponent = ReturnType<RiviereQuery['components']>[number]
 export interface ComponentList {components: ListedComponent[]}
 
 /** @riviere-role query-model */
-export type ListComponentsResult = ComponentList | QueryGraphLoadFailure
+export type ListComponentsResult =
+  | ComponentList
+  | QueryGraphLoadFailure
+  | {
+    readonly kind: 'invalidComponentType'
+    readonly message: string
+  }

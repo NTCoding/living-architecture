@@ -1,11 +1,9 @@
-import { CustomTypeAlreadyDefinedError } from '@living-architecture/riviere-builder'
+import { CustomTypeAlreadyDefinedError } from '@living-architecture/riviere-builder/features/building/domain/construction/construction-errors'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 import type { DefineCustomTypeInput } from './define-custom-type-input'
-import type {
-  DefineCustomTypeErrorCode, DefineCustomTypeResult 
-} from './define-custom-type-result'
+import type { DefineCustomTypeErrorCode, DefineCustomTypeResult } from './define-custom-type-result'
 
 /** @riviere-role command-use-case */
 export class DefineCustomType {

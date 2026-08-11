@@ -1,9 +1,5 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import {
-  readFile, stat, mkdir, writeFile 
-} from 'node:fs/promises'
+import { describe, it, expect } from 'vitest'
+import { readFile, stat, mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createProgram } from '../../../../shell/cli'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
@@ -298,6 +294,24 @@ describe('riviere builder init', () => {
   describe('validation errors', () => {
     const ctx: TestContext = createTestContext()
     setupCommandTest(ctx)
+
+    it('returns VALIDATION_ERROR when a domain has an unsupported system type', async () => {
+      const program = createProgram()
+
+      await program.parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'init',
+        '--json',
+        '--source',
+        'https://github.com/org/repo',
+        '--domain',
+        '{"name":"orders","description":"Order management","systemType":"unsupported"}',
+      ])
+
+      expect(ctx.consoleOutput.join('\n')).toContain(CliErrorCode.ValidationError)
+    })
 
     it('throws when domain JSON is not valid JSON', async () => {
       const program = createProgram()

@@ -1,4 +1,9 @@
-import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
+import type { ExtractDraftComponentsResult } from '../../commands/extract-draft-components-result'
+
+type DraftComponent = Extract<
+  ExtractDraftComponentsResult,
+  { kind: 'draftOnly' }
+>['components'][number]
 
 interface ComponentIdentity {
   readonly type: string

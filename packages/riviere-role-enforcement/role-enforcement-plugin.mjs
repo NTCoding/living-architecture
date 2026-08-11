@@ -1092,10 +1092,18 @@ export default {
           if (specifier === undefined) {
             return null
           }
-          const sourceEntry = workspacePackageSources[importSource]
-          if (sourceEntry === undefined) {
+          const sourcePackage = Object.entries(workspacePackageSources).find(
+            ([packageName]) =>
+              importSource === packageName || importSource.startsWith(`${packageName}/`),
+          )
+          if (sourcePackage === undefined) {
             return null
           }
+          const [packageName, packageEntry] = sourcePackage
+          const packageSubpath = importSource.slice(packageName.length + 1)
+          const sourceEntry = packageSubpath === ''
+            ? packageEntry
+            : path.join(path.dirname(packageEntry), packageSubpath)
           const resolvedSourcePath = resolveTypeFile(path.join(options.configDir, '_'), sourceEntry)
           if (resolvedSourcePath === null) {
             return null

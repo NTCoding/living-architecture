@@ -1,12 +1,8 @@
-import {
-  describe, expect, it 
-} from 'vitest'
-import {
-  mkdirSync, mkdtempSync, rmSync, writeFileSync 
-} from 'node:fs'
+import { describe, expect, it } from 'vitest'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { ConfigValidationError } from '../../../../platform/infra/cli/presentation/error-codes'
+import { ExtractionConfigError } from '../../domain/extraction-config-error'
 import { ExtractionProjectRepository } from './extraction-project-repository'
 
 const VALID_CONFIG = `modules:
@@ -94,16 +90,16 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject throws ConfigValidationError when config file does not exist', () => {
+  it('loadFromFullProject throws ExtractionConfigError when config file does not exist', () => {
     expect(() =>
       new ExtractionProjectRepository().loadFromFullProject({
         configPath: '/nonexistent/path/extract.yml',
         useTsConfig: false,
       }),
-    ).toThrow(ConfigValidationError)
+    ).toThrow(ExtractionConfigError)
   })
 
-  it('loadFromFullProject throws ConfigValidationError for invalid YAML', () => {
+  it('loadFromFullProject throws ExtractionConfigError for invalid YAML', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extract.yml'), '}{invalid yaml', 'utf-8')
       expect(() =>
@@ -111,11 +107,11 @@ describe('ExtractionProjectRepository', () => {
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
-      ).toThrow(ConfigValidationError)
+      ).toThrow(ExtractionConfigError)
     })
   })
 
-  it('loadFromFullProject throws ConfigValidationError for non-object root config', () => {
+  it('loadFromFullProject throws ExtractionConfigError for non-object root config', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extract.yml'), 'hello\n', 'utf-8')
       expect(() =>
@@ -123,11 +119,11 @@ describe('ExtractionProjectRepository', () => {
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
-      ).toThrow(ConfigValidationError)
+      ).toThrow(ExtractionConfigError)
     })
   })
 
-  it('loadFromFullProject throws ConfigValidationError for invalid modules array shape', () => {
+  it('loadFromFullProject throws ExtractionConfigError for invalid modules array shape', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'bad-modules.yml'), 'modules: hello\n', 'utf-8')
       expect(() =>
@@ -135,11 +131,11 @@ describe('ExtractionProjectRepository', () => {
           configPath: join(dir, 'bad-modules.yml'),
           useTsConfig: false,
         }),
-      ).toThrow(ConfigValidationError)
+      ).toThrow(ExtractionConfigError)
     })
   })
 
-  it('loadFromFullProject throws ConfigValidationError for missing $ref module file', () => {
+  it('loadFromFullProject throws ExtractionConfigError for missing $ref module file', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extract.yml'), 'modules:\n  - $ref: ./missing.yml\n', 'utf-8')
       expect(() =>
@@ -147,7 +143,7 @@ describe('ExtractionProjectRepository', () => {
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
-      ).toThrow(ConfigValidationError)
+      ).toThrow(ExtractionConfigError)
     })
   })
 
@@ -414,7 +410,7 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromSelectedFiles throws ConfigValidationError when a selected file does not exist', () => {
+  it('loadFromSelectedFiles throws ExtractionConfigError when a selected file does not exist', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
       writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
@@ -425,7 +421,7 @@ describe('ExtractionProjectRepository', () => {
           filePaths: [join(dir, 'nonexistent.ts')],
           useTsConfig: false,
         }),
-      ).toThrow(ConfigValidationError)
+      ).toThrow(ExtractionConfigError)
     })
   })
 })

@@ -1,4 +1,4 @@
-import type { RiviereBuilder } from '@living-architecture/riviere-builder'
+import type { RiviereBuilder } from '@living-architecture/riviere-builder/features/building/domain/builder-facade'
 import type { SourceLocation } from '@living-architecture/riviere-schema'
 
 interface CommonInput {

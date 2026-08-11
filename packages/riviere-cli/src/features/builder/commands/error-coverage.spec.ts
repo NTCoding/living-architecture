@@ -1,12 +1,8 @@
-import {
-  mkdir, writeFile 
-} from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { ApiComponent } from '../domain/api-component-queries'
-import { RiviereBuilder } from '@living-architecture/riviere-builder'
-import {
-  afterEach, describe, expect, it, vi 
-} from 'vitest'
+import { RiviereBuilder } from '@living-architecture/riviere-builder/features/building/domain/builder-facade'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   type TestContext,
   createTestContext,
@@ -204,7 +200,10 @@ describe('builder command coverage', () => {
         graphPathOption: undefined,
         relationshipType: undefined,
         sourceLocation: undefined,
-        to: 'b',
+        targetDomain: 'orders',
+        targetModule: 'core',
+        targetName: 'Place Order',
+        targetType: 'UseCase',
         type: undefined,
       }),
     ).toThrow('link explode')
@@ -227,7 +226,10 @@ describe('builder command coverage', () => {
         httpMethod: undefined,
         linkType: undefined,
         path: '/orders',
-        targetId: 'orders:core:usecase:place-order',
+        targetDomain: 'orders',
+        targetModule: 'core',
+        targetName: 'Place Order',
+        targetType: 'UseCase',
       }),
     ).toMatchObject({
       code: 'GRAPH_CORRUPTED',
@@ -273,7 +275,10 @@ describe('builder command coverage', () => {
         httpMethod: undefined,
         linkType: undefined,
         path: '/orders',
-        targetId: 'orders:core:usecase:place-order',
+        targetDomain: 'orders',
+        targetModule: 'core',
+        targetName: 'Place Order',
+        targetType: 'UseCase',
       }),
     ).toMatchObject({
       code: 'AMBIGUOUS_API_MATCH',
@@ -363,7 +368,10 @@ describe('builder command coverage', () => {
         httpMethod: undefined,
         linkType: undefined,
         path: '/orders',
-        targetId: 'orders:core:usecase:place-order',
+        targetDomain: 'orders',
+        targetModule: 'core',
+        targetName: 'Place Order',
+        targetType: 'UseCase',
       }),
     ).toThrow('unexpected load failure')
   })

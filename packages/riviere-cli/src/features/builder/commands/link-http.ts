@@ -1,23 +1,26 @@
+import { ComponentId } from '@living-architecture/riviere-schema/component-id'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
+import { ComponentType } from '../../../platform/domain/component-type'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
-import {
-  findApisByPath, getAllApiPaths 
-} from '../domain/api-component-queries'
+import { HttpMethod } from '../domain/http-method'
+import { LinkType } from '../domain/link-type'
+import { findApisByPath, getAllApiPaths } from '../domain/api-component-queries'
 import type { LinkHttpInput } from './link-http-input'
-import type {
-  LinkHttpErrorCode, LinkHttpResult 
-} from './link-http-result'
+import type { LinkHttpErrorCode, LinkHttpResult } from './link-http-result'
 
 /** @riviere-role command-use-case */
 export class LinkHttp {
   constructor(private readonly repository: RiviereBuilderRepository) {}
 
   execute(input: LinkHttpInput): LinkHttpResult {
+    const parsedInput = parseInput(input)
+    if (!parsedInput.success) return parsedInput.result
+
     try {
       const builder = this.repository.load(input.graphPathOption)
       const graph = builder.build()
-      const matchingApis = findApisByPath(graph, input.path, input.httpMethod)
+      const matchingApis = findApisByPath(graph, input.path, parsedInput.httpMethod?.value)
       const [matchedApi, ...otherApis] = matchingApis
 
       if (matchedApi === undefined) {
@@ -43,10 +46,15 @@ export class LinkHttp {
         type?: 'sync' | 'async'
       } = {
         from: matchedApi.id,
-        to: input.targetId,
+        to: ComponentId.create({
+          domain: input.targetDomain,
+          module: input.targetModule,
+          name: input.targetName,
+          type: parsedInput.componentType.componentIdValue,
+        }).toString(),
       }
-      if (input.linkType !== undefined) {
-        linkInput.type = input.linkType
+      if (parsedInput.linkType !== undefined) {
+        linkInput.type = parsedInput.linkType.value
       }
 
       const link = builder.link(linkInput)
@@ -70,6 +78,47 @@ export class LinkHttp {
       }
       throw error
     }
+  }
+}
+
+function parseInput(input: LinkHttpInput):
+  | {
+    success: false
+    result: LinkHttpResult
+  }
+  | {
+    success: true
+    componentType: ComponentType
+    httpMethod: HttpMethod | undefined
+    linkType: LinkType | undefined
+  } {
+  const componentType = ComponentType.parse(input.targetType)
+  if (!componentType.success) {
+    return invalidInput(`Invalid component type: ${input.targetType}`)
+  }
+  const httpMethod = input.httpMethod === undefined ? undefined : HttpMethod.parse(input.httpMethod)
+  if (httpMethod !== undefined && !httpMethod.success) {
+    return invalidInput(`Invalid HTTP method: ${input.httpMethod}`)
+  }
+  const linkType = input.linkType === undefined ? undefined : LinkType.parse(input.linkType)
+  if (linkType !== undefined && !linkType.success) {
+    return invalidInput(`Invalid link type: ${input.linkType}`)
+  }
+  return {
+    componentType: componentType.data,
+    httpMethod: httpMethod?.data,
+    linkType: linkType?.data,
+    success: true,
+  }
+}
+
+function invalidInput(message: string): {
+  success: false
+  result: LinkHttpResult
+} {
+  return {
+    result: failure('VALIDATION_ERROR', message),
+    success: false,
   }
 }
 

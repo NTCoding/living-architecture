@@ -1,6 +1,4 @@
-import {
-  dirname, posix, resolve 
-} from 'node:path'
+import { dirname, posix, resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import { globSync } from 'glob'
 import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
@@ -21,12 +19,9 @@ import {
   readTextFile,
 } from '../../../../platform/infra/external-clients/filesystem/index'
 import { resolveFileOrPackagePath } from '../../../../platform/infra/external-clients/node-modules/index'
-import {
-  CliErrorCode,
-  ConfigValidationError,
-} from '../../../../platform/infra/cli/presentation/error-codes'
 import { detectChangedTypeScriptFiles } from '../../../../platform/infra/external-clients/git/git-changed-files'
 import { getRepositoryInfo } from '../../../../platform/infra/external-clients/git/git-repository-info'
+import { ExtractionConfigError } from '../../domain/extraction-config-error'
 import { ExtractionProject } from '../../domain/extraction-project'
 import {
   createConfiguredProject,
@@ -105,10 +100,7 @@ export class ExtractionProjectRepository {
 
   private loadParsedConfigState(configPath: string): ParsedConfigState {
     if (!fileExists(configPath)) {
-      throw new ConfigValidationError(
-        CliErrorCode.ConfigNotFound,
-        `Config file not found: ${configPath}`,
-      )
+      throw new ExtractionConfigError('CONFIG_NOT_FOUND', `Config file not found: ${configPath}`)
     }
 
     const content = readTextFile(configPath)
@@ -118,8 +110,8 @@ export class ExtractionProjectRepository {
 
     if (!isValidExtractionConfig(expanded)) {
       const validationResult = validateExtractionConfig(expanded)
-      throw new ConfigValidationError(
-        CliErrorCode.ValidationError,
+      throw new ExtractionConfigError(
+        'VALIDATION_ERROR',
         `Invalid extraction config:\n${formatValidationErrors(validationResult.errors)}`,
       )
     }
@@ -135,10 +127,7 @@ export class ExtractionProjectRepository {
       const parsed: unknown = parseYaml(content)
       return parsed
     } catch (error) {
-      throw new ConfigValidationError(
-        CliErrorCode.ValidationError,
-        `Invalid config file: ${String(error)}`,
-      )
+      throw new ExtractionConfigError('VALIDATION_ERROR', `Invalid config file: ${String(error)}`)
     }
   }
 
@@ -153,8 +142,8 @@ export class ExtractionProjectRepository {
         modules: config.modules.map((item) => this.expandModuleRefItem(item, configDir)),
       }
     } catch (error) {
-      throw new ConfigValidationError(
-        CliErrorCode.ValidationError,
+      throw new ExtractionConfigError(
+        'VALIDATION_ERROR',
         `Error expanding module references: ${String(error)}`,
       )
     }
@@ -345,8 +334,8 @@ export class ExtractionProjectRepository {
       const patterns = parsedConfigState.resolvedConfig.modules
         .map((module) => posix.join(module.path, module.glob))
         .join(', ')
-      throw new ConfigValidationError(
-        CliErrorCode.ValidationError,
+      throw new ExtractionConfigError(
+        'VALIDATION_ERROR',
         `No files matched extraction patterns: ${patterns}\nConfig directory: ${parsedConfigState.configDir}`,
       )
     }
@@ -370,8 +359,8 @@ export class ExtractionProjectRepository {
   ): string[] {
     const missingFiles = requestedFiles.filter((filePath) => !fileExists(resolve(filePath)))
     if (missingFiles.length > 0) {
-      throw new ConfigValidationError(
-        CliErrorCode.ValidationError,
+      throw new ExtractionConfigError(
+        'VALIDATION_ERROR',
         `Files not found: ${missingFiles.join(', ')}`,
       )
     }

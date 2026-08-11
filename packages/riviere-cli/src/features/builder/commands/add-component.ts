@@ -2,7 +2,7 @@ import {
   CustomTypeNotFoundError,
   DomainNotFoundError,
   DuplicateComponentError,
-} from '@living-architecture/riviere-builder'
+} from '@living-architecture/riviere-builder/features/building/domain/construction/construction-errors'
 import { addComponentToBuilder } from '../../../platform/domain/add-component'
 import {
   createDomainInput,
@@ -12,9 +12,7 @@ import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-er
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 import type { AddComponentInput } from './add-component-input'
-import type {
-  AddComponentErrorCode, AddComponentResult 
-} from './add-component-result'
+import type { AddComponentErrorCode, AddComponentResult } from './add-component-result'
 
 const validComponentTypes = new Set([
   'ui',

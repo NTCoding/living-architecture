@@ -1,25 +1,29 @@
-import { ComponentNotFoundError } from '@living-architecture/riviere-builder'
+import { ComponentNotFoundError } from '@living-architecture/riviere-builder/features/building/domain/construction/construction-errors'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { LinkType } from '../domain/link-type'
 import type { LinkExternalInput } from './link-external-input'
-import type {
-  LinkExternalErrorCode, LinkExternalResult 
-} from './link-external-result'
+import type { LinkExternalErrorCode, LinkExternalResult } from './link-external-result'
 
 /** @riviere-role command-use-case */
 export class LinkExternal {
   constructor(private readonly repository: RiviereBuilderRepository) {}
 
   execute(input: LinkExternalInput): LinkExternalResult {
+    const type = input.type === undefined ? undefined : LinkType.parse(input.type)
+    if (type !== undefined && !type.success) {
+      return failure('VALIDATION_ERROR', `Invalid link type: ${input.type}`)
+    }
+
     try {
       const builder = this.repository.load(input.graphPathOption)
       const externalLinkInput: Parameters<typeof builder.linkExternal>[0] = {
         from: input.from,
         target: input.target,
       }
-      if (input.type !== undefined) {
-        externalLinkInput.type = input.type
+      if (type?.success === true) {
+        externalLinkInput.type = type.data.value
       }
       const externalLink = builder.linkExternal(externalLinkInput)
       this.repository.save(builder)

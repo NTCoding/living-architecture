@@ -1,8 +1,5 @@
 import { Command } from 'commander'
-import type { SystemType } from '@living-architecture/riviere-schema'
-import {
-  formatError, formatSuccess 
-} from '../../../../platform/infra/cli/presentation/output'
+import { formatError, formatSuccess } from '../../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
 import { collectOption } from '../_platform/cli/option-collectors'
@@ -20,7 +17,7 @@ interface InitOptions {
 interface DomainInputParsed {
   description: string
   name: string
-  systemType: SystemType
+  systemType: string
 }
 
 /** @riviere-role cli-entrypoint */
@@ -88,9 +85,11 @@ Examples:
       if (!result.success) {
         console.log(
           JSON.stringify(
-            formatError(CliErrorCode.GraphExists, result.message, [
-              'Delete the file to reinitialize',
-            ]),
+            result.code === 'VALIDATION_ERROR'
+              ? formatError(CliErrorCode.ValidationError, result.message)
+              : formatError(CliErrorCode.GraphExists, result.message, [
+                'Delete the file to reinitialize',
+              ]),
           ),
         )
         return

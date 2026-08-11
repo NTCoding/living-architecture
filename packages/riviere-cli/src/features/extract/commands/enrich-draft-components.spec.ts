@@ -1,6 +1,4 @@
-import {
-  beforeEach, describe, expect, it, vi 
-} from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   enrichDraftComponentsMethodMock: vi.fn(),
@@ -15,6 +13,10 @@ vi.mock('../data-access/extraction-project/extraction-project-repository', () =>
 
 import { EnrichDraftComponents } from './enrich-draft-components'
 import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
+import { ExtractionConfigError } from '../domain/extraction-config-error'
+import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts/features/extraction/domain/connection-detection/connection-detection-error'
+
+class UnexpectedLoadingError extends Error {}
 
 describe('enrichDraftComponents', () => {
   beforeEach(() => {
@@ -63,5 +65,65 @@ describe('enrichDraftComponents', () => {
       kind: 'fieldFailure',
       failedFields: ['fieldA'],
     })
+  })
+
+  it('returns config failure when loading the extraction config fails', () => {
+    mocks.loadFromDraftEnrichmentMock.mockImplementation(() => {
+      throw new ExtractionConfigError('VALIDATION_ERROR', 'Invalid extraction config')
+    })
+
+    const result = new EnrichDraftComponents(new ExtractionProjectRepository()).execute({
+      allowIncomplete: false,
+      configPath: 'config.yml',
+      draftComponentsPath: 'draft.json',
+      includeConnections: true,
+      useTsConfig: true,
+    })
+
+    expect(result).toStrictEqual({
+      code: 'VALIDATION_ERROR',
+      kind: 'configFailure',
+      message: 'Invalid extraction config',
+    })
+  })
+
+  it('returns connection detection failure from enrichment', () => {
+    mocks.enrichDraftComponentsMethodMock.mockImplementation(() => {
+      throw new ConnectionDetectionError({
+        file: 'src/handler.ts',
+        line: 42,
+        reason: 'Could not resolve type',
+        typeName: 'OrderService',
+      })
+    })
+
+    const result = new EnrichDraftComponents(new ExtractionProjectRepository()).execute({
+      allowIncomplete: false,
+      configPath: 'config.yml',
+      draftComponentsPath: 'draft.json',
+      includeConnections: true,
+      useTsConfig: true,
+    })
+
+    expect(result).toStrictEqual({
+      kind: 'connectionDetectionFailure',
+      message: 'src/handler.ts:42: Could not resolve type — OrderService',
+    })
+  })
+
+  it('rethrows unexpected loading errors', () => {
+    mocks.loadFromDraftEnrichmentMock.mockImplementation(() => {
+      throw new UnexpectedLoadingError('Unexpected failure')
+    })
+
+    expect(() =>
+      new EnrichDraftComponents(new ExtractionProjectRepository()).execute({
+        allowIncomplete: false,
+        configPath: 'config.yml',
+        draftComponentsPath: 'draft.json',
+        includeConnections: true,
+        useTsConfig: true,
+      }),
+    ).toThrow('Unexpected failure')
   })
 })

@@ -1,10 +1,7 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { handleGlobalError } from './global-error-handler'
 import { GitError } from '../platform/infra/external-clients/git/git-errors'
 import { FileReadError } from '../platform/infra/external-clients/filesystem/index'
-import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
 import {
   CliErrorCode,
   ConfigValidationError,
@@ -47,26 +44,6 @@ describe('handleGlobalError', () => {
     const output = firstConsoleOutput(ctx.consoleOutput)
     expect(output).toMatchObject({ error: { code: CliErrorCode.ValidationError } })
     expect(process.exit).toHaveBeenCalledWith(ExitCode.RuntimeError)
-  })
-
-  it('formats ConnectionDetectionError with extraction failure exit code', () => {
-    const error = new ConnectionDetectionError({
-      file: 'src/handler.ts',
-      line: 42,
-      typeName: 'OrderService',
-      reason: 'Could not resolve type',
-    })
-
-    expect(() => handleGlobalError(error)).toThrow('process.exit')
-
-    const output = firstConsoleOutput(ctx.consoleOutput)
-    expect(output).toMatchObject({
-      error: {
-        code: CliErrorCode.ConnectionDetectionFailure,
-        suggestions: ['Use --allow-incomplete to emit uncertain links instead of failing'],
-      },
-    })
-    expect(process.exit).toHaveBeenCalledWith(ExitCode.ExtractionFailure)
   })
 
   it('formats GitError with GIT_NOT_FOUND code', () => {

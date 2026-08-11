@@ -1,14 +1,10 @@
-import {
-  ComponentNotFoundError,
-  InvalidEnrichmentTargetError,
-} from '@living-architecture/riviere-builder'
+import { ComponentNotFoundError } from '@living-architecture/riviere-builder/features/building/domain/construction/construction-errors'
+import { InvalidEnrichmentTargetError } from '@living-architecture/riviere-builder/features/building/domain/enrichment/enrichment-errors'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 import type { EnrichComponentInput } from './enrich-component-input'
-import type {
-  EnrichComponentErrorCode, EnrichComponentResult 
-} from './enrich-component-result'
+import type { EnrichComponentErrorCode, EnrichComponentResult } from './enrich-component-result'
 
 /** @riviere-role command-use-case */
 export class EnrichComponent {

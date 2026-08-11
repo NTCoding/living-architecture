@@ -1,5 +1,6 @@
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
+import { ComponentType } from '../../../platform/domain/component-type'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
 import type { ComponentChecklistInput } from './component-checklist-input'
 import type {
@@ -12,13 +13,18 @@ export class ComponentChecklist {
   constructor(private readonly repository: RiviereBuilderRepository) {}
 
   execute(input: ComponentChecklistInput): ComponentChecklistResult {
+    const componentType = input.type === undefined ? undefined : ComponentType.parse(input.type)
+    if (componentType !== undefined && !componentType.success) {
+      return failure('VALIDATION_ERROR', `Invalid component type: ${input.type}`)
+    }
+
     try {
       const builder = this.repository.load(input.graphPathOption)
       const allComponents = builder.query().components()
       const filteredComponents =
-        input.type === undefined
+        componentType === undefined
           ? allComponents
-          : allComponents.filter((component) => component.type === input.type)
+          : allComponents.filter((component) => component.type === componentType.data.value)
       const components = filteredComponents.map((component) => ({
         domain: component.domain,
         id: component.id,

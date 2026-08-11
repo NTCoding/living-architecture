@@ -7,6 +7,9 @@ export interface LinkComponentsInput {
   graphPathOption: string | undefined
   relationshipType?: string
   sourceLocation?: SourceLocation
-  to: string
-  type: 'sync' | 'async' | undefined
+  targetDomain: string
+  targetModule: string
+  targetName: string
+  targetType: string
+  type: string | undefined
 }

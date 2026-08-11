@@ -29,7 +29,7 @@ Before classifying any code:
    - `roles` — the full role catalog with targets, naming patterns, and constraints
    - `ignorePatterns` — which files are excluded
 
-2. **Read index.md**: Read `.riviere/role-definitions/index.md` to discover project-level architecture resources. Follow the links to read referenced documents (separation of concerns, tactical DDD, ADRs, conventions).
+2. **Read index.md**: Read `.riviere/role-definitions/index.md` to discover the repository's local architecture resources. Follow its links to the local role definitions, ADRs, and conventions.
 
 3. **Read role definitions**: For each role in the config, read `.riviere/role-definitions/{role-name}.md`. These contain:
    - Behavioral contracts (what the code DOES)

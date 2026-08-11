@@ -1,9 +1,5 @@
-import {
-  describe, it, expect, vi, beforeEach, afterEach 
-} from 'vitest'
-import {
-  readFile, mkdir, writeFile, mkdtemp, rm 
-} from 'node:fs/promises'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { readFile, mkdir, writeFile, mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createProgram } from '../../../../shell/cli'
@@ -290,14 +286,16 @@ describe('riviere builder add-domain', () => {
         throw unexpectedError
       }
 
-      vi.doMock('@living-architecture/riviere-builder', () => ({
-        RiviereBuilder: {
-          resume: vi
-            .fn()
-            .mockReturnValue({ addDomain: vi.fn().mockImplementation(throwUnexpectedError) }),
-        },
-        DuplicateDomainError: class DuplicateDomainError extends Error {},
-      }))
+      vi.doMock(
+        '@living-architecture/riviere-builder/features/building/domain/builder-facade',
+        () => ({
+          RiviereBuilder: {
+            resume: vi
+              .fn()
+              .mockReturnValue({ addDomain: vi.fn().mockImplementation(throwUnexpectedError) }),
+          },
+        }),
+      )
 
       const { createProgram } = await import('../../../../shell/cli')
       const program = createProgram()

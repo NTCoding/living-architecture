@@ -1,11 +1,7 @@
-import {
-  mkdir, writeFile 
-} from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import {
-  describe, expect, it, vi 
-} from 'vitest'
-import { RiviereBuilder } from '@living-architecture/riviere-builder'
+import { describe, expect, it, vi } from 'vitest'
+import { RiviereBuilder } from '@living-architecture/riviere-builder/features/building/domain/builder-facade'
 import {
   type TestContext,
   createTestContext,
@@ -72,7 +68,10 @@ describe('additional builder command coverage', () => {
         graphPathOption: graphPath,
         relationshipType: undefined,
         sourceLocation: undefined,
-        to: 'b',
+        targetDomain: 'orders',
+        targetModule: 'core',
+        targetName: 'Place Order',
+        targetType: 'UseCase',
         type: undefined,
       }),
     ).toMatchObject({ code: 'GRAPH_CORRUPTED' })
@@ -124,7 +123,10 @@ describe('additional builder command coverage', () => {
       graphPathOption: undefined,
       relationshipType: undefined,
       sourceLocation: undefined,
-      to: source.id,
+      targetDomain: 'orders',
+      targetModule: 'checkout',
+      targetName: 'Create Order',
+      targetType: 'UseCase',
       type: undefined,
     }
 

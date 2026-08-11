@@ -21,6 +21,12 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./component-id": {
+      "@living-architecture/source": "./src/component-id.ts",
+      "types": "./dist/component-id.d.ts",
+      "import": "./dist/component-id.js",
+      "default": "./dist/component-id.js"
+    },
     "./schema.json": "./riviere.schema.json"
   },
   "files": [

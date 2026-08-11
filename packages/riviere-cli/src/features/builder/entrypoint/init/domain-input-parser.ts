@@ -1,6 +1,3 @@
-import type { SystemType } from '@living-architecture/riviere-schema'
-import { isValidSystemType } from '../../../../platform/domain/component-types'
-
 class InvalidDomainJsonError extends Error {
   readonly value: string
 
@@ -14,7 +11,7 @@ class InvalidDomainJsonError extends Error {
 interface DomainInputParsed {
   description: string
   name: string
-  systemType: SystemType
+  systemType: string
 }
 
 function isDomainInputParsed(value: unknown): value is DomainInputParsed {
@@ -25,8 +22,7 @@ function isDomainInputParsed(value: unknown): value is DomainInputParsed {
     'description' in value &&
     typeof value.description === 'string' &&
     'systemType' in value &&
-    typeof value.systemType === 'string' &&
-    isValidSystemType(value.systemType)
+    typeof value.systemType === 'string'
   )
 }
 

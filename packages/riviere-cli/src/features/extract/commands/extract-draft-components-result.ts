@@ -25,8 +25,21 @@ interface ExtractDraftComponentsFieldFailureResult {
   failedFields: string[]
 }
 
+interface ExtractDraftComponentsConfigFailureResult {
+  kind: 'configFailure'
+  code: 'CONFIG_NOT_FOUND' | 'VALIDATION_ERROR'
+  message: string
+}
+
+interface ExtractDraftComponentsConnectionFailureResult {
+  kind: 'connectionDetectionFailure'
+  message: string
+}
+
 /** @riviere-role command-use-case-result */
 export type ExtractDraftComponentsResult =
   | ExtractDraftComponentsDraftOnlyResult
   | ExtractDraftComponentsFullResult
   | ExtractDraftComponentsFieldFailureResult
+  | ExtractDraftComponentsConfigFailureResult
+  | ExtractDraftComponentsConnectionFailureResult

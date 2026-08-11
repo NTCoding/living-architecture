@@ -2,8 +2,6 @@ import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
 import { formatError, formatSuccess } from '../../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
-import { isValidLinkType } from '../../../../platform/domain/component-types'
-import { validateLinkType } from '../_platform/cli/validation'
 import { buildExternalTarget } from './link-external-transformer'
 import type { LinkExternal } from '../../commands/link-external'
 
@@ -46,28 +44,18 @@ Examples:
     .option('--graph <path>', getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: LinkExternalOptions) => {
-      const linkTypeValidation = validateLinkType(options.linkType)
-      if (!linkTypeValidation.valid) {
-        console.log(linkTypeValidation.errorJson)
-        return
-      }
-
-      const linkType =
-        options.linkType !== undefined && isValidLinkType(options.linkType)
-          ? options.linkType
-          : undefined
-
       const result = linkExternal.execute({
         from: options.from,
         graphPathOption: options.graph,
         target: buildExternalTarget(options),
-        type: linkType,
+        type: options.linkType,
       })
       if (!result.success) {
         const errorCodeByResult = {
           COMPONENT_NOT_FOUND: CliErrorCode.ComponentNotFound,
           GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
           GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
+          VALIDATION_ERROR: CliErrorCode.ValidationError,
         } as const
         const errorCode = errorCodeByResult[result.code]
 

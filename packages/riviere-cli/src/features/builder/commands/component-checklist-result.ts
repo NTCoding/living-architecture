@@ -7,7 +7,7 @@ export interface ChecklistComponent {
 }
 
 /** @riviere-role command-use-case-result-value */
-export type ComponentChecklistErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND'
+export type ComponentChecklistErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND' | 'VALIDATION_ERROR'
 
 /** @riviere-role command-use-case-result */
 export type ComponentChecklistResult =

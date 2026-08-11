@@ -240,6 +240,7 @@ The delivery sequence first introduces the package-owned extraction model and re
   - Graph writing uses temp-file plus rename behaviour.
   - Graph write failure emits failure log events.
   - CLI-boundary graph and run-log writing lives under `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/`.
+  - No graph-output or run-log writer is added under `features/workflow/data-access/`; those files implement CLI output policy, not loading or saving a domain model.
   - Workflow presentation/output is not added under the older `infra/cli/output` pattern.
 - Verification:
   - Tests confirm success writes the final graph, failures leave the previous graph unchanged, graph write failures are logged, and presentation/output lives in the approved entrypoint-local path; no exact command was named in the approved PRD or architecture.

@@ -1,6 +1,8 @@
-import type {
-  ConnectionTimings, ExtractedLink 
-} from '@living-architecture/riviere-extract-ts'
+import type { ExtractDraftComponentsResult } from '../../commands/extract-draft-components-result'
+
+type FullExtractionResult = Extract<ExtractDraftComponentsResult, { kind: 'full' }>
+type ConnectionTimings = FullExtractionResult['timings'][number]
+type ExtractedLink = FullExtractionResult['links'][number]
 
 interface ExtractionStatsInput {
   componentCount: number

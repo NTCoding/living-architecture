@@ -1,10 +1,8 @@
-import type { SystemType } from '@living-architecture/riviere-schema'
-
 /** @riviere-role command-use-case-input */
 export interface InitDomainInput {
   description: string
   name: string
-  systemType: SystemType
+  systemType: string
 }
 
 /** @riviere-role command-use-case-input */

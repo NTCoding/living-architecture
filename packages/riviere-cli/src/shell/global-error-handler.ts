@@ -6,7 +6,6 @@ import {
 } from '../platform/infra/cli/presentation/error-codes'
 import { GitError } from '../platform/infra/external-clients/git/git-errors'
 import { FileReadError } from '../platform/infra/external-clients/filesystem/index'
-import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts'
 
 /** @riviere-role cli-error-handler */
 export function handleGlobalError(error: unknown): never {
@@ -25,19 +24,6 @@ export function handleGlobalError(error: unknown): never {
   if (error instanceof FileReadError) {
     console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, error.message)))
     process.exit(ExitCode.RuntimeError)
-  }
-
-  if (error instanceof ConnectionDetectionError) {
-    console.log(
-      JSON.stringify(
-        formatError(
-          CliErrorCode.ConnectionDetectionFailure,
-          `${error.file}:${error.line}: ${error.reason} — ${error.typeName}`,
-          ['Use --allow-incomplete to emit uncertain links instead of failing'],
-        ),
-      ),
-    )
-    process.exit(ExitCode.ExtractionFailure)
   }
 
   throw error

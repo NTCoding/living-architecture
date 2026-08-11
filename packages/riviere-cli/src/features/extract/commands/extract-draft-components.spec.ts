@@ -1,6 +1,4 @@
-import {
-  beforeEach, describe, expect, it, vi 
-} from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   extractDraftComponentsMethodMock: vi.fn(),
@@ -19,11 +17,15 @@ vi.mock('../data-access/extraction-project/extraction-project-repository', () =>
 
 import { ExtractDraftComponents } from './extract-draft-components'
 import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
+import { ExtractionConfigError } from '../domain/extraction-config-error'
+import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts/features/extraction/domain/connection-detection/connection-detection-error'
 
 const DRAFT_ONLY_RESULT = {
   kind: 'draftOnly' as const,
   components: [],
 }
+
+class UnexpectedLoadingError extends Error {}
 
 describe('extractDraftComponents', () => {
   beforeEach(() => {
@@ -135,6 +137,66 @@ describe('extractDraftComponents', () => {
         allowIncomplete: true,
         includeConnections: false,
       })
+    })
+
+    it('returns config failure when loading the extraction config fails', () => {
+      mocks.loadFromFullProjectMock.mockImplementation(() => {
+        throw new ExtractionConfigError('CONFIG_NOT_FOUND', 'Config file not found')
+      })
+
+      const result = new ExtractDraftComponents(new ExtractionProjectRepository()).execute({
+        allowIncomplete: true,
+        configPath: 'missing.yml',
+        includeConnections: false,
+        sourceMode: 'all',
+        useTsConfig: false,
+      })
+
+      expect(result).toStrictEqual({
+        code: 'CONFIG_NOT_FOUND',
+        kind: 'configFailure',
+        message: 'Config file not found',
+      })
+    })
+
+    it('returns connection detection failure from extraction', () => {
+      mocks.extractDraftComponentsMethodMock.mockImplementation(() => {
+        throw new ConnectionDetectionError({
+          file: 'src/handler.ts',
+          line: 42,
+          reason: 'Could not resolve type',
+          typeName: 'OrderService',
+        })
+      })
+
+      const result = new ExtractDraftComponents(new ExtractionProjectRepository()).execute({
+        allowIncomplete: false,
+        configPath: 'config.yml',
+        includeConnections: true,
+        sourceMode: 'all',
+        useTsConfig: true,
+      })
+
+      expect(result).toStrictEqual({
+        kind: 'connectionDetectionFailure',
+        message: 'src/handler.ts:42: Could not resolve type — OrderService',
+      })
+    })
+
+    it('rethrows unexpected loading errors', () => {
+      mocks.loadFromFullProjectMock.mockImplementation(() => {
+        throw new UnexpectedLoadingError('Unexpected failure')
+      })
+
+      expect(() =>
+        new ExtractDraftComponents(new ExtractionProjectRepository()).execute({
+          allowIncomplete: true,
+          configPath: 'config.yml',
+          includeConnections: false,
+          sourceMode: 'all',
+          useTsConfig: false,
+        }),
+      ).toThrow('Unexpected failure')
     })
   })
 })

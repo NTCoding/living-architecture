@@ -72,6 +72,41 @@ it('accepts aggregate-repository returning aggregate from workspace package via 
   })
 })
 
+it('resolves roles imported from a workspace package subpath', () => {
+  withWorkspaceFixture(workspacePackageBootstrap, (workspaceDir) => {
+    writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-lib/src/domain/beta.ts',
+      `/** @riviere-role role-b */
+export class Beta {
+  cancel(): void {}
+}
+`,
+    )
+    writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-a/src/repositories/betaRepository.ts',
+      `import type { Beta } from '@generic/pkg-lib/domain/beta'
+
+/** @riviere-role role-b-repository */
+export class BetaRepository {
+  findById(id: string): Beta {
+    return null as unknown as Beta
+  }
+}
+`,
+    )
+
+    const result = createTestRoleEnforcementApplication().execute({
+      configDir: workspaceDir,
+      configModule: { config: workspacePackageConfig },
+    })
+
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
+  })
+})
+
 it('rejects aggregate-repository returning unannotated class from workspace package', () => {
   withWorkspaceFixture(workspacePackageBootstrap, (workspaceDir) => {
     writeFixtureFile(

@@ -5,5 +5,5 @@ export interface LinkExternalInput {
   from: string
   graphPathOption: string | undefined
   target: ExternalTarget
-  type: 'sync' | 'async' | undefined
+  type: string | undefined
 }

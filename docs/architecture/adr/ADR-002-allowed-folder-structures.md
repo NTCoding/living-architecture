@@ -5,7 +5,7 @@
 ## Sources of Truth
 
 - **Architecture decision:** this ADR
-- **Executable enforcement:** [`.riviere/role-enforcement.config.ts`](../../../.riviere/role-enforcement.config.ts) and the `.dependency-cruiser*.mjs` configurations until every Dependency Cruiser rule has a tested RLE replacement
+- **Executable enforcement:** [`.riviere/role-enforcement.config.ts`](../../../.riviere/role-enforcement.config.ts). Éclair remains outside RLE and is checked separately by [`.dependency-cruiser.frontend.mjs`](../../../.dependency-cruiser.frontend.mjs).
 
 These files must remain aligned. Any change to the architecture must update both.
 
@@ -44,7 +44,49 @@ All sub-folders within a feature are optional — include only what the feature 
 
 ### Layer Responsibilities
 
-**entrypoint/** — Contains one folder per external entrypoint: `entrypoint/{entrypoint}/entrypoint.ts`. Opening `entrypoint/` should show the available entrypoints as folders. Entrypoint-specific DTOs, input mappers, and output mappers live under the relevant entrypoint folder. This layer translates between external and internal formats: it parses HTTP requests, CLI arguments, or queue messages into command/query inputs and maps results back to external responses. If you changed protocols (HTTP → CLI), you'd rewrite this layer but keep commands/ and domain/ unchanged. Entrypoints must not import their feature's `domain/` or persistence infrastructure directly. They may import shared domain-aware values and behaviour from `platform/domain/`.
+**entrypoint/** — Contains one folder per external entrypoint: `entrypoint/{entrypoint}/entrypoint.ts`. Opening `entrypoint/` should show the available entrypoints as folders. Entrypoint-specific DTOs, input mappers, and output mappers live under the relevant entrypoint folder. This layer translates between external and internal formats: it parses HTTP requests, CLI arguments, or queue messages into command/query inputs and maps results back to external responses. If you changed protocols (HTTP → CLI), you'd rewrite this layer but keep commands/ and domain/ unchanged. Entrypoints must not import domain or persistence infrastructure directly. They validate only the primitive shape required by the command/query input contract, then pass those raw primitive values to the use case. The use case parses domain value objects and translates parsing failures into its result type.
+
+For example, the `link-external` CLI accepts `--link-type` as a string. Its entrypoint passes that string straight to `LinkExternalInput`:
+
+```typescript
+export interface LinkExternalInput {
+  type: string | undefined
+}
+
+const result = linkExternal.execute({
+  type: options.linkType,
+})
+```
+
+The command parses it using the domain-owned `LinkType` value object. The value object is the single source of truth for the allowed values and returns the result of Zod's `safeParse`, so the command handles validation without exception control flow:
+
+```typescript
+const linkTypeSchema = z.enum(['sync', 'async'])
+
+/** @riviere-role value-object */
+export class LinkType {
+  declare private brand: 'LinkType'
+  readonly value: z.infer<typeof linkTypeSchema>
+
+  private constructor(value: z.infer<typeof linkTypeSchema>) {
+    this.value = value
+  }
+
+  static parse(value: string) {
+    const parsed = linkTypeSchema.safeParse(value)
+    return parsed.success
+      ? { data: new LinkType(parsed.data), success: true as const }
+      : parsed
+  }
+}
+
+const type = input.type === undefined ? undefined : LinkType.parse(input.type)
+if (type !== undefined && !type.success) {
+  return failure('VALIDATION_ERROR', `Invalid link type: ${input.type}`)
+}
+```
+
+Do not repeat the allowed domain values in an entrypoint input union or entrypoint validator. That would couple the external boundary to the domain rule and create a second list that can drift when the domain changes.
 
 Feature-level `entrypoint/_platform/` contains private entrypoint code shared by entrypoints within that feature.
 

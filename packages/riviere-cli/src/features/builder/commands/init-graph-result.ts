@@ -1,5 +1,5 @@
 /** @riviere-role command-use-case-result-value */
-export type InitGraphErrorCode = 'GRAPH_EXISTS'
+export type InitGraphErrorCode = 'GRAPH_EXISTS' | 'VALIDATION_ERROR'
 
 /** @riviere-role command-use-case-result */
 export type InitGraphResult =
@@ -12,6 +12,6 @@ export type InitGraphResult =
   | {
     code: InitGraphErrorCode
     message: string
-    path: string
+    path?: string
     success: false
   }

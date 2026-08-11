@@ -1,8 +1,11 @@
-import { RiviereBuilder } from '@living-architecture/riviere-builder'
-import type { BuilderOptions } from '@living-architecture/riviere-builder'
+import {
+  RiviereBuilder,
+  type BuilderOptions,
+} from '@living-architecture/riviere-builder/features/building/domain/builder-facade'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { SystemType } from '../domain/system-type'
 import type { InitGraphInput } from './init-graph-input'
 import type { InitGraphResult } from './init-graph-result'
 
@@ -11,14 +14,35 @@ export class InitGraph {
   constructor(private readonly repository: RiviereBuilderRepository) {}
 
   execute(input: InitGraphInput): InitGraphResult {
+    const parsedDomains: {
+      domain: InitGraphInput['domains'][number]
+      systemType: SystemType
+    }[] = []
+    for (const domain of input.domains) {
+      const systemType = SystemType.parse(domain.systemType)
+      if (!systemType.success) {
+        return {
+          code: 'VALIDATION_ERROR',
+          message: `Invalid system type: ${domain.systemType}`,
+          success: false,
+        }
+      }
+      parsedDomains.push({
+        domain,
+        systemType: systemType.data,
+      })
+    }
+
     const builderOptions: BuilderOptions = {
       ...(input.name === undefined ? {} : { name: input.name }),
       domains: Object.fromEntries(
-        input.domains.map((domain) => [
+        parsedDomains.map(({
+          domain, systemType 
+        }) => [
           domain.name,
           {
             description: domain.description,
-            systemType: domain.systemType,
+            systemType: systemType.value,
           },
         ]),
       ),

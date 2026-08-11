@@ -26,10 +26,6 @@ export class ComponentListLoader {
 }
 ```
 
-### Edge Cases
-- Private helpers may share persistence and parsing mechanics between loaders
-- Private helper methods are implementation details, not separate roles
-
 ## Anti-Patterns
 
 ### Common Misclassifications
@@ -39,7 +35,6 @@ export class ComponentListLoader {
 
 ### Mixed Responsibility Signals
 - If the loader has a save/persist method — it may be an aggregate-repository
-- If the loader returns raw persisted data instead of a query model — it may be an external-client-service
 - If reusable domain behaviour is needed to shape the read — call the domain service while building the query model; do not return the domain service as the query model
 
 ## Decision Guidance

@@ -1,4 +1,6 @@
 import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
+import { ExtractionConfigError } from '../domain/extraction-config-error'
+import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts/features/extraction/domain/connection-detection/connection-detection-error'
 import type { EnrichDraftComponentsInput } from './enrich-draft-components-input'
 import type { EnrichDraftComponentsResult } from './enrich-draft-components-result'
 
@@ -7,15 +9,32 @@ export class EnrichDraftComponents {
   constructor(private readonly extractionProjectRepository: ExtractionProjectRepository) {}
 
   execute(enrichDraftComponentsInput: EnrichDraftComponentsInput): EnrichDraftComponentsResult {
-    const extractionProject = this.extractionProjectRepository.loadFromDraftEnrichment({
-      configPath: enrichDraftComponentsInput.configPath,
-      draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,
-      useTsConfig: enrichDraftComponentsInput.useTsConfig,
-    })
+    try {
+      const extractionProject = this.extractionProjectRepository.loadFromDraftEnrichment({
+        configPath: enrichDraftComponentsInput.configPath,
+        draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,
+        useTsConfig: enrichDraftComponentsInput.useTsConfig,
+      })
 
-    return extractionProject.enrichDraftComponents({
-      allowIncomplete: enrichDraftComponentsInput.allowIncomplete,
-      includeConnections: enrichDraftComponentsInput.includeConnections,
-    })
+      return extractionProject.enrichDraftComponents({
+        allowIncomplete: enrichDraftComponentsInput.allowIncomplete,
+        includeConnections: enrichDraftComponentsInput.includeConnections,
+      })
+    } catch (error) {
+      if (error instanceof ConnectionDetectionError) {
+        return {
+          kind: 'connectionDetectionFailure',
+          message: `${error.file}:${error.line}: ${error.reason} — ${error.typeName}`,
+        }
+      }
+      if (error instanceof ExtractionConfigError) {
+        return {
+          code: error.code,
+          kind: 'configFailure',
+          message: error.message,
+        }
+      }
+      throw error
+    }
   }
 }

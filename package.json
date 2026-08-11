@@ -15,8 +15,8 @@
     "typecheck": "nx run-many -t typecheck",
     "knip": "knip",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"!**/node_modules/**\"",
-    "depcruise": "depcruise --config .dependency-cruiser.mjs packages/*/src && depcruise --config .dependency-cruiser.frontend.mjs apps/eclair/src && depcruise --config .dependency-cruiser.specs.mjs packages/*/src apps/eclair/src",
-    "verify": "nx run-many -t lint-md role-check build depcruise lint typecheck test check-generated-docs knip --exclude=eclair",
+    "depcruise:eclair": "depcruise --config .dependency-cruiser.frontend.mjs apps/eclair/src",
+    "verify": "nx run-many -t lint-md role-check build depcruise-eclair lint typecheck test check-generated-docs knip --exclude=eclair",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -70,8 +70,7 @@
     "vite": "^7.0.0",
     "vitepress": "^1.5.0",
     "vitest": "^4.0.8",
-    "vue": "^3.5.0",
-    "zod": "^4.3.5"
+    "vue": "^3.5.0"
   },
   "nx": {
     "includedScripts": [],

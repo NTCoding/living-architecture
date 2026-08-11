@@ -60,7 +60,7 @@
         "^build"
       ]
     },
-    "depcruise": {
+    "depcruise-eclair": {
       "dependsOn": [
         "^build"
       ]

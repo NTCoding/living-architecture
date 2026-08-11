@@ -8,10 +8,10 @@
         "cwd": "{workspaceRoot}"
       }
     },
-    "depcruise": {
+    "depcruise-eclair": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm depcruise",
+        "command": "pnpm depcruise:eclair",
         "cwd": "{workspaceRoot}"
       }
     },

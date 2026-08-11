@@ -1,10 +1,6 @@
-import {
-  readFile, writeFile, mkdir 
-} from 'node:fs/promises'
+import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { createProgram } from '../../../../shell/cli'
 import type { TestContext } from '../../../../platform/__fixtures__/command-test-fixtures'
 import {
@@ -19,6 +15,9 @@ import {
   parseFullExtractionOutput,
   createValidExtractFixture,
 } from '../../__fixtures__/extraction-test-fixtures'
+import type { ExtractDraftComponents } from '../../commands/extract-draft-components'
+import type { EnrichDraftComponents } from '../../commands/enrich-draft-components'
+import { createExtractCommand } from './entrypoint'
 
 vi.mock('../../../../platform/infra/external-clients/git/git-repository-info', () => ({
   getRepositoryInfo: vi.fn(() => ({
@@ -38,6 +37,40 @@ describe('riviere extract', () => {
       const program = createProgram()
       const extractCmd = program.commands.find((cmd) => cmd.name() === 'extract')
       expect(extractCmd?.name()).toBe('extract')
+    })
+  })
+
+  describe('connection detection errors', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it('returns the connection failure with the incomplete-link suggestion', async () => {
+      const extractDraftComponents: Pick<ExtractDraftComponents, 'execute'> = {
+        execute: () => ({
+          kind: 'connectionDetectionFailure',
+          message: 'Could not resolve OrderId',
+        }),
+      }
+      const enrichDraftComponents: Pick<EnrichDraftComponents, 'execute'> = {
+        execute: () => ({
+          kind: 'connectionDetectionFailure',
+          message: 'Could not resolve OrderId',
+        }),
+      }
+
+      await expect(
+        createExtractCommand(extractDraftComponents, enrichDraftComponents).parseAsync(
+          ['--config', 'extract.yaml'],
+          { from: 'user' },
+        ),
+      ).rejects.toMatchObject({ exitCode: 1 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.code).toBe(CliErrorCode.ConnectionDetectionFailure)
+      expect(output.error.message).toBe('Could not resolve OrderId')
+      expect(output.error.suggestions).toStrictEqual([
+        'Use --allow-incomplete to emit uncertain links instead of failing',
+      ])
     })
   })
 
