@@ -32,7 +32,7 @@ Push the current workflow branch and create its pull request.
   --notes "<follow-ups, caveats, or None>"
 ```
 
-8. Return the recorded PR number and URL.
+1. Return the recorded PR number and URL.
 
 ## Scope
 
