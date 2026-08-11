@@ -1,13 +1,9 @@
 import * as d3 from 'd3'
-import type {
-  SimulationNode, SimulationLink 
-} from '../graph-types'
+import type { SimulationNode, SimulationLink } from '../graph-types'
 import type { NodeType } from '@/platform/domain/eclair-types'
 import type { Theme } from '@/types/theme'
 import { getLinkNodeId } from './FocusModeStyling'
-import {
-  LayoutError, RenderingError 
-} from '@/platform/infra/errors/errors'
+import { LayoutError, RenderingError } from '@/platform/infra/errors/errors'
 import * as relationshipPresentation from '@/platform/domain/relationship-presentation'
 import * as linkLabelPositioning from './link-label-positioning'
 
@@ -86,12 +82,8 @@ export function setupLinks({
 export function setupLinkLabels(
   linkGroup: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>,
   links: SimulationLink[],
-  mode: 'detailed' | 'semantic-only' = 'detailed',
 ): d3.Selection<SVGTextElement, SimulationLink, SVGGElement, unknown> {
-  const labelLinks =
-    mode === 'semantic-only'
-      ? linkLabelPositioning.getUniqueRelationshipLabelLinks(links)
-      : links.filter((link) => link.originalEdge.relationshipType !== undefined)
+  const labelLinks = linkLabelPositioning.getUniqueRelationshipLabelLinks(links)
   const labels = linkGroup
     .selectAll<SVGTextElement, SimulationLink>('text')
     .data(labelLinks)
@@ -99,16 +91,12 @@ export function setupLinkLabels(
     .attr('class', 'graph-link-label')
     .attr('text-anchor', 'middle')
     .attr('font-size', '10px')
-    .attr('font-weight', mode === 'semantic-only' ? 500 : 600)
+    .attr('font-weight', 500)
     .attr('fill', 'var(--text-secondary)')
     .attr('stroke', 'var(--surface-primary)')
     .attr('stroke-width', 3)
     .attr('paint-order', 'stroke')
-    .text((link) =>
-      mode === 'semantic-only'
-        ? relationshipPresentation.relationshipLabel(link.originalEdge)
-        : relationshipPresentation.relationshipDetail(link.originalEdge),
-    )
+    .text((link) => relationshipPresentation.relationshipLabel(link.originalEdge))
 
   const verticalOffsets = linkLabelPositioning.getVerticalLabelOffsets(
     labels.data(),
@@ -116,13 +104,11 @@ export function setupLinkLabels(
   )
   labels.attr('dy', (link) => verticalOffsets.get(link) ?? 0)
 
-  if (mode === 'semantic-only') {
-    const getDetails = (link: SimulationLink): string =>
-      linkLabelPositioning.getRelationshipLabelDetails(links, link, (detailLink) =>
-        relationshipPresentation.relationshipDetail(detailLink.originalEdge),
-      )
-    labels.attr('cursor', 'help').attr('aria-label', getDetails).append('title').text(getDetails)
-  }
+  const getDetails = (link: SimulationLink): string =>
+    linkLabelPositioning.getRelationshipLabelDetails(links, link, (detailLink) =>
+      relationshipPresentation.relationshipDetail(detailLink.originalEdge),
+    )
+  labels.attr('cursor', 'help').attr('aria-label', getDetails).append('title').text(getDetails)
 
   return labels
 }

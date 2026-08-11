@@ -102,6 +102,24 @@ describe('DomainNode', () => {
     expect(nodeDiv).toHaveStyle({ opacity: '0.3' })
   })
 
+  it('renders a visible halo without replacing the domain type border when focused', () => {
+    const { container } = renderWithProvider(
+      <DomainNode
+        data={{
+          label: 'orders',
+          nodeCount: 5,
+          systemType: 'other',
+          focused: true,
+        }}
+      />,
+    )
+
+    const nodeDiv = container.querySelector('div.flex[title]')
+    expect(nodeDiv).toHaveAttribute('data-focused', 'true')
+    expect(nodeDiv).toHaveClass('domain-node-other')
+    expect(nodeDiv).toHaveStyle({ boxShadow: '0 0 0 6px var(--primary), 0 0 24px var(--primary)' })
+  })
+
   describe('consistent sizing', () => {
     it('uses consistent 120px size for all domain nodes', () => {
       const { container } = renderWithProvider(
@@ -286,4 +304,21 @@ describe('DomainNode', () => {
       expect(container.querySelector('div.flex[title]')).toHaveClass(borderClass)
     },
   )
+
+  it('wraps the complete external-service type inside the domain bubble', () => {
+    renderWithProvider(
+      <DomainNode
+        data={{
+          label: 'alerts',
+          nodeCount: 1,
+          systemType: 'external-service',
+        }}
+      />,
+    )
+
+    const systemType = screen.getByText('external-service')
+    expect(systemType).toHaveTextContent('external-service')
+    expect(systemType).toHaveClass('max-w-full', 'break-words', 'px-2')
+    expect(systemType.parentElement).toHaveClass('w-full')
+  })
 })

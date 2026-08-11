@@ -16,6 +16,7 @@ const DOMAIN_NODE_SIZE = 120
 const EXTERNAL_NODE_SIZE = 100
 const DIMMED_OPACITY = 0.3
 const FULL_OPACITY = 1
+const FOCUSED_HALO = '0 0 0 6px var(--primary), 0 0 24px var(--primary)'
 const DOMAIN_FONT_SIZE = 14
 const EXTERNAL_FONT_SIZE = 12
 
@@ -59,11 +60,13 @@ export function DomainNode(props: DomainNodeProps): React.ReactElement {
           width: size,
           height: size,
           opacity,
+          boxShadow: data.focused === true ? FOCUSED_HALO : undefined,
         }}
+        data-focused={data.focused === true ? 'true' : 'false'}
         title={data.label}
       >
         {isExternal ? (
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex w-full flex-col items-center gap-1">
             <i className="ph ph-arrow-square-out domain-node-external-icon" aria-hidden="true" />
             <span
               className="max-w-full overflow-hidden px-2 font-bold text-[var(--text-primary)] leading-tight"
@@ -74,14 +77,16 @@ export function DomainNode(props: DomainNodeProps): React.ReactElement {
             <span className="domain-node-system-type">External</span>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex w-full flex-col items-center gap-1">
             <span
               className="max-w-full overflow-hidden px-3 font-bold text-[var(--text-primary)] leading-tight"
               style={{ fontSize }}
             >
               {displayLabel}
             </span>
-            <span className="domain-node-system-type">{data.systemType}</span>
+            <span className="domain-node-system-type max-w-full break-words px-2">
+              {data.systemType}
+            </span>
           </div>
         )}
       </div>

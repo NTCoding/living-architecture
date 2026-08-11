@@ -117,6 +117,26 @@ Analyzes parallel work streams across approved delivery plans, including complet
 
 Renames the worktree branch to match the issue, reads the issue details, initializes the workflow state machine, and begins the IMPLEMENTING state.
 
+### Reusable workflow actions
+
+```bash
+/dev-workflow-v2:code-review
+```
+
+Runs the required workflow review bundle and records each valid verdict.
+
+```bash
+/dev-workflow-v2:list-review-threads
+```
+
+Lists unresolved review threads for the pull request recorded in workflow state.
+
+```bash
+/dev-workflow-v2:create-pr
+```
+
+Pushes the recorded feature branch, then delegates standard PR creation and recording to the workflow.
+
 ### Workflow (internal)
 
 ```bash
