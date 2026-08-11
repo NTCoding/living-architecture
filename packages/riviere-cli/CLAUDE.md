@@ -16,9 +16,9 @@ If a command's flags, behavior, or output format changes, ensure the workflow pr
 
 Default to the most reliable, powerful behavior. Opt-out flags (`--no-*`) for edge cases. Users should get the best experience by default, not discover it when things don't work.
 
-## Layer Pattern
+## Location Structure
 
-Follows [`development-skills:separation-of-concerns`](https://github.com/NTCoding/claude-skillz/blob/main/separation-of-concerns/SKILL.md) skill. See decision tree (Q1-Q7) for code placement.
+Follow [ADR-002](../../docs/architecture/adr/ADR-002-allowed-folder-structures.md) and the executable rules in [`.riviere/role-enforcement.config.ts`](../../.riviere/role-enforcement.config.ts).
 
 ## Commands
 

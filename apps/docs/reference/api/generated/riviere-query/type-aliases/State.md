@@ -6,10 +6,8 @@ pageClass: reference
 
 > **State** = `z.infer`\<*typeof* `stateSchema`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:55](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L55)
-
-Branded type for state names in entity state machines.
+Defined in: [packages/riviere-query/src/features/querying/domain/identifiers.ts:23](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/identifiers.ts#L23)
 
 ## Riviere-role
 
-query-model
+value-object

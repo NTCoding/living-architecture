@@ -7,8 +7,8 @@ import {
   type FlowTypeFilter,
   useFlowsState,
 } from '../hooks/useFlowsState'
-import type { Theme } from '@/types/theme'
-import { DEFAULT_THEME } from '@/types/theme'
+import type { Theme } from '@/platform/domain/theme/theme'
+import { DEFAULT_THEME } from '@/platform/domain/theme/theme'
 
 function isActiveFilter(activeFilter: FlowTypeFilter, candidateFilter: FlowTypeFilter): boolean {
   if (activeFilter.kind === 'all') return candidateFilter.kind === 'all'

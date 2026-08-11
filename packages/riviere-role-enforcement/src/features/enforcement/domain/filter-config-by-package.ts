@@ -17,17 +17,12 @@ export function filterConfigByPackage(
     )
   }
 
-  const filteredLayers: Record<string, RoleEnforcementResult['layers'][string]> = {}
-  for (const [key, layer] of Object.entries(config.layers)) {
-    if (key.startsWith(`${normalizedPath}/`)) {
-      filteredLayers[key] = layer
-    }
-  }
-
   return {
     ...config,
     include: filteredInclude,
-    layers: filteredLayers,
+    locationHierarchy: config.locationHierarchy.filter((location) =>
+      location.pathTemplate.startsWith(`${normalizedPath}/`),
+    ),
   }
 }
 

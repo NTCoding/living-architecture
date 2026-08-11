@@ -1,8 +1,6 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type {
-  Node, Edge, NodeType, NodeId 
-} from '@/platform/domain/eclair-types'
-import { GraphError } from '@/platform/infra/errors/errors'
+import type { Node, Edge, NodeType, NodeId } from '@/platform/domain/eclair-types'
+import { GraphError } from '@/platform/domain/errors/errors'
 
 interface NodeAddition {node: Node}
 

@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
-import { minimatch } from 'minimatch'
 
 const ROLE_TAG = /@riviere-role\s+(\S+)/g
 
@@ -38,11 +37,7 @@ export default {
       create(context) {
         const [options] = context.options
         const roleMap = new Map(options.roles.map((role) => [role.name, role]))
-        const layerEntries = Object.entries(options.layers ?? {})
-        const importRuleLocations = layerEntries
-          .map(([, location]) => location)
-          .filter((location) => hasImportRules(location))
-          .sort((left, right) => longestPattern(right.paths) - longestPattern(left.paths))
+        const locationHierarchy = options.locationHierarchy ?? []
         const sourceCode = context.sourceCode
         const fileCache = new Map()
         const importCache = new Map()
@@ -51,17 +46,20 @@ export default {
         )
         const filename = path.resolve(options.configDir, relativeFilePath)
 
-        if (
-          !filename.endsWith('.ts') ||
-          filename.endsWith('.spec.ts') ||
-          filename.endsWith('.test.ts')
-        ) {
+        if (!/\.tsx?$/.test(filename)) {
           return {}
         }
 
+        const isTestFile = /\.(spec|test)\.tsx?$/.test(filename)
         const fileRoles = []
+        const roleDeclarations = []
+
+        const sourceLocationChain = resolveLocationChain(relativeFilePath, locationHierarchy)
 
         return {
+          Program(node) {
+            validateConfiguredSubLocations(node, sourceLocationChain, relativeFilePath)
+          },
           FunctionDeclaration(node) {
             validateDeclaration(node, 'function')
           },
@@ -75,111 +73,178 @@ export default {
             validateDeclaration(node, 'type-alias')
           },
           ImportDeclaration(node) {
-            validateForbiddenImports(node)
-            validateLocationImport(node)
+            if (isTestFile) {
+              return
+            }
+            validateHierarchyImport(node, sourceLocationChain)
           },
           'Program:exit'() {
+            if (isTestFile) {
+              return
+            }
             validateForbiddenDependencies()
             validateForbiddenMethodCalls()
           },
         }
 
-        function validateForbiddenImports(node) {
+        function validateConfiguredSubLocations(node, locationChain, filePath) {
+          if (locationHierarchy.length === 0 || locationChain.length === 0) {
+            return
+          }
+          const deepest = locationChain.at(-1)
+          if (deepest.location.allowAnySubLocations) {
+            return
+          }
+          const fileDirectory = normalizePath(path.dirname(filePath))
+          const remainder = relativeSegments(fileDirectory, deepest.concretePath)
+          if (remainder.length > 0) {
+            report(
+              node,
+              `Unconfigured sub-location '${remainder[0]}' inside location '${deepest.location.name}'.`,
+            )
+          }
+        }
+
+        function validateHierarchyImport(node, sourceChain) {
+          if (locationHierarchy.length === 0 || sourceChain.length === 0) {
+            return
+          }
           const importSource = node.source.value
           if (typeof importSource !== 'string') {
             return
           }
 
-          const resolvedImport = resolveTypeFile(filename, importSource)
-          if (resolvedImport === null) {
+          const resolvedImport = resolveImportFile(
+            filename,
+            importSource,
+            options.configDir,
+            options.importAliases,
+          )
+          if (resolvedImport === null || !isInsideDirectory(resolvedImport, options.configDir)) {
+            validateHierarchyExternalImport(node, sourceChain, importSource)
             return
           }
 
-          const resolvedImportRelative = normalizePath(
-            readRelativeFilePath(resolvedImport, options.configDir),
+          for (const targetFile of resolveImportedFiles(node, resolvedImport)) {
+            const targetRelative = normalizePath(readRelativeFilePath(targetFile, options.configDir))
+            const targetChain = resolveLocationChain(targetRelative, locationHierarchy)
+            if (targetChain.length === 0) {
+              continue
+            }
+
+            if (
+              validateSourceLocationRules(node, sourceChain, targetChain, targetRelative, targetFile)
+            ) {
+              return
+            }
+            validateTargetLocationRules(node, targetChain)
+          }
+        }
+
+        function resolveImportedFiles(node, resolvedImport) {
+          const files = []
+          for (const specifier of node.specifiers ?? []) {
+            if (specifier.type !== 'ImportSpecifier') {
+              continue
+            }
+            const importedName =
+              specifier.imported.type === 'Identifier'
+                ? specifier.imported.name
+                : specifier.imported.value
+            const exportedFile = resolveExportedFile(resolvedImport, importedName)
+            if (exportedFile !== null) {
+              files.push(exportedFile)
+            }
+          }
+          return files.length > 0 ? [...new Set(files)] : [resolvedImport]
+        }
+
+        function validateSourceLocationRules(node, sourceChain, targetChain, targetRelative, resolvedImport) {
+          for (const source of sourceChain) {
+            if (rejectsSiblingImport(node, source, targetChain)) {
+              return true
+            }
+            if (rejectsLocationImport(node, source, targetChain, targetRelative, resolvedImport)) {
+              return true
+            }
+          }
+          return false
+        }
+
+        function rejectsSiblingImport(node, source, targetChain) {
+          if (source.location.dependencyRules?.canImportSiblings !== false) {
+            return false
+          }
+          const targetPeer = targetChain.find(
+            (target) => target.location.pathTemplate === source.location.pathTemplate,
           )
+          if (targetPeer === undefined || targetPeer.concretePath === source.concretePath) {
+            return false
+          }
+          report(node, `Location '${source.concretePath}' cannot import sibling location instance '${targetPeer.concretePath}'.`)
+          return true
+        }
 
-          const fileDir = normalizePath(path.dirname(relativeFilePath))
-          for (const [, layer] of layerEntries) {
-            if (!layer.paths.some((pattern) => matchesExpandedPattern(fileDir, pattern))) {
+        function rejectsLocationImport(node, source, targetChain, targetRelative, resolvedImport) {
+          const permittedLocations = source.location.dependencyRules?.locations
+          if (!Array.isArray(permittedLocations) || isWithinPath(targetRelative, source.concretePath)) {
+            return false
+          }
+          const permitted = permittedLocations.some((rule) =>
+            locationRuleAllows(rule, source, targetChain, node, resolvedImport),
+          )
+          if (permitted) {
+            return false
+          }
+          const targetName = targetChain.at(-1).location.name
+          report(node, `Location '${source.location.name}' cannot import location '${targetName}'.`)
+          return true
+        }
+
+        function validateTargetLocationRules(node, targetChain) {
+          for (const target of targetChain) {
+            if (target.location.dependencyRules?.importableFrom !== 'withinParentLocation') {
               continue
             }
-
-            if (!Array.isArray(layer.forbiddenImports)) {
-              continue
-            }
-
-            for (const forbiddenPattern of layer.forbiddenImports) {
-              if (
-                minimatch(resolvedImportRelative, forbiddenPattern, { dot: true }) ||
-                minimatch(resolvedImportRelative, `${forbiddenPattern}/**`, { dot: true })
-              ) {
-                report(
-                  node,
-                  `Forbidden import: files in this location cannot import from '${forbiddenPattern}'. ${referenceForUnknownRole(options)}`,
-                )
-              }
+            const parentLocation = locationById(locationHierarchy, target.location.parentId)
+            const targetParent = targetChain.find(
+              (candidate) => candidate.location.pathTemplate === parentLocation?.pathTemplate,
+            )
+            if (targetParent !== undefined && !isWithinPath(relativeFilePath, targetParent.concretePath)) {
+              report(node, `Location '${target.location.name}' can only be imported from within its parent location.`)
+              return
             }
           }
         }
 
-        function validateLocationImport(node) {
-          const sourceLocation = importRuleLocations.find(
-            (location) =>
-              location.paths.some((pattern) => matchesExpandedPattern(relativeFilePath, pattern)),
-          )
-          if (sourceLocation === undefined) {
+        function validateHierarchyExternalImport(node, sourceChain, importSource) {
+          if (!isExternalImport(importSource)) {
             return
           }
-
-          const importSource = node.source.value
-          if (typeof importSource !== 'string') {
-            return
-          }
-
-          const resolvedImport = resolveImportFile(filename, importSource)
-          if (resolvedImport === null || !isInsideDirectory(resolvedImport, options.configDir)) {
-            if (
-              sourceLocation.mayImportExternalPackages === false &&
-              isExternalImport(importSource)
-            ) {
-              report(
-                node,
-                `Forbidden external import: files in '${sourceLocation.paths.join(', ')}' cannot import external package '${importSource}'.`,
-              )
+          for (const source of sourceChain) {
+            const allowed = source.location.dependencyRules?.externalPackages
+            if (Array.isArray(allowed) && !allowed.includes(packageName(importSource))) {
+              report(node, `Location '${source.location.name}' cannot import external package '${importSource}'.`)
+              return
             }
-            return
           }
+        }
 
-          const resolvedImportRelative = normalizePath(
-            readRelativeFilePath(resolvedImport, options.configDir),
-          )
-          const importedRoles = readImportedRoles(node, resolvedImport)
-          if (
-            sourceLocation.paths.some((pattern) =>
-              matchesExpandedPattern(resolvedImportRelative, pattern),
-            )
-          ) {
-            return
+        function locationRuleAllows(rule, source, targetChain, node, resolvedImport) {
+          const candidates = targetChain.filter((target) => target.location.name === rule.location)
+          for (const target of candidates) {
+            if (!sameConcreteParentWhenSharedTemplate(source, target, locationHierarchy)) {
+              continue
+            }
+            if (!Array.isArray(rule.roles)) {
+              return true
+            }
+            const importedRoles = readImportedRoles(node, resolvedImport)
+            if (importedRoles.length > 0 && importedRoles.every((role) => rule.roles.includes(role))) {
+              return true
+            }
           }
-
-          if (!Array.isArray(sourceLocation.mayImportRoles)) {
-            return
-          }
-
-          const disallowedRole = importedRoles.find(
-            (role) => !sourceLocation.mayImportRoles.includes(role),
-          )
-          if (importedRoles.length > 0 && disallowedRole === undefined) {
-            return
-          }
-
-          const targetDescription =
-            importedRoles.length === 0 ? 'no classified role' : `[${importedRoles.join(', ')}]`
-          report(
-            node,
-            `Forbidden role import: files in '${sourceLocation.paths.join(', ')}' may only import roles [${sourceLocation.mayImportRoles.join(', ')}] across that location boundary, but '${resolvedImportRelative}' provides ${targetDescription}.`,
-          )
+          return false
         }
 
         function readImportedRoles(node, resolvedImport) {
@@ -206,6 +271,12 @@ export default {
         }
 
         function validateDeclaration(node, target) {
+          if (
+            isTestFile ||
+            sourceLocationChain.some((location) => location.location.enforceRoles === false)
+          ) {
+            return
+          }
           if (!isTopLevelExported(node)) {
             return
           }
@@ -276,6 +347,10 @@ export default {
           }
 
           fileRoles.push(roleName)
+          roleDeclarations.push({
+            node,
+            roleName,
+          })
 
           if (target === 'function') {
             validateFunctionContract(node, role, name)
@@ -340,22 +415,18 @@ export default {
         }
 
         function isRoleAllowedInFile(roleName, filePath) {
-          const fileDir = normalizePath(path.dirname(filePath))
-          return layerEntries.some(
-            ([, layer]) =>
-              layer.allowedRoles.includes(roleName) &&
-              layer.paths.some((pattern) => matchesExpandedPattern(fileDir, pattern)),
+          return resolveLocationChain(filePath, locationHierarchy).some((location) =>
+            location.location.allowedRoles.includes(roleName),
           )
         }
 
         function validateForbiddenDependencies() {
-          const forbiddenSet = collectForbiddenRoles(fileRoles, roleMap)
-          if (forbiddenSet.size === 0) {
+          if (fileRoles.length === 0) {
             return
           }
 
           for (const statement of readRelativeImportStatements()) {
-            reportForbiddenImports(statement, forbiddenSet)
+            reportForbiddenImports(statement)
           }
         }
 
@@ -454,21 +525,128 @@ export default {
           )
         }
 
-        function reportForbiddenImports(statement, forbiddenSet) {
+        function reportForbiddenImports(statement) {
           const resolvedFile = resolveTypeFile(filename, statement.source.value)
           if (resolvedFile === null) {
             return
           }
 
-          const importedRoles = readAllExportedRoles(resolvedFile)
-          for (const importedRole of importedRoles) {
-            if (forbiddenSet.has(importedRole)) {
+          for (const binding of readImportedRoleBindings(statement, resolvedFile)) {
+            const referencingRoles = readReferencingRoles(binding.localName)
+            for (const importedRole of binding.roles) {
+              const forbiddenByRoles = referencingRoles.filter((roleName) =>
+                roleMap.get(roleName)?.forbiddenDependencies?.includes(importedRole),
+              )
+              if (forbiddenByRoles.length === 0) {
+                continue
+              }
               report(
                 statement,
-                `Forbidden dependency: this file (${fileRoles.join(', ')}) cannot import from a file exporting '${importedRole}'. ${referenceForKnownRole(options, importedRole)}`,
+                `Forbidden dependency: this file (${forbiddenByRoles.join(', ')}) cannot import from a file exporting '${importedRole}'. ${referenceForKnownRole(options, importedRole)}`,
               )
             }
           }
+        }
+
+        function readImportedRoleBindings(statement, resolvedFile) {
+          return (statement.specifiers ?? []).flatMap((specifier) => {
+            if (specifier.type === 'ImportSpecifier') {
+              const importedName =
+                specifier.imported.type === 'Identifier'
+                  ? specifier.imported.name
+                  : specifier.imported.value
+              const importedRole = readExportedRole(resolvedFile, importedName)
+              return importedRole === null
+                ? []
+                : [{
+                  localName: specifier.local.name,
+                  roles: [importedRole],
+                }]
+            }
+            if (
+              specifier.type === 'ImportNamespaceSpecifier' ||
+              specifier.type === 'ImportDefaultSpecifier'
+            ) {
+              return [{
+                localName: specifier.local.name,
+                roles: readAllExportedRoles(resolvedFile),
+              }]
+            }
+            return []
+          })
+        }
+
+        function readReferencingRoles(localName) {
+          const references = readImportReferences(localName)
+          if (references.length === 0) {
+            return []
+          }
+          const referencingRoles = roleDeclarations
+            .filter(({ node }) => declarationReachesReferences(node, references, new Set()))
+            .map(({ roleName }) => roleName)
+          return referencingRoles.length > 0
+            ? [...new Set(referencingRoles)]
+            : [...new Set(fileRoles)]
+        }
+
+        function declarationReachesReferences(node, targetReferences, visitedNodes) {
+          if (visitedNodes.has(node)) {
+            return false
+          }
+          visitedNodes.add(node)
+          if (targetReferences.some((reference) => isNodeInside(reference, node))) {
+            return true
+          }
+
+          for (const variable of readLocalVariables()) {
+            const isReferencedByDeclaration = variable.references.some((reference) =>
+              isNodeInside(reference.identifier, node),
+            )
+            if (!isReferencedByDeclaration) {
+              continue
+            }
+            for (const definition of variable.defs ?? []) {
+              const dependencyNode = definition.node
+              if (
+                dependencyNode?.range !== undefined &&
+                declarationReachesReferences(dependencyNode, targetReferences, visitedNodes)
+              ) {
+                return true
+              }
+            }
+          }
+          return false
+        }
+
+        function readLocalVariables() {
+          const variables = []
+          for (const scope of sourceCode.scopeManager?.scopes ?? []) {
+            for (const variable of scope.variables ?? []) {
+              if (variable.defs?.some((definition) => definition.type !== 'ImportBinding')) {
+                variables.push(variable)
+              }
+            }
+          }
+          return variables
+        }
+
+        function readImportReferences(localName) {
+          const references = []
+          for (const scope of sourceCode.scopeManager?.scopes ?? []) {
+            for (const variable of scope.variables ?? []) {
+              const isMatchingImport =
+                variable.name === localName &&
+                variable.defs?.some((definition) => definition.type === 'ImportBinding')
+              if (isMatchingImport) {
+                references.push(...variable.references.map((reference) => reference.identifier))
+              }
+            }
+          }
+          return references
+        }
+
+        function isNodeInside(candidate, container) {
+          return candidate.range[0] >= container.range[0] && candidate.range[1] <= container.range[1]
         }
 
         function readAllExportedRoles(filePath) {
@@ -935,7 +1113,38 @@ export default {
           }
         }
 
-        function readExportedRole(filePath, exportedName, visited = new Set()) {
+        function readExportedRole(filePath, exportedName) {
+          const exportedFile = resolveExportedFile(filePath, exportedName)
+          if (exportedFile === null) {
+            return null
+          }
+          return readDirectExportRole(exportedFile, exportedName)
+        }
+
+        function readDirectExportRole(filePath, exportedName) {
+          const sourceText = readFileText(filePath)
+          if (sourceText === null) {
+            return null
+          }
+          const escapedName = escapeRegExp(exportedName)
+          const exportPattern = new RegExp(
+            String.raw`export\s+(?:interface|type|function|class)\s+${escapedName}\b`,
+            'm',
+          )
+          const exportMatch = exportPattern.exec(sourceText)
+          if (exportMatch === null) {
+            return null
+          }
+          const prefix = sourceText.slice(0, exportMatch.index)
+          const jsDocComments = [...prefix.matchAll(/\/\*\*[\s\S]*?\*\//g)]
+          const commentMatch = jsDocComments.at(-1)
+          if (commentMatch?.[0] === undefined) {
+            return null
+          }
+          return parseSingleRoleName(commentMatch[0], `on '${exportedName}' in ${filePath}`)
+        }
+
+        function resolveExportedFile(filePath, exportedName, visited = new Set()) {
           if (visited.has(filePath)) {
             return null
           }
@@ -953,24 +1162,18 @@ export default {
           )
           const exportMatch = exportPattern.exec(sourceText)
           if (exportMatch !== null) {
-            const prefix = sourceText.slice(0, exportMatch.index)
-            const jsDocComments = [...prefix.matchAll(/\/\*\*[\s\S]*?\*\//g)]
-            const commentMatch = jsDocComments.at(-1)
-            if (commentMatch?.[0] === undefined) {
-              return null
-            }
-            return parseSingleRoleName(commentMatch[0], `on '${exportedName}' in ${filePath}`)
+            return filePath
           }
 
           const namedReExportPattern = new RegExp(
-            String.raw`export\s*\{[^}]*\b${escapedName}\b[^}]*\}\s*from\s*['"]([^'"]+)['"]`,
+            String.raw`export\s*(?:type\s*)?\{[^}]*\b${escapedName}\b[^}]*\}\s*from\s*['"]([^'"]+)['"]`,
             'm',
           )
           const namedReExportMatch = namedReExportPattern.exec(sourceText)
           if (namedReExportMatch !== null) {
             const resolvedPath = resolveTypeFile(filePath, namedReExportMatch[1])
             if (resolvedPath !== null) {
-              return readExportedRole(resolvedPath, exportedName, visited)
+              return resolveExportedFile(resolvedPath, exportedName, visited)
             }
           }
 
@@ -979,9 +1182,9 @@ export default {
           while ((wildcardMatch = wildcardReExportPattern.exec(sourceText)) !== null) {
             const resolvedPath = resolveTypeFile(filePath, wildcardMatch[1])
             if (resolvedPath !== null) {
-              const role = readExportedRole(resolvedPath, exportedName, visited)
-              if (role !== null) {
-                return role
+              const exportedFile = resolveExportedFile(resolvedPath, exportedName, visited)
+              if (exportedFile !== null) {
+                return exportedFile
               }
             }
           }
@@ -1015,48 +1218,96 @@ export default {
   },
 }
 
-function matchesExpandedPattern(fileDir, pattern) {
-  return expandCommaPath(pattern).some(
-    (expanded) =>
-      minimatch(fileDir, expanded, { dot: true }) ||
-      minimatch(fileDir, `${expanded}/**`, { dot: true }),
-  )
-}
-
-function hasImportRules(location) {
-  return (
-    location.mayImportExternalPackages === false || Array.isArray(location.mayImportRoles)
-  )
-}
-
-function longestPattern(patterns) {
-  return Math.max(...patterns.map((pattern) => pattern.length))
-}
-
-function expandCommaPath(pattern) {
-  const segments = pattern.split('/')
-  const segmentAlternatives = segments.map((s) => s.split(','))
-  return cartesianProduct(segmentAlternatives).map((combo) => combo.join('/**/'))
-}
-
-function cartesianProduct(arrays) {
-  return arrays.reduce(
-    (acc, alternatives) => acc.flatMap((combo) => alternatives.map((alt) => [...combo, alt])),
-    [[]],
-  )
-}
-
-function collectForbiddenRoles(fileRoles, roleMap) {
-  const forbiddenSet = new Set()
-  for (const roleName of fileRoles) {
-    const role = roleMap.get(roleName)
-    if (role !== undefined && Array.isArray(role.forbiddenDependencies)) {
-      for (const dep of role.forbiddenDependencies) {
-        forbiddenSet.add(dep)
+function resolveLocationChain(filePath, locations) {
+  const matches = locations
+    .map((location) => {
+      const templateSegments = location.pathTemplate.split('/')
+      const fileSegments = filePath.split('/')
+      if (fileSegments.length < templateSegments.length) {
+        return null
       }
+      for (let index = 0; index < templateSegments.length; index += 1) {
+        const expected = templateSegments[index]
+        if (!isTemplateSegment(expected) && expected !== fileSegments[index]) {
+          return null
+        }
+      }
+      return {
+        concretePath: fileSegments.slice(0, templateSegments.length).join('/'),
+        location,
+      }
+    })
+    .filter((entry) => entry !== null)
+    .sort(
+      (left, right) =>
+        left.location.pathTemplate.split('/').length -
+        right.location.pathTemplate.split('/').length,
+    )
+  const mostSpecificByDepth = new Map()
+  for (const match of matches) {
+    const depth = match.location.pathTemplate.split('/').length
+    const existing = mostSpecificByDepth.get(depth)
+    if (
+      existing === undefined ||
+      templateSegmentCount(match.location.pathTemplate) <
+        templateSegmentCount(existing.location.pathTemplate)
+    ) {
+      mostSpecificByDepth.set(depth, match)
     }
   }
-  return forbiddenSet
+  return [...mostSpecificByDepth.values()].sort(
+    (left, right) =>
+      left.location.pathTemplate.split('/').length -
+      right.location.pathTemplate.split('/').length,
+  )
+}
+
+function isTemplateSegment(segment) {
+  return segment.startsWith('{') && segment.endsWith('}')
+}
+
+function templateSegmentCount(template) {
+  return template.split('/').filter(isTemplateSegment).length
+}
+
+function relativeSegments(candidate, parent) {
+  if (candidate === parent) {
+    return []
+  }
+  if (!candidate.startsWith(`${parent}/`)) {
+    return []
+  }
+  return candidate.slice(parent.length + 1).split('/')
+}
+
+function isWithinPath(candidate, parent) {
+  return candidate === parent || candidate.startsWith(`${parent}/`)
+}
+
+function locationById(locations, id) {
+  if (id === undefined) {
+    return undefined
+  }
+  return locations.find((location) => location.id === id)
+}
+
+function sameConcreteParentWhenSharedTemplate(source, target, locations) {
+  const sourceParent = locationById(locations, source.location.parentId)
+  const targetParent = locationById(locations, target.location.parentId)
+  if (sourceParent?.pathTemplate !== targetParent?.pathTemplate) {
+    return true
+  }
+  const segmentCount = sourceParent.pathTemplate.split('/').length
+  const sourceParentPath = source.concretePath.split('/').slice(0, segmentCount).join('/')
+  const targetParentPath = target.concretePath.split('/').slice(0, segmentCount).join('/')
+  return sourceParentPath === targetParentPath
+}
+
+function packageName(importSource) {
+  if (importSource.startsWith('@')) {
+    return importSource.split('/').slice(0, 2).join('/')
+  }
+  return importSource.split('/')[0]
 }
 
 function collectForbiddenMethodCallRoles(fileRoles, roleMap) {
@@ -1150,25 +1401,41 @@ function matchesName(name, role) {
 function resolveTypeFile(currentFile, importSource) {
   const sourceDir = path.dirname(currentFile)
   const basePath = path.resolve(sourceDir, importSource)
-  const candidates = [basePath, `${basePath}.ts`, path.join(basePath, 'index.ts')]
-
-  return (
-    candidates.find((candidate) => {
-      try {
-        return fs.statSync(candidate).isFile()
-      } catch {
-        return false
-      }
-    }) ?? null
-  )
+  return resolveFileFromBase(basePath)
 }
 
-function resolveImportFile(currentFile, importSource) {
+function resolveImportFile(currentFile, importSource, configDir, importAliases = {}) {
   if (importSource.startsWith('.')) {
     return resolveTypeFile(currentFile, importSource)
   }
 
+  const alias = Object.entries(importAliases).find(([prefix]) => importSource.startsWith(prefix))
+  if (alias !== undefined) {
+    const [prefix, target] = alias
+    const aliasedPath = path.resolve(configDir, target, importSource.slice(prefix.length))
+    return resolveFileFromBase(aliasedPath)
+  }
+
   return resolveWorkspacePackageSource(currentFile, importSource)
+}
+
+function resolveFileFromBase(basePath) {
+  const candidates = [
+    basePath,
+    `${basePath}.ts`,
+    `${basePath}.tsx`,
+    path.join(basePath, 'index.ts'),
+    path.join(basePath, 'index.tsx'),
+  ]
+  return candidates.find(isFile) ?? null
+}
+
+function isFile(candidate) {
+  try {
+    return fs.statSync(candidate).isFile()
+  } catch {
+    return false
+  }
 }
 
 function resolveWorkspacePackageSource(currentFile, importSource) {

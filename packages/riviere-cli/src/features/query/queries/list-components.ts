@@ -1,29 +1,21 @@
-import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
+import { ComponentListLoader } from '../data-access/query-loaders'
 import type { ListComponentsInput } from './list-components-input'
 import type { ListComponentsResult } from './list-components-result'
-import { loadQueryGraph } from './query-graph-load-failure'
+import { toQueryGraphLoadFailure } from './query-graph-load-failure'
 
 /** @riviere-role query-model-use-case */
 export class ListComponents {
-  constructor(private readonly repository: RiviereQueryRepository) {}
+  constructor(private readonly components: ComponentListLoader) {}
 
   execute(input: ListComponentsInput): ListComponentsResult {
-    const loaded = loadQueryGraph(this.repository, input.graphPathOption)
-    if (loaded.kind !== 'loaded') {
-      return loaded
-    }
-
-    const allComponents = loaded.query.components()
-    const filteredByDomain =
-      input.domain === undefined
-        ? allComponents
-        : allComponents.filter((component) => component.domain === input.domain)
-
-    return {
-      components:
-        input.type === undefined
-          ? filteredByDomain
-          : filteredByDomain.filter((component) => component.type === input.type),
+    try {
+      return this.components.load(input.graphPathOption, input.domain, input.type)
+    } catch (error) {
+      const failure = toQueryGraphLoadFailure(error)
+      if (failure !== undefined) {
+        return failure
+      }
+      throw error
     }
   }
 }

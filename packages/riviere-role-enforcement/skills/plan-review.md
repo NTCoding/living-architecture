@@ -30,7 +30,7 @@ Do NOT use this skill for:
 3. **Gap-finding is the main value.** The biggest payoff is surfacing proposed code that doesn't fit existing conventions BEFORE it's written. Call gaps out loudly.
 4. **Never silently propose a new role.** New roles require explicit user approval. Flag them as proposals, not decisions.
 5. **Aggregates always require user approval.** Per `.riviere/role-selection-guide.md`, every aggregate must be listed in `approvedInstances` in `.riviere/roles.ts` with `userHasApproved: true`. If the plan proposes what looks like an aggregate, flag it for explicit user approval — do not assume.
-6. **Respect forbidden-import rules.** If the plan proposes code in a location that would violate `forbiddenImports` in the config, flag it immediately.
+6. **Respect dependency rules.** If the plan proposes an import outside a location's `dependencyRules.locations`, flag it immediately.
 7. **Remind, don't dictate.** The output always reminds the implementer to re-consult the enforcement config as code solidifies.
 
 ## Step 1: Load Context
@@ -39,7 +39,7 @@ Before reviewing the plan, read the full role enforcement context:
 
 1. **`.riviere/role-enforcement.config.ts`** — learn:
    - `packages` — the list of enforced package paths
-   - `locations` — each location's allowed roles, sublocations, and `forbiddenImports`
+   - `locations` — each location's allowed roles, sublocations, and dependency rules
    - `ignorePatterns`
 2. **`.riviere/roles.ts`** — the full role catalog with `targets`, `allowedInputs`, `allowedOutputs`, `forbiddenDependencies`, `minPublicMethods`, `maxPublicMethods`, `nameMatches`, and `approvedInstances`.
 3. **`.riviere/role-selection-guide.md`** — the classification decision process and the aggregate-approval rule.
@@ -101,7 +101,7 @@ Review the plan for plan-level signals of architectural problems:
 - **Mixed responsibilities in a single proposed element.** E.g. "a class that calls an HTTP service and also orchestrates domain logic and persists state." Propose splitting.
 - **Missing aggregate-repository concept.** The plan loads state without naming a repository, or loads via a free function directly from a database driver.
 - **Unapproved aggregate.** The plan proposes something that sounds like an aggregate (holds state, enforces invariants via state-modifying methods) without an explicit user-approval line. Flag for approval.
-- **Wrong-layer code.** The plan proposes code in `entrypoint/` that imports `infra/persistence/`, or code in `domain/` that imports an external library — would violate `forbiddenImports`.
+- **Wrong-location code.** The plan proposes an import not permitted by the source location's dependency rules.
 - **Consumer-owned mapping proposed as a domain abstraction.** The plan puts an adapter, presenter, formatter, write port, bridge, or translator in `domain/` even though its only job is to reshape domain results for a specific consumer such as CLI output, workflow updates, or builder writes. Flag it and show the simpler alternative where the use case performs its own mapping.
 - **Cross-role coupling.** The plan proposes a `command-use-case` that depends on another `command-use-case` — forbidden by the role's `forbiddenDependencies`.
 - **Repository calling another repository.** Same pattern — forbidden.
@@ -168,7 +168,7 @@ Before applying the annex, scan its contents and classify each finding:
 
 1. **New role proposed.** Any entry in the Gaps table whose "Suggested Action" is "Propose new role". New roles require explicit user approval per Principle 4.
 2. **New aggregate proposed.** Any Proposed Roles row with role `aggregate` whose name is not already in `approvedInstances` in `.riviere/roles.ts` with `userHasApproved: true`. Per Principle 5.
-3. **Forbidden-import violation.** Any Structural Concern where the plan would place code in a location whose `forbiddenImports` list would reject an import the plan requires.
+3. **Location dependency violation.** Any Structural Concern where the plan requires an import outside the source location's permitted locations.
 4. **Forbidden-dependency violation.** Any Structural Concern where a proposed role's `forbiddenDependencies` would reject a dependency the plan requires (e.g. `command-use-case` → `command-use-case`).
 5. **Missing aggregate-repository concept.** Any Structural Concern flagging that the plan loads/persists state without naming a repository.
 6. **Changes to existing roles or the enforcement config.** Any finding that would require editing `.riviere/roles.ts`, `.riviere/role-enforcement.config.ts`, or role definition files.

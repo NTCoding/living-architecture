@@ -1,5 +1,5 @@
 import type { SystemType } from '@living-architecture/riviere-schema'
-import { isValidSystemType } from '../../../../entrypoint/_platform/cli/component-types'
+import { isValidSystemType } from '../../../../platform/domain/component-types'
 
 class InvalidDomainJsonError extends Error {
   readonly value: string

@@ -3,7 +3,7 @@ import type {
   RiviereGraph,
   CustomTypeDefinition,
 } from '@living-architecture/riviere-schema'
-import type { Theme } from '@/types/theme'
+import type { Theme } from '@/platform/domain/theme/theme'
 import { compareByCodePoint } from './compare-by-code-point'
 
 const BUILT_IN_NODE_COLORS: Record<Theme, Record<string, string>> = {

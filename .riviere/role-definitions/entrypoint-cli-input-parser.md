@@ -87,19 +87,23 @@ They must not move to `platform/infra/cli` merely because several Builder entryp
 
 ### Shared by entrypoints in multiple features
 
-Move the parser to the package's private entrypoint platform:
+Cross-feature code is no longer private to one feature's entrypoint location. Place it according to what it knows.
+
+Domain-aware parsing and normalisation belongs in shared domain:
 
 ```text
-packages/riviere-cli/src/entrypoint/_platform/cli/
-├── input-parsers/
-│   └── {parser}.ts
-└── option-validators/
-    └── {validator}.ts
+packages/riviere-cli/src/platform/domain/component-types.ts
 ```
 
-The real component-type parsing is the example. `isValidComponentType` is called by Builder entrypoints such as `component-checklist`, and by the Query `components` entrypoint. It encodes application values including `UseCase`, `DomainOp`, and `EventHandler`, so it remains `entrypoint-cli-input-parser` in the shared entrypoint layer. Cross-feature reuse does not make those values generic CLI primitives.
+The real component-type functions are the example. Builder and Query entrypoints both use them, and they encode domain values including `UseCase`, `DomainOp`, and `EventHandler`. They therefore belong in `platform/domain/`, not generic CLI infrastructure.
 
-Nothing outside the containing entrypoint layer may import either `_platform`. `_platform` is private reuse within a layer, not a public shared library.
+Generic CLI parsing shared across features belongs in:
+
+```text
+packages/riviere-cli/src/platform/infra/cli/input/
+```
+
+It may work only with CLI and language primitives. There is no package-root `src/entrypoint/`; every entrypoint belongs to a feature.
 
 ### When generic infra is correct
 
@@ -122,7 +126,8 @@ Do not extract a one-use primitive function merely to make the entrypoint file s
 
 - Primitive conversion without entrypoint meaning is a `generic-cli-input-parser`.
 - Reusable domain validation belongs to the domain that owns the rule.
-- Reuse across entrypoints changes the `_platform` scope, not the role or layer.
+- Reuse within one feature changes the `_platform` scope, not the role or location.
+- Reuse across features requires `platform/domain/` for domain-aware code or `platform/infra/cli/input/` for generic parsing.
 
 ## Anti-Patterns
 

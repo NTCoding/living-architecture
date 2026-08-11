@@ -14,7 +14,7 @@ import {
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type {
   TooltipData, SimulationNode 
-} from '@/platform/infra/graph/graph-types'
+} from '@/platform/domain/graph/graph-types'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
@@ -91,14 +91,14 @@ const mockGraph: RiviereGraph = {
   ],
 }
 
-vi.mock('@/platform/infra/theme/ThemeContext', () => ({
+vi.mock('@/platform/domain/theme/ThemeContext', () => ({
   useTheme: () => ({
     theme: 'stream',
     setTheme: vi.fn(),
   }),
 }))
 
-vi.mock('@/platform/infra/graph/ForceGraph/ForceGraph', () => ({
+vi.mock('@/platform/domain/graph/ForceGraph/ForceGraph', () => ({
   ForceGraph: (props: {
     graph: RiviereGraph
     onNodeHover?: (data: TooltipData | null) => void

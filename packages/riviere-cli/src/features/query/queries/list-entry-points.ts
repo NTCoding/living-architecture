@@ -1,17 +1,21 @@
-import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
+import { EntryPointListLoader } from '../data-access/query-loaders'
 import type { ListEntryPointsInput } from './list-entry-points-input'
 import type { ListEntryPointsResult } from './list-entry-points-result'
-import { loadQueryGraph } from './query-graph-load-failure'
+import { toQueryGraphLoadFailure } from './query-graph-load-failure'
 
 /** @riviere-role query-model-use-case */
 export class ListEntryPoints {
-  constructor(private readonly repository: RiviereQueryRepository) {}
+  constructor(private readonly entryPoints: EntryPointListLoader) {}
 
   execute(input: ListEntryPointsInput): ListEntryPointsResult {
-    const loaded = loadQueryGraph(this.repository, input.graphPathOption)
-    if (loaded.kind !== 'loaded') {
-      return loaded
+    try {
+      return this.entryPoints.load(input.graphPathOption)
+    } catch (error) {
+      const failure = toQueryGraphLoadFailure(error)
+      if (failure !== undefined) {
+        return failure
+      }
+      throw error
     }
-    return { entryPoints: loaded.query.entryPoints() }
   }
 }

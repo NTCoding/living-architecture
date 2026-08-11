@@ -7,7 +7,7 @@ const input: RoleEnforcementRunnerInput = {
   config: {
     ignorePatterns: ['**/*.spec.ts'],
     include: ['src/**/*.ts'],
-    layers: {},
+    locationHierarchy: [],
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: [],
   },
@@ -37,13 +37,15 @@ it('translates the domain runner input into an Oxlint request', () => {
           specifier: '../riviere-role-enforcement/role-enforcement-plugin.mjs',
         },
       ],
+      plugins: ['import'],
       rules: {
+        'import/no-cycle': 'error',
         'riviere-role-enforcement/enforce-roles': [
           'error',
           {
             configDir: '/repo/packages/pkg-a',
             configDisplayPath: 'role-enforcement.config.ts',
-            layers: {},
+            locationHierarchy: [],
             roleDefinitionsDir: '.riviere/role-definitions',
             roles: [],
           },
@@ -92,6 +94,7 @@ it('preserves optional enforcement configuration', () => {
     ...input,
     config: {
       ...input.config,
+      importAliases: { '@generic/*': 'packages/generic/src/*' },
       workspacePackageSources: { '@generic/package': 'packages/generic/src/index.ts' },
     },
   })
@@ -105,10 +108,15 @@ it('preserves optional enforcement configuration', () => {
             specifier: './role-enforcement-plugin.mjs',
           },
         ],
+        plugins: ['import'],
         rules: {
+          'import/no-cycle': 'error',
           'riviere-role-enforcement/enforce-roles': [
             'error',
-            expect.objectContaining({workspacePackageSources: { '@generic/package': 'packages/generic/src/index.ts' },}),
+            expect.objectContaining({
+              importAliases: { '@generic/*': 'packages/generic/src/*' },
+              workspacePackageSources: { '@generic/package': 'packages/generic/src/index.ts' },
+            }),
           ],
         },
       }),

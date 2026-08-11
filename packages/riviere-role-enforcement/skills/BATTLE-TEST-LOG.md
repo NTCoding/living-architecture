@@ -26,7 +26,7 @@ Each section represents one area of the codebase that was analyzed and annotated
 
 1. **`ApiComponent` → `value-object` not `external-client-model`**: `ApiComponent` is an internal domain concept (a subset of `Component` with API-specific fields), not a shape from an external API. The file is in `queries/` layer which maps to domain-service/value-object roles.
 
-2. **`queries/` layer addition to config**: The `src/features/builder/queries/` path was not in any configured layer. Added a new `queries` layer with `domain-service` and `value-object` as allowed roles. This is consistent with the separation-of-concerns skill's Q4: "Query/read side?" → queries/.
+2. **`queries/` location addition to config**: The `src/features/builder/queries/` path was not in any configured location. Added a new `queries` location with `domain-service` and `value-object` as allowed roles. This is consistent with ADR-002's read-side placement rule.
 
 3. **`addComponent` → `command-use-case` after refactoring**: The original function was a mixed responsibility — it loaded state, invoked domain behavior, AND formatted console output. This violates the `command-use-case` contract (which should return a typed result). Refactored to return `AddComponentResult` discriminated union and moved output formatting to the entrypoint. The entrypoint now follows the extract feature pattern.
 
@@ -58,7 +58,7 @@ Each section represents one area of the codebase that was analyzed and annotated
 ### What Should Be Improved
 1. **Add `Promise<T>` support to the enforcement tool**: The `readTypeRole()` function should unwrap `Promise<T>` and check the inner type `T` for its role annotation. This would enable `allowedOutputs` to work for async command-use-cases.
 2. **Document async command-use-cases in the skill and role definition**: The `command-use-case.md` definition should explicitly address async functions returning `Promise<CommandResult>`.
-3. **Add a `queries` layer to the standard config template**: The separation-of-concerns skill references a `queries/` layer but the initial config template didn't include it.
+3. **Add a `queries` location to the standard config template**: ADR-002 defines `queries/`, but the initial config template did not include it.
 4. **Entrypoint private function linter rule**: The linter rejects private functions in entrypoints, which is good. But the skill doesn't mention this constraint — it should note that helper logic must be in `commands/`, `queries/`, or `infra/` layers.
 
 ## platform/infra/cli-presentation — 2026-03-28
@@ -284,7 +284,7 @@ Each section represents one area of the codebase that was analyzed and annotated
 ### Config Changes
 - Added `'packages/riviere-extract-ts'` to packages array
 - Added `**/*-fixtures.ts` and `**/test-fixtures.ts` to ignorePatterns
-- Added `.subLocation('/infra/external-clients/{client}', externalClientRoles)` to `src/platform` location
+- Added the declarative `infra → external-clients → {client}` sublocation hierarchy with `externalClientRoles` on `{client}`
 
 ### Skill Gaps
 

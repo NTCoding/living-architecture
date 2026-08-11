@@ -1,6 +1,4 @@
-import {
-  describe, expect, it 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   validateComponentType,
   validateLinkType,
@@ -8,7 +6,7 @@ import {
   validateHttpMethod,
   isValidHttpMethod,
 } from './validation'
-import { VALID_SYSTEM_TYPES } from '../../../../../entrypoint/_platform/cli/component-types'
+import { VALID_SYSTEM_TYPES } from '../../../../../platform/domain/component-types'
 import { CliErrorCode } from '../../../../../platform/infra/cli/presentation/error-codes'
 
 function parseErrorJson(errorJson: string | undefined): unknown {

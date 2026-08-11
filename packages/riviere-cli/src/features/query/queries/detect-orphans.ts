@@ -1,17 +1,21 @@
-import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
+import { OrphanListLoader } from '../data-access/query-loaders'
 import type { DetectOrphansInput } from './detect-orphans-input'
 import type { DetectOrphansResult } from './detect-orphans-result'
-import { loadQueryGraph } from './query-graph-load-failure'
+import { toQueryGraphLoadFailure } from './query-graph-load-failure'
 
 /** @riviere-role query-model-use-case */
 export class DetectOrphans {
-  constructor(private readonly repository: RiviereQueryRepository) {}
+  constructor(private readonly orphans: OrphanListLoader) {}
 
   execute(input: DetectOrphansInput): DetectOrphansResult {
-    const loaded = loadQueryGraph(this.repository, input.graphPathOption)
-    if (loaded.kind !== 'loaded') {
-      return loaded
+    try {
+      return this.orphans.load(input.graphPathOption)
+    } catch (error) {
+      const failure = toQueryGraphLoadFailure(error)
+      if (failure !== undefined) {
+        return failure
+      }
+      throw error
     }
-    return { orphans: loaded.query.detectOrphans() }
   }
 }

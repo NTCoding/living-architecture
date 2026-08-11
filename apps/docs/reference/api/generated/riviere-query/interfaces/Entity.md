@@ -4,23 +4,19 @@ pageClass: reference
 
 # Interface: Entity
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L17)
-
-A domain entity with its associated operations, states, and business rules.
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:14](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L14)
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
 ### businessRules
 
-> `readonly` **businessRules**: `string`[]
+> `readonly` **businessRules**: readonly `string`[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:30](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L30)
-
-Deduplicated business rules from all operations.
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:20](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L20)
 
 ***
 
@@ -28,9 +24,7 @@ Deduplicated business rules from all operations.
 
 > `readonly` **domain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:22](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L22)
-
-The domain containing the entity.
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L16)
 
 ***
 
@@ -38,72 +32,28 @@ The domain containing the entity.
 
 > `readonly` **name**: `string` & `$brand`\<`"EntityName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:20](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L20)
-
-The entity name.
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:15](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L15)
 
 ***
 
 ### operations
 
-> `readonly` **operations**: `DomainOpComponent`[]
+> `readonly` **operations**: readonly `DomainOpComponent`[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L24)
-
-All domain operations targeting this entity.
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L17)
 
 ***
 
 ### states
 
-> `readonly` **states**: `string` & `$brand`\<`"State"`\>[]
+> `readonly` **states**: readonly `string` & `$brand`\<`"State"`\>[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:26](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L26)
-
-Ordered states derived from state transitions (initial → terminal).
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:18](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L18)
 
 ***
 
 ### transitions
 
-> `readonly` **transitions**: [`EntityTransition`](EntityTransition.md)[]
+> `readonly` **transitions**: readonly [`EntityTransition`](EntityTransition.md)[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:28](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L28)
-
-State transitions with triggering operations.
-
-## Methods
-
-### firstOperationId()
-
-> **firstOperationId**(): `string` \| `undefined`
-
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:41](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L41)
-
-#### Returns
-
-`string` \| `undefined`
-
-***
-
-### hasBusinessRules()
-
-> **hasBusinessRules**(): `boolean`
-
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:37](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L37)
-
-#### Returns
-
-`boolean`
-
-***
-
-### hasStates()
-
-> **hasStates**(): `boolean`
-
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:33](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L33)
-
-#### Returns
-
-`boolean`
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:19](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L19)

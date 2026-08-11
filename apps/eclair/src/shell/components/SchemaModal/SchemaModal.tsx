@@ -10,7 +10,7 @@ import type { GraphName } from '@/platform/domain/eclair-types'
 import styles from './SchemaModal.module.css'
 import {
   CSSModuleError, SchemaError
-} from '@/platform/infra/errors/errors'
+} from '@/platform/domain/errors/errors'
 
 function getStyle(name: string): string {
   const value = styles[name]

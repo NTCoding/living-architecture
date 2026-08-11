@@ -5,7 +5,8 @@ import {
   useNavigate, useSearchParams 
 } from 'react-router-dom'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import { EventAccordion } from '@/platform/infra/ui/EventAccordion/EventAccordion'
+import { EventAccordion } from '@/platform/domain/ui/EventAccordion/EventAccordion'
+import { CodeLinkMenu } from '@/platform/infra/presentation/CodeLinkMenu/CodeLinkMenu'
 import { compareByCodePoint } from '../queries/compare-by-code-point'
 import type { DomainEvent } from '../queries/domain-event-types'
 
@@ -197,6 +198,7 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
                   event={event}
                   onViewOnGraph={handleViewOnGraph}
                   onViewHandlerOnGraph={handleViewHandlerOnGraph}
+                  renderCodeLink={(sourceLocation) => <CodeLinkMenu {...sourceLocation} />}
                 />
               ))}
             </div>

@@ -14,6 +14,7 @@ vi.mock('node:fs', async (importOriginal) => {
 const config: OxlintConfig = {
   ignorePatterns: [],
   jsPlugins: [],
+  plugins: [],
   rules: {},
 }
 

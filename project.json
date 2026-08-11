@@ -8,13 +8,6 @@
         "cwd": "{workspaceRoot}"
       }
     },
-    "depcruise": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm depcruise",
-        "cwd": "{workspaceRoot}"
-      }
-    },
     "knip": {
       "executor": "nx:run-commands",
       "options": {

@@ -55,13 +55,16 @@ function createOxlintConfig(
         specifier: createOxlintImportSpecifier(configDir, pluginPath),
       },
     ],
+    plugins: ['import'],
     rules: {
+      'import/no-cycle': 'error',
       'riviere-role-enforcement/enforce-roles': [
         'error',
         {
           configDir,
           configDisplayPath: 'role-enforcement.config.ts',
-          layers: config.layers,
+          ...(config.importAliases !== undefined && { importAliases: config.importAliases }),
+          locationHierarchy: config.locationHierarchy,
           roleDefinitionsDir: config.roleDefinitionsDir,
           roles: config.roles,
           ...(config.workspacePackageSources !== undefined && {workspacePackageSources: config.workspacePackageSources,}),

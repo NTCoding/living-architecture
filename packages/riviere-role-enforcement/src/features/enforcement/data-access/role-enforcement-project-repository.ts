@@ -73,7 +73,7 @@ function assertRoleEnforcementResult(value: unknown): asserts value is RoleEnfor
     throw new RoleEnforcementExecutionError("Config module 'config' export must be an object.")
   }
 
-  const required = ['include', 'ignorePatterns', 'layers', 'roles', 'roleDefinitionsDir']
+  const required = ['include', 'ignorePatterns', 'locationHierarchy', 'roles', 'roleDefinitionsDir']
   for (const key of required) {
     if (!(key in value)) {
       throw new RoleEnforcementExecutionError(`Config is missing required property '${key}'.`)

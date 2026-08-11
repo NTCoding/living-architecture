@@ -1,11 +1,11 @@
 # query-model-loader
 
 ## Purpose
-A class that loads a query model from persisted state — the read-only counterpart of an aggregate-repository.
+A class that loads a concrete query model for one read use case from persisted state — the read-only counterpart of an aggregate-repository.
 
 ## Behavioral Contract
-1. **Load** — assemble the query model from persisted state (files, database, APIs) and return it
-2. The loader MUST return a query-model, not raw data or partial state
+1. **Load** — assemble the query model for a concrete query use case from persisted state (files, database, APIs) and return it
+2. The loader MUST return that concrete query model, not raw persisted state or a reusable domain service
 3. May use external-client-services internally to access storage or parsers
 4. **No save method** — query model loaders are strictly read-only
 
@@ -14,18 +14,20 @@ A class that loads a query model from persisted state — the read-only counterp
 ### Canonical Example
 ```typescript
 /** @riviere-role query-model-loader */
-export class RiviereQueryLoader {
-  load(graphPathOption?: string): RiviereQuery {
-    const graphPath = this.resolveGraphPath(graphPathOption)
-    const content = readFileSync(graphPath, 'utf-8')
-    const parsed: unknown = JSON.parse(content)
-    return RiviereQuery.fromJSON(parsed)
+export class ComponentListLoader {
+  load(criteria: ComponentListCriteria): ComponentList {
+    const graph = this.loadGraph(criteria.graphPath)
+    const query = new RiviereQuery(graph)
+
+    return {
+      components: filterComponents(query.components(), criteria),
+    }
   }
 }
 ```
 
 ### Edge Cases
-- A loader may have multiple load methods for different access patterns
+- Private helpers may share persistence and parsing mechanics between loaders
 - Private helper methods are implementation details, not separate roles
 
 ## Anti-Patterns
@@ -37,8 +39,8 @@ export class RiviereQueryLoader {
 
 ### Mixed Responsibility Signals
 - If the loader has a save/persist method — it may be an aggregate-repository
-- If the loader returns raw data instead of a query model — it may be an external-client-service
-- If the loader performs business logic after loading — that belongs on the query model
+- If the loader returns raw persisted data instead of a query model — it may be an external-client-service
+- If reusable domain behaviour is needed to shape the read — call the domain service while building the query model; do not return the domain service as the query model
 
 ## Decision Guidance
 - **vs aggregate-repository**: Does it save state? → aggregate-repository. Load only, returning a query-model? → query-model-loader

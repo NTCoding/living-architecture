@@ -4,16 +4,11 @@ pageClass: reference
 
 # Interface: ExternalDomain
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:313](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L313)
-
-An external domain that components connect to.
-
-External domains are any systems not represented in the graph—third-party
-services (Stripe, Twilio) or internal domains outside the current scope.
+Defined in: [packages/riviere-query/src/features/querying/domain/external-system-queries.ts:7](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/external-system-queries.ts#L7)
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -21,9 +16,7 @@ query-model
 
 > **connectionCount**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:319](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L319)
-
-Total number of connections to this external domain.
+Defined in: [packages/riviere-query/src/features/querying/domain/external-system-queries.ts:10](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/external-system-queries.ts#L10)
 
 ***
 
@@ -31,9 +24,7 @@ Total number of connections to this external domain.
 
 > **name**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:315](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L315)
-
-Name of the external domain (e.g., "Stripe", "Twilio").
+Defined in: [packages/riviere-query/src/features/querying/domain/external-system-queries.ts:8](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/external-system-queries.ts#L8)
 
 ***
 
@@ -41,6 +32,4 @@ Name of the external domain (e.g., "Stripe", "Twilio").
 
 > **sourceDomains**: `string` & `$brand`\<`"DomainName"`\>[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:317](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L317)
-
-Domains that have connections to this external domain.
+Defined in: [packages/riviere-query/src/features/querying/domain/external-system-queries.ts:9](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/external-system-queries.ts#L9)

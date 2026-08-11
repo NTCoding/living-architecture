@@ -4,13 +4,13 @@ pageClass: reference
 
 # Interface: PublishedEvent
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:76](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L76)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:53](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L53)
 
 A published event with its subscribers.
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -18,7 +18,7 @@ query-model
 
 > **domain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:82](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L82)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:59](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L59)
 
 The domain that publishes the event.
 
@@ -28,7 +28,7 @@ The domain that publishes the event.
 
 > **eventName**: `string` & `$brand`\<`"EventName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:80](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L80)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:57](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L57)
 
 The event name.
 
@@ -38,7 +38,7 @@ The event name.
 
 > **handlers**: [`EventSubscriber`](EventSubscriber.md)[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:84](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L84)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:61](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L61)
 
 Event handlers subscribed to this event.
 
@@ -48,6 +48,6 @@ Event handlers subscribed to this event.
 
 > **id**: `string` & `$brand`\<`"EventId"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:78](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L78)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:55](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L55)
 
 The event component's ID.

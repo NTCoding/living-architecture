@@ -4,13 +4,11 @@ pageClass: reference
 
 # Interface: ValidationResult
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:116](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L116)
-
-Result of graph validation.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:23](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L23)
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -18,9 +16,7 @@ query-model
 
 > **errors**: [`ValidationError`](ValidationError.md)[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:120](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L120)
-
-List of validation errors (empty if valid).
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L25)
 
 ***
 
@@ -28,6 +24,4 @@ List of validation errors (empty if valid).
 
 > **valid**: `boolean`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:118](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L118)
-
-Whether the graph passed validation.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L24)

@@ -5,9 +5,9 @@ import type { AggregatedConnection } from '../../queries/extract-domain-details'
 import { EdgeLine } from './EdgeLine'
 import { DomainNode } from './DomainNode'
 import { DomainInfoModal } from './DomainInfoModal'
-import { LayoutError } from '@/platform/infra/errors/errors'
+import { LayoutError } from '@/platform/domain/errors/errors'
 import type { DomainPosition } from './domain-position'
-import { RelationshipLegend } from '@/platform/infra/ui/RelationshipLegend/RelationshipLegend'
+import { RelationshipLegend } from '@/platform/domain/ui/RelationshipLegend/RelationshipLegend'
 
 interface ViewTransform {
   scale: number

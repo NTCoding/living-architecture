@@ -4,13 +4,13 @@ pageClass: reference
 
 # Interface: EventHandlerInfo
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:121](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L121)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:98](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L98)
 
 Information about an event handler component.
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -18,7 +18,7 @@ query-model
 
 > **domain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:127](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L127)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:104](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L104)
 
 The domain containing the handler.
 
@@ -28,7 +28,7 @@ The domain containing the handler.
 
 > **handlerName**: `string` & `$brand`\<`"HandlerName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:125](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L125)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:102](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L102)
 
 The handler's name.
 
@@ -38,7 +38,7 @@ The handler's name.
 
 > **id**: `string` & `$brand`\<`"HandlerId"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:123](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L123)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:100](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L100)
 
 The handler's component ID.
 
@@ -48,7 +48,7 @@ The handler's component ID.
 
 > **subscribedEvents**: `string` & `$brand`\<`"EventName"`\>[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:129](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L129)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:106](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L106)
 
 List of event names this handler subscribes to.
 
@@ -58,6 +58,6 @@ List of event names this handler subscribes to.
 
 > **subscribedEventsWithDomain**: [`SubscribedEventWithDomain`](../type-aliases/SubscribedEventWithDomain.md)[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:131](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L131)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:108](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L108)
 
 Subscribed events with source domain information.

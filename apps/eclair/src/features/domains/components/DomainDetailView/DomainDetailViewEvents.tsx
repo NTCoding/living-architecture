@@ -1,6 +1,6 @@
 import type { DomainDetails } from '../../queries/extract-domain-details'
-import { EventAccordion } from '@/platform/infra/ui/EventAccordion/EventAccordion'
-import { CodeLinkMenu } from '@/platform/infra/ui/CodeLinkMenu/CodeLinkMenu'
+import { EventAccordion } from '@/platform/domain/ui/EventAccordion/EventAccordion'
+import { CodeLinkMenu } from '@/platform/infra/presentation/CodeLinkMenu/CodeLinkMenu'
 
 type DomainDetailsPublishedEvent = DomainDetails['events']['published'][number]
 type DomainDetailsConsumedEvent = DomainDetails['events']['consumed'][number]
@@ -89,7 +89,11 @@ function PublishedEventsSection({ events }: PublishedEventsSectionProps): React.
       <h3 className="mb-2 text-xs font-semibold text-[var(--text-secondary)]">Published</h3>
       <div className="space-y-3">
         {events.map((evt) => (
-          <EventAccordion key={evt.id} event={evt} />
+          <EventAccordion
+            key={evt.id}
+            event={evt}
+            renderCodeLink={(sourceLocation) => <CodeLinkMenu {...sourceLocation} />}
+          />
         ))}
       </div>
     </div>

@@ -4,13 +4,13 @@ pageClass: reference
 
 # Interface: UnknownSourceEvent
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:104](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L104)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:81](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L81)
 
 A subscribed event where the source domain is unknown.
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -18,7 +18,7 @@ query-model
 
 > **eventName**: `string` & `$brand`\<`"EventName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:106](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L106)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:83](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L83)
 
 The event name.
 
@@ -28,6 +28,6 @@ The event name.
 
 > **sourceKnown**: `false`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:108](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L108)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:85](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L85)
 
 Indicates the source is unknown.

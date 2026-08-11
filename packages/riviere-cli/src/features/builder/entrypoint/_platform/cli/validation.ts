@@ -8,7 +8,7 @@ import {
   VALID_COMPONENT_TYPES,
   VALID_LINK_TYPES,
   VALID_SYSTEM_TYPES,
-} from '../../../../../entrypoint/_platform/cli/component-types'
+} from '../../../../../platform/domain/component-types'
 
 interface ValidationResult {
   errorJson?: string

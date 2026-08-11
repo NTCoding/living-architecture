@@ -5,6 +5,7 @@ export interface OxlintConfig {
     name: string
     specifier: string
   }>
+  plugins: readonly string[]
   rules: Record<string, unknown>
 }
 

@@ -54,14 +54,14 @@ function createTestGraph(name: string): RiviereGraph {
   }
 }
 
-vi.mock('@/platform/infra/theme/ThemeContext', () => ({
+vi.mock('@/platform/domain/theme/ThemeContext', () => ({
   useTheme: () => ({
     theme: 'stream',
     setTheme: vi.fn(),
   }),
 }))
 
-vi.mock('@/platform/infra/graph-state/GraphContext', () => ({ useGraph: () => ({ clearGraph: vi.fn() }) }))
+vi.mock('@/platform/domain/graph-state/GraphContext', () => ({ useGraph: () => ({ clearGraph: vi.fn() }) }))
 
 vi.mock('@/shell/components/Logo/Logo', () => ({ Logo: () => <div data-testid="logo">Logo</div> }))
 

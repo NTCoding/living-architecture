@@ -1,10 +1,8 @@
 import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
-import {
-  formatError, formatSuccess 
-} from '../../../../platform/infra/cli/presentation/output'
+import { formatError, formatSuccess } from '../../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
-import { isValidLinkType } from '../../../../entrypoint/_platform/cli/component-types'
+import { isValidLinkType } from '../../../../platform/domain/component-types'
 import { validateLinkType } from '../_platform/cli/validation'
 import { buildExternalTarget } from './link-external-transformer'
 import type { LinkExternal } from '../../commands/link-external'

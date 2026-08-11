@@ -4,13 +4,13 @@ pageClass: reference
 
 # Interface: KnownSourceEvent
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:91](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L91)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:68](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L68)
 
 A subscribed event where the source domain is known.
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -18,7 +18,7 @@ query-model
 
 > **eventName**: `string` & `$brand`\<`"EventName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:93](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L93)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:70](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L70)
 
 The event name.
 
@@ -28,7 +28,7 @@ The event name.
 
 > **sourceDomain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:95](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L95)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:72](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L72)
 
 The domain that publishes this event.
 
@@ -38,6 +38,6 @@ The domain that publishes this event.
 
 > **sourceKnown**: `true`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:97](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L97)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:74](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L74)
 
 Indicates the source is known.

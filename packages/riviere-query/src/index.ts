@@ -1,1 +1,1 @@
-export * from './features/querying/queries'
+export * from './features/querying/domain'

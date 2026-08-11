@@ -1,6 +1,6 @@
 # Refinements: riviere-builder
 
-This document catalogs refinements to the original design based on the `separation-of-concerns` and `tactical-ddd` skills.
+This document catalogs refinements to the original design based on the repository's local architecture and tactical DDD rules.
 
 ---
 

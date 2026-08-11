@@ -58,114 +58,75 @@ export function createRoleFactory<R extends string>() {
   })
 }
 
-interface SubLocationEntry {
-  readonly allowedRoles: readonly string[]
-  readonly forbiddenImports?: readonly string[]
-  readonly mayImportExternalPackages?: boolean
-  readonly mayImportRoles?: readonly string[]
-  readonly path: string
-}
-
-/** @riviere-role value-object */
-export interface BuiltLocation {
-  readonly basePath: string
-  readonly subLocations: readonly SubLocationEntry[]
-}
-
-interface SubLocationOptions<R extends string> {
-  readonly forbiddenImports?: readonly string[]
-  readonly mayImportExternalPackages?: boolean
-  readonly mayImportRoles?: readonly R[]
-}
-
-/** @riviere-role value-object */
-export type LocationBuilder<R extends string> = BuiltLocation & {
-  readonly subLocation: (
-    path: string,
-    allowedRoles: readonly R[],
-    options?: SubLocationOptions<R>,
-  ) => LocationBuilder<R>
-}
-
-export function location<R extends string>(basePath: string): LocationBuilder<R>
-export function location<R extends string>(
-  basePath: string,
-  allowedRoles: readonly R[],
-  options?: SubLocationOptions<R>,
-): BuiltLocation
-/** @riviere-role domain-service */
-export function location<R extends string>(
-  basePath: string,
-  allowedRoles?: readonly R[],
-  options?: SubLocationOptions<R>,
-): BuiltLocation | LocationBuilder<R> {
-  if (allowedRoles !== undefined) {
-    return {
-      basePath,
-      subLocations: [buildSubLocation('', allowedRoles, options)],
-    }
-  }
-
-  return createLocationBuilder<R>(basePath, [])
-}
-
-function createLocationBuilder<R extends string>(
-  basePath: string,
-  subLocations: readonly SubLocationEntry[],
-): LocationBuilder<R> {
-  return {
-    basePath,
-    subLocations,
-    subLocation(
-      path: string,
-      allowedRoles: readonly R[],
-      options?: SubLocationOptions<R>,
-    ): LocationBuilder<R> {
-      return createLocationBuilder(basePath, [
-        ...subLocations,
-        buildSubLocation(path, allowedRoles, options),
-      ])
-    },
-  }
-}
-
-function buildSubLocation<R extends string>(
-  path: string,
-  allowedRoles: readonly R[],
-  options?: SubLocationOptions<R>,
-): SubLocationEntry {
-  return {
-    allowedRoles,
-    path,
-    ...(options?.forbiddenImports !== undefined && { forbiddenImports: options.forbiddenImports }),
-    ...(options?.mayImportExternalPackages !== undefined && {mayImportExternalPackages: options.mayImportExternalPackages,}),
-    ...(options?.mayImportRoles !== undefined && { mayImportRoles: options.mayImportRoles }),
-  }
-}
-
 interface RoleEnforcementInput<R extends string> {
-  readonly canonicalConfigurationsFile: string
+  readonly additionalLocationEnforcement?: readonly {
+    readonly locations: LocationStructure<R>
+    readonly packages: readonly string[]
+  }[]
   readonly ignorePatterns: readonly string[]
-  readonly locations: readonly BuiltLocation[]
+  readonly importAliases?: Readonly<Record<string, string>>
+  readonly locations: LocationStructure<R>
   readonly packages: readonly string[]
   readonly roleDefinitionsDir: string
   readonly roles: readonly BuiltRole<R>[]
   readonly workspacePackageSources?: Record<string, string>
 }
 
-interface LocationEntry {
+/** @riviere-role value-object */
+interface LocationImportRule<R extends string> {
+  readonly location: string
+  readonly roles?: readonly R[]
+}
+
+/** @riviere-role value-object */
+interface LocationDependencyRules<R extends string> {
+  readonly canImportSiblings?: false
+  readonly importableFrom?: 'withinParentLocation'
+  readonly locations?: readonly LocationImportRule<R>[]
+  readonly externalPackages?: readonly string[]
+}
+
+interface LocationRules<R extends string> {
+  readonly dependencyRules?: LocationDependencyRules<R>
+  readonly roles?: readonly R[]
+}
+
+type LocationNode<R extends string> = {
+  readonly path?: string
+  readonly rules?: LocationRules<R>
+} & (
+  | {
+    readonly allowAnySubLocations: true
+    readonly subLocations?: never
+  }
+  | {
+    readonly allowAnySubLocations?: false
+    readonly subLocations?: LocationStructure<R>
+  }
+)
+
+/** @riviere-role value-object */
+export type LocationStructure<R extends string> = Readonly<Record<string, LocationNode<R>>>
+
+/** @riviere-role value-object */
+export interface BuiltLocationNode {
+  readonly allowAnySubLocations: boolean
   readonly allowedRoles: readonly string[]
-  readonly forbiddenImports?: readonly string[]
-  readonly mayImportExternalPackages?: boolean
-  readonly mayImportRoles?: readonly string[]
-  readonly paths: readonly string[]
+  readonly dependencyRules?: LocationDependencyRules<string>
+  readonly enforceRoles: boolean
+  readonly id: string
+  readonly name: string
+  readonly packagePath: string
+  readonly parentId?: string
+  readonly pathTemplate: string
 }
 
 /** @riviere-role value-object */
 export interface RoleEnforcementResult {
   readonly ignorePatterns: readonly string[]
+  readonly importAliases?: Readonly<Record<string, string>>
   readonly include: readonly string[]
-  readonly layers: Record<string, LocationEntry>
+  readonly locationHierarchy: readonly BuiltLocationNode[]
   readonly roleDefinitionsDir: string
   readonly roles: readonly BuiltRole[]
   readonly workspacePackageSources?: Record<string, string>
@@ -175,38 +136,81 @@ export interface RoleEnforcementResult {
 export function roleEnforcement<const R extends string>(
   input: RoleEnforcementInput<R>,
 ): RoleEnforcementResult {
-  const layers: Record<string, LocationEntry> = {}
-
-  for (const pkg of input.packages) {
-    for (const loc of input.locations) {
-      for (const sub of loc.subLocations) {
-        const relativePath = sub.path === '' ? loc.basePath : `${loc.basePath}${sub.path}`
-        const fullPath = `${pkg}/${relativePath}`
-        const resolvedPath = resolvePathTemplate(fullPath)
-        layers[fullPath] = {
-          allowedRoles: sub.allowedRoles,
-          paths: [resolvedPath],
-          ...(sub.forbiddenImports !== undefined && { forbiddenImports: sub.forbiddenImports }),
-          ...(sub.mayImportExternalPackages !== undefined && {mayImportExternalPackages: sub.mayImportExternalPackages,}),
-          ...(sub.mayImportRoles !== undefined && { mayImportRoles: sub.mayImportRoles }),
-        }
-      }
-    }
-  }
+  const locationHierarchy = [
+    ...buildLocationHierarchy(input.packages, input.locations, true),
+    ...(input.additionalLocationEnforcement ?? []).flatMap((additional) =>
+      buildLocationHierarchy(additional.packages, additional.locations, false),
+    ),
+  ]
+  const allPackages = [
+    ...input.packages,
+    ...(input.additionalLocationEnforcement ?? []).flatMap((additional) => additional.packages),
+  ]
 
   return {
     ignorePatterns: input.ignorePatterns,
-    include: input.packages.map((pkg) => `${pkg}/src/**/*.ts`),
-    layers,
+    ...(input.importAliases !== undefined && { importAliases: input.importAliases }),
+    include: allPackages.flatMap((pkg) => [`${pkg}/src/**/*.ts`, `${pkg}/src/**/*.tsx`]),
+    locationHierarchy,
     roleDefinitionsDir: input.roleDefinitionsDir,
     roles: input.roles,
     ...(input.workspacePackageSources !== undefined && {workspacePackageSources: input.workspacePackageSources,}),
   }
 }
 
-function resolvePathTemplate(templatePath: string): string {
-  return templatePath
-    .split('/')
-    .map((segment) => (segment.startsWith('{') && segment.endsWith('}') ? '*' : segment))
-    .join('/')
+function buildLocationHierarchy<R extends string>(
+  packages: readonly string[],
+  structure: LocationStructure<R>,
+  enforceRoles: boolean,
+): BuiltLocationNode[] {
+  const result: BuiltLocationNode[] = []
+  for (const pkg of packages) {
+    visitLocationStructure(structure, pkg, undefined, pkg, result, enforceRoles)
+  }
+  return result
+}
+
+function visitLocationStructure<R extends string>(
+  structure: LocationStructure<R>,
+  parentPath: string,
+  parentId: string | undefined,
+  packagePath: string,
+  result: BuiltLocationNode[],
+  enforceRoles: boolean,
+): void {
+  for (const [name, node] of Object.entries(structure)) {
+    if (node.allowAnySubLocations === true && node.subLocations !== undefined) {
+      throw new InvalidLocationStructureError(
+        `Location '${name}' cannot define both allowAnySubLocations and subLocations`,
+      )
+    }
+
+    const segment = node.path ?? name
+    const pathTemplate = `${parentPath}/${segment}`
+    const id = `${packagePath}:${pathTemplate}`
+    const allowedRoles = node.rules?.roles ?? []
+    result.push({
+      allowAnySubLocations: node.allowAnySubLocations === true,
+      allowedRoles,
+      ...(node.rules?.dependencyRules !== undefined && {dependencyRules: node.rules.dependencyRules,}),
+      enforceRoles,
+      id,
+      name,
+      packagePath,
+      ...(parentId !== undefined && { parentId }),
+      pathTemplate,
+    })
+
+    if (node.subLocations !== undefined) {
+      visitLocationStructure(node.subLocations, pathTemplate, id, packagePath, result, enforceRoles)
+    }
+  }
+}
+
+/** @riviere-role domain-error */
+class InvalidLocationStructureError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'InvalidLocationStructureError'
+  }
 }

@@ -6,10 +6,8 @@ pageClass: reference
 
 > **ComponentId** = `z.infer`\<*typeof* `componentIdSchema`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:31](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L31)
-
-Branded type for component identifiers.
+Defined in: [packages/riviere-query/src/features/querying/domain/identifiers.ts:15](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/identifiers.ts#L15)
 
 ## Riviere-role
 
-query-model
+value-object

@@ -1,13 +1,11 @@
 import { Command } from 'commander'
 import { ComponentId } from '@living-architecture/riviere-builder'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
-import {
-  formatError, formatSuccess 
-} from '../../../../platform/infra/cli/presentation/output'
+import { formatError, formatSuccess } from '../../../../platform/infra/cli/presentation/output'
 import {
   isValidLinkType,
   normalizeComponentType,
-} from '../../../../entrypoint/_platform/cli/component-types'
+} from '../../../../platform/domain/component-types'
 import { isValidHttpMethod } from '../_platform/cli/validation'
 import { validateOptions } from './link-http-validator'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'

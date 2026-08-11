@@ -10,12 +10,12 @@ import {
 import {
   AppContent, useRequiredGraph
 } from './App'
-import { GraphError } from '@/platform/infra/errors/errors'
+import { GraphError } from '@/platform/domain/errors/errors'
 import {
   GraphProvider, useGraph
-} from '@/platform/infra/graph-state/GraphContext'
+} from '@/platform/domain/graph-state/GraphContext'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
-import { ThemeProvider } from '@/platform/infra/theme/ThemeContext'
+import { ThemeProvider } from '@/platform/domain/theme/ThemeContext'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import {
   parseNode, parseDomainMetadata

@@ -66,11 +66,6 @@
         "^build"
       ]
     },
-    "depcruise": {
-      "dependsOn": [
-        "^build"
-      ]
-    },
     "knip": {
       "dependsOn": [
         "^build"

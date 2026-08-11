@@ -35,7 +35,7 @@ Key documents:
 - `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`
 - `docs/architecture/adr/` - Decision records
 
-All code must follow the audit checklist in the [`development-skills:separation-of-concerns`](https://github.com/NTCoding/claude-skillz/blob/main/separation-of-concerns/SKILL.md) skill.
+All code must follow [ADR-002](docs/architecture/adr/ADR-002-allowed-folder-structures.md) and the executable rules in [`.riviere/role-enforcement.config.ts`](.riviere/role-enforcement.config.ts). Keep those two files aligned.
 
 Use domain terminology from the contextive definitions. Do not invent new terms or use technical jargon when domain terminology exists.
 

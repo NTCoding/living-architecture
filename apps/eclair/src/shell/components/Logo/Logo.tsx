@@ -1,4 +1,4 @@
-import { useTheme } from '@/platform/infra/theme/ThemeContext'
+import { useTheme } from '@/platform/domain/theme/ThemeContext'
 
 interface LogoProps {readonly size?: number}
 

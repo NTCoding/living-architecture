@@ -1,6 +1,6 @@
 # Refinements for eclair
 
-Refinements based on separation-of-concerns and tactical-ddd skill principles.
+Refinements based on the repository's local architecture and tactical DDD rules.
 
 ## Separation of Concerns Refinements
 

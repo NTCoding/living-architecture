@@ -5,7 +5,7 @@ import * as cliOutput from '../../../../platform/infra/cli/presentation/output'
 import {
   isValidLinkType,
   normalizeComponentType,
-} from '../../../../entrypoint/_platform/cli/component-types'
+} from '../../../../platform/domain/component-types'
 import * as linkOptionValidation from '../_platform/cli/validation'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import type { LinkComponents } from '../../commands/link-components'

@@ -1,6 +1,6 @@
 # riviere-cli Design Refinements
 
-This document captures the refinements applied to the Architect's design using the `separation-of-concerns` and `tactical-ddd` skills.
+This document captures the refinements applied to the Architect's design using the repository's local architecture and tactical DDD rules.
 
 ---
 

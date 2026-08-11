@@ -22,7 +22,6 @@ developer change
      -> package scripts and Nx targets
         -> ESLint/custom rules
         -> Riviere role enforcement
-        -> dependency-cruiser
         -> tests and coverage
         -> generated-artifact checks
   -> pull request CI gate
@@ -38,8 +37,7 @@ Factory surfaces relate in these ways:
 
 - Hooks and CI decide when checks run.
 - ESLint checks local syntax, AST, naming, import declarations, and test-shape patterns.
-- Riviere role enforcement checks exported declaration roles, role contracts, and role-specific locations.
-- Dependency-cruiser checks path shape and import graph direction.
+- Riviere role enforcement checks location structure, import direction, circular imports, exported declaration roles, and role contracts.
 - Tests and coverage prove behavior.
 - Generated-artifact checks keep generated output synchronized with source files.
 - Architecture docs define placement semantics that deterministic checks and agents refer to.
@@ -58,7 +56,7 @@ Definition files:
 Related surfaces:
 
 - Runs package scripts that call Nx targets.
-- Pulls lint, role-check, dependency-cruiser, tests, generated-doc checks, and dead-code checks into the local path when those scripts include them.
+- Pulls lint, role-check, tests, generated-doc checks, and dead-code checks into the local path when those scripts include them.
 - Commit-message enforcement is separate from code quality enforcement.
 
 Mechanism examples:
@@ -172,10 +170,26 @@ role('command-use-case', {
 Illustrative location concept:
 
 ```typescript
-location<RoleName>('src/features/{feature}')
-  .subLocation('/entrypoint', ['cli-entrypoint'])
-  .subLocation('/commands', commandRoles)
-  .subLocation('/domain', domainRoles)
+source: {
+  path: 'src',
+  subLocations: {
+    features: {
+      subLocations: {
+        '{feature}': {
+          subLocations: {
+            commands: { rules: { roles: commandRoles } },
+            domain: {
+              allowAnySubLocations: true,
+              rules: { roles: domainRoles },
+            },
+            entrypoint: {},
+          },
+          rules: { dependencyRules: { canImportSiblings: false } },
+        },
+      },
+    },
+  },
+}
 ```
 
 These snippets explain the concept only. Inspect `.riviere/roles.ts` and `.riviere/role-enforcement.config.ts` for actual role and location definitions.
@@ -224,7 +238,7 @@ Relationship boundaries:
 
 - Role enforcement owns annotated exported declaration responsibility.
 - Role selection and role definitions answer the ownership question before code reaches oxlint.
-- Dependency-cruiser owns path graph direction when no role semantics are needed.
+- Location rules own folder structure and import direction; Oxlint's native import rule rejects circular dependencies during the same run.
 - Architecture docs explain the intent behind role and folder boundaries.
 - Output formatting, adapters, and consumer-specific translation are ownership questions that may require role-definition analysis even when the code is pure and path-correct.
 
@@ -233,39 +247,6 @@ Verification entrypoints:
 - `pnpm exec nx run @living-architecture/source:role-check`
 - `pnpm exec tsx packages/riviere-role-enforcement/src/shell/bin.ts .riviere/role-enforcement.config.ts --package <package-path>`
 - `pnpm exec nx test riviere-role-enforcement`
-
-## Dependency Cruiser
-
-Definition files:
-
-- `.dependency-cruiser.mjs`
-- `.dependency-cruiser.frontend.mjs`
-- `.dependency-cruiser.specs.mjs`
-- `package.json`
-
-Surface shape:
-
-- Backend/package import graph rules live in `.dependency-cruiser.mjs`.
-- Frontend import graph rules live in `.dependency-cruiser.frontend.mjs`.
-- Spec placement rules live in `.dependency-cruiser.specs.mjs`.
-- The package script connects those configs to the repository verification path.
-
-Mechanism examples:
-
-- A path rule can reject domain code importing infrastructure code.
-- A path rule can reject one feature importing another feature directly.
-- A spec-placement rule can keep tests colocated with production code rather than detached at a package root.
-- Separate configs let frontend structure differ from backend package structure.
-
-Relationship boundaries:
-
-- Dependency-cruiser owns resolved import path relationships.
-- Riviere role enforcement owns declaration-role relationships.
-- ADR-002 describes the intended folder semantics that these configs encode.
-
-Verification entrypoint:
-
-- `pnpm depcruise`
 
 ## Architecture Documentation
 
@@ -289,13 +270,13 @@ Mechanism examples:
 Relationship boundaries:
 
 - Architecture docs define intent.
-- Role enforcement and dependency-cruiser enforce mechanical parts of that intent.
+- Role enforcement enforces the mechanical parts of that intent.
 - Review agents handle semantic parts that cannot be encoded safely.
 
 Verification entrypoints:
 
 - `pnpm lint:md`
-- related role-check or dependency-cruiser command when architecture docs and deterministic checks change together
+- the related role-check when architecture docs and deterministic checks change together
 
 ## Tests and Coverage
 

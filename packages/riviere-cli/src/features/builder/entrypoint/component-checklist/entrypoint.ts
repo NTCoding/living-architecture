@@ -1,10 +1,8 @@
 import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
-import {
-  formatError, formatSuccess 
-} from '../../../../platform/infra/cli/presentation/output'
+import { formatError, formatSuccess } from '../../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
-import { isValidComponentType } from '../../../../entrypoint/_platform/cli/component-types'
+import { isValidComponentType } from '../../../../platform/domain/component-types'
 import type { ComponentChecklist } from '../../commands/component-checklist'
 
 interface ComponentChecklistOptions {

@@ -4,13 +4,11 @@ pageClass: reference
 
 # Interface: ValidationError
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:103](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L103)
-
-A validation error found in the graph.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L16)
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -18,9 +16,7 @@ query-model
 
 > **code**: [`ValidationErrorCode`](../type-aliases/ValidationErrorCode.md)
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:109](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L109)
-
-Machine-readable error code.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:19](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L19)
 
 ***
 
@@ -28,9 +24,7 @@ Machine-readable error code.
 
 > **message**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:107](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L107)
-
-Human-readable error description.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:18](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L18)
 
 ***
 
@@ -38,6 +32,4 @@ Human-readable error description.
 
 > **path**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:105](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L105)
-
-JSON path to the error location.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L17)

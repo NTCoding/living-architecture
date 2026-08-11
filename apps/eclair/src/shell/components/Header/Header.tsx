@@ -1,15 +1,15 @@
 import {
-  useState, useRef, useEffect 
+  useState, useRef, useEffect, useMemo,
 } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { RiviereQuery } from '@living-architecture/riviere-query'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
 import type { GraphName } from '@/platform/domain/eclair-types'
 import { SchemaModal } from '@/shell/components/SchemaModal/SchemaModal'
-import { useGraph } from '@/platform/infra/graph-state/GraphContext'
+import { useGraph } from '@/platform/domain/graph-state/GraphContext'
 import {
   OrphanWarning, type OrphanDetectionResult
 } from '@/shell/components/OrphanWarning/OrphanWarning'
-import { useRiviereQuery } from '@/platform/infra/riviere-query/useRiviereQuery'
 
 interface HeaderProps {
   readonly graphName: GraphName | undefined
@@ -29,7 +29,10 @@ export function Header({
   const exportRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const { clearGraph } = useGraph()
-  const query = useRiviereQuery(graph)
+  const query = useMemo(
+    () => graph === null ? null : new RiviereQuery(graph),
+    [graph],
+  )
 
   const orphanResult: OrphanDetectionResult | null =
     query === null

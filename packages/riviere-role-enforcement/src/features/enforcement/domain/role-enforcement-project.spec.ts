@@ -1,23 +1,19 @@
 import { expect, it, vi } from 'vitest'
-import type { RoleEnforcementResult } from './role-enforcement-builder'
+import { roleEnforcement, type RoleEnforcementResult } from './role-enforcement-builder'
 import { RoleEnforcementProject } from './role-enforcement-project'
 
-const config: RoleEnforcementResult = {
+const config: RoleEnforcementResult = roleEnforcement({
+  packages: ['packages/pkg-a', 'packages/pkg-b'],
   ignorePatterns: ['**/*.spec.ts'],
-  include: ['packages/pkg-a/src/**/*.ts', 'packages/pkg-b/src/**/*.ts'],
-  layers: {
-    'packages/pkg-a/src/domain': {
-      allowedRoles: ['aggregate'],
-      paths: ['packages/pkg-a/src/domain'],
-    },
-    'packages/pkg-b/src/domain': {
-      allowedRoles: ['aggregate'],
-      paths: ['packages/pkg-b/src/domain'],
-    },
-  },
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: [],
-}
+  locations: {
+    source: {
+      path: 'src',
+      subLocations: { domain: {} },
+    },
+  },
+})
 
 it('executes the complete project when no package filter is provided', () => {
   const runner = vi.fn(() => ({
@@ -56,8 +52,10 @@ it('selects package configuration and targets during execution', () => {
   expect(runner).toHaveBeenCalledWith({
     config: {
       ...config,
-      include: ['packages/pkg-a/src/**/*.ts'],
-      layers: { 'packages/pkg-a/src/domain': config.layers['packages/pkg-a/src/domain'] },
+      include: ['packages/pkg-a/src/**/*.ts', 'packages/pkg-a/src/**/*.tsx'],
+      locationHierarchy: config.locationHierarchy.filter(
+        (location) => location.packagePath === 'packages/pkg-a',
+      ),
     },
     configDir: '/repo',
     lintTargets: ['packages/pkg-a/src/index.ts'],

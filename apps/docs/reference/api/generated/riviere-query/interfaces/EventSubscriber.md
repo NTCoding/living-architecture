@@ -4,13 +4,13 @@ pageClass: reference
 
 # Interface: EventSubscriber
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:63](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L63)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:40](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L40)
 
 An event handler that subscribes to an event.
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -18,7 +18,7 @@ query-model
 
 > **domain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:69](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L69)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:46](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L46)
 
 The domain containing the handler.
 
@@ -28,7 +28,7 @@ The domain containing the handler.
 
 > **handlerId**: `string` & `$brand`\<`"HandlerId"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:65](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L65)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:42](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L42)
 
 The handler's component ID.
 
@@ -38,6 +38,6 @@ The handler's component ID.
 
 > **handlerName**: `string` & `$brand`\<`"HandlerName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/event-types.ts:67](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/event-types.ts#L67)
+Defined in: [packages/riviere-query/src/features/querying/domain/event-types.ts:44](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/event-types.ts#L44)
 
 The handler's name.

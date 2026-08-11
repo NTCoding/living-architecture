@@ -1,6 +1,4 @@
-import {
-  location, role, roleEnforcement 
-} from '../domain/role-enforcement-builder'
+import { role, roleEnforcement } from '../domain/role-enforcement-builder'
 
 export const genericTestRoles = [
   role('role-a', {
@@ -34,17 +32,20 @@ export const genericTestRoles = [
 
 type GenericTestRoleName = (typeof genericTestRoles)[number]['name']
 
-const genericTestLocations = [
-  location<GenericTestRoleName>('src')
-    .subLocation('/commands', ['role-a', 'role-a-input', 'role-a-result'])
-    .subLocation('/entrypoint', ['role-entry'])
-    .subLocation('/domain', ['role-b', 'role-c-error'])
-    .subLocation('/repositories', ['role-b-repository']),
-]
+const genericTestLocations = {
+  source: {
+    path: 'src',
+    subLocations: {
+      commands: { rules: { roles: ['role-a', 'role-a-input', 'role-a-result'] } },
+      domain: { rules: { roles: ['role-b', 'role-c-error'] } },
+      entrypoint: { rules: { roles: ['role-entry'] } },
+      repositories: { rules: { roles: ['role-b-repository'] } },
+    },
+  },
+} satisfies import('../domain/role-enforcement-builder').LocationStructure<GenericTestRoleName>
 
 export const genericTestConfig = roleEnforcement({
   packages: ['packages/pkg-a'],
-  canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
   ignorePatterns: ['**/*.spec.ts'],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: genericTestRoles,
@@ -54,7 +55,6 @@ export const genericTestConfig = roleEnforcement({
 function configWithGenericAggregateOverride(aggregateOptions: Parameters<typeof role>[1]) {
   return roleEnforcement({
     packages: ['packages/pkg-a'],
-    canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
     ignorePatterns: ['**/*.spec.ts'],
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: [
@@ -104,7 +104,6 @@ export function configWithGenericClassStateConstraints() {
 export function configWithGenericRepositoryMethodInputs(allowedInputs: string[]) {
   return roleEnforcement({
     packages: ['packages/pkg-a'],
-    canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
     ignorePatterns: ['**/*.spec.ts'],
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: [
@@ -122,7 +121,6 @@ export function configWithGenericRepositoryMethodInputs(allowedInputs: string[])
 export function configWithGenericRepositoryMethodInputsOnly(allowedInputs: string[]) {
   return roleEnforcement({
     packages: ['packages/pkg-a'],
-    canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
     ignorePatterns: ['**/*.spec.ts'],
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: [

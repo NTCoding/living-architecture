@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
 import type { DomainDetails } from '../../queries/extract-domain-details'
-import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
-import { CodeLinkMenu } from '@/platform/infra/ui/CodeLinkMenu/CodeLinkMenu'
-import { EntityAccordion } from '@/platform/infra/ui/EntityAccordion/EntityAccordion'
+import { NodeTypeBadge } from '@/platform/domain/ui/NodeTypeBadge/NodeTypeBadge'
+import { CodeLinkMenu } from '@/platform/infra/presentation/CodeLinkMenu/CodeLinkMenu'
+import { EntityAccordion } from '@/platform/domain/ui/EntityAccordion/EntityAccordion'
 import { EventsSection } from './DomainDetailViewEvents'
-import type { Theme } from '@/types/theme'
-import { DEFAULT_THEME } from '@/types/theme'
+import type { Theme } from '@/platform/domain/theme/theme'
+import { DEFAULT_THEME } from '@/platform/domain/theme/theme'
 
 type DomainDetailsNode = DomainDetails['nodes'][number]
 type DomainDetailsEntity = DomainDetails['entities'][number]
@@ -376,7 +376,11 @@ function EntitiesListOrEmpty({
     return (
       <div className="max-h-[320px] space-y-3 overflow-y-auto">
         {filteredEntities.map((entity) => (
-          <EntityAccordion key={entity.name} entity={entity} />
+          <EntityAccordion
+            key={entity.name}
+            entity={entity}
+            renderCodeLink={(sourceLocation) => <CodeLinkMenu {...sourceLocation} />}
+          />
         ))}
       </div>
     )

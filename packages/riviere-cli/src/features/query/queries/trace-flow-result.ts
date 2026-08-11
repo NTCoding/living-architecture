@@ -5,7 +5,7 @@ import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 export type TraceFlowGraph = ReturnType<RiviereQuery['traceFlow']>
 
 /** @riviere-role query-model */
-export type TraceFlowResult =
+export type FlowTrace =
   | {
     flow: TraceFlowGraph
     success: true
@@ -15,4 +15,6 @@ export type TraceFlowResult =
     suggestions: string[]
     success: false
   }
-  | QueryGraphLoadFailure
+
+/** @riviere-role query-model */
+export type TraceFlowResult = FlowTrace | QueryGraphLoadFailure

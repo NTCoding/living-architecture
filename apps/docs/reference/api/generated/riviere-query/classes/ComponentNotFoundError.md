@@ -4,11 +4,11 @@ pageClass: reference
 
 # Class: ComponentNotFoundError
 
-Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:2](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/errors.ts#L2)
+Defined in: [packages/riviere-query/src/features/querying/domain/errors.ts:2](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/errors.ts#L2)
 
 ## Riviere-role
 
-query-model-error
+domain-error
 
 ## Extends
 
@@ -20,7 +20,7 @@ query-model-error
 
 > **new ComponentNotFoundError**(`componentId`, `suggestions`): `ComponentNotFoundError`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:6](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/errors.ts#L6)
+Defined in: [packages/riviere-query/src/features/querying/domain/errors.ts:6](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/errors.ts#L6)
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:3](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/errors.ts#L3)
+Defined in: [packages/riviere-query/src/features/querying/domain/errors.ts:3](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/errors.ts#L3)
 
 ***
 
@@ -102,7 +102,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **suggestions**: `string`[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/errors.ts:4](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/errors.ts#L4)
+Defined in: [packages/riviere-query/src/features/querying/domain/errors.ts:4](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/errors.ts#L4)
 
 ***
 

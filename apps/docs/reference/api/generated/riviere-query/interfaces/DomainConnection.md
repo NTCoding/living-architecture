@@ -4,13 +4,11 @@ pageClass: reference
 
 # Interface: DomainConnection
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:276](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L276)
-
-Summary of connections between domains.
+Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:13](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L13)
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -18,9 +16,7 @@ query-model
 
 > **apiCount**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:282](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L282)
-
-Number of API-based connections.
+Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L16)
 
 ***
 
@@ -28,9 +24,7 @@ Number of API-based connections.
 
 > **direction**: `"outgoing"` \| `"incoming"`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:280](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L280)
-
-Direction relative to the queried domain.
+Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:15](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L15)
 
 ***
 
@@ -38,9 +32,7 @@ Direction relative to the queried domain.
 
 > **eventCount**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:284](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L284)
-
-Number of event-based connections.
+Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L17)
 
 ***
 
@@ -48,6 +40,4 @@ Number of event-based connections.
 
 > **targetDomain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:278](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L278)
-
-The connected domain name.
+Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:14](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L14)

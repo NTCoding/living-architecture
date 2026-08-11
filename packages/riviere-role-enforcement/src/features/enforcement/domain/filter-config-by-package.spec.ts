@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { filterConfigByPackage, PackageFilterError } from './filter-config-by-package'
 import type { RoleEnforcementResult } from './role-enforcement-builder'
-import { role } from './role-enforcement-builder'
+import { role, roleEnforcement } from './role-enforcement-builder'
 
 const testRoles = [
   role('cli-entrypoint', { targets: ['function'] }),
@@ -9,26 +9,29 @@ const testRoles = [
 ] as const
 
 function createMultiPackageConfig(): RoleEnforcementResult {
-  return {
+  return roleEnforcement({
+    packages: ['packages/riviere-cli', 'packages/riviere-extract-ts'],
     ignorePatterns: ['**/*.spec.ts'],
-    include: ['packages/riviere-cli/src/**/*.ts', 'packages/riviere-extract-ts/src/**/*.ts'],
-    layers: {
-      'packages/riviere-cli/src/features/entrypoint': {
-        allowedRoles: ['cli-entrypoint'],
-        paths: ['packages/riviere-cli/src/features/entrypoint'],
-      },
-      'packages/riviere-cli/src/features/domain': {
-        allowedRoles: ['aggregate'],
-        paths: ['packages/riviere-cli/src/features/domain'],
-      },
-      'packages/riviere-extract-ts/src/features/entrypoint': {
-        allowedRoles: ['cli-entrypoint'],
-        paths: ['packages/riviere-extract-ts/src/features/entrypoint'],
-      },
-    },
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: testRoles,
-  }
+    locations: {
+      source: {
+        path: 'src',
+        subLocations: {
+          features: {
+            subLocations: {
+              '{feature}': {
+                subLocations: {
+                  domain: { rules: { roles: ['aggregate'] } },
+                  entrypoint: { rules: { roles: ['cli-entrypoint'] } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
 }
 
 describe('filterConfigByPackage', () => {
@@ -37,18 +40,20 @@ describe('filterConfigByPackage', () => {
 
     const result = filterConfigByPackage(config, 'packages/riviere-cli')
 
-    expect(result.include).toStrictEqual(['packages/riviere-cli/src/**/*.ts'])
+    expect(result.include).toStrictEqual([
+      'packages/riviere-cli/src/**/*.ts',
+      'packages/riviere-cli/src/**/*.tsx',
+    ])
   })
 
-  it('filters layers to the specified package', () => {
+  it('filters the location hierarchy to the specified package', () => {
     const config = createMultiPackageConfig()
 
     const result = filterConfigByPackage(config, 'packages/riviere-cli')
 
-    expect(Object.keys(result.layers)).toStrictEqual([
-      'packages/riviere-cli/src/features/entrypoint',
-      'packages/riviere-cli/src/features/domain',
-    ])
+    expect(
+      result.locationHierarchy.every((location) => location.packagePath === 'packages/riviere-cli'),
+    ).toBe(true)
   })
 
   it('preserves ignorePatterns unchanged', () => {
@@ -80,7 +85,10 @@ describe('filterConfigByPackage', () => {
 
     const result = filterConfigByPackage(config, 'packages/riviere-cli/')
 
-    expect(result.include).toStrictEqual(['packages/riviere-cli/src/**/*.ts'])
+    expect(result.include).toStrictEqual([
+      'packages/riviere-cli/src/**/*.ts',
+      'packages/riviere-cli/src/**/*.tsx',
+    ])
   })
 
   it('throws PackageFilterError when package matches no include patterns', () => {
@@ -113,10 +121,15 @@ describe('filterConfigByPackage', () => {
 
     const result = filterConfigByPackage(config, 'packages/riviere-extract-ts')
 
-    expect(result.include).toStrictEqual(['packages/riviere-extract-ts/src/**/*.ts'])
-    expect(Object.keys(result.layers)).toStrictEqual([
-      'packages/riviere-extract-ts/src/features/entrypoint',
+    expect(result.include).toStrictEqual([
+      'packages/riviere-extract-ts/src/**/*.ts',
+      'packages/riviere-extract-ts/src/**/*.tsx',
     ])
+    expect(
+      result.locationHierarchy.every(
+        (location) => location.packagePath === 'packages/riviere-extract-ts',
+      ),
+    ).toBe(true)
   })
 
   it('preserves workspacePackageSources when present', () => {
@@ -129,23 +142,5 @@ describe('filterConfigByPackage', () => {
     const result = filterConfigByPackage(config, 'packages/riviere-cli')
 
     expect(result.workspacePackageSources).toStrictEqual(sources)
-  })
-
-  it('preserves layer properties including forbiddenImports', () => {
-    const entrypointLayer = {
-      allowedRoles: ['cli-entrypoint'],
-      forbiddenImports: ['**/infra/persistence/**'],
-      paths: ['packages/riviere-cli/src/features/entrypoint'],
-    }
-    const config: RoleEnforcementResult = {
-      ...createMultiPackageConfig(),
-      layers: { 'packages/riviere-cli/src/features/entrypoint': entrypointLayer },
-    }
-
-    const result = filterConfigByPackage(config, 'packages/riviere-cli')
-
-    expect(result.layers['packages/riviere-cli/src/features/entrypoint']).toStrictEqual(
-      entrypointLayer,
-    )
   })
 })

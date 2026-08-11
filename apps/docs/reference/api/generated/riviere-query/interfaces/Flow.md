@@ -4,13 +4,11 @@ pageClass: reference
 
 # Interface: Flow
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:243](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L243)
-
-An execution flow from entry point through the graph.
+Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:26](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L26)
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -18,9 +16,7 @@ query-model
 
 > **entryPoint**: `Component`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:245](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L245)
-
-The entry point component.
+Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:27](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L27)
 
 ***
 
@@ -28,6 +24,4 @@ The entry point component.
 
 > **steps**: [`FlowStep`](FlowStep.md)[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:247](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L247)
-
-Steps in the flow including entry point.
+Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:28](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L28)

@@ -1,5 +1,13 @@
-import { location, roleEnforcement } from '@living-architecture/riviere-role-enforcement'
+import { roleEnforcement } from '@living-architecture/riviere-role-enforcement'
 import { allRoles, type RoleName } from './roles'
+
+/**
+ * Executable enforcement of:
+ * docs/architecture/adr/ADR-002-allowed-folder-structures.md
+ *
+ * ADR-002 and this configuration must remain aligned.
+ * Any change to the architecture must update both.
+ */
 
 const commandRoles: RoleName[] = [
   'command-use-case',
@@ -58,14 +66,13 @@ const packages = [
 
 export const config = roleEnforcement({
   packages,
-  canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
   ignorePatterns: [
-    '**/*.spec.ts',
     '**/__fixtures__/**',
     '**/*-fixtures.ts',
     '**/test-fixtures.ts',
     '**/test-fixture-*.ts',
   ],
+  importAliases: { '@/': 'apps/eclair/src/' },
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: allRoles,
   workspacePackageSources: {
@@ -73,37 +80,162 @@ export const config = roleEnforcement({
     '@living-architecture/riviere-query': 'packages/riviere-query/src/index.ts',
   },
 
-  locations: [
-    location<RoleName>('src/features/{feature}')
-      .subLocation('/entrypoint/{entrypoint}', entrypointRoles, {
-        forbiddenImports: ['**/domain/**', '**/data-access/**'],
-      })
-      .subLocation('/commands', commandRoles, {
-        forbiddenImports: ['**/infra/cli/**'],
-      })
-      .subLocation('/queries', queryRoles, { forbiddenImports: ['**/infra/cli/**'] })
-      .subLocation('/domain', domainRoles)
-      .subLocation('/domain/ports', ['domain-port'])
-      .subLocation('/data-access', ['aggregate-repository', 'query-model-loader'])
-      .subLocation('/adapters/{adapter}', ['domain-port-adapter'], {
-        mayImportExternalPackages: false,
-        mayImportRoles: [
-          'domain-port',
-          'external-client-error',
-          'external-client-model',
-          'external-client-service',
-        ],
-      }),
-
-    location<RoleName>('src/platform')
-      .subLocation('/domain', domainRoles)
-      .subLocation('/infra', [], { mayImportRoles: [] })
-      .subLocation('/infra/external-clients/{client}', externalClientRoles)
-      .subLocation('/infra/cli/input', ['generic-cli-input-parser'])
-      .subLocation('/infra/cli/presentation', cliPresentationRoles),
-
-    location<RoleName>('src/entrypoint').subLocation('/_platform', entrypointRoles),
-
-    location<RoleName>('src/shell', ['main', 'cli-error-handler']),
+  additionalLocationEnforcement: [
+    {
+      packages: ['apps/eclair'],
+      locations: {
+        source: {
+          path: 'src',
+          subLocations: {
+            assets: { allowAnySubLocations: true },
+            features: {
+              subLocations: {
+                '{feature}': {
+                  subLocations: {
+                    components: { allowAnySubLocations: true },
+                    domain: {
+                      allowAnySubLocations: true,
+                      rules: {
+                        dependencyRules: {
+                          locations: [{ location: 'domain' }],
+                        },
+                      },
+                    },
+                    entrypoint: {},
+                    hooks: {},
+                    queries: {},
+                  },
+                  rules: { dependencyRules: { canImportSiblings: false } },
+                },
+              },
+            },
+            platform: {
+              subLocations: {
+                domain: {
+                  allowAnySubLocations: true,
+                  rules: { dependencyRules: { locations: [{ location: 'domain' }] } },
+                },
+                infra: {
+                  subLocations: {
+                    export: {},
+                    'file-upload': { allowAnySubLocations: true },
+                    layout: {},
+                    presentation: { allowAnySubLocations: true },
+                    settings: {},
+                  },
+                  rules: { dependencyRules: { locations: [] } },
+                },
+              },
+            },
+            shell: { allowAnySubLocations: true },
+            test: { allowAnySubLocations: true },
+          },
+        },
+      },
+    },
   ],
+
+  locations: {
+    source: {
+      path: 'src',
+      subLocations: {
+        features: {
+          subLocations: {
+            '{feature}': {
+              subLocations: {
+                adapters: {
+                  subLocations: {
+                    '{adapter}': {
+                      rules: {
+                        roles: ['domain-port-adapter'],
+                        dependencyRules: {
+                          externalPackages: [],
+                          locations: [
+                            { location: 'domain', roles: ['domain-port'] },
+                            { location: 'external-clients', roles: externalClientRoles },
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+                commands: { rules: { roles: commandRoles } },
+                'data-access': {
+                  subLocations: { 'extraction-project': {} },
+                  rules: { roles: ['aggregate-repository', 'query-model-loader'] },
+                },
+                domain: {
+                  allowAnySubLocations: true,
+                  rules: {
+                    roles: domainRoles,
+                    dependencyRules: {
+                      locations: [{ location: 'domain' }],
+                    },
+                  },
+                },
+                entrypoint: {
+                  subLocations: {
+                    _platform: {
+                      subLocations: { cli: {} },
+                      rules: {
+                        roles: entrypointRoles,
+                        dependencyRules: { importableFrom: 'withinParentLocation' },
+                      },
+                    },
+                    '{entrypoint}': { rules: { roles: entrypointRoles } },
+                  },
+                },
+                queries: { rules: { roles: queryRoles } },
+              },
+              rules: { dependencyRules: { canImportSiblings: false } },
+            },
+          },
+        },
+        platform: {
+          subLocations: {
+            adapters: {
+              subLocations: {
+                '{adapter}': {
+                  rules: {
+                    roles: ['domain-port-adapter'],
+                    dependencyRules: {
+                      externalPackages: [],
+                      locations: [
+                        { location: 'domain', roles: ['domain-port'] },
+                        { location: 'external-clients', roles: externalClientRoles },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+            domain: {
+              allowAnySubLocations: true,
+              rules: {
+                roles: domainRoles,
+                dependencyRules: { locations: [{ location: 'domain' }] },
+              },
+            },
+            infra: {
+              subLocations: {
+                cli: {
+                  subLocations: {
+                    input: { rules: { roles: ['generic-cli-input-parser'] } },
+                    presentation: { rules: { roles: cliPresentationRoles } },
+                  },
+                },
+                'external-clients': {
+                  subLocations: {
+                    '{client}': { rules: { roles: externalClientRoles } },
+                  },
+                },
+              },
+              rules: { dependencyRules: { locations: [] } },
+            },
+          },
+        },
+        shell: { rules: { roles: ['main', 'cli-error-handler'] } },
+      },
+    },
+  },
 })

@@ -1,7 +1,7 @@
-import { useTheme } from '@/platform/infra/theme/ThemeContext'
+import { useTheme } from '@/platform/domain/theme/ThemeContext'
 import {
   THEMES, THEME_LABELS 
-} from '@/types/theme'
+} from '@/platform/domain/theme/theme'
 
 export function ThemeSwitcher(): React.ReactElement {
   const {

@@ -1,56 +1,54 @@
-import {
-  ComponentNotFoundError, RiviereQuery 
-} from '@living-architecture/riviere-query'
-import {
-  describe, expect, it, vi 
-} from 'vitest'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { describe, expect, it } from 'vitest'
 import {
   type TestContext,
   createTestContext,
   setupCommandTest,
 } from '../../../platform/__fixtures__/command-test-fixtures'
 import { TraceFlow } from './trace-flow'
-import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
+import { FlowTraceLoader } from '../data-access/query-loaders'
 
 describe('traceFlow command', () => {
   const ctx: TestContext = createTestContext()
   setupCommandTest(ctx)
 
-  it('returns near-match suggestions when component is not found', () => {
-    const query = RiviereQuery.fromJSON({
-      components: [
-        {
-          domain: 'orders',
-          id: 'orders:checkout:usecase:place-order',
-          module: 'checkout',
-          name: 'place-order',
-          sourceLocation: {
-            filePath: 'src/usecase.ts',
-            repository: 'https://github.com/org/repo',
+  it('returns near-match suggestions when component is not found', async () => {
+    const graphDir = join(ctx.testDir, '.riviere')
+    await mkdir(graphDir, { recursive: true })
+    await writeFile(
+      join(graphDir, 'graph.json'),
+      JSON.stringify({
+        components: [
+          {
+            domain: 'orders',
+            id: 'orders:checkout:usecase:place-order',
+            module: 'checkout',
+            name: 'place-order',
+            sourceLocation: {
+              filePath: 'src/usecase.ts',
+              repository: 'https://github.com/org/repo',
+            },
+            type: 'UseCase',
           },
-          type: 'UseCase',
-        },
-      ],
-      links: [],
-      metadata: {
-        domains: {
-          orders: {
-            description: 'Orders',
-            systemType: 'domain',
+        ],
+        links: [],
+        metadata: {
+          domains: {
+            orders: {
+              description: 'Orders',
+              systemType: 'domain',
+            },
           },
+          sources: [{ repository: 'https://github.com/org/repo' }],
         },
-        sources: [{ repository: 'https://github.com/org/repo' }],
-      },
-      version: '1.0',
-    })
-    vi.spyOn(query, 'traceFlow').mockImplementation(() => {
-      throw new ComponentNotFoundError('orders:checkout:usecase:place-orde')
-    })
-
-    vi.spyOn(RiviereQueryRepository.prototype, 'load').mockReturnValue(query)
+        version: '1.0',
+      }),
+      'utf-8',
+    )
 
     expect(
-      new TraceFlow(new RiviereQueryRepository()).execute({
+      new TraceFlow(new FlowTraceLoader()).execute({
         componentId: 'orders:checkout:usecase:place-orde',
         graphPathOption: undefined,
       }),

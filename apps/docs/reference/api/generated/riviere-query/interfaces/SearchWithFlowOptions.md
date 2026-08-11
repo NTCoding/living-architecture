@@ -4,11 +4,11 @@ pageClass: reference
 
 # Interface: SearchWithFlowOptions
 
-Defined in: [packages/riviere-query/src/features/querying/queries/flow-queries.ts:138](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/flow-queries.ts#L138)
+Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:157](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L157)
 
 ## Riviere-role
 
-query-model-use-case-input
+value-object
 
 ## Properties
 
@@ -16,4 +16,4 @@ query-model-use-case-input
 
 > **returnAllOnEmptyQuery**: `boolean`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/flow-queries.ts:138](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/flow-queries.ts#L138)
+Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:157](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L157)

@@ -6,7 +6,7 @@ import * as enforcementBuilder from '../domain/role-enforcement-builder'
 import * as fixtureWorkspace from './test-fixture-workspace'
 
 const layerTestRoles = [
-  enforcementBuilder.role('technical-service', {targets: ['function', 'interface', 'type-alias'],}),
+  enforcementBuilder.role('role-infra', { targets: ['function', 'interface', 'type-alias'] }),
   enforcementBuilder.role('domain-port', { targets: ['interface', 'type-alias'] }),
   enforcementBuilder.role('domain-port-adapter', {
     targets: ['function'],
@@ -19,24 +19,38 @@ const layerTestRoles = [
   enforcementBuilder.role('external-client-service', { targets: ['function'] }),
 ] as const
 
+const layerTestLocations = {
+  source: {
+    path: 'src',
+    subLocations: {
+      domain: { rules: { roles: ['domain-port'] } },
+      platform: {
+        subLocations: {
+          infra: {
+            rules: {
+              roles: ['role-infra'],
+              dependencyRules: { locations: [] },
+            },
+          },
+        },
+      },
+    },
+  },
+} as const
+
 const layerTestConfig = enforcementBuilder.roleEnforcement({
   packages: ['packages/pkg-a'],
-  canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
   ignorePatterns: [],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: layerTestRoles,
-  locations: [
-    enforcementBuilder
-      .location<(typeof layerTestRoles)[number]['name']>('src')
-      .subLocation('/platform/infra', ['technical-service'], { mayImportRoles: [] }),
-  ],
+  locations: layerTestLocations,
 })
 
 const layerTestBootstrap = {
   prefix: 'role-enforcement-layer-',
   roles: layerTestRoles,
   files: {
-    'packages/pkg-a/src/platform/infra/source.ts': `/** @riviere-role technical-service */
+    'packages/pkg-a/src/platform/infra/source.ts': `/** @riviere-role role-infra */
 export function source(): string {
   return 'source'
 }
@@ -51,7 +65,7 @@ it('accepts imports within the infra layer', () => {
       'packages/pkg-a/src/platform/infra/consumer.ts',
       `import { source } from './source'
 
-/** @riviere-role technical-service */
+/** @riviere-role role-infra */
 export function consume(): string {
   return source()
 }
@@ -72,7 +86,7 @@ it('accepts external library imports from infra', () => {
       'packages/pkg-a/src/platform/infra/consumer.ts',
       `import path from 'node:path'
 
-/** @riviere-role technical-service */
+/** @riviere-role role-infra */
 export function consume(): string {
   return path.basename('/tmp/example.txt')
 }
@@ -107,10 +121,7 @@ export function run(): string {
     })
 
     assert.equal(result.exitCode, 1)
-    assert.match(
-      result.stdout,
-      /Forbidden external import: files in 'packages\/pkg-a\/src\/adapters' cannot import external package 'node:path'/,
-    )
+    assert.match(result.stdout, /Location 'adapters' cannot import external package 'node:path'/)
   })
 })
 
@@ -202,7 +213,7 @@ export interface DomainPort {
       'packages/pkg-a/src/platform/infra/consumer.ts',
       `import type { DomainPort } from '../../domain/domain-port'
 
-/** @riviere-role technical-service */
+/** @riviere-role role-infra */
 export function consume(port: DomainPort): string {
   return port.value()
 }
@@ -213,11 +224,7 @@ export function consume(port: DomainPort): string {
 
     assert.equal(result.exitCode, 1)
     assert.equal(result.stderr, '')
-    assert.match(
-      result.stdout,
-      /Forbidden role import: files in 'packages\/pkg-a\/src\/platform\/infra' may only import roles \[\] across that location boundary/,
-    )
-    assert.match(result.stdout, /packages\/pkg-a\/src\/domain\/domain-port\.ts/)
+    assert.match(result.stdout, /Location 'infra' cannot import location 'domain'/)
   })
 })
 
@@ -255,7 +262,7 @@ export interface DomainPort {
       'packages/pkg-a/src/platform/infra/consumer.ts',
       `import type { DomainPort } from '@generic/pkg-domain'
 
-/** @riviere-role technical-service */
+/** @riviere-role role-infra */
 export function consume(port: DomainPort): string {
   return port.value()
 }
@@ -269,11 +276,14 @@ export function consume(port: DomainPort): string {
       'dir',
     )
 
-    const result = runLayerEnforcement(workspaceDir)
+    const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
+      configDir: workspaceDir,
+      configModule: { config: createCrossPackageLayerConfig() },
+    })
 
     assert.equal(result.exitCode, 1)
     assert.equal(result.stderr, '')
-    assert.match(result.stdout, /packages\/pkg-domain\/src\/index\.ts/)
+    assert.match(result.stdout, /Location 'infra' cannot import location 'domain'/)
   })
 })
 
@@ -287,23 +297,61 @@ function runLayerEnforcement(workspaceDir: string) {
 function createAdapterLayerConfig() {
   return enforcementBuilder.roleEnforcement({
     packages: ['packages/pkg-a'],
-    canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
     ignorePatterns: [],
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: layerTestRoles,
-    locations: [
-      enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>('src', [
-        'command-use-case',
-        'technical-service',
-      ]),
-      enforcementBuilder
-        .location<(typeof layerTestRoles)[number]['name']>('src')
-        .subLocation('/adapters', ['domain-port-adapter'], {
-          mayImportExternalPackages: false,
-          mayImportRoles: ['domain-port', 'external-client-service'],
-        })
-        .subLocation('/domain/ports', ['domain-port'])
-        .subLocation('/platform/infra', ['external-client-service']),
+    locations: {
+      source: {
+        path: 'src',
+        subLocations: {
+          adapters: {
+            allowAnySubLocations: true,
+            rules: {
+              roles: ['domain-port-adapter'],
+              dependencyRules: {
+                externalPackages: [],
+                locations: [
+                  {
+                    location: 'domain',
+                    roles: ['domain-port'],
+                  },
+                  {
+                    location: 'infra',
+                    roles: ['external-client-service'],
+                  },
+                ],
+              },
+            },
+          },
+          commands: { rules: { roles: ['command-use-case'] } },
+          domain: {
+            allowAnySubLocations: true,
+            rules: { roles: ['domain-port'] },
+          },
+          platform: { subLocations: { infra: { rules: { roles: ['external-client-service'] } } } },
+        },
+      },
+    },
+  })
+}
+
+function createCrossPackageLayerConfig() {
+  return enforcementBuilder.roleEnforcement({
+    packages: ['packages/pkg-a'],
+    ignorePatterns: [],
+    roleDefinitionsDir: '.riviere/role-definitions',
+    roles: layerTestRoles,
+    locations: layerTestLocations,
+    additionalLocationEnforcement: [
+      {
+        packages: ['packages/pkg-domain'],
+        locations: {
+          source: {
+            path: 'src',
+            subLocations: { domain: { allowAnySubLocations: true } },
+          },
+        },
+      },
     ],
   })
 }

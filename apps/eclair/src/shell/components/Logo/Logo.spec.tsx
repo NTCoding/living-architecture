@@ -6,14 +6,14 @@ import { Logo } from './Logo'
 
 const mockSetTheme = vi.fn()
 
-vi.mock('@/platform/infra/theme/ThemeContext', () => ({
+vi.mock('@/platform/domain/theme/ThemeContext', () => ({
   useTheme: vi.fn(() => ({
     theme: 'stream',
     setTheme: mockSetTheme,
   })),
 }))
 
-import { useTheme } from '@/platform/infra/theme/ThemeContext'
+import { useTheme } from '@/platform/domain/theme/ThemeContext'
 
 const mockUseTheme = vi.mocked(useTheme)
 

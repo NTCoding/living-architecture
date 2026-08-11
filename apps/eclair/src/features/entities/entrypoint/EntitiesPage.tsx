@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import type { Entity } from '@living-architecture/riviere-query'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import { EntityAccordion } from '@/platform/infra/ui/EntityAccordion/EntityAccordion'
+import { EntityAccordion } from '@/platform/domain/ui/EntityAccordion/EntityAccordion'
+import { CodeLinkMenu } from '@/platform/infra/presentation/CodeLinkMenu/CodeLinkMenu'
 
 interface EntitiesPageProps {readonly graph: RiviereGraph}
 
@@ -123,6 +124,9 @@ export function EntitiesPage({ graph }: Readonly<EntitiesPageProps>): React.Reac
               key={`${entity.domain}-${entity.name}`}
               entity={entity}
               onViewOnGraph={handleViewOnGraph}
+              renderCodeLink={(sourceLocation) => (
+                <CodeLinkMenu {...sourceLocation} />
+              )}
             />
           ))}
         </div>

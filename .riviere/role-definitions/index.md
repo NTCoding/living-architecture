@@ -4,15 +4,15 @@
 
 These resources inform how roles are classified and where code should live:
 
-- [Separation of Concerns Skill](https://github.com/NTCoding/claude-skillz/blob/main/separation-of-concerns/SKILL.md) — Code placement decision tree (Q1-Q7): wiring → entrypoint → commands → queries → domain → infra
-- [Tactical DDD Skill](https://github.com/NTCoding/claude-skillz/blob/main/tactical-ddd/SKILL.md) — Aggregate design, value objects, domain services, repositories
 - [ADR-002: Allowed Folder Structures](../../docs/architecture/adr/ADR-002-allowed-folder-structures.md) — Canonical directory layout
+- [Role enforcement configuration](../role-enforcement.config.ts) — Executable location, dependency, and role rules
+- [Architecture memory](../../project-memory/architecture/README.md) — Approved local architecture decisions and examples
 - [Software Design Conventions](../../docs/conventions/software-design.md) — SD-001 through SD-023
 
 ## Dependency Rules
 
 Dependencies point inward:
-- `entrypoint/` → commands and queries; never domain or data access directly
+- `entrypoint/` → commands, queries, and shared `platform/domain`; never feature domain or data access directly
 - `commands/` → domain and data access; never concrete domain-port adapters
 - `queries/` → query models and data access
 - `domain/` → domain code and domain ports only; never adapters or infrastructure
@@ -25,9 +25,9 @@ Concrete test: `readJsonFile(filePath): unknown` and `resolveFileOrPackagePath(.
 
 ## Automated Enforcement
 
-Role enforcement is automated via an oxlint plugin. It checks annotations, location constraints, dependency rules, and I/O contracts at lint time. The enforcement config at `.riviere/role-enforcement.config.ts` is the source of truth for what's enforced. The separation-of-concerns skill defines the architectural principles; role enforcement automates their verification.
+Role enforcement is automated via an oxlint plugin. It checks annotations, location constraints, dependency rules, and I/O contracts at lint time. ADR-002 defines the architecture and `.riviere/role-enforcement.config.ts` is its executable form. Changes must update both.
 
-Import rules belong directly to their `location(...)` or `subLocation(...)` definitions. Imports within the same configured location are allowed normally. A location may restrict imports crossing its boundary to specific target roles or forbid direct external-package imports. Role-specific exceptions, such as command-to-command and adapter-to-adapter imports, use the existing role `forbiddenDependencies` rule. RLE must not maintain a second list of path matchers for architectural layers.
+Import rules belong in the relevant location's `rules.dependencyRules`. Parent restrictions apply throughout the location subtree. Imports are unrestricted unless a location declares dependency rules. `subLocations` is the complete list of permitted folders unless `allowAnySubLocations` is set. Role-specific restrictions use the existing role `forbiddenDependencies` rule. RLE must not maintain a second list of path matchers for architectural locations.
 
 ## Classification Decision Tree
 

@@ -5,4 +5,7 @@ import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 export type DomainSummary = ReturnType<RiviereQuery['domains']>[number]
 
 /** @riviere-role query-model */
-export type ListDomainsResult = { domains: DomainSummary[] } | QueryGraphLoadFailure
+export interface DomainList {domains: DomainSummary[]}
+
+/** @riviere-role query-model */
+export type ListDomainsResult = DomainList | QueryGraphLoadFailure

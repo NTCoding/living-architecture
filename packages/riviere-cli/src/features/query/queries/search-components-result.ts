@@ -5,4 +5,7 @@ import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 export type SearchComponent = ReturnType<RiviereQuery['search']>[number]
 
 /** @riviere-role query-model */
-export type SearchComponentsResult = { components: SearchComponent[] } | QueryGraphLoadFailure
+export interface ComponentSearch {components: SearchComponent[]}
+
+/** @riviere-role query-model */
+export type SearchComponentsResult = ComponentSearch | QueryGraphLoadFailure

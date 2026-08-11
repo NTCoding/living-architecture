@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "license": "Apache-2.0",
   "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "build": "nx run-many -t build",
     "build:deploy": "cd packages/riviere-schema && npx tsc --build tsconfig.lib.json && cd ../riviere-query && npx tsc --build tsconfig.lib.json && cd ../../apps/docs && cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/ai-assisted/ && cp ../../packages/riviere-cli/docs/generated/cli-reference.md reference/cli/cli-reference.md && NODE_OPTIONS='--max-old-space-size=4096' npx vitepress build && cd ../eclair && npx vite build && cd ../.. && rm -rf dist && mkdir -p dist/eclair && cp -r apps/docs/.vitepress/dist/* dist/ && cp -r apps/eclair/dist/* dist/eclair/",
@@ -12,8 +15,7 @@
     "typecheck": "nx run-many -t typecheck",
     "knip": "knip",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"!**/node_modules/**\"",
-    "depcruise": "depcruise --config .dependency-cruiser.mjs packages/*/src && depcruise --config .dependency-cruiser.frontend.mjs apps/eclair/src && depcruise --config .dependency-cruiser.specs.mjs packages/*/src apps/eclair/src",
-    "verify": "nx run-many -t lint-md role-check build depcruise lint typecheck test check-generated-docs knip --exclude=eclair",
+    "verify": "nx run-many -t lint-md role-check build lint typecheck test check-generated-docs knip --exclude=eclair",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -39,7 +41,6 @@
     "@typescript-eslint/rule-tester": "8.53.0",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/eslint-plugin": "^1.0.1",
-    "dependency-cruiser": "^17.3.7",
     "esbuild": "^0.27.0",
     "eslint": "^9.39.0",
     "eslint-plugin-import": "^2.32.0",

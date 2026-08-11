@@ -1,7 +1,5 @@
 import { Command } from 'commander'
-import {
-  formatSuccess, formatError 
-} from '../../../../platform/infra/cli/presentation/output'
+import { formatSuccess, formatError } from '../../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import { formatQueryGraphLoadFailure } from '../../../../platform/infra/cli/presentation/query-graph-load-failure-output'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
@@ -9,7 +7,7 @@ import {
   isValidComponentType,
   normalizeToSchemaComponentType,
   VALID_COMPONENT_TYPES,
-} from '../../../../entrypoint/_platform/cli/component-types'
+} from '../../../../platform/domain/component-types'
 import { toComponentOutput } from '../_platform/cli/component-output'
 import type { ListComponents } from '../../queries/list-components'
 

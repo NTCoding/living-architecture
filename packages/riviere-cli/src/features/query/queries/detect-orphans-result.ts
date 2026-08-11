@@ -5,4 +5,7 @@ import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 export type OrphanComponent = ReturnType<RiviereQuery['detectOrphans']>[number]
 
 /** @riviere-role query-model */
-export type DetectOrphansResult = { orphans: OrphanComponent[] } | QueryGraphLoadFailure
+export interface OrphanList {orphans: OrphanComponent[]}
+
+/** @riviere-role query-model */
+export type DetectOrphansResult = OrphanList | QueryGraphLoadFailure

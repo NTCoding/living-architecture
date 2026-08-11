@@ -4,13 +4,11 @@ pageClass: reference
 
 # Interface: GraphDiff
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:197](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L197)
-
-Complete diff between two graph versions.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L24)
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -18,27 +16,19 @@ query-model
 
 > **components**: `object`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:199](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L199)
-
-Component changes.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L25)
 
 #### added
 
 > **added**: `Component`[]
 
-Components present in new graph but not old.
-
 #### modified
 
 > **modified**: [`ComponentModification`](ComponentModification.md)[]
 
-Components present in both with different values.
-
 #### removed
 
 > **removed**: `Component`[]
-
-Components present in old graph but not new.
 
 ***
 
@@ -46,21 +36,15 @@ Components present in old graph but not new.
 
 > **links**: `object`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:208](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L208)
-
-Link changes.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:30](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L30)
 
 #### added
 
 > **added**: `Link`[]
 
-Links present in new graph but not old.
-
 #### removed
 
 > **removed**: `Link`[]
-
-Links present in old graph but not new.
 
 ***
 
@@ -68,6 +52,4 @@ Links present in old graph but not new.
 
 > **stats**: [`DiffStats`](DiffStats.md)
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:215](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L215)
-
-Summary statistics.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:34](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L34)

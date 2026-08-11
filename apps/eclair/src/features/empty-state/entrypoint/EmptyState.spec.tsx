@@ -3,7 +3,7 @@ import {
 } from '@testing-library/react'
 import {
   GraphProvider, useGraph
-} from '@/platform/infra/graph-state/GraphContext'
+} from '@/platform/domain/graph-state/GraphContext'
 import { EmptyState } from './EmptyState'
 import {
   parseNode, parseDomainMetadata

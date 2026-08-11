@@ -1,13 +1,8 @@
 import { Command } from 'commander'
-import {
-  formatError, formatSuccess 
-} from '../../../../platform/infra/cli/presentation/output'
+import { formatError, formatSuccess } from '../../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
-import {
-  isValidSystemType,
-  VALID_SYSTEM_TYPES,
-} from '../../../../entrypoint/_platform/cli/component-types'
+import { isValidSystemType, VALID_SYSTEM_TYPES } from '../../../../platform/domain/component-types'
 import type { AddDomain } from '../../commands/add-domain'
 
 interface AddDomainOptions {

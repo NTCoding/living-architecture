@@ -1,9 +1,5 @@
-import {
-  expect, it 
-} from 'vitest'
-import {
-  location, role, roleEnforcement 
-} from '../domain/role-enforcement-builder'
+import { expect, it } from 'vitest'
+import { role, roleEnforcement } from '../domain/role-enforcement-builder'
 import {
   createTestRoleEnforcementApplication,
   withWorkspaceFixture,
@@ -23,15 +19,18 @@ const testRoles = [
 
 type TestRoleName = (typeof testRoles)[number]['name']
 
-const testLocations = [
-  location<TestRoleName>('src')
-    .subLocation('/commands', ['role-a'])
-    .subLocation('/shell', ['role-main']),
-]
+const testLocations = {
+  source: {
+    path: 'src',
+    subLocations: {
+      commands: { rules: { roles: ['role-a'] } },
+      shell: { rules: { roles: ['role-main'] } },
+    },
+  },
+} satisfies import('../domain/role-enforcement-builder').LocationStructure<TestRoleName>
 
 const testConfig = roleEnforcement({
   packages: ['packages/pkg-a'],
-  canonicalConfigurationsFile: '.riviere/canonical-role-configurations.md',
   ignorePatterns: ['**/*.spec.ts'],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: testRoles,

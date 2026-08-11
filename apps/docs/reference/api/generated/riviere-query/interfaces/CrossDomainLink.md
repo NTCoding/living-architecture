@@ -4,23 +4,19 @@ pageClass: reference
 
 # Interface: CrossDomainLink
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:265](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L265)
-
-A link that crosses domain boundaries.
+Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:7](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L7)
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
 ### linkType
 
-> **linkType**: [`LinkType`](../type-aliases/LinkType.md) \| `undefined`
+> **linkType**: `"sync"` \| `"async"` \| `undefined`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:269](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L269)
-
-Type of the cross-domain link.
+Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:9](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L9)
 
 ***
 
@@ -28,6 +24,4 @@ Type of the cross-domain link.
 
 > **targetDomain**: `string` & `$brand`\<`"DomainName"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:267](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L267)
-
-The target domain name.
+Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:8](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L8)

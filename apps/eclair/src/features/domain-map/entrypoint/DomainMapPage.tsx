@@ -7,7 +7,7 @@ import {
 import {
   ReactFlow, Background, Controls, useNodesState, useEdgesState
 } from '@xyflow/react'
-import { GraphError } from '@/platform/infra/errors/errors'
+import { GraphError } from '@/platform/domain/errors/errors'
 import type {
   Node, Edge, NodeMouseHandler, EdgeMouseHandler 
 } from '@xyflow/react'
@@ -28,12 +28,12 @@ import { pluralizeConnection } from '../queries/pluralize'
 import type {
   DomainNodeData, DomainEdgeData
 } from '../queries/extract-domain-map'
-import { DomainNode } from '@/platform/infra/ui/DomainNode/DomainNode'
+import { DomainNode } from '@/platform/domain/ui/DomainNode/DomainNode'
 import { useDomainMapInteractions } from '../hooks/useDomainMapInteractions'
-import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
-import { useTheme } from '@/platform/infra/theme/ThemeContext'
+import { NodeTypeBadge } from '@/platform/domain/ui/NodeTypeBadge/NodeTypeBadge'
+import { useTheme } from '@/platform/domain/theme/ThemeContext'
 import { relationshipDetail } from '../queries/relationship-presentation'
-import { RelationshipLegend } from '@/platform/infra/ui/RelationshipLegend/RelationshipLegend'
+import { RelationshipLegend } from '@/platform/domain/ui/RelationshipLegend/RelationshipLegend'
 
 interface DomainMapPageProps {readonly graph: RiviereGraph}
 

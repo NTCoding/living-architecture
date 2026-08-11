@@ -1,5 +1,5 @@
 import { getNodeTypeColor } from '@/platform/domain/node-type-presentation'
-import type { Theme } from '@/types/theme'
+import type { Theme } from '@/platform/domain/theme/theme'
 
 interface NodeBreakdownSectionProps {
   readonly breakdown: Readonly<Record<string, number>>

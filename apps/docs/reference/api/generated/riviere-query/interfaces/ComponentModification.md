@@ -4,13 +4,11 @@ pageClass: reference
 
 # Interface: ComponentModification
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:165](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L165)
-
-A component that was modified between graph versions.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:7](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L7)
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -18,9 +16,7 @@ query-model
 
 > **after**: `Component`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:171](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L171)
-
-The component state after modification.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:10](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L10)
 
 ***
 
@@ -28,9 +24,7 @@ The component state after modification.
 
 > **before**: `Component`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:169](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L169)
-
-The component state before modification.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:9](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L9)
 
 ***
 
@@ -38,9 +32,7 @@ The component state before modification.
 
 > **changedFields**: `string`[]
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:173](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L173)
-
-List of field names that changed.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:11](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L11)
 
 ***
 
@@ -48,6 +40,4 @@ List of field names that changed.
 
 > **id**: `string` & `$brand`\<`"ComponentId"`\>
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:167](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L167)
-
-The component ID.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:8](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L8)

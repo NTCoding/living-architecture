@@ -4,13 +4,11 @@ pageClass: reference
 
 # Interface: DiffStats
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:180](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L180)
-
-Summary statistics of differences between graphs.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:15](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L15)
 
 ## Riviere-role
 
-query-model
+value-object
 
 ## Properties
 
@@ -18,9 +16,7 @@ query-model
 
 > **componentsAdded**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:182](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L182)
-
-Number of components added.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L16)
 
 ***
 
@@ -28,9 +24,7 @@ Number of components added.
 
 > **componentsModified**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:186](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L186)
-
-Number of components modified.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:18](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L18)
 
 ***
 
@@ -38,9 +32,7 @@ Number of components modified.
 
 > **componentsRemoved**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:184](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L184)
-
-Number of components removed.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L17)
 
 ***
 
@@ -48,9 +40,7 @@ Number of components removed.
 
 > **linksAdded**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:188](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L188)
-
-Number of links added.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:19](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L19)
 
 ***
 
@@ -58,6 +48,4 @@ Number of links added.
 
 > **linksRemoved**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/queries/domain-types.ts:190](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/queries/domain-types.ts#L190)
-
-Number of links removed.
+Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:20](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L20)

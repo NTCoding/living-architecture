@@ -16,9 +16,9 @@ const testSourceLocation = {
   filePath: 'src/test.ts',
 }
 
-vi.mock('@/platform/infra/theme/ThemeContext', () => ({ useTheme: () => ({ theme: 'stream' }) }))
+vi.mock('@/platform/domain/theme/ThemeContext', () => ({ useTheme: () => ({ theme: 'stream' }) }))
 
-vi.mock('@/platform/infra/graph/ForceGraph/ForceGraph', () => ({
+vi.mock('@/platform/domain/graph/ForceGraph/ForceGraph', () => ({
   ForceGraph: ({ graph }: { graph: { components: Array<{ name: string }> } }) => (
     <div data-testid="force-graph-mock">
       {graph.components.map((node) => (

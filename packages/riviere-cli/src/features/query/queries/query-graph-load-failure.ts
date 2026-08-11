@@ -1,7 +1,5 @@
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
-import type { RiviereQuery } from '@living-architecture/riviere-query'
-import { RiviereQueryRepository } from '../data-access/riviere-query-repository'
 
 /** @riviere-role query-model */
 export type QueryGraphLoadFailure =
@@ -13,14 +11,6 @@ export type QueryGraphLoadFailure =
     readonly kind: 'graphNotFound'
     readonly message: string
   }
-
-/** @riviere-role query-model */
-export type LoadedQueryGraph =
-  | {
-    readonly kind: 'loaded'
-    readonly query: RiviereQuery
-  }
-  | QueryGraphLoadFailure
 
 /** @riviere-role query-model */
 export function toQueryGraphLoadFailure(error: unknown): QueryGraphLoadFailure | undefined {
@@ -39,23 +29,4 @@ export function toQueryGraphLoadFailure(error: unknown): QueryGraphLoadFailure |
   }
 
   return undefined
-}
-
-/** @riviere-role query-model */
-export function loadQueryGraph(
-  repository: RiviereQueryRepository,
-  graphPathOption: string | undefined,
-): LoadedQueryGraph {
-  try {
-    return {
-      kind: 'loaded',
-      query: repository.load(graphPathOption),
-    }
-  } catch (error) {
-    const failure = toQueryGraphLoadFailure(error)
-    if (failure !== undefined) {
-      return failure
-    }
-    throw error
-  }
 }

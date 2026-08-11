@@ -41,7 +41,14 @@ import { ListDomains } from '../features/query/queries/list-domains'
 import { ListEntryPoints } from '../features/query/queries/list-entry-points'
 import { SearchComponents } from '../features/query/queries/search-components'
 import { TraceFlow } from '../features/query/queries/trace-flow'
-import { RiviereQueryRepository } from '../features/query/data-access/riviere-query-repository'
+import {
+  ComponentListLoader,
+  ComponentSearchLoader,
+  DomainListLoader,
+  EntryPointListLoader,
+  FlowTraceLoader,
+  OrphanListLoader,
+} from '../features/query/data-access/query-loaders'
 import { createComponentsCommand } from '../features/query/entrypoint/components/entrypoint'
 import { createDomainsCommand } from '../features/query/entrypoint/domains/entrypoint'
 import { createEntryPointsCommand } from '../features/query/entrypoint/entry-points/entrypoint'
@@ -83,7 +90,6 @@ const packageJson = loadPackageJson()
 /** @riviere-role main */
 export function createProgram(): Command {
   const builderRepository = new RiviereBuilderRepository()
-  const queryRepository = new RiviereQueryRepository()
   const extractionProjectRepository = new ExtractionProjectRepository()
 
   const program = new Command()
@@ -112,12 +118,12 @@ export function createProgram(): Command {
 
   const queryCmd = program.command('query').description('Commands for querying a graph')
 
-  queryCmd.addCommand(createEntryPointsCommand(new ListEntryPoints(queryRepository)))
-  queryCmd.addCommand(createDomainsCommand(new ListDomains(queryRepository)))
-  queryCmd.addCommand(createTraceCommand(new TraceFlow(queryRepository)))
-  queryCmd.addCommand(createOrphansCommand(new DetectOrphans(queryRepository)))
-  queryCmd.addCommand(createComponentsCommand(new ListComponents(queryRepository)))
-  queryCmd.addCommand(createSearchCommand(new SearchComponents(queryRepository)))
+  queryCmd.addCommand(createEntryPointsCommand(new ListEntryPoints(new EntryPointListLoader())))
+  queryCmd.addCommand(createDomainsCommand(new ListDomains(new DomainListLoader())))
+  queryCmd.addCommand(createTraceCommand(new TraceFlow(new FlowTraceLoader())))
+  queryCmd.addCommand(createOrphansCommand(new DetectOrphans(new OrphanListLoader())))
+  queryCmd.addCommand(createComponentsCommand(new ListComponents(new ComponentListLoader())))
+  queryCmd.addCommand(createSearchCommand(new SearchComponents(new ComponentSearchLoader())))
 
   program.addCommand(
     createExtractCommand(
