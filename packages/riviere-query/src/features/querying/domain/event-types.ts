@@ -12,7 +12,7 @@ import type {
 
 /** @riviere-role value-object */
 export class Entity {
-  declare private brand: 'Entity'
+  declare private readonly brand: 'Entity'
 
   constructor(
     public readonly name: EntityName,

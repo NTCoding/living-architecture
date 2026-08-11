@@ -5,7 +5,7 @@ type HttpMethodValue = z.infer<typeof httpMethodSchema>
 
 /** @riviere-role value-object */
 export class HttpMethod {
-  declare private brand: 'HttpMethod'
+  declare private readonly brand: 'HttpMethod'
   readonly value: HttpMethodValue
 
   private constructor(value: HttpMethodValue) {

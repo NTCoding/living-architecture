@@ -5,7 +5,7 @@ type SystemTypeValue = z.infer<typeof systemTypeSchema>
 
 /** @riviere-role value-object */
 export class SystemType {
-  declare private brand: 'SystemType'
+  declare private readonly brand: 'SystemType'
   readonly value: SystemTypeValue
 
   private constructor(value: SystemTypeValue) {

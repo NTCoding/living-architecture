@@ -14,7 +14,7 @@ type ComponentTypeValue = z.infer<typeof componentTypeSchema>
 
 /** @riviere-role value-object */
 export class ComponentType {
-  declare private brand: 'ComponentType'
+  declare private readonly brand: 'ComponentType'
   readonly componentIdValue: string
   readonly value: ComponentTypeValue
 

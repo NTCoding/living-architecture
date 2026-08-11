@@ -642,10 +642,6 @@ export default {
           return references
         }
 
-        function isNodeInside(candidate, container) {
-          return candidate.range[0] >= container.range[0] && candidate.range[1] <= container.range[1]
-        }
-
         function readAllExportedRoles(filePath) {
           const sourceText = readFileText(filePath)
           if (sourceText === null) {
@@ -1473,6 +1469,10 @@ function readPackageName(importSource) {
 function isInsideDirectory(filePath, directoryPath) {
   const relativePath = path.relative(directoryPath, filePath)
   return relativePath !== '' && !relativePath.startsWith('..') && !path.isAbsolute(relativePath)
+}
+
+function isNodeInside(candidate, container) {
+  return candidate.range[0] >= container.range[0] && candidate.range[1] <= container.range[1]
 }
 
 function normalizePath(value) {

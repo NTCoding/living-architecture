@@ -5,7 +5,7 @@ type LinkTypeValue = z.infer<typeof linkTypeSchema>
 
 /** @riviere-role value-object */
 export class LinkType {
-  declare private brand: 'LinkType'
+  declare private readonly brand: 'LinkType'
   readonly value: LinkTypeValue
 
   private constructor(value: LinkTypeValue) {

@@ -1,4 +1,5 @@
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
@@ -70,6 +71,20 @@ describe('query loaders', () => {
     expect(() =>
       new ComponentListLoader().load(join(ctx.testDir, 'missing.json'), undefined, undefined),
     ).toThrow(GraphNotFoundError)
+  })
+
+  it('rejects a graph path outside the working directory', async () => {
+    const outsideDirectory = await mkdtemp(join(tmpdir(), 'riviere-query-outside-'))
+    const outsideGraphPath = join(outsideDirectory, '.riviere', 'graph.json')
+    await writeGraph(outsideDirectory)
+
+    try {
+      expect(() => new ComponentListLoader().load(outsideGraphPath, undefined, undefined)).toThrow(
+        GraphNotFoundError,
+      )
+    } finally {
+      await rm(outsideDirectory, { recursive: true })
+    }
   })
 })
 

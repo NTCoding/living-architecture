@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { isAbsolute, relative, resolve, sep } from 'node:path'
 import { findNearMatches } from '@living-architecture/riviere-builder/features/building/domain/error-recovery/component-suggestion'
 import { ComponentId } from '@living-architecture/riviere-schema/component-id'
 import {
@@ -98,7 +98,7 @@ export class FlowTraceLoader {
 }
 
 function loadQuery(graphPathOption: string | undefined): RiviereQuery {
-  const graphPath = graphPathOption ?? join(process.cwd(), DEFAULT_GRAPH_PATH)
+  const graphPath = resolveGraphPath(graphPathOption)
   if (!fileExists(graphPath)) {
     throw new GraphNotFoundError(graphPath)
   }
@@ -109,4 +109,20 @@ function loadQuery(graphPathOption: string | undefined): RiviereQuery {
   } catch (error) {
     throw new GraphCorruptedError(graphPath, { cause: error })
   }
+}
+
+function resolveGraphPath(graphPathOption: string | undefined): string {
+  const workingDirectory = resolve(process.cwd())
+  const graphPath = resolve(workingDirectory, graphPathOption ?? DEFAULT_GRAPH_PATH)
+  const pathFromWorkingDirectory = relative(workingDirectory, graphPath)
+  const isOutsideWorkingDirectory =
+    pathFromWorkingDirectory === '..' ||
+    pathFromWorkingDirectory.startsWith(`..${sep}`) ||
+    isAbsolute(pathFromWorkingDirectory)
+
+  if (isOutsideWorkingDirectory) {
+    throw new GraphNotFoundError(graphPath)
+  }
+
+  return graphPath
 }
