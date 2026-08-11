@@ -66,7 +66,7 @@ export function DomainNode(props: DomainNodeProps): React.ReactElement {
         title={data.label}
       >
         {isExternal ? (
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex w-full flex-col items-center gap-1">
             <i className="ph ph-arrow-square-out domain-node-external-icon" aria-hidden="true" />
             <span
               className="max-w-full overflow-hidden px-2 font-bold text-[var(--text-primary)] leading-tight"
@@ -77,14 +77,16 @@ export function DomainNode(props: DomainNodeProps): React.ReactElement {
             <span className="domain-node-system-type">External</span>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex w-full flex-col items-center gap-1">
             <span
               className="max-w-full overflow-hidden px-3 font-bold text-[var(--text-primary)] leading-tight"
               style={{ fontSize }}
             >
               {displayLabel}
             </span>
-            <span className="domain-node-system-type">{data.systemType}</span>
+            <span className="domain-node-system-type max-w-full break-words px-2">
+              {data.systemType}
+            </span>
           </div>
         )}
       </div>

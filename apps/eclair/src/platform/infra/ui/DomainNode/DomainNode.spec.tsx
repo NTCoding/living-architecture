@@ -304,4 +304,21 @@ describe('DomainNode', () => {
       expect(container.querySelector('div.flex[title]')).toHaveClass(borderClass)
     },
   )
+
+  it('wraps the complete external-service type inside the domain bubble', () => {
+    renderWithProvider(
+      <DomainNode
+        data={{
+          label: 'alerts',
+          nodeCount: 1,
+          systemType: 'external-service',
+        }}
+      />,
+    )
+
+    const systemType = screen.getByText('external-service')
+    expect(systemType).toHaveTextContent('external-service')
+    expect(systemType).toHaveClass('max-w-full', 'break-words', 'px-2')
+    expect(systemType.parentElement).toHaveClass('w-full')
+  })
 })
