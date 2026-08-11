@@ -5,7 +5,7 @@
 ## Sources of Truth
 
 - **Architecture decision:** this ADR
-- **Executable enforcement:** [`.riviere/role-enforcement.config.ts`](../../../.riviere/role-enforcement.config.ts)
+- **Executable enforcement:** [`.riviere/role-enforcement.config.ts`](../../../.riviere/role-enforcement.config.ts) and the `.dependency-cruiser*.mjs` configurations until every Dependency Cruiser rule has a tested RLE replacement
 
 These files must remain aligned. Any change to the architecture must update both.
 

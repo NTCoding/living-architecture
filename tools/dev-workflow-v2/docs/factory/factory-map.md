@@ -22,7 +22,7 @@ developer change
      -> package scripts and Nx targets
         -> ESLint/custom rules
         -> Riviere role enforcement
-        -> dependency-cruiser for Eclair
+        -> dependency-cruiser
         -> tests and coverage
         -> generated-artifact checks
   -> pull request CI gate
@@ -39,7 +39,7 @@ Factory surfaces relate in these ways:
 - Hooks and CI decide when checks run.
 - ESLint checks local syntax, AST, naming, import declarations, and test-shape patterns.
 - Riviere role enforcement checks location structure, import direction, circular imports, exported declaration roles, and role contracts for standard packages.
-- Dependency-cruiser retains Eclair's existing import graph rules until Eclair is migrated separately.
+- Dependency-cruiser retains every existing import graph rule until each rule has a tested RLE replacement. Eclair remains outside RLE.
 - Tests and coverage prove behavior.
 - Generated-artifact checks keep generated output synchronized with source files.
 - Architecture docs define placement semantics that deterministic checks and agents refer to.
@@ -58,7 +58,7 @@ Definition files:
 Related surfaces:
 
 - Runs package scripts that call Nx targets.
-- Pulls lint, role-check, Eclair dependency-cruiser, tests, generated-doc checks, and dead-code checks into the local path when those scripts include them.
+- Pulls lint, role-check, dependency-cruiser, tests, generated-doc checks, and dead-code checks into the local path when those scripts include them.
 - Commit-message enforcement is separate from code quality enforcement.
 
 Mechanism examples:
@@ -239,9 +239,9 @@ Verification entrypoints:
 - `pnpm exec tsx packages/riviere-role-enforcement/src/shell/bin.ts .riviere/role-enforcement.config.ts --package <package-path>`
 - `pnpm exec nx test riviere-role-enforcement`
 
-## Eclair Dependency Cruiser
+## Dependency Cruiser
 
-Eclair is not part of the standard Riviere role-enforcement configuration. Its existing import graph remains enforced by `.dependency-cruiser.frontend.mjs` and is run by `pnpm depcruise:eclair`. Migrating Eclair belongs in a separate change.
+The backend, spec, and Eclair import graphs remain enforced by `.dependency-cruiser.mjs`, `.dependency-cruiser.specs.mjs`, and `.dependency-cruiser.frontend.mjs`. Run all three with `pnpm depcruise`. A configuration can be removed only after every rule it contains has a failing RLE test and a passing replacement.
 
 ## Architecture Documentation
 
@@ -265,13 +265,13 @@ Mechanism examples:
 Relationship boundaries:
 
 - Architecture docs define intent.
-- Role enforcement enforces the mechanical parts of that intent for standard packages. Dependency-cruiser continues to enforce Eclair's existing rules.
+- Role enforcement and Dependency Cruiser enforce the mechanical parts of that intent while the rule migration is incomplete.
 - Review agents handle semantic parts that cannot be encoded safely.
 
 Verification entrypoints:
 
 - `pnpm lint:md`
-- the related role-check, or `pnpm depcruise:eclair` for Eclair, when architecture docs and deterministic checks change together
+- the related role-check and `pnpm depcruise` when architecture docs and deterministic checks change together
 
 ## Tests and Coverage
 
