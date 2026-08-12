@@ -1,0 +1,7 @@
+interface:
+  display_name: "Choose Next Dev Workflow Task"
+  short_description: "Choose the next planned implementation task."
+  default_prompt: "Use $dev-workflow-choose-next-task to choose the next task."
+
+policy:
+  allow_implicit_invocation: false

@@ -14,6 +14,21 @@ Claude Code creates the worktree. The plugin owns everything from task selection
 
 ## Commands
 
+### Codex
+
+Codex discovers the explicit project skills in `.agents/skills/`. Invoke the matching skill rather than describing the operation in prose:
+
+```text
+$dev-workflow-start-planning <topic>
+$dev-workflow-planning-status
+$dev-workflow-continue-planning
+$dev-workflow-choose-next-task
+$dev-workflow-start-implementation <issue-number>
+$dev-workflow-optimize-factory
+```
+
+The skills reference the same command and state Markdown used by Claude Code. Codex's shared workflow runner reads `CODEX_THREAD_ID`, so workflow operations use the active task session without copying an ID from hook output.
+
 ### Planning lifecycle
 
 ```bash

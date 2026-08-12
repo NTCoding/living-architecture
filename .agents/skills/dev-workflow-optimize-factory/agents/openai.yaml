@@ -1,0 +1,7 @@
+interface:
+  display_name: "Optimise Dev Workflow Factory"
+  short_description: "Assess and improve the engineering workflow."
+  default_prompt: "Use $dev-workflow-optimize-factory to assess the factory."
+
+policy:
+  allow_implicit_invocation: false

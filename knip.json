@@ -13,17 +13,18 @@
       "project": [".vitepress/**/*.ts", ".vitepress/**/*.vue"]
     },
     "packages/riviere-cli": {
-      "entry": ["src/shell/bin.ts"],
+      "entry": ["src/shell/bin.ts", "src/shell/index.ts"],
       "project": ["src/**/*.ts"]
     },
     "packages/riviere-role-enforcement": {
+      "entry": ["src/index.ts", "src/shell/bin.ts"],
       "project": ["src/**/*.ts"]
     },
     "packages/*": {
       "project": ["src/**/*.ts"]
     },
     "tools/dev-workflow-v2": {
-      "entry": ["src/shell/cli.ts", "src/shell/opencode-plugin.ts"],
+      "entry": ["src/shell/cli.ts", "src/shell/codex-cli.ts", "src/shell/codex-workflow-command.ts", "src/shell/opencode-plugin.ts"],
       "project": ["src/**/*.ts"],
       "ignoreDependencies": ["@types/better-sqlite3"]
     }

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Dev Workflow Planning Status"
+  short_description: "Report the active planning workflow status."
+  default_prompt: "Use $dev-workflow-planning-status to report planning status."
+
+policy:
+  allow_implicit_invocation: false

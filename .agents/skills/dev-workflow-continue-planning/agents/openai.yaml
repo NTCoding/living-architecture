@@ -1,0 +1,7 @@
+interface:
+  display_name: "Continue Dev Workflow Planning"
+  short_description: "Continue the active planning workflow."
+  default_prompt: "Use $dev-workflow-continue-planning to continue planning."
+
+policy:
+  allow_implicit_invocation: false

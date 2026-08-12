@@ -1,0 +1,7 @@
+interface:
+  display_name: "Start Dev Workflow Planning"
+  short_description: "Start a product-discovery planning topic."
+  default_prompt: "Use $dev-workflow-start-planning to start planning a topic."
+
+policy:
+  allow_implicit_invocation: false

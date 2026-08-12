@@ -1,0 +1,7 @@
+interface:
+  display_name: "Start Dev Workflow Implementation"
+  short_description: "Set up an issue and initialise its workflow."
+  default_prompt: "Use $dev-workflow-start-implementation to start issue 123."
+
+policy:
+  allow_implicit_invocation: false
