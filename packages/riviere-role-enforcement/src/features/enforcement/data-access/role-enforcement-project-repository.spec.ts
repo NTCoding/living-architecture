@@ -13,7 +13,7 @@ const minimalConfig = roleEnforcement({
   configurations: {
     test: {
       packages: ['packages/pkg-a'],
-      locations: locationConfiguration(location('src').subLocation('/entrypoint', ['role-entry'])),
+      locations: locationConfiguration(location('/entrypoint', ['role-entry'])),
     },
   },
   ignorePatterns: [],

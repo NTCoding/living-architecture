@@ -5,7 +5,7 @@
 ## Sources of Truth
 
 - **Architecture decision:** this ADR
-- **Executable enforcement:** [`.riviere/role-enforcement.config.ts`](../../../.riviere/role-enforcement.config.ts). Éclair remains outside RLE and is checked separately by [`.dependency-cruiser.frontend.mjs`](../../../.dependency-cruiser.frontend.mjs).
+- **Executable enforcement:** [Rivière role enforcement](../../../.riviere/role-definitions/index.md), configured by [`.riviere/role-enforcement.config.ts`](../../../.riviere/role-enforcement.config.ts). Éclair remains outside Rivière role enforcement and is checked separately by [`.dependency-cruiser.frontend.mjs`](../../../.dependency-cruiser.frontend.mjs).
 
 These files must remain aligned. Any change to the architecture must update both.
 
@@ -124,7 +124,7 @@ For CLI code, platform CLI infrastructure owns shared response-envelope formatti
 - `platform/**` cannot import feature code.
 - `platform/infra/**` may import only within its own infra subtree and external packages.
 - `_platform` is importable only from within its parent location.
-- Circular imports are rejected by RLE's Oxlint runner.
+- Circular imports are rejected by the role-enforcement Oxlint runner.
 
 ## Library Packages
 

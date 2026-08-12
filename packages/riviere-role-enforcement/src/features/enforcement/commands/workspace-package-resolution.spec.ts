@@ -26,9 +26,7 @@ const workspacePackageConfig = roleEnforcement({
   configurations: {
     test: {
       packages: ['packages/pkg-a'],
-      locations: locationConfiguration(
-        location('src').subLocation('/repositories', ['role-b-repository']),
-      ),
+      locations: locationConfiguration(location('/repositories', ['role-b-repository'])),
     },
   },
   ignorePatterns: [],

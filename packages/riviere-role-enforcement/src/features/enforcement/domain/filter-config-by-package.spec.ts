@@ -14,7 +14,7 @@ function createMultiPackageConfig(): RoleEnforcementResult {
       standard: {
         packages: ['packages/riviere-cli', 'packages/riviere-extract-ts'],
         locations: locationConfiguration(
-          location('src/features/{feature}')
+          location('/features/{feature}')
             .subLocation('/domain', ['aggregate'])
             .subLocation('/entrypoint', ['cli-entrypoint']),
         ),

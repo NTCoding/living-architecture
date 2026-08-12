@@ -9,7 +9,6 @@ export interface LocationDependencyRules<R extends string> {
   readonly canImportSiblings?: false
   readonly importableFrom?: 'withinParentLocation'
   readonly locations?: readonly LocationImportRule<R>[]
-  readonly externalPackages?: readonly string[]
 }
 
 /** @riviere-role value-object */
@@ -30,11 +29,10 @@ export interface FluentLocationDefinition<R extends string> {
 
 /** @riviere-role value-object */
 export type LocationBuilder<R extends string> = FluentLocationDefinition<R> & {
-  readonly subLocation: (
-    path: string,
-    roles: readonly R[],
-    options?: FluentLocationOptions<R>,
-  ) => LocationBuilder<R>
+  readonly subLocation: {
+    (location: LocationBuilder<R>): LocationBuilder<R>
+    (path: string, roles: readonly R[], options?: FluentLocationOptions<R>): LocationBuilder<R>
+  }
 }
 
 /** @riviere-role value-object */
@@ -99,21 +97,27 @@ function createLocationBuilder<R extends string>(
   assertNoExplicitSubLocationsInsideUnrestrictedLocation(definition)
   return {
     ...definition,
-    subLocation(path, roles, options) {
-      return createLocationBuilder({
-        ...definition,
-        subLocations: mergeFluentLocations(definition.subLocations, [
-          createLocationBuilder({
+    subLocation(
+      pathOrLocation: string | LocationBuilder<R>,
+      roles: readonly R[] = [],
+      options?: FluentLocationOptions<R>,
+    ) {
+      const child =
+        typeof pathOrLocation === 'string'
+          ? createLocationBuilder({
             allowAnySubLocations: options?.allowAnySubLocations === true,
             allowedRoles: roles,
             ...(options?.dependencyRules === undefined
               ? {}
               : { dependencyRules: options.dependencyRules }),
-            path,
+            path: pathOrLocation,
             rolesSpecified: true,
             subLocations: [],
-          }),
-        ]),
+          })
+          : pathOrLocation
+      return createLocationBuilder({
+        ...definition,
+        subLocations: mergeFluentLocations(definition.subLocations, [child]),
       })
     },
   }

@@ -20,11 +20,10 @@ const layerTestRoles = [
 ] as const
 
 const layerTestLocations = enforcementBuilder.locationConfiguration(
+  enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>('/domain', ['domain-port']),
   enforcementBuilder
-    .location<(typeof layerTestRoles)[number]['name']>('src')
-    .subLocation('/domain', ['domain-port'])
-    .subLocation('/platform', [])
-    .subLocation('/platform/infra', ['role-infra'], { dependencyRules: { locations: [] } }),
+    .location<(typeof layerTestRoles)[number]['name']>('/platform')
+    .subLocation('/infra', ['role-infra'], { dependencyRules: { locations: [] } }),
 )
 
 const layerTestConfig = enforcementBuilder.roleEnforcement({
@@ -95,31 +94,6 @@ export function consume(): string {
 
     assert.equal(result.exitCode, 0)
     assert.equal(result.stderr, '')
-  })
-})
-
-it('rejects direct external package imports from adapters', () => {
-  fixtureWorkspace.withWorkspaceFixture(adapterLayerTestBootstrap, (workspaceDir) => {
-    const adapterConfig = createAdapterLayerConfig()
-    fixtureWorkspace.writeFixtureFile(
-      workspaceDir,
-      'packages/pkg-a/src/adapters/oxlint/oxlint-adapter.ts',
-      `import path from 'node:path'
-
-/** @riviere-role domain-port-adapter */
-export function run(): string {
-  return path.basename('/tmp/example.txt')
-}
-`,
-    )
-
-    const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-      configDir: workspaceDir,
-      configModule: { config: adapterConfig },
-    })
-
-    assert.equal(result.exitCode, 1)
-    assert.match(result.stdout, /Location '\/adapters' cannot import external package 'node:path'/)
   })
 })
 
@@ -222,7 +196,7 @@ export function consume(port: DomainPort): string {
 
     assert.equal(result.exitCode, 1)
     assert.equal(result.stderr, '')
-    assert.match(result.stdout, /Location '\/platform\/infra' cannot import location '\/domain'/)
+    assert.match(result.stdout, /Location '\/infra' cannot import location '\/domain'/)
   })
 })
 
@@ -281,7 +255,7 @@ export function consume(port: DomainPort): string {
 
     assert.equal(result.exitCode, 1)
     assert.equal(result.stderr, '')
-    assert.match(result.stdout, /Location '\/platform\/infra' cannot import location '\/domain'/)
+    assert.match(result.stdout, /Location '\/infra' cannot import location '\/domain'/)
   })
 })
 
@@ -294,28 +268,36 @@ function runLayerEnforcement(workspaceDir: string) {
 
 function createAdapterLayerConfig() {
   const locations = enforcementBuilder.locationConfiguration(
-    enforcementBuilder
-      .location<(typeof layerTestRoles)[number]['name']>('src')
-      .subLocation('/adapters', ['domain-port-adapter'], {
+    enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>(
+      '/adapters/{adapter}',
+      ['domain-port-adapter'],
+      {
         allowAnySubLocations: true,
         dependencyRules: {
-          externalPackages: [],
           locations: [
             {
               location: '/domain',
               roles: ['domain-port'],
             },
             {
-              location: '/platform/infra',
+              location: '/infra',
               roles: ['external-client-service'],
             },
           ],
         },
-      })
-      .subLocation('/commands', ['command-use-case'])
-      .subLocation('/domain', ['domain-port'], { allowAnySubLocations: true })
-      .subLocation('/platform', [])
-      .subLocation('/platform/infra', ['external-client-service']),
+      },
+    ),
+    enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>('/commands', [
+      'command-use-case',
+    ]),
+    enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>(
+      '/domain',
+      ['domain-port'],
+      { allowAnySubLocations: true },
+    ),
+    enforcementBuilder
+      .location<(typeof layerTestRoles)[number]['name']>('/platform')
+      .subLocation('/infra', ['external-client-service']),
   )
   return enforcementBuilder.roleEnforcement({
     configurations: {
@@ -340,9 +322,11 @@ function createCrossPackageLayerConfig() {
       domainPackage: {
         packages: ['packages/pkg-domain'],
         locations: enforcementBuilder.locationConfiguration(
-          enforcementBuilder
-            .location<(typeof layerTestRoles)[number]['name']>('src')
-            .subLocation('/domain', ['domain-port'], { allowAnySubLocations: true }),
+          enforcementBuilder.location<(typeof layerTestRoles)[number]['name']>(
+            '/domain',
+            ['domain-port'],
+            { allowAnySubLocations: true },
+          ),
         ),
       },
     },

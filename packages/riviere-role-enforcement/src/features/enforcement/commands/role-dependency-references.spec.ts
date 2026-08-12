@@ -20,9 +20,11 @@ const config = enforcementBuilder.roleEnforcement({
     test: {
       packages: ['packages/pkg-a'],
       locations: enforcementBuilder.locationConfiguration(
-        enforcementBuilder
-          .location('src')
-          .subLocation('/domain', ['role-value', 'role-service', 'role-restricted-service']),
+        enforcementBuilder.location('/domain', [
+          'role-value',
+          'role-service',
+          'role-restricted-service',
+        ]),
       ),
     },
   },

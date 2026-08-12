@@ -121,7 +121,6 @@ export default {
             options.importAliases,
           )
           if (resolvedImport === null || !isInsideDirectory(resolvedImport, options.configDir)) {
-            validateHierarchyExternalImport(node, sourceChain, importSource)
             return
           }
 
@@ -217,21 +216,10 @@ export default {
           }
         }
 
-        function validateHierarchyExternalImport(node, sourceChain, importSource) {
-          if (!isExternalImport(importSource)) {
-            return
-          }
-          for (const source of sourceChain) {
-            const allowed = source.location.dependencyRules?.externalPackages
-            if (Array.isArray(allowed) && !allowed.includes(packageName(importSource))) {
-              report(node, `Location '${source.location.name}' cannot import external package '${importSource}'.`)
-              return
-            }
-          }
-        }
-
         function locationRuleAllows(rule, source, targetChain, node, resolvedImport) {
-          const candidates = targetChain.filter((target) => target.location.name === rule.location)
+          const candidates = targetChain.filter((target) =>
+            locationNameMatches(rule.location, target.location.name),
+          )
           for (const target of candidates) {
             if (!sameConcreteParentWhenSharedTemplate(source, target, locationHierarchy)) {
               continue
@@ -264,10 +252,6 @@ export default {
             }
           }
           return [...new Set(roles)]
-        }
-
-        function isExternalImport(importSource) {
-          return !importSource.startsWith('.') && !path.isAbsolute(importSource)
         }
 
         function validateDeclaration(node, target) {
@@ -1304,11 +1288,11 @@ function sameConcreteParentWhenSharedTemplate(source, target, locations) {
   return sourceParentPath === targetParentPath
 }
 
-function packageName(importSource) {
-  if (importSource.startsWith('@')) {
-    return importSource.split('/').slice(0, 2).join('/')
+function locationNameMatches(configuredName, targetName) {
+  if (!configuredName.endsWith('/*')) {
+    return configuredName === targetName
   }
-  return importSource.split('/')[0]
+  return targetName.startsWith(configuredName.slice(0, -1))
 }
 
 function collectForbiddenMethodCallRoles(fileRoles, roleMap) {

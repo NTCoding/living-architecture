@@ -38,11 +38,10 @@ export const genericTestRoles = [
 type GenericTestRoleName = (typeof genericTestRoles)[number]['name']
 
 const genericTestLocations = locationConfiguration(
-  location<GenericTestRoleName>('src')
-    .subLocation('/commands', ['role-a', 'role-a-input', 'role-a-result'])
-    .subLocation('/domain', ['role-b', 'role-c-error'])
-    .subLocation('/entrypoint', ['role-entry'])
-    .subLocation('/repositories', ['role-b-repository']),
+  location<GenericTestRoleName>('/commands', ['role-a', 'role-a-input', 'role-a-result']),
+  location<GenericTestRoleName>('/domain', ['role-b', 'role-c-error']),
+  location<GenericTestRoleName>('/entrypoint', ['role-entry']),
+  location<GenericTestRoleName>('/repositories', ['role-b-repository']),
 )
 
 export const genericTestConfig = roleEnforcement({

@@ -85,9 +85,7 @@ export function createOxlintRoleEnforcementRunner(
 }
 ```
 
-The same rule covers third-party packages. `tools/dev-workflow-v2/src/features/workflow/adapters/github/workflow-pull-request-creator.ts` maps the domain-owned `CreateWorkflowPullRequest` contract to `GithubPullRequestCreationInput` and maps `GithubPullRequest` back to the domain result. It does not import `zod` or execute `gh`. Those details stay together in `tools/dev-workflow-v2/src/platform/infra/external-clients/github/create-pull-request.ts`, where `zod` validates the external JSON and the injected `GhRunner` invokes the external CLI.
-
-The restriction is intentionally structural: a domain-port adapter may import its domain port and one project-controlled external-client API, but no external package directly. This gives RLE a deterministic rule and prevents a new SDK, CLI, or Node implementation from being hidden in an application adapter under a plausible role name.
+`tools/dev-workflow-v2/src/features/workflow/adapters/github/workflow-pull-request-creator.ts` maps the domain-owned `CreateWorkflowPullRequest` contract to `GithubPullRequestCreationInput` and maps `GithubPullRequest` back to the domain result. Executing `gh` and validating its external JSON stay together in `tools/dev-workflow-v2/src/platform/infra/external-clients/github/create-pull-request.ts`.
 
 ## Anti-Patterns
 

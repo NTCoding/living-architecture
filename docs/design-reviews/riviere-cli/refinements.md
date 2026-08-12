@@ -8,7 +8,7 @@ This document captures the refinements applied to the Architect's design using t
 
 ### 1. Feature Identification
 
-The Architect identified three features based on command groups (build-graph, extract-components, query-graph). This aligns with the separation-of-concerns principle of verticals, but the feature names could better reflect user goals.
+The Architect identified three features based on command groups (build-graph, extract-components, query-graph). This aligns with [ADR-002](../../architecture/adr/ADR-002-allowed-folder-structures.md), but the feature names could better reflect user goals.
 
 **Refinement:** Rename features to reflect user intentions rather than technical operations:
 

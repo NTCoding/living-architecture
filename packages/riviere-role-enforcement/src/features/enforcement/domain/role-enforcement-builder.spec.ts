@@ -139,17 +139,17 @@ describe('roleEnforcement', () => {
 
   it('combines named configurations that extend common locations', () => {
     const common = locationConfiguration(
-      location('src/features/{feature}').subLocation('/domain', ['aggregate']),
+      location('/features/{feature}').subLocation('/domain', ['aggregate']),
     )
     const standard = {
       packages: ['packages/backend'],
       locations: common.extend(
-        location('src/features/{feature}').subLocation('/commands', ['cli-entrypoint']),
+        location('/features/{feature}').subLocation('/commands', ['cli-entrypoint']),
       ),
     }
     const frontend = {
       packages: ['apps/frontend'],
-      locations: common.extend(location('src/features/{feature}').subLocation('/components', [])),
+      locations: common.extend(location('/features/{feature}').subLocation('/components', [])),
     }
 
     const result = roleEnforcement({
@@ -163,9 +163,11 @@ describe('roleEnforcement', () => {
     })
 
     expect(result.locationHierarchy.map(({ pathTemplate }) => pathTemplate)).toStrictEqual([
+      'packages/backend/src',
       'packages/backend/src/features/{feature}',
       'packages/backend/src/features/{feature}/domain',
       'packages/backend/src/features/{feature}/commands',
+      'apps/frontend/src',
       'apps/frontend/src/features/{feature}',
       'apps/frontend/src/features/{feature}/domain',
       'apps/frontend/src/features/{feature}/components',
@@ -180,13 +182,13 @@ describe('roleEnforcement', () => {
 
   it('preserves common rules unless an extension explicitly replaces them', () => {
     const common = locationConfiguration(
-      location('src/features/{feature}', ['aggregate'], {dependencyRules: { canImportSiblings: false },}),
+      location('/features/{feature}', ['aggregate'], {dependencyRules: { canImportSiblings: false },}),
     )
     const preserved = roleEnforcement({
       configurations: {
         standard: {
           packages: ['packages/preserved'],
-          locations: common.extend(location('src/features/{feature}')),
+          locations: common.extend(location('/features/{feature}')),
         },
       },
       ignorePatterns: [],
@@ -198,7 +200,7 @@ describe('roleEnforcement', () => {
         standard: {
           packages: ['packages/replaced'],
           locations: common.extend(
-            location('src/features/{feature}', ['cli-entrypoint'], {dependencyRules: { locations: [] },}),
+            location('/features/{feature}', ['cli-entrypoint'], {dependencyRules: { locations: [] },}),
           ),
         },
       },
@@ -207,11 +209,15 @@ describe('roleEnforcement', () => {
       roles: testRoles,
     })
 
-    expect(preserved.locationHierarchy[0]).toMatchObject({
+    expect(
+      preserved.locationHierarchy.find(({ name }) => name === '/features/{feature}'),
+    ).toMatchObject({
       allowedRoles: ['aggregate'],
       dependencyRules: { canImportSiblings: false },
     })
-    expect(replaced.locationHierarchy[0]).toMatchObject({
+    expect(
+      replaced.locationHierarchy.find(({ name }) => name === '/features/{feature}'),
+    ).toMatchObject({
       allowedRoles: ['cli-entrypoint'],
       dependencyRules: { locations: [] },
     })
@@ -219,7 +225,7 @@ describe('roleEnforcement', () => {
 
   it('applies a named configuration to every assigned package', () => {
     const locations = locationConfiguration(
-      location('src/features/{feature}')
+      location('/features/{feature}')
         .subLocation('/domain', ['aggregate'])
         .subLocation('/entrypoint', ['cli-entrypoint']),
     )
@@ -236,9 +242,11 @@ describe('roleEnforcement', () => {
     })
 
     expect(result.locationHierarchy.map((location) => location.pathTemplate)).toStrictEqual([
+      'packages/app-a/src',
       'packages/app-a/src/features/{feature}',
       'packages/app-a/src/features/{feature}/domain',
       'packages/app-a/src/features/{feature}/entrypoint',
+      'packages/app-b/src',
       'packages/app-b/src/features/{feature}',
       'packages/app-b/src/features/{feature}/domain',
       'packages/app-b/src/features/{feature}/entrypoint',
@@ -246,7 +254,7 @@ describe('roleEnforcement', () => {
   })
 
   it('derives TypeScript and TSX include patterns from every enforced package', () => {
-    const locations = locationConfiguration(location('src', { allowAnySubLocations: true }))
+    const locations = locationConfiguration(location('/domain', { allowAnySubLocations: true }))
     const result = roleEnforcement({
       configurations: {
         standard: {
@@ -276,7 +284,7 @@ describe('roleEnforcement', () => {
       configurations: {
         standard: {
           packages: ['packages/my-app'],
-          locations: locationConfiguration(location('src', { allowAnySubLocations: true })),
+          locations: locationConfiguration(location('/domain', { allowAnySubLocations: true })),
         },
       },
       ignorePatterns: ['**/__fixtures__/**'],
@@ -293,6 +301,60 @@ describe('roleEnforcement', () => {
       roles: testRoles,
       workspacePackageSources: { '@generic/pkg': 'packages/pkg/src/index.ts' },
     })
+  })
+
+  it('builds sub-locations relative to their actual parent', () => {
+    const locations = locationConfiguration(
+      location<(typeof testRoles)[number]['name']>('/features/{feature}').subLocation(
+        location<(typeof testRoles)[number]['name']>('/data-access', ['aggregate']).subLocation(
+          '/extraction-project',
+          [],
+        ),
+      ),
+    )
+
+    const result = roleEnforcement({
+      configurations: {
+        standard: {
+          packages: ['packages/app'],
+          locations,
+        },
+      },
+      ignorePatterns: [],
+      roleDefinitionsDir: '.riviere/role-definitions',
+      roles: testRoles,
+    })
+
+    expect(
+      result.locationHierarchy.map(({
+        name, parentId, pathTemplate 
+      }) => ({
+        name,
+        parentId,
+        pathTemplate,
+      })),
+    ).toStrictEqual([
+      {
+        name: '/',
+        parentId: undefined,
+        pathTemplate: 'packages/app/src',
+      },
+      {
+        name: '/features/{feature}',
+        parentId: 'packages/app:packages/app/src',
+        pathTemplate: 'packages/app/src/features/{feature}',
+      },
+      {
+        name: '/data-access',
+        parentId: 'packages/app:packages/app/src/features/{feature}',
+        pathTemplate: 'packages/app/src/features/{feature}/data-access',
+      },
+      {
+        name: '/data-access/extraction-project',
+        parentId: 'packages/app:packages/app/src/features/{feature}/data-access',
+        pathTemplate: 'packages/app/src/features/{feature}/data-access/extraction-project',
+      },
+    ])
   })
 })
 

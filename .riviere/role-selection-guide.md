@@ -86,7 +86,7 @@ If yes, it is part of the query side. Ask: does it orchestrate the query, or doe
 - If it orchestrates (loads a query model, calls query methods, returns a result): `query-model-use-case`
 - If it is the query model itself (holds immutable state, exposes read-only methods): `query-model`
 - If it defines result types returned by the query model: `query-model`
-- If it loads the concrete read model for an actual query use case from storage: `query-model-loader`
+- If it loads the concrete result for an actual query use case from storage: `query-model-loader`
 - If it defines the input contract for a query use case: `query-model-use-case-input`
 - If it is an error thrown during query operations: `query-model-error`
 

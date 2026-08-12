@@ -11,7 +11,7 @@ const config: RoleEnforcementResult = roleEnforcement({
   configurations: {
     test: {
       packages: ['packages/pkg-a', 'packages/pkg-b'],
-      locations: locationConfiguration(location('src').subLocation('/domain', [])),
+      locations: locationConfiguration(location('/domain', [])),
     },
   },
   ignorePatterns: ['**/*.spec.ts'],

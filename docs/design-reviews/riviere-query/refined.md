@@ -80,7 +80,7 @@ packages/riviere-query/test/
     riviere-graph-fixtures.ts   # Test fixtures
 ```
 
-## Separation of Concerns Analysis
+## Responsibility Analysis
 
 ### Principle 1: Separate external clients from domain-specific code
 

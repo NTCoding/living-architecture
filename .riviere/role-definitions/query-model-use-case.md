@@ -32,6 +32,8 @@ export class ListComponents {
 ```
 
 ### Edge Cases
+- A query that calls multiple methods on the same query model is valid
+- A query that composes results from multiple query model methods is valid
 - A use case may map known loader failures into query-use-case errors
 - A use case may coordinate multiple loaders when the concrete read genuinely needs them
 

@@ -25,9 +25,8 @@ const testRoles = [
 type TestRoleName = (typeof testRoles)[number]['name']
 
 const testLocations = locationConfiguration(
-  location<TestRoleName>('src')
-    .subLocation('/commands', ['role-a'])
-    .subLocation('/shell', ['role-main']),
+  location<TestRoleName>('/commands', ['role-a']),
+  location<TestRoleName>('/shell', ['role-main']),
 )
 
 const testConfig = roleEnforcement({

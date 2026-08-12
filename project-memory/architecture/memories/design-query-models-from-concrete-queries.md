@@ -65,14 +65,14 @@ Trying to preserve that repository then produced another false abstraction:
 export class GraphQueryModel {}
 ```
 
-There is no use case called “query graph”. The generic wrapper hid the actual queries and prevented their read models from being independently shaped.
+There is no use case called “query graph”. The generic wrapper hid the actual queries and prevented their query models from being independently shaped.
 
 ## Consider this when
 
 - Designing a query use case, query model, or query-model loader.
 - An existing repository or loader returns a shared domain service.
 - A proposed query model has a generic name unrelated to a user query.
-- Several query use cases are being forced through one read model.
+- Several query use cases are being forced through one query model.
 
 ## Do not apply automatically when
 

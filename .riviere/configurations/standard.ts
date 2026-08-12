@@ -57,14 +57,11 @@ export const standard = {
     'tools/dev-workflow-v2',
   ],
   locations: locationConfiguration(
-    location<RoleName>('src'),
-
-    location<RoleName>('src/features/{feature}', {
+    location<RoleName>('/features/{feature}', {
       dependencyRules: { canImportSiblings: false },
     })
       .subLocation('/adapters/{adapter}', ['domain-port-adapter'], {
         dependencyRules: {
-          externalPackages: [],
           locations: [
             { location: '/domain', roles: ['domain-port'] },
             {
@@ -79,45 +76,47 @@ export const standard = {
           locations: [{ location: '/domain' }, { location: '/data-access' }],
         },
       })
-      .subLocation('/data-access', ['aggregate-repository', 'query-model-loader'], {
-        dependencyRules: {
-          locations: [
-            { location: '/domain' },
-            { location: '/queries' },
-            { location: '/infra/external-clients/{client}' },
-          ],
-        },
-      })
-      .subLocation('/data-access/extraction-project', [])
+      .subLocation(
+        location<RoleName>('/data-access', ['aggregate-repository', 'query-model-loader'], {
+          dependencyRules: {
+            locations: [
+              { location: '/domain' },
+              { location: '/queries' },
+              { location: '/infra/external-clients/{client}' },
+            ],
+          },
+        }).subLocation('/extraction-project', []),
+      )
       .subLocation('/domain', domainRoles, {
         allowAnySubLocations: true,
         dependencyRules: { locations: [{ location: '/domain' }] },
       })
-      .subLocation('/entrypoint', [], {
-        dependencyRules: {
-          locations: [
-            { location: '/commands' },
-            { location: '/queries' },
-            { location: '/infra/cli/input' },
-            { location: '/infra/cli/presentation' },
-          ],
-        },
-      })
-      .subLocation('/entrypoint/_platform', entrypointRoles, {
-        dependencyRules: { importableFrom: 'withinParentLocation' },
-      })
-      .subLocation('/entrypoint/_platform/cli', [])
-      .subLocation('/entrypoint/{entrypoint}', entrypointRoles)
+      .subLocation(
+        location<RoleName>('/entrypoint', [], {
+          dependencyRules: {
+            locations: [
+              { location: '/commands' },
+              { location: '/queries' },
+              { location: '/infra/cli/*' },
+            ],
+          },
+        })
+          .subLocation(
+            location<RoleName>('/_platform', entrypointRoles, {
+              dependencyRules: { importableFrom: 'withinParentLocation' },
+            }).subLocation('/cli', []),
+          )
+          .subLocation('/{entrypoint}', entrypointRoles),
+      )
       .subLocation('/queries', queryRoles, {
         dependencyRules: {
           locations: [{ location: '/domain' }, { location: '/data-access' }],
         },
       }),
 
-    location<RoleName>('src/platform')
+    location<RoleName>('/platform')
       .subLocation('/adapters/{adapter}', ['domain-port-adapter'], {
         dependencyRules: {
-          externalPackages: [],
           locations: [
             { location: '/domain', roles: ['domain-port'] },
             {
@@ -131,14 +130,19 @@ export const standard = {
         allowAnySubLocations: true,
         dependencyRules: { locations: [{ location: '/domain' }] },
       })
-      .subLocation('/infra', [], {
-        dependencyRules: { locations: [] },
-      })
-      .subLocation('/infra/external-clients/{client}', externalClientRoles)
-      .subLocation('/infra/cli/input', ['generic-cli-input-parser'])
-      .subLocation('/infra/cli/presentation', cliPresentationRoles),
+      .subLocation(
+        location<RoleName>('/infra', [], {
+          dependencyRules: { locations: [] },
+        })
+          .subLocation('/external-clients/{client}', externalClientRoles)
+          .subLocation(
+            location<RoleName>('/cli', [])
+              .subLocation('/input', ['generic-cli-input-parser'])
+              .subLocation('/presentation', cliPresentationRoles),
+          ),
+      ),
 
-    location<RoleName>('src/shell', ['main', 'cli-error-handler'], {
+    location<RoleName>('/shell', ['main', 'cli-error-handler'], {
       dependencyRules: {
         locations: [
           { location: '/commands' },

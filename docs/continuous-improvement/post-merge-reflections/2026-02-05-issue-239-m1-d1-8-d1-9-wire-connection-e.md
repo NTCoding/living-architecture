@@ -166,8 +166,8 @@ Wired `detectConnections` from `riviere-extract-ts` into the `riviere extract` C
 ### Proposal: Pre-flight layer placement check for simple function calls
 
 - **Problem:** 4 architecture review iterations (~40 minutes) to place `detectConnections` correctly. Moved commands/ → queries/ → split query/presentation → inlined in entrypoint.
-- **Root cause:** No guidance on when a function call is too simple for commands/ or queries/ wrappers. The decision tree in separation-of-concerns covers _what_ belongs where, but doesn't address the case where a single function call has no orchestration value.
-- **Proposed change:** Add guidance to separation-of-concerns or the task workflow: "Before creating a command or query wrapper, check if the function being called requires orchestration (loading, domain logic, persistence). If it's a single function call with no orchestration, inline it in the entrypoint."
+- **Root cause:** No local guidance on when a function call is too simple for commands/ or queries/ wrappers. The role selection guide covers _what_ belongs where, but doesn't address the case where a single function call has no orchestration value.
+- **Proposed change:** Add guidance to the local role selection guide or the task workflow: "Before creating a command or query wrapper, check if the function being called requires orchestration (loading, domain logic, persistence). If it's a single function call with no orchestration, inline it in the entrypoint."
 - **Expected impact:** ~30 minutes saved per occurrence (eliminates multiple architecture review iterations for trivial wrappers).
 
 ### Proposal: Run architecture review before first commit, not after
@@ -183,4 +183,4 @@ Wired `detectConnections` from `riviere-extract-ts` into the `riviere extract` C
 - ✅ Added RFC-016: Mock Cleanup After vi.spyOn (review-feedback-checks.md)
 - Add RFC: "Prefer for-of over forEach for side-effect-only iteration"
 - Create task: Add pre-implementation placement check to task workflow
-- Create task: Add "single function call = inline in entrypoint" guidance to separation-of-concerns
+- Create task: Add "single function call = inline in entrypoint" guidance to the local role selection guide

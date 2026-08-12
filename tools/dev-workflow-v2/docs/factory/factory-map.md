@@ -39,7 +39,7 @@ Factory surfaces relate in these ways:
 - Hooks and CI decide when checks run.
 - ESLint checks local syntax, AST, naming, import declarations, and test-shape patterns.
 - Riviere role enforcement checks location structure, import direction, circular imports, exported declaration roles, and role contracts for standard packages.
-- Riviere role enforcement owns location structure and import graph rules for standard packages. Eclair remains outside RLE and retains its frontend Dependency Cruiser check.
+- Rivière role enforcement owns location structure and import graph rules for standard packages. Eclair remains outside role enforcement and retains its frontend Dependency Cruiser check.
 - Tests and coverage prove behavior.
 - Generated-artifact checks keep generated output synchronized with source files.
 - Architecture docs define placement semantics that deterministic checks and agents refer to.
@@ -126,7 +126,7 @@ Relationship boundaries:
 
 - ESLint is for file-local syntax and AST patterns.
 - Riviere role enforcement is for location structure, resolved import paths, annotated declaration roles, and role contracts in standard packages.
-- Eclair's Dependency Cruiser configuration checks its frontend import graph because Eclair is not yet covered by RLE.
+- Eclair's Dependency Cruiser configuration checks its frontend import graph because Eclair is not yet covered by Rivière role enforcement.
 - Review agents are for semantic judgments that are not deterministic enough for lint.
 
 Verification entrypoints:
@@ -241,7 +241,7 @@ Verification entrypoints:
 
 ## Eclair Dependency Cruiser
 
-Eclair remains outside RLE. Its frontend import graph is enforced by `.dependency-cruiser.frontend.mjs`; run it with `pnpm depcruise:eclair` or the `depcruise-eclair` Nx target. Standard packages do not have a separate Dependency Cruiser configuration: their location structure, import direction, and circular dependencies are enforced by RLE.
+Eclair remains outside Rivière role enforcement. Its frontend import graph is enforced by `.dependency-cruiser.frontend.mjs`; run it with `pnpm depcruise:eclair` or the `depcruise-eclair` Nx target. Standard packages do not have a separate Dependency Cruiser configuration: their location structure, import direction, and circular dependencies are enforced by Rivière role enforcement.
 
 ## Architecture Documentation
 

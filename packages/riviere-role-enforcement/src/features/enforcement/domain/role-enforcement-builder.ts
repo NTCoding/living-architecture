@@ -125,72 +125,69 @@ function buildFluentLocationHierarchy<R extends string>(
   packages: readonly string[],
   configuration: LocationConfiguration<R>,
 ): BuiltLocationNode[] {
-  return packages.flatMap((pkg) =>
-    configuration.locations.flatMap((root) => buildFluentLocation(root, pkg)),
-  )
+  return packages.flatMap((pkg) => {
+    const sourceRoot = buildSourceRoot(pkg)
+    return [
+      sourceRoot,
+      ...configuration.locations.flatMap((root) => buildFluentLocation(root, pkg, sourceRoot)),
+    ]
+  })
 }
 
 function buildFluentLocation<R extends string>(
   root: LocationBuilder<R>,
   packagePath: string,
+  sourceRoot: BuiltLocationNode,
 ): BuiltLocationNode[] {
-  const definitions = [root, ...root.subLocations]
-  return definitions.map((definition) => {
-    const relativePath =
-      definition === root
-        ? normalizeLocationPath(root.path)
-        : `${normalizeLocationPath(root.path)}/${normalizeLocationPath(definition.path)}`
-    const parent = findFluentParent(definition, root, definitions)
-    const pathTemplate = `${packagePath}/${relativePath}`
-    return {
-      allowAnySubLocations: definition.allowAnySubLocations,
-      allowedRoles: definition.allowedRoles,
-      ...(definition.dependencyRules !== undefined && {dependencyRules: definition.dependencyRules,}),
-      id: `${packagePath}:${pathTemplate}`,
-      name: definition.path,
-      packagePath,
-      ...(parent !== undefined && {parentId: `${packagePath}:${packagePath}/${fluentRelativePath(root, parent)}`,}),
-      pathTemplate,
-    }
-  })
+  return buildFluentLocationNode(
+    root,
+    packagePath,
+    sourceRoot.pathTemplate,
+    `/${normalizeLocationPath(root.path)}`,
+    true,
+  )
 }
 
-function findFluentParent<R extends string>(
-  definition: FluentLocationDefinition<R>,
-  root: FluentLocationDefinition<R>,
-  definitions: readonly FluentLocationDefinition<R>[],
-): FluentLocationDefinition<R> | undefined {
-  if (definition === root) {
-    return undefined
+function buildSourceRoot(packagePath: string): BuiltLocationNode {
+  const pathTemplate = `${packagePath}/src`
+  return {
+    allowAnySubLocations: false,
+    allowedRoles: [],
+    id: `${packagePath}:${pathTemplate}`,
+    name: '/',
+    packagePath,
+    pathTemplate,
   }
-  const definitionPath = normalizeLocationPath(definition.path)
-  return definitions
-    .filter((candidate) => candidate !== definition)
-    .filter((candidate) => {
-      if (candidate === root) {
-        return true
-      }
-      const candidatePath = normalizeLocationPath(candidate.path)
-      return definitionPath.startsWith(`${candidatePath}/`)
-    })
-    .sort((left, right) => fluentLocationDepth(right, root) - fluentLocationDepth(left, root))[0]
 }
 
-function fluentLocationDepth<R extends string>(
+function buildFluentLocationNode<R extends string>(
   definition: FluentLocationDefinition<R>,
-  root: FluentLocationDefinition<R>,
-): number {
-  return definition === root ? 0 : normalizeLocationPath(definition.path).split('/').length
-}
-
-function fluentRelativePath<R extends string>(
-  root: FluentLocationDefinition<R>,
-  definition: FluentLocationDefinition<R>,
-): string {
-  if (definition === root) {
-    return normalizeLocationPath(root.path)
+  packagePath: string,
+  parentPathTemplate: string,
+  locationName: string,
+  isConfigurationRoot = false,
+): BuiltLocationNode[] {
+  const path = normalizeLocationPath(definition.path)
+  const pathTemplate = `${parentPathTemplate}/${path}`
+  const id = `${packagePath}:${pathTemplate}`
+  const node: BuiltLocationNode = {
+    allowAnySubLocations: definition.allowAnySubLocations,
+    allowedRoles: definition.allowedRoles,
+    ...(definition.dependencyRules !== undefined && {dependencyRules: definition.dependencyRules,}),
+    id,
+    name: locationName,
+    packagePath,
+    parentId: `${packagePath}:${parentPathTemplate}`,
+    pathTemplate,
   }
-  return `${normalizeLocationPath(root.path)}/${normalizeLocationPath(definition.path)}`
+  return [
+    node,
+    ...definition.subLocations.flatMap((child) => {
+      const childPath = normalizeLocationPath(child.path)
+      const childName = isConfigurationRoot ? `/${childPath}` : `${locationName}/${childPath}`
+      return buildFluentLocationNode(child, packagePath, pathTemplate, childName)
+    }),
+  ]
 }
 
 function normalizeLocationPath(locationPath: string): string {

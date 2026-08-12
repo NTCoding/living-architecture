@@ -16,14 +16,14 @@ it('rejects circular imports', () => {
       prefix: 'role-enforcement-circular-imports-',
       roles: [moduleFunction],
       files: {
-        'packages/pkg-a/src/first.ts': `import { second } from './second'
+        'packages/pkg-a/src/domain/first.ts': `import { second } from './second'
 
 /** @riviere-role module-function */
 export function first(): string {
   return second()
 }
 `,
-        'packages/pkg-a/src/second.ts': `import { first } from './first'
+        'packages/pkg-a/src/domain/second.ts': `import { first } from './first'
 
 /** @riviere-role module-function */
 export function second(): string {
@@ -41,7 +41,7 @@ export function second(): string {
               test: {
                 packages: ['packages/pkg-a'],
                 locations: locationConfiguration(
-                  location('src', ['module-function'], { allowAnySubLocations: true }),
+                  location('/domain', ['module-function'], { allowAnySubLocations: true }),
                 ),
               },
             },

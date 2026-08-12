@@ -10,15 +10,14 @@ import {
 import * as fixtureWorkspace from './test-fixture-workspace'
 
 const baseLocations = locationConfiguration(
-  location<never>('src')
-    .subLocation('/first', [])
-    .subLocation('/first/alpha', [])
-    .subLocation('/first/beta', [])
-    .subLocation('/first/gamma', [])
-    .subLocation('/second', [])
-    .subLocation('/second/alpha', [])
-    .subLocation('/second/beta', [])
-    .subLocation('/second/gamma', []),
+  location<never>('/first')
+    .subLocation('/alpha', [])
+    .subLocation('/beta', [])
+    .subLocation('/gamma', []),
+  location<never>('/second')
+    .subLocation('/alpha', [])
+    .subLocation('/beta', [])
+    .subLocation('/gamma', []),
 )
 
 it('allows no roles when a location has no permitted roles', () => {
@@ -44,7 +43,7 @@ export function source(): string {
             configurations: {
               test: {
                 packages: ['packages/pkg-a'],
-                locations: locationConfiguration(location('src').subLocation('/infra', [])),
+                locations: locationConfiguration(location<'role-a'>('/infra', [])),
               },
             },
             ignorePatterns: [],
@@ -68,7 +67,7 @@ it('allows imports between locations by default', () => {
       'packages/pkg-a/src/second/gamma/target.ts': `void 'target'\n`,
     },
     (result) => {
-      assert.equal(result.exitCode, 0)
+      assert.equal(result.exitCode, 0, result.stdout)
       assert.equal(result.stderr, '')
     },
   )
@@ -76,10 +75,10 @@ it('allows imports between locations by default', () => {
 
 it('prevents sibling location instances importing one another', () => {
   const locations = locationConfiguration(
-    location<never>('src/features/{feature}', { dependencyRules: { canImportSiblings: false } })
+    location<never>('/features/{feature}', { dependencyRules: { canImportSiblings: false } })
       .subLocation('/commands', [])
       .subLocation('/domain', []),
-    location<never>('src/platform').subLocation('/domain', []),
+    location<never>('/platform').subLocation('/domain', []),
   )
 
   runFixture(
@@ -97,8 +96,8 @@ it('prevents sibling location instances importing one another', () => {
 
 it('allows a location with sibling restrictions to import platform', () => {
   const locations = locationConfiguration(
-    location<never>('src/features/{feature}', {dependencyRules: { canImportSiblings: false },}).subLocation('/commands', []),
-    location<never>('src/platform').subLocation('/domain', []),
+    location<never>('/features/{feature}', {dependencyRules: { canImportSiblings: false },}).subLocation('/commands', []),
+    location<never>('/platform').subLocation('/domain', []),
   )
 
   runFixture(
@@ -115,11 +114,10 @@ it('allows a location with sibling restrictions to import platform', () => {
 
 it('inherits location restrictions in every sub-location', () => {
   const locations = locationConfiguration(
-    location<never>('src')
-      .subLocation('/domain', [])
-      .subLocation('/infra', [], { dependencyRules: { locations: [] } })
-      .subLocation('/infra/external-clients', [])
-      .subLocation('/infra/external-clients/{client}', []),
+    location<never>('/domain', []),
+    location<never>('/infra', [], { dependencyRules: { locations: [] } }).subLocation(
+      location<never>('/external-clients', []).subLocation('/{client}', []),
+    ),
   )
 
   runFixture(
@@ -137,10 +135,9 @@ it('inherits location restrictions in every sub-location', () => {
 
 it('allows imports within a restricted location', () => {
   const locations = locationConfiguration(
-    location<never>('src')
-      .subLocation('/infra', [], { dependencyRules: { locations: [] } })
-      .subLocation('/infra/cli', [])
-      .subLocation('/infra/external-clients', []),
+    location<never>('/infra', [], { dependencyRules: { locations: [] } })
+      .subLocation('/cli', [])
+      .subLocation('/external-clients', []),
   )
 
   runFixture(
@@ -151,6 +148,30 @@ it('allows imports within a restricted location', () => {
     },
     (result) => {
       assert.equal(result.exitCode, 0)
+    },
+  )
+})
+
+it('allows importing all sub-locations with a wildcard', () => {
+  const locations = locationConfiguration(
+    location<never>('/entrypoint', [], {dependencyRules: { locations: [{ location: '/infra/cli/*' }] },}),
+    location<never>('/platform').subLocation(
+      location<never>('/infra', []).subLocation(
+        location<never>('/cli', []).subLocation('/input', []).subLocation('/presentation', []),
+      ),
+    ),
+  )
+
+  runFixture(
+    locations,
+    {
+      'packages/pkg-a/src/entrypoint/handler.ts': `import '../platform/infra/cli/input/parser'\nimport '../platform/infra/cli/presentation/output'\n`,
+      'packages/pkg-a/src/platform/infra/cli/input/parser.ts': `void 'parser'\n`,
+      'packages/pkg-a/src/platform/infra/cli/presentation/output.ts': `void 'output'\n`,
+    },
+    (result) => {
+      assert.equal(result.exitCode, 0, result.stdout)
+      assert.equal(result.stderr, '')
     },
   )
 })
@@ -166,9 +187,20 @@ it('rejects folders that are not configured sub-locations', () => {
   )
 })
 
+it('rejects source folders that are not configured locations', () => {
+  runFixture(
+    locationConfiguration(location<never>('/domain', [])),
+    { 'packages/pkg-a/src/other/file.ts': `void 'invalid location'\n` },
+    (result) => {
+      assert.equal(result.exitCode, 1)
+      assert.match(result.stdout, /Unconfigured sub-location 'other' inside location '\/'/)
+    },
+  )
+})
+
 it('allows any folder when allowAnySubLocations is enabled', () => {
   const locations = locationConfiguration(
-    location<never>('src').subLocation('/domain', [], { allowAnySubLocations: true }),
+    location<never>('/domain', [], { allowAnySubLocations: true }),
   )
 
   runFixture(
@@ -182,11 +214,11 @@ it('allows any folder when allowAnySubLocations is enabled', () => {
 
 it('rejects combining allowAnySubLocations with explicit sub-locations', () => {
   assert.throws(() => {
-    location<never>('src', { allowAnySubLocations: true }).subLocation('/invalid', [])
+    location<never>('/domain', { allowAnySubLocations: true }).subLocation('/invalid', [])
   }, /cannot define both allowAnySubLocations and subLocations/)
 
   assert.throws(() => {
-    location<never>('src')
+    location<never>('/features/{feature}')
       .subLocation('/domain', [], { allowAnySubLocations: true })
       .subLocation('/domain/invalid', [])
   }, /cannot define both allowAnySubLocations and subLocations/)
@@ -225,11 +257,10 @@ it('rejects importing a location from outside its parent location', () => {
 
 function privateLocationConfiguration(): LocationConfiguration<never> {
   return locationConfiguration(
-    location<never>('src')
-      .subLocation('/commands', [])
-      .subLocation('/entrypoint', [])
-      .subLocation('/entrypoint/_platform', [], {dependencyRules: { importableFrom: 'withinParentLocation' },})
-      .subLocation('/entrypoint/http', []),
+    location<never>('/commands', []),
+    location<never>('/entrypoint', [])
+      .subLocation('/_platform', [], {dependencyRules: { importableFrom: 'withinParentLocation' },})
+      .subLocation('/http', []),
   )
 }
 
