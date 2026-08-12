@@ -16,7 +16,9 @@ Claude Code creates the worktree. The plugin owns everything from task selection
 
 ### Codex
 
-Codex discovers the explicit project skills in `.agents/skills/`. Invoke the matching skill rather than describing the operation in prose:
+`dev-workflow-v2` is an Agent Plugin. Its portable skills are in `skills/`, and its Codex hook configuration is in `com.openai.codex/`. The application installs this plugin; it does not copy provider files into the application's `.agents/` or `.codex/` directories.
+
+After installing the plugin, invoke the matching skill rather than describing the operation in prose:
 
 ```text
 $dev-workflow-start-planning <topic>

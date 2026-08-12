@@ -16,7 +16,7 @@ import {
 
 const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const workflowCommand =
-  'npx tsx "$(git rev-parse --show-toplevel)/tools/dev-workflow-v2/src/shell/codex-workflow-command.ts"'
+  'pnpm --dir "$(git rev-parse --show-toplevel)" exec tsx "$(git rev-parse --show-toplevel)/tools/dev-workflow-v2/src/shell/codex-workflow-command.ts"'
 const defaultProcessDeps = createDefaultProcessDeps()
 const processDeps = {
   ...defaultProcessDeps,

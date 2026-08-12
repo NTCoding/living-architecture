@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "dev-workflow-v2",
+  "version": "0.0.144",
+  "description": "Event-sourced workflow state machine for a structured task lifecycle.",
+  "author": {
+    "name": "NTCoding"
+  },
+  "homepage": "https://github.com/NTCoding/living-architecture/tree/main/tools/dev-workflow-v2",
+  "repository": "https://github.com/NTCoding/living-architecture",
+  "license": "MIT",
+  "keywords": [
+    "development-workflow",
+    "planning",
+    "implementation",
+    "code-review"
+  ],
+  "extensions": {
+    "com.openai.codex": {}
+  }
+}

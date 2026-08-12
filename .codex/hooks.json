@@ -1,8 +1,0 @@
-{
-  "hooks": {
-    "SessionStart": [{ "hooks": [{ "type": "command", "command": "npx tsx \"$(git rev-parse --show-toplevel)/tools/dev-workflow-v2/src/shell/codex-cli.ts\"" }] }],
-    "PreToolUse": [{ "matcher": "Bash|apply_patch", "hooks": [{ "type": "command", "command": "npx tsx \"$(git rev-parse --show-toplevel)/tools/dev-workflow-v2/src/shell/codex-cli.ts\"" }] }],
-    "SubagentStart": [{ "hooks": [{ "type": "command", "command": "npx tsx \"$(git rev-parse --show-toplevel)/tools/dev-workflow-v2/src/shell/codex-cli.ts\"" }] }],
-    "Stop": [{ "hooks": [{ "type": "command", "command": "npx tsx \"$(git rev-parse --show-toplevel)/tools/dev-workflow-v2/src/shell/codex-cli.ts\"" }] }]
-  }
-}
