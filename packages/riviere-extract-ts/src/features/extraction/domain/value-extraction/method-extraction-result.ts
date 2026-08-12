@@ -4,17 +4,11 @@ export class ParameterInfo {
   readonly name: string
   readonly type: string
 
-  static parse(params: {
-    name: string;
-    type: string 
-  }): ParameterInfo {
+  static parse(params: { name: string; type: string }): ParameterInfo {
     return new ParameterInfo(params)
   }
 
-  private constructor(params: {
-    name: string;
-    type: string 
-  }) {
+  private constructor(params: { name: string; type: string }) {
     this.name = params.name
     this.type = params.type
   }
@@ -26,17 +20,11 @@ export class MethodSignature {
   readonly parameters: ParameterInfo[]
   readonly returnType: string
 
-  static parse(params: {
-    parameters: ParameterInfo[];
-    returnType: string 
-  }): MethodSignature {
+  static parse(params: { parameters: ParameterInfo[]; returnType: string }): MethodSignature {
     return new MethodSignature(params)
   }
 
-  private constructor(params: {
-    parameters: ParameterInfo[];
-    returnType: string 
-  }) {
+  private constructor(params: { parameters: ParameterInfo[]; returnType: string }) {
     this.parameters = params.parameters
     this.returnType = params.returnType
   }

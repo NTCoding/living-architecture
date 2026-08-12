@@ -34,7 +34,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/unknown-source-e
 
 > `static` **parse**(`input`): `UnknownSourceEvent`
 
-Defined in: packages/riviere-query/src/features/querying/domain/unknown-source-event.ts:20
+Defined in: packages/riviere-query/src/features/querying/domain/unknown-source-event.ts:17
 
 #### Parameters
 

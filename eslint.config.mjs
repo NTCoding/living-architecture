@@ -5,7 +5,6 @@ import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/conf
 import importPlugin from 'eslint-plugin-import'
 import sonarjs from 'eslint-plugin-sonarjs'
 import jsdoc from 'eslint-plugin-jsdoc'
-import stylistic from '@stylistic/eslint-plugin'
 import react from 'eslint-plugin-react'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 import unicorn from 'eslint-plugin-unicorn'
@@ -259,30 +258,6 @@ export default tseslint.config(
         'jsdoc/require-returns-description': 'error',
       },
     },
-  {
-    plugins: {
-      '@stylistic': stylistic,
-    },
-    rules: {
-      '@stylistic/indent': ['error', 2],
-      '@stylistic/object-curly-newline': [
-        'error',
-        {
-          ObjectExpression: { multiline: true, minProperties: 2 },
-          ObjectPattern: { multiline: true, minProperties: 2 },
-          TSTypeLiteral: { multiline: true, minProperties: 2 },
-          TSInterfaceBody: { multiline: true, minProperties: 2 },
-          TSEnumBody: { multiline: true, minProperties: 2 },
-        },
-      ],
-      '@stylistic/object-property-newline': [
-        'error',
-        {
-          allowAllPropertiesOnSameLine: false,
-        },
-      ],
-    },
-  },
   // Thin layer enforcement — entrypoints, commands, and queries are thin orchestration files
   {
     files: ['**/entrypoint/**/*.ts', '**/commands/**/*.ts', '**/queries/**/*.ts'],

@@ -4,17 +4,11 @@ export class AsyncDetectionOptions {
   readonly strict: boolean
   readonly repository: string
 
-  static parse(params: {
-    strict: boolean;
-    repository: string 
-  }): AsyncDetectionOptions {
+  static parse(params: { strict: boolean; repository: string }): AsyncDetectionOptions {
     return new AsyncDetectionOptions(params)
   }
 
-  private constructor(params: {
-    strict: boolean;
-    repository: string 
-  }) {
+  private constructor(params: { strict: boolean; repository: string }) {
     this.strict = params.strict
     this.repository = params.repository
   }

@@ -7,18 +7,12 @@ export class Flow {
   readonly entryPoint: Component
   readonly steps: FlowStep[]
 
-  private constructor(input: {
-    readonly entryPoint: Component;
-    readonly steps: FlowStep[] 
-  }) {
+  private constructor(input: { readonly entryPoint: Component; readonly steps: FlowStep[] }) {
     this.entryPoint = input.entryPoint
     this.steps = input.steps
   }
 
-  static parse(input: {
-    readonly entryPoint: Component;
-    readonly steps: FlowStep[] 
-  }): Flow {
+  static parse(input: { readonly entryPoint: Component; readonly steps: FlowStep[] }): Flow {
     return new Flow(input)
   }
 }

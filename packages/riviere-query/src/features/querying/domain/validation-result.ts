@@ -6,10 +6,7 @@ export class ValidationResult {
   readonly valid: boolean
   readonly errors: ValidationError[]
 
-  private constructor(input: {
-    readonly valid: boolean;
-    readonly errors: ValidationError[] 
-  }) {
+  private constructor(input: { readonly valid: boolean; readonly errors: ValidationError[] }) {
     this.valid = input.valid
     this.errors = input.errors
   }

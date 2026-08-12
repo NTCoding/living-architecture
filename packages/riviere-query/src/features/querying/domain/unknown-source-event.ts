@@ -9,10 +9,7 @@ export class UnknownSourceEvent {
   readonly eventName: EventName
   readonly sourceKnown: false
 
-  private constructor(input: {
-    readonly eventName: EventName;
-    readonly sourceKnown: false 
-  }) {
+  private constructor(input: { readonly eventName: EventName; readonly sourceKnown: false }) {
     this.eventName = input.eventName
     this.sourceKnown = input.sourceKnown
   }

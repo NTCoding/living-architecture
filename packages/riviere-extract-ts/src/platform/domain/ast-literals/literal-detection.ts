@@ -59,17 +59,11 @@ export class LiteralResult {
   readonly kind: LiteralKind
   readonly value: LiteralValue
 
-  static parse(params: {
-    kind: LiteralKind;
-    value: LiteralValue 
-  }): LiteralResult {
+  static parse(params: { kind: LiteralKind; value: LiteralValue }): LiteralResult {
     return new LiteralResult(params)
   }
 
-  private constructor(params: {
-    kind: LiteralKind;
-    value: LiteralValue 
-  }) {
+  private constructor(params: { kind: LiteralKind; value: LiteralValue }) {
     this.kind = params.kind
     this.value = params.value
   }

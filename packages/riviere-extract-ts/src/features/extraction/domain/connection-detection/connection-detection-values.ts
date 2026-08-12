@@ -153,17 +153,11 @@ export class PerModuleTimings {
   readonly callGraphMs: number
   readonly setupMs: number
 
-  static parse(params: {
-    callGraphMs: number;
-    setupMs: number 
-  }): PerModuleTimings {
+  static parse(params: { callGraphMs: number; setupMs: number }): PerModuleTimings {
     return new PerModuleTimings(params)
   }
 
-  private constructor(params: {
-    callGraphMs: number;
-    setupMs: number 
-  }) {
+  private constructor(params: { callGraphMs: number; setupMs: number }) {
     this.callGraphMs = params.callGraphMs
     this.setupMs = params.setupMs
   }
@@ -246,10 +240,7 @@ export class CrossModuleDetectionResult {
     return new CrossModuleDetectionResult(params)
   }
 
-  private constructor(params: {
-    links: ExtractedLink[];
-    timings: CrossModuleTimings 
-  }) {
+  private constructor(params: { links: ExtractedLink[]; timings: CrossModuleTimings }) {
     this.links = params.links
     this.timings = params.timings
   }
