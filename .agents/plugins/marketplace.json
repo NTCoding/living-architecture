@@ -1,0 +1,17 @@
+{
+  "name": "living-architecture",
+  "plugins": [
+    {
+      "name": "dev-workflow-v2",
+      "source": {
+        "source": "local",
+        "path": "./tools/dev-workflow-v2"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
