@@ -1,10 +1,8 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import { detectConnections } from './detect-connections'
-import { ConnectionDetectionOptions } from './connection-detection-values'
+import { describe, expect, it } from 'vitest'
 import { buildComponent } from './call-graph/call-graph-fixtures'
 import { ConnectionDetectionError } from './connection-detection-error'
+import { ConnectionDetectionOptions } from './connection-detection-values'
+import { detectConnections } from './detect-connections'
 import { createProject } from './detect-connections-fixtures'
 
 function createOptions(params: {
@@ -15,7 +13,7 @@ function createOptions(params: {
     metadataKey: string
   }[]
 }): ConnectionDetectionOptions {
-  return new ConnectionDetectionOptions({
+  return ConnectionDetectionOptions.parse({
     repository: 'test-repo',
     sourceFilePaths: params.sourceFilePaths,
     ...(params.allowIncomplete !== undefined && { allowIncomplete: params.allowIncomplete }),

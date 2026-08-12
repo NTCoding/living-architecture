@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: DiffStats
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:15](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L15)
+Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:2
 
 ## Riviere-role
 
@@ -14,38 +14,38 @@ value-object
 
 ### componentsAdded
 
-> **componentsAdded**: `number`
+> `readonly` **componentsAdded**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L16)
+Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:4
 
 ***
 
 ### componentsModified
 
-> **componentsModified**: `number`
+> `readonly` **componentsModified**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:18](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L18)
+Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:6
 
 ***
 
 ### componentsRemoved
 
-> **componentsRemoved**: `number`
+> `readonly` **componentsRemoved**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L17)
+Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:5
 
 ***
 
 ### linksAdded
 
-> **linksAdded**: `number`
+> `readonly` **linksAdded**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:19](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L19)
+Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:7
 
 ***
 
 ### linksRemoved
 
-> **linksRemoved**: `number`
+> `readonly` **linksRemoved**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:20](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L20)
+Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:8

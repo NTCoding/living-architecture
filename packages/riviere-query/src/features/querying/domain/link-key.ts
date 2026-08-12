@@ -1,11 +1,10 @@
 import type { Link } from '@living-architecture/riviere-schema'
-import type { LinkId } from './identifiers'
-import { parseLinkId } from './identifiers'
+import { LinkId } from './link-id'
 
 /** @riviere-role domain-service */
 export function createLinkKey(link: Link): LinkId {
   if (link.id !== undefined) {
-    return parseLinkId(link.id)
+    return LinkId.parse(link.id)
   }
-  return parseLinkId(`${link.source}->${link.target}`)
+  return LinkId.parse(`${link.source}->${link.target}`)
 }

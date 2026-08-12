@@ -1,13 +1,13 @@
-import { describe, it, expect } from 'vitest'
-import { RiviereQuery } from './RiviereQuery'
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import { describe, expect, it } from 'vitest'
 import {
-  createMinimalValidGraph,
   createAPIComponent,
-  createEventComponent,
   createDomainOpComponent,
+  createEventComponent,
+  createMinimalValidGraph,
   defaultSourceLocation,
 } from '../../../platform/__fixtures__/riviere-graph-fixtures'
+import { RiviereQuery } from './RiviereQuery'
 
 describe('stats', () => {
   it('returns componentCount matching number of components', () => {
@@ -199,7 +199,7 @@ describe('stats', () => {
     const query = new RiviereQuery(graph)
     const result = query.stats()
 
-    expect(result).toStrictEqual({
+    expect(JSON.parse(JSON.stringify(result))).toStrictEqual({
       componentCount: 0,
       linkCount: 0,
       domainCount: 0,

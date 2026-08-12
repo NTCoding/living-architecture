@@ -1,6 +1,4 @@
-import type { BuilderOptions } from '../features/building/domain/builder-facade'
-
-export function createValidOptions(): BuilderOptions {
+export function createValidOptions() {
   return {
     sources: [
       {
@@ -18,7 +16,7 @@ export function createValidOptions(): BuilderOptions {
         systemType: 'domain',
       },
     },
-  }
+  } as const
 }
 
 export function createSourceLocation() {

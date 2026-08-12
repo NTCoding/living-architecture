@@ -1,15 +1,13 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import { resolveCallExpressionReceiverType } from './type-resolver'
+import { describe, expect, it } from 'vitest'
 import { ConnectionDetectionError } from '../connection-detection-error'
+import { resolveCallExpressionReceiverType } from './type-resolver'
 import {
-  sharedProject,
-  nextFile,
-  getFirstCallExpression,
-  getCallExpressionFromFunction,
-  getCallExpressionByText,
   CallExpressionNotFoundError,
+  getCallExpressionByText,
+  getCallExpressionFromFunction,
+  getFirstCallExpression,
+  nextFile,
+  sharedProject,
 } from './type-resolver-fixtures'
 
 describe('resolveCallExpressionReceiverType coverage', () => {

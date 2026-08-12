@@ -1,10 +1,10 @@
 import { minimatch } from 'minimatch'
 import { filterConfigByPackage } from './filter-config-by-package'
-import type { RoleEnforcementResult } from './role-enforcement-builder'
 import type {
   RoleEnforcementRunner,
   RoleEnforcementRunnerResult,
 } from './ports/role-enforcement-runner'
+import type { RoleEnforcementResult } from './role-enforcement-builder'
 
 /** @riviere-role aggregate */
 export class RoleEnforcementProject {

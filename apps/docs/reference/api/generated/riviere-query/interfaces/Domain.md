@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: Domain
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:21](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L21)
+Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:4
 
 ## Riviere-role
 
@@ -14,30 +14,30 @@ value-object
 
 ### componentCounts
 
-> **componentCounts**: [`ComponentCounts`](ComponentCounts.md)
+> `readonly` **componentCounts**: [`ComponentCounts`](ComponentCounts.md)
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L25)
+Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:9
 
 ***
 
 ### description
 
-> **description**: `string`
+> `readonly` **description**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:23](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L23)
+Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:7
 
 ***
 
 ### name
 
-> **name**: `string`
+> `readonly` **name**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:22](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L22)
+Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:6
 
 ***
 
 ### systemType
 
-> **systemType**: `SystemType`
+> `readonly` **systemType**: `SystemType`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L24)
+Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:8

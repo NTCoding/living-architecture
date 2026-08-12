@@ -10,7 +10,20 @@ export class DraftComponent {
   readonly domain: string
   readonly module: string
 
-  constructor(params: {
+  static parse(params: {
+    type: string
+    name: string
+    location: {
+      file: string
+      line: number
+    }
+    domain: string
+    module: string
+  }): DraftComponent {
+    return new DraftComponent(params)
+  }
+
+  private constructor(params: {
     type: string
     name: string
     location: {

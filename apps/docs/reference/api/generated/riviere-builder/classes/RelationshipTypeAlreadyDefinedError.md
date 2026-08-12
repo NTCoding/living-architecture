@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: RelationshipTypeAlreadyDefinedError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:109](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L109)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:109
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new RelationshipTypeAlreadyDefinedError**(`typeName`): `RelationshipTypeAlreadyDefinedError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:112](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L112)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:112
 
 #### Parameters
 
@@ -90,7 +90,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **typeName**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:110](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L110)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:110
 
 ***
 

@@ -26,6 +26,9 @@ export class TestFixtureError extends Error {
   }
 }
 
+type LiteralKind = 'string' | 'number' | 'boolean' | 'string[]'
+type LiteralValue = string | number | boolean | string[]
+
 /** @riviere-role domain-service */
 export function isLiteralValue(expression: Expression | undefined): boolean {
   if (expression === undefined) {
@@ -53,12 +56,19 @@ function isStringArrayLiteral(expression: Expression): boolean {
 /** @riviere-role value-object */
 export class LiteralResult {
   declare private brand: 'LiteralResult'
-  readonly kind: 'string' | 'number' | 'boolean' | 'string[]'
-  readonly value: string | number | boolean | string[]
+  readonly kind: LiteralKind
+  readonly value: LiteralValue
 
-  constructor(params: {
-    kind: 'string' | 'number' | 'boolean' | 'string[]'
-    value: string | number | boolean | string[]
+  static parse(params: {
+    kind: LiteralKind;
+    value: LiteralValue 
+  }): LiteralResult {
+    return new LiteralResult(params)
+  }
+
+  private constructor(params: {
+    kind: LiteralKind;
+    value: LiteralValue 
   }) {
     this.kind = params.kind
     this.value = params.value
@@ -91,22 +101,22 @@ function buildExtractionResult(expression: Expression): LiteralResult | undefine
 
   switch (syntaxKind) {
     case SyntaxKind.StringLiteral:
-      return new LiteralResult({
+      return LiteralResult.parse({
         kind: 'string',
         value: extractString(expression),
       })
     case SyntaxKind.NumericLiteral:
-      return new LiteralResult({
+      return LiteralResult.parse({
         kind: 'number',
         value: extractNumber(expression),
       })
     case SyntaxKind.TrueKeyword:
-      return new LiteralResult({
+      return LiteralResult.parse({
         kind: 'boolean',
         value: true,
       })
     case SyntaxKind.FalseKeyword:
-      return new LiteralResult({
+      return LiteralResult.parse({
         kind: 'boolean',
         value: false,
       })
@@ -115,7 +125,7 @@ function buildExtractionResult(expression: Expression): LiteralResult | undefine
       if (values === undefined) {
         return undefined
       }
-      return new LiteralResult({
+      return LiteralResult.parse({
         kind: 'string[]',
         value: values,
       })

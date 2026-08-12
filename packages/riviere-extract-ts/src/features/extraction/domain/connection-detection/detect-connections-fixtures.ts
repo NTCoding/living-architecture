@@ -1,6 +1,4 @@
-import {
-  Project, ScriptTarget, ModuleKind 
-} from 'ts-morph'
+import { ModuleKind, Project, ScriptTarget } from 'ts-morph'
 
 export function createProject(): Project {
   return new Project({

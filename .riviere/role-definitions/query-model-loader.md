@@ -15,12 +15,20 @@ A class that loads a concrete query model for one read use case from persisted s
 ```typescript
 /** @riviere-role query-model-loader */
 export class ComponentListLoader {
-  load(criteria: ComponentListCriteria): ComponentList {
-    const graph = this.loadGraph(criteria.graphPath)
-    const query = new RiviereQuery(graph)
+  load(
+    graphPath: string | undefined,
+    domain: string | undefined,
+    type: ComponentType | undefined,
+  ): ComponentList {
+    const components = loadQuery(graphPath).components()
+    const inDomain = domain === undefined
+      ? components
+      : components.filter((component) => component.domain === domain)
 
     return {
-      components: filterComponents(query.components(), criteria),
+      components: type === undefined
+        ? inDomain
+        : inDomain.filter((component) => component.type === type),
     }
   }
 }
@@ -39,5 +47,5 @@ export class ComponentListLoader {
 
 ## Decision Guidance
 - **vs aggregate-repository**: Does it save state? → aggregate-repository. Load only, returning a query-model? → query-model-loader
-- **vs external-client-service**: Does it return a query-model? → query-model-loader. Does it return raw data? → external-client-service
+- **vs external-client-service**: `readJsonFile(path): unknown` is a generic filesystem client operation. `ComponentListLoader.load(...): ComponentList` uses persisted graph data to build the concrete query model.
 - **vs query-model-use-case**: Does it only load? → query-model-loader. Does it orchestrate load + query + return? → query-model-use-case

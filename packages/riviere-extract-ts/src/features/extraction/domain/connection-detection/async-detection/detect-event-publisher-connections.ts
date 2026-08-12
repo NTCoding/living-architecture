@@ -1,9 +1,9 @@
 import type { EventPublisherConfig } from '@living-architecture/riviere-extract-config'
 import { EVENT_NAME_FIELD } from '@living-architecture/riviere-schema'
 import type { EnrichedComponent } from '../../value-extraction/enriched-component'
-import { ExtractedLink } from '../extracted-link'
-import { ConnectionDetectionError } from '../connection-detection-error'
 import { componentIdentity } from '../call-graph/component-identity'
+import { ConnectionDetectionError } from '../connection-detection-error'
+import { ExtractedLink } from '../extracted-link'
 import type { AsyncDetectionOptions } from './async-detection-options'
 import { toSourceLocation } from './async-detection-types'
 
@@ -59,7 +59,7 @@ function handleMissingMetadata(
       reason: `published event type in "${metadataKey}" metadata is missing or invalid`,
     })
   }
-  return new ExtractedLink({
+  return ExtractedLink.parse({
     source: componentIdentity(publisher),
     target: '_unresolved',
     type: 'async',
@@ -84,14 +84,13 @@ function resolvePublishTarget(
     return [handleAmbiguousMatch(publisher, publishedEventType, matchingEvents.length, options)]
   }
 
-  return matchingEvents.map(
-    (event) =>
-      new ExtractedLink({
-        source: componentIdentity(publisher),
-        target: componentIdentity(event),
-        type: 'async',
-        sourceLocation: toSourceLocation(publisher, options.repository),
-      }),
+  return matchingEvents.map((event) =>
+    ExtractedLink.parse({
+      source: componentIdentity(publisher),
+      target: componentIdentity(event),
+      type: 'async',
+      sourceLocation: toSourceLocation(publisher, options.repository),
+    }),
   )
 }
 
@@ -109,7 +108,7 @@ function handleAmbiguousMatch(
       reason: `published event "${publishedEventType}" matches ${matchCount} Event components (ambiguous)`,
     })
   }
-  return new ExtractedLink({
+  return ExtractedLink.parse({
     source: componentIdentity(publisher),
     target: '_unresolved',
     type: 'async',
@@ -131,7 +130,7 @@ function handleNoMatch(
       reason: `published event "${publishedEventType}" does not match any Event component`,
     })
   }
-  return new ExtractedLink({
+  return ExtractedLink.parse({
     source: componentIdentity(publisher),
     target: '_unresolved',
     type: 'async',

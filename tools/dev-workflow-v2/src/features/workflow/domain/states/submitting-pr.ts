@@ -1,9 +1,7 @@
-import type { ConcreteStateDefinition } from '../workflow-types'
-import {
-  pass, fail 
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import { defineState } from '../define-state'
+import { pass, fail } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
-export const submittingPrState: ConcreteStateDefinition = {
+export const submittingPrState = defineState({
   emoji: '🚀',
   agentInstructions: 'states/submitting_pr.md',
   canTransitionTo: ['AWAITING_CI', 'BLOCKED'],
@@ -16,4 +14,4 @@ export const submittingPrState: ConcreteStateDefinition = {
     if (!ctx.state.prNumber) return fail('prNumber not set. Run record-pr first.')
     return pass()
   },
-}
+})

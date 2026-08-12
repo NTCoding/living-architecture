@@ -1,23 +1,19 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import {
-  Project, SyntaxKind 
-} from 'ts-morph'
-import {
-  getCalledMethodName,
-  resolveTypeThroughInterface,
-  findMethodInProject,
-} from './call-graph-shared'
-import { CallGraphOptions } from './call-graph-types'
+import { Project, SyntaxKind } from 'ts-morph'
+import { describe, expect, it } from 'vitest'
 import { ComponentIndex } from '../component-index'
 import { buildComponent } from './call-graph-fixtures'
+import {
+  findMethodInProject,
+  getCalledMethodName,
+  resolveTypeThroughInterface,
+} from './call-graph-shared'
+import { CallGraphOptions } from './call-graph-types'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
 const counter = { value: 0 }
 
 function createOptions(sourceFilePaths: string[]): CallGraphOptions {
-  return new CallGraphOptions({
+  return CallGraphOptions.parse({
     strict: false,
     sourceFilePaths,
     repository: 'test-repo',
@@ -47,7 +43,7 @@ describe('getCalledMethodName', () => {
 describe('resolveTypeThroughInterface', () => {
   it('returns component directly when type is a known component', () => {
     const comp = buildComponent('OrderService', '/test.ts', 1)
-    const index = new ComponentIndex([comp])
+    const index = ComponentIndex.parse([comp])
 
     const result = resolveTypeThroughInterface(
       'OrderService',
@@ -72,7 +68,7 @@ describe('resolveTypeThroughInterface', () => {
       export class ConcreteGateway implements SharedGateway { process(): void {} }
     `)
     const comp = buildComponent('ConcreteGateway', implFile, 1)
-    const index = new ComponentIndex([comp])
+    const index = ComponentIndex.parse([comp])
 
     const result = resolveTypeThroughInterface(
       'SharedGateway',
@@ -92,7 +88,7 @@ describe('resolveTypeThroughInterface', () => {
     const interfaceFile = nextFile(`
       export interface OrphanGateway { run(): void }
     `)
-    const index = new ComponentIndex([])
+    const index = ComponentIndex.parse([])
 
     const result = resolveTypeThroughInterface(
       'OrphanGateway',
@@ -109,7 +105,7 @@ describe('resolveTypeThroughInterface', () => {
   })
 
   it('returns no uncertainty when type is not defined in source files', () => {
-    const index = new ComponentIndex([])
+    const index = ComponentIndex.parse([])
 
     const result = resolveTypeThroughInterface(
       'UnknownType',

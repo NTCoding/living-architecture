@@ -1,9 +1,7 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import {
-  RiviereBuilder, type BuilderOptions 
-} from './index'
+import { RiviereBuilder } from './index'
 
-function createValidOptions(): BuilderOptions {
+function createValidOptions() {
   return {
     sources: [
       {
@@ -17,7 +15,7 @@ function createValidOptions(): BuilderOptions {
         systemType: 'domain',
       },
     },
-  }
+  } as const
 }
 
 function sourceLocation() {

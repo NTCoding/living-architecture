@@ -1,17 +1,13 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ComponentIndex } from '../component-index'
 import { ConnectionDetectionError } from '../connection-detection-error'
 import { buildCallGraph } from './build-call-graph'
+import { buildComponent, defaultOptions, nextFile, sharedProject } from './call-graph-fixtures'
 import { CallGraphOptions } from './call-graph-types'
-import {
-  sharedProject, nextFile, buildComponent, defaultOptions 
-} from './call-graph-fixtures'
 
 function strictOptions(): CallGraphOptions {
   const defaults = defaultOptions()
-  return new CallGraphOptions({
+  return CallGraphOptions.parse({
     strict: true,
     sourceFilePaths: defaults.sourceFilePaths,
     repository: defaults.repository,
@@ -20,7 +16,7 @@ function strictOptions(): CallGraphOptions {
 
 describe('buildCallGraph', () => {
   it('returns empty links when no components provided', () => {
-    const result = buildCallGraph(sharedProject, [], new ComponentIndex([]), defaultOptions())
+    const result = buildCallGraph(sharedProject, [], ComponentIndex.parse([]), defaultOptions())
     expect(result).toStrictEqual([])
   })
 
@@ -33,7 +29,7 @@ class PlaceOrder {
 }
 `)
     const comp = buildComponent('PlaceOrder', file, 2)
-    const index = new ComponentIndex([comp])
+    const index = ComponentIndex.parse([comp])
     const result = buildCallGraph(sharedProject, [comp], index, defaultOptions())
     expect(result).toStrictEqual([])
   })
@@ -54,7 +50,7 @@ class PlaceOrder {
 `)
     const compRepo = buildComponent('OrderRepo', file, 2, { type: 'domainOp' })
     const compUC = buildComponent('PlaceOrder', file, 6)
-    const index = new ComponentIndex([compRepo, compUC])
+    const index = ComponentIndex.parse([compRepo, compUC])
     const result = buildCallGraph(sharedProject, [compRepo, compUC], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -95,7 +91,7 @@ class SendEmail {
 `)
     const compNotifier = buildComponent('Notifier', file, 2, { type: 'domainOp' })
     const compSendEmail = buildComponent('SendEmail', file, 14)
-    const index = new ComponentIndex([compNotifier, compSendEmail])
+    const index = ComponentIndex.parse([compNotifier, compSendEmail])
     const result = buildCallGraph(
       sharedProject,
       [compNotifier, compSendEmail],
@@ -160,7 +156,7 @@ class Origin {
 `)
     const compTarget = buildComponent('Target', file, 2, { type: 'domainOp' })
     const compOrigin = buildComponent('Origin', file, 36)
-    const index = new ComponentIndex([compTarget, compOrigin])
+    const index = ComponentIndex.parse([compTarget, compOrigin])
     const result = buildCallGraph(sharedProject, [compTarget, compOrigin], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -186,7 +182,7 @@ class DoStuff {
 }
 `)
     const comp = buildComponent('DoStuff', file, 6)
-    const index = new ComponentIndex([comp])
+    const index = ComponentIndex.parse([comp])
     const result = buildCallGraph(sharedProject, [comp], index, defaultOptions())
     expect(result).toStrictEqual([])
   })
@@ -206,7 +202,7 @@ class CompA {
 `)
     const compA = buildComponent('CompA', file, 7)
     const compB = buildComponent('CompB', file, 2, { type: 'domainOp' })
-    const index = new ComponentIndex([compA, compB])
+    const index = ComponentIndex.parse([compA, compB])
     const result = buildCallGraph(sharedProject, [compA, compB], index, defaultOptions())
 
     const aToB = result.find(
@@ -234,7 +230,7 @@ class SelfRef {
 }
 `)
     const comp = buildComponent('SelfRef', file, 2)
-    const index = new ComponentIndex([comp])
+    const index = ComponentIndex.parse([comp])
     const result = buildCallGraph(sharedProject, [comp], index, defaultOptions())
     expect(result).toStrictEqual([])
   })
@@ -259,7 +255,7 @@ class PlaceOrder {
 `)
     const compRepo = buildComponent('OrderRepo', file, 6, { type: 'repository' })
     const compUC = buildComponent('PlaceOrder', file, 10)
-    const index = new ComponentIndex([compRepo, compUC])
+    const index = ComponentIndex.parse([compRepo, compUC])
     const result = buildCallGraph(sharedProject, [compRepo, compUC], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -291,7 +287,7 @@ class SendNotification {
 `)
     const compNotifier = buildComponent('EmailNotifier', file, 6, { type: 'domainOp' })
     const compUC = buildComponent('SendNotification', file, 10)
-    const index = new ComponentIndex([compNotifier, compUC])
+    const index = ComponentIndex.parse([compNotifier, compUC])
     const result = buildCallGraph(sharedProject, [compNotifier, compUC], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -312,7 +308,7 @@ class UncertainCaller {
 }
 `)
     const comp = buildComponent('UncertainCaller', file, 2)
-    const index = new ComponentIndex([comp])
+    const index = ComponentIndex.parse([comp])
     const result = buildCallGraph(sharedProject, [comp], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -334,7 +330,7 @@ class StrictUncertainCaller {
 }
 `)
     const comp = buildComponent('StrictUncertainCaller', file, 2)
-    const index = new ComponentIndex([comp])
+    const index = ComponentIndex.parse([comp])
 
     expect(() => buildCallGraph(sharedProject, [comp], index, strictOptions())).toThrow(
       ConnectionDetectionError,
@@ -369,7 +365,7 @@ class PublishEvent {
 `)
     const store = buildComponent('EventStore', file, 6, { type: 'repository' })
     const useCase = buildComponent('PublishEvent', file, 18)
-    const index = new ComponentIndex([store, useCase])
+    const index = ComponentIndex.parse([store, useCase])
     const result = buildCallGraph(sharedProject, [store, useCase], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -395,7 +391,7 @@ class AlertUser {
 }
 `)
     const comp = buildComponent('AlertUser', file, 6)
-    const index = new ComponentIndex([comp])
+    const index = ComponentIndex.parse([comp])
     const result = buildCallGraph(sharedProject, [comp], index, defaultOptions())
 
     expect(result).toStrictEqual([

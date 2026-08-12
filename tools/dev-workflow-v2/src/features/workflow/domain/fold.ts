@@ -1,7 +1,5 @@
 import type { WorkflowEvent } from './workflow-events'
-import {
-  LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA, type WorkflowState 
-} from './workflow-types'
+import { LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA, WorkflowState } from './workflow-types'
 
 function applyRecordedReviewVerdict(
   state: WorkflowState,
@@ -16,29 +14,17 @@ function applyRecordedReviewVerdict(
 
   switch (parsedReviewType.data) {
     case 'architecture-review':
-      return {
-        ...state,
-        architectureReviewPassed: passed,
-      }
+      return state.with({ architectureReviewPassed: passed })
     case 'code-review':
-      return {
-        ...state,
-        codeReviewPassed: passed,
-      }
+      return state.with({ codeReviewPassed: passed })
     case 'bug-scanner':
-      return {
-        ...state,
-        bugScannerPassed: passed,
-      }
+      return state.with({ bugScannerPassed: passed })
     case 'task-check':
-      return {
-        ...state,
-        taskCheckPassed: passed,
-      }
+      return state.with({ taskCheckPassed: passed })
   }
 }
 
-export const EMPTY_STATE: WorkflowState = {
+export const EMPTY_STATE = WorkflowState.parse({
   currentStateMachineState: 'IMPLEMENTING',
   architectureReviewPassed: false,
   codeReviewPassed: false,
@@ -47,59 +33,39 @@ export const EMPTY_STATE: WorkflowState = {
   ciPassed: false,
   feedbackClean: false,
   feedbackAddressed: false,
-}
+})
 
 function applyTransitioned(
   state: WorkflowState,
   event: Extract<WorkflowEvent, { type: 'transitioned' }>,
 ): WorkflowState {
   const newPreBlockedState = event.to === 'BLOCKED' ? event.from : undefined
-  return {
-    ...state,
+  return state.with({
     ...event.stateOverrides,
     currentStateMachineState: event.to,
     preBlockedState: newPreBlockedState,
-  }
+  })
 }
 
 function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState | undefined {
   switch (event.type) {
     case 'architecture-review-completed':
-      return {
-        ...state,
-        architectureReviewPassed: event.passed,
-      }
+      return state.with({ architectureReviewPassed: event.passed })
     case 'code-review-completed':
-      return {
-        ...state,
-        codeReviewPassed: event.passed,
-      }
+      return state.with({ codeReviewPassed: event.passed })
     case 'bug-scanner-completed':
-      return {
-        ...state,
-        bugScannerPassed: event.passed,
-      }
+      return state.with({ bugScannerPassed: event.passed })
     case 'ci-completed':
-      return {
-        ...state,
-        ciPassed: event.passed,
-      }
+      return state.with({ ciPassed: event.passed })
     case 'feedback-checked':
-      return {
-        ...state,
+      return state.with({
         feedbackClean: event.clean,
         feedbackUnresolvedCount: event.unresolvedCount,
-      }
+      })
     case 'feedback-addressed':
-      return {
-        ...state,
-        feedbackAddressed: true,
-      }
+      return state.with({ feedbackAddressed: true })
     case 'pr-feedback-verification-failed':
-      return {
-        ...state,
-        prFeedbackVerificationFailedReason: event.reason,
-      }
+      return state.with({ prFeedbackVerificationFailedReason: event.reason })
     case 'review-recorded':
       return applyRecordedReviewVerdict(state, event)
   }
@@ -110,31 +76,18 @@ function applyRecordingEvent(state: WorkflowState, event: WorkflowEvent): Workfl
   if (reviewResult !== undefined) return reviewResult
   switch (event.type) {
     case 'issue-recorded':
-      return {
-        ...state,
-        githubIssue: event.issueNumber,
-      }
+      return state.with({ githubIssue: event.issueNumber })
     case 'branch-recorded':
-      return {
-        ...state,
-        featureBranch: event.branch,
-      }
+      return state.with({ featureBranch: event.branch })
     case 'pr-recorded':
-      return {
-        ...state,
+      return state.with({
         prNumber: event.prNumber,
         prUrl: event.prUrl,
-      }
+      })
     case 'task-check-passed':
-      return {
-        ...state,
-        taskCheckPassed: true,
-      }
+      return state.with({ taskCheckPassed: true })
     case 'session-started':
-      return {
-        ...state,
-        ...(event.transcriptPath !== undefined && { transcriptPath: event.transcriptPath }),
-      }
+      return state.with({...(event.transcriptPath !== undefined && { transcriptPath: event.transcriptPath }),})
     default:
       return state
   }

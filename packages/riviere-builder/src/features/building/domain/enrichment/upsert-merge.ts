@@ -3,11 +3,19 @@ import type {
   CustomComponent,
   OperationBehavior,
 } from '@living-architecture/riviere-schema'
-import type { UpsertOptions } from '../construction/construction-types'
-import type { BuilderWarning } from '../inspection/inspection-types'
 import { mergeBehavior } from './merge-behavior'
 
 type Primitive = string | number | boolean
+type AddScalarOverwriteWarning = (
+  warning: Readonly<{
+    code: 'SCALAR_OVERWRITE'
+    message: string
+    componentId: string
+    field: string
+    oldValue: Primitive
+    newValue: Primitive
+  }>,
+) => void
 
 const IDENTITY_FIELDS = new Set(['id', 'type', 'name', 'domain', 'module'])
 const CUSTOM_BASE_FIELDS = new Set([
@@ -25,8 +33,8 @@ const CUSTOM_BASE_FIELDS = new Set([
 export function mergeComponentForUpsert<T extends Component>(
   existing: T,
   incoming: T,
-  options: UpsertOptions | undefined,
-  warnings: BuilderWarning[],
+  options: { readonly noOverwrite?: boolean } | undefined,
+  addWarning: AddScalarOverwriteWarning,
 ): T {
   const merged: T = { ...existing }
 
@@ -35,11 +43,11 @@ export function mergeComponentForUpsert<T extends Component>(
       continue
     }
 
-    mergeTopLevelField(merged, existing.id, field, incomingValue, options, warnings)
+    mergeTopLevelField(merged, existing.id, field, incomingValue, options, addWarning)
   }
 
   if (isCustomComponent(existing) && isCustomComponent(incoming)) {
-    const mergedMetadata = mergeCustomMetadata(existing, incoming, options, warnings)
+    const mergedMetadata = mergeCustomMetadata(existing, incoming, options, addWarning)
     for (const [key, value] of Object.entries(mergedMetadata)) {
       setField(merged, key, value)
     }
@@ -53,8 +61,8 @@ function mergeTopLevelField(
   componentId: string,
   field: string,
   incomingValue: unknown,
-  options: UpsertOptions | undefined,
-  warnings: BuilderWarning[],
+  options: { readonly noOverwrite?: boolean } | undefined,
+  addWarning: AddScalarOverwriteWarning,
 ): void {
   if (Array.isArray(incomingValue)) {
     mergeArrayField(target, field, incomingValue)
@@ -72,19 +80,19 @@ function mergeTopLevelField(
     setField(
       target,
       field,
-      mergeNestedObject(existingRecord, incomingValue, options, warnings, componentId, field),
+      mergeNestedObject(existingRecord, incomingValue, options, addWarning, componentId, field),
     )
     return
   }
 
-  mergeScalarLikeField(target, field, incomingValue, options, warnings, componentId)
+  mergeScalarLikeField(target, field, incomingValue, options, addWarning, componentId)
 }
 
 function mergeCustomMetadata(
   existing: CustomComponent,
   incoming: CustomComponent,
-  options: UpsertOptions | undefined,
-  warnings: BuilderWarning[],
+  options: { readonly noOverwrite?: boolean } | undefined,
+  addWarning: AddScalarOverwriteWarning,
 ): Record<string, unknown> {
   const existingMetadata = extractCustomMetadata(existing)
   const incomingMetadata = extractCustomMetadata(incoming)
@@ -93,7 +101,7 @@ function mergeCustomMetadata(
     existingMetadata,
     incomingMetadata,
     options,
-    warnings,
+    addWarning,
     existing.id,
     'metadata',
   )
@@ -143,8 +151,8 @@ function mergeScalarLikeField(
   target: object,
   field: string,
   incomingValue: unknown,
-  options: UpsertOptions | undefined,
-  warnings: BuilderWarning[],
+  options: { readonly noOverwrite?: boolean } | undefined,
+  addWarning: AddScalarOverwriteWarning,
   componentId: string,
 ): void {
   const existingValue = getField(target, field)
@@ -153,13 +161,13 @@ function mergeScalarLikeField(
     return
   }
 
-  maybePushScalarOverwriteWarning(warnings, componentId, field, existingValue, incomingValue)
+  maybeAddScalarOverwriteWarning(addWarning, componentId, field, existingValue, incomingValue)
 
   setField(target, field, incomingValue)
 }
 
-function maybePushScalarOverwriteWarning(
-  warnings: BuilderWarning[],
+function maybeAddScalarOverwriteWarning(
+  addWarning: AddScalarOverwriteWarning,
   componentId: string,
   field: string,
   existingValue: unknown,
@@ -173,7 +181,7 @@ function maybePushScalarOverwriteWarning(
     return
   }
 
-  warnings.push({
+  addWarning({
     code: 'SCALAR_OVERWRITE',
     message: `Scalar field '${field}' on component '${componentId}' overwritten`,
     componentId,
@@ -186,8 +194,8 @@ function maybePushScalarOverwriteWarning(
 function mergeNestedObject(
   existing: Record<string, unknown> | undefined,
   incoming: Record<string, unknown>,
-  options: UpsertOptions | undefined,
-  warnings: BuilderWarning[],
+  options: { readonly noOverwrite?: boolean } | undefined,
+  addWarning: AddScalarOverwriteWarning,
   componentId: string,
   pathPrefix: string,
 ): Record<string, unknown> {
@@ -210,7 +218,7 @@ function mergeNestedObject(
         existingRecord,
         incomingValue,
         options,
-        warnings,
+        addWarning,
         componentId,
         `${pathPrefix}.${field}`,
       )
@@ -221,8 +229,8 @@ function mergeNestedObject(
       continue
     }
 
-    maybePushScalarOverwriteWarning(
-      warnings,
+    maybeAddScalarOverwriteWarning(
+      addWarning,
       componentId,
       `${pathPrefix}.${field}`,
       merged[field],

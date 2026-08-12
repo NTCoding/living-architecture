@@ -1,12 +1,13 @@
-import { describe, it, expect } from 'vitest'
-import { RiviereQuery, parseComponentId } from './RiviereQuery'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import { describe, expect, it } from 'vitest'
 import {
-  createMinimalValidGraph,
   createAPIComponent,
+  createMinimalValidGraph,
   createUseCaseComponent,
   defaultSourceLocation,
 } from '../../../platform/__fixtures__/riviere-graph-fixtures'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import { RiviereQuery } from './RiviereQuery'
+import { ComponentId } from './component-id'
 
 describe('nodeDepths', () => {
   it('returns depth 0 for entry points', () => {
@@ -15,7 +16,7 @@ describe('nodeDepths', () => {
     const query = new RiviereQuery(graph)
     const depths = query.nodeDepths()
 
-    expect(depths.get(parseComponentId('test:mod:ui:page'))).toBe(0)
+    expect(depths.get(ComponentId.parse('test:mod:ui:page'))).toBe(0)
   })
 
   it('returns depth based on hops from entry point', () => {
@@ -46,9 +47,9 @@ describe('nodeDepths', () => {
     const query = new RiviereQuery(graph)
     const depths = query.nodeDepths()
 
-    expect(depths.get(parseComponentId('test:mod:ui:page'))).toBe(0)
-    expect(depths.get(parseComponentId('test:mod:api:users'))).toBe(1)
-    expect(depths.get(parseComponentId('test:mod:uc:getUser'))).toBe(2)
+    expect(depths.get(ComponentId.parse('test:mod:ui:page'))).toBe(0)
+    expect(depths.get(ComponentId.parse('test:mod:api:users'))).toBe(1)
+    expect(depths.get(ComponentId.parse('test:mod:uc:getUser'))).toBe(2)
   })
 
   it('returns minimum depth when reachable from multiple entry points', () => {
@@ -79,9 +80,9 @@ describe('nodeDepths', () => {
     const query = new RiviereQuery(graph)
     const depths = query.nodeDepths()
 
-    expect(depths.get(parseComponentId('test:mod:ui:page'))).toBe(0)
-    expect(depths.get(parseComponentId('test:mod:api:direct'))).toBe(0)
-    expect(depths.get(parseComponentId('test:mod:uc:shared'))).toBe(1)
+    expect(depths.get(ComponentId.parse('test:mod:ui:page'))).toBe(0)
+    expect(depths.get(ComponentId.parse('test:mod:api:direct'))).toBe(0)
+    expect(depths.get(ComponentId.parse('test:mod:uc:shared'))).toBe(1)
   })
 
   it('excludes unreachable nodes from result', () => {
@@ -97,8 +98,8 @@ describe('nodeDepths', () => {
     const query = new RiviereQuery(graph)
     const depths = query.nodeDepths()
 
-    expect(depths.get(parseComponentId('test:mod:ui:page'))).toBe(0)
-    expect(depths.has(parseComponentId('test:mod:uc:orphan'))).toBe(false)
+    expect(depths.get(ComponentId.parse('test:mod:ui:page'))).toBe(0)
+    expect(depths.has(ComponentId.parse('test:mod:uc:orphan'))).toBe(false)
   })
 
   it('handles source with multiple outgoing links', () => {
@@ -129,9 +130,9 @@ describe('nodeDepths', () => {
     const query = new RiviereQuery(graph)
     const depths = query.nodeDepths()
 
-    expect(depths.get(parseComponentId('test:mod:ui:page'))).toBe(0)
-    expect(depths.get(parseComponentId('test:mod:uc:a'))).toBe(1)
-    expect(depths.get(parseComponentId('test:mod:uc:b'))).toBe(1)
+    expect(depths.get(ComponentId.parse('test:mod:ui:page'))).toBe(0)
+    expect(depths.get(ComponentId.parse('test:mod:uc:a'))).toBe(1)
+    expect(depths.get(ComponentId.parse('test:mod:uc:b'))).toBe(1)
   })
 
   it('returns empty map for graph with no entry points', () => {

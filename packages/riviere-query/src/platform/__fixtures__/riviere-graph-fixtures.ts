@@ -1,12 +1,12 @@
 import type {
-  RiviereGraph,
   APIComponent,
+  CustomComponent,
+  DomainOpComponent,
   EventComponent,
   EventHandlerComponent,
-  CustomComponent,
-  UseCaseComponent,
-  DomainOpComponent,
+  RiviereGraph,
   SourceLocation,
+  UseCaseComponent,
 } from '@living-architecture/riviere-schema'
 
 class TestAssertionError extends Error {

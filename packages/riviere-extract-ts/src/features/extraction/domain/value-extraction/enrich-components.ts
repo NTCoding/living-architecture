@@ -1,38 +1,31 @@
 import type {
-  ClassDeclaration, MethodDeclaration, Project 
-} from 'ts-morph'
-import type {
-  Module,
   ComponentRule,
   DetectionRule,
   ExtractionRule,
+  Module,
 } from '@living-architecture/riviere-extract-config'
+import type { ClassDeclaration, MethodDeclaration, Project } from 'ts-morph'
+import { ExtractionError } from '../../../../platform/domain/ast-literals/literal-detection'
+import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
 import type { DraftComponent } from '../component-extraction/draft-component'
-import { ExtractionResult } from './extraction-result'
-import type {
+import {
   EnrichedComponent,
   EnrichmentFailure,
   EnrichmentResult,
-  MetadataValue,
+  type MetadataValue,
 } from './enriched-component'
 import {
-  EnrichedComponent as EnrichedComponentRecord,
-  EnrichmentFailure as EnrichmentFailureRecord,
-  EnrichmentResult as EnrichmentResultRecord,
-} from './enriched-component'
-import {
-  evaluateLiteralRule,
+  evaluateFromClassDecoratorArgRule,
   evaluateFromClassNameRule,
-  evaluateFromFilePathRule,
-  evaluateFromPropertyRule,
-  evaluateFromMethodNameRule,
   evaluateFromDecoratorArgRule,
   evaluateFromDecoratorNameRule,
-  evaluateFromClassDecoratorArgRule,
+  evaluateFromFilePathRule,
+  evaluateFromMethodNameRule,
+  evaluateFromPropertyRule,
+  evaluateLiteralRule,
 } from './evaluate-extraction-rule'
 import { evaluateFromGenericArgRule } from './evaluate-extraction-rule-generic'
-import { ExtractionError } from '../../../../platform/domain/ast-literals/literal-detection'
-import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
+import { ExtractionResult } from './extraction-result'
 
 function getBuiltInRule(module: Module, componentType: string): DetectionRule | undefined {
   const ruleMap: Record<string, ComponentRule> = {
@@ -261,9 +254,9 @@ function evaluateMethodRule(
     const typeName = param.getTypeNode()?.getText() ?? 'unknown'
     const transform = rule.fromParameterType.transform
     if (transform === undefined) {
-      return new ExtractionResult({ value: typeName })
+      return ExtractionResult.parse({ value: typeName })
     }
-    return new ExtractionResult({ value: applyTransforms(typeName, transform) })
+    return ExtractionResult.parse({ value: applyTransforms(typeName, transform) })
   }
 
   return undefined
@@ -308,7 +301,7 @@ interface SingleComponentResult {
 
 function componentWithEmptyMetadata(draft: DraftComponent): SingleComponentResult {
   return {
-    enriched: new EnrichedComponentRecord({
+    enriched: EnrichedComponent.parse({
       type: draft.type,
       name: draft.name,
       location: draft.location,
@@ -360,7 +353,7 @@ function extractMetadataFields(
       }
 
       failures.push(
-        new EnrichmentFailureRecord({
+        EnrichmentFailure.parse({
           component: draft,
           field: fieldName,
           error: errorMessage,
@@ -390,7 +383,7 @@ function enrichSingleComponent(
 
   const extracted = extractMetadataFields(detectionRule.extract, draft, project)
 
-  const enriched = new EnrichedComponentRecord({
+  const enriched = EnrichedComponent.parse({
     type: draft.type,
     name: draft.name,
     location: draft.location,
@@ -421,7 +414,7 @@ export function enrichComponents(
     allFailures.push(...result.failures)
   }
 
-  return new EnrichmentResultRecord({
+  return EnrichmentResult.parse({
     components: allComponents,
     failures: allFailures,
   })

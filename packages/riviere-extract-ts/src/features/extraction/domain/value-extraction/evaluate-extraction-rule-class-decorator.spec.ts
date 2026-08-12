@@ -1,14 +1,10 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import {
-  Project, SyntaxKind 
-} from 'ts-morph'
-import { evaluateFromClassDecoratorArgRule } from './evaluate-extraction-rule'
+import { Project, SyntaxKind } from 'ts-morph'
+import { describe, expect, it } from 'vitest'
 import {
   ExtractionError,
   TestFixtureError,
 } from '../../../../platform/domain/ast-literals/literal-detection'
+import { evaluateFromClassDecoratorArgRule } from './evaluate-extraction-rule'
 
 function createMethodFromClass(code: string) {
   const project = new Project({ useInMemoryFileSystem: true })

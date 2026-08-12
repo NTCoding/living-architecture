@@ -13,16 +13,12 @@ export class EnrichComponent {
   execute(input: EnrichComponentInput): EnrichComponentResult {
     try {
       const builder = this.repository.load(input.graphPathOption)
-      const enrichmentInput: Parameters<typeof builder.enrichComponent>[1] = {
+      const enrichmentInput = {
         ...buildBehavior(input),
         ...(input.businessRules.length > 0 ? { businessRules: input.businessRules } : {}),
         ...(input.stateChanges.length > 0 ? { stateChanges: input.stateChanges } : {}),
-      }
-      if (input.entity !== undefined) {
-        enrichmentInput.entity = input.entity
-      }
-      if (input.signature !== undefined) {
-        enrichmentInput.signature = input.signature
+        ...(input.entity === undefined ? {} : { entity: input.entity }),
+        ...(input.signature === undefined ? {} : { signature: input.signature }),
       }
       builder.enrichComponent(input.id, enrichmentInput)
       this.repository.save(builder)

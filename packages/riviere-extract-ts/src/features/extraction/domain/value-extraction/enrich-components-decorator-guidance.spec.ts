@@ -1,10 +1,6 @@
-import {
-  describe, expect, it 
-} from 'vitest'
+import type { ExtractionRule, Module } from '@living-architecture/riviere-extract-config'
 import { Project } from 'ts-morph'
-import type {
-  Module, ExtractionRule 
-} from '@living-architecture/riviere-extract-config'
+import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
 import { enrichComponents } from './enrich-components'
 
@@ -36,7 +32,7 @@ function createBaseModule(extract: Record<string, ExtractionRule>): Module {
 }
 
 function createDraft(file: string): DraftComponent {
-  return new DraftComponent({
+  return DraftComponent.parse({
     type: 'api',
     name: 'FraudClient',
     location: {
@@ -89,7 +85,7 @@ export class FraudClient {}`,
   })
 
   it('preserves source-file-not-found error for fromDecoratorArg', () => {
-    const missingDraft = new DraftComponent({
+    const missingDraft = DraftComponent.parse({
       type: 'api',
       name: 'MissingFileComponent',
       location: {

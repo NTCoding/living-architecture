@@ -1,7 +1,5 @@
 import { ExtractedLink } from '../extracted-link'
-import type {
-  RawLink, UncertainRawLink, CallSite 
-} from './call-graph-types'
+import type { CallSite, RawLink, UncertainRawLink } from './call-graph-types'
 import { componentIdentity } from './component-identity'
 
 interface RequiredSourceLocation {
@@ -29,7 +27,7 @@ function buildExtractedLink(
   callSite: CallSite,
   repository: string,
 ): ExtractedLink {
-  const link = new ExtractedLink({
+  const link = ExtractedLink.parse({
     source,
     target,
     type,
@@ -55,7 +53,7 @@ function buildUncertainLink(
   callSite: CallSite,
   repository: string,
 ): ExtractedLink {
-  return new ExtractedLink({
+  return ExtractedLink.parse({
     source,
     target: '_unresolved',
     type: 'sync',

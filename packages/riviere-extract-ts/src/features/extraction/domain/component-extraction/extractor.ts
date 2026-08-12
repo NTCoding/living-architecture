@@ -1,3 +1,8 @@
+import type {
+  ComponentType,
+  DetectionRule,
+  Module,
+} from '@living-architecture/riviere-extract-config'
 import {
   Scope,
   type ClassDeclaration,
@@ -6,11 +11,6 @@ import {
   type Project,
   type SourceFile,
 } from 'ts-morph'
-import type {
-  ComponentType,
-  Module,
-  DetectionRule,
-} from '@living-architecture/riviere-extract-config'
 import { evaluatePredicate } from '../predicate-evaluation/evaluate-predicate'
 import { DraftComponent } from './draft-component'
 
@@ -201,7 +201,7 @@ function createClassComponent(
   }
 
   return [
-    new DraftComponent({
+    DraftComponent.parse({
       type: componentType,
       name,
       location: {
@@ -223,7 +223,7 @@ function createMethodComponent(
   const name = method.getName()
 
   return [
-    new DraftComponent({
+    DraftComponent.parse({
       type: componentType,
       name,
       location: {
@@ -248,7 +248,7 @@ function createFunctionComponent(
   }
 
   return [
-    new DraftComponent({
+    DraftComponent.parse({
       type: componentType,
       name,
       location: {

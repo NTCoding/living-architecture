@@ -1,21 +1,8 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type { DomainName } from './identifiers'
-import { parseDomainName } from './identifiers'
 import { compareByCodePoint } from './compare-by-code-point'
-
-/** @riviere-role value-object */
-export interface CrossDomainLink {
-  targetDomain: DomainName
-  linkType: 'sync' | 'async' | undefined
-}
-
-/** @riviere-role value-object */
-export interface DomainConnection {
-  targetDomain: DomainName
-  direction: 'outgoing' | 'incoming'
-  apiCount: number
-  eventCount: number
-}
+import { CrossDomainLink } from './cross-domain-link'
+import { DomainConnection } from './domain-connection'
+import { DomainName } from './domain-name'
 
 function buildNodeIdToDomain(graph: RiviereGraph): Map<string, string> {
   return new Map(graph.components.map((c) => [c.id, c.domain]))
@@ -46,10 +33,12 @@ export function queryCrossDomainLinks(graph: RiviereGraph, domainName: string): 
     }
 
     seen.add(key)
-    results.push({
-      targetDomain: parseDomainName(targetDomain),
-      linkType: link.type,
-    })
+    results.push(
+      CrossDomainLink.parse({
+        targetDomain: DomainName.parse(targetDomain),
+        linkType: link.type,
+      }),
+    )
   }
 
   return results.sort(compareCrossDomainLinks)
@@ -63,7 +52,7 @@ function linkTypeForSort(linkType: 'sync' | 'async' | undefined): string {
 }
 
 function compareCrossDomainLinks(a: CrossDomainLink, b: CrossDomainLink): number {
-  const domainCompare = compareByCodePoint(a.targetDomain, b.targetDomain)
+  const domainCompare = compareByCodePoint(a.targetDomain.value, b.targetDomain.value)
   if (domainCompare !== 0) return domainCompare
   return compareByCodePoint(linkTypeForSort(a.linkType), linkTypeForSort(b.linkType))
 }
@@ -139,12 +128,14 @@ function toConnectionResults(
   connections: Map<string, ConnectionCounts>,
   direction: 'outgoing' | 'incoming',
 ): DomainConnection[] {
-  return Array.from(connections.entries()).map(([domain, counts]) => ({
-    targetDomain: parseDomainName(domain),
-    direction,
-    apiCount: counts.apiCount,
-    eventCount: counts.eventCount,
-  }))
+  return Array.from(connections.entries()).map(([domain, counts]) =>
+    DomainConnection.parse({
+      targetDomain: DomainName.parse(domain),
+      direction,
+      apiCount: counts.apiCount,
+      eventCount: counts.eventCount,
+    }),
+  )
 }
 
 /** @riviere-role domain-service */
@@ -162,5 +153,5 @@ export function queryDomainConnections(
     ...toConnectionResults(outgoing, 'outgoing'),
     ...toConnectionResults(incoming, 'incoming'),
   ]
-  return results.sort((a, b) => compareByCodePoint(a.targetDomain, b.targetDomain))
+  return results.sort((a, b) => compareByCodePoint(a.targetDomain.value, b.targetDomain.value))
 }

@@ -1,16 +1,14 @@
-import {
-  describe, it, expect 
-} from 'vitest'
 import { Project } from 'ts-morph'
-import {
-  evaluateFromMethodSignatureRule,
-  evaluateFromConstructorParamsRule,
-  evaluateFromParameterTypeRule,
-} from './evaluate-extraction-rule'
+import { describe, expect, it } from 'vitest'
 import {
   ExtractionError,
   TestFixtureError,
 } from '../../../../platform/domain/ast-literals/literal-detection'
+import {
+  evaluateFromConstructorParamsRule,
+  evaluateFromMethodSignatureRule,
+  evaluateFromParameterTypeRule,
+} from './evaluate-extraction-rule'
 
 function createMethodDeclaration(code: string, methodName: string) {
   const project = new Project({ useInMemoryFileSystem: true })

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: CrossDomainLink
 
-Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:7](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L7)
+Defined in: packages/riviere-query/src/features/querying/domain/cross-domain-link.ts:6
 
 ## Riviere-role
 
@@ -14,14 +14,14 @@ value-object
 
 ### linkType
 
-> **linkType**: `"sync"` \| `"async"` \| `undefined`
+> `readonly` **linkType**: `CrossDomainLinkType`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:9](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L9)
+Defined in: packages/riviere-query/src/features/querying/domain/cross-domain-link.ts:9
 
 ***
 
 ### targetDomain
 
-> **targetDomain**: `string` & `$brand`\<`"DomainName"`\>
+> `readonly` **targetDomain**: `DomainName`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:8](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L8)
+Defined in: packages/riviere-query/src/features/querying/domain/cross-domain-link.ts:8

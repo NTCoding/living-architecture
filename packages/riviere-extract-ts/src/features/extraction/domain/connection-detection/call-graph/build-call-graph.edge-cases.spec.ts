@@ -1,11 +1,7 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ComponentIndex } from '../component-index'
 import { buildCallGraph } from './build-call-graph'
-import {
-  sharedProject, nextFile, buildComponent, defaultOptions 
-} from './call-graph-fixtures'
+import { buildComponent, defaultOptions, nextFile, sharedProject } from './call-graph-fixtures'
 
 describe('buildCallGraph edge cases', () => {
   it('deduplicates to single link per source-target-type tuple', () => {
@@ -26,7 +22,7 @@ class UseCase {
 `)
     const compRepo = buildComponent('Repo', file, 2, { type: 'domainOp' })
     const compUC = buildComponent('UseCase', file, 7)
-    const index = new ComponentIndex([compRepo, compUC])
+    const index = ComponentIndex.parse([compRepo, compUC])
     const result = buildCallGraph(sharedProject, [compRepo, compUC], index, defaultOptions())
 
     expect(result).toHaveLength(1)
@@ -56,7 +52,7 @@ class Handler {
 `)
     const compStore = buildComponent('Store', file, 2, { type: 'domainOp' })
     const compHandler = buildComponent('Handler', file, 7)
-    const index = new ComponentIndex([compStore, compHandler])
+    const index = ComponentIndex.parse([compStore, compHandler])
     const result = buildCallGraph(sharedProject, [compStore, compHandler], index, defaultOptions())
 
     expect(result).toHaveLength(1)
@@ -87,7 +83,7 @@ class Entry {
 `)
     const compSink = buildComponent('Sink', file, 2, { type: 'domainOp' })
     const compEntry = buildComponent('Entry', file, 14)
-    const index = new ComponentIndex([compSink, compEntry])
+    const index = ComponentIndex.parse([compSink, compEntry])
     const result = buildCallGraph(sharedProject, [compSink, compEntry], index, defaultOptions())
 
     expect(result).toHaveLength(1)
@@ -122,7 +118,7 @@ class Caller {
 `)
     const compDep = buildComponent('Dep', file, 2, { type: 'domainOp' })
     const compCaller = buildComponent('Caller', file, 12)
-    const index = new ComponentIndex([compDep, compCaller])
+    const index = ComponentIndex.parse([compDep, compCaller])
     const result = buildCallGraph(sharedProject, [compDep, compCaller], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -148,7 +144,7 @@ class Reader {
 }
 `)
     const comp = buildComponent('Reader', file, 6)
-    const index = new ComponentIndex([comp])
+    const index = ComponentIndex.parse([comp])
     const result = buildCallGraph(sharedProject, [comp], index, defaultOptions())
     expect(result).toStrictEqual([])
   })
@@ -169,7 +165,7 @@ class AsyncUseCase {
 `)
     const compRepo = buildComponent('AsyncRepo', file, 2, { type: 'domainOp' })
     const compUC = buildComponent('AsyncUseCase', file, 6)
-    const index = new ComponentIndex([compRepo, compUC])
+    const index = ComponentIndex.parse([compRepo, compUC])
     const result = buildCallGraph(sharedProject, [compRepo, compUC], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -212,7 +208,7 @@ class Start {
     const compX = buildComponent('CompX', file, 2, { type: 'domainOp' })
     const compY = buildComponent('CompY', file, 6, { type: 'api' })
     const compStart = buildComponent('Start', file, 20)
-    const index = new ComponentIndex([compX, compY, compStart])
+    const index = ComponentIndex.parse([compX, compY, compStart])
     const result = buildCallGraph(sharedProject, [compX, compY, compStart], index, defaultOptions())
 
     const startToX = result.find(

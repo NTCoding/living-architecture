@@ -1,16 +1,14 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import { detectPerModuleConnections } from './detect-connections'
-import { PerModuleConnectionOptions } from './connection-detection-values'
+import { describe, expect, it } from 'vitest'
 import { buildComponent } from './call-graph/call-graph-fixtures'
+import { PerModuleConnectionOptions } from './connection-detection-values'
+import { detectPerModuleConnections } from './detect-connections'
 import { createProject } from './detect-connections-fixtures'
 
 function createOptions(params: {
   sourceFilePaths: string[]
   allComponents?: readonly ReturnType<typeof buildComponent>[]
 }): PerModuleConnectionOptions {
-  return new PerModuleConnectionOptions({
+  return PerModuleConnectionOptions.parse({
     repository: 'test-repo',
     sourceFilePaths: params.sourceFilePaths,
     ...(params.allComponents !== undefined && { allComponents: params.allComponents }),

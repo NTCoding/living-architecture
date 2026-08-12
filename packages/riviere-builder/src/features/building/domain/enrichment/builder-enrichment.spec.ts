@@ -1,7 +1,5 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import {
-  RiviereBuilder, type BuilderOptions 
-} from '../builder-facade'
+import { RiviereBuilder } from '../builder-facade'
 
 function parseGraph(builder: RiviereBuilder): RiviereGraph {
   const graph: RiviereGraph = JSON.parse(builder.serialize())
@@ -12,7 +10,7 @@ function findComponent(builder: RiviereBuilder, id: string) {
   return parseGraph(builder).components.find((c) => c.id === id)
 }
 
-function createValidOptions(): BuilderOptions {
+function createValidOptions() {
   return {
     sources: [
       {
@@ -26,7 +24,7 @@ function createValidOptions(): BuilderOptions {
         systemType: 'domain',
       },
     },
-  }
+  } as const
 }
 
 function createSourceLocation() {

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: MissingSourcesError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:169](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L169)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:169
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new MissingSourcesError**(): `MissingSourcesError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:170](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L170)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:170
 
 #### Returns
 

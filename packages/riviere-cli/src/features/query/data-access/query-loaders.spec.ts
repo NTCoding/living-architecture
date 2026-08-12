@@ -24,37 +24,41 @@ describe('query loaders', () => {
   it('loads each query-specific read from the persisted graph', async () => {
     await writeGraph(ctx.testDir)
 
-    expect([
-      new ComponentListLoader().load(undefined, undefined, undefined),
-      new ComponentSearchLoader().load(undefined, 'order'),
-      new DomainListLoader().load(undefined),
-      new EntryPointListLoader().load(undefined),
-      new OrphanListLoader().load(undefined),
-    ]).toStrictEqual([
-      { components: [] },
-      { components: [] },
-      {
-        domains: [
-          {
-            componentCounts: {
-              API: 0,
-              Custom: 0,
-              DomainOp: 0,
-              Event: 0,
-              EventHandler: 0,
-              UI: 0,
-              UseCase: 0,
-              total: 0,
-            },
-            description: 'Orders',
-            name: 'orders',
-            systemType: 'domain',
+    const domain = new DomainListLoader().load(undefined).domains[0]
+
+    expect({
+      componentList: new ComponentListLoader().load(undefined, undefined, undefined),
+      componentSearch: new ComponentSearchLoader().load(undefined, 'order'),
+      domain:
+        domain === undefined
+          ? undefined
+          : {
+            ...domain,
+            componentCounts: { ...domain.componentCounts },
           },
-        ],
+      entryPoints: new EntryPointListLoader().load(undefined),
+      orphans: new OrphanListLoader().load(undefined),
+    }).toStrictEqual({
+      componentList: { components: [] },
+      componentSearch: { components: [] },
+      domain: {
+        componentCounts: {
+          API: 0,
+          Custom: 0,
+          DomainOp: 0,
+          Event: 0,
+          EventHandler: 0,
+          UI: 0,
+          UseCase: 0,
+          total: 0,
+        },
+        description: 'Orders',
+        name: 'orders',
+        systemType: 'domain',
       },
-      { entryPoints: [] },
-      { orphans: [] },
-    ])
+      entryPoints: { entryPoints: [] },
+      orphans: { orphans: [] },
+    })
   })
 
   it('throws GraphCorruptedError for invalid JSON files', async () => {

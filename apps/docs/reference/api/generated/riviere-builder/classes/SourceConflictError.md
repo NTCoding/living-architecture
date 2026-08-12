@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: SourceConflictError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:13](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L13)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:13
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new SourceConflictError**(`repository`): `SourceConflictError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L16)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:16
 
 #### Parameters
 
@@ -78,7 +78,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **repository**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:14](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L14)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:14
 
 ***
 

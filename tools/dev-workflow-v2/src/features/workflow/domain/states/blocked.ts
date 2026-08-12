@@ -1,9 +1,7 @@
-import type { ConcreteStateDefinition } from '../workflow-types'
-import {
-  pass, fail 
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import { defineState } from '../define-state'
+import { pass, fail } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
-export const blockedState: ConcreteStateDefinition = {
+export const blockedState = defineState({
   emoji: '⚠️',
   agentInstructions: 'states/blocked.md',
   allowIdle: true,
@@ -29,4 +27,4 @@ export const blockedState: ConcreteStateDefinition = {
     }
     return pass()
   },
-}
+})

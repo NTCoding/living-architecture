@@ -1,8 +1,8 @@
-import { RiviereQuery } from './RiviereQuery'
 import {
-  createMinimalValidGraph,
   createDomainOpComponent,
+  createMinimalValidGraph,
 } from '../../../platform/__fixtures__/riviere-graph-fixtures'
+import { RiviereQuery } from './RiviereQuery'
 
 describe('operationsFor', () => {
   it('returns empty array when entity does not exist', () => {
@@ -70,7 +70,7 @@ describe('entities', () => {
 
     const entities = query.entities()
 
-    expect(entities).toMatchObject([
+    expect(JSON.parse(JSON.stringify(entities))).toMatchObject([
       {
         name: 'Order',
         domain: 'orders',
@@ -103,7 +103,7 @@ describe('entities', () => {
 
     const entities = query.entities('orders')
 
-    expect(entities).toMatchObject([
+    expect(JSON.parse(JSON.stringify(entities))).toMatchObject([
       {
         name: 'Order',
         domain: 'orders',
@@ -136,7 +136,7 @@ describe('entities', () => {
 
     const entities = query.entities()
 
-    expect(entities.map((e) => e.name)).toStrictEqual(['Apple', 'Zebra'])
+    expect(entities.map((e) => e.name.value)).toStrictEqual(['Apple', 'Zebra'])
   })
 
   it('returns entity with states ordered by transition flow', () => {
@@ -173,7 +173,11 @@ describe('entities', () => {
     const entities = query.entities()
 
     expect(entities).toHaveLength(1)
-    expect(entities[0]?.states).toStrictEqual(['Draft', 'Placed', 'Confirmed'])
+    expect(entities[0]?.states.map((state) => state.value)).toStrictEqual([
+      'Draft',
+      'Placed',
+      'Confirmed',
+    ])
   })
 
   it('returns entity with transitions including triggeredBy operation', () => {
@@ -197,7 +201,7 @@ describe('entities', () => {
     const entities = query.entities()
 
     expect(entities).toHaveLength(1)
-    expect(entities[0]?.transitions).toStrictEqual([
+    expect(JSON.parse(JSON.stringify(entities[0]?.transitions))).toStrictEqual([
       {
         from: 'Draft',
         to: 'Placed',

@@ -1,6 +1,8 @@
 import type {
   APIComponent,
+  CustomPropertyDefinition,
   CustomComponent,
+  DomainMetadata,
   DomainOpComponent,
   EventComponent,
   EventHandlerComponent,
@@ -8,62 +10,122 @@ import type {
   Link,
   RiviereGraph,
   SourceInfo,
+  SystemType,
   UIComponent,
   UseCaseComponent,
 } from '@living-architecture/riviere-schema'
 import type { ValidationResult } from '@living-architecture/riviere-query'
 import { RiviereBuilder as DomainBuilder } from './riviere-builder'
-import type {
-  APIInput,
-  BuilderOptions,
-  CustomInput,
-  CustomTypeInput,
-  DomainInput,
-  DomainOpInput,
-  EventHandlerInput,
-  EventInput,
-  RelationshipTypeInput,
-  UpsertOptions,
-  UIInput,
-  UseCaseInput,
-} from './construction/construction-types'
-import type { EnrichmentInput } from './enrichment/enrichment-types'
-import type {
-  NearMatchMismatch,
-  NearMatchOptions,
-  NearMatchQuery,
-  NearMatchResult,
-} from './error-recovery/match-types'
-import type {
-  BuilderStats, BuilderWarning 
-} from './inspection/inspection-types'
-import type {
-  ExternalLinkInput, LinkInput 
-} from './linking/linking-types'
 
-export type {
-  APIInput,
-  BuilderOptions,
-  BuilderStats,
-  BuilderWarning,
-  CustomInput,
-  CustomTypeInput,
-  DomainInput,
-  DomainOpInput,
-  EnrichmentInput,
-  EventHandlerInput,
-  EventInput,
-  RelationshipTypeInput,
-  ExternalLinkInput,
-  LinkInput,
-  NearMatchMismatch,
-  NearMatchOptions,
-  NearMatchQuery,
-  NearMatchResult,
-  UpsertOptions,
-  UIInput,
-  UseCaseInput,
-}
+type BuilderOptions = Readonly<{
+  name?: string
+  description?: string
+  sources: readonly SourceInfo[]
+  domains: Readonly<Record<string, DomainMetadata>>
+}>
+
+type DomainInput = Readonly<{
+  name: string
+  description: string
+  systemType: SystemType
+}>
+
+type UpsertOptions = Readonly<{ noOverwrite?: boolean }>
+
+type UIInput = Readonly<
+  Pick<UIComponent, 'name' | 'domain' | 'module' | 'route' | 'description' | 'sourceLocation'> & {metadata?: Readonly<Record<string, unknown>>}
+>
+
+type APIInput = Readonly<
+  Pick<
+    APIComponent,
+    | 'name'
+    | 'domain'
+    | 'module'
+    | 'apiType'
+    | 'httpMethod'
+    | 'path'
+    | 'operationName'
+    | 'description'
+    | 'sourceLocation'
+  > & { metadata?: Readonly<Record<string, unknown>> }
+>
+
+type UseCaseInput = Readonly<
+  Pick<UseCaseComponent, 'name' | 'domain' | 'module' | 'description' | 'sourceLocation'> & {metadata?: Readonly<Record<string, unknown>>}
+>
+
+type DomainOpInput = Readonly<
+  Pick<
+    DomainOpComponent,
+    | 'name'
+    | 'domain'
+    | 'module'
+    | 'operationName'
+    | 'entity'
+    | 'signature'
+    | 'behavior'
+    | 'stateChanges'
+    | 'businessRules'
+    | 'description'
+    | 'sourceLocation'
+  > & { metadata?: Readonly<Record<string, unknown>> }
+>
+
+type EventInput = Readonly<
+  Pick<
+    EventComponent,
+    'name' | 'domain' | 'module' | 'eventName' | 'eventSchema' | 'description' | 'sourceLocation'
+  > & { metadata?: Readonly<Record<string, unknown>> }
+>
+
+type EventHandlerInput = Readonly<
+  Pick<
+    EventHandlerComponent,
+    'name' | 'domain' | 'module' | 'subscribedEvents' | 'description' | 'sourceLocation'
+  > & { metadata?: Readonly<Record<string, unknown>> }
+>
+
+type CustomTypeInput = Readonly<{
+  name: string
+  description?: string
+  requiredProperties?: Readonly<Record<string, CustomPropertyDefinition>>
+  optionalProperties?: Readonly<Record<string, CustomPropertyDefinition>>
+}>
+
+type RelationshipTypeInput = Readonly<{
+  name: string
+  description: string
+}>
+
+type CustomInput = Readonly<
+  Pick<
+    CustomComponent,
+    'customTypeName' | 'name' | 'domain' | 'module' | 'description' | 'sourceLocation'
+  > & { metadata?: Readonly<Record<string, unknown>> }
+>
+
+type EnrichmentInput = Readonly<
+  Pick<DomainOpComponent, 'entity' | 'stateChanges' | 'businessRules' | 'behavior' | 'signature'>
+>
+
+type LinkInput = Readonly<{
+  from: Link['source']
+  to: Link['target']
+  type?: Link['type']
+  relationshipType?: Link['relationshipType']
+  condition?: Link['condition']
+  sourceLocation?: Link['sourceLocation']
+}>
+
+type ExternalLinkInput = Readonly<{
+  from: ExternalLink['source']
+  target: ExternalLink['target']
+  type?: ExternalLink['type']
+  description?: ExternalLink['description']
+  sourceLocation?: ExternalLink['sourceLocation']
+  metadata?: Readonly<Record<string, unknown>>
+}>
 
 /**
  * Programmatically construct Riviere architecture graphs.
@@ -298,7 +360,17 @@ export class RiviereBuilder {
    * @param options - Optional matching thresholds and limits
    * @returns Array of similar components with similarity scores
    */
-  nearMatches(query: NearMatchQuery, options?: NearMatchOptions): NearMatchResult[] {
+  nearMatches(
+    query: Readonly<{
+      name: string
+      type?: import('@living-architecture/riviere-schema').ComponentType
+      domain?: string
+    }>,
+    options?: Readonly<{
+      threshold?: number
+      limit?: number
+    }>,
+  ) {
     return this.delegate.errorRecovery.findNearMatches(query, options)
   }
 
@@ -327,7 +399,7 @@ export class RiviereBuilder {
    *
    * @returns Array of warning objects with type and message
    */
-  warnings(): BuilderWarning[] {
+  warnings() {
     return this.delegate.inspection.warnings()
   }
 
@@ -336,7 +408,7 @@ export class RiviereBuilder {
    *
    * @returns Counts of components by type, domains, and links
    */
-  stats(): BuilderStats {
+  stats() {
     return this.delegate.inspection.stats()
   }
 

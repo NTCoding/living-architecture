@@ -688,9 +688,51 @@ export default {
         function validateClassContract(node, role, name) {
           validatePublicMethodCount(node, role, name)
           validateRequiredPrivateMembers(node, role, name)
+          validateRequiredPrivateConstructor(node, role, name)
+          validateRequiredStaticMethodNamePrefix(node, role, name)
           validateCallableMemberConstraints(node, role, name)
           validateDataMemberRequirements(node, role, name)
           validateClassMethodContracts(node, role, name)
+        }
+
+        function validateRequiredPrivateConstructor(node, role, name) {
+          if (role.requiresPrivateConstructor !== true) {
+            return
+          }
+
+          const constructor = node.body.body.find(
+            (member) => member.type === 'MethodDefinition' && member.kind === 'constructor',
+          )
+          if (constructor?.accessibility === 'private') {
+            return
+          }
+
+          report(
+            node,
+            `Role '${role.name}' requires a private constructor on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+          )
+        }
+
+        function validateRequiredStaticMethodNamePrefix(node, role, name) {
+          if (typeof role.requiredStaticMethodNamePrefix !== 'string') {
+            return
+          }
+
+          const hasRequiredStaticMethod = node.body.body.some(
+            (member) =>
+              member.type === 'MethodDefinition' &&
+              member.static === true &&
+              member.kind !== 'constructor' &&
+              readMemberName(member.key)?.startsWith(role.requiredStaticMethodNamePrefix) === true,
+          )
+          if (hasRequiredStaticMethod) {
+            return
+          }
+
+          report(
+            node,
+            `Role '${role.name}' requires at least one static method beginning with '${role.requiredStaticMethodNamePrefix}' on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+          )
         }
 
         function validatePublicMethodCount(node, role, name) {
@@ -752,7 +794,7 @@ export default {
         }
 
         function validateCallableMemberConstraints(node, role, name) {
-          if (role.forbiddenCallableMembers !== true) {
+          if (role.forbiddenCallableDataMembers !== true) {
             return
           }
 
@@ -763,7 +805,7 @@ export default {
 
           report(
             node,
-            `Role '${role.name}' forbids callable instance members on '${name}'. Found [${callableMemberNames.join(', ')}]. ${referenceForKnownRole(options, role.name)}`,
+            `Role '${role.name}' forbids callable instance data members on '${name}'. Found [${callableMemberNames.join(', ')}]. ${referenceForKnownRole(options, role.name)}`,
           )
         }
 

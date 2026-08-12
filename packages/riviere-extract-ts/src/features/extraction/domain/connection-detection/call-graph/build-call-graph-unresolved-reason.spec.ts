@@ -1,10 +1,8 @@
-import {
-  describe, it, expect, vi 
-} from 'vitest'
 import { Project } from 'ts-morph'
-import { buildCallGraph } from './build-call-graph'
-import { ComponentIndex } from '../component-index'
+import { describe, expect, it, vi } from 'vitest'
 import { EnrichedComponent } from '../../value-extraction/enriched-component'
+import { ComponentIndex } from '../component-index'
+import { buildCallGraph } from './build-call-graph'
 import { CallGraphOptions } from './call-graph-types'
 
 vi.mock('./type-resolver', async () => {
@@ -42,7 +40,7 @@ describe('buildCallGraph unresolved receiver fallback', () => {
       ].join('\n'),
     )
 
-    const caller = new EnrichedComponent({
+    const caller = EnrichedComponent.parse({
       type: 'useCase',
       name: 'Caller',
       location: {
@@ -54,13 +52,13 @@ describe('buildCallGraph unresolved receiver fallback', () => {
       metadata: {},
       _missing: undefined,
     })
-    const options = new CallGraphOptions({
+    const options = CallGraphOptions.parse({
       strict: false,
       sourceFilePaths: [filePath],
       repository: 'test-repo',
     })
 
-    const result = buildCallGraph(project, [caller], new ComponentIndex([caller]), options)
+    const result = buildCallGraph(project, [caller], ComponentIndex.parse([caller]), options)
 
     expect(result).toStrictEqual([
       expect.objectContaining({

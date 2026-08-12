@@ -10,23 +10,21 @@ import type { EnrichedComponent } from '../../value-extraction/enriched-componen
 import type { ComponentIndex } from '../component-index'
 import type { ExtractedLink } from '../extracted-link'
 import {
-  CallGraphOptions, CallSite, RawLink, UncertainRawLink 
-} from './call-graph-types'
+  findMethodInProject,
+  getCalledMethodName,
+  resolveContainerMethod,
+  resolveTypeThroughInterface,
+} from './call-graph-shared'
+import { CallGraphOptions, CallSite, RawLink, UncertainRawLink } from './call-graph-types'
 import { componentIdentity } from './component-identity'
+import { deduplicateLinks } from './deduplicate-links'
 import {
   findClassInProject,
   findFunctionInProject,
   findMethodLevelComponent,
   traceCallsInBody,
 } from './trace-calls'
-import { deduplicateLinks } from './deduplicate-links'
 import { resolveCallExpressionReceiverType } from './type-resolver'
-import {
-  getCalledMethodName,
-  resolveContainerMethod,
-  resolveTypeThroughInterface,
-  findMethodInProject,
-} from './call-graph-shared'
 
 function processCallExpression(
   callExpr: CallExpression,
@@ -45,7 +43,7 @@ function processCallExpression(
   const sourceFile = callExpr.getSourceFile()
   const typeResult = resolveCallExpressionReceiverType(callExpr, sourceFile, {strict: options.strict,})
 
-  const currentCallSite = new CallSite({
+  const currentCallSite = CallSite.parse({
     filePath: component.location.file,
     lineNumber: callExpr.getStartLineNumber(),
     methodName,
@@ -53,7 +51,7 @@ function processCallExpression(
 
   if (!typeResult.resolved) {
     uncertainLinks.push(
-      new UncertainRawLink({
+      UncertainRawLink.parse({
         source: component,
         reason: typeResult.reason ?? 'Receiver type unresolved',
         callSite: currentCallSite,
@@ -78,7 +76,7 @@ function processCallExpression(
   if (targetComponent !== undefined) {
     if (componentIdentity(component) !== componentIdentity(targetComponent)) {
       rawLinks.push(
-        new RawLink({
+        RawLink.parse({
           source: component,
           target: targetComponent,
           callSite: currentCallSite,
@@ -97,7 +95,7 @@ function processCallExpression(
   if (containerTarget !== undefined) {
     if (componentIdentity(component) !== componentIdentity(containerTarget)) {
       rawLinks.push(
-        new RawLink({
+        RawLink.parse({
           source: component,
           target: containerTarget,
           callSite: currentCallSite,
@@ -270,7 +268,7 @@ function traceNonComponent(
 
   if (!classFound && interfaceUncertainty !== undefined) {
     uncertainLinks.push(
-      new UncertainRawLink({
+      UncertainRawLink.parse({
         source,
         reason: interfaceUncertainty,
         callSite,

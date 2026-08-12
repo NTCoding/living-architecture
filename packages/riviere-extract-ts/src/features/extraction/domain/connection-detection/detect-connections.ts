@@ -1,29 +1,24 @@
 import { performance } from 'node:perf_hooks'
 import type { Project } from 'ts-morph'
 import type { EnrichedComponent } from '../value-extraction/enriched-component'
-import type { ExtractedLink } from './extracted-link'
 import { AsyncDetectionOptions } from './async-detection/async-detection-options'
-import { ComponentIndex } from './component-index'
-import { buildCallGraph } from './call-graph/build-call-graph'
 import { detectEventPublisherConnections } from './async-detection/detect-event-publisher-connections'
 import { detectSubscribeConnections } from './async-detection/detect-subscribe-connections'
+import { buildCallGraph } from './call-graph/build-call-graph'
 import { CallGraphOptions } from './call-graph/call-graph-types'
-import type {
+import { ComponentIndex } from './component-index'
+import {
   ConnectionDetectionOptions,
   ConnectionDetectionResult,
+  ConnectionTimings,
   CrossModuleConnectionOptions,
   CrossModuleDetectionResult,
+  CrossModuleTimings,
   PerModuleConnectionOptions,
   PerModuleDetectionResult,
+  PerModuleTimings,
 } from './connection-detection-values'
-import {
-  ConnectionDetectionResult as ConnectionDetectionResultRecord,
-  ConnectionTimings as ConnectionTimingsRecord,
-  CrossModuleDetectionResult as CrossModuleDetectionResultRecord,
-  CrossModuleTimings as CrossModuleTimingsRecord,
-  PerModuleDetectionResult as PerModuleDetectionResultRecord,
-  PerModuleTimings as PerModuleTimingsRecord,
-} from './connection-detection-values'
+import type { ExtractedLink } from './extracted-link'
 import { resolveHttpLinks } from './resolve-http-links'
 
 /** @riviere-role domain-service */
@@ -51,7 +46,7 @@ export function detectPerModuleConnections(
 ): PerModuleDetectionResult {
   const setupStart = performance.now()
   const visibleComponents = options.allComponents ?? components
-  const componentIndex = new ComponentIndex(visibleComponents)
+  const componentIndex = ComponentIndex.parse(visibleComponents)
   const sourceFilePaths = options.sourceFilePaths
   const setupMs = performance.now() - setupStart
 
@@ -63,7 +58,7 @@ export function detectPerModuleConnections(
     project,
     components,
     componentIndex,
-    new CallGraphOptions({
+    CallGraphOptions.parse({
       strict,
       sourceFilePaths,
       repository,
@@ -74,10 +69,10 @@ export function detectPerModuleConnections(
   const httpLinkConfigs = options.httpLinks ?? []
   const resolved = resolveHttpLinks(syncLinks, visibleComponents, httpLinkConfigs)
 
-  return new PerModuleDetectionResultRecord({
+  return PerModuleDetectionResult.parse({
     links: resolved.links,
     externalLinks: resolved.externalLinks,
-    timings: new PerModuleTimingsRecord({
+    timings: PerModuleTimings.parse({
       callGraphMs,
       setupMs,
     }),
@@ -91,7 +86,7 @@ export function detectCrossModuleConnections(
 ): CrossModuleDetectionResult {
   const strict = options.allowIncomplete !== true
   const repository = options.repository
-  const asyncOptions = new AsyncDetectionOptions({
+  const asyncOptions = AsyncDetectionOptions.parse({
     strict,
     repository,
   })
@@ -105,9 +100,9 @@ export function detectCrossModuleConnections(
   const subscribeLinks = detectSubscribeConnections(allComponents, asyncOptions)
   const asyncDetectionMs = performance.now() - asyncStart
 
-  return new CrossModuleDetectionResultRecord({
+  return CrossModuleDetectionResult.parse({
     links: [...publishLinks, ...subscribeLinks],
-    timings: new CrossModuleTimingsRecord({ asyncDetectionMs }),
+    timings: CrossModuleTimings.parse({ asyncDetectionMs }),
   })
 }
 
@@ -120,7 +115,7 @@ export function detectConnections(
   const totalStart = performance.now()
 
   const setupStart = performance.now()
-  const componentIndex = new ComponentIndex(components)
+  const componentIndex = ComponentIndex.parse(components)
   const sourceFilePaths = options.sourceFilePaths
   const setupMs = performance.now() - setupStart
 
@@ -132,7 +127,7 @@ export function detectConnections(
     project,
     components,
     componentIndex,
-    new CallGraphOptions({
+    CallGraphOptions.parse({
       strict,
       sourceFilePaths,
       repository,
@@ -140,7 +135,7 @@ export function detectConnections(
   )
   const callGraphMs = performance.now() - callGraphStart
 
-  const asyncOptions = new AsyncDetectionOptions({
+  const asyncOptions = AsyncDetectionOptions.parse({
     strict,
     repository,
   })
@@ -159,10 +154,10 @@ export function detectConnections(
   const resolved = resolveHttpLinks(deduplicatedLinks, components, httpLinkConfigs)
   const totalMs = performance.now() - totalStart
 
-  return new ConnectionDetectionResultRecord({
+  return ConnectionDetectionResult.parse({
     links: resolved.links,
     externalLinks: resolved.externalLinks,
-    timings: new ConnectionTimingsRecord({
+    timings: ConnectionTimings.parse({
       callGraphMs,
       asyncDetectionMs,
       setupMs,

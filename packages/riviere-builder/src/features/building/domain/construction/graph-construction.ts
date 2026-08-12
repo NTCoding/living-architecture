@@ -1,32 +1,19 @@
 import type {
   APIComponent,
   Component,
+  CustomPropertyDefinition,
   CustomComponent,
   DomainOpComponent,
   EventComponent,
   EventHandlerComponent,
   SourceInfo,
+  SystemType,
   UIComponent,
   UseCaseComponent,
 } from '@living-architecture/riviere-schema'
 import type { BuilderGraph } from '../builder-graph'
-import type {
-  APIInput,
-  CustomInput,
-  CustomTypeInput,
-  DomainInput,
-  DomainOpInput,
-  EventHandlerInput,
-  EventInput,
-  RelationshipTypeInput,
-  UpsertOptions,
-  UIInput,
-  UseCaseInput,
-} from './construction-types'
 import {
-  ComponentTypeMismatchError,
   CustomTypeAlreadyDefinedError,
-  DuplicateComponentError,
   DuplicateDomainError,
   SourceConflictError,
   RelationshipTypeAlreadyDefinedError,
@@ -37,17 +24,114 @@ import {
   validateDomainExists,
   validateRequiredProperties,
 } from './builder-internals'
-import { mergeComponentForUpsert } from '../enrichment/upsert-merge'
-import type { BuilderWarning } from '../inspection/inspection-types'
+import { registerComponent, upsertComponent } from './component-registration'
+
+type AddScalarOverwriteWarning = (
+  warning: Readonly<{
+    code: 'SCALAR_OVERWRITE'
+    message: string
+    componentId: string
+    field: string
+    oldValue: string | number | boolean
+    newValue: string | number | boolean
+  }>,
+) => void
+
+type DomainInput = Readonly<{
+  name: string
+  description: string
+  systemType: SystemType
+}>
+
+type UpsertOptions = Readonly<{ noOverwrite?: boolean }>
+
+type UIInput = Readonly<
+  Pick<UIComponent, 'name' | 'domain' | 'module' | 'route' | 'description' | 'sourceLocation'> & {metadata?: Readonly<Record<string, unknown>>}
+>
+
+type APIInput = Readonly<
+  Pick<
+    APIComponent,
+    | 'name'
+    | 'domain'
+    | 'module'
+    | 'apiType'
+    | 'httpMethod'
+    | 'path'
+    | 'operationName'
+    | 'description'
+    | 'sourceLocation'
+  > & { metadata?: Readonly<Record<string, unknown>> }
+>
+
+type UseCaseInput = Readonly<
+  Pick<UseCaseComponent, 'name' | 'domain' | 'module' | 'description' | 'sourceLocation'> & {metadata?: Readonly<Record<string, unknown>>}
+>
+
+type DomainOpInput = Readonly<
+  Pick<
+    DomainOpComponent,
+    | 'name'
+    | 'domain'
+    | 'module'
+    | 'operationName'
+    | 'entity'
+    | 'signature'
+    | 'behavior'
+    | 'stateChanges'
+    | 'businessRules'
+    | 'description'
+    | 'sourceLocation'
+  > & { metadata?: Readonly<Record<string, unknown>> }
+>
+
+type EventInput = Readonly<
+  Pick<
+    EventComponent,
+    'name' | 'domain' | 'module' | 'eventName' | 'eventSchema' | 'description' | 'sourceLocation'
+  > & { metadata?: Readonly<Record<string, unknown>> }
+>
+
+type EventHandlerInput = Readonly<
+  Pick<
+    EventHandlerComponent,
+    'name' | 'domain' | 'module' | 'subscribedEvents' | 'description' | 'sourceLocation'
+  > & { metadata?: Readonly<Record<string, unknown>> }
+>
+
+type CustomTypeInput = Readonly<{
+  name: string
+  description?: string
+  requiredProperties?: Readonly<Record<string, CustomPropertyDefinition>>
+  optionalProperties?: Readonly<Record<string, CustomPropertyDefinition>>
+}>
+
+type RelationshipTypeInput = Readonly<{
+  name: string
+  description: string
+}>
+
+type CustomInput = Readonly<
+  Pick<
+    CustomComponent,
+    'customTypeName' | 'name' | 'domain' | 'module' | 'description' | 'sourceLocation'
+  > & { metadata?: Readonly<Record<string, unknown>> }
+>
 
 /** @riviere-role domain-service */
 export class GraphConstruction {
-  private readonly graph: BuilderGraph
-  private readonly operationWarnings: BuilderWarning[]
+  private graph: BuilderGraph
+  private readonly addWarning: AddScalarOverwriteWarning
+  private readonly updateGraph: (graph: BuilderGraph) => void
 
-  constructor(graph: BuilderGraph, operationWarnings: BuilderWarning[]) {
+  constructor(
+    graph: BuilderGraph,
+    addWarning: AddScalarOverwriteWarning,
+    updateGraph: (graph: BuilderGraph) => void,
+  ) {
     this.graph = graph
-    this.operationWarnings = operationWarnings
+    this.addWarning = addWarning
+    this.updateGraph = updateGraph
   }
 
   addSource(source: SourceInfo): void {
@@ -62,7 +146,7 @@ export class GraphConstruction {
       throw new SourceConflictError(source.repository)
     }
 
-    this.graph.metadata.sources.push(source)
+    this.replaceGraph(this.graph.withSource(source))
   }
 
   addDomain(input: DomainInput): void {
@@ -75,10 +159,12 @@ export class GraphConstruction {
       throw new DuplicateDomainError(input.name)
     }
 
-    this.graph.metadata.domains[input.name] = {
-      description: input.description,
-      systemType: input.systemType,
-    }
+    this.replaceGraph(
+      this.graph.withDomain(input.name, {
+        description: input.description,
+        systemType: input.systemType,
+      }),
+    )
   }
 
   addUI(input: UIInput): UIComponent {
@@ -172,11 +258,13 @@ export class GraphConstruction {
       throw new CustomTypeAlreadyDefinedError(input.name)
     }
 
-    customTypes[input.name] = {
-      ...(input.requiredProperties !== undefined && {requiredProperties: input.requiredProperties,}),
-      ...(input.optionalProperties !== undefined && {optionalProperties: input.optionalProperties,}),
-      ...(input.description !== undefined && { description: input.description }),
-    }
+    this.replaceGraph(
+      this.graph.withCustomType(input.name, {
+        ...(input.requiredProperties !== undefined && {requiredProperties: input.requiredProperties,}),
+        ...(input.optionalProperties !== undefined && {optionalProperties: input.optionalProperties,}),
+        ...(input.description !== undefined && { description: input.description }),
+      }),
+    )
   }
 
   defineRelationshipType(input: RelationshipTypeInput): void {
@@ -185,12 +273,9 @@ export class GraphConstruction {
       throw new RelationshipTypeAlreadyDefinedError(input.name)
     }
 
-    Object.defineProperty(relationshipTypes, input.name, {
-      value: { description: input.description },
-      enumerable: true,
-      configurable: true,
-      writable: true,
-    })
+    this.replaceGraph(
+      this.graph.withRelationshipType(input.name, { description: input.description }),
+    )
   }
 
   addCustom(input: CustomInput): CustomComponent {
@@ -272,8 +357,8 @@ export class GraphConstruction {
       ...(input.entity !== undefined && { entity: input.entity }),
       ...(input.signature !== undefined && { signature: input.signature }),
       ...(input.behavior !== undefined && { behavior: input.behavior }),
-      ...(input.stateChanges !== undefined && { stateChanges: input.stateChanges }),
-      ...(input.businessRules !== undefined && { businessRules: input.businessRules }),
+      ...(input.stateChanges !== undefined && { stateChanges: [...input.stateChanges] }),
+      ...(input.businessRules !== undefined && { businessRules: [...input.businessRules] }),
       ...(input.description !== undefined && { description: input.description }),
     }
   }
@@ -305,7 +390,7 @@ export class GraphConstruction {
       name: input.name,
       domain: input.domain,
       module: input.module,
-      subscribedEvents: input.subscribedEvents,
+      subscribedEvents: [...input.subscribedEvents],
       sourceLocation: input.sourceLocation,
       ...(input.description !== undefined && { description: input.description }),
     }
@@ -337,11 +422,9 @@ export class GraphConstruction {
   }
 
   private registerComponent<T extends Component>(component: T): T {
-    if (this.graph.components.some((c) => c.id === component.id)) {
-      throw new DuplicateComponentError(component.id)
-    }
-    this.graph.components.push(component)
-    return component
+    const result = registerComponent(this.graph, component)
+    this.replaceGraph(result.graph)
+    return result.component
   }
 
   private upsertTypedComponent<T extends Component>(
@@ -351,31 +434,17 @@ export class GraphConstruction {
     component: T
     created: boolean
   } {
-    const existingIndex = this.graph.components.findIndex(
-      (component) => component.id === incoming.id,
-    )
-    if (existingIndex === -1) {
-      this.graph.components.push(incoming)
-      return {
-        component: incoming,
-        created: true,
-      }
-    }
-
-    const existing = this.graph.components[existingIndex]
-
-    if (!isSameTypeComponent(existing, incoming)) {
-      throw new ComponentTypeMismatchError(incoming.id, existing?.type ?? 'unknown', incoming.type)
-    }
-
-    const merged = mergeComponentForUpsert(existing, incoming, options, this.operationWarnings)
-
-    this.graph.components[existingIndex] = merged
-
+    const result = upsertComponent(this.graph, incoming, options, this.addWarning)
+    this.replaceGraph(result.graph)
     return {
-      component: merged,
-      created: false,
+      component: result.component,
+      created: result.created,
     }
+  }
+
+  private replaceGraph(graph: BuilderGraph): void {
+    this.graph = graph
+    this.updateGraph(graph)
   }
 }
 
@@ -385,11 +454,4 @@ function areSourcesEqual(existing: SourceInfo, incoming: SourceInfo): boolean {
     existing.commit === incoming.commit &&
     existing.extractedAt === incoming.extractedAt
   )
-}
-
-function isSameTypeComponent<T extends Component>(
-  existing: Component | undefined,
-  incoming: T,
-): existing is T {
-  return existing?.type === incoming.type
 }

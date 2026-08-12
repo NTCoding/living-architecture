@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: SearchWithFlowOptions
 
-Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:157](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L157)
+Defined in: packages/riviere-query/src/features/querying/domain/search-with-flow-options.ts:2
 
 ## Riviere-role
 
@@ -14,6 +14,6 @@ value-object
 
 ### returnAllOnEmptyQuery
 
-> **returnAllOnEmptyQuery**: `boolean`
+> `readonly` **returnAllOnEmptyQuery**: `boolean`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:157](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L157)
+Defined in: packages/riviere-query/src/features/querying/domain/search-with-flow-options.ts:4

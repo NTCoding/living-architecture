@@ -128,7 +128,7 @@ export const standard = {
       })
       .subLocation('/domain', domainRoles, {
         allowAnySubLocations: true,
-        dependencyRules: { locations: [{ location: '/domain' }] },
+        dependencyRules: { locations: [] },
       })
       .subLocation(
         location<RoleName>('/infra', [], {

@@ -1,16 +1,15 @@
-import {
-  expect, it, vi 
-} from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { createOxlintRoleEnforcementRunner } from '../adapters/oxlint/oxlint-role-enforcement-runner'
 import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement-project-repository'
 import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
 
+import { RunRoleEnforcement } from './run-role-enforcement'
 import {
   configWithGenericApprovedAggregates,
   configWithGenericMaxPublicMethods,
-  configWithGenericRequiredPrivateMembers,
   configWithGenericRepositoryMethodInputs,
   configWithGenericRepositoryMethodInputsOnly,
+  configWithGenericRequiredPrivateMembers,
   genericTestConfig,
 } from './test-fixture-config'
 import {
@@ -20,7 +19,6 @@ import {
   writeDomainFile,
   writeRepositoryFile,
 } from './test-fixture-workspace'
-import { RunRoleEnforcement } from './run-role-enforcement'
 
 function runWith(config: typeof genericTestConfig, workspaceDir: string) {
   return createTestRoleEnforcementApplication().execute({

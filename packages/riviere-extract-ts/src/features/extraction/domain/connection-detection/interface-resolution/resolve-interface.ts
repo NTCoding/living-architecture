@@ -1,6 +1,4 @@
-import {
-  Project, ClassDeclaration, SourceFile 
-} from 'ts-morph'
+import { ClassDeclaration, Project, SourceFile } from 'ts-morph'
 import { ConnectionDetectionError } from '../connection-detection-error'
 
 /** @riviere-role value-object */
@@ -10,6 +8,15 @@ export class InterfaceResolution {
   readonly typeName: string | undefined
   readonly reason: string | undefined
   readonly typeDefinedInSource: boolean | undefined
+
+  static parse(params: {
+    resolved: boolean
+    typeName: string | undefined
+    reason: string | undefined
+    typeDefinedInSource: boolean | undefined
+  }): InterfaceResolution {
+    return new InterfaceResolution(params)
+  }
 
   private constructor(params: {
     resolved: boolean
@@ -24,7 +31,7 @@ export class InterfaceResolution {
   }
 
   static resolved(typeName: string): InterfaceResolution {
-    return new InterfaceResolution({
+    return InterfaceResolution.parse({
       resolved: true,
       typeName,
       reason: undefined,
@@ -36,7 +43,7 @@ export class InterfaceResolution {
     reason: string;
     typeDefinedInSource: boolean 
   }): InterfaceResolution {
-    return new InterfaceResolution({
+    return InterfaceResolution.parse({
       resolved: false,
       typeName: undefined,
       reason: params.reason,

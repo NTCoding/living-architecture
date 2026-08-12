@@ -1,11 +1,7 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import {
-  RiviereBuilder, type BuilderOptions 
-} from '../builder-facade'
+import { describe, it, expect } from 'vitest'
+import { RiviereBuilder } from '../builder-facade'
 
-function createValidOptions(): BuilderOptions {
+function createValidOptions() {
   return {
     sources: [
       {
@@ -19,7 +15,7 @@ function createValidOptions(): BuilderOptions {
         systemType: 'domain',
       },
     },
-  }
+  } as const
 }
 
 describe('RiviereBuilder', () => {

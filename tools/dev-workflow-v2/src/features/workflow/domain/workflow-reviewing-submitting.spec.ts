@@ -146,13 +146,12 @@ describe('Workflow', () => {
 
     it('rejects SUBMITTING_PR without task check when no issue is recorded and required reviews failed', () => {
       const result = getReviewingTransitionGuard()({
-        state: {
-          ...Workflow.createFresh(makeDeps()).getState(),
+        state: Workflow.createFresh(makeDeps()).getState().with({
           currentStateMachineState: 'REVIEWING',
           architectureReviewPassed: false,
           codeReviewPassed: false,
           bugScannerPassed: false,
-        },
+        }),
         gitInfo: makeDeps().getGitInfo(),
         from: 'REVIEWING',
         to: 'SUBMITTING_PR',

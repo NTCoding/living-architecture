@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ValidationResult
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:23](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L23)
+Defined in: packages/riviere-query/src/features/querying/domain/validation-result.ts:4
 
 ## Riviere-role
 
@@ -14,14 +14,14 @@ value-object
 
 ### errors
 
-> **errors**: [`ValidationError`](ValidationError.md)[]
+> `readonly` **errors**: [`ValidationError`](ValidationError.md)[]
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L25)
+Defined in: packages/riviere-query/src/features/querying/domain/validation-result.ts:7
 
 ***
 
 ### valid
 
-> **valid**: `boolean`
+> `readonly` **valid**: `boolean`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L24)
+Defined in: packages/riviere-query/src/features/querying/domain/validation-result.ts:6

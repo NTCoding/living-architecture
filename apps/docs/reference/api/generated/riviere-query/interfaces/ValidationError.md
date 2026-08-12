@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ValidationError
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L16)
+Defined in: packages/riviere-query/src/features/querying/domain/validation-error.ts:10
 
 ## Riviere-role
 
@@ -14,22 +14,22 @@ value-object
 
 ### code
 
-> **code**: [`ValidationErrorCode`](../type-aliases/ValidationErrorCode.md)
+> `readonly` **code**: `ValidationErrorCode`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:19](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L19)
+Defined in: packages/riviere-query/src/features/querying/domain/validation-error.ts:14
 
 ***
 
 ### message
 
-> **message**: `string`
+> `readonly` **message**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:18](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L18)
+Defined in: packages/riviere-query/src/features/querying/domain/validation-error.ts:13
 
 ***
 
 ### path
 
-> **path**: `string`
+> `readonly` **path**: `string`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-validation.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-validation.ts#L17)
+Defined in: packages/riviere-query/src/features/querying/domain/validation-error.ts:12

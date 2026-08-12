@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ComponentCounts
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:9](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L9)
+Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:2
 
 ## Riviere-role
 
@@ -14,62 +14,62 @@ value-object
 
 ### API
 
-> **API**: `number`
+> `readonly` **API**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:11](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L11)
+Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:5
 
 ***
 
 ### Custom
 
-> **Custom**: `number`
+> `readonly` **Custom**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L16)
+Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:10
 
 ***
 
 ### DomainOp
 
-> **DomainOp**: `number`
+> `readonly` **DomainOp**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:13](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L13)
+Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:7
 
 ***
 
 ### Event
 
-> **Event**: `number`
+> `readonly` **Event**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:14](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L14)
+Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:8
 
 ***
 
 ### EventHandler
 
-> **EventHandler**: `number`
+> `readonly` **EventHandler**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:15](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L15)
+Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:9
 
 ***
 
 ### total
 
-> **total**: `number`
+> `readonly` **total**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L17)
+Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:11
 
 ***
 
 ### UI
 
-> **UI**: `number`
+> `readonly` **UI**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:10](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L10)
+Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:4
 
 ***
 
 ### UseCase
 
-> **UseCase**: `number`
+> `readonly` **UseCase**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/domain-queries.ts:12](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/domain-queries.ts#L12)
+Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:6

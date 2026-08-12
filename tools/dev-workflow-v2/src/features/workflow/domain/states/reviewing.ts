@@ -1,9 +1,7 @@
-import type { ConcreteStateDefinition } from '../workflow-types'
-import {
-  pass, fail 
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import { defineState } from '../define-state'
+import { pass, fail } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
-export const reviewingState: ConcreteStateDefinition = {
+export const reviewingState = defineState({
   emoji: '📋',
   agentInstructions: 'states/reviewing.md',
   canTransitionTo: ['SUBMITTING_PR', 'IMPLEMENTING', 'BLOCKED'],
@@ -28,4 +26,4 @@ export const reviewingState: ConcreteStateDefinition = {
       return fail('All reviews passed. Transition to SUBMITTING_PR, not IMPLEMENTING.')
     return pass()
   },
-}
+})

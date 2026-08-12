@@ -1,14 +1,15 @@
-import { RiviereQuery, parseComponentId, ComponentNotFoundError } from './RiviereQuery'
 import {
-  createMinimalValidGraph,
   createAPIComponent,
+  createMinimalValidGraph,
 } from '../../../platform/__fixtures__/riviere-graph-fixtures'
+import { ComponentNotFoundError, RiviereQuery } from './RiviereQuery'
+import { ComponentId } from './component-id'
 
 describe('RiviereQuery.traceFlow()', () => {
   it('throws ComponentNotFoundError when startComponentId does not exist', () => {
     const query = new RiviereQuery(createMinimalValidGraph())
 
-    expect(() => query.traceFlow(parseComponentId('nonexistent:mod:api:foo'))).toThrow(
+    expect(() => query.traceFlow(ComponentId.parse('nonexistent:mod:api:foo'))).toThrow(
       ComponentNotFoundError,
     )
   })
@@ -18,7 +19,7 @@ describe('RiviereQuery.traceFlow()', () => {
 
     const captureError = (): ComponentNotFoundError | undefined => {
       try {
-        query.traceFlow(parseComponentId('nonexistent:mod:api:foo'))
+        query.traceFlow(ComponentId.parse('nonexistent:mod:api:foo'))
         return undefined
       } catch (error) {
         if (error instanceof ComponentNotFoundError) {
@@ -36,10 +37,10 @@ describe('RiviereQuery.traceFlow()', () => {
   it('returns only starting component when component is isolated', () => {
     const query = new RiviereQuery(createMinimalValidGraph())
 
-    const result = query.traceFlow(parseComponentId('test:mod:ui:page'))
+    const result = query.traceFlow(ComponentId.parse('test:mod:ui:page'))
 
-    expect(result.componentIds).toStrictEqual(['test:mod:ui:page'])
-    expect(result.linkIds).toStrictEqual([])
+    expect(result.componentIds.map((id) => id.value)).toStrictEqual(['test:mod:ui:page'])
+    expect(result.linkIds.map((id) => id.value)).toStrictEqual([])
   })
 
   it('returns downstream components when starting from source', () => {
@@ -59,13 +60,17 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow(parseComponentId('test:mod:ui:page'))
+    const result = query.traceFlow(ComponentId.parse('test:mod:ui:page'))
 
-    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:api:create',
-      'test:mod:ui:page',
+    expect(
+      result.componentIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:api:create', 'test:mod:ui:page'])
+    expect(result.linkIds.map((id) => id.value)).toStrictEqual([
+      'test:mod:ui:page->test:api:create',
     ])
-    expect(result.linkIds).toStrictEqual(['test:mod:ui:page->test:api:create'])
   })
 
   it('returns upstream components when starting from target', () => {
@@ -85,13 +90,17 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow(parseComponentId('test:api:create'))
+    const result = query.traceFlow(ComponentId.parse('test:api:create'))
 
-    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:api:create',
-      'test:mod:ui:page',
+    expect(
+      result.componentIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:api:create', 'test:mod:ui:page'])
+    expect(result.linkIds.map((id) => id.value)).toStrictEqual([
+      'test:mod:ui:page->test:api:create',
     ])
-    expect(result.linkIds).toStrictEqual(['test:mod:ui:page->test:api:create'])
   })
 
   it('returns all branches when flow branches', () => {
@@ -120,17 +129,20 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow(parseComponentId('test:mod:ui:page'))
+    const result = query.traceFlow(ComponentId.parse('test:mod:ui:page'))
 
-    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:api:a',
-      'test:api:b',
-      'test:mod:ui:page',
-    ])
-    expect(result.linkIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:mod:ui:page->test:api:a',
-      'test:mod:ui:page->test:api:b',
-    ])
+    expect(
+      result.componentIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:api:a', 'test:api:b', 'test:mod:ui:page'])
+    expect(
+      result.linkIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:mod:ui:page->test:api:a', 'test:mod:ui:page->test:api:b'])
   })
 
   it('handles cycles without infinite loop', () => {
@@ -154,16 +166,20 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow(parseComponentId('test:mod:ui:page'))
+    const result = query.traceFlow(ComponentId.parse('test:mod:ui:page'))
 
-    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:api:a',
-      'test:mod:ui:page',
-    ])
-    expect(result.linkIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:api:a->test:mod:ui:page',
-      'test:mod:ui:page->test:api:a',
-    ])
+    expect(
+      result.componentIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:api:a', 'test:mod:ui:page'])
+    expect(
+      result.linkIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:api:a->test:mod:ui:page', 'test:mod:ui:page->test:api:a'])
   })
 
   it('only includes components in connected subgraph', () => {
@@ -201,13 +217,15 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow(parseComponentId('test:mod:ui:page'))
+    const result = query.traceFlow(ComponentId.parse('test:mod:ui:page'))
 
-    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:api:a',
-      'test:mod:ui:page',
-    ])
-    expect(result.linkIds).toStrictEqual(['test:mod:ui:page->test:api:a'])
+    expect(
+      result.componentIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:api:a', 'test:mod:ui:page'])
+    expect(result.linkIds.map((id) => id.value)).toStrictEqual(['test:mod:ui:page->test:api:a'])
   })
 
   it('traces full chain when starting from middle', () => {
@@ -236,17 +254,20 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow(parseComponentId('test:api:b'))
+    const result = query.traceFlow(ComponentId.parse('test:api:b'))
 
-    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:api:b',
-      'test:api:c',
-      'test:mod:ui:page',
-    ])
-    expect(result.linkIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:api:b->test:api:c',
-      'test:mod:ui:page->test:api:b',
-    ])
+    expect(
+      result.componentIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:api:b', 'test:api:c', 'test:mod:ui:page'])
+    expect(
+      result.linkIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:api:b->test:api:c', 'test:mod:ui:page->test:api:b'])
   })
 
   it('uses explicit link ID when provided', () => {
@@ -267,9 +288,9 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow(parseComponentId('test:mod:ui:page'))
+    const result = query.traceFlow(ComponentId.parse('test:mod:ui:page'))
 
-    expect(result.linkIds).toStrictEqual(['custom-link-id'])
+    expect(result.linkIds.map((id) => id.value)).toStrictEqual(['custom-link-id'])
   })
 
   it('traverses full chain beyond immediate neighbors', () => {
@@ -307,15 +328,20 @@ describe('RiviereQuery.traceFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.traceFlow(parseComponentId('test:api:b'))
+    const result = query.traceFlow(ComponentId.parse('test:api:b'))
 
-    expect(result.componentIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:api:b',
-      'test:api:c',
-      'test:api:d',
-      'test:mod:ui:page',
-    ])
-    expect(result.linkIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
+    expect(
+      result.componentIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:api:b', 'test:api:c', 'test:api:d', 'test:mod:ui:page'])
+    expect(
+      result.linkIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual([
       'test:api:b->test:api:c',
       'test:api:c->test:api:d',
       'test:mod:ui:page->test:api:b',

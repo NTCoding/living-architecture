@@ -65,7 +65,7 @@ const linkTypeSchema = z.enum(['sync', 'async'])
 
 /** @riviere-role value-object */
 export class LinkType {
-  declare private brand: 'LinkType'
+  declare private readonly brand: 'LinkType'
   readonly value: z.infer<typeof linkTypeSchema>
 
   private constructor(value: z.infer<typeof linkTypeSchema>) {
@@ -117,10 +117,12 @@ For CLI code, platform CLI infrastructure owns shared response-envelope formatti
 ## Enforced Location Semantics
 
 - Locations and sublocations are unrestricted by default.
-- `subLocations` is the complete list of folders permitted directly inside a location.
-- `allowAnySubLocations: true` permits arbitrary folders and cannot be combined with `subLocations`.
+- Explicit `.subLocation()` entries are the complete list of folders permitted directly inside a location.
+- `allowAnySubLocations: true` permits arbitrary folders and cannot be combined with explicit sublocations.
 - Dependency restrictions apply to the whole location subtree. A sublocation inherits its parent rules and may tighten them, but cannot bypass them.
 - Feature instances cannot import sibling feature instances. They may import `platform/**`.
+- Feature domain may import shared `platform/domain`; feature isolation prevents it importing another feature's domain.
+- `platform/domain` cannot import any other location. Imports within its own concrete location remain allowed.
 - `platform/**` cannot import feature code.
 - `platform/infra/**` may import only within its own infra subtree and external packages.
 - `_platform` is importable only from within its parent location.
@@ -130,7 +132,7 @@ For CLI code, platform CLI infrastructure owns shared response-envelope formatti
 
 Libraries use the same `features/` + `platform/` structure as applications. The package is NOT the feature — still wrap in `features/{name}/`. Libraries don't need `shell/` unless they wire an app.
 
-**Entry point:** Libraries use `src/index.ts` as their package entry point — a pure barrel file containing only re-export statements, no logic. `shell/` is for app wiring only, not package exports.
+**Entry point:** Libraries use `src/index.ts` as their package entry point. It contains only explicit public exports pointing directly to the files that own those declarations; do not add nested barrel files. `shell/` is for app wiring only, not package exports.
 
 ## Local Exceptions
 

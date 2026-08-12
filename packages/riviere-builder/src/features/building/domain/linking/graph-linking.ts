@@ -1,26 +1,56 @@
-import type {
-  ExternalLink, Link 
-} from '@living-architecture/riviere-schema'
+import type { ExternalLink, Link } from '@living-architecture/riviere-schema'
 import { createLinkId } from '@living-architecture/riviere-schema'
 import type { BuilderGraph } from '../builder-graph'
-import type { BuilderWarning } from '../inspection/inspection-types'
-import type {
-  ExternalLinkInput, LinkInput 
-} from './linking-types'
 import { createComponentNotFoundError } from '../construction/builder-internals'
 import {
   DuplicateLinkError,
   RelationshipTypeNotFoundError,
 } from '../construction/construction-errors'
 
+type LinkInput = Readonly<{
+  from: Link['source']
+  to: Link['target']
+  type?: Link['type']
+  relationshipType?: Link['relationshipType']
+  condition?: Link['condition']
+  sourceLocation?: Link['sourceLocation']
+}>
+
+type ExternalLinkInput = Readonly<{
+  from: ExternalLink['source']
+  target: ExternalLink['target']
+  type?: ExternalLink['type']
+  description?: ExternalLink['description']
+  sourceLocation?: ExternalLink['sourceLocation']
+  metadata?: Readonly<Record<string, unknown>>
+}>
+
+type AddDuplicateLinkWarning = (
+  warning: Readonly<{
+    code: 'DUPLICATE_LINK_SKIPPED'
+    message: string
+    source: string
+    target: string
+    linkType?: string
+    targetRepository?: string
+    targetName: string
+  }>,
+) => void
+
 /** @riviere-role domain-service */
 export class GraphLinking {
-  private readonly graph: BuilderGraph
-  private readonly operationWarnings: BuilderWarning[]
+  private graph: BuilderGraph
+  private readonly addWarning: AddDuplicateLinkWarning
+  private readonly updateGraph: (graph: BuilderGraph) => void
 
-  constructor(graph: BuilderGraph, operationWarnings: BuilderWarning[]) {
+  constructor(
+    graph: BuilderGraph,
+    addWarning: AddDuplicateLinkWarning,
+    updateGraph: (graph: BuilderGraph) => void,
+  ) {
     this.graph = graph
-    this.operationWarnings = operationWarnings
+    this.addWarning = addWarning
+    this.updateGraph = updateGraph
   }
 
   link(input: LinkInput): Link {
@@ -57,7 +87,8 @@ export class GraphLinking {
       ...(input.condition !== undefined && { condition: input.condition }),
       ...(input.sourceLocation !== undefined && { sourceLocation: input.sourceLocation }),
     }
-    this.graph.links.push(link)
+    this.graph = this.graph.withLink(link)
+    this.updateGraph(this.graph)
     return link
   }
 
@@ -76,7 +107,7 @@ export class GraphLinking {
     )
 
     if (duplicate) {
-      this.operationWarnings.push({
+      this.addWarning({
         code: 'DUPLICATE_LINK_SKIPPED',
         message: `Duplicate external link '${input.from}' -> '${input.target.name}' (${input.type ?? 'unspecified'}) skipped`,
         source: input.from,
@@ -96,7 +127,8 @@ export class GraphLinking {
       ...(input.description !== undefined && { description: input.description }),
       ...(input.sourceLocation !== undefined && { sourceLocation: input.sourceLocation }),
     }
-    this.graph.externalLinks.push(externalLink)
+    this.graph = this.graph.withExternalLink(externalLink)
+    this.updateGraph(this.graph)
     return externalLink
   }
 }

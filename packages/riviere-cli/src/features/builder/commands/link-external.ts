@@ -18,12 +18,10 @@ export class LinkExternal {
 
     try {
       const builder = this.repository.load(input.graphPathOption)
-      const externalLinkInput: Parameters<typeof builder.linkExternal>[0] = {
+      const externalLinkInput = {
         from: input.from,
         target: input.target,
-      }
-      if (type?.success === true) {
-        externalLinkInput.type = type.data.value
+        ...(type?.success === true ? { type: type.data.value } : {}),
       }
       const externalLink = builder.linkExternal(externalLinkInput)
       this.repository.save(builder)

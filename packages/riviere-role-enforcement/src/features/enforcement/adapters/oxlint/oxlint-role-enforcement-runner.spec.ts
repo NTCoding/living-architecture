@@ -1,16 +1,17 @@
 import { expect, it, vi } from 'vitest'
 import { OxlintExecutionError } from '../../../../platform/infra/external-clients/oxlint/index'
 import type { RoleEnforcementRunnerInput } from '../../domain/ports/role-enforcement-runner'
+import { RoleEnforcementResult } from '../../domain/role-enforcement-builder'
 import { createOxlintRoleEnforcementRunner } from './oxlint-role-enforcement-runner'
 
 const input: RoleEnforcementRunnerInput = {
-  config: {
+  config: RoleEnforcementResult.parse({
     ignorePatterns: ['**/*.spec.ts'],
     include: ['src/**/*.ts'],
     locationHierarchy: [],
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: [],
-  },
+  }),
   configDir: '/repo/packages/pkg-a',
   lintTargets: ['src/index.ts'],
 }
@@ -92,11 +93,11 @@ it('preserves optional enforcement configuration', () => {
 
   runner({
     ...input,
-    config: {
+    config: RoleEnforcementResult.parse({
       ...input.config,
       importAliases: { '@generic/*': 'packages/generic/src/*' },
       workspacePackageSources: { '@generic/package': 'packages/generic/src/index.ts' },
-    },
+    }),
   })
 
   expect(client).toHaveBeenCalledWith(

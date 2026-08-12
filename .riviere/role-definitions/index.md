@@ -12,7 +12,7 @@ These resources inform how roles are classified and where code should live:
 ## Dependency Rules
 
 Dependencies point inward:
-- `entrypoint/` → commands, queries, and shared `platform/domain`; never feature domain or data access directly
+- `entrypoint/` → commands, queries, and `platform/infra/cli/*`; never domain or data access directly
 - `commands/` → domain and data access; never concrete domain-port adapters
 - `queries/` → query models and data access
 - `domain/` → domain code and domain ports only; never adapters or infrastructure
@@ -27,7 +27,7 @@ Concrete test: `readJsonFile(filePath): unknown` and `resolveFileOrPackagePath(.
 
 Role enforcement is automated via an oxlint plugin. It checks annotations, location constraints, dependency rules, and I/O contracts at lint time. ADR-002 defines the architecture and `.riviere/role-enforcement.config.ts` is its executable form. Changes must update both.
 
-Import rules belong in the relevant location's `rules.dependencyRules`. Parent restrictions apply throughout the location subtree. Imports are unrestricted unless a location declares dependency rules. `subLocations` is the complete list of permitted folders unless `allowAnySubLocations` is set. Role-specific restrictions use the existing role `forbiddenDependencies` rule. Rivière role enforcement must not maintain a second list of path matchers for architectural locations.
+Import rules belong in the relevant location's `dependencyRules`. Parent restrictions apply throughout the location subtree. Imports are unrestricted unless a location declares dependency rules. Explicit sublocations are the complete list of permitted folders unless `allowAnySubLocations` is set. Role-specific restrictions use the existing role `forbiddenDependencies` rule. Rivière role enforcement must not maintain a second list of path matchers for architectural locations.
 
 ## Classification Decision Tree
 

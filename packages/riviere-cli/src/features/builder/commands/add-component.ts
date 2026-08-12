@@ -3,11 +3,11 @@ import {
   DomainNotFoundError,
   DuplicateComponentError,
 } from '@living-architecture/riviere-builder/features/building/domain/construction/construction-errors'
-import { addComponentToBuilder } from '../../../platform/domain/add-component'
+import { addComponentToBuilder } from '../domain/add-component'
 import {
   createDomainInput,
   isAddComponentValidationError,
-} from '../../../platform/domain/add-component-input-factory'
+} from '../domain/add-component-input-factory'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'

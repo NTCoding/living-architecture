@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: GraphStats
 
-Defined in: [packages/riviere-query/src/features/querying/domain/stats-queries.ts:4](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/stats-queries.ts#L4)
+Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:2
 
 ## Riviere-role
 
@@ -14,46 +14,46 @@ value-object
 
 ### apiCount
 
-> **apiCount**: `number`
+> `readonly` **apiCount**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/stats-queries.ts:8](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/stats-queries.ts#L8)
+Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:7
 
 ***
 
 ### componentCount
 
-> **componentCount**: `number`
+> `readonly` **componentCount**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/stats-queries.ts:5](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/stats-queries.ts#L5)
+Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:4
 
 ***
 
 ### domainCount
 
-> **domainCount**: `number`
+> `readonly` **domainCount**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/stats-queries.ts:7](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/stats-queries.ts#L7)
+Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:6
 
 ***
 
 ### entityCount
 
-> **entityCount**: `number`
+> `readonly` **entityCount**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/stats-queries.ts:9](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/stats-queries.ts#L9)
+Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:8
 
 ***
 
 ### eventCount
 
-> **eventCount**: `number`
+> `readonly` **eventCount**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/stats-queries.ts:10](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/stats-queries.ts#L10)
+Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:9
 
 ***
 
 ### linkCount
 
-> **linkCount**: `number`
+> `readonly` **linkCount**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/stats-queries.ts:6](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/stats-queries.ts#L6)
+Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:5

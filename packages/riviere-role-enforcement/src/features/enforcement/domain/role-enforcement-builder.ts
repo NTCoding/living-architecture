@@ -1,16 +1,9 @@
-import {
-  type AssignedLocationConfiguration,
-  type FluentLocationDefinition,
-  type LocationBuilder,
-  type LocationConfiguration,
-  type LocationDependencyRules,
-} from './location-configuration'
+import { type LocationBuilder, type LocationConfiguration } from './location-configuration'
 
 export { location, locationConfiguration } from './location-configuration'
 export type { LocationBuilder, LocationConfiguration } from './location-configuration'
 
-/** @riviere-role value-object */
-export type RoleTarget = 'class' | 'function' | 'interface' | 'type-alias'
+type RoleTarget = 'class' | 'function' | 'interface' | 'type-alias'
 
 interface ApprovedInstance {
   readonly name: string
@@ -23,54 +16,79 @@ interface RoleOptions<R extends string = string> {
   readonly allowedNames?: readonly string[]
   readonly allowedOutputs?: readonly R[]
   readonly approvedInstances?: readonly ApprovedInstance[]
-  readonly forbiddenCallableMembers?: true
+  readonly forbiddenCallableDataMembers?: true
   readonly forbiddenSupertypes?: readonly string[]
   readonly forbiddenDependencies?: readonly R[]
   readonly forbiddenMethodCalls?: readonly R[]
   readonly requiredPrivateMembers?: readonly string[]
+  readonly requiresPrivateConstructor?: true
+  readonly requiredStaticMethodNamePrefix?: string
   readonly requiresDataMembers?: true
   readonly nameMatches?: string
   readonly maxPublicMethods?: number
   readonly minPublicMethods?: number
 }
+
+interface BuiltRoleDefinition<N extends string = string> extends RoleOptions {readonly name: N}
 
 /** @riviere-role value-object */
-export interface BuiltRole<N extends string = string> {
-  readonly name: N
-  readonly targets: readonly RoleTarget[]
-  readonly allowedInputs?: readonly string[]
-  readonly allowedNames?: readonly string[]
-  readonly allowedOutputs?: readonly string[]
-  readonly approvedInstances?: readonly ApprovedInstance[]
-  readonly forbiddenCallableMembers?: true
-  readonly forbiddenSupertypes?: readonly string[]
-  readonly forbiddenDependencies?: readonly string[]
-  readonly forbiddenMethodCalls?: readonly string[]
-  readonly requiredPrivateMembers?: readonly string[]
-  readonly requiresDataMembers?: true
-  readonly maxPublicMethods?: number
-  readonly nameMatches?: string
-  readonly minPublicMethods?: number
-}
+export class BuiltRole<N extends string = string> {
+  declare private readonly brand: 'BuiltRole'
 
-/** @riviere-role domain-service */
-export function role<const N extends string>(name: N, options: RoleOptions): BuiltRole<N> {
-  return {
-    name,
-    ...options,
+  declare readonly name: N
+  declare readonly targets: readonly RoleTarget[]
+  declare readonly allowedInputs?: readonly string[]
+  declare readonly allowedNames?: readonly string[]
+  declare readonly allowedOutputs?: readonly string[]
+  declare readonly approvedInstances?: readonly ApprovedInstance[]
+  declare readonly forbiddenCallableDataMembers?: true
+  declare readonly forbiddenSupertypes?: readonly string[]
+  declare readonly forbiddenDependencies?: readonly string[]
+  declare readonly forbiddenMethodCalls?: readonly string[]
+  declare readonly requiredPrivateMembers?: readonly string[]
+  declare readonly requiresPrivateConstructor?: true
+  declare readonly requiredStaticMethodNamePrefix?: string
+  declare readonly requiresDataMembers?: true
+  declare readonly maxPublicMethods?: number
+  declare readonly nameMatches?: string
+  declare readonly minPublicMethods?: number
+
+  private constructor(definition: BuiltRoleDefinition<N>) {
+    Object.assign(this, definition)
+  }
+
+  static parse<N extends string>(definition: BuiltRoleDefinition<N>): BuiltRole<N> {
+    return new BuiltRole(definition)
   }
 }
 
 /** @riviere-role domain-service */
-export function createRoleFactory<R extends string>() {
-  return <const N extends R>(name: N, options: RoleOptions<R>): BuiltRole<N> => ({
+export function role<const N extends string>(name: N, options: RoleOptions): BuiltRole<N> {
+  return BuiltRole.parse({
     name,
     ...options,
   })
 }
 
+/** @riviere-role domain-service */
+export function createRoleFactory<R extends string>() {
+  return <const N extends R>(name: N, options: RoleOptions<R>): BuiltRole<N> =>
+    BuiltRole.parse({
+      name,
+      ...options,
+    })
+}
+
 interface RoleEnforcementInput<R extends string> {
-  readonly configurations: Readonly<Record<string, AssignedLocationConfiguration<R>>>
+  readonly configurations: Readonly<
+    Record<
+      string,
+      {
+        readonly locations: LocationConfiguration<R>
+        readonly packages: readonly string[]
+      }
+    >
+  >
   readonly ignorePatterns: readonly string[]
   readonly importAliases?: Readonly<Record<string, string>>
   readonly roleDefinitionsDir: string
@@ -78,11 +96,10 @@ interface RoleEnforcementInput<R extends string> {
   readonly workspacePackageSources?: Record<string, string>
 }
 
-/** @riviere-role value-object */
-export interface BuiltLocationNode {
+interface BuiltLocationNode {
   readonly allowAnySubLocations: boolean
   readonly allowedRoles: readonly string[]
-  readonly dependencyRules?: LocationDependencyRules<string>
+  readonly dependencyRules?: LocationBuilder<string>['dependencyRules']
   readonly id: string
   readonly name: string
   readonly packagePath: string
@@ -90,8 +107,7 @@ export interface BuiltLocationNode {
   readonly pathTemplate: string
 }
 
-/** @riviere-role value-object */
-export interface RoleEnforcementResult {
+interface RoleEnforcementResultDefinition {
   readonly ignorePatterns: readonly string[]
   readonly importAliases?: Readonly<Record<string, string>>
   readonly include: readonly string[]
@@ -101,12 +117,33 @@ export interface RoleEnforcementResult {
   readonly workspacePackageSources?: Record<string, string>
 }
 
+/** @riviere-role value-object */
+export class RoleEnforcementResult {
+  declare private readonly brand: 'RoleEnforcementResult'
+
+  declare readonly ignorePatterns: readonly string[]
+  declare readonly importAliases?: Readonly<Record<string, string>>
+  declare readonly include: readonly string[]
+  declare readonly locationHierarchy: readonly BuiltLocationNode[]
+  declare readonly roleDefinitionsDir: string
+  declare readonly roles: readonly BuiltRole[]
+  declare readonly workspacePackageSources?: Record<string, string>
+
+  private constructor(definition: RoleEnforcementResultDefinition) {
+    Object.assign(this, definition)
+  }
+
+  static parse(definition: RoleEnforcementResultDefinition): RoleEnforcementResult {
+    return new RoleEnforcementResult(definition)
+  }
+}
+
 /** @riviere-role domain-service */
 export function roleEnforcement<const R extends string>(
   input: RoleEnforcementInput<R>,
 ): RoleEnforcementResult {
   const assignedConfigurations = Object.values(input.configurations)
-  return {
+  return RoleEnforcementResult.parse({
     ignorePatterns: input.ignorePatterns,
     ...(input.importAliases !== undefined && { importAliases: input.importAliases }),
     include: assignedConfigurations.flatMap((configuration) =>
@@ -118,7 +155,7 @@ export function roleEnforcement<const R extends string>(
     roleDefinitionsDir: input.roleDefinitionsDir,
     roles: input.roles,
     ...(input.workspacePackageSources !== undefined && {workspacePackageSources: input.workspacePackageSources,}),
-  }
+  })
 }
 
 function buildFluentLocationHierarchy<R extends string>(
@@ -161,7 +198,7 @@ function buildSourceRoot(packagePath: string): BuiltLocationNode {
 }
 
 function buildFluentLocationNode<R extends string>(
-  definition: FluentLocationDefinition<R>,
+  definition: LocationBuilder<R>,
   packagePath: string,
   parentPathTemplate: string,
   locationName: string,

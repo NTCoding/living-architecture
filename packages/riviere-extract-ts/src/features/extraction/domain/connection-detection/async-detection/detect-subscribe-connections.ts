@@ -1,10 +1,8 @@
-import {
-  EVENT_NAME_FIELD, SUBSCRIBED_EVENTS_FIELD 
-} from '@living-architecture/riviere-schema'
+import { EVENT_NAME_FIELD, SUBSCRIBED_EVENTS_FIELD } from '@living-architecture/riviere-schema'
 import type { EnrichedComponent } from '../../value-extraction/enriched-component'
-import { ExtractedLink } from '../extracted-link'
-import { ConnectionDetectionError } from '../connection-detection-error'
 import { componentIdentity } from '../call-graph/component-identity'
+import { ConnectionDetectionError } from '../connection-detection-error'
+import { ExtractedLink } from '../extracted-link'
 import type { AsyncDetectionOptions } from './async-detection-options'
 import { toSourceLocation } from './async-detection-types'
 
@@ -41,14 +39,13 @@ function resolveSubscription(
     return [handleAmbiguousMatch(handler, eventName, matchingEvents.length, options, repository)]
   }
 
-  return matchingEvents.map(
-    (event) =>
-      new ExtractedLink({
-        source: componentIdentity(event),
-        target: componentIdentity(handler),
-        type: 'async',
-        sourceLocation: toSourceLocation(handler, repository),
-      }),
+  return matchingEvents.map((event) =>
+    ExtractedLink.parse({
+      source: componentIdentity(event),
+      target: componentIdentity(handler),
+      type: 'async',
+      sourceLocation: toSourceLocation(handler, repository),
+    }),
   )
 }
 
@@ -67,7 +64,7 @@ function handleAmbiguousMatch(
       reason: `subscribed event "${eventName}" matches ${matchCount} Event components (ambiguous)`,
     })
   }
-  return new ExtractedLink({
+  return ExtractedLink.parse({
     source: '_unresolved',
     target: componentIdentity(handler),
     type: 'async',
@@ -90,7 +87,7 @@ function handleNoMatch(
       reason: `subscribed event "${eventName}" does not match any Event component`,
     })
   }
-  return new ExtractedLink({
+  return ExtractedLink.parse({
     source: '_unresolved',
     target: componentIdentity(handler),
     type: 'async',

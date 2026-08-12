@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: DomainConnection
 
-Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:13](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L13)
+Defined in: packages/riviere-query/src/features/querying/domain/domain-connection.ts:4
 
 ## Riviere-role
 
@@ -14,30 +14,30 @@ value-object
 
 ### apiCount
 
-> **apiCount**: `number`
+> `readonly` **apiCount**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:16](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L16)
+Defined in: packages/riviere-query/src/features/querying/domain/domain-connection.ts:8
 
 ***
 
 ### direction
 
-> **direction**: `"outgoing"` \| `"incoming"`
+> `readonly` **direction**: `"outgoing"` \| `"incoming"`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:15](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L15)
+Defined in: packages/riviere-query/src/features/querying/domain/domain-connection.ts:7
 
 ***
 
 ### eventCount
 
-> **eventCount**: `number`
+> `readonly` **eventCount**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:17](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L17)
+Defined in: packages/riviere-query/src/features/querying/domain/domain-connection.ts:9
 
 ***
 
 ### targetDomain
 
-> **targetDomain**: `string` & `$brand`\<`"DomainName"`\>
+> `readonly` **targetDomain**: `DomainName`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts:14](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/cross-domain-queries.ts#L14)
+Defined in: packages/riviere-query/src/features/querying/domain/domain-connection.ts:6

@@ -1,11 +1,8 @@
-import type {
-  ConcreteStateDefinition, WorkflowState 
-} from '../workflow-types'
-import {
-  pass, fail 
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type { WorkflowState } from '../workflow-types'
+import { defineState } from '../define-state'
+import { pass, fail } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
-export const addressingFeedbackState: ConcreteStateDefinition = {
+export const addressingFeedbackState = defineState({
   emoji: '🔧',
   agentInstructions: 'states/addressing_feedback.md',
   canTransitionTo: ['REVIEWING', 'BLOCKED'],
@@ -23,9 +20,9 @@ export const addressingFeedbackState: ConcreteStateDefinition = {
     return pass()
   },
 
-  onEntry: (state: WorkflowState): WorkflowState => ({
-    ...state,
-    feedbackAddressed: false,
-    feedbackClean: false,
-  }),
-}
+  onEntry: (state: WorkflowState): WorkflowState =>
+    state.with({
+      feedbackAddressed: false,
+      feedbackClean: false,
+    }),
+})

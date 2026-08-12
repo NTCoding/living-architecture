@@ -9,7 +9,17 @@ export class ExtractedLink {
   readonly _uncertain: string | undefined
   readonly sourceLocation: Link['sourceLocation'] | undefined
 
-  constructor(params: {
+  static parse(params: {
+    source: string
+    target: string
+    type?: 'sync' | 'async'
+    _uncertain?: string
+    sourceLocation?: Link['sourceLocation']
+  }): ExtractedLink {
+    return new ExtractedLink(params)
+  }
+
+  private constructor(params: {
     source: string
     target: string
     type?: 'sync' | 'async'

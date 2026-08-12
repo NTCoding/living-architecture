@@ -1,16 +1,14 @@
-import {
-  describe, it, expect 
-} from 'vitest'
 import { Project } from 'ts-morph'
+import { describe, expect, it } from 'vitest'
 import {
-  evaluateFromDecoratorArgRule,
+  ExtractionError,
+  TestFixtureError,
+} from '../../../../platform/domain/ast-literals/literal-detection'
+import {
   evaluateFromClassDecoratorArgRule,
+  evaluateFromDecoratorArgRule,
   evaluateFromDecoratorNameRule,
 } from './evaluate-extraction-rule'
-import {
-  TestFixtureError,
-  ExtractionError,
-} from '../../../../platform/domain/ast-literals/literal-detection'
 
 function createDecoratorFromMethod(code: string) {
   const project = new Project({ useInMemoryFileSystem: true })

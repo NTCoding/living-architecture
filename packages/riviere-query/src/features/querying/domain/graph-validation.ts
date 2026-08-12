@@ -1,29 +1,8 @@
+import type { CustomComponent, RiviereGraph } from '@living-architecture/riviere-schema'
 import { createLinkId } from '@living-architecture/riviere-schema'
-import type { RiviereGraph, CustomComponent } from '@living-architecture/riviere-schema'
-import type { ComponentId } from './identifiers'
-import { parseComponentId } from './identifiers'
-
-/** @riviere-role value-object */
-export type ValidationErrorCode =
-  | 'INVALID_LINK_SOURCE'
-  | 'INVALID_LINK_TARGET'
-  | 'INVALID_TYPE'
-  | 'INVALID_RELATIONSHIP_TYPE'
-  | 'DUPLICATE_LINK_ID'
-  | 'DUPLICATE_LINK'
-
-/** @riviere-role value-object */
-export interface ValidationError {
-  path: string
-  message: string
-  code: ValidationErrorCode
-}
-
-/** @riviere-role value-object */
-export interface ValidationResult {
-  valid: boolean
-  errors: ValidationError[]
-}
+import { ComponentId } from './component-id'
+import { ValidationError } from './validation-error'
+import { ValidationResult } from './validation-result'
 
 function isCustomComponent(component: { type: string }): component is CustomComponent {
   return component.type === 'Custom'
@@ -36,18 +15,22 @@ export function validateGraph(graph: RiviereGraph): ValidationResult {
   const componentIds = new Set(graph.components.map((c) => c.id))
   graph.links.forEach((link, index) => {
     if (!componentIds.has(link.source)) {
-      errors.push({
-        path: `/links/${index}/source`,
-        message: `Link references non-existent source: ${link.source}`,
-        code: 'INVALID_LINK_SOURCE',
-      })
+      errors.push(
+        ValidationError.parse({
+          path: `/links/${index}/source`,
+          message: `Link references non-existent source: ${link.source}`,
+          code: 'INVALID_LINK_SOURCE',
+        }),
+      )
     }
     if (!componentIds.has(link.target)) {
-      errors.push({
-        path: `/links/${index}/target`,
-        message: `Link references non-existent target: ${link.target}`,
-        code: 'INVALID_LINK_TARGET',
-      })
+      errors.push(
+        ValidationError.parse({
+          path: `/links/${index}/target`,
+          message: `Link references non-existent target: ${link.target}`,
+          code: 'INVALID_LINK_TARGET',
+        }),
+      )
     }
   })
 
@@ -56,10 +39,10 @@ export function validateGraph(graph: RiviereGraph): ValidationResult {
   errors.push(...validateUniqueLinkIds(graph))
   errors.push(...validateUniqueLinkOccurrences(graph))
 
-  return {
+  return ValidationResult.parse({
     valid: errors.length === 0,
     errors,
-  }
+  })
 }
 
 function validateRelationshipTypes(graph: RiviereGraph): ValidationError[] {
@@ -71,11 +54,13 @@ function validateRelationshipTypes(graph: RiviereGraph): ValidationError[] {
       link.relationshipType !== undefined &&
       (relationshipTypes === undefined || !Object.hasOwn(relationshipTypes, link.relationshipType))
     ) {
-      errors.push({
-        path: `/links/${index}/relationshipType`,
-        message: `Relationship type '${link.relationshipType}' is not defined in metadata.relationshipTypes`,
-        code: 'INVALID_RELATIONSHIP_TYPE',
-      })
+      errors.push(
+        ValidationError.parse({
+          path: `/links/${index}/relationshipType`,
+          message: `Relationship type '${link.relationshipType}' is not defined in metadata.relationshipTypes`,
+          code: 'INVALID_RELATIONSHIP_TYPE',
+        }),
+      )
     }
   })
 
@@ -91,11 +76,13 @@ function validateUniqueLinkIds(graph: RiviereGraph): ValidationError[] {
       return
     }
     if (seen.has(link.id)) {
-      errors.push({
-        path: `/links/${index}/id`,
-        message: `Duplicate Link ID: ${link.id}`,
-        code: 'DUPLICATE_LINK_ID',
-      })
+      errors.push(
+        ValidationError.parse({
+          path: `/links/${index}/id`,
+          message: `Duplicate Link ID: ${link.id}`,
+          code: 'DUPLICATE_LINK_ID',
+        }),
+      )
       return
     }
     seen.add(link.id)
@@ -111,11 +98,13 @@ function validateUniqueLinkOccurrences(graph: RiviereGraph): ValidationError[] {
   graph.links.forEach((link, index) => {
     const occurrenceId = createLinkId(link)
     if (seen.has(occurrenceId)) {
-      errors.push({
-        path: `/links/${index}`,
-        message: `Duplicate Link occurrence: ${occurrenceId}`,
-        code: 'DUPLICATE_LINK',
-      })
+      errors.push(
+        ValidationError.parse({
+          path: `/links/${index}`,
+          message: `Duplicate Link occurrence: ${occurrenceId}`,
+          code: 'DUPLICATE_LINK',
+        }),
+      )
       return
     }
     seen.add(occurrenceId)
@@ -136,11 +125,13 @@ function validateCustomTypes(graph: RiviereGraph): ValidationError[] {
     const customTypeName = component.customTypeName
 
     if (!customTypes || !(customTypeName in customTypes)) {
-      errors.push({
-        path: `/components/${index}/customTypeName`,
-        message: `Custom type '${customTypeName}' is not defined in metadata.customTypes`,
-        code: 'INVALID_TYPE',
-      })
+      errors.push(
+        ValidationError.parse({
+          path: `/components/${index}/customTypeName`,
+          message: `Custom type '${customTypeName}' is not defined in metadata.customTypes`,
+          code: 'INVALID_TYPE',
+        }),
+      )
     }
   })
 
@@ -157,5 +148,5 @@ export function detectOrphanComponents(graph: RiviereGraph): ComponentId[] {
 
   return graph.components
     .filter((c) => !connectedComponentIds.has(c.id))
-    .map((c) => parseComponentId(c.id))
+    .map((c) => ComponentId.parse(c.id))
 }

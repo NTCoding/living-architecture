@@ -1,6 +1,4 @@
-import type {
-  CustomTypeDefinition, DomainMetadata 
-} from '@living-architecture/riviere-schema'
+import type { CustomTypeDefinition, DomainMetadata } from '@living-architecture/riviere-schema'
 import {
   CustomTypeNotFoundError,
   DomainNotFoundError,
@@ -8,7 +6,10 @@ import {
 } from './construction-errors'
 
 /** @riviere-role domain-service */
-export function assertDomainExists(domains: Record<string, DomainMetadata>, domain: string): void {
+export function assertDomainExists(
+  domains: Readonly<Record<string, DomainMetadata>>,
+  domain: string,
+): void {
   if (!domains[domain]) {
     throw new DomainNotFoundError(domain)
   }
@@ -16,7 +17,7 @@ export function assertDomainExists(domains: Record<string, DomainMetadata>, doma
 
 /** @riviere-role domain-service */
 export function assertCustomTypeExists(
-  customTypes: Record<string, CustomTypeDefinition>,
+  customTypes: Readonly<Record<string, CustomTypeDefinition>>,
   customTypeName: string,
 ): void {
   if (!customTypes[customTypeName]) {
@@ -27,7 +28,7 @@ export function assertCustomTypeExists(
 
 /** @riviere-role domain-service */
 export function assertRequiredPropertiesProvided(
-  customTypes: Record<string, CustomTypeDefinition>,
+  customTypes: Readonly<Record<string, CustomTypeDefinition>>,
   customTypeName: string,
   metadata: Record<string, unknown> | undefined,
 ): void {

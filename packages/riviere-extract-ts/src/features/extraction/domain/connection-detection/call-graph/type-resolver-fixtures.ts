@@ -1,6 +1,4 @@
-import {
-  Project, CallExpression, SyntaxKind 
-} from 'ts-morph'
+import { CallExpression, Project, SyntaxKind } from 'ts-morph'
 
 export class CallExpressionNotFoundError extends Error {
   constructor(scope: string, method: string) {

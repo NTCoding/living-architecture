@@ -1,12 +1,10 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type { BuilderGraph } from './builder-graph'
+import type { DomainMetadata, RiviereGraph, SourceInfo } from '@living-architecture/riviere-schema'
+import { BuilderGraph } from './builder-graph'
 import { GraphConstruction } from './construction/graph-construction'
 import { GraphEnrichment } from './enrichment/graph-enrichment'
 import { GraphLinking } from './linking/graph-linking'
 import { GraphInspection } from './inspection/graph-inspection'
 import { NearMatch } from './error-recovery/near-match'
-import type { BuilderOptions } from './construction/construction-types'
-import type { BuilderWarning } from './inspection/inspection-types'
 import {
   BuildValidationError,
   InvalidGraphError,
@@ -15,26 +13,72 @@ import {
 } from './construction/construction-errors'
 import { toRiviereGraph } from './inspection/inspection-functions'
 
+type ScalarOverwriteWarning = Readonly<{
+  code: 'SCALAR_OVERWRITE'
+  message: string
+  componentId: string
+  field: string
+  oldValue: string | number | boolean
+  newValue: string | number | boolean
+}>
+
+type DuplicateLinkWarning = Readonly<{
+  code: 'DUPLICATE_LINK_SKIPPED'
+  message: string
+  source: string
+  target: string
+  linkType?: string
+  targetRepository?: string
+  targetName: string
+}>
+
+type OperationWarning = ScalarOverwriteWarning | DuplicateLinkWarning
+
 /** @riviere-role domain-service */
 export class RiviereBuilder {
-  readonly construction: GraphConstruction
-  readonly enrichment: GraphEnrichment
-  readonly linking: GraphLinking
-  readonly inspection: GraphInspection
-  readonly errorRecovery: NearMatch
   readonly graphPath: string
 
-  private readonly graph: BuilderGraph
+  private graph: BuilderGraph
+  private readonly operationWarnings: OperationWarning[]
 
   private constructor(graph: BuilderGraph, graphPath: string) {
     this.graph = graph
     this.graphPath = graphPath
-    const operationWarnings: BuilderWarning[] = []
-    this.construction = new GraphConstruction(graph, operationWarnings)
-    this.enrichment = new GraphEnrichment(graph)
-    this.linking = new GraphLinking(graph, operationWarnings)
-    this.inspection = new GraphInspection(graph, operationWarnings)
-    this.errorRecovery = new NearMatch(graph)
+    this.operationWarnings = []
+  }
+
+  get construction(): GraphConstruction {
+    return new GraphConstruction(
+      this.graph,
+      (warning) => this.operationWarnings.push(warning),
+      (graph) => {
+        this.graph = graph
+      },
+    )
+  }
+
+  get enrichment(): GraphEnrichment {
+    return new GraphEnrichment(this.graph, (graph) => {
+      this.graph = graph
+    })
+  }
+
+  get linking(): GraphLinking {
+    return new GraphLinking(
+      this.graph,
+      (warning) => this.operationWarnings.push(warning),
+      (graph) => {
+        this.graph = graph
+      },
+    )
+  }
+
+  get inspection(): GraphInspection {
+    return new GraphInspection(this.graph, this.operationWarnings)
+  }
+
+  get errorRecovery(): NearMatch {
+    return new NearMatch(this.graph)
   }
 
   static resume(graph: RiviereGraph, graphPath = ''): RiviereBuilder {
@@ -42,7 +86,7 @@ export class RiviereBuilder {
       throw new InvalidGraphError('missing sources')
     }
 
-    const builderGraph: BuilderGraph = {
+    const builderGraph = BuilderGraph.parse({
       version: graph.version,
       metadata: {
         ...graph.metadata,
@@ -53,11 +97,19 @@ export class RiviereBuilder {
       components: graph.components,
       links: graph.links,
       externalLinks: graph.externalLinks ?? [],
-    }
+    })
     return new RiviereBuilder(builderGraph, graphPath)
   }
 
-  static new(options: BuilderOptions, graphPath = ''): RiviereBuilder {
+  static new(
+    options: {
+      readonly name?: string
+      readonly description?: string
+      readonly sources: readonly SourceInfo[]
+      readonly domains: Readonly<Record<string, DomainMetadata>>
+    },
+    graphPath = '',
+  ): RiviereBuilder {
     if (options.sources.length === 0) {
       throw new MissingSourcesError()
     }
@@ -66,20 +118,20 @@ export class RiviereBuilder {
       throw new MissingDomainsError()
     }
 
-    const graph: BuilderGraph = {
+    const graph = BuilderGraph.parse({
       version: '1.0',
       metadata: {
         ...(options.name !== undefined && { name: options.name }),
         ...(options.description !== undefined && { description: options.description }),
-        sources: options.sources,
-        domains: options.domains,
+        sources: [...options.sources],
+        domains: { ...options.domains },
         customTypes: {},
         relationshipTypes: {},
       },
       components: [],
       links: [],
       externalLinks: [],
-    }
+    })
 
     return new RiviereBuilder(graph, graphPath)
   }

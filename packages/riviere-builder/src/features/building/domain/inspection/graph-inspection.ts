@@ -1,9 +1,6 @@
 import type { ValidationResult } from '@living-architecture/riviere-query'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import type { BuilderGraph } from '../builder-graph'
-import type {
-  BuilderStats, BuilderWarning 
-} from './inspection-types'
 import {
   calculateStats,
   findOrphans,
@@ -12,21 +9,40 @@ import {
   validateGraph,
 } from './inspection-functions'
 
+type OperationWarning =
+  | Readonly<{
+    code: 'SCALAR_OVERWRITE'
+    message: string
+    componentId: string
+    field: string
+    oldValue: string | number | boolean
+    newValue: string | number | boolean
+  }>
+  | Readonly<{
+    code: 'DUPLICATE_LINK_SKIPPED'
+    message: string
+    source: string
+    target: string
+    linkType?: string
+    targetRepository?: string
+    targetName: string
+  }>
+
 /** @riviere-role domain-service */
 export class GraphInspection {
   private readonly graph: BuilderGraph
-  private readonly operationWarnings: readonly BuilderWarning[]
+  private readonly operationWarnings: readonly OperationWarning[]
 
-  constructor(graph: BuilderGraph, operationWarnings: readonly BuilderWarning[]) {
+  constructor(graph: BuilderGraph, operationWarnings: readonly OperationWarning[]) {
     this.graph = graph
     this.operationWarnings = operationWarnings
   }
 
-  warnings(): BuilderWarning[] {
+  warnings() {
     return [...findWarnings(this.graph), ...this.operationWarnings]
   }
 
-  stats(): BuilderStats {
+  stats() {
     return calculateStats(this.graph)
   }
 

@@ -1,20 +1,16 @@
 import type {
-  FromMethodSignatureExtractionRule,
   FromConstructorParamsExtractionRule,
+  FromMethodSignatureExtractionRule,
   FromParameterTypeExtractionRule,
 } from '@living-architecture/riviere-extract-config'
-import type {
-  ClassDeclaration, MethodDeclaration, ParameterDeclaration 
-} from 'ts-morph'
-import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
+import type { ClassDeclaration, MethodDeclaration, ParameterDeclaration } from 'ts-morph'
 import { ExtractionError } from '../../../../platform/domain/ast-literals/literal-detection'
-import {
-  MethodExtractionResult, MethodSignature, ParameterInfo 
-} from './method-extraction-result'
+import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
+import { MethodExtractionResult, MethodSignature, ParameterInfo } from './method-extraction-result'
 
 function extractParameterInfo(param: ParameterDeclaration): ParameterInfo {
   const typeNode = param.getTypeNode()
-  return new ParameterInfo({
+  return ParameterInfo.parse({
     name: param.getName(),
     type: typeNode?.getText() ?? 'unknown',
   })
@@ -28,8 +24,8 @@ export function evaluateFromMethodSignatureRule(
   const parameters = methodDecl.getParameters().map(extractParameterInfo)
   const returnTypeNode = methodDecl.getReturnTypeNode()
 
-  return new MethodExtractionResult({
-    value: new MethodSignature({
+  return MethodExtractionResult.parse({
+    value: MethodSignature.parse({
       parameters,
       returnType: returnTypeNode?.getText() ?? 'unknown',
     }),
@@ -43,11 +39,11 @@ export function evaluateFromConstructorParamsRule(
 ): MethodExtractionResult {
   const ctor = classDecl.getConstructors()[0]
   if (ctor === undefined) {
-    return new MethodExtractionResult({ value: [] })
+    return MethodExtractionResult.parse({ value: [] })
   }
 
   const parameters = ctor.getParameters().map(extractParameterInfo)
-  return new MethodExtractionResult({ value: parameters })
+  return MethodExtractionResult.parse({ value: parameters })
 }
 
 /** @riviere-role domain-service */
@@ -73,8 +69,8 @@ export function evaluateFromParameterTypeRule(
   const typeName = typeNode?.getText() ?? 'unknown'
 
   if (transform === undefined) {
-    return new MethodExtractionResult({ value: typeName })
+    return MethodExtractionResult.parse({ value: typeName })
   }
 
-  return new MethodExtractionResult({ value: applyTransforms(typeName, transform) })
+  return MethodExtractionResult.parse({ value: applyTransforms(typeName, transform) })
 }

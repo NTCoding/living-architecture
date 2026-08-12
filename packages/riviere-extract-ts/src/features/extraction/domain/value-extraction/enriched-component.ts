@@ -16,7 +16,22 @@ export class EnrichedComponent {
   readonly metadata: Record<string, MetadataValue>
   _missing: string[] | undefined
 
-  constructor(params: {
+  static parse(params: {
+    type: string
+    name: string
+    location: {
+      file: string
+      line: number
+    }
+    domain: string
+    module: string
+    metadata: Record<string, MetadataValue>
+    _missing: string[] | undefined
+  }): EnrichedComponent {
+    return new EnrichedComponent(params)
+  }
+
+  private constructor(params: {
     type: string
     name: string
     location: {
@@ -45,7 +60,15 @@ export class EnrichmentFailure {
   readonly field: string
   readonly error: string
 
-  constructor(params: {
+  static parse(params: {
+    component: DraftComponent
+    field: string
+    error: string
+  }): EnrichmentFailure {
+    return new EnrichmentFailure(params)
+  }
+
+  private constructor(params: {
     component: DraftComponent;
     field: string;
     error: string 
@@ -62,7 +85,14 @@ export class EnrichmentResult {
   readonly components: EnrichedComponent[]
   readonly failures: EnrichmentFailure[]
 
-  constructor(params: {
+  static parse(params: {
+    components: EnrichedComponent[]
+    failures: EnrichmentFailure[]
+  }): EnrichmentResult {
+    return new EnrichmentResult(params)
+  }
+
+  private constructor(params: {
     components: EnrichedComponent[];
     failures: EnrichmentFailure[] 
   }) {

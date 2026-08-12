@@ -1,13 +1,9 @@
-import {
-  describe, it, expect 
-} from 'vitest'
 import type { HttpLinkConfig } from '@living-architecture/riviere-extract-config'
+import { describe, expect, it } from 'vitest'
 import type { EnrichedComponent } from '../value-extraction/enriched-component'
-import { ExtractedLink } from './extracted-link'
-import {
-  resolveHttpLinks, stripResolvedCustomTypes 
-} from './resolve-http-links'
 import { buildComponent } from './call-graph/call-graph-fixtures'
+import { ExtractedLink } from './extracted-link'
+import { resolveHttpLinks, stripResolvedCustomTypes } from './resolve-http-links'
 
 function createHttpLinkConfig(overrides: Partial<HttpLinkConfig> = {}): HttpLinkConfig {
   return {
@@ -19,7 +15,7 @@ function createHttpLinkConfig(overrides: Partial<HttpLinkConfig> = {}): HttpLink
 }
 
 function createLink(overrides: Partial<ExtractedLink> = {}): ExtractedLink {
-  return new ExtractedLink({
+  return ExtractedLink.parse({
     source: 'bff:bff-module:useCase:placeorder',
     target: overrides.target ?? 'bff:bff-module:httpCall:placeorder',
     type: overrides.type ?? 'sync',
@@ -259,7 +255,7 @@ describe('stripResolvedCustomTypes', () => {
     const useCase = buildComponent('PlaceOrder', '/src/uc.ts', 1)
     const httpCall = buildComponent('check', '/src/http.ts', 1, { type: 'httpCall' })
     const config = createHttpLinkConfig()
-    const linkTargetingHttpCall = new ExtractedLink({
+    const linkTargetingHttpCall = ExtractedLink.parse({
       source: 'bff:bff-module:useCase:placeorder',
       target: 'orders:orders-module:httpCall:check',
       type: 'sync',

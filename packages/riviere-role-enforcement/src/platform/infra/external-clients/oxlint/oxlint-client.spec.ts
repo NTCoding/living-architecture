@@ -1,6 +1,7 @@
+import { existsSync } from 'node:fs'
 import { expect, it, vi } from 'vitest'
-import type { OxlintConfig } from './oxlint-config'
 import { runOxlint } from './oxlint-client'
+import type { OxlintConfig } from './oxlint-config'
 import { OxlintExecutionError } from './oxlint-execution-error'
 
 vi.mock('node:fs', async (importOriginal) => {
@@ -109,4 +110,3 @@ it('throws OxlintExecutionError when the binary is unavailable', () => {
     vi.mocked(existsSync).mockRestore()
   }
 })
-import { existsSync } from 'node:fs'

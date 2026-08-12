@@ -9,25 +9,13 @@ import {
   defineRecordingOps,
   checkOperationGate,
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
-import type {
-  BaseEvent, StoredReview 
-} from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import type {
-  WorkflowState,
-  StateName,
-  WorkflowOperation,
-  LivingArchitectureReviewType,
-} from './workflow-types'
-import {
-  WORKFLOW_REGISTRY, getStateDefinition 
-} from './registry'
-import { WORKFLOW_STATE_SCHEMA } from './workflow-types'
+import { WorkflowState } from './workflow-types'
+import { WORKFLOW_REGISTRY, getStateDefinition } from './registry'
 import type { WorkflowEvent } from './workflow-events'
 import { parseWorkflowEvent } from './workflow-events'
-import {
-  applyEvent, EMPTY_STATE 
-} from './fold'
+import { applyEvent, EMPTY_STATE } from './fold'
 import {
   buildPullRequestCreationRequest,
   parsePullRequestDescriptionOptions,
@@ -35,7 +23,22 @@ import {
 import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
 import type { ReadWorkflowGitStatus } from './ports/read-git-status'
 import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
-import type { WorkflowPullRequestFeedback } from './pull-request-feedback'
+
+type StateName = WorkflowState['currentStateMachineState']
+type WorkflowOperation =
+  | 'record-issue'
+  | 'record-branch'
+  | 'record-review'
+  | 'record-pr'
+  | 'record-ci-passed'
+  | 'record-ci-failed'
+  | 'create-pr'
+  | 'verify-feedback-addressed'
+type LivingArchitectureReviewType =
+  | 'architecture-review'
+  | 'code-review'
+  | 'bug-scanner'
+  | 'task-check'
 
 const PR_FEEDBACK_POLL_INTERVAL_MS = 15_000
 const PR_FEEDBACK_TIMEOUT_MS = 300_000
@@ -101,7 +104,7 @@ function diffStateOverrides(
   return overrides
 }
 
-function isFeedbackClear(feedback: WorkflowPullRequestFeedback): boolean {
+function isFeedbackClear(feedback: ReturnType<ReadWorkflowPullRequestFeedback>): boolean {
   return feedback.reviewDecision !== 'CHANGES_REQUESTED' && feedback.unresolvedCount === 0
 }
 
@@ -111,7 +114,7 @@ function readPrFeedback(
 ):
   | {
     ok: true
-    feedback: WorkflowPullRequestFeedback
+    feedback: ReturnType<ReadWorkflowPullRequestFeedback>
   }
   | {
     ok: false
@@ -145,8 +148,8 @@ export class Workflow {
     return new Workflow(EMPTY_STATE, deps)
   }
 
-  static rehydrate(state: WorkflowState, deps: WorkflowDeps): Workflow {
-    return new Workflow(WORKFLOW_STATE_SCHEMA.parse(state), deps)
+  static rehydrate(state: unknown, deps: WorkflowDeps): Workflow {
+    return new Workflow(WorkflowState.parse(state), deps)
   }
 
   getPendingEvents(): readonly WorkflowEvent[] {

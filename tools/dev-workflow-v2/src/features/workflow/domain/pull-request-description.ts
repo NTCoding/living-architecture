@@ -17,8 +17,7 @@ const PULL_REQUEST_OPTION_NAMES: readonly string[] = [
   '--notes',
 ]
 
-/** @riviere-role value-object */
-export type PullRequestDescriptionInput = {
+type PullRequestDescriptionInput = {
   readonly title: string
   readonly description: string
   readonly problem: string
@@ -27,12 +26,6 @@ export type PullRequestDescriptionInput = {
   readonly architectureImpact: string
   readonly validation: string
   readonly notes: string
-}
-
-/** @riviere-role value-object */
-export type PullRequestCreationRequest = {
-  readonly title: string
-  readonly body: string
 }
 
 type PullRequestOptionParseResult =
@@ -139,7 +132,7 @@ function readSuccessfulOptionValue(optionValueResult: OptionValueResult): string
 export function buildPullRequestCreationRequest(
   input: PullRequestDescriptionInput,
   githubIssue: number,
-): PullRequestCreationRequest {
+): Parameters<import('./ports/create-pull-request').CreateWorkflowPullRequest>[0] {
   return {
     title: input.title,
     body: [

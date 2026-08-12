@@ -1,12 +1,11 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   spec,
   eventsToAddressingFeedback,
   unresolvedThread,
 } from './fixtures/workflow-test-fixtures'
 import { addressingFeedbackState } from './states/addressing-feedback'
+import { WorkflowState } from './workflow-types'
 
 function addressingTransitionGuard(): NonNullable<typeof addressingFeedbackState.transitionGuard> {
   const guard = addressingFeedbackState.transitionGuard
@@ -149,7 +148,7 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
     const guard = addressingTransitionGuard()
     const entered = spec.given(...eventsToAddressingFeedback()).when((wf) => wf.getState())
     const guardResult = guard({
-      state: {
+      state: WorkflowState.parse({
         currentStateMachineState: 'ADDRESSING_FEEDBACK',
         architectureReviewPassed: false,
         codeReviewPassed: false,
@@ -158,7 +157,7 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
         ciPassed: false,
         feedbackClean: false,
         feedbackAddressed: true,
-      },
+      }),
       gitInfo: {
         currentBranch: 'issue-42',
         workingTreeClean: true,
@@ -183,7 +182,7 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
   it('allows transition to BLOCKED even when feedback is not yet addressed', () => {
     const guard = addressingTransitionGuard()
     const guardResult = guard({
-      state: {
+      state: WorkflowState.parse({
         currentStateMachineState: 'ADDRESSING_FEEDBACK',
         architectureReviewPassed: false,
         codeReviewPassed: false,
@@ -192,7 +191,7 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
         ciPassed: false,
         feedbackClean: false,
         feedbackAddressed: false,
-      },
+      }),
       gitInfo: {
         currentBranch: 'issue-42',
         workingTreeClean: true,

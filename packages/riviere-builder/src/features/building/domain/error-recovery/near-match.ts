@@ -1,7 +1,4 @@
 import type { BuilderGraph } from '../builder-graph'
-import type {
-  NearMatchOptions, NearMatchQuery, NearMatchResult 
-} from './match-types'
 import { findNearMatches } from './component-suggestion'
 
 /** @riviere-role domain-service */
@@ -12,7 +9,17 @@ export class NearMatch {
     this.graph = graph
   }
 
-  findNearMatches(query: NearMatchQuery, options?: NearMatchOptions): NearMatchResult[] {
+  findNearMatches(
+    query: Readonly<{
+      name: string
+      type?: import('@living-architecture/riviere-schema').ComponentType
+      domain?: string
+    }>,
+    options?: Readonly<{
+      threshold?: number
+      limit?: number
+    }>,
+  ) {
     return findNearMatches(this.graph.components, query, options)
   }
 }

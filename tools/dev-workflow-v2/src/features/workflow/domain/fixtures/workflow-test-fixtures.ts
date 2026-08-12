@@ -1,14 +1,14 @@
 import { workflowSpec } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowEvent } from '../workflow-events'
-import type {
-  WorkflowState, StateName, LivingArchitectureReviewType 
-} from '../workflow-types'
+import type { WorkflowState } from '../workflow-types'
 import { Workflow } from '../workflow'
 import { applyEvents } from '../fold'
 import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 
 type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
+type StateName = WorkflowState['currentStateMachineState']
+type LivingArchitectureReviewType = Parameters<Workflow['getLatestReviewByType']>[0]
 
 const AT = '2026-01-01T00:00:00Z'
 const recordedReviews: StoredReview[] = []

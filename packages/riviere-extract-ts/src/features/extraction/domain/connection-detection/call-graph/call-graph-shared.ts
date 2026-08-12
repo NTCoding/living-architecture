@@ -7,11 +7,9 @@ import {
 } from 'ts-morph'
 import type { EnrichedComponent } from '../../value-extraction/enriched-component'
 import type { ComponentIndex } from '../component-index'
-import type { CallGraphOptions } from './call-graph-types'
-import {
-  InterfaceResolutionOutcome, MethodLookup 
-} from './call-graph-outcomes'
 import { resolveInterface } from '../interface-resolution/resolve-interface'
+import { InterfaceResolutionOutcome, MethodLookup } from './call-graph-outcomes'
+import type { CallGraphOptions } from './call-graph-types'
 
 /** @riviere-role domain-service */
 export function getCalledMethodName(callExpr: CallExpression): string {
@@ -28,7 +26,7 @@ export function resolveTypeThroughInterface(
 ): InterfaceResolutionOutcome {
   const component = componentIndex.getComponentByTypeName(typeName)
   if (component !== undefined) {
-    return new InterfaceResolutionOutcome({
+    return InterfaceResolutionOutcome.parse({
       component,
       resolvedTypeName: undefined,
       uncertain: undefined,
@@ -38,14 +36,14 @@ export function resolveTypeThroughInterface(
   const interfaceResult = resolveInterface(typeName, project, options.sourceFilePaths, {strict: options.strict,})
   if (interfaceResult.resolved) {
     const resolvedTypeName = requireInterfaceTypeName(interfaceResult)
-    return new InterfaceResolutionOutcome({
+    return InterfaceResolutionOutcome.parse({
       component: componentIndex.getComponentByTypeName(resolvedTypeName),
       resolvedTypeName: resolvedTypeName,
       uncertain: undefined,
     })
   }
 
-  return new InterfaceResolutionOutcome({
+  return InterfaceResolutionOutcome.parse({
     component: undefined,
     resolvedTypeName: undefined,
     uncertain: interfaceResult.typeDefinedInSource ? interfaceResult.reason : undefined,
@@ -111,12 +109,12 @@ export function findMethodInProject(
 ): MethodLookup {
   const lookup = findClassByNameInProject(project, typeName)
   if (lookup === undefined) {
-    return new MethodLookup({
+    return MethodLookup.parse({
       method: undefined,
       classFound: false,
     })
   }
-  return new MethodLookup({
+  return MethodLookup.parse({
     method: lookup.classDecl.getMethod(methodName),
     classFound: true,
   })

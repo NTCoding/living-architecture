@@ -1,7 +1,7 @@
 # query-model
 
 ## Purpose
-A class, interface, or type that represents the read-side model — the counterpart of an aggregate on the write side. Includes the query model class itself and the types it returns.
+A class, interface, or type shaped for the result of a concrete query use case. Includes the query model class itself and the types it returns.
 
 ## Behavioral Contract
 
@@ -41,12 +41,20 @@ The loader builds that model specifically for the requested read:
 ```typescript
 /** @riviere-role query-model-loader */
 export class ComponentListLoader {
-  load(criteria: ComponentListCriteria): ComponentList {
-    const graph = this.loadGraph(criteria.graphPath)
-    const query = new RiviereQuery(graph)
+  load(
+    graphPath: string | undefined,
+    domain: string | undefined,
+    type: ComponentType | undefined,
+  ): ComponentList {
+    const components = loadQuery(graphPath).components()
+    const inDomain = domain === undefined
+      ? components
+      : components.filter((component) => component.domain === domain)
 
     return {
-      components: filterComponents(query.components(), criteria),
+      components: type === undefined
+        ? inDomain
+        : inDomain.filter((component) => component.type === type),
     }
   }
 }
@@ -60,11 +68,7 @@ export class ListComponents {
   constructor(private readonly components: ComponentListLoader) {}
 
   execute(input: ListComponentsInput): ComponentList {
-    return this.components.load({
-      graphPath: input.graphPath,
-      domain: input.domain,
-      type: input.type,
-    })
+    return this.components.load(input.graphPath, input.domain, input.type)
   }
 }
 ```

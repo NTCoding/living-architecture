@@ -10,7 +10,11 @@ export class ComponentIndex {
   private readonly byName: ReadonlyMap<string, EnrichedComponent>
   private readonly byLocation: ReadonlyMap<string, EnrichedComponent>
 
-  constructor(components: readonly EnrichedComponent[]) {
+  static parse(components: readonly EnrichedComponent[]): ComponentIndex {
+    return new ComponentIndex(components)
+  }
+
+  private constructor(components: readonly EnrichedComponent[]) {
     const nameMap = new Map<string, EnrichedComponent>()
     const locationMap = new Map<string, EnrichedComponent>()
 

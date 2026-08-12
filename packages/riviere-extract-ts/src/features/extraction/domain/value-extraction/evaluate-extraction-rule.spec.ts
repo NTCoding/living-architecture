@@ -1,18 +1,16 @@
-import {
-  describe, it, expect 
-} from 'vitest'
 import { Project } from 'ts-morph'
+import { describe, expect, it } from 'vitest'
 import {
-  evaluateLiteralRule,
-  evaluateFromClassNameRule,
-  evaluateFromMethodNameRule,
-  evaluateFromFilePathRule,
-  evaluateFromPropertyRule,
-} from './evaluate-extraction-rule'
-import {
-  TestFixtureError,
   ExtractionError,
+  TestFixtureError,
 } from '../../../../platform/domain/ast-literals/literal-detection'
+import {
+  evaluateFromClassNameRule,
+  evaluateFromFilePathRule,
+  evaluateFromMethodNameRule,
+  evaluateFromPropertyRule,
+  evaluateLiteralRule,
+} from './evaluate-extraction-rule'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
 const counter = { value: 0 }

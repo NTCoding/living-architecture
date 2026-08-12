@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ComponentModification
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:7](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L7)
+Defined in: packages/riviere-query/src/features/querying/domain/component-modification.ts:5
 
 ## Riviere-role
 
@@ -14,30 +14,30 @@ value-object
 
 ### after
 
-> **after**: `Component`
+> `readonly` **after**: `Component`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:10](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L10)
+Defined in: packages/riviere-query/src/features/querying/domain/component-modification.ts:9
 
 ***
 
 ### before
 
-> **before**: `Component`
+> `readonly` **before**: `Component`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:9](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L9)
+Defined in: packages/riviere-query/src/features/querying/domain/component-modification.ts:8
 
 ***
 
 ### changedFields
 
-> **changedFields**: `string`[]
+> `readonly` **changedFields**: `string`[]
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:11](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L11)
+Defined in: packages/riviere-query/src/features/querying/domain/component-modification.ts:10
 
 ***
 
 ### id
 
-> **id**: `string` & `$brand`\<`"ComponentId"`\>
+> `readonly` **id**: [`ComponentId`](../classes/ComponentId.md)
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:8](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L8)
+Defined in: packages/riviere-query/src/features/querying/domain/component-modification.ts:7

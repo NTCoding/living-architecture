@@ -23,13 +23,13 @@ export function generateComponentId(
 }
 
 /** @riviere-role domain-service */
-export function createComponentNotFoundError(components: Component[], id: string): Error {
+export function createComponentNotFoundError(components: readonly Component[], id: string): Error {
   return createSourceNotFoundError(components, ComponentId.parse(id))
 }
 
 /** @riviere-role domain-service */
 export function validateDomainExists(
-  domains: Record<string, DomainMetadata>,
+  domains: Readonly<Record<string, DomainMetadata>>,
   domain: string,
 ): void {
   assertDomainExists(domains, domain)
@@ -37,7 +37,7 @@ export function validateDomainExists(
 
 /** @riviere-role domain-service */
 export function validateCustomType(
-  customTypes: Record<string, CustomTypeDefinition>,
+  customTypes: Readonly<Record<string, CustomTypeDefinition>>,
   customTypeName: string,
 ): void {
   assertCustomTypeExists(customTypes, customTypeName)
@@ -45,7 +45,7 @@ export function validateCustomType(
 
 /** @riviere-role domain-service */
 export function validateRequiredProperties(
-  customTypes: Record<string, CustomTypeDefinition>,
+  customTypes: Readonly<Record<string, CustomTypeDefinition>>,
   customTypeName: string,
   metadata: Record<string, unknown> | undefined,
 ): void {

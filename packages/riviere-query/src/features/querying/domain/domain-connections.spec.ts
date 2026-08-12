@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest'
-import { RiviereQuery } from './RiviereQuery'
+import { describe, expect, it } from 'vitest'
 import {
-  createMinimalValidGraph,
   createAPIComponent,
-  createUseCaseComponent,
   createEventHandlerComponent,
+  createMinimalValidGraph,
+  createUseCaseComponent,
 } from '../../../platform/__fixtures__/riviere-graph-fixtures'
+import { RiviereQuery } from './RiviereQuery'
 
 describe('domainConnections', () => {
   it('returns empty array when domain has no connections to other domains', () => {
@@ -14,7 +14,7 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result).toStrictEqual([])
+    expect(JSON.parse(JSON.stringify(result))).toStrictEqual([])
   })
 
   it('returns outgoing connections with API counts when calling other domain APIs', () => {
@@ -56,7 +56,7 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result).toStrictEqual([
+    expect(JSON.parse(JSON.stringify(result))).toStrictEqual([
       {
         targetDomain: 'orders',
         direction: 'outgoing',
@@ -93,7 +93,7 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result).toStrictEqual([
+    expect(JSON.parse(JSON.stringify(result))).toStrictEqual([
       {
         targetDomain: 'notifications',
         direction: 'outgoing',
@@ -130,7 +130,7 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result).toStrictEqual([
+    expect(JSON.parse(JSON.stringify(result))).toStrictEqual([
       {
         targetDomain: 'orders',
         direction: 'incoming',
@@ -184,13 +184,13 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result).toContainEqual({
+    expect(JSON.parse(JSON.stringify(result))).toContainEqual({
       targetDomain: 'orders',
       direction: 'outgoing',
       apiCount: 1,
       eventCount: 0,
     })
-    expect(result).toContainEqual({
+    expect(JSON.parse(JSON.stringify(result))).toContainEqual({
       targetDomain: 'orders',
       direction: 'incoming',
       apiCount: 1,
@@ -241,7 +241,7 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result.map((c) => c.targetDomain)).toStrictEqual(['alpha', 'zebra'])
+    expect(result.map((c) => c.targetDomain.value)).toStrictEqual(['alpha', 'zebra'])
   })
 
   it('excludes links within the same domain from counts', () => {
@@ -267,6 +267,6 @@ describe('domainConnections', () => {
 
     const result = query.domainConnections('test')
 
-    expect(result).toStrictEqual([])
+    expect(JSON.parse(JSON.stringify(result))).toStrictEqual([])
   })
 })

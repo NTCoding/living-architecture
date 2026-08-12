@@ -1,14 +1,12 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import {
-  RiviereBuilder, type BuilderOptions 
-} from './builder-facade'
+import { RiviereBuilder } from './builder-facade'
 
 function parseGraph(builder: RiviereBuilder): RiviereGraph {
   const graph: RiviereGraph = JSON.parse(builder.serialize())
   return graph
 }
 
-function createValidOptions(): BuilderOptions {
+function createValidOptions() {
   return {
     sources: [
       {
@@ -22,7 +20,7 @@ function createValidOptions(): BuilderOptions {
         systemType: 'domain',
       },
     },
-  }
+  } as const
 }
 
 describe('RiviereBuilder custom types', () => {

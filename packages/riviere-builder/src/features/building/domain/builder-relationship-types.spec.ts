@@ -1,11 +1,7 @@
-import {
-  describe, expect, it 
-} from 'vitest'
-import {
-  RiviereBuilder, type BuilderOptions 
-} from './builder-facade'
+import { describe, expect, it } from 'vitest'
+import { RiviereBuilder } from './builder-facade'
 
-function createValidOptions(): BuilderOptions {
+function createValidOptions() {
   return {
     sources: [{ repository: 'test/repo' }],
     domains: {
@@ -14,7 +10,7 @@ function createValidOptions(): BuilderOptions {
         systemType: 'domain',
       },
     },
-  }
+  } as const
 }
 
 describe('RiviereBuilder relationship types', () => {

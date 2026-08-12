@@ -1,11 +1,9 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { deduplicateCrossStrategy } from './detect-connections'
 import { ExtractedLink } from './extracted-link'
 
 function createLink(overrides: Partial<ExtractedLink> = {}): ExtractedLink {
-  return new ExtractedLink({
+  return ExtractedLink.parse({
     source: 'orders:orders-module:useCase:orderservice',
     target: overrides.target ?? 'orders:orders-module:event:eventbus',
     type: overrides.type ?? 'sync',

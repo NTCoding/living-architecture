@@ -1,8 +1,8 @@
-import { RiviereQuery } from './RiviereQuery'
 import {
-  createMinimalValidGraph,
   createDomainOpComponent,
+  createMinimalValidGraph,
 } from '../../../platform/__fixtures__/riviere-graph-fixtures'
+import { RiviereQuery } from './RiviereQuery'
 
 describe('transitionsFor', () => {
   it('returns empty array for nonexistent entity but transitions for existing entity', () => {
@@ -65,7 +65,7 @@ describe('transitionsFor', () => {
 
     const transitions = query.transitionsFor('Order')
 
-    expect(transitions).toStrictEqual([
+    expect(JSON.parse(JSON.stringify(transitions))).toStrictEqual([
       {
         from: 'Draft',
         to: 'Placed',
@@ -100,7 +100,7 @@ describe('transitionsFor', () => {
 
     const transitions = query.transitionsFor('Order')
 
-    expect(transitions).toStrictEqual([
+    expect(JSON.parse(JSON.stringify(transitions))).toStrictEqual([
       {
         from: '*',
         to: 'Cancelled',
@@ -137,7 +137,7 @@ describe('transitionsFor', () => {
 
     const transitions = query.transitionsFor('Order')
 
-    expect(transitions).toStrictEqual([
+    expect(JSON.parse(JSON.stringify(transitions))).toStrictEqual([
       {
         from: 'Draft',
         to: 'Placed',
@@ -208,10 +208,10 @@ describe('statesFor', () => {
 
     const states = query.statesFor('Order')
 
-    expect(states).toHaveLength(3)
-    expect(states).toContain('Draft')
-    expect(states).toContain('Placed')
-    expect(states).toContain('Confirmed')
+    expect(states.map((state) => state.value)).toHaveLength(3)
+    expect(states.map((state) => state.value)).toContain('Draft')
+    expect(states.map((state) => state.value)).toContain('Placed')
+    expect(states.map((state) => state.value)).toContain('Confirmed')
   })
 
   it('orders states by transition flow from initial to terminal', () => {
@@ -261,7 +261,12 @@ describe('statesFor', () => {
 
     const states = query.statesFor('Order')
 
-    expect(states).toStrictEqual(['Draft', 'Placed', 'Confirmed', 'Shipped'])
+    expect(states.map((state) => state.value)).toStrictEqual([
+      'Draft',
+      'Placed',
+      'Confirmed',
+      'Shipped',
+    ])
   })
 
   it('excludes wildcard from states but includes target states', () => {
@@ -298,8 +303,8 @@ describe('statesFor', () => {
 
     const states = query.statesFor('Order')
 
-    expect(states).not.toContain('*')
-    expect(states).toContain('Cancelled')
+    expect(states.map((state) => state.value)).not.toContain('*')
+    expect(states.map((state) => state.value)).toContain('Cancelled')
   })
 
   it('ignores operations without stateChanges when ordering', () => {
@@ -330,7 +335,7 @@ describe('statesFor', () => {
 
     const states = query.statesFor('Order')
 
-    expect(states).toStrictEqual(['Draft', 'Placed'])
+    expect(states.map((state) => state.value)).toStrictEqual(['Draft', 'Placed'])
   })
 
   it('handles cycles in state transitions', () => {
@@ -367,9 +372,9 @@ describe('statesFor', () => {
 
     const states = query.statesFor('Order')
 
-    expect(states).toHaveLength(2)
-    expect(states).toContain('Draft')
-    expect(states).toContain('Active')
+    expect(states.map((state) => state.value)).toHaveLength(2)
+    expect(states.map((state) => state.value)).toContain('Draft')
+    expect(states.map((state) => state.value)).toContain('Active')
   })
 
   it('handles cycles with initial state', () => {
@@ -419,9 +424,9 @@ describe('statesFor', () => {
 
     const states = query.statesFor('Order')
 
-    expect(states[0]).toBe('Draft')
-    expect(states).toContain('Active')
-    expect(states).toContain('Processing')
-    expect(states).toHaveLength(3)
+    expect(states[0]?.value).toBe('Draft')
+    expect(states.map((state) => state.value)).toContain('Active')
+    expect(states.map((state) => state.value)).toContain('Processing')
+    expect(states.map((state) => state.value)).toHaveLength(3)
   })
 })

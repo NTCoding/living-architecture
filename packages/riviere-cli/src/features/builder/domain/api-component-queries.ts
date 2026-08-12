@@ -1,19 +1,14 @@
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import type {
-  Component, HttpMethod, RiviereGraph 
+  APIComponent,
+  Component,
+  HttpMethod,
+  RiviereGraph,
 } from '@living-architecture/riviere-schema'
 
-/** @riviere-role value-object */
-export interface ApiComponent {
-  domain: string
-  httpMethod: HttpMethod
-  id: string
-  name: string
-  path: string
-  type: 'API'
-}
+type RestApiWithPath = APIComponent & Required<Pick<APIComponent, 'httpMethod' | 'path'>>
 
-function isRestApiWithPath(component: Component): component is Component & ApiComponent {
+function isRestApiWithPath(component: Component): component is RestApiWithPath {
   return component.type === 'API' && 'path' in component && 'httpMethod' in component
 }
 
@@ -22,7 +17,7 @@ export function findApisByPath(
   graph: RiviereGraph,
   path: string,
   method?: HttpMethod,
-): ApiComponent[] {
+): RestApiWithPath[] {
   const query = new RiviereQuery(graph)
   const allComponents = query.componentsByType('API')
   const apis = allComponents.filter(isRestApiWithPath)

@@ -1,9 +1,7 @@
 import { RiviereQuery } from '@living-architecture/riviere-query'
-import {
-  RiviereBuilder, type BuilderOptions 
-} from './builder-facade'
+import { RiviereBuilder } from './builder-facade'
 
-function createValidOptions(): BuilderOptions {
+function createValidOptions() {
   return {
     sources: [
       {
@@ -17,7 +15,7 @@ function createValidOptions(): BuilderOptions {
         systemType: 'domain',
       },
     },
-  }
+  } as const
 }
 
 describe('query', () => {

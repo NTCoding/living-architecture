@@ -1,11 +1,9 @@
 import type { HttpLinkConfig } from '@living-architecture/riviere-extract-config'
-import type {
-  ExternalLink, ExternalTarget 
-} from '@living-architecture/riviere-schema'
+import type { ExternalLink, ExternalTarget } from '@living-architecture/riviere-schema'
 import type { EnrichedComponent } from '../value-extraction/enriched-component'
-import { ExtractedLink } from './extracted-link'
 import { componentIdentity } from './call-graph/component-identity'
 import { ConnectionDetectionError } from './connection-detection-error'
+import { ExtractedLink } from './extracted-link'
 import { HttpLinkResolutionResult } from './http-link-resolution-result'
 
 /** @riviere-role domain-service */
@@ -15,7 +13,7 @@ export function resolveHttpLinks(
   httpLinkConfigs: readonly HttpLinkConfig[],
 ): HttpLinkResolutionResult {
   if (httpLinkConfigs.length === 0) {
-    return new HttpLinkResolutionResult({
+    return HttpLinkResolutionResult.parse({
       links: [...links],
       externalLinks: [],
     })
@@ -60,7 +58,7 @@ export function resolveHttpLinks(
     }
 
     resolvedLinks.push(
-      new ExtractedLink({
+      ExtractedLink.parse({
         source: link.source,
         target: componentIdentity(matchedApi),
         ...(link.type !== undefined && { type: link.type }),
@@ -70,7 +68,7 @@ export function resolveHttpLinks(
     )
   }
 
-  return new HttpLinkResolutionResult({
+  return HttpLinkResolutionResult.parse({
     links: resolvedLinks,
     externalLinks,
   })

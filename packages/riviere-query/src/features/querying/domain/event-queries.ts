@@ -1,22 +1,18 @@
 import type {
-  RiviereGraph,
   EventComponent,
   EventHandlerComponent,
+  RiviereGraph,
 } from '@living-architecture/riviere-schema'
-import type {
-  PublishedEvent,
-  EventSubscriber,
-  EventHandlerInfo,
-  KnownSourceEvent,
-  UnknownSourceEvent,
-} from './event-types'
-import {
-  parseDomainName,
-  parseEventId,
-  parseEventName,
-  parseHandlerId,
-  parseHandlerName,
-} from './identifiers'
+import { DomainName } from './domain-name'
+import { EventHandlerInfo } from './event-handler-info'
+import { EventId } from './event-id'
+import { EventName } from './event-name'
+import { EventSubscriber } from './event-subscriber'
+import { HandlerId } from './handler-id'
+import { HandlerName } from './handler-name'
+import { KnownSourceEvent } from './known-source-event'
+import { PublishedEvent } from './published-event'
+import { UnknownSourceEvent } from './unknown-source-event'
 
 /** @riviere-role domain-service */
 export function queryPublishedEvents(graph: RiviereGraph, domainName?: string): PublishedEvent[] {
@@ -31,17 +27,19 @@ export function queryPublishedEvents(graph: RiviereGraph, domainName?: string): 
   return filtered.map((event) => {
     const subscribers: EventSubscriber[] = handlers
       .filter((h) => h.subscribedEvents.includes(event.eventName))
-      .map((h) => ({
-        handlerId: parseHandlerId(h.id),
-        handlerName: parseHandlerName(h.name),
-        domain: parseDomainName(h.domain),
-      }))
-    return {
-      id: parseEventId(event.id),
-      eventName: parseEventName(event.eventName),
-      domain: parseDomainName(event.domain),
+      .map((h) =>
+        EventSubscriber.parse({
+          handlerId: HandlerId.parse(h.id),
+          handlerName: HandlerName.parse(h.name),
+          domain: DomainName.parse(h.domain),
+        }),
+      )
+    return PublishedEvent.parse({
+      id: EventId.parse(event.id),
+      eventName: EventName.parse(event.eventName),
+      domain: DomainName.parse(event.domain),
       handlers: subscribers,
-    }
+    })
   })
 }
 
@@ -75,22 +73,22 @@ function buildEventHandlerInfo(
     (name): KnownSourceEvent | UnknownSourceEvent => {
       const event = eventByName.get(name)
       if (event)
-        return {
-          eventName: parseEventName(name),
-          sourceDomain: parseDomainName(event.domain),
+        return KnownSourceEvent.parse({
+          eventName: EventName.parse(name),
+          sourceDomain: DomainName.parse(event.domain),
           sourceKnown: true,
-        }
-      return {
-        eventName: parseEventName(name),
+        })
+      return UnknownSourceEvent.parse({
+        eventName: EventName.parse(name),
         sourceKnown: false,
-      }
+      })
     },
   )
-  return {
-    id: parseHandlerId(handler.id),
-    handlerName: parseHandlerName(handler.name),
-    domain: parseDomainName(handler.domain),
-    subscribedEvents: handler.subscribedEvents.map(parseEventName),
+  return EventHandlerInfo.parse({
+    id: HandlerId.parse(handler.id),
+    handlerName: HandlerName.parse(handler.name),
+    domain: DomainName.parse(handler.domain),
+    subscribedEvents: handler.subscribedEvents.map(EventName.parse),
     subscribedEventsWithDomain,
-  }
+  })
 }

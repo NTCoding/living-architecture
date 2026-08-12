@@ -26,7 +26,7 @@ export function buildComponent(
   line: number,
   overrides: Partial<EnrichedComponent> = {},
 ): EnrichedComponent {
-  return new EnrichedComponent({
+  return EnrichedComponent.parse({
     type: 'useCase',
     name,
     location: {
@@ -42,7 +42,7 @@ export function buildComponent(
 }
 
 export function defaultOptions(): CallGraphOptions {
-  return new CallGraphOptions({
+  return CallGraphOptions.parse({
     strict: false,
     sourceFilePaths: sharedProject.getSourceFiles().map((sf) => sf.getFilePath()),
     repository: 'test-repo',

@@ -1,12 +1,12 @@
-import { describe, it, expect } from 'vitest'
-import { RiviereQuery } from './RiviereQuery'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import { describe, expect, it } from 'vitest'
 import {
+  assertDefined,
+  createAPIComponent,
   createMinimalValidGraph,
   defaultSourceLocation,
-  createAPIComponent,
-  assertDefined,
 } from '../../../platform/__fixtures__/riviere-graph-fixtures'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import { RiviereQuery } from './RiviereQuery'
 
 describe('diff', () => {
   describe('components', () => {
@@ -69,7 +69,7 @@ describe('diff', () => {
       const result = query.diff(otherGraph)
 
       expect(result.components.modified).toHaveLength(1)
-      expect(result.components.modified[0]?.id).toBe('test:mod:ui:page')
+      expect(result.components.modified[0]?.id.value).toBe('test:mod:ui:page')
     })
 
     it('includes name in changedFields when component name changes', () => {
@@ -102,7 +102,7 @@ describe('diff', () => {
       const query = new RiviereQuery(graph)
       const result = query.diff(graph)
 
-      expect(result).toStrictEqual({
+      expect(JSON.parse(JSON.stringify(result))).toStrictEqual({
         components: {
           added: [],
           removed: [],

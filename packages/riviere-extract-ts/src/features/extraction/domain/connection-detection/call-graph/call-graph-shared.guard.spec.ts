@@ -1,9 +1,7 @@
-import {
-  describe, it, expect, vi 
-} from 'vitest'
 import { Project } from 'ts-morph'
-import { resolveTypeThroughInterface } from './call-graph-shared'
+import { describe, expect, it, vi } from 'vitest'
 import { ComponentIndex } from '../component-index'
+import { resolveTypeThroughInterface } from './call-graph-shared'
 import { CallGraphOptions } from './call-graph-types'
 
 vi.mock('../interface-resolution/resolve-interface', async () => {
@@ -23,7 +21,7 @@ vi.mock('../interface-resolution/resolve-interface', async () => {
 
 describe('resolveTypeThroughInterface guards', () => {
   it('throws TypeError when interface resolution is marked resolved without a type name', () => {
-    const options = new CallGraphOptions({
+    const options = CallGraphOptions.parse({
       strict: false,
       sourceFilePaths: [],
       repository: 'test-repo',
@@ -33,7 +31,7 @@ describe('resolveTypeThroughInterface guards', () => {
       resolveTypeThroughInterface(
         'OrderGateway',
         new Project({ useInMemoryFileSystem: true }),
-        new ComponentIndex([]),
+        ComponentIndex.parse([]),
         options,
       ),
     ).toThrow('Expected interface resolution type name')

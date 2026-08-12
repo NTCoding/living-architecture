@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: ComponentNotFoundError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:80](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L80)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:80
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new ComponentNotFoundError**(`componentId`, `suggestions`): `ComponentNotFoundError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:84](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L84)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:84
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:81](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L81)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:81
 
 ***
 
@@ -102,7 +102,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **suggestions**: `string`[]
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:82](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L82)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:82
 
 ***
 

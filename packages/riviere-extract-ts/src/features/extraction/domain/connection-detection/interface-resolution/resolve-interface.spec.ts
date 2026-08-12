@@ -1,9 +1,7 @@
-import {
-  describe, it, expect 
-} from 'vitest'
 import { Project } from 'ts-morph'
-import { resolveInterface } from './resolve-interface'
+import { describe, expect, it } from 'vitest'
 import { ConnectionDetectionError } from '../connection-detection-error'
+import { resolveInterface } from './resolve-interface'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
 const counter = { value: 0 }

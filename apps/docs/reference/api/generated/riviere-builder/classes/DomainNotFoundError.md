@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: DomainNotFoundError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L24)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:24
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new DomainNotFoundError**(`domainName`): `DomainNotFoundError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:27](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L27)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:27
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **domainName**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L25)
+Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:25
 
 ***
 

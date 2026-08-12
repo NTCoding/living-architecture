@@ -1,37 +1,54 @@
-import type { RiviereGraph, Component, Link } from '@living-architecture/riviere-schema'
-import type { ComponentId } from './identifiers'
-import { parseComponentId } from './identifiers'
+import type { Component, Link, RiviereGraph } from '@living-architecture/riviere-schema'
+import { ComponentId } from './component-id'
+import { ComponentModification } from './component-modification'
+import { DiffStats } from './diff-stats'
 import { createLinkKey } from './link-key'
 
 /** @riviere-role value-object */
-export interface ComponentModification {
-  id: ComponentId
-  before: Component
-  after: Component
-  changedFields: string[]
-}
-
-/** @riviere-role value-object */
-export interface DiffStats {
-  componentsAdded: number
-  componentsRemoved: number
-  componentsModified: number
-  linksAdded: number
-  linksRemoved: number
-}
-
-/** @riviere-role value-object */
-export interface GraphDiff {
-  components: {
+export class GraphDiff {
+  declare private readonly brand: 'GraphDiff'
+  readonly components: {
     added: Component[]
     removed: Component[]
     modified: ComponentModification[]
   }
-  links: {
+  readonly links: {
     added: Link[]
     removed: Link[]
   }
-  stats: DiffStats
+  readonly stats: DiffStats
+
+  private constructor(input: {
+    readonly components: {
+      added: Component[]
+      removed: Component[]
+      modified: ComponentModification[]
+    }
+    readonly links: {
+      added: Link[]
+      removed: Link[]
+    }
+    readonly stats: DiffStats
+  }) {
+    this.components = input.components
+    this.links = input.links
+    this.stats = input.stats
+  }
+
+  static parse(input: {
+    readonly components: {
+      added: Component[]
+      removed: Component[]
+      modified: ComponentModification[]
+    }
+    readonly links: {
+      added: Link[]
+      removed: Link[]
+    }
+    readonly stats: DiffStats
+  }): GraphDiff {
+    return new GraphDiff(input)
+  }
 }
 
 /** @riviere-role domain-service */
@@ -49,21 +66,23 @@ export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDif
     if (oc === undefined) continue
     const changedFields = findChangedFields(tc, oc)
     if (changedFields.length > 0) {
-      modified.push({
-        id: parseComponentId(tc.id),
-        before: tc,
-        after: oc,
-        changedFields,
-      })
+      modified.push(
+        ComponentModification.parse({
+          id: ComponentId.parse(tc.id),
+          before: tc,
+          after: oc,
+          changedFields,
+        }),
+      )
     }
   }
 
-  const thisLinkKeys = new Set(current.links.map((l) => createLinkKey(l)))
-  const otherLinkKeys = new Set(other.links.map((l) => createLinkKey(l)))
-  const linksAdded = other.links.filter((l) => !thisLinkKeys.has(createLinkKey(l)))
-  const linksRemoved = current.links.filter((l) => !otherLinkKeys.has(createLinkKey(l)))
+  const thisLinkKeys = new Set(current.links.map((l) => createLinkKey(l).value))
+  const otherLinkKeys = new Set(other.links.map((l) => createLinkKey(l).value))
+  const linksAdded = other.links.filter((l) => !thisLinkKeys.has(createLinkKey(l).value))
+  const linksRemoved = current.links.filter((l) => !otherLinkKeys.has(createLinkKey(l).value))
 
-  return {
+  return GraphDiff.parse({
     components: {
       added,
       removed,
@@ -73,14 +92,14 @@ export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDif
       added: linksAdded,
       removed: linksRemoved,
     },
-    stats: {
+    stats: DiffStats.parse({
       componentsAdded: added.length,
       componentsRemoved: removed.length,
       componentsModified: modified.length,
       linksAdded: linksAdded.length,
       linksRemoved: linksRemoved.length,
-    },
-  }
+    }),
+  })
 }
 
 function findChangedFields(before: Component, after: Component): string[] {

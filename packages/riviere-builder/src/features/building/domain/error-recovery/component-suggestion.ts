@@ -1,14 +1,28 @@
-import type {
-  Component, ComponentId 
-} from '@living-architecture/riviere-schema'
+import type { Component, ComponentId } from '@living-architecture/riviere-schema'
 import { ComponentNotFoundError } from '../construction/construction-errors'
 import { similarityScore } from '../../../../platform/domain/text-similarity/string-similarity'
-import type {
-  NearMatchMismatch,
-  NearMatchOptions,
-  NearMatchQuery,
-  NearMatchResult,
-} from './match-types'
+type NearMatchQuery = Readonly<{
+  name: string
+  type?: import('@living-architecture/riviere-schema').ComponentType
+  domain?: string
+}>
+
+type NearMatchOptions = Readonly<{
+  threshold?: number
+  limit?: number
+}>
+
+type NearMatchMismatch = Readonly<{
+  field: 'type' | 'domain'
+  expected: string
+  actual: string
+}>
+
+type NearMatchResult = Readonly<{
+  component: Component
+  score: number
+  mismatch?: NearMatchMismatch
+}>
 
 function detectMismatch(
   query: NearMatchQuery,
@@ -58,7 +72,7 @@ function detectMismatch(
  * ```
  */
 export function findNearMatches(
-  components: Component[],
+  components: readonly Component[],
   query: NearMatchQuery,
   options?: NearMatchOptions,
 ): NearMatchResult[] {
@@ -76,7 +90,7 @@ export function findNearMatches(
       return {
         component,
         score,
-        mismatch,
+        ...(mismatch !== undefined && { mismatch }),
       }
     })
     .filter((result) => result.score >= threshold || result.mismatch !== undefined)
@@ -102,7 +116,7 @@ export function findNearMatches(
  * ```
  */
 export function createSourceNotFoundError(
-  components: Component[],
+  components: readonly Component[],
   id: ComponentId,
 ): ComponentNotFoundError {
   const matches = findNearMatches(components, { name: id.name() }, { limit: 3 })

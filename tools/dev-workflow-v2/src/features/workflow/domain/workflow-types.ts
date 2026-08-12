@@ -1,8 +1,4 @@
 import { z } from 'zod'
-import type {
-  WorkflowStateDefinition,
-  WorkflowRegistry,
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
 export const STATE_NAMES = [
   'IMPLEMENTING',
@@ -16,8 +12,7 @@ export const STATE_NAMES = [
   'BLOCKED',
 ] as const
 
-/** @riviere-role value-object */
-export type StateName = (typeof STATE_NAMES)[number]
+type StateName = (typeof STATE_NAMES)[number]
 
 export const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
 
@@ -29,9 +24,6 @@ const LIVING_ARCHITECTURE_REVIEW_TYPES = [
 ] as const
 
 export const LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA = z.enum(LIVING_ARCHITECTURE_REVIEW_TYPES)
-
-/** @riviere-role value-object */
-export type LivingArchitectureReviewType = (typeof LIVING_ARCHITECTURE_REVIEW_TYPES)[number]
 
 /** @riviere-role domain-service */
 export function createWorkflowStateSchema<T extends readonly [string, ...string[]]>(stateNames: T) {
@@ -56,50 +48,65 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
   })
 }
 
-export const WORKFLOW_STATE_SCHEMA = createWorkflowStateSchema(STATE_NAMES)
+const WORKFLOW_STATE_SCHEMA = createWorkflowStateSchema(STATE_NAMES)
 
 /** @riviere-role value-object */
-export type WorkflowState = {
-  currentStateMachineState: StateName
-  githubIssue?: number | undefined
-  featureBranch?: string | undefined
-  prNumber?: number | undefined
-  prUrl?: string | undefined
-  architectureReviewPassed: boolean
-  codeReviewPassed: boolean
-  bugScannerPassed: boolean
-  taskCheckPassed: boolean
-  ciPassed: boolean
-  feedbackClean: boolean
-  feedbackAddressed: boolean
-  feedbackUnresolvedCount?: number | undefined
-  prFeedbackVerificationFailedReason?: string | undefined
-  preBlockedState?: string | undefined
-  transcriptPath?: string | undefined
+export class WorkflowState {
+  declare private readonly brand: 'WorkflowState'
+
+  readonly currentStateMachineState: StateName
+  readonly githubIssue?: number
+  readonly featureBranch?: string
+  readonly prNumber?: number
+  readonly prUrl?: string
+  readonly architectureReviewPassed: boolean
+  readonly codeReviewPassed: boolean
+  readonly bugScannerPassed: boolean
+  readonly taskCheckPassed: boolean
+  readonly ciPassed: boolean
+  readonly feedbackClean: boolean
+  readonly feedbackAddressed: boolean
+  readonly feedbackUnresolvedCount?: number
+  readonly prFeedbackVerificationFailedReason?: string
+  readonly preBlockedState?: string
+  readonly transcriptPath?: string
+
+  private constructor(value: z.infer<typeof WORKFLOW_STATE_SCHEMA>) {
+    this.currentStateMachineState = value.currentStateMachineState
+    this.architectureReviewPassed = value.architectureReviewPassed
+    this.codeReviewPassed = value.codeReviewPassed
+    this.bugScannerPassed = value.bugScannerPassed
+    this.taskCheckPassed = value.taskCheckPassed
+    this.ciPassed = value.ciPassed
+    this.feedbackClean = value.feedbackClean
+    this.feedbackAddressed = value.feedbackAddressed
+    if (value.githubIssue !== undefined) this.githubIssue = value.githubIssue
+    if (value.featureBranch !== undefined) this.featureBranch = value.featureBranch
+    if (value.prNumber !== undefined) this.prNumber = value.prNumber
+    if (value.prUrl !== undefined) this.prUrl = value.prUrl
+    if (value.feedbackUnresolvedCount !== undefined) {
+      this.feedbackUnresolvedCount = value.feedbackUnresolvedCount
+    }
+    if (value.prFeedbackVerificationFailedReason !== undefined) {
+      this.prFeedbackVerificationFailedReason = value.prFeedbackVerificationFailedReason
+    }
+    if (value.preBlockedState !== undefined) this.preBlockedState = value.preBlockedState
+    if (value.transcriptPath !== undefined) this.transcriptPath = value.transcriptPath
+  }
+
+  static parse(value: unknown): WorkflowState {
+    return new WorkflowState(WORKFLOW_STATE_SCHEMA.parse(value))
+  }
+
+  with(changes: Partial<z.infer<typeof WORKFLOW_STATE_SCHEMA>>): WorkflowState {
+    return WorkflowState.parse({
+      ...this,
+      ...changes,
+    })
+  }
 }
 
-/** @riviere-role value-object */
-export type WorkflowOperation =
-  | 'record-issue'
-  | 'record-branch'
-  | 'record-review'
-  | 'record-pr'
-  | 'record-ci-passed'
-  | 'record-ci-failed'
-  | 'create-pr'
-  | 'verify-feedback-addressed'
-
-/** @riviere-role value-object */
-export type ConcreteStateDefinition = WorkflowStateDefinition<
-  WorkflowState,
-  StateName,
-  WorkflowOperation
-> & { allowIdle?: boolean }
-
-/** @riviere-role value-object */
-export type ConcreteRegistry = WorkflowRegistry<WorkflowState, StateName, WorkflowOperation>
-
-export const INITIAL_STATE: WorkflowState = {
+export const INITIAL_STATE = WorkflowState.parse({
   currentStateMachineState: 'IMPLEMENTING',
   architectureReviewPassed: false,
   codeReviewPassed: false,
@@ -108,7 +115,7 @@ export const INITIAL_STATE: WorkflowState = {
   ciPassed: false,
   feedbackClean: false,
   feedbackAddressed: false,
-}
+})
 
 /** @riviere-role domain-service */
 export function parseStateName(value: string): StateName {

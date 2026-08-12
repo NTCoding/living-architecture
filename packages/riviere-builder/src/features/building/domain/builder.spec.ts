@@ -1,14 +1,12 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import {
-  RiviereBuilder, type BuilderOptions 
-} from './builder-facade'
+import { RiviereBuilder } from './builder-facade'
 
 function parseGraph(builder: RiviereBuilder): RiviereGraph {
   const graph: RiviereGraph = JSON.parse(builder.serialize())
   return graph
 }
 
-function createValidOptions(): BuilderOptions {
+function createValidOptions() {
   return {
     sources: [
       {
@@ -22,13 +20,13 @@ function createValidOptions(): BuilderOptions {
         systemType: 'domain',
       },
     },
-  }
+  } as const
 }
 
 describe('RiviereBuilder', () => {
   describe('new', () => {
     it('returns builder instance when given valid options', () => {
-      const options: BuilderOptions = {
+      const options = {
         sources: [
           {
             repository: 'my-org/my-repo',
@@ -41,7 +39,7 @@ describe('RiviereBuilder', () => {
             systemType: 'domain',
           },
         },
-      }
+      } as const
 
       const builder = RiviereBuilder.new(options)
 
@@ -49,7 +47,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('throws when sources array is empty', () => {
-      const options: BuilderOptions = {
+      const options = {
         sources: [],
         domains: {
           orders: {
@@ -57,22 +55,22 @@ describe('RiviereBuilder', () => {
             systemType: 'domain',
           },
         },
-      }
+      } as const
 
       expect(() => RiviereBuilder.new(options)).toThrow('At least one source required')
     })
 
     it('throws when domains object is empty', () => {
-      const options: BuilderOptions = {
+      const options = {
         sources: [{ repository: 'my-org/my-repo' }],
         domains: {},
-      }
+      } as const
 
       expect(() => RiviereBuilder.new(options)).toThrow('At least one domain required')
     })
 
     it('configures graph metadata from options', () => {
-      const options: BuilderOptions = {
+      const options = {
         name: 'my-service',
         description: 'Service description',
         sources: [
@@ -87,7 +85,7 @@ describe('RiviereBuilder', () => {
             systemType: 'domain',
           },
         },
-      }
+      } as const
 
       const builder = RiviereBuilder.new(options)
 

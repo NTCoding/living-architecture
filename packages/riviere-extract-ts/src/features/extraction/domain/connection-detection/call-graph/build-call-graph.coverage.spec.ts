@@ -1,12 +1,8 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ComponentIndex } from '../component-index'
 import { buildCallGraph } from './build-call-graph'
+import { buildComponent, defaultOptions, nextFile, sharedProject } from './call-graph-fixtures'
 import { CallGraphOptions } from './call-graph-types'
-import {
-  sharedProject, nextFile, buildComponent, defaultOptions 
-} from './call-graph-fixtures'
 
 describe('buildCallGraph coverage - receiver resolution', () => {
   it('skips call when receiver has no property access in source method', () => {
@@ -28,7 +24,7 @@ class BCCaller1 {
 `)
     const compTarget = buildComponent('BCTarget1', file, 2, { type: 'domainOp' })
     const compCaller = buildComponent('BCCaller1', file, 8)
-    const index = new ComponentIndex([compTarget, compCaller])
+    const index = ComponentIndex.parse([compTarget, compCaller])
     const result = buildCallGraph(sharedProject, [compCaller], index, defaultOptions())
 
     expect(result).toHaveLength(1)
@@ -51,7 +47,7 @@ class BCCaller2 {
 `)
     const compTarget = buildComponent('BCTarget2', file, 2, { type: 'domainOp' })
     const compCaller = buildComponent('BCCaller2', file, 6)
-    const index = new ComponentIndex([compTarget, compCaller])
+    const index = ComponentIndex.parse([compTarget, compCaller])
     const result = buildCallGraph(sharedProject, [compCaller], index, defaultOptions())
 
     expect(result).toHaveLength(1)
@@ -74,7 +70,7 @@ class BCCaller3 {
 `)
     const compTarget = buildComponent('BCTarget3', file, 2, { type: 'domainOp' })
     const compCaller = buildComponent('BCCaller3', file, 6)
-    const index = new ComponentIndex([compTarget, compCaller])
+    const index = ComponentIndex.parse([compTarget, compCaller])
     const result = buildCallGraph(sharedProject, [compCaller], index, defaultOptions())
 
     expect(result).toHaveLength(1)
@@ -105,7 +101,7 @@ class TCCaller1 {
 `)
     const compTarget = buildComponent('TCTarget1', file, 2, { type: 'domainOp' })
     const compCaller = buildComponent('TCCaller1', file, 17)
-    const index = new ComponentIndex([compTarget, compCaller])
+    const index = ComponentIndex.parse([compTarget, compCaller])
     const result = buildCallGraph(sharedProject, [compCaller], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -139,9 +135,9 @@ class StrictCaller {
 `)
     const compTarget = buildComponent('StrictTarget', file, 2, { type: 'domainOp' })
     const compCaller = buildComponent('StrictCaller', file, 15)
-    const index = new ComponentIndex([compTarget, compCaller])
+    const index = ComponentIndex.parse([compTarget, compCaller])
     const defaults = defaultOptions()
-    const strictOptions = new CallGraphOptions({
+    const strictOptions = CallGraphOptions.parse({
       strict: true,
       sourceFilePaths: defaults.sourceFilePaths,
       repository: defaults.repository,
@@ -182,7 +178,7 @@ class AnyCaller {
 `)
     const compTarget = buildComponent('AnyTarget', file, 2, { type: 'domainOp' })
     const compCaller = buildComponent('AnyCaller', file, 16)
-    const index = new ComponentIndex([compTarget, compCaller])
+    const index = ComponentIndex.parse([compTarget, compCaller])
     const result = buildCallGraph(sharedProject, [compCaller], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -216,7 +212,7 @@ class TCCaller2 {
 `)
     const compTarget = buildComponent('TCTarget2', file, 2, { type: 'domainOp' })
     const compCaller = buildComponent('TCCaller2', file, 15)
-    const index = new ComponentIndex([compTarget, compCaller])
+    const index = ComponentIndex.parse([compTarget, compCaller])
     const result = buildCallGraph(sharedProject, [compCaller], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -245,7 +241,7 @@ class TCNoMethodCaller {
 `)
     const compTarget = buildComponent('TCNoMethodTarget', file, 2, { type: 'domainOp' })
     const compCaller = buildComponent('TCNoMethodCaller', file, 10)
-    const index = new ComponentIndex([compTarget, compCaller])
+    const index = ComponentIndex.parse([compTarget, compCaller])
     const result = buildCallGraph(sharedProject, [compCaller], index, defaultOptions())
 
     expect(result).toStrictEqual([])
@@ -255,7 +251,7 @@ class TCNoMethodCaller {
 describe('buildCallGraph coverage', () => {
   it('skips component when source file not found in project', () => {
     const comp = buildComponent('NonExistentClass', '/src/missing-file.ts', 1)
-    const index = new ComponentIndex([comp])
+    const index = ComponentIndex.parse([comp])
     const result = buildCallGraph(sharedProject, [comp], index, defaultOptions())
     expect(result).toStrictEqual([])
   })
@@ -277,7 +273,7 @@ class CovCaller {
 `)
     const compTarget = buildComponent('CovTarget', file, 2, { type: 'domainOp' })
     const compCaller = buildComponent('CovCaller', file, 6)
-    const index = new ComponentIndex([compTarget, compCaller])
+    const index = ComponentIndex.parse([compTarget, compCaller])
     const result = buildCallGraph(sharedProject, [compTarget, compCaller], index, defaultOptions())
 
     expect(result).toHaveLength(1)
@@ -303,7 +299,7 @@ class CovCaller2 {
 `)
     const compTarget = buildComponent('CovTarget2', file, 2, { type: 'domainOp' })
     const compCaller = buildComponent('CovCaller2', file, 10)
-    const index = new ComponentIndex([compTarget, compCaller])
+    const index = ComponentIndex.parse([compTarget, compCaller])
     const result = buildCallGraph(sharedProject, [compTarget, compCaller], index, defaultOptions())
     expect(result).toStrictEqual([])
   })
@@ -328,7 +324,7 @@ class CovSelfSource {
 `)
     const compSource = buildComponent('CovSelfSource', file, 12)
     const compTarget = buildComponent('CovSelfComp', file, 2, { type: 'domainOp' })
-    const index = new ComponentIndex([compSource, compTarget])
+    const index = ComponentIndex.parse([compSource, compTarget])
     const result = buildCallGraph(sharedProject, [compSource], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -368,7 +364,7 @@ class CovNC4Origin {
 `)
     const compTarget = buildComponent('CovNC4Target', file, 2, { type: 'domainOp' })
     const compOrigin = buildComponent('CovNC4Origin', file, 21)
-    const index = new ComponentIndex([compTarget, compOrigin])
+    const index = ComponentIndex.parse([compTarget, compOrigin])
     const result = buildCallGraph(sharedProject, [compOrigin], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -400,7 +396,7 @@ class TCCallerNotify {
 }
 `)
     const comp = buildComponent('TCCallerNotify', file, 14)
-    const index = new ComponentIndex([comp])
+    const index = ComponentIndex.parse([comp])
     const result = buildCallGraph(sharedProject, [comp], index, defaultOptions())
 
     expect(result).toStrictEqual([
@@ -428,7 +424,7 @@ class CovSelfMid3 {
 }
 `)
     const comp = buildComponent('CovSelfComp3', file, 2)
-    const index = new ComponentIndex([comp])
+    const index = ComponentIndex.parse([comp])
     const result = buildCallGraph(sharedProject, [comp], index, defaultOptions())
 
     expect(result).toStrictEqual([])

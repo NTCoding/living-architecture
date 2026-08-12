@@ -1,10 +1,6 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import type { ExtractionRule, Module } from '@living-architecture/riviere-extract-config'
 import { Project } from 'ts-morph'
-import type {
-  Module, ExtractionRule 
-} from '@living-architecture/riviere-extract-config'
+import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
 import { enrichComponents } from './enrich-components'
 
@@ -41,7 +37,7 @@ function httpCallModule(extract: Record<string, ExtractionRule>): Module {
 }
 
 function httpCallDraft(file: string, line: number): DraftComponent {
-  return new DraftComponent({
+  return DraftComponent.parse({
     type: 'httpCall',
     name: 'check',
     location: {

@@ -1,11 +1,7 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ComponentIndex } from '../component-index'
 import { buildCallGraph } from './build-call-graph'
-import {
-  sharedProject, nextFile, buildComponent, defaultOptions 
-} from './call-graph-fixtures'
+import { buildComponent, defaultOptions, nextFile, sharedProject } from './call-graph-fixtures'
 
 describe('buildCallGraph — method-level source components', () => {
   it('detects connection from method-level component to injected dependency', () => {
@@ -23,7 +19,7 @@ class PlaceOrderEndpoint {
 `)
     const handleComp = buildComponent('handle', file, 8, { type: 'api' })
     const useCaseComp = buildComponent('PlaceOrderUseCase', file, 2)
-    const index = new ComponentIndex([handleComp, useCaseComp])
+    const index = ComponentIndex.parse([handleComp, useCaseComp])
     const result = buildCallGraph(sharedProject, [handleComp, useCaseComp], index, defaultOptions())
 
     expect(result).toStrictEqual(
@@ -60,7 +56,7 @@ class Container {
     const methodAComp = buildComponent('methodA', file, 12, { type: 'api' })
     const targetA = buildComponent('TargetA', file, 2, { type: 'domainOp' })
     const targetB = buildComponent('TargetB', file, 6, { type: 'domainOp' })
-    const index = new ComponentIndex([methodAComp, targetA, targetB])
+    const index = ComponentIndex.parse([methodAComp, targetA, targetB])
     const result = buildCallGraph(
       sharedProject,
       [methodAComp, targetA, targetB],
@@ -97,7 +93,7 @@ class PlaceOrderUseCase {
     const beginComp = buildComponent('begin', file, 3, { type: 'domainOp' })
     const cancelComp = buildComponent('cancel', file, 4, { type: 'domainOp' })
     const useCaseComp = buildComponent('PlaceOrderUseCase', file, 7)
-    const index = new ComponentIndex([beginComp, cancelComp, useCaseComp])
+    const index = ComponentIndex.parse([beginComp, cancelComp, useCaseComp])
     const result = buildCallGraph(
       sharedProject,
       [beginComp, cancelComp, useCaseComp],
@@ -133,7 +129,7 @@ class PlaceOrderUseCase {
     const publishComp = buildComponent('publishOrderPlaced', file, 3, { type: 'eventPublisher' })
     const cancelPubComp = buildComponent('publishOrderCancelled', file, 4, {type: 'eventPublisher',})
     const useCaseComp = buildComponent('PlaceOrderUseCase', file, 7)
-    const index = new ComponentIndex([publishComp, cancelPubComp, useCaseComp])
+    const index = ComponentIndex.parse([publishComp, cancelPubComp, useCaseComp])
     const result = buildCallGraph(
       sharedProject,
       [publishComp, cancelPubComp, useCaseComp],
@@ -176,7 +172,7 @@ class DispatchShipmentUseCase {
 `)
     const dispatchComp = buildComponent('dispatch', file, 3, { type: 'domainOp' })
     const useCaseComp = buildComponent('DispatchShipmentUseCase', file, 14)
-    const index = new ComponentIndex([dispatchComp, useCaseComp])
+    const index = ComponentIndex.parse([dispatchComp, useCaseComp])
     const result = buildCallGraph(
       sharedProject,
       [dispatchComp, useCaseComp],
@@ -218,7 +214,7 @@ class Caller {
 `)
     const targetComp = buildComponent('Target', file, 2, { type: 'domainOp' })
     const callerComp = buildComponent('Caller', file, 14)
-    const index = new ComponentIndex([targetComp, callerComp])
+    const index = ComponentIndex.parse([targetComp, callerComp])
     const result = buildCallGraph(sharedProject, [targetComp, callerComp], index, defaultOptions())
 
     expect(result).toStrictEqual(
@@ -240,7 +236,7 @@ class Ledger {
 }
 `)
     const reconcileComp = buildComponent('reconcile', file, 3, { type: 'domainOp' })
-    const index = new ComponentIndex([reconcileComp])
+    const index = ComponentIndex.parse([reconcileComp])
     const result = buildCallGraph(sharedProject, [reconcileComp], index, defaultOptions())
 
     const selfLinks = result.filter(
@@ -258,7 +254,7 @@ describe('buildCallGraph — component not found in any class', () => {
 function standalone(): void {}
 `)
     const orphanComp = buildComponent('orphan', file, 99)
-    const index = new ComponentIndex([orphanComp])
+    const index = ComponentIndex.parse([orphanComp])
     const result = buildCallGraph(sharedProject, [orphanComp], index, defaultOptions())
 
     expect(result).toStrictEqual([])
@@ -283,7 +279,7 @@ class ApplyDiscountsUseCase {
 `)
     const applyDiscountComp = buildComponent('applyDiscount', file, 3, { type: 'domainOp' })
     const useCaseComp = buildComponent('ApplyDiscountsUseCase', file, 6)
-    const index = new ComponentIndex([applyDiscountComp, useCaseComp])
+    const index = ComponentIndex.parse([applyDiscountComp, useCaseComp])
     const result = buildCallGraph(
       sharedProject,
       [applyDiscountComp, useCaseComp],
@@ -316,7 +312,7 @@ export function runTrackingUpdate(useCase: UpdateTrackingUseCase): void {
 `)
     const funcComp = buildComponent('runTrackingUpdate', file, 6, { type: 'backgroundJob' })
     const useCaseComp = buildComponent('UpdateTrackingUseCase', file, 2)
-    const index = new ComponentIndex([funcComp, useCaseComp])
+    const index = ComponentIndex.parse([funcComp, useCaseComp])
     const result = buildCallGraph(sharedProject, [funcComp, useCaseComp], index, defaultOptions())
 
     expect(result).toStrictEqual(

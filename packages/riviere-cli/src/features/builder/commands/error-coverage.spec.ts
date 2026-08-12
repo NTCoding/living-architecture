@@ -1,6 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import type { ApiComponent } from '../domain/api-component-queries'
 import { RiviereBuilder } from '@living-architecture/riviere-builder/features/building/domain/builder-facade'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -8,7 +7,7 @@ import {
   createTestContext,
   setupCommandTest,
 } from '../../../platform/__fixtures__/command-test-fixtures'
-import * as addComponentDomain from '../../../platform/domain/add-component'
+import * as addComponentDomain from '../domain/add-component'
 import * as apiQueries from '../domain/api-component-queries'
 import { AddComponent } from './add-component'
 import { AddDomain } from './add-domain'
@@ -249,7 +248,7 @@ describe('builder command coverage', () => {
       },
       version: '1.0',
     })
-    const matchingApis: ApiComponent[] = [
+    const matchingApis: ReturnType<typeof apiQueries.findApisByPath> = [
       {
         domain: 'orders',
         httpMethod: 'POST',

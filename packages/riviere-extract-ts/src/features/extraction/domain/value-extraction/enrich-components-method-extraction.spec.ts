@@ -1,12 +1,10 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import { Project } from 'ts-morph'
 import type {
-  Module,
   ComponentRule,
   ExtractBlock,
+  Module,
 } from '@living-architecture/riviere-extract-config'
+import { Project } from 'ts-morph'
+import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
 import { enrichComponents } from './enrich-components'
 
@@ -31,7 +29,7 @@ function enrich(drafts: DraftComponent[], modules: Module[]) {
 }
 
 function ordersDraft(type: string, name: string, file: string, line: number): DraftComponent {
-  return new DraftComponent({
+  return DraftComponent.parse({
     type,
     name,
     location: {

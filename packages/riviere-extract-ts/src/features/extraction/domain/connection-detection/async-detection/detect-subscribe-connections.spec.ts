@@ -1,13 +1,11 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import { detectSubscribeConnections } from './detect-subscribe-connections'
+import { describe, expect, it } from 'vitest'
 import { buildComponent } from '../call-graph/call-graph-fixtures'
 import { ConnectionDetectionError } from '../connection-detection-error'
 import { AsyncDetectionOptions } from './async-detection-options'
+import { detectSubscribeConnections } from './detect-subscribe-connections'
 
 function createOptions(strict: boolean): AsyncDetectionOptions {
-  return new AsyncDetectionOptions({
+  return AsyncDetectionOptions.parse({
     strict,
     repository: 'test-repo',
   })

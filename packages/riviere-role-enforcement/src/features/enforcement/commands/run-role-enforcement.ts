@@ -1,7 +1,7 @@
 import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement-project-repository'
 import { PackageFilterError } from '../domain/filter-config-by-package'
-import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
 import type { RoleEnforcementRunner } from '../domain/ports/role-enforcement-runner'
+import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
 import type { RunRoleEnforcementInput } from './run-role-enforcement-input'
 import type { RunRoleEnforcementResult } from './run-role-enforcement-result'
 

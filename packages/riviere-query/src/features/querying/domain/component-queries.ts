@@ -1,4 +1,4 @@
-import type { RiviereGraph, Component, ComponentType } from '@living-architecture/riviere-schema'
+import type { Component, ComponentType, RiviereGraph } from '@living-architecture/riviere-schema'
 
 /** @riviere-role domain-service */
 export function findComponent(

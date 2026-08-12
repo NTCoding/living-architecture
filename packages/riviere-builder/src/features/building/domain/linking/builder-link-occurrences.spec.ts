@@ -1,12 +1,8 @@
-import {
-  describe, expect, it 
-} from 'vitest'
-import {
-  RiviereBuilder, type BuilderOptions 
-} from '../builder-facade'
+import { describe, expect, it } from 'vitest'
+import { RiviereBuilder } from '../builder-facade'
 
 function createBuilder(): RiviereBuilder {
-  const options: BuilderOptions = {
+  const options = {
     sources: [{ repository: 'test/repo' }],
     domains: {
       orders: {
@@ -14,7 +10,7 @@ function createBuilder(): RiviereBuilder {
         systemType: 'domain',
       },
     },
-  }
+  } as const
   return RiviereBuilder.new(options)
 }
 

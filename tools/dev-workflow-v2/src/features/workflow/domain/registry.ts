@@ -1,7 +1,4 @@
 import type { BashForbiddenConfig } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
-import type {
-  ConcreteRegistry, ConcreteStateDefinition 
-} from './workflow-types'
 import { parseStateName } from './workflow-types'
 import { implementingState } from './states/implementing'
 import { reviewingState } from './states/reviewing'
@@ -19,11 +16,11 @@ export const BASH_FORBIDDEN: BashForbiddenConfig = {
 }
 
 /** @riviere-role domain-service */
-export function getStateDefinition(state: string): ConcreteStateDefinition {
+export function getStateDefinition(state: string) {
   return WORKFLOW_REGISTRY[parseStateName(state)]
 }
 
-export const WORKFLOW_REGISTRY: ConcreteRegistry = {
+export const WORKFLOW_REGISTRY = {
   IMPLEMENTING: implementingState,
   REVIEWING: reviewingState,
   SUBMITTING_PR: submittingPrState,

@@ -1,12 +1,21 @@
-import { describe, it, expect } from 'vitest'
-import { RiviereQuery } from './RiviereQuery'
+import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import { describe, expect, it } from 'vitest'
 import {
-  createMinimalValidGraph,
   createAPIComponent,
+  createMinimalValidGraph,
   createUseCaseComponent,
 } from '../../../platform/__fixtures__/riviere-graph-fixtures'
 import { queryCrossDomainLinks } from './cross-domain-queries'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import { RiviereQuery } from './RiviereQuery'
+
+function plainLinks(links: ReturnType<RiviereQuery['crossDomainLinks']>) {
+  return links.map(({
+    targetDomain, linkType 
+  }) => ({
+    targetDomain: targetDomain.value,
+    linkType,
+  }))
+}
 
 describe('crossDomainLinks', () => {
   it('returns empty array when domain has no outgoing links to other domains', () => {
@@ -15,7 +24,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toStrictEqual([])
+    expect(plainLinks(result)).toStrictEqual([])
   })
 
   it('returns unique outgoing links to other domains with link type', () => {
@@ -61,7 +70,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toStrictEqual([
+    expect(plainLinks(result)).toStrictEqual([
       {
         targetDomain: 'orders',
         linkType: 'sync',
@@ -117,7 +126,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toStrictEqual([
+    expect(plainLinks(result)).toStrictEqual([
       {
         targetDomain: 'orders',
         linkType: 'sync',
@@ -169,7 +178,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toStrictEqual([
+    expect(plainLinks(result)).toStrictEqual([
       {
         targetDomain: 'orders',
         linkType: 'async',
@@ -204,7 +213,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toStrictEqual([])
+    expect(plainLinks(result)).toStrictEqual([])
   })
 
   it('returns results sorted by targetDomain', () => {
@@ -250,7 +259,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result.map((l) => l.targetDomain)).toStrictEqual(['alpha', 'zebra'])
+    expect(result.map((l) => l.targetDomain.value)).toStrictEqual(['alpha', 'zebra'])
   })
 
   it('ignores links to non-existent components (defensive check)', () => {
@@ -288,7 +297,7 @@ describe('crossDomainLinks', () => {
 
     const result = queryCrossDomainLinks(graph, 'test')
 
-    expect(result).toStrictEqual([])
+    expect(plainLinks(result)).toStrictEqual([])
   })
 
   it('handles links with no explicit type (undefined linkType)', () => {
@@ -317,7 +326,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toStrictEqual([
+    expect(plainLinks(result)).toStrictEqual([
       {
         targetDomain: 'orders',
         linkType: undefined,
@@ -386,7 +395,7 @@ describe('crossDomainLinks', () => {
 
     const result = query.crossDomainLinks('test')
 
-    expect(result).toStrictEqual([
+    expect(plainLinks(result)).toStrictEqual([
       {
         targetDomain: 'orders',
         linkType: undefined,

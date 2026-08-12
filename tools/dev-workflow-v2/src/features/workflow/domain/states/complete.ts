@@ -1,10 +1,10 @@
-import type { ConcreteStateDefinition } from '../workflow-types'
+import { defineState } from '../define-state'
 
-export const completeState: ConcreteStateDefinition = {
+export const completeState = defineState({
   emoji: '✅',
   agentInstructions: 'states/complete.md',
   allowIdle: true,
   canTransitionTo: [],
   allowedWorkflowOperations: [],
   forbidden: { write: true },
-}
+})

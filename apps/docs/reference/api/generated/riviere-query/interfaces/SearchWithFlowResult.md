@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: SearchWithFlowResult
 
-Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:32](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L32)
+Defined in: packages/riviere-query/src/features/querying/domain/search-with-flow-result.ts:4
 
 ## Riviere-role
 
@@ -14,14 +14,14 @@ value-object
 
 ### matchingIds
 
-> **matchingIds**: `string` & `$brand`\<`"ComponentId"`\>[]
+> `readonly` **matchingIds**: [`ComponentId`](../classes/ComponentId.md)[]
 
-Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:33](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L33)
+Defined in: packages/riviere-query/src/features/querying/domain/search-with-flow-result.ts:6
 
 ***
 
 ### visibleIds
 
-> **visibleIds**: `string` & `$brand`\<`"ComponentId"`\>[]
+> `readonly` **visibleIds**: [`ComponentId`](../classes/ComponentId.md)[]
 
-Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:34](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L34)
+Defined in: packages/riviere-query/src/features/querying/domain/search-with-flow-result.ts:7

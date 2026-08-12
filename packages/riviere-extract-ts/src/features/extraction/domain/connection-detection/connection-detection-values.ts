@@ -34,7 +34,17 @@ export class ConnectionDetectionOptions {
   readonly httpLinks: HttpLinkConfig[] | undefined
   readonly repository: string
 
-  constructor(params: {
+  static parse(params: {
+    allowIncomplete?: boolean
+    sourceFilePaths: string[]
+    eventPublishers?: EventPublisherConfig[]
+    httpLinks?: HttpLinkConfig[]
+    repository: string
+  }): ConnectionDetectionOptions {
+    return new ConnectionDetectionOptions(params)
+  }
+
+  private constructor(params: {
     allowIncomplete?: boolean
     sourceFilePaths: string[]
     eventPublishers?: EventPublisherConfig[]
@@ -57,7 +67,16 @@ export class ConnectionTimings {
   readonly setupMs: number
   readonly totalMs: number
 
-  constructor(params: {
+  static parse(params: {
+    callGraphMs: number
+    asyncDetectionMs: number
+    setupMs: number
+    totalMs: number
+  }): ConnectionTimings {
+    return new ConnectionTimings(params)
+  }
+
+  private constructor(params: {
     callGraphMs: number
     asyncDetectionMs: number
     setupMs: number
@@ -77,7 +96,15 @@ export class ConnectionDetectionResult {
   declare readonly externalLinks: ExternalLink[]
   declare readonly timings: ConnectionTimings
 
-  constructor(params: {
+  static parse(params: {
+    links: ExtractedLink[]
+    externalLinks: ExternalLink[]
+    timings: ConnectionTimings
+  }): ConnectionDetectionResult {
+    return new ConnectionDetectionResult(params)
+  }
+
+  private constructor(params: {
     links: ExtractedLink[]
     externalLinks: ExternalLink[]
     timings: ConnectionTimings
@@ -95,7 +122,17 @@ export class PerModuleConnectionOptions {
   readonly httpLinks: HttpLinkConfig[] | undefined
   readonly repository: string
 
-  constructor(params: {
+  static parse(params: {
+    allComponents?: readonly EnrichedComponent[]
+    allowIncomplete?: boolean
+    sourceFilePaths: string[]
+    httpLinks?: HttpLinkConfig[]
+    repository: string
+  }): PerModuleConnectionOptions {
+    return new PerModuleConnectionOptions(params)
+  }
+
+  private constructor(params: {
     allComponents?: readonly EnrichedComponent[]
     allowIncomplete?: boolean
     sourceFilePaths: string[]
@@ -116,7 +153,14 @@ export class PerModuleTimings {
   readonly callGraphMs: number
   readonly setupMs: number
 
-  constructor(params: {
+  static parse(params: {
+    callGraphMs: number;
+    setupMs: number 
+  }): PerModuleTimings {
+    return new PerModuleTimings(params)
+  }
+
+  private constructor(params: {
     callGraphMs: number;
     setupMs: number 
   }) {
@@ -132,7 +176,15 @@ export class PerModuleDetectionResult {
   declare readonly externalLinks: ExternalLink[]
   declare readonly timings: PerModuleTimings
 
-  constructor(params: {
+  static parse(params: {
+    links: ExtractedLink[]
+    externalLinks: ExternalLink[]
+    timings: PerModuleTimings
+  }): PerModuleDetectionResult {
+    return new PerModuleDetectionResult(params)
+  }
+
+  private constructor(params: {
     links: ExtractedLink[]
     externalLinks: ExternalLink[]
     timings: PerModuleTimings
@@ -148,7 +200,15 @@ export class CrossModuleConnectionOptions {
   readonly eventPublishers: EventPublisherConfig[] | undefined
   readonly repository: string
 
-  constructor(params: {
+  static parse(params: {
+    allowIncomplete?: boolean
+    eventPublishers?: EventPublisherConfig[]
+    repository: string
+  }): CrossModuleConnectionOptions {
+    return new CrossModuleConnectionOptions(params)
+  }
+
+  private constructor(params: {
     allowIncomplete?: boolean
     eventPublishers?: EventPublisherConfig[]
     repository: string
@@ -164,7 +224,11 @@ export class CrossModuleTimings {
   declare private brand: 'CrossModuleTimings'
   readonly asyncDetectionMs: number
 
-  constructor(params: { asyncDetectionMs: number }) {
+  static parse(params: { asyncDetectionMs: number }): CrossModuleTimings {
+    return new CrossModuleTimings(params)
+  }
+
+  private constructor(params: { asyncDetectionMs: number }) {
     this.asyncDetectionMs = params.asyncDetectionMs
   }
 }
@@ -175,7 +239,14 @@ export class CrossModuleDetectionResult {
   readonly links: ExtractedLink[]
   readonly timings: CrossModuleTimings
 
-  constructor(params: {
+  static parse(params: {
+    links: ExtractedLink[]
+    timings: CrossModuleTimings
+  }): CrossModuleDetectionResult {
+    return new CrossModuleDetectionResult(params)
+  }
+
+  private constructor(params: {
     links: ExtractedLink[];
     timings: CrossModuleTimings 
   }) {

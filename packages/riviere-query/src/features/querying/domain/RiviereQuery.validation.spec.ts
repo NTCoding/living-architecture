@@ -1,5 +1,5 @@
-import { RiviereQuery } from './RiviereQuery'
 import { createMinimalValidGraph } from '../../../platform/__fixtures__/riviere-graph-fixtures'
+import { RiviereQuery } from './RiviereQuery'
 
 describe('RiviereQuery validate()', () => {
   it('returns valid=true for a valid minimal graph', () => {
@@ -128,7 +128,7 @@ describe('RiviereQuery validate()', () => {
 
     const result = new RiviereQuery(graph).validate()
 
-    expect(result).toStrictEqual({
+    expect(JSON.parse(JSON.stringify(result))).toStrictEqual({
       valid: true,
       errors: [],
     })

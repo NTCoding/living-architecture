@@ -1,10 +1,8 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import { detectCrossModuleConnections } from './detect-connections'
-import { CrossModuleConnectionOptions } from './connection-detection-values'
+import { describe, expect, it } from 'vitest'
 import { buildComponent } from './call-graph/call-graph-fixtures'
 import { ConnectionDetectionError } from './connection-detection-error'
+import { CrossModuleConnectionOptions } from './connection-detection-values'
+import { detectCrossModuleConnections } from './detect-connections'
 
 const publisherConfig = [
   {
@@ -20,7 +18,7 @@ function createOptions(params: {
     metadataKey: string
   }[]
 }): CrossModuleConnectionOptions {
-  return new CrossModuleConnectionOptions({
+  return CrossModuleConnectionOptions.parse({
     repository: 'test-repo',
     ...(params.allowIncomplete !== undefined && { allowIncomplete: params.allowIncomplete }),
     ...(params.eventPublishers !== undefined && { eventPublishers: params.eventPublishers }),

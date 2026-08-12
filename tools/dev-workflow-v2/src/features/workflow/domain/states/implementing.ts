@@ -1,11 +1,8 @@
-import type {
-  ConcreteStateDefinition, WorkflowState 
-} from '../workflow-types'
-import {
-  pass, fail 
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type { WorkflowState } from '../workflow-types'
+import { defineState } from '../define-state'
+import { pass, fail } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
-export const implementingState: ConcreteStateDefinition = {
+export const implementingState = defineState({
   emoji: '🔨',
   agentInstructions: 'states/implementing.md',
   canTransitionTo: ['REVIEWING', 'BLOCKED'],
@@ -23,14 +20,14 @@ export const implementingState: ConcreteStateDefinition = {
     return pass()
   },
 
-  onEntry: (state: WorkflowState): WorkflowState => ({
-    ...state,
-    architectureReviewPassed: false,
-    codeReviewPassed: false,
-    bugScannerPassed: false,
-    taskCheckPassed: false,
-    ciPassed: false,
-    feedbackClean: false,
-    feedbackAddressed: false,
-  }),
-}
+  onEntry: (state: WorkflowState): WorkflowState =>
+    state.with({
+      architectureReviewPassed: false,
+      codeReviewPassed: false,
+      bugScannerPassed: false,
+      taskCheckPassed: false,
+      ciPassed: false,
+      feedbackClean: false,
+      feedbackAddressed: false,
+    }),
+})

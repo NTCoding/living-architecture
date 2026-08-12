@@ -1,9 +1,7 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { buildComponent } from './call-graph-fixtures'
 import { componentIdentity } from './component-identity'
 import { stripGenericArgs } from './type-name-normalization'
-import { buildComponent } from './call-graph-fixtures'
 
 describe('stripGenericArgs', () => {
   it('returns original string when no generic arguments present', () => {

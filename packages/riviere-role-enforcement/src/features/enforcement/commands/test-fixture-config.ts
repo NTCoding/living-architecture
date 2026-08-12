@@ -105,7 +105,9 @@ export function configWithGenericClassStateConstraints() {
     targets: ['class'],
     requiredPrivateMembers: ['brand'],
     requiresDataMembers: true,
-    forbiddenCallableMembers: true,
+    forbiddenCallableDataMembers: true,
+    requiresPrivateConstructor: true,
+    requiredStaticMethodNamePrefix: 'parse',
   })
 }
 

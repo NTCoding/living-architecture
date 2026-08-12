@@ -1,12 +1,10 @@
-import {
-  describe, it, expect 
-} from 'vitest'
 import { Project } from 'ts-morph'
-import { evaluateFromGenericArgRule } from './evaluate-extraction-rule'
+import { describe, expect, it } from 'vitest'
 import {
-  TestFixtureError,
   ExtractionError,
+  TestFixtureError,
 } from '../../../../platform/domain/ast-literals/literal-detection'
+import { evaluateFromGenericArgRule } from './evaluate-extraction-rule'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
 const counter = { value: 0 }

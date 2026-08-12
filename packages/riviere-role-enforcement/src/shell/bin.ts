@@ -1,5 +1,5 @@
-import { performance } from 'node:perf_hooks'
 import path from 'node:path'
+import { performance } from 'node:perf_hooks'
 import { fileURLToPath } from 'node:url'
 import { createOxlintRoleEnforcementRunner } from '../features/enforcement/adapters/oxlint/oxlint-role-enforcement-runner'
 import { RunRoleEnforcement } from '../features/enforcement/commands/run-role-enforcement'

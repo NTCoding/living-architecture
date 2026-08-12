@@ -1,16 +1,14 @@
+import type { Transform } from '@living-architecture/riviere-extract-config'
+import { describe, expect, it } from 'vitest'
 import {
-  describe, it, expect 
-} from 'vitest'
-import {
-  stripSuffix,
-  stripPrefix,
-  toLowerCase,
-  toUpperCase,
+  applyTransforms,
   kebabToPascal,
   pascalToKebab,
-  applyTransforms,
+  stripPrefix,
+  stripSuffix,
+  toLowerCase,
+  toUpperCase,
 } from './transforms'
-import type { Transform } from '@living-architecture/riviere-extract-config'
 
 describe('stripSuffix', () => {
   it("returns 'PlaceOrder' when input is 'PlaceOrderController' and suffix is 'Controller'", () => {

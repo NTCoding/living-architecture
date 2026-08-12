@@ -1,8 +1,6 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import { Project } from 'ts-morph'
 import type { Predicate } from '@living-architecture/riviere-extract-config'
+import { Project } from 'ts-morph'
+import { describe, expect, it } from 'vitest'
 import { evaluatePredicate } from './evaluate-predicate'
 
 function createTestProject(code: string) {

@@ -1,20 +1,19 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type { ComponentId } from './identifiers'
-import { parseComponentId } from './identifiers'
+import { ComponentDepths } from './component-depths'
 import { ENTRY_POINT_TYPES } from './flow-constants'
 
 interface DepthQueueEntry {
-  id: ComponentId
+  id: string
   depth: number
 }
 
 /** @riviere-role domain-service */
-export function queryNodeDepths(graph: RiviereGraph): Map<ComponentId, number> {
-  const depths = new Map<ComponentId, number>()
+export function queryNodeDepths(graph: RiviereGraph): ComponentDepths {
+  const depths = new Map<string, number>()
 
   const entryPoints = findEntryPointIds(graph)
   if (entryPoints.length === 0) {
-    return depths
+    return ComponentDepths.parse(depths)
   }
 
   const outgoingEdges = buildOutgoingEdges(graph)
@@ -25,13 +24,13 @@ export function queryNodeDepths(graph: RiviereGraph): Map<ComponentId, number> {
 
   processQueue(queue, depths, outgoingEdges)
 
-  return depths
+  return ComponentDepths.parse(depths)
 }
 
 function processQueue(
   queue: DepthQueueEntry[],
-  depths: Map<ComponentId, number>,
-  outgoingEdges: Map<ComponentId, ComponentId[]>,
+  depths: Map<string, number>,
+  outgoingEdges: Map<string, string[]>,
 ): void {
   const current = queue.shift()
   if (current === undefined) return
@@ -48,7 +47,7 @@ function processQueue(
 }
 
 function enqueueChildren(
-  outgoingEdges: Map<ComponentId, ComponentId[]>,
+  outgoingEdges: Map<string, string[]>,
   current: DepthQueueEntry,
   queue: DepthQueueEntry[],
 ): void {
@@ -63,23 +62,21 @@ function enqueueChildren(
   }
 }
 
-function findEntryPointIds(graph: RiviereGraph): ComponentId[] {
+function findEntryPointIds(graph: RiviereGraph): string[] {
   const targets = new Set(graph.links.map((link) => link.target))
   return graph.components
     .filter((c) => ENTRY_POINT_TYPES.has(c.type) && !targets.has(c.id))
-    .map((c) => parseComponentId(c.id))
+    .map((c) => c.id)
 }
 
-function buildOutgoingEdges(graph: RiviereGraph): Map<ComponentId, ComponentId[]> {
-  const edges = new Map<ComponentId, ComponentId[]>()
+function buildOutgoingEdges(graph: RiviereGraph): Map<string, string[]> {
+  const edges = new Map<string, string[]>()
   for (const link of graph.links) {
-    const sourceId = parseComponentId(link.source)
-    const targetId = parseComponentId(link.target)
-    const existing = edges.get(sourceId)
+    const existing = edges.get(link.source)
     if (existing) {
-      existing.push(targetId)
+      existing.push(link.target)
     } else {
-      edges.set(sourceId, [targetId])
+      edges.set(link.source, [link.target])
     }
   }
   return edges

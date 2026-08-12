@@ -1,9 +1,7 @@
-import {
-  describe, it, expect 
-} from 'vitest'
 import { Project } from 'ts-morph'
-import { extractComponents } from './extractor'
+import { describe, expect, it } from 'vitest'
 import { createConfigWithRule } from '../../../../test-fixtures'
+import { extractComponents } from './extractor'
 
 function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })

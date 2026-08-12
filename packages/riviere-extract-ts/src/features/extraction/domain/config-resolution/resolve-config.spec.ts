@@ -1,7 +1,5 @@
-import {
-  describe, it, expect 
-} from 'vitest'
 import type { ExtractionConfig } from '@living-architecture/riviere-extract-config'
+import { describe, expect, it } from 'vitest'
 import { resolveConfig } from './resolve-config'
 
 describe('resolveConfig', () => {

@@ -1,7 +1,7 @@
 import { readdirSync, realpathSync } from 'node:fs'
 import type { findFilesMatchingPatterns } from '../../../platform/infra/external-clients/filesystem/find-files-matching-patterns'
 import { findFilesMatchingPatterns as defaultFindFilesMatchingPatterns } from '../../../platform/infra/external-clients/filesystem/find-files-matching-patterns'
-import type { RoleEnforcementResult } from '../domain/role-enforcement-builder'
+import { RoleEnforcementResult } from '../domain/role-enforcement-builder'
 import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
 import { RoleEnforcementProject } from '../domain/role-enforcement-project'
 
@@ -52,7 +52,7 @@ function readConfig(configModule: unknown): RoleEnforcementResult {
 
   const { config } = resolved
   assertRoleEnforcementResult(config)
-  return config
+  return RoleEnforcementResult.parse(config)
 }
 
 function resolveModuleExports(loaded: unknown): unknown {
@@ -68,7 +68,9 @@ function resolveModuleExports(loaded: unknown): unknown {
   return loaded
 }
 
-function assertRoleEnforcementResult(value: unknown): asserts value is RoleEnforcementResult {
+function assertRoleEnforcementResult(
+  value: unknown,
+): asserts value is Parameters<typeof RoleEnforcementResult.parse>[0] {
   if (typeof value !== 'object' || value === null) {
     throw new RoleEnforcementExecutionError("Config module 'config' export must be an object.")
   }

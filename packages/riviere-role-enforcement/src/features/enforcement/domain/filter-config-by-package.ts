@@ -1,4 +1,4 @@
-import type { RoleEnforcementResult } from './role-enforcement-builder'
+import { RoleEnforcementResult } from './role-enforcement-builder'
 
 /** @riviere-role domain-service */
 export function filterConfigByPackage(
@@ -17,13 +17,13 @@ export function filterConfigByPackage(
     )
   }
 
-  return {
+  return RoleEnforcementResult.parse({
     ...config,
     include: filteredInclude,
     locationHierarchy: config.locationHierarchy.filter((location) =>
       location.pathTemplate.startsWith(`${normalizedPath}/`),
     ),
-  }
+  })
 }
 
 function extractPackagePath(includePattern: string): string {

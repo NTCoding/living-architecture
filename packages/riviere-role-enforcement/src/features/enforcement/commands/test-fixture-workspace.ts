@@ -1,15 +1,13 @@
-import {
-  mkdtempSync, mkdirSync, rmSync, writeFileSync 
-} from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createOxlintRoleEnforcementRunner } from '../adapters/oxlint/oxlint-role-enforcement-runner'
-import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement-project-repository'
 import { findFileUp } from '../../../platform/infra/external-clients/filesystem/find-file-up'
 import { runOxlint } from '../../../platform/infra/external-clients/oxlint/index'
-import { genericTestRoles } from './test-fixture-config'
+import { createOxlintRoleEnforcementRunner } from '../adapters/oxlint/oxlint-role-enforcement-runner'
+import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement-project-repository'
 import { RunRoleEnforcement } from './run-role-enforcement'
+import { genericTestRoles } from './test-fixture-config'
 
 interface WorkspaceBootstrap {
   readonly prefix: string

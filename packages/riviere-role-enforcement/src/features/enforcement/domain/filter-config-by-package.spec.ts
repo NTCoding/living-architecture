@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { filterConfigByPackage, PackageFilterError } from './filter-config-by-package'
-import type { RoleEnforcementResult } from './role-enforcement-builder'
-import { location, locationConfiguration, role, roleEnforcement } from './role-enforcement-builder'
+import {
+  location,
+  locationConfiguration,
+  role,
+  roleEnforcement,
+  RoleEnforcementResult,
+} from './role-enforcement-builder'
 
 const testRoles = [
   role('cli-entrypoint', { targets: ['function'] }),
@@ -98,10 +103,10 @@ describe('filterConfigByPackage', () => {
   })
 
   it('uses full pattern as package name when include pattern has no /src/ segment', () => {
-    const config: RoleEnforcementResult = {
+    const config = RoleEnforcementResult.parse({
       ...createMultiPackageConfig(),
       include: ['custom-path/**/*.ts'],
-    }
+    })
 
     expect(() => filterConfigByPackage(config, 'packages/nonexistent')).toThrow(
       /custom-path\/\*\*\/\*\.ts/,
@@ -126,10 +131,10 @@ describe('filterConfigByPackage', () => {
 
   it('preserves workspacePackageSources when present', () => {
     const sources = {'@living-architecture/riviere-builder': 'packages/riviere-builder/src/index.ts',}
-    const config: RoleEnforcementResult = {
+    const config = RoleEnforcementResult.parse({
       ...createMultiPackageConfig(),
       workspacePackageSources: sources,
-    }
+    })
 
     const result = filterConfigByPackage(config, 'packages/riviere-cli')
 

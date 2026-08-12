@@ -1,71 +1,58 @@
 import type {
-  RiviereGraph,
   Component,
-  Link,
   ComponentType,
   DomainOpComponent,
   ExternalLink,
+  Link,
+  RiviereGraph,
 } from '@living-architecture/riviere-schema'
-import type { Entity, EntityTransition, PublishedEvent, EventHandlerInfo } from './event-types'
-import type { State, ComponentId, LinkId } from './identifiers'
-import type { ValidationResult } from './graph-validation'
-import type { GraphDiff } from './graph-diff'
-import type { Domain } from './domain-queries'
-import type { CrossDomainLink, DomainConnection } from './cross-domain-queries'
-import type { GraphStats } from './stats-queries'
-import type { ExternalDomain } from './external-system-queries'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema'
+import type { GraphDiff } from './graph-diff'
 
+import type { ComponentDepths } from './component-depths'
+import type { ComponentId } from './component-id'
 import {
-  findComponent,
-  findAllComponents,
-  componentById as lookupComponentById,
-  searchComponents,
   componentsInDomain as filterByDomain,
   componentsByType as filterByType,
+  findAllComponents,
+  findComponent,
+  componentById as lookupComponentById,
+  searchComponents,
 } from './component-queries'
-import {
-  queryDomains,
-  operationsForEntity,
-  queryEntities,
-  businessRulesForEntity,
-  transitionsForEntity,
-  statesForEntity,
-} from './domain-queries'
-import { queryExternalDomains } from './external-system-queries'
-import {
-  findEntryPoints,
-  traceFlowFrom,
-  queryFlows,
-  searchWithFlowContext,
-  type Flow,
-  type SearchWithFlowResult,
-  type SearchWithFlowOptions,
-} from './flow-queries'
+import type { CrossDomainLink } from './cross-domain-link'
 import { queryCrossDomainLinks, queryDomainConnections } from './cross-domain-queries'
-import { queryPublishedEvents, queryEventHandlers } from './event-queries'
-import { validateGraph, detectOrphanComponents } from './graph-validation'
-import { diffGraphs } from './graph-diff'
-import { queryStats } from './stats-queries'
 import { queryNodeDepths } from './depth-queries'
-
-export type { Entity, EntityTransition } from './event-types'
-export type { ComponentId, LinkId, State } from './identifiers'
-export { parseComponentId } from './identifiers'
-export type { ValidationErrorCode, ValidationError, ValidationResult } from './graph-validation'
-export type { Domain, ComponentCounts } from './domain-queries'
-export type { ComponentModification, DiffStats, GraphDiff } from './graph-diff'
-export type {
-  Flow,
-  FlowStep,
-  LinkType,
-  SearchWithFlowResult,
-  SearchWithFlowOptions,
-} from './flow-queries'
-export type { CrossDomainLink, DomainConnection } from './cross-domain-queries'
-export type { GraphStats } from './stats-queries'
-export type { ExternalDomain } from './external-system-queries'
+import type { Domain } from './domain'
+import type { DomainConnection } from './domain-connection'
+import {
+  businessRulesForEntity,
+  operationsForEntity,
+  queryDomains,
+  queryEntities,
+  statesForEntity,
+  transitionsForEntity,
+} from './domain-queries'
+import type { Entity } from './entity'
+import type { EntityTransition } from './entity-transition'
+import type { EventHandlerInfo } from './event-handler-info'
+import { queryEventHandlers, queryPublishedEvents } from './event-queries'
+import type { ExternalDomain } from './external-domain'
+import { queryExternalDomains } from './external-system-queries'
+import type { Flow } from './flow'
+import { findEntryPoints, queryFlows, searchWithFlowContext, traceFlowFrom } from './flow-queries'
+import { diffGraphs } from './graph-diff'
+import type { GraphStats } from './graph-stats'
+import { detectOrphanComponents, validateGraph } from './graph-validation'
+import type { LinkId } from './link-id'
+import type { PublishedEvent } from './published-event'
+import type { SearchWithFlowOptions } from './search-with-flow-options'
+import type { SearchWithFlowResult } from './search-with-flow-result'
+import type { State } from './state'
+import { queryStats } from './stats-queries'
+import type { ValidationResult } from './validation-result'
+export type { LinkType } from '@living-architecture/riviere-schema'
 export { ComponentNotFoundError } from './errors'
+export type { GraphDiff } from './graph-diff'
 
 function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
   parseRiviereGraph(graph)
@@ -242,7 +229,7 @@ export class RiviereQuery {
    * ```
    */
   componentById(id: ComponentId): Component | undefined {
-    return lookupComponentById(this.graphSnapshot, id)
+    return lookupComponentById(this.graphSnapshot, id.value)
   }
 
   /**
@@ -600,7 +587,7 @@ export class RiviereQuery {
    * }
    * ```
    */
-  nodeDepths(): Map<ComponentId, number> {
+  nodeDepths(): ComponentDepths {
     return queryNodeDepths(this.graphSnapshot)
   }
 
@@ -644,3 +631,20 @@ export class RiviereQuery {
     return queryExternalDomains(this.graphSnapshot)
   }
 }
+
+export type { ComponentCounts } from './component-counts'
+export type { ComponentModification } from './component-modification'
+export type { CrossDomainLink } from './cross-domain-link'
+export type { DiffStats } from './diff-stats'
+export type { Domain } from './domain'
+export type { DomainConnection } from './domain-connection'
+export type { Entity } from './entity'
+export type { EntityTransition } from './entity-transition'
+export type { ExternalDomain } from './external-domain'
+export type { Flow } from './flow'
+export type { FlowStep } from './flow-step'
+export type { GraphStats } from './graph-stats'
+export type { SearchWithFlowOptions } from './search-with-flow-options'
+export type { SearchWithFlowResult } from './search-with-flow-result'
+export type { ValidationError } from './validation-error'
+export type { ValidationResult } from './validation-result'

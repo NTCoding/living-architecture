@@ -1,7 +1,5 @@
-import {
-  CallExpression, SourceFile, Node 
-} from 'ts-morph'
 import type { Type } from 'ts-morph'
+import { CallExpression, Node, SourceFile } from 'ts-morph'
 import { ConnectionDetectionError } from '../connection-detection-error'
 
 /** @riviere-role value-object */
@@ -10,6 +8,14 @@ export class TypeResolution {
   readonly resolved: boolean
   readonly typeName: string | undefined
   readonly reason: string | undefined
+
+  static parse(params: {
+    resolved: boolean
+    typeName: string | undefined
+    reason: string | undefined
+  }): TypeResolution {
+    return new TypeResolution(params)
+  }
 
   private constructor(params: {
     resolved: boolean
@@ -22,7 +28,7 @@ export class TypeResolution {
   }
 
   static resolved(typeName: string): TypeResolution {
-    return new TypeResolution({
+    return TypeResolution.parse({
       resolved: true,
       typeName,
       reason: undefined,
@@ -30,7 +36,7 @@ export class TypeResolution {
   }
 
   static unresolved(reason: string): TypeResolution {
-    return new TypeResolution({
+    return TypeResolution.parse({
       resolved: false,
       typeName: undefined,
       reason,

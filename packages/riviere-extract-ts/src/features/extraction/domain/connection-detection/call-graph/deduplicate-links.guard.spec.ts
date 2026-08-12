@@ -1,10 +1,6 @@
-import {
-  afterEach, describe, it, expect, vi 
-} from 'vitest'
-import {
-  CallSite, RawLink 
-} from './call-graph-types'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { buildComponent } from './call-graph-fixtures'
+import { CallSite, RawLink } from './call-graph-types'
 
 type ExtractedLinkMockMode =
   | 'missingSourceLocation'
@@ -12,10 +8,23 @@ type ExtractedLinkMockMode =
   | 'missingLineNumber'
   | 'missingMethodName'
 
+interface ExtractedLinkParams {
+  source: string
+  target: string
+  type?: 'sync' | 'async'
+  _uncertain?: string
+  sourceLocation?: {
+    repository: string
+    filePath: string
+    lineNumber?: number
+    methodName?: string
+  }
+}
+
 const extractedLinkState = vi.hoisted((): { mode: ExtractedLinkMockMode } => ({mode: 'missingSourceLocation',}))
 
-vi.mock('../extracted-link', () => ({
-  ExtractedLink: class {
+vi.mock('../extracted-link', () => {
+  class MockExtractedLink {
     readonly source: string
     readonly target: string
     readonly type: 'sync' | 'async' | undefined
@@ -29,18 +38,11 @@ vi.mock('../extracted-link', () => ({
       }
       | undefined
 
-    constructor(params: {
-      source: string
-      target: string
-      type?: 'sync' | 'async'
-      _uncertain?: string
-      sourceLocation?: {
-        repository: string
-        filePath: string
-        lineNumber?: number
-        methodName?: string
-      }
-    }) {
+    static parse(params: ExtractedLinkParams): MockExtractedLink {
+      return new MockExtractedLink(params)
+    }
+
+    constructor(params: ExtractedLinkParams) {
       this.source = params.source
       this.target = params.target
       this.type = params.type
@@ -86,18 +88,20 @@ vi.mock('../extracted-link', () => ({
         lineNumber: 10,
       }
     }
-  },
-}))
+  }
+
+  return { ExtractedLink: MockExtractedLink }
+})
 
 afterEach(() => {
   extractedLinkState.mode = 'missingSourceLocation'
 })
 
 function buildRawLink(sourceName: string, targetName: string, lineNumber: number): RawLink {
-  return new RawLink({
+  return RawLink.parse({
     source: buildComponent(sourceName, '/test.ts', 1),
     target: buildComponent(targetName, '/test.ts', 10, { type: 'domainOp' }),
-    callSite: new CallSite({
+    callSite: CallSite.parse({
       filePath: '/test.ts',
       lineNumber,
       methodName: 'execute',

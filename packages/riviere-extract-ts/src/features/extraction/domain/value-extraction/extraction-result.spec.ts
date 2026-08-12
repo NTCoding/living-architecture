@@ -1,13 +1,9 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import {
-  ExtractionContext, ExtractionResult 
-} from './extraction-result'
+import { describe, expect, it } from 'vitest'
+import { ExtractionContext, ExtractionResult } from './extraction-result'
 
 describe('ExtractionContext', () => {
   it('stores file path when constructed', () => {
-    const result = new ExtractionContext({ filePath: '/src/orders/order-service.ts' })
+    const result = ExtractionContext.parse({ filePath: '/src/orders/order-service.ts' })
 
     expect(result.filePath).toBe('/src/orders/order-service.ts')
   })
@@ -15,7 +11,7 @@ describe('ExtractionContext', () => {
 
 describe('ExtractionResult', () => {
   it('stores extracted value when constructed', () => {
-    const result = new ExtractionResult({ value: 'orders' })
+    const result = ExtractionResult.parse({ value: 'orders' })
 
     expect(result.value).toBe('orders')
   })

@@ -1,6 +1,4 @@
-import type {
-  ClassDeclaration, MethodDeclaration 
-} from 'ts-morph'
+import type { ClassDeclaration, MethodDeclaration } from 'ts-morph'
 
 /** @riviere-role value-object */
 export class MethodLevelTarget {
@@ -8,7 +6,14 @@ export class MethodLevelTarget {
   readonly classDecl: ClassDeclaration
   readonly method: MethodDeclaration
 
-  constructor(params: {
+  static parse(params: {
+    classDecl: ClassDeclaration
+    method: MethodDeclaration
+  }): MethodLevelTarget {
+    return new MethodLevelTarget(params)
+  }
+
+  private constructor(params: {
     classDecl: ClassDeclaration;
     method: MethodDeclaration 
   }) {

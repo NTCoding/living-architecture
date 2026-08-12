@@ -1,9 +1,9 @@
 import type {
-  ExtractionConfig,
-  ResolvedExtractionConfig,
   ComponentRule,
+  ExtractionConfig,
   Module,
   ModuleConfig,
+  ResolvedExtractionConfig,
 } from '@living-architecture/riviere-extract-config'
 import { MissingComponentRuleError } from './config-resolution-errors'
 

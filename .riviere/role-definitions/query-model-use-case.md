@@ -22,11 +22,7 @@ export class ListComponents {
   constructor(private readonly components: ComponentListLoader) {}
 
   execute(input: ListComponentsInput): ComponentList {
-    return this.components.load({
-      graphPath: input.graphPath,
-      domain: input.domain,
-      type: input.type,
-    })
+    return this.components.load(input.graphPath, input.domain, input.type)
   }
 }
 ```

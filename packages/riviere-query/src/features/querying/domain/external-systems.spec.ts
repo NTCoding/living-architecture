@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest'
-import { queryExternalDomains } from './external-system-queries'
+import { describe, expect, it } from 'vitest'
 import {
-  createMinimalValidGraph,
   createAPIComponent,
+  createMinimalValidGraph,
   createUseCaseComponent,
 } from '../../../platform/__fixtures__/riviere-graph-fixtures'
-import { parseDomainName } from './identifiers'
+import { DomainName } from './domain-name'
+import { queryExternalDomains } from './external-system-queries'
 
 describe('queryExternalDomains', () => {
   it('returns empty array when graph has no external links', () => {
@@ -66,7 +66,7 @@ describe('queryExternalDomains', () => {
 
     const result = queryExternalDomains(graph)
 
-    expect(result[0]?.sourceDomains).toStrictEqual([parseDomainName('orders')])
+    expect(result[0]?.sourceDomains).toStrictEqual([DomainName.parse('orders')])
   })
 
   it('aggregates multiple source domains for same external domain', () => {
@@ -105,7 +105,7 @@ describe('queryExternalDomains', () => {
     expect(result).toHaveLength(1)
     expect(result[0]?.name).toBe('Stripe')
     expect(result[0]?.sourceDomains.sort((a, b) => a.localeCompare(b))).toStrictEqual(
-      [parseDomainName('orders'), parseDomainName('payments')].sort((a, b) => a.localeCompare(b)),
+      [DomainName.parse('orders'), DomainName.parse('payments')].sort((a, b) => a.localeCompare(b)),
     )
   })
 
@@ -179,7 +179,7 @@ describe('queryExternalDomains', () => {
 
     const result = queryExternalDomains(graph)
 
-    expect(result[0]?.sourceDomains).toStrictEqual([parseDomainName('orders')])
+    expect(result[0]?.sourceDomains).toStrictEqual([DomainName.parse('orders')])
   })
 
   it('skips external links with unknown source component', () => {

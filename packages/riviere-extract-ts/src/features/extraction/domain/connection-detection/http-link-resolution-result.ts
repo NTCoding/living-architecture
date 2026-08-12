@@ -7,7 +7,14 @@ export class HttpLinkResolutionResult {
   readonly links: ExtractedLink[]
   readonly externalLinks: ExternalLink[]
 
-  constructor(params: {
+  static parse(params: {
+    links: ExtractedLink[]
+    externalLinks: ExternalLink[]
+  }): HttpLinkResolutionResult {
+    return new HttpLinkResolutionResult(params)
+  }
+
+  private constructor(params: {
     links: ExtractedLink[];
     externalLinks: ExternalLink[] 
   }) {

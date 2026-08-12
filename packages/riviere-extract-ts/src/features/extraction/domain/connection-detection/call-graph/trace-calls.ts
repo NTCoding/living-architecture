@@ -7,20 +7,18 @@ import {
   Node,
   SyntaxKind,
 } from 'ts-morph'
-import type { ComponentIndex } from '../component-index'
 import type { EnrichedComponent } from '../../value-extraction/enriched-component'
+import type { ComponentIndex } from '../component-index'
 import {
-  CallGraphOptions, CallSite, RawLink, UncertainRawLink 
-} from './call-graph-types'
-import { componentIdentity } from './component-identity'
-import { MethodLevelTarget } from './method-level-target'
-import { resolveCallExpressionReceiverType } from './type-resolver'
-import {
+  findMethodInProject,
   getCalledMethodName,
   resolveContainerMethod,
   resolveTypeThroughInterface,
-  findMethodInProject,
 } from './call-graph-shared'
+import { CallGraphOptions, CallSite, RawLink, UncertainRawLink } from './call-graph-types'
+import { componentIdentity } from './component-identity'
+import { MethodLevelTarget } from './method-level-target'
+import { resolveCallExpressionReceiverType } from './type-resolver'
 
 interface TraceContext {
   project: Project
@@ -88,7 +86,7 @@ function traceCallExpression(callExpr: CallExpression, ctx: TraceContext): void 
   if (outcome.target !== undefined) {
     if (componentIdentity(ctx.sourceComponent) !== componentIdentity(outcome.target)) {
       ctx.results.push(
-        new RawLink({
+        RawLink.parse({
           source: ctx.sourceComponent,
           target: outcome.target,
           callSite: ctx.originCallSite,
@@ -129,7 +127,7 @@ function traceIntoNonComponent(
 
   if (!classFound && outcome.uncertain !== undefined) {
     ctx.uncertainResults.push(
-      new UncertainRawLink({
+      UncertainRawLink.parse({
         source: ctx.sourceComponent,
         reason: outcome.uncertain,
         callSite: ctx.originCallSite,
@@ -204,7 +202,7 @@ export function findMethodLevelComponent(
       .getMethods()
       .find((m) => m.getStartLineNumber() === component.location.line)
     if (method !== undefined) {
-      return new MethodLevelTarget({
+      return MethodLevelTarget.parse({
         classDecl,
         method,
       })

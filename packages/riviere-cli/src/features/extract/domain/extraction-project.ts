@@ -1,7 +1,5 @@
 import type { Project } from 'ts-morph'
-import type {
-  Module, ResolvedExtractionConfig 
-} from '@living-architecture/riviere-extract-config'
+import type { Module, ResolvedExtractionConfig } from '@living-architecture/riviere-extract-config'
 import {
   deduplicateCrossStrategy,
   detectCrossModuleConnections,
@@ -15,7 +13,27 @@ import {
   type ExtractedLink,
 } from '@living-architecture/riviere-extract-ts'
 import type { ExternalLink } from '@living-architecture/riviere-schema'
-import type { ExtractionOutcome } from './extraction-outcome'
+
+interface DraftOnlyOutcome {
+  kind: 'draftOnly'
+  components: DraftComponent[]
+}
+
+interface FullExtractionOutcome {
+  kind: 'full'
+  components: EnrichedComponent[]
+  failedFields: string[]
+  links: ExtractedLink[]
+  externalLinks: ExternalLink[]
+  timings: ConnectionTimings[]
+}
+
+interface FieldFailureOutcome {
+  kind: 'fieldFailure'
+  failedFields: string[]
+}
+
+type ExtractionOutcome = DraftOnlyOutcome | FullExtractionOutcome | FieldFailureOutcome
 
 interface ModuleContext {
   module: Module

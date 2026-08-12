@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: GraphDiff
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:24](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L24)
+Defined in: packages/riviere-query/src/features/querying/domain/graph-diff.ts:8
 
 ## Riviere-role
 
@@ -14,9 +14,9 @@ value-object
 
 ### components
 
-> **components**: `object`
+> `readonly` **components**: `object`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:25](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L25)
+Defined in: packages/riviere-query/src/features/querying/domain/graph-diff.ts:10
 
 #### added
 
@@ -34,9 +34,9 @@ Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:2
 
 ### links
 
-> **links**: `object`
+> `readonly` **links**: `object`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:30](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L30)
+Defined in: packages/riviere-query/src/features/querying/domain/graph-diff.ts:15
 
 #### added
 
@@ -50,6 +50,6 @@ Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:3
 
 ### stats
 
-> **stats**: [`DiffStats`](DiffStats.md)
+> `readonly` **stats**: [`DiffStats`](DiffStats.md)
 
-Defined in: [packages/riviere-query/src/features/querying/domain/graph-diff.ts:34](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/graph-diff.ts#L34)
+Defined in: packages/riviere-query/src/features/querying/domain/graph-diff.ts:19

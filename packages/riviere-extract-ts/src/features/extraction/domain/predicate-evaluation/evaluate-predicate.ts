@@ -1,3 +1,4 @@
+import type { Predicate } from '@living-architecture/riviere-extract-config'
 import type {
   ClassDeclaration,
   Decorator,
@@ -6,7 +7,6 @@ import type {
   Node,
 } from 'ts-morph'
 import { Node as TsMorphNode } from 'ts-morph'
-import type { Predicate } from '@living-architecture/riviere-extract-config'
 
 type DecoratableNode = ClassDeclaration | MethodDeclaration
 

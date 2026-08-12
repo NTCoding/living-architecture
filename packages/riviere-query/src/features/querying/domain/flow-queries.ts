@@ -1,38 +1,19 @@
 import type {
-  RiviereGraph,
   Component,
   ExternalLink,
   Link,
+  RiviereGraph,
 } from '@living-architecture/riviere-schema'
-import type { ComponentId, LinkId } from './identifiers'
-import { parseComponentId } from './identifiers'
+import { ComponentId } from './component-id'
 import { componentById, searchComponents } from './component-queries'
 import { ComponentNotFoundError } from './errors'
-import { createLinkKey } from './link-key'
+import { Flow } from './flow'
 import { ENTRY_POINT_TYPES } from './flow-constants'
-
-/** @riviere-role value-object */
-export type LinkType = 'sync' | 'async'
-
-/** @riviere-role value-object */
-export interface FlowStep {
-  component: Component
-  outgoingLinks: Link[]
-  depth: number
-  externalLinks: ExternalLink[]
-}
-
-/** @riviere-role value-object */
-export interface Flow {
-  entryPoint: Component
-  steps: FlowStep[]
-}
-
-/** @riviere-role value-object */
-export interface SearchWithFlowResult {
-  matchingIds: ComponentId[]
-  visibleIds: ComponentId[]
-}
+import { FlowStep } from './flow-step'
+import { LinkId } from './link-id'
+import { createLinkKey } from './link-key'
+import { SearchWithFlowOptions } from './search-with-flow-options'
+import { SearchWithFlowResult } from './search-with-flow-result'
 
 /** @riviere-role domain-service */
 export function findEntryPoints(graph: RiviereGraph): Component[] {
@@ -48,14 +29,14 @@ export function traceFlowFrom(
   componentIds: ComponentId[]
   linkIds: LinkId[]
 } {
-  const component = componentById(graph, startComponentId)
+  const component = componentById(graph, startComponentId.value)
   if (!component) {
-    throw new ComponentNotFoundError(startComponentId)
+    throw new ComponentNotFoundError(startComponentId.value)
   }
 
-  const visited = new Set<ComponentId>()
-  const visitedLinks = new Set<LinkId>()
-  const queue: ComponentId[] = [startComponentId]
+  const visited = new Set<string>()
+  const visitedLinks = new Set<string>()
+  const queue: string[] = [startComponentId.value]
 
   while (queue.length > 0) {
     const currentId = queue.shift()
@@ -63,22 +44,20 @@ export function traceFlowFrom(
     visited.add(currentId)
 
     for (const link of graph.links) {
-      const sourceId = parseComponentId(link.source)
-      const targetId = parseComponentId(link.target)
-      if (link.source === currentId && !visited.has(targetId)) {
-        queue.push(targetId)
-        visitedLinks.add(createLinkKey(link))
+      if (link.source === currentId && !visited.has(link.target)) {
+        queue.push(link.target)
+        visitedLinks.add(createLinkKey(link).value)
       }
-      if (link.target === currentId && !visited.has(sourceId)) {
-        queue.push(sourceId)
-        visitedLinks.add(createLinkKey(link))
+      if (link.target === currentId && !visited.has(link.source)) {
+        queue.push(link.source)
+        visitedLinks.add(createLinkKey(link).value)
       }
     }
   }
 
   return {
-    componentIds: Array.from(visited),
-    linkIds: Array.from(visitedLinks),
+    componentIds: Array.from(visited, ComponentId.parse),
+    linkIds: Array.from(visitedLinks, LinkId.parse),
   }
 }
 
@@ -102,12 +81,14 @@ export function queryFlows(graph: RiviereGraph): Flow[] {
       const edges = outgoingEdges.get(nodeId) ?? []
       const externalLinks = externalLinksBySource.get(nodeId) ?? []
 
-      steps.push({
-        component,
-        outgoingLinks: edges,
-        depth,
-        externalLinks,
-      })
+      steps.push(
+        FlowStep.parse({
+          component,
+          outgoingLinks: edges,
+          depth,
+          externalLinks,
+        }),
+      )
 
       for (const edge of edges) {
         traverse(edge.target, depth + 1)
@@ -118,10 +99,12 @@ export function queryFlows(graph: RiviereGraph): Flow[] {
     return steps
   }
 
-  return findEntryPoints(graph).map((entryPoint) => ({
-    entryPoint,
-    steps: traceForward(entryPoint.id),
-  }))
+  return findEntryPoints(graph).map((entryPoint) =>
+    Flow.parse({
+      entryPoint,
+      steps: traceForward(entryPoint.id),
+    }),
+  )
 }
 
 function buildExternalLinksBySource(graph: RiviereGraph): Map<string, ExternalLink[]> {
@@ -153,9 +136,6 @@ function buildOutgoingEdges(graph: RiviereGraph): Map<string, Link[]> {
   return edges
 }
 
-/** @riviere-role value-object */
-export interface SearchWithFlowOptions {returnAllOnEmptyQuery: boolean}
-
 /** @riviere-role domain-service */
 export function searchWithFlowContext(
   graph: RiviereGraph,
@@ -167,38 +147,38 @@ export function searchWithFlowContext(
 
   if (isEmptyQuery) {
     if (options.returnAllOnEmptyQuery) {
-      const allIds = graph.components.map((c) => parseComponentId(c.id))
-      return {
+      const allIds = graph.components.map((c) => ComponentId.parse(c.id))
+      return SearchWithFlowResult.parse({
         matchingIds: allIds,
         visibleIds: allIds,
-      }
+      })
     }
-    return {
+    return SearchWithFlowResult.parse({
       matchingIds: [],
       visibleIds: [],
-    }
+    })
   }
 
   const matchingComponents = searchComponents(graph, query)
   if (matchingComponents.length === 0) {
-    return {
+    return SearchWithFlowResult.parse({
       matchingIds: [],
       visibleIds: [],
-    }
+    })
   }
 
-  const matchingIds = matchingComponents.map((c) => parseComponentId(c.id))
+  const matchingIds = matchingComponents.map((c) => ComponentId.parse(c.id))
   const visibleIds = new Set<ComponentId>()
 
   for (const component of matchingComponents) {
-    const flow = traceFlowFrom(graph, parseComponentId(component.id))
+    const flow = traceFlowFrom(graph, ComponentId.parse(component.id))
     for (const id of flow.componentIds) {
       visibleIds.add(id)
     }
   }
 
-  return {
+  return SearchWithFlowResult.parse({
     matchingIds,
     visibleIds: Array.from(visibleIds),
-  }
+  })
 }

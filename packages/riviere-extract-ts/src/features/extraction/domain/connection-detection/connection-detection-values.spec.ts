@@ -1,12 +1,10 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { buildComponent } from './call-graph/call-graph-fixtures'
 import {
   ConnectionDetectionOptions,
-  PerModuleConnectionOptions,
   CrossModuleConnectionOptions,
+  PerModuleConnectionOptions,
 } from './connection-detection-values'
-import { buildComponent } from './call-graph/call-graph-fixtures'
 
 describe('ConnectionDetectionOptions', () => {
   it('stores all constructor fields when event publishers and http links are provided', () => {
@@ -24,7 +22,7 @@ describe('ConnectionDetectionOptions', () => {
       },
     ]
 
-    const result = new ConnectionDetectionOptions({
+    const result = ConnectionDetectionOptions.parse({
       allowIncomplete: true,
       sourceFilePaths: ['/src/orders/order.ts'],
       eventPublishers,
@@ -53,7 +51,7 @@ describe('PerModuleConnectionOptions', () => {
       },
     ]
 
-    const result = new PerModuleConnectionOptions({
+    const result = PerModuleConnectionOptions.parse({
       allComponents: [component],
       allowIncomplete: true,
       sourceFilePaths: ['/src/orders/order-service.ts'],
@@ -80,7 +78,7 @@ describe('CrossModuleConnectionOptions', () => {
       },
     ]
 
-    const result = new CrossModuleConnectionOptions({
+    const result = CrossModuleConnectionOptions.parse({
       allowIncomplete: false,
       eventPublishers,
       repository: 'test-repo',

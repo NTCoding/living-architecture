@@ -7,7 +7,15 @@ export class CallGraphOptions {
   readonly sourceFilePaths: string[]
   readonly repository: string
 
-  constructor(params: {
+  static parse(params: {
+    strict: boolean
+    sourceFilePaths: string[]
+    repository: string
+  }): CallGraphOptions {
+    return new CallGraphOptions(params)
+  }
+
+  private constructor(params: {
     strict: boolean;
     sourceFilePaths: string[];
     repository: string 
@@ -25,7 +33,15 @@ export class CallSite {
   readonly lineNumber: number
   readonly methodName: string
 
-  constructor(params: {
+  static parse(params: {
+    filePath: string;
+    lineNumber: number;
+    methodName: string 
+  }): CallSite {
+    return new CallSite(params)
+  }
+
+  private constructor(params: {
     filePath: string;
     lineNumber: number;
     methodName: string 
@@ -43,7 +59,15 @@ export class RawLink {
   readonly target: EnrichedComponent
   readonly callSite: CallSite
 
-  constructor(params: {
+  static parse(params: {
+    source: EnrichedComponent
+    target: EnrichedComponent
+    callSite: CallSite
+  }): RawLink {
+    return new RawLink(params)
+  }
+
+  private constructor(params: {
     source: EnrichedComponent
     target: EnrichedComponent
     callSite: CallSite
@@ -61,7 +85,15 @@ export class UncertainRawLink {
   readonly reason: string
   readonly callSite: CallSite
 
-  constructor(params: {
+  static parse(params: {
+    source: EnrichedComponent
+    reason: string
+    callSite: CallSite
+  }): UncertainRawLink {
+    return new UncertainRawLink(params)
+  }
+
+  private constructor(params: {
     source: EnrichedComponent;
     reason: string;
     callSite: CallSite 

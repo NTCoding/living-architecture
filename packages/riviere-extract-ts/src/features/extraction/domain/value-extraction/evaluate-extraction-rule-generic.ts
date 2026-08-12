@@ -1,8 +1,8 @@
 import type { FromGenericArgExtractionRule } from '@living-architecture/riviere-extract-config'
 import type { ClassDeclaration } from 'ts-morph'
 import { SyntaxKind } from 'ts-morph'
-import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
 import { ExtractionError } from '../../../../platform/domain/ast-literals/literal-detection'
+import { applyTransforms } from '../../../../platform/domain/string-transforms/transforms'
 import { ExtractionResult } from './extraction-result'
 
 function getInterfaceTypeArgs(
@@ -91,8 +91,8 @@ export function evaluateFromGenericArgRule(
   const typeNames = extractTypeNames(typeArg)
 
   if (transform === undefined) {
-    return new ExtractionResult({ value: typeNames })
+    return ExtractionResult.parse({ value: typeNames })
   }
 
-  return new ExtractionResult({ value: typeNames.map((name) => applyTransforms(name, transform)) })
+  return ExtractionResult.parse({value: typeNames.map((name) => applyTransforms(name, transform)),})
 }

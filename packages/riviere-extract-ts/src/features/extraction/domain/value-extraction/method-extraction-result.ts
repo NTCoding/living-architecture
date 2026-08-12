@@ -4,7 +4,14 @@ export class ParameterInfo {
   readonly name: string
   readonly type: string
 
-  constructor(params: {
+  static parse(params: {
+    name: string;
+    type: string 
+  }): ParameterInfo {
+    return new ParameterInfo(params)
+  }
+
+  private constructor(params: {
     name: string;
     type: string 
   }) {
@@ -19,7 +26,14 @@ export class MethodSignature {
   readonly parameters: ParameterInfo[]
   readonly returnType: string
 
-  constructor(params: {
+  static parse(params: {
+    parameters: ParameterInfo[];
+    returnType: string 
+  }): MethodSignature {
+    return new MethodSignature(params)
+  }
+
+  private constructor(params: {
     parameters: ParameterInfo[];
     returnType: string 
   }) {
@@ -35,7 +49,11 @@ export class MethodExtractionResult {
   declare private brand: 'MethodExtractionResult'
   readonly value: MethodExtractionValue
 
-  constructor(params: { value: MethodExtractionValue }) {
+  static parse(params: { value: MethodExtractionValue }): MethodExtractionResult {
+    return new MethodExtractionResult(params)
+  }
+
+  private constructor(params: { value: MethodExtractionValue }) {
     this.value = params.value
   }
 }

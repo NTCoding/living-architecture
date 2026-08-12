@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  BuiltRole,
   createRoleFactory,
   location,
   locationConfiguration,
@@ -7,11 +8,16 @@ import {
   roleEnforcement,
 } from './role-enforcement-builder'
 
+function expectBuiltRole(result: BuiltRole, expected: object): void {
+  expect(result).toBeInstanceOf(BuiltRole)
+  expect({ ...result }).toStrictEqual(expected)
+}
+
 describe('role', () => {
   it('produces a role definition with the given name and options', () => {
     const result = role('aggregate', { targets: ['interface', 'type-alias', 'class'] })
 
-    expect(result).toStrictEqual({
+    expectBuiltRole(result, {
       name: 'aggregate',
       targets: ['interface', 'type-alias', 'class'],
     })
@@ -26,7 +32,7 @@ describe('role', () => {
       nameMatches: '.*UseCase$',
     })
 
-    expect(result).toStrictEqual({
+    expectBuiltRole(result, {
       name: 'command-use-case',
       targets: ['function'],
       allowedInputs: ['command-use-case-input'],
@@ -42,7 +48,7 @@ describe('role', () => {
       allowedNames: ['main', 'run'],
     })
 
-    expect(result).toStrictEqual({
+    expectBuiltRole(result, {
       name: 'cli-entrypoint',
       targets: ['function'],
       allowedNames: ['main', 'run'],
@@ -56,7 +62,7 @@ describe('role', () => {
       maxPublicMethods: 1,
     })
 
-    expect(result).toStrictEqual({
+    expectBuiltRole(result, {
       name: 'command-use-case',
       targets: ['class'],
       minPublicMethods: 1,
@@ -76,7 +82,7 @@ describe('role', () => {
       ],
     })
 
-    expect(result).toStrictEqual({
+    expectBuiltRole(result, {
       name: 'aggregate',
       targets: ['interface', 'type-alias', 'class'],
       minPublicMethods: 1,
@@ -95,7 +101,7 @@ describe('role', () => {
       requiredPrivateMembers: ['brand'],
     })
 
-    expect(result).toStrictEqual({
+    expectBuiltRole(result, {
       name: 'role-b',
       targets: ['class'],
       requiredPrivateMembers: ['brand'],
@@ -106,14 +112,18 @@ describe('role', () => {
     const result = role('role-b', {
       targets: ['class'],
       requiresDataMembers: true,
-      forbiddenCallableMembers: true,
+      forbiddenCallableDataMembers: true,
+      requiresPrivateConstructor: true,
+      requiredStaticMethodNamePrefix: 'parse',
     })
 
-    expect(result).toStrictEqual({
+    expectBuiltRole(result, {
       name: 'role-b',
       targets: ['class'],
       requiresDataMembers: true,
-      forbiddenCallableMembers: true,
+      forbiddenCallableDataMembers: true,
+      requiresPrivateConstructor: true,
+      requiredStaticMethodNamePrefix: 'parse',
     })
   })
 
@@ -123,7 +133,7 @@ describe('role', () => {
       forbiddenMethodCalls: ['command-use-case', 'aggregate-repository'],
     })
 
-    expect(result).toStrictEqual({
+    expectBuiltRole(result, {
       name: 'main',
       targets: ['function'],
       forbiddenMethodCalls: ['command-use-case', 'aggregate-repository'],
@@ -136,92 +146,6 @@ describe('roleEnforcement', () => {
     role('cli-entrypoint', { targets: ['function'] }),
     role('aggregate', { targets: ['class'] }),
   ] as const
-
-  it('combines named configurations that extend common locations', () => {
-    const common = locationConfiguration(
-      location('/features/{feature}').subLocation('/domain', ['aggregate']),
-    )
-    const standard = {
-      packages: ['packages/backend'],
-      locations: common.extend(
-        location('/features/{feature}').subLocation('/commands', ['cli-entrypoint']),
-      ),
-    }
-    const frontend = {
-      packages: ['apps/frontend'],
-      locations: common.extend(location('/features/{feature}').subLocation('/components', [])),
-    }
-
-    const result = roleEnforcement({
-      configurations: {
-        standard,
-        frontend,
-      },
-      ignorePatterns: [],
-      roleDefinitionsDir: '.riviere/role-definitions',
-      roles: testRoles,
-    })
-
-    expect(result.locationHierarchy.map(({ pathTemplate }) => pathTemplate)).toStrictEqual([
-      'packages/backend/src',
-      'packages/backend/src/features/{feature}',
-      'packages/backend/src/features/{feature}/domain',
-      'packages/backend/src/features/{feature}/commands',
-      'apps/frontend/src',
-      'apps/frontend/src/features/{feature}',
-      'apps/frontend/src/features/{feature}/domain',
-      'apps/frontend/src/features/{feature}/components',
-    ])
-    expect(result.include).toStrictEqual([
-      'packages/backend/src/**/*.ts',
-      'packages/backend/src/**/*.tsx',
-      'apps/frontend/src/**/*.ts',
-      'apps/frontend/src/**/*.tsx',
-    ])
-  })
-
-  it('preserves common rules unless an extension explicitly replaces them', () => {
-    const common = locationConfiguration(
-      location('/features/{feature}', ['aggregate'], {dependencyRules: { canImportSiblings: false },}),
-    )
-    const preserved = roleEnforcement({
-      configurations: {
-        standard: {
-          packages: ['packages/preserved'],
-          locations: common.extend(location('/features/{feature}')),
-        },
-      },
-      ignorePatterns: [],
-      roleDefinitionsDir: '.riviere/role-definitions',
-      roles: testRoles,
-    })
-    const replaced = roleEnforcement({
-      configurations: {
-        standard: {
-          packages: ['packages/replaced'],
-          locations: common.extend(
-            location('/features/{feature}', ['cli-entrypoint'], {dependencyRules: { locations: [] },}),
-          ),
-        },
-      },
-      ignorePatterns: [],
-      roleDefinitionsDir: '.riviere/role-definitions',
-      roles: testRoles,
-    })
-
-    expect(
-      preserved.locationHierarchy.find(({ name }) => name === '/features/{feature}'),
-    ).toMatchObject({
-      allowedRoles: ['aggregate'],
-      dependencyRules: { canImportSiblings: false },
-    })
-    expect(
-      replaced.locationHierarchy.find(({ name }) => name === '/features/{feature}'),
-    ).toMatchObject({
-      allowedRoles: ['cli-entrypoint'],
-      dependencyRules: { locations: [] },
-    })
-  })
 
   it('applies a named configuration to every assigned package', () => {
     const locations = locationConfiguration(
@@ -365,7 +289,7 @@ describe('createRoleFactory', () => {
 
     const result = typedRole('aggregate', { targets: ['class'] })
 
-    expect(result).toStrictEqual({
+    expectBuiltRole(result, {
       name: 'aggregate',
       targets: ['class'],
     })

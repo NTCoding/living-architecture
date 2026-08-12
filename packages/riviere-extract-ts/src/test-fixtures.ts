@@ -1,9 +1,9 @@
 import type {
-  ResolvedExtractionConfig,
-  Module,
-  DetectionRule,
-  CustomTypes,
   ComponentType,
+  CustomTypes,
+  DetectionRule,
+  Module,
+  ResolvedExtractionConfig,
 } from '@living-architecture/riviere-extract-config'
 
 const NOT_USED = { notUsed: true } as const

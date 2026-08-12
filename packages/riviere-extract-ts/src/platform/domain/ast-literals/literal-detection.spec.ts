@@ -1,11 +1,9 @@
-import {
-  describe, it, expect 
-} from 'vitest'
 import { Project } from 'ts-morph'
+import { describe, expect, it } from 'vitest'
 import {
-  isLiteralValue,
-  extractLiteralValue,
   ExtractionError,
+  extractLiteralValue,
+  isLiteralValue,
   TestFixtureError,
 } from './literal-detection'
 

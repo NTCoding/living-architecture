@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest'
-import { RiviereQuery } from './RiviereQuery'
+import { describe, expect, it } from 'vitest'
 import {
-  createMinimalValidGraph,
-  createAPIComponent,
-  createUseCaseComponent,
   assertDefined,
+  createAPIComponent,
+  createMinimalValidGraph,
+  createUseCaseComponent,
 } from '../../../platform/__fixtures__/riviere-graph-fixtures'
+import { RiviereQuery } from './RiviereQuery'
 
 describe('domains', () => {
   it('returns domain with name, description, and systemType from metadata', () => {
@@ -14,7 +14,7 @@ describe('domains', () => {
 
     const result = query.domains()
 
-    expect(result).toStrictEqual([
+    expect(JSON.parse(JSON.stringify(result))).toStrictEqual([
       {
         name: 'test',
         description: 'Test domain',
@@ -83,7 +83,7 @@ describe('domains', () => {
     const result = query.domains()
 
     const orders = result.find((d) => d.name === 'orders')
-    expect(orders).toStrictEqual({
+    expect(JSON.parse(JSON.stringify(orders))).toStrictEqual({
       name: 'orders',
       description: 'Order management',
       systemType: 'domain',

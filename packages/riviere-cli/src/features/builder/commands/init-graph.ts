@@ -1,7 +1,4 @@
-import {
-  RiviereBuilder,
-  type BuilderOptions,
-} from '@living-architecture/riviere-builder/features/building/domain/builder-facade'
+import { RiviereBuilder } from '@living-architecture/riviere-builder/features/building/domain/builder-facade'
 import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
 import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
@@ -33,7 +30,7 @@ export class InitGraph {
       })
     }
 
-    const builderOptions: BuilderOptions = {
+    const builderOptions = {
       ...(input.name === undefined ? {} : { name: input.name }),
       domains: Object.fromEntries(
         parsedDomains.map(({

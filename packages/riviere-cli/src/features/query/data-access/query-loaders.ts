@@ -3,8 +3,8 @@ import { isAbsolute, relative, resolve, sep } from 'node:path'
 import { findNearMatches } from '@living-architecture/riviere-builder/features/building/domain/error-recovery/component-suggestion'
 import { ComponentId } from '@living-architecture/riviere-schema/component-id'
 import {
+  ComponentId as QueryComponentId,
   ComponentNotFoundError,
-  parseComponentId,
   RiviereQuery,
 } from '@living-architecture/riviere-query'
 import type { ComponentType } from '@living-architecture/riviere-schema'
@@ -75,7 +75,7 @@ export class FlowTraceLoader {
     const query = loadQuery(graphPathOption)
     try {
       return {
-        flow: query.traceFlow(parseComponentId(componentIdInput)),
+        flow: query.traceFlow(QueryComponentId.parse(componentIdInput)),
         success: true,
       }
     } catch (error) {

@@ -1,5 +1,5 @@
-import type { EnrichedComponent } from '../../value-extraction/enriched-component'
 import type { MethodDeclaration } from 'ts-morph'
+import type { EnrichedComponent } from '../../value-extraction/enriched-component'
 
 /** @riviere-role value-object */
 export class InterfaceResolutionOutcome {
@@ -8,7 +8,15 @@ export class InterfaceResolutionOutcome {
   readonly resolvedTypeName: string | undefined
   readonly uncertain: string | undefined
 
-  constructor(params: {
+  static parse(params: {
+    component: EnrichedComponent | undefined
+    resolvedTypeName: string | undefined
+    uncertain: string | undefined
+  }): InterfaceResolutionOutcome {
+    return new InterfaceResolutionOutcome(params)
+  }
+
+  private constructor(params: {
     component: EnrichedComponent | undefined
     resolvedTypeName: string | undefined
     uncertain: string | undefined
@@ -25,7 +33,14 @@ export class MethodLookup {
   readonly method: MethodDeclaration | undefined
   readonly classFound: boolean
 
-  constructor(params: {
+  static parse(params: {
+    method: MethodDeclaration | undefined
+    classFound: boolean
+  }): MethodLookup {
+    return new MethodLookup(params)
+  }
+
+  private constructor(params: {
     method: MethodDeclaration | undefined;
     classFound: boolean 
   }) {

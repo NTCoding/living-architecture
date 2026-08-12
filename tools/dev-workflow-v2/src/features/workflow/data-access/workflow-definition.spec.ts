@@ -2,11 +2,10 @@ import { WORKFLOW_DEFINITION } from './workflow-definition'
 import { Workflow } from '../domain/workflow'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import type {
-  WorkflowState, StateName 
-} from '../domain/workflow-types'
+import { WorkflowState } from '../domain/workflow-types'
 
 type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
+type StateName = WorkflowState['currentStateMachineState']
 
 function makeWorkflowDeps(): WorkflowDeps {
   return {
@@ -136,7 +135,7 @@ describe('WORKFLOW_DEFINITION', () => {
 
   describe('buildTransitionContext', () => {
     it('builds context with state and transition info', () => {
-      const state: WorkflowState = {
+      const state = WorkflowState.parse({
         currentStateMachineState: 'IMPLEMENTING',
         architectureReviewPassed: false,
         codeReviewPassed: false,
@@ -146,7 +145,7 @@ describe('WORKFLOW_DEFINITION', () => {
         feedbackClean: false,
         feedbackAddressed: false,
         prNumber: 42,
-      }
+      })
       const deps = makeWorkflowDeps()
       const ctx = WORKFLOW_DEFINITION.buildTransitionContext(
         state,
@@ -161,7 +160,7 @@ describe('WORKFLOW_DEFINITION', () => {
   })
 
   describe('buildTransitionEvent', () => {
-    const baseBefore: WorkflowState = {
+    const baseBefore = WorkflowState.parse({
       currentStateMachineState: 'IMPLEMENTING',
       architectureReviewPassed: true,
       codeReviewPassed: true,
@@ -170,7 +169,7 @@ describe('WORKFLOW_DEFINITION', () => {
       ciPassed: true,
       feedbackClean: true,
       feedbackAddressed: true,
-    }
+    })
 
     it('produces event without stateOverrides when no state changes', () => {
       const event = buildTransitionEvent(
@@ -189,15 +188,14 @@ describe('WORKFLOW_DEFINITION', () => {
     })
 
     it('produces event with stateOverrides when onEntry mutates state', () => {
-      const stateAfter: WorkflowState = {
-        ...baseBefore,
+      const stateAfter = baseBefore.with({
         architectureReviewPassed: false,
         codeReviewPassed: false,
         bugScannerPassed: false,
         ciPassed: false,
         feedbackClean: false,
         feedbackAddressed: false,
-      }
+      })
       const event = buildTransitionEvent(
         'REVIEWING',
         'IMPLEMENTING',
@@ -216,10 +214,7 @@ describe('WORKFLOW_DEFINITION', () => {
     })
 
     it('does not include currentStateMachineState in stateOverrides', () => {
-      const stateAfter: WorkflowState = {
-        ...baseBefore,
-        currentStateMachineState: 'REVIEWING',
-      }
+      const stateAfter = baseBefore.with({ currentStateMachineState: 'REVIEWING' })
       const event = buildTransitionEvent(
         'IMPLEMENTING',
         'REVIEWING',

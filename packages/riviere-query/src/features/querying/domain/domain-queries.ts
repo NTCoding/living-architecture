@@ -1,36 +1,21 @@
-import type { RiviereGraph, DomainOpComponent } from '@living-architecture/riviere-schema'
-import { Entity, type EntityTransition } from './event-types'
-import type { State } from './identifiers'
-import { parseEntityName, parseDomainName, parseState, parseOperationName } from './identifiers'
-import { componentsInDomain } from './component-queries'
+import type { DomainOpComponent, RiviereGraph } from '@living-architecture/riviere-schema'
 import { compareByCodePoint } from './compare-by-code-point'
-
-/** @riviere-role value-object */
-export interface ComponentCounts {
-  UI: number
-  API: number
-  UseCase: number
-  DomainOp: number
-  Event: number
-  EventHandler: number
-  Custom: number
-  total: number
-}
-
-/** @riviere-role value-object */
-export interface Domain {
-  name: string
-  description: string
-  systemType: import('@living-architecture/riviere-schema').SystemType
-  componentCounts: ComponentCounts
-}
+import { ComponentCounts } from './component-counts'
+import { componentsInDomain } from './component-queries'
+import { Domain } from './domain'
+import { DomainName } from './domain-name'
+import { Entity } from './entity'
+import { EntityName } from './entity-name'
+import { EntityTransition } from './entity-transition'
+import { OperationName } from './operation-name'
+import { State } from './state'
 
 /** @riviere-role domain-service */
 export function queryDomains(graph: RiviereGraph): Domain[] {
   return Object.entries(graph.metadata.domains).map(([name, metadata]) => {
     const dc = componentsInDomain(graph, name)
     const count = (type: string): number => dc.filter((c) => c.type === type).length
-    const componentCounts: ComponentCounts = {
+    const componentCounts: ComponentCounts = ComponentCounts.parse({
       UI: count('UI'),
       API: count('API'),
       UseCase: count('UseCase'),
@@ -39,13 +24,13 @@ export function queryDomains(graph: RiviereGraph): Domain[] {
       EventHandler: count('EventHandler'),
       Custom: count('Custom'),
       total: dc.length,
-    }
-    return {
+    })
+    return Domain.parse({
       name,
       description: metadata.description,
       systemType: metadata.systemType,
       componentCounts,
-    }
+    })
   })
 }
 
@@ -95,9 +80,9 @@ function createEntity(graph: RiviereGraph, partial: PartialEntity): Entity {
   const sortedOperations = [...partial.operations].sort((a, b) =>
     compareByCodePoint(a.operationName, b.operationName),
   )
-  return new Entity(
-    parseEntityName(partial.name),
-    parseDomainName(partial.domain),
+  return Entity.parse(
+    EntityName.parse(partial.name),
+    DomainName.parse(partial.domain),
     sortedOperations,
     statesForEntity(graph, partial.name),
     transitionsForEntity(graph, partial.name),
@@ -123,11 +108,13 @@ export function transitionsForEntity(graph: RiviereGraph, entityName: string): E
   for (const op of operations) {
     if (op.stateChanges === undefined) continue
     for (const sc of op.stateChanges) {
-      transitions.push({
-        from: parseState(sc.from),
-        to: parseState(sc.to),
-        triggeredBy: parseOperationName(op.operationName),
-      })
+      transitions.push(
+        EntityTransition.parse({
+          from: State.parse(sc.from),
+          to: State.parse(sc.to),
+          triggeredBy: OperationName.parse(op.operationName),
+        }),
+      )
     }
   }
   return transitions
@@ -166,13 +153,13 @@ function orderStatesByTransitions(states: Set<string>, operations: DomainOpCompo
   const follow = (s: string): void => {
     if (visited.has(s)) return
     visited.add(s)
-    ordered.push(parseState(s))
+    ordered.push(State.parse(s))
     const next = transitionMap.get(s)
     if (next) follow(next)
   }
   ;[...fromStates].filter((s) => !toStates.has(s)).forEach(follow)
   states.forEach((s) => {
-    if (!visited.has(s)) ordered.push(parseState(s))
+    if (!visited.has(s)) ordered.push(State.parse(s))
   })
   return ordered
 }

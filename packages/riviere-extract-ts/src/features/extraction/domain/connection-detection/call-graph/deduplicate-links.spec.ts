@@ -1,17 +1,13 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import { deduplicateLinks } from './deduplicate-links'
-import {
-  CallSite, RawLink, UncertainRawLink 
-} from './call-graph-types'
+import { describe, expect, it } from 'vitest'
 import { buildComponent } from './call-graph-fixtures'
+import { CallSite, RawLink, UncertainRawLink } from './call-graph-types'
+import { deduplicateLinks } from './deduplicate-links'
 
 function buildRawLink(sourceName: string, targetName: string, lineNumber: number): RawLink {
-  return new RawLink({
+  return RawLink.parse({
     source: buildComponent(sourceName, '/test.ts', 1),
     target: buildComponent(targetName, '/test.ts', 10, { type: 'domainOp' }),
-    callSite: new CallSite({
+    callSite: CallSite.parse({
       filePath: '/test.ts',
       lineNumber,
       methodName: 'execute',
@@ -64,19 +60,19 @@ describe('deduplicateLinks', () => {
 
   it('includes multiple uncertain links in output', () => {
     const uncertainLinks: UncertainRawLink[] = [
-      new UncertainRawLink({
+      UncertainRawLink.parse({
         source: buildComponent('Source1', '/test.ts', 1),
         reason: "Receiver type is 'any'",
-        callSite: new CallSite({
+        callSite: CallSite.parse({
           filePath: '/test.ts',
           lineNumber: 5,
           methodName: 'execute',
         }),
       }),
-      new UncertainRawLink({
+      UncertainRawLink.parse({
         source: buildComponent('Source2', '/test.ts', 2),
         reason: 'No implementation found for Foo',
-        callSite: new CallSite({
+        callSite: CallSite.parse({
           filePath: '/test.ts',
           lineNumber: 8,
           methodName: 'run',
@@ -93,10 +89,10 @@ describe('deduplicateLinks', () => {
 
   it('includes uncertain links in output', () => {
     const uncertainLinks: UncertainRawLink[] = [
-      new UncertainRawLink({
+      UncertainRawLink.parse({
         source: buildComponent('Source', '/test.ts', 1),
         reason: "Receiver type is 'any'",
-        callSite: new CallSite({
+        callSite: CallSite.parse({
           filePath: '/test.ts',
           lineNumber: 5,
           methodName: 'execute',

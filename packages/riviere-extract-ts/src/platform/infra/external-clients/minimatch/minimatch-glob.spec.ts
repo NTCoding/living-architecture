@@ -1,6 +1,4 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { matchesGlob } from './minimatch-glob'
 
 describe('matchesGlob', () => {

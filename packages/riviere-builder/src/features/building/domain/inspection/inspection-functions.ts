@@ -8,12 +8,19 @@ import type {
   SourceInfo,
   RelationshipTypeDefinition,
 } from '@living-architecture/riviere-schema'
-import {
-  RiviereQuery, type ValidationResult 
-} from '@living-architecture/riviere-query'
-import type {
-  BuilderStats, BuilderWarning 
-} from './inspection-types'
+import { RiviereQuery, type ValidationResult } from '@living-architecture/riviere-query'
+
+type InspectionWarning =
+  | Readonly<{
+    code: 'ORPHAN_COMPONENT'
+    message: string
+    componentId: string
+  }>
+  | Readonly<{
+    code: 'UNUSED_DOMAIN'
+    message: string
+    domainName: string
+  }>
 
 interface InspectionGraph {
   version: string
@@ -21,14 +28,14 @@ interface InspectionGraph {
     name?: string
     description?: string
     generated?: string
-    sources: SourceInfo[]
-    domains: Record<string, DomainMetadata>
-    customTypes: Record<string, CustomTypeDefinition>
-    relationshipTypes: Record<string, RelationshipTypeDefinition>
+    sources: readonly SourceInfo[]
+    domains: Readonly<Record<string, DomainMetadata>>
+    customTypes: Readonly<Record<string, CustomTypeDefinition>>
+    relationshipTypes: Readonly<Record<string, RelationshipTypeDefinition>>
   }
-  components: Component[]
-  links: Link[]
-  externalLinks: ExternalLink[]
+  components: readonly Component[]
+  links: readonly Link[]
+  externalLinks: readonly ExternalLink[]
 }
 
 /**
@@ -74,7 +81,7 @@ export function findOrphans(graph: InspectionGraph): string[] {
  * // { componentCount: 10, linkCount: 8, domainCount: 2, ... }
  * ```
  */
-export function calculateStats(graph: InspectionGraph): BuilderStats {
+export function calculateStats(graph: InspectionGraph) {
   const components = graph.components
   return {
     componentCount: components.length,
@@ -109,8 +116,8 @@ export function calculateStats(graph: InspectionGraph): BuilderStats {
  * // [{ code: 'ORPHAN_COMPONENT', message: '...', componentId: '...' }]
  * ```
  */
-export function findWarnings(graph: InspectionGraph): BuilderWarning[] {
-  const warnings: BuilderWarning[] = []
+export function findWarnings(graph: InspectionGraph): InspectionWarning[] {
+  const warnings: InspectionWarning[] = []
 
   for (const id of findOrphans(graph)) {
     warnings.push({
@@ -160,14 +167,14 @@ export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
     metadata: {
       ...(graph.metadata.name !== undefined && { name: graph.metadata.name }),
       ...(graph.metadata.description !== undefined && { description: graph.metadata.description }),
-      sources: graph.metadata.sources,
-      domains: graph.metadata.domains,
-      ...(hasCustomTypes && { customTypes: graph.metadata.customTypes }),
-      ...(hasRelationshipTypes && { relationshipTypes: graph.metadata.relationshipTypes }),
+      sources: [...graph.metadata.sources],
+      domains: { ...graph.metadata.domains },
+      ...(hasCustomTypes && { customTypes: { ...graph.metadata.customTypes } }),
+      ...(hasRelationshipTypes && { relationshipTypes: { ...graph.metadata.relationshipTypes } }),
     },
-    components: graph.components,
-    links: graph.links,
-    ...(hasExternalLinks && { externalLinks: graph.externalLinks }),
+    components: [...graph.components],
+    links: [...graph.links],
+    ...(hasExternalLinks && { externalLinks: [...graph.externalLinks] }),
   }
 }
 

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: FlowStep
 
-Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:18](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L18)
+Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:4
 
 ## Riviere-role
 
@@ -14,30 +14,30 @@ value-object
 
 ### component
 
-> **component**: `Component`
+> `readonly` **component**: `Component`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:19](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L19)
+Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:6
 
 ***
 
 ### depth
 
-> **depth**: `number`
+> `readonly` **depth**: `number`
 
-Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:21](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L21)
+Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:8
 
 ***
 
 ### externalLinks
 
-> **externalLinks**: `ExternalLink`[]
+> `readonly` **externalLinks**: `ExternalLink`[]
 
-Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:22](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L22)
+Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:9
 
 ***
 
 ### outgoingLinks
 
-> **outgoingLinks**: `Link`[]
+> `readonly` **outgoingLinks**: `Link`[]
 
-Defined in: [packages/riviere-query/src/features/querying/domain/flow-queries.ts:20](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-query/src/features/querying/domain/flow-queries.ts#L20)
+Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:7

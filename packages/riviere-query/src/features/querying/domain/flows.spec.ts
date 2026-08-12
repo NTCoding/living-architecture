@@ -1,10 +1,11 @@
-import { RiviereQuery } from './RiviereQuery'
 import {
-  createMinimalValidGraph,
-  createAPIComponent,
-  createUseCaseComponent,
   assertDefined,
+  createAPIComponent,
+  createMinimalValidGraph,
+  createUseCaseComponent,
 } from '../../../platform/__fixtures__/riviere-graph-fixtures'
+import { RiviereQuery } from './RiviereQuery'
+import { SearchWithFlowOptions } from './search-with-flow-options'
 
 describe('RiviereQuery.flows()', () => {
   it('returns single flow when graph has one entry point', () => {
@@ -356,16 +357,23 @@ describe('RiviereQuery.searchWithFlow()', () => {
     )
     const query = new RiviereQuery(graph)
 
-    const result = query.searchWithFlow('', { returnAllOnEmptyQuery: true })
+    const result = query.searchWithFlow(
+      '',
+      SearchWithFlowOptions.parse({ returnAllOnEmptyQuery: true }),
+    )
 
-    expect(result.matchingIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:api:a',
-      'test:mod:ui:page',
-    ])
-    expect(result.visibleIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:api:a',
-      'test:mod:ui:page',
-    ])
+    expect(
+      result.matchingIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:api:a', 'test:mod:ui:page'])
+    expect(
+      result.visibleIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:api:a', 'test:mod:ui:page'])
   })
 
   it('returns empty arrays when query is empty and returnAllOnEmptyQuery is false', () => {
@@ -379,10 +387,13 @@ describe('RiviereQuery.searchWithFlow()', () => {
     )
     const query = new RiviereQuery(graph)
 
-    const result = query.searchWithFlow('', { returnAllOnEmptyQuery: false })
+    const result = query.searchWithFlow(
+      '',
+      SearchWithFlowOptions.parse({ returnAllOnEmptyQuery: false }),
+    )
 
-    expect(result.matchingIds).toStrictEqual([])
-    expect(result.visibleIds).toStrictEqual([])
+    expect(result.matchingIds.map((id) => id.value)).toStrictEqual([])
+    expect(result.visibleIds.map((id) => id.value)).toStrictEqual([])
   })
 
   it('returns matching component ID and all connected component IDs as visible', () => {
@@ -411,22 +422,29 @@ describe('RiviereQuery.searchWithFlow()', () => {
     ]
     const query = new RiviereQuery(graph)
 
-    const result = query.searchWithFlow('API A', { returnAllOnEmptyQuery: false })
+    const result = query.searchWithFlow(
+      'API A',
+      SearchWithFlowOptions.parse({ returnAllOnEmptyQuery: false }),
+    )
 
-    expect(result.matchingIds).toStrictEqual(['test:api:a'])
-    expect(result.visibleIds.slice().sort((a, b) => a.localeCompare(b))).toStrictEqual([
-      'test:api:a',
-      'test:mod:ui:page',
-      'test:uc:b',
-    ])
+    expect(result.matchingIds.map((id) => id.value)).toStrictEqual(['test:api:a'])
+    expect(
+      result.visibleIds
+        .slice()
+        .sort((a, b) => a.localeCompare(b))
+        .map((id) => id.value),
+    ).toStrictEqual(['test:api:a', 'test:mod:ui:page', 'test:uc:b'])
   })
 
   it('returns empty arrays when query matches nothing', () => {
     const query = new RiviereQuery(createMinimalValidGraph())
 
-    const result = query.searchWithFlow('nonexistent', { returnAllOnEmptyQuery: false })
+    const result = query.searchWithFlow(
+      'nonexistent',
+      SearchWithFlowOptions.parse({ returnAllOnEmptyQuery: false }),
+    )
 
-    expect(result.matchingIds).toStrictEqual([])
-    expect(result.visibleIds).toStrictEqual([])
+    expect(result.matchingIds.map((id) => id.value)).toStrictEqual([])
+    expect(result.visibleIds.map((id) => id.value)).toStrictEqual([])
   })
 })

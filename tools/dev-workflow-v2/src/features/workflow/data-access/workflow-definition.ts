@@ -1,25 +1,17 @@
-import type {
-  WorkflowDefinition, BaseEvent 
-} from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import type { WorkflowDefinition, BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { TransitionContext } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
-import type {
-  WorkflowState, StateName, WorkflowOperation 
-} from '../domain/workflow-types'
+import type { WorkflowState } from '../domain/workflow-types'
 import { Workflow } from '../domain/workflow'
-import {
-  INITIAL_STATE, STATE_NAME_SCHEMA 
-} from '../domain/workflow-types'
-import {
-  getOperationBody, getTransitionTitle 
-} from '../domain/output-messages'
+import { INITIAL_STATE, STATE_NAME_SCHEMA } from '../domain/workflow-types'
+import { getOperationBody, getTransitionTitle } from '../domain/output-messages'
 import { applyEvent } from '../domain/fold'
-import {
-  getKnownWorkflowEventTypes, parseWorkflowEvent 
-} from '../domain/workflow-events'
+import { getKnownWorkflowEventTypes, parseWorkflowEvent } from '../domain/workflow-events'
 import { WORKFLOW_REGISTRY } from '../domain/registry'
 
 type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
+type StateName = WorkflowState['currentStateMachineState']
+type WorkflowOperation = Parameters<Workflow['executeRecording']>[0]
 const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(getKnownWorkflowEventTypes())
 
 function diffStateOverrides(

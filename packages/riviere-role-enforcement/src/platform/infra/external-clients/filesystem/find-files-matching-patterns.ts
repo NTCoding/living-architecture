@@ -1,6 +1,6 @@
+import { minimatch } from 'minimatch'
 import type { PathLike } from 'node:fs'
 import path from 'node:path'
-import { minimatch } from 'minimatch'
 
 type ReadDirectory = (
   rootDir: PathLike,

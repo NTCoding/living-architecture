@@ -1,12 +1,10 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import { detectEventPublisherConnections } from './detect-event-publisher-connections'
+import { describe, expect, it } from 'vitest'
+import { buildComponent } from '../call-graph/call-graph-fixtures'
 import { ConnectionDetectionError } from '../connection-detection-error'
 import { AsyncDetectionOptions } from './async-detection-options'
-import { buildComponent } from '../call-graph/call-graph-fixtures'
+import { detectEventPublisherConnections } from './detect-event-publisher-connections'
 
-const defaultOptions = new AsyncDetectionOptions({
+const defaultOptions = AsyncDetectionOptions.parse({
   strict: false,
   repository: 'test-repo',
 })
@@ -130,7 +128,7 @@ describe('detectEventPublisherConnections', () => {
       detectEventPublisherConnections(
         [publisher],
         eventPublisherConfig(),
-        new AsyncDetectionOptions({
+        AsyncDetectionOptions.parse({
           strict: true,
           repository: 'test-repo',
         }),
@@ -188,7 +186,7 @@ describe('detectEventPublisherConnections', () => {
       detectEventPublisherConnections(
         [event1, event2, publisher],
         eventPublisherConfig(),
-        new AsyncDetectionOptions({
+        AsyncDetectionOptions.parse({
           strict: true,
           repository: 'test-repo',
         }),

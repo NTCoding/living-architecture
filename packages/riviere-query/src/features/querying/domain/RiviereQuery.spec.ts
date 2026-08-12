@@ -1,11 +1,12 @@
-import { RiviereQuery, parseComponentId } from './RiviereQuery'
 import {
-  createMinimalValidGraph,
   createAPIComponent,
-  createEventHandlerComponent,
   createCustomComponent,
+  createEventHandlerComponent,
+  createMinimalValidGraph,
   createUseCaseComponent,
 } from '../../../platform/__fixtures__/riviere-graph-fixtures'
+import { RiviereQuery } from './RiviereQuery'
+import { ComponentId } from './component-id'
 
 describe('RiviereQuery', () => {
   describe('constructor', () => {
@@ -83,14 +84,14 @@ describe('RiviereQuery', () => {
 
       const query = new RiviereQuery(graph)
 
-      expect(query.detectOrphans()).toStrictEqual([])
+      expect(query.detectOrphans().map((id) => id.value)).toStrictEqual([])
     })
 
     it('returns orphan IDs when components have no links', () => {
       const graph = createMinimalValidGraph()
       const query = new RiviereQuery(graph)
 
-      expect(query.detectOrphans()).toStrictEqual(['test:mod:ui:page'])
+      expect(query.detectOrphans().map((id) => id.value)).toStrictEqual(['test:mod:ui:page'])
     })
 
     it('considers both source and target links as connected', () => {
@@ -116,7 +117,7 @@ describe('RiviereQuery', () => {
 
       const query = new RiviereQuery(graph)
 
-      expect(query.detectOrphans()).toStrictEqual(['test:mod:ui:page'])
+      expect(query.detectOrphans().map((id) => id.value)).toStrictEqual(['test:mod:ui:page'])
     })
   })
 
@@ -184,7 +185,7 @@ describe('RiviereQuery', () => {
     it('returns component when ID exists', () => {
       const query = new RiviereQuery(createMinimalValidGraph())
 
-      const result = query.componentById(parseComponentId('test:mod:ui:page'))
+      const result = query.componentById(ComponentId.parse('test:mod:ui:page'))
 
       expect(result?.id).toBe('test:mod:ui:page')
     })
@@ -192,7 +193,7 @@ describe('RiviereQuery', () => {
     it('returns undefined when ID does not exist', () => {
       const query = new RiviereQuery(createMinimalValidGraph())
 
-      expect(query.componentById(parseComponentId('nonexistent:id'))).toBeUndefined()
+      expect(query.componentById(ComponentId.parse('nonexistent:id'))).toBeUndefined()
     })
   })
 
