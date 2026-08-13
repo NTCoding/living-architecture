@@ -222,17 +222,16 @@ export default tseslint.config(
     },
   },
   // JSDoc enforcement for public library APIs
-    {
-      files: [
-      'packages/riviere-builder/src/builder.ts',
-    'packages/riviere-cli/src/cli.ts',
-    'packages/riviere-cli/src/error-codes.ts',
-    'packages/riviere-cli/src/output.ts',
-    'packages/riviere-extract-config/src/types.ts',
-    'packages/riviere-extract-config/src/validation.ts',
-    'packages/riviere-extract-ts/src/extractor.ts',
-    'packages/riviere-extract-ts/src/resolve-config.ts',
-    'packages/riviere-extract-ts/src/predicates/evaluate-predicate.ts',
+  {
+    files: [
+      'packages/riviere-builder/domain-model/src/domain/builder-facade.ts',
+      'apps/cli/src/shell/cli.ts',
+      'apps/cli/src/infra/cli/presentation/error-codes.ts',
+      'apps/cli/src/infra/cli/presentation/output.ts',
+      'packages/riviere-extract-config/published-language/src/published-language/extraction-config-schema.ts',
+      'packages/riviere-extract-config/published-language/src/published-language/validation.ts',
+      'packages/riviere-extract-ts/domain-model/src/domain/component-extraction/extractor.ts',
+      'packages/riviere-extract-ts/domain-model/src/domain/predicate-evaluation/evaluate-predicate.ts',
       ],
       ignores: ['**/*.spec.ts'],
       plugins: { jsdoc },

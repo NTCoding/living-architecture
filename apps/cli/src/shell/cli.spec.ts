@@ -1,0 +1,73 @@
+import { Command } from 'commander'
+import { describe, expect, it, vi } from 'vitest'
+import { createProgram } from './cli'
+
+describe('createProgram', () => {
+  it('returns a Commander program instance', () => {
+    const program = createProgram()
+
+    expect(program).toBeInstanceOf(Command)
+  })
+
+  it('returns program named riviere', () => {
+    const program = createProgram()
+
+    expect(program.name()).toBe('riviere')
+  })
+
+  it('returns program with version from package.json', () => {
+    const program = createProgram()
+
+    expect(program.version()).toMatch(/^\d+\.\d+\.\d+/)
+  })
+
+  it('uses injected version when INJECTED_VERSION is defined', async () => {
+    vi.stubGlobal('INJECTED_VERSION', '99.88.77')
+    vi.resetModules()
+    const { createProgram: createFresh } = await import('./cli')
+    const program = createFresh()
+
+    expect(program.version()).toBe('99.88.77')
+    vi.unstubAllGlobals()
+  })
+
+  it('registers builder subcommand', () => {
+    const program = createProgram()
+    const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder')
+
+    expect(builderCmd?.name()).toBe('builder')
+  })
+
+  it('registers query subcommand', () => {
+    const program = createProgram()
+    const queryCmd = program.commands.find((cmd) => cmd.name() === 'query')
+
+    expect(queryCmd?.name()).toBe('query')
+  })
+
+  it('describes builder as graph construction commands', () => {
+    const program = createProgram()
+    const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder')
+
+    expect(builderCmd?.description()).toBe('Commands for building a graph')
+  })
+
+  it('describes query as graph querying commands', () => {
+    const program = createProgram()
+    const queryCmd = program.commands.find((cmd) => cmd.name() === 'query')
+
+    expect(queryCmd?.description()).toBe('Commands for querying a graph')
+  })
+
+  it('shows builder in help output', () => {
+    const program = createProgram()
+
+    expect(program.helpInformation()).toContain('builder')
+  })
+
+  it('shows query in help output', () => {
+    const program = createProgram()
+
+    expect(program.helpInformation()).toContain('query')
+  })
+})

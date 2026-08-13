@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: InvalidEnrichmentTargetError
 
-Defined in: packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts:2
+Defined in: packages/riviere-builder/domain-model/src/domain/enrichment/enrichment-errors.ts:2
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new InvalidEnrichmentTargetError**(`componentId`, `componentType`): `InvalidEnrichmentTargetError`
 
-Defined in: packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts:6
+Defined in: packages/riviere-builder/domain-model/src/domain/enrichment/enrichment-errors.ts:6
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts:3
+Defined in: packages/riviere-builder/domain-model/src/domain/enrichment/enrichment-errors.ts:3
 
 ***
 
@@ -66,7 +66,7 @@ Defined in: packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts:
 
 > `readonly` **componentType**: `string`
 
-Defined in: packages/riviere-builder/src/domain/enrichment/enrichment-errors.ts:4
+Defined in: packages/riviere-builder/domain-model/src/domain/enrichment/enrichment-errors.ts:4
 
 ***
 

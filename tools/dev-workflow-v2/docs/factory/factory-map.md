@@ -8,7 +8,7 @@ Source files are authoritative. This map is an index to those sources.
 
 - Generated or AI-assisted code must be shaped by mechanisms that are reviewable and repeatable.
 - Deterministic checks are preferred when a rule can be expressed accurately.
-- Tests prove behavior; lint, roles, and dependency rules prove structure.
+- Tests prove behaviour; lint, roles, and import rules prove structure.
 - Documentation explains intent, but source files and executable checks define enforcement.
 - Review agents and conventions handle semantic judgment that is not safe to encode mechanically.
 - Local hooks and CI decide when existing checks run; they are not substitutes for the checks themselves.
@@ -173,12 +173,17 @@ Illustrative location concept:
 
 ```typescript
 location<RoleName>('src/features/{feature}', {
-  dependencyRules: { canImportSiblings: false },
-})
-  .subLocation('/commands', commandRoles)
+  importRules: {
+    canImportSiblings: false,
+    allow: [{ location: '**/platform' }],
+  },
+  })
+  .subLocation('/commands', commandRoles, {
+    importRules: { allow: [{ siblingOrRoot: 'data-access' }] },
+  })
+  .subLocation('/data-access/{concept}', dataAccessRoles)
   .subLocation('/domain', domainRoles, {
     allowAnySubLocations: true,
-    dependencyRules: { locations: [{ location: '/domain' }] },
   })
   .subLocation('/entrypoint/{entrypoint}', entrypointRoles)
 ```

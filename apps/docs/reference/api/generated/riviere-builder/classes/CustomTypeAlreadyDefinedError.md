@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: CustomTypeAlreadyDefinedError
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:98
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:98
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new CustomTypeAlreadyDefinedError**(`typeName`): `CustomTypeAlreadyDefinedError`
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:101
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:101
 
 #### Parameters
 
@@ -90,7 +90,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **typeName**: `string`
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:99
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:99
 
 ***
 

@@ -1,0 +1,54 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
+    "emitDeclarationOnly": false,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../../packages/riviere-schema/published-language/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/riviere-role-enforcement/use-cases/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/riviere-role-enforcement/domain-model/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/riviere-extract-ts/use-cases/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/riviere-extract-ts/domain-model/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/riviere-extract-config/published-language/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/riviere-builder/use-cases/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/riviere-builder/domain-model/tsconfig.lib.json"
+    }
+  ],
+  "exclude": [
+    "vite.config.ts",
+    "vite.config.mts",
+    "vitest.config.ts",
+    "vitest.config.mts",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.tsx",
+    "src/**/*.test.js",
+    "src/**/*.spec.js",
+    "src/**/*.test.jsx",
+    "src/**/*.spec.jsx",
+    "src/**/__fixtures__/**"
+  ]
+}

@@ -8,6 +8,14 @@ export const commandRoles: RoleName[] = [
   'command-input-factory',
 ]
 
+export const dataAccessRoles: RoleName[] = [
+  'aggregate-repository',
+  'query-model-loader',
+  'data-access-error',
+]
+
+export const adapterRoles: RoleName[] = ['domain-port-adapter']
+
 export const queryRoles: RoleName[] = [
   'query-model-use-case',
   'query-model-use-case-input',
@@ -38,6 +46,13 @@ export const entrypointRoles: RoleName[] = [
   'entrypoint-cli-input-parser',
 ]
 
+export const entrypointPlatformCliRoles: RoleName[] = [
+  'entrypoint-cli-input-parser',
+  'cli-output-formatter',
+]
+
+export const genericCliInputRoles: RoleName[] = ['generic-cli-input-parser']
+
 export const cliPresentationRoles: RoleName[] = [
   'cli-error',
   'cli-error-handler',
@@ -53,4 +68,7 @@ export const publishedLanguageRoles: RoleName[] = [
   'published-language-union',
   'published-language-parser',
   'published-language-field-name',
+  'value-object',
 ]
+
+export const shellRoles: RoleName[] = ['main', 'cli-error-handler']

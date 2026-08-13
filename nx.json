@@ -2,10 +2,7 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "parallel": 5,
   "namedInputs": {
-    "default": [
-      "{projectRoot}/**/*",
-      "sharedGlobals"
-    ],
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
       "default",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
@@ -13,9 +10,7 @@
       "!{projectRoot}/.eslintrc.json",
       "!{projectRoot}/eslint.config.mjs"
     ],
-    "sharedGlobals": [
-      "{workspaceRoot}/.github/workflows/ci.yml"
-    ]
+    "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
   },
   "plugins": [
     {
@@ -49,56 +44,33 @@
   ],
   "targetDefaults": {
     "lint": {
-      "dependsOn": [
-         "role-check",
-        "^build"
-      ]
+      "dependsOn": ["role-check", "^build"]
     },
     "build": {
-      "dependsOn": [
-        "lint",
-        "^build"
-      ]
+      "dependsOn": ["lint", "^build"]
     },
     "depcruise-eclair": {
-      "dependsOn": [
-        "^build"
-      ]
+      "dependsOn": ["^build"]
     },
     "test": {
-      "dependsOn": [
-        "lint",
-        "^build"
-      ]
+      "dependsOn": ["lint", "^build"]
     },
     "knip": {
-      "dependsOn": [
-        "^build"
-      ]
+      "dependsOn": ["^build"]
     },
     "@nx/vitest:test": {
       "cache": true,
-      "inputs": [
-        "default",
-        "^production"
-      ]
+      "inputs": ["default", "^production"]
     },
     "@nx/esbuild:esbuild": {
       "cache": true,
-      "dependsOn": [
-        "^build"
-      ],
-      "inputs": [
-        "production",
-        "^production"
-      ]
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
     }
   },
   "release": {
     "projectsRelationship": "independent",
-    "projects": [
-      "packages/*"
-    ],
+    "projects": ["packages/*", "@living-architecture/riviere-role-enforcement-use-cases"],
     "version": {
       "preVersionCommand": "pnpm exec nx run-many -t build --projects=packages/*",
       "conventionalCommits": true,
@@ -119,7 +91,7 @@
       "push": true
     }
   },
-   "tui": {
+  "tui": {
     "enabled": false
-    }
+  }
 }

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: CustomTypeNotFoundError
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:35
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:35
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new CustomTypeNotFoundError**(`customTypeName`, `definedTypes`): `CustomTypeNotFoundError`
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:39
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:39
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **customTypeName**: `string`
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:36
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:36
 
 ***
 
@@ -66,7 +66,7 @@ Defined in: packages/riviere-builder/src/domain/construction/construction-errors
 
 > `readonly` **definedTypes**: `string`[]
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:37
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:37
 
 ***
 

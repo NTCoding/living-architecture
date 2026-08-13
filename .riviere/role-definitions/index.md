@@ -25,9 +25,9 @@ Concrete test: `readJsonFile(filePath): unknown` and `resolveFileOrPackagePath(.
 
 ## Automated Enforcement
 
-Role enforcement is automated via an oxlint plugin. It checks annotations, location constraints, dependency rules, and I/O contracts at lint time. ADR-002 defines the architecture and `.riviere/role-enforcement.config.ts` is its executable form. Changes must update both.
+Role enforcement is automated via an oxlint plugin. It checks annotations, location constraints, import rules, and I/O contracts at lint time. ADR-002 defines the architecture and `.riviere/role-enforcement.config.ts` is its executable form. Changes must update both.
 
-Import rules belong in the relevant location's `dependencyRules`. Parent restrictions apply throughout the location subtree. Imports are unrestricted unless a location declares dependency rules. Explicit sublocations are the complete list of permitted folders unless `allowAnySubLocations` is set. Role-specific restrictions use the existing role `forbiddenDependencies` rule. Rivière role enforcement must not maintain a second list of path matchers for architectural locations.
+Import rules belong in the relevant location's `importRules`. Imports are unrestricted until a location declares import rules. That location can then import only its own subtree, locations inherited from its parent, and locations listed in `allow`. A sublocation inherits its parent's import rules unless it declares `inheritParentImportRules: false`. `siblingOrRoot: 'data-access'` permits configured `data-access` locations that are either a sibling or a package-root location in the same package; it never permits another package. Location globs are used for other relationships, and cross-package globs begin with `**/`. Allowing a location allows everything inside it. Allowing one sibling does not allow any other sibling. Explicit sublocations are the complete list of permitted folders unless `allowAnySubLocations` is set. Role-specific restrictions use the existing role `forbiddenDependencies` rule. Rivière role enforcement must not maintain a second list of path matchers for architectural locations.
 
 ## Classification Decision Tree
 

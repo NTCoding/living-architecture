@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: SourceConflictError
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:13
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:13
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new SourceConflictError**(`repository`): `SourceConflictError`
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:16
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:16
 
 #### Parameters
 
@@ -78,7 +78,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **repository**: `string`
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:14
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:14
 
 ***
 

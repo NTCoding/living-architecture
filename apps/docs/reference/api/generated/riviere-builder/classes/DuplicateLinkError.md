@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: DuplicateLinkError
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:137
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:137
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new DuplicateLinkError**(`linkId`): `DuplicateLinkError`
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:140
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:140
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **linkId**: `string`
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:138
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:138
 
 ***
 

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: ComponentId
 
-Defined in: packages/riviere-schema/dist/published-language/component-id.d.ts:10
+Defined in: packages/riviere-schema/published-language/dist/published-language/component-id.d.ts:10
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > **name**(): `string`
 
-Defined in: packages/riviere-schema/dist/published-language/component-id.d.ts:23
+Defined in: packages/riviere-schema/published-language/dist/published-language/component-id.d.ts:23
 
 #### Returns
 
@@ -28,7 +28,7 @@ Defined in: packages/riviere-schema/dist/published-language/component-id.d.ts:23
 
 > **toString**(): `string`
 
-Defined in: packages/riviere-schema/dist/published-language/component-id.d.ts:22
+Defined in: packages/riviere-schema/published-language/dist/published-language/component-id.d.ts:22
 
 #### Returns
 
@@ -40,7 +40,7 @@ Defined in: packages/riviere-schema/dist/published-language/component-id.d.ts:22
 
 > `static` **parse**(`value`): `ComponentIdParseResult`
 
-Defined in: packages/riviere-schema/dist/published-language/component-id.d.ts:15
+Defined in: packages/riviere-schema/published-language/dist/published-language/component-id.d.ts:15
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: packages/riviere-schema/dist/published-language/component-id.d.ts:15
 
 > `static` **parseFromParts**(`parts`): `ComponentId`
 
-Defined in: packages/riviere-schema/dist/published-language/component-id.d.ts:16
+Defined in: packages/riviere-schema/published-language/dist/published-language/component-id.d.ts:16
 
 #### Parameters
 

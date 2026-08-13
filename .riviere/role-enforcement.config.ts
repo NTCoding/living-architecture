@@ -2,6 +2,7 @@ import { roleEnforcementConfiguration } from '@living-architecture/riviere-role-
 import { app } from './configurations/app'
 import { domainModel } from './configurations/domain-model'
 import { publishedLanguage } from './configurations/published-language'
+import { useCases } from './configurations/use-cases'
 import { allRoles } from './roles'
 
 /**
@@ -13,7 +14,10 @@ import { allRoles } from './roles'
  */
 
 export const config = roleEnforcementConfiguration({
-  configurations: { app, domainModel, publishedLanguage },
+  configurations: {
+    'apps/{app}': app,
+    'packages/{subdomain}/': [domainModel, useCases, publishedLanguage],
+  },
   ignorePatterns: [
     '**/__fixtures__/**',
     '**/*-fixtures.ts',

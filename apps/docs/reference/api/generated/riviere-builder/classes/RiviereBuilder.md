@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: RiviereBuilder
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:143
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:143
 
 Programmatically construct Riviere architecture graphs.
 
@@ -21,7 +21,7 @@ aggregate
 
 > `readonly` **graphPath**: `string`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:146
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:146
 
 ## Methods
 
@@ -29,7 +29,7 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:146
 
 > **addApi**(`input`): `APIComponent`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:219
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:226
 
 Adds an API component to the graph.
 
@@ -53,7 +53,7 @@ The created API component
 
 > **addCustom**(`input`): `CustomComponent`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:337
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:379
 
 Adds a Custom component to the graph.
 
@@ -77,7 +77,7 @@ The created Custom component
 
 > **addDomain**(`input`): `void`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:189
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:189
 
 Adds a new domain to the graph.
 
@@ -99,7 +99,7 @@ Domain name and description
 
 > **addDomainOp**(`input`): `DomainOpComponent`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:259
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:280
 
 Adds a DomainOp component to the graph.
 
@@ -123,7 +123,7 @@ The created DomainOp component
 
 > **addEvent**(`input`): `EventComponent`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:279
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:307
 
 Adds an Event component to the graph.
 
@@ -147,7 +147,7 @@ The created Event component
 
 > **addEventHandler**(`input`): `EventHandlerComponent`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:299
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:334
 
 Adds an EventHandler component to the graph.
 
@@ -171,7 +171,7 @@ The created EventHandler component
 
 > **addSource**(`source`): `void`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:180
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:180
 
 Adds an additional source repository to the graph.
 
@@ -193,7 +193,7 @@ Source repository information
 
 > **addUI**(`input`): `UIComponent`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:199
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:199
 
 Adds a UI component to the graph.
 
@@ -217,7 +217,7 @@ The created UI component
 
 > **addUseCase**(`input`): `UseCaseComponent`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:239
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:253
 
 Adds a UseCase component to the graph.
 
@@ -241,7 +241,7 @@ The created UseCase component
 
 > **build**(): `RiviereGraph`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:461
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:510
 
 Validates and returns the completed graph.
 
@@ -257,7 +257,7 @@ Valid RiviereGraph object
 
 > **defineCustomType**(`input`): `void`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:318
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:360
 
 Defines a custom component type for the graph.
 
@@ -279,7 +279,7 @@ Custom type definition
 
 > **defineRelationshipType**(`input`): `void`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:327
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:369
 
 Defines a relationship type for the graph.
 
@@ -301,7 +301,7 @@ Relationship type name and description
 
 > **enrichComponent**(`id`, `enrichment`): `void`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:357
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:406
 
 Enriches a DomainOp component with additional domain details.
 
@@ -329,7 +329,7 @@ State changes and business rules to add
 
 > **link**(`input`): `Link`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:388
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:437
 
 Creates a link between two components in the graph.
 
@@ -353,7 +353,7 @@ The created link
 
 > **linkExternal**(`input`): `ExternalLink`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:398
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:447
 
 Creates a link from a component to an external system.
 
@@ -377,7 +377,7 @@ The created external link
 
 > **nearMatches**(`query`, `options?`): `Readonly`\<\{ `component`: `Component`; `mismatch?`: `Readonly`\<\{ `actual`: `string`; `expected`: `string`; `field`: `"type"` \| `"domain"`; \}\>; `score`: `number`; \}\>[]
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:368
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:417
 
 Finds components similar to a query for error recovery.
 
@@ -407,7 +407,7 @@ Array of similar components with similarity scores
 
 > **orphans**(): `string`[]
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:434
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:483
 
 Returns IDs of components with no incoming or outgoing links.
 
@@ -423,7 +423,7 @@ Array of orphaned component IDs
 
 > **query**(): [`RiviereQuery`](RiviereQuery.md)
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:443
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:492
 
 Returns query capabilities for the current graph state.
 
@@ -439,7 +439,7 @@ A snapshot that can be queried without mutating the builder
 
 > **serialize**(): `string`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:452
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:501
 
 Serializes the current graph state as a JSON string.
 
@@ -455,7 +455,7 @@ JSON string representation of the graph
 
 > **stats**(): `object`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:416
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:465
 
 Returns statistics about the current graph state.
 
@@ -519,7 +519,9 @@ Counts of components by type, domains, and links
 
 > **upsertApi**(`input`, `options?`): `object`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:223
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:237
+
+Adds or updates an API component.
 
 #### Parameters
 
@@ -527,13 +529,19 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:223
 
 `APIInput`
 
+API component properties
+
 ##### options?
 
 `Readonly`\<\{ `noOverwrite?`: `boolean`; \}\>
 
+Upsert behaviour
+
 #### Returns
 
 `object`
+
+The component and whether it was created
 
 ##### component
 
@@ -549,7 +557,9 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:223
 
 > **upsertCustom**(`input`, `options?`): `object`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:341
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:390
+
+Adds or updates a Custom component.
 
 #### Parameters
 
@@ -557,13 +567,19 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:341
 
 `CustomInput`
 
+Custom component properties
+
 ##### options?
 
 `Readonly`\<\{ `noOverwrite?`: `boolean`; \}\>
 
+Upsert behaviour
+
 #### Returns
 
 `object`
+
+The component and whether it was created
 
 ##### component
 
@@ -579,7 +595,9 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:341
 
 > **upsertDomainOp**(`input`, `options?`): `object`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:263
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:291
+
+Adds or updates a DomainOp component.
 
 #### Parameters
 
@@ -587,13 +605,19 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:263
 
 `DomainOpInput`
 
+DomainOp component properties
+
 ##### options?
 
 `Readonly`\<\{ `noOverwrite?`: `boolean`; \}\>
 
+Upsert behaviour
+
 #### Returns
 
 `object`
+
+The component and whether it was created
 
 ##### component
 
@@ -609,7 +633,9 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:263
 
 > **upsertEvent**(`input`, `options?`): `object`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:283
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:318
+
+Adds or updates an Event component.
 
 #### Parameters
 
@@ -617,13 +643,19 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:283
 
 `EventInput`
 
+Event component properties
+
 ##### options?
 
 `Readonly`\<\{ `noOverwrite?`: `boolean`; \}\>
 
+Upsert behaviour
+
 #### Returns
 
 `object`
+
+The component and whether it was created
 
 ##### component
 
@@ -639,7 +671,9 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:283
 
 > **upsertEventHandler**(`input`, `options?`): `object`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:303
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:345
+
+Adds or updates an EventHandler component.
 
 #### Parameters
 
@@ -647,13 +681,19 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:303
 
 `EventHandlerInput`
 
+EventHandler component properties
+
 ##### options?
 
 `Readonly`\<\{ `noOverwrite?`: `boolean`; \}\>
 
+Upsert behaviour
+
 #### Returns
 
 `object`
+
+The component and whether it was created
 
 ##### component
 
@@ -669,7 +709,9 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:303
 
 > **upsertUI**(`input`, `options?`): `object`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:203
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:210
+
+Adds or updates a UI component.
 
 #### Parameters
 
@@ -677,13 +719,19 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:203
 
 `UIInput`
 
+UI component properties
+
 ##### options?
 
 `Readonly`\<\{ `noOverwrite?`: `boolean`; \}\>
 
+Upsert behaviour
+
 #### Returns
 
 `object`
+
+The component and whether it was created
 
 ##### component
 
@@ -699,7 +747,9 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:203
 
 > **upsertUseCase**(`input`, `options?`): `object`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:243
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:264
+
+Adds or updates a UseCase component.
 
 #### Parameters
 
@@ -707,13 +757,19 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:243
 
 `UseCaseInput`
 
+UseCase component properties
+
 ##### options?
 
 `Readonly`\<\{ `noOverwrite?`: `boolean`; \}\>
 
+Upsert behaviour
+
 #### Returns
 
 `object`
+
+The component and whether it was created
 
 ##### component
 
@@ -729,7 +785,7 @@ Defined in: packages/riviere-builder/src/domain/builder-facade.ts:243
 
 > **validate**(): `ValidationResult`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:425
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:474
 
 Runs full validation on the graph.
 
@@ -745,7 +801,7 @@ Validation result with valid flag and error details
 
 > **warnings**(): (`InspectionWarning` \| `OperationWarning`)[]
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:407
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:456
 
 Returns non-fatal issues found in the graph.
 
@@ -761,7 +817,7 @@ Array of warning objects with type and message
 
 > `static` **new**(`options`, `graphPath`): `RiviereBuilder`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:171
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:171
 
 Creates a new builder with initial configuration.
 
@@ -791,7 +847,7 @@ A new RiviereBuilder instance
 
 > `static` **resume**(`graph`, `graphPath`): `RiviereBuilder`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:160
+Defined in: packages/riviere-builder/domain-model/src/domain/builder-facade.ts:160
 
 Restores a builder from a previously serialized graph.
 

@@ -124,7 +124,12 @@ For CLI code, platform CLI infrastructure owns shared response-envelope formatti
 - Locations and sublocations are unrestricted by default.
 - Explicit `.subLocation()` entries are the complete list of folders permitted directly inside a location.
 - `allowAnySubLocations: true` permits arbitrary folders and cannot be combined with explicit sublocations.
-- Dependency restrictions apply to the whole location subtree. A sublocation inherits its parent rules and may tighten them, but cannot bypass them.
+- Imports are unrestricted until a location declares `importRules`.
+- A location with import rules may import its own subtree, locations inherited from its parent, and locations listed in `allow`. Every other location is forbidden.
+- A sublocation inherits its parent's import rules by default. `inheritParentImportRules: false` explicitly disables that inheritance.
+- `siblingOrRoot` allows configured locations with that name when they are either a sibling or a package-root location in the same package. It does not permit another package.
+- Location globs express other import relationships. Cross-package globs begin with `**/`.
+- Allowing a location allows its whole subtree. Allowing one sibling does not allow any other sibling.
 - Feature instances cannot import sibling feature instances. They may import `platform/**`.
 - Feature domain may import shared `platform/domain`; feature isolation prevents it importing another feature's domain.
 - `platform/domain` cannot import any other location. Imports within its own concrete location remain allowed.

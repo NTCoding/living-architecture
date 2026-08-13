@@ -46,7 +46,7 @@ Each step runs in a separate Claude Code (or other) session. This keeps context 
 1. Open Claude Code (or other) in your project directory
 2. Type:
    ```text
-   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/workflow/step-1-understand.md and follow the instructions
+   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/apps/cli/docs/workflow/step-1-understand.md and follow the instructions
    ```
 3. Claude analyzes your codebase and creates `.riviere/config/metadata.md`
 4. Review the domains Claude identified. Give corrections if needed.
@@ -57,7 +57,7 @@ Each step runs in a separate Claude Code (or other) session. This keeps context 
 1. Open a new Claude Code (or other) session in your project directory
 2. Type:
    ```text
-   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/workflow/step-2-define-components.md and follow the instructions
+   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/apps/cli/docs/workflow/step-2-define-components.md and follow the instructions
    ```
 3. Claude creates extraction rules in `.riviere/config/component-definitions.md`
 4. Review the rules. Give corrections if needed.
@@ -68,7 +68,7 @@ Each step runs in a separate Claude Code (or other) session. This keeps context 
 1. Open a new Claude Code (or other) session in your project directory
 2. Type:
    ```text
-   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/workflow/step-3-extract.md and follow the instructions
+   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/apps/cli/docs/workflow/step-3-extract.md and follow the instructions
    ```
 3. Claude finds components and adds them to the graph using the CLI
 4. Review the component summary
@@ -79,7 +79,7 @@ Each step runs in a separate Claude Code (or other) session. This keeps context 
 1. Open a new Claude Code (or other) session in your project directory
 2. Type:
    ```text
-   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/workflow/step-4-link.md and follow the instructions
+   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/apps/cli/docs/workflow/step-4-link.md and follow the instructions
    ```
 3. Claude traces flows between components and creates links
 4. Review the links
@@ -90,7 +90,7 @@ Each step runs in a separate Claude Code (or other) session. This keeps context 
 1. Open a new Claude Code (or other) session in your project directory
 2. Type:
    ```text
-   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/workflow/step-5-enrich.md and follow the instructions
+   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/apps/cli/docs/workflow/step-5-enrich.md and follow the instructions
    ```
 3. Claude adds state changes and business rules to DomainOp components
 4. Review the enrichments
@@ -101,7 +101,7 @@ Each step runs in a separate Claude Code (or other) session. This keeps context 
 1. Open a new Claude Code (or other) session in your project directory
 2. Type:
    ```text
-   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/workflow/step-6-validate.md and follow the instructions
+   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/apps/cli/docs/workflow/step-6-validate.md and follow the instructions
    ```
 3. Claude checks for orphans and validates the graph
 4. Fix any issues
@@ -127,7 +127,7 @@ If Claude misses components or makes mistakes:
 1. Give feedback in the current session
 2. Or re-run that step with corrections:
    ```text
-   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/packages/riviere-cli/docs/workflow/step-3-extract.md and follow the instructions.
+   Fetch https://raw.githubusercontent.com/NTCoding/living-architecture/main/apps/cli/docs/workflow/step-3-extract.md and follow the instructions.
    You missed the API controllers in src/api/. Include those.
    ```
 

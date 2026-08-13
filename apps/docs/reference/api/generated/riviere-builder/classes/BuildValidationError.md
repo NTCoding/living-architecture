@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: BuildValidationError
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:185
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:185
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new BuildValidationError**(`messages`): `BuildValidationError`
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:188
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:188
 
 #### Parameters
 
@@ -90,7 +90,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **validationMessages**: `string`[]
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:186
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:186
 
 ***
 

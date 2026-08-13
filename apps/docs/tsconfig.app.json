@@ -11,9 +11,6 @@
   "exclude": [".vitepress/**/*.spec.ts"],
   "references": [
     {
-      "path": "../../packages/riviere-cli/tsconfig.lib.json"
-    },
-    {
       "path": "./tsconfig.scripts.json"
     }
   ]

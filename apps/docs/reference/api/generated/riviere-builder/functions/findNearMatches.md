@@ -6,7 +6,7 @@ pageClass: reference
 
 > **findNearMatches**(`components`, `query`, `options?`): `Readonly`\<\{ `component`: `Component`; `mismatch?`: `Readonly`\<\{ `actual`: `string`; `expected`: `string`; `field`: `"type"` \| `"domain"`; \}\>; `score`: `number`; \}\>[]
 
-Defined in: packages/riviere-builder/src/domain/error-recovery/component-suggestion.ts:75
+Defined in: packages/riviere-builder/domain-model/src/domain/error-recovery/component-suggestion.ts:75
 
 Finds components similar to a query using fuzzy matching.
 

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "nx run-many -t build",
-    "build:deploy": "cd packages/riviere-schema && npx tsc --build tsconfig.lib.json && cd ../riviere-builder && npx tsc --build tsconfig.lib.json && cd ../../apps/docs && cp ../../packages/riviere-cli/docs/workflow/step-*.md extract/ai-assisted/ && cp ../../packages/riviere-cli/docs/generated/cli-reference.md reference/cli/cli-reference.md && NODE_OPTIONS='--max-old-space-size=4096' npx vitepress build && cd ../eclair && npx vite build && cd ../.. && rm -rf dist && mkdir -p dist/eclair && cp -r apps/docs/.vitepress/dist/* dist/ && cp -r apps/eclair/dist/* dist/eclair/",
+    "build:deploy": "cd packages/riviere-schema/published-language && npx tsc --build tsconfig.lib.json && cd ../../riviere-builder/domain-model && npx tsc --build tsconfig.lib.json && cd ../../../apps/docs && cp ../../apps/cli/docs/workflow/step-*.md extract/ai-assisted/ && cp ../../apps/cli/docs/generated/cli-reference.md reference/cli/cli-reference.md && NODE_OPTIONS='--max-old-space-size=4096' npx vitepress build && cd ../eclair && npx vite build && cd ../.. && rm -rf dist && mkdir -p dist/eclair && cp -r apps/docs/.vitepress/dist/* dist/ && cp -r apps/eclair/dist/* dist/eclair/",
     "test": "nx run-many -t test",
     "lint": "nx run-many -t lint",
     "role-check": "nx run @living-architecture/source:role-check",

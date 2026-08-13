@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: InvalidGraphError
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:161
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:161
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new InvalidGraphError**(`reason`): `InvalidGraphError`
 
-Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:162
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:162
 
 #### Parameters
 

@@ -12,15 +12,21 @@
     "apps/docs": {
       "project": [".vitepress/**/*.ts", ".vitepress/**/*.vue"]
     },
-    "packages/riviere-cli": {
-      "entry": ["src/shell/bin.ts", "src/shell/index.ts"],
+    "apps/cli": {
+      "entry": [
+        "esbuild.config.mjs",
+        "scripts/generate-docs.ts",
+        "src/shell/bin.ts",
+        "src/shell/index.ts",
+        "src/shell/role-enforcement-bin.ts"
+      ],
       "project": ["src/**/*.ts"]
     },
-    "packages/riviere-role-enforcement": {
-      "entry": ["src/index.ts", "src/shell/bin.ts"],
+    "packages/riviere-role-enforcement/domain-model": {
+      "entry": ["esbuild.config.mjs", "src/index.ts"],
       "project": ["src/**/*.ts"]
     },
-    "packages/riviere-schema": {
+    "packages/riviere-schema/published-language": {
       "entry": [
         "src/published-language/component-id.ts",
         "src/published-language/custom-property-type.ts",
@@ -29,6 +35,21 @@
         "src/published-language/schema.ts",
         "src/published-language/validation.ts"
       ],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/riviere-extract-config/published-language": {
+      "entry": ["scripts/generate-docs.ts", "src/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/riviere-extract-conventions/published-language": {
+      "entry": ["src/index.ts", "src/published-language/eslint-plugin/*.cjs"],
+      "project": ["src/**/*.{ts,cjs,cts}"]
+    },
+    "packages/riviere-builder/domain-model": {
+      "entry": ["src/index.ts", "src/domain/component-definition.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/*/*": {
       "project": ["src/**/*.ts"]
     },
     "packages/*": {
@@ -44,6 +65,7 @@
     ".riviere/**",
     "**/node_modules/**",
     "**/*.d.ts",
+    "**/*.d.cts",
     "**/dist/**",
     "**/.vitepress/dist/**",
     "**/coverage/**"

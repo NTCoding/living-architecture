@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: RiviereQuery
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:86
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:86
 
 Query and analyze Riviere architecture graphs.
 
@@ -37,7 +37,7 @@ domain-service
 
 > **new RiviereQuery**(`graph`): `RiviereQuery`
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:101
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:101
 
 Creates a new RiviereQuery instance.
 
@@ -70,7 +70,7 @@ const query = new RiviereQuery(graph)
 
 > **businessRulesFor**(`entityName`): `string`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:349
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:349
 
 Returns all business rules for an entity's operations.
 
@@ -100,7 +100,7 @@ const rules = query.businessRulesFor('Order')
 
 > **componentById**(`id`): `Component` \| `undefined`
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:233
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:233
 
 Finds a component by its ID.
 
@@ -130,7 +130,7 @@ const component = query.componentById('orders:checkout:api:post-orders')
 
 > **components**(): `Component`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:135
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:135
 
 Returns all components in the graph.
 
@@ -153,7 +153,7 @@ console.log(`Total: ${allComponents.length}`)
 
 > **componentsByType**(`type`): `Component`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:282
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:282
 
 Returns all components of a specific type.
 
@@ -184,7 +184,7 @@ const events = query.componentsByType('Event')
 
 > **componentsInDomain**(`domainName`): `Component`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:266
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:266
 
 Returns all components in a specific domain.
 
@@ -214,7 +214,7 @@ const orderComponents = query.componentsInDomain('orders')
 
 > **crossDomainLinks**(`domainName`): `CrossDomainLink`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:536
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:536
 
 Returns links from a domain to other domains.
 
@@ -244,7 +244,7 @@ const outgoing = query.crossDomainLinks('orders')
 
 > **detectOrphans**(): `ComponentId`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:186
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:186
 
 Detects orphan components with no incoming or outgoing links.
 
@@ -269,7 +269,7 @@ if (orphanIds.length > 0) {
 
 > **diff**(`other`): `GraphDiff`
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:441
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:441
 
 Compares this graph with another and returns the differences.
 
@@ -304,7 +304,7 @@ console.log(`Removed: ${diff.stats.componentsRemoved}`)
 
 > **domainConnections**(`domainName`): `DomainConnection`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:556
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:556
 
 Returns cross-domain connections with API and event counts.
 
@@ -339,7 +339,7 @@ for (const conn of connections) {
 
 > **domains**(): `Domain`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:299
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:299
 
 Returns domain information with component counts.
 
@@ -364,7 +364,7 @@ for (const domain of domains) {
 
 > **entities**(`domainName?`): `Entity`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:334
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:334
 
 Returns entities with their domain operations.
 
@@ -399,7 +399,7 @@ for (const entity of orderEntities) {
 
 > **entryPoints**(): `Component`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:399
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:399
 
 Returns components that are entry points to the system.
 
@@ -424,7 +424,7 @@ const entryPoints = query.entryPoints()
 
 > **eventHandlers**(`eventName?`): `EventHandlerInfo`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:477
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:477
 
 Returns event handlers with their subscriptions.
 
@@ -455,7 +455,7 @@ const orderPlacedHandlers = query.eventHandlers('order-placed')
 
 > **externalDomains**(): `ExternalDomain`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:632
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:632
 
 Returns external domains that components connect to.
 
@@ -483,7 +483,7 @@ for (const ext of externals) {
 
 > **externalLinks**(): `ExternalLink`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:612
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:612
 
 Returns all external links in the graph.
 
@@ -511,7 +511,7 @@ for (const link of externalLinks) {
 
 > **find**(`predicate`): `Component` \| `undefined`
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:201
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:201
 
 Finds the first component matching a predicate.
 
@@ -541,7 +541,7 @@ const checkout = query.find(c => c.name.includes('checkout'))
 
 > **findAll**(`predicate`): `Component`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:218
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:218
 
 Finds all components matching a predicate.
 
@@ -573,7 +573,7 @@ const orderHandlers = query.findAll(c =>
 
 > **flows**(): `Flow`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:501
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:501
 
 Returns all flows in the graph.
 
@@ -605,7 +605,7 @@ for (const flow of flows) {
 
 > **links**(): `Link`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:150
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:150
 
 Returns all links in the graph.
 
@@ -628,7 +628,7 @@ console.log(`Total links: ${allLinks.length}`)
 
 > **nodeDepths**(): `ComponentDepths`
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:592
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:592
 
 Calculates depth from entry points for each component.
 
@@ -655,7 +655,7 @@ for (const [id, depth] of depths) {
 
 > **operationsFor**(`entityName`): `DomainOpComponent`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:314
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:314
 
 Returns all domain operations for a specific entity.
 
@@ -685,7 +685,7 @@ const orderOps = query.operationsFor('Order')
 
 > **publishedEvents**(`domainName?`): `PublishedEvent`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:461
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:461
 
 Returns published events with their handlers.
 
@@ -720,7 +720,7 @@ for (const event of orderEvents) {
 
 > **search**(`query`): `Component`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:251
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:251
 
 Searches components by name, domain, or type.
 
@@ -753,7 +753,7 @@ const results = query.search('order')
 
 > **searchWithFlow**(`query`, `options`): `SearchWithFlowResult`
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:521
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:521
 
 Searches for components and returns their flow context.
 
@@ -793,7 +793,7 @@ console.log(`Showing ${result.visibleIds.length} nodes in context`)
 
 > **statesFor**(`entityName`): `State`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:382
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:382
 
 Returns ordered states for an entity based on transitions.
 
@@ -826,7 +826,7 @@ const orderStates = query.statesFor('Order')
 
 > **stats**(): `GraphStats`
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:573
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:573
 
 Returns aggregate statistics about the graph.
 
@@ -851,7 +851,7 @@ console.log(`Domains: ${stats.domainCount}`)
 
 > **traceFlow**(`startComponentId`): `object`
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:418
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:418
 
 Traces the complete flow bidirectionally from a starting component.
 
@@ -893,7 +893,7 @@ console.log(`Flow includes ${flow.componentIds.length} nodes`)
 
 > **transitionsFor**(`entityName`): `EntityTransition`[]
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:364
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:364
 
 Returns state transitions for an entity.
 
@@ -923,7 +923,7 @@ const transitions = query.transitionsFor('Order')
 
 > **validate**(): `ValidationResult`
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:169
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:169
 
 Validates the graph structure beyond schema validation.
 
@@ -950,7 +950,7 @@ if (!result.valid) {
 
 > `static` **fromJSON**(`json`): `RiviereQuery`
 
-Defined in: packages/riviere-builder/src/domain/query/RiviereQuery.ts:119
+Defined in: packages/riviere-builder/domain-model/src/domain/query/RiviereQuery.ts:119
 
 Creates a RiviereQuery from raw JSON data.
 

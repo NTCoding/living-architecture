@@ -2,12 +2,12 @@ import { location, locationConfiguration } from '@living-architecture/riviere-ro
 import type { RoleName } from '../roles'
 import { domainRoles } from './location-roles'
 
+// Package-level rules mean domain-model can import only published-language packages.
 export const domainModel = {
-  packages: ['packages/riviere-builder', 'packages/riviere-extract-ts'],
-  locations: locationConfiguration(
-    location<RoleName>('/domain', domainRoles, {
+  packageType: 'domain-model',
+  locations: locationConfiguration<RoleName>(
+    location('/domain', domainRoles, {
       allowAnySubLocations: true,
-      dependencyRules: { locations: [{ location: '**/published-language' }] },
     }),
   ),
 }

@@ -36,10 +36,10 @@
   "include": ["src"],
   "references": [
     {
-      "path": "../../packages/riviere-schema/tsconfig.lib.json"
+      "path": "../../packages/riviere-schema/published-language/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/riviere-builder/tsconfig.lib.json"
+      "path": "../../packages/riviere-builder/domain-model/tsconfig.lib.json"
     }
   ]
 }

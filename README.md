@@ -144,7 +144,7 @@ const events = query.componentsByType('Event');
 
 ## The Rivière Schema
 
-Rivière graphs are JSON documents conforming to the [Rivière schema](./packages/riviere-schema/riviere.schema.json).
+Rivière graphs are JSON documents conforming to the [Rivière schema](./packages/riviere-schema/published-language/riviere.schema.json).
 
 ```json
 {
@@ -158,7 +158,7 @@ Rivière graphs are JSON documents conforming to the [Rivière schema](./package
 }
 ```
 
-See [examples](./packages/riviere-schema/examples/) for complete multi-domain graphs.
+See [examples](./packages/riviere-schema/published-language/examples/) for complete multi-domain graphs.
 
 ## Visualize with Éclair
 
