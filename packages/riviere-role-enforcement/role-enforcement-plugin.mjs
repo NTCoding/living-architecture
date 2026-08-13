@@ -1684,7 +1684,7 @@ function resolvePackageSourceExport(exports, exportKey) {
       continue
     }
     const wildcardValue = exportKey.slice(prefix.length, exportKey.length - suffix.length)
-    return value['@living-architecture/source'].replace('*', wildcardValue)
+    return value['@living-architecture/source'].replaceAll('*', wildcardValue)
   }
 
   return null

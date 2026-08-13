@@ -44,6 +44,7 @@ const workspacePackageBootstrap = {
         '.': { '@living-architecture/source': './src/index.ts' },
         './package.json': './package.json',
         './domain/*': { '@living-architecture/source': './src/domain/*.ts' },
+        './duplicated/*': { '@living-architecture/source': './src/*/domain/*.ts' },
       },
     }),
     'node_modules/@generic/pkg-lib/src/beta.ts': `/** @riviere-role role-b */
@@ -92,6 +93,41 @@ export class Beta {
       workspaceDir,
       'packages/pkg-a/src/repositories/betaRepository.ts',
       `import type { Beta } from '@generic/pkg-lib/domain/beta'
+
+/** @riviere-role role-b-repository */
+export class BetaRepository {
+  findById(id: string): Beta {
+    return null as unknown as Beta
+  }
+}
+`,
+    )
+
+    const result = createTestRoleEnforcementApplication().execute({
+      configDir: workspaceDir,
+      configModule: { config: workspacePackageConfig },
+    })
+
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
+  })
+})
+
+it('replaces every wildcard in a workspace package source path', () => {
+  withWorkspaceFixture(workspacePackageBootstrap, (workspaceDir) => {
+    writeFixtureFile(
+      workspaceDir,
+      'node_modules/@generic/pkg-lib/src/beta/domain/beta.ts',
+      `/** @riviere-role role-b */
+export class Beta {
+  cancel(): void {}
+}
+`,
+    )
+    writeFixtureFile(
+      workspaceDir,
+      'packages/pkg-a/src/repositories/betaRepository.ts',
+      `import type { Beta } from '@generic/pkg-lib/duplicated/beta'
 
 /** @riviere-role role-b-repository */
 export class BetaRepository {
