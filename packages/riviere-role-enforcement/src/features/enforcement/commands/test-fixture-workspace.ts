@@ -3,9 +3,9 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { findFileUp } from '../../../platform/infra/external-clients/filesystem/find-file-up'
-import { runOxlint } from '../../../platform/infra/external-clients/oxlint/index'
+import { runOxlint } from '../../../platform/infra/external-clients/oxlint/oxlint-client'
 import { createOxlintRoleEnforcementRunner } from '../adapters/oxlint/oxlint-role-enforcement-runner'
-import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement-project-repository'
+import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement/role-enforcement-project-repository'
 import { RunRoleEnforcement } from './run-role-enforcement'
 import { genericTestRoles } from './test-fixture-config'
 
@@ -25,13 +25,13 @@ export function createTestRoleEnforcementApplication(): RunRoleEnforcement {
   })
 }
 
-export function withWorkspaceFixture(
+export function withWorkspaceFixture<T>(
   bootstrap: WorkspaceBootstrap,
-  fn: (workspaceDir: string) => void,
-): void {
+  fn: (workspaceDir: string) => T,
+): T {
   const workspaceDir = createWorkspaceFixture(bootstrap)
   try {
-    fn(workspaceDir)
+    return fn(workspaceDir)
   } finally {
     rmSync(workspaceDir, {
       force: true,

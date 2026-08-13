@@ -1,10 +1,6 @@
-import {
-  writeFile, mkdir 
-} from 'node:fs/promises'
+import { writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { createProgram } from '../../../../shell/cli'
 import type { TestContext } from '../../../../platform/__fixtures__/command-test-fixtures'
 import {
@@ -116,6 +112,8 @@ modules:
       where:
         hasJSDoc:
           tag: api
+      extract:
+        apiType: { literal: REST }
     useCase:
       find: classes
       where:
@@ -194,6 +192,8 @@ modules:
       where:
         hasJSDoc:
           tag: api
+      extract:
+        apiType: { literal: REST }
     useCase: { notUsed: true }
     domainOp: { notUsed: true }
     event: { notUsed: true }
@@ -253,6 +253,8 @@ modules:
       where:
         hasJSDoc:
           tag: api
+      extract:
+        apiType: { literal: REST }
     useCase:
       find: classes
       where:
@@ -321,6 +323,8 @@ modules:
       where:
         hasJSDoc:
           tag: api
+      extract:
+        apiType: { literal: REST }
     useCase:
       find: classes
       where:

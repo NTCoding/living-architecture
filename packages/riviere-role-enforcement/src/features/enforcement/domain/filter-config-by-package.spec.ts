@@ -4,8 +4,8 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcement,
-  RoleEnforcementResult,
+  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
 } from './role-enforcement-builder'
 
 const testRoles = [
@@ -13,8 +13,16 @@ const testRoles = [
   role('aggregate', { targets: ['class'] }),
 ] as const
 
-function createMultiPackageConfig(): RoleEnforcementResult {
-  return roleEnforcement({
+function parseConfiguration(value: unknown): RoleEnforcementConfiguration {
+  const parsed = RoleEnforcementConfiguration.parse(value)
+  if (!parsed.success) {
+    throw parsed.error
+  }
+  return parsed.data
+}
+
+function createMultiPackageConfig(): RoleEnforcementConfiguration {
+  return roleEnforcementConfiguration({
     configurations: {
       standard: {
         packages: ['packages/riviere-cli', 'packages/riviere-extract-ts'],
@@ -103,7 +111,7 @@ describe('filterConfigByPackage', () => {
   })
 
   it('uses full pattern as package name when include pattern has no /src/ segment', () => {
-    const config = RoleEnforcementResult.parse({
+    const config = parseConfiguration({
       ...createMultiPackageConfig(),
       include: ['custom-path/**/*.ts'],
     })
@@ -127,17 +135,5 @@ describe('filterConfigByPackage', () => {
         (location) => location.packagePath === 'packages/riviere-extract-ts',
       ),
     ).toBe(true)
-  })
-
-  it('preserves workspacePackageSources when present', () => {
-    const sources = {'@living-architecture/riviere-builder': 'packages/riviere-builder/src/index.ts',}
-    const config = RoleEnforcementResult.parse({
-      ...createMultiPackageConfig(),
-      workspacePackageSources: sources,
-    })
-
-    const result = filterConfigByPackage(config, 'packages/riviere-cli')
-
-    expect(result.workspacePackageSources).toStrictEqual(sources)
   })
 })

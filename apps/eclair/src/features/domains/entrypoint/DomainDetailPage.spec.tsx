@@ -12,7 +12,7 @@ import { DomainDetailPage } from './DomainDetailPage'
 import {
   parseNode, parseEdge, parseDomainMetadata
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import { assertDefined } from '@/test-assertions'
 
 const testSourceLocation = {

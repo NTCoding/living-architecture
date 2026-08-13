@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ValidationError
 
-Defined in: packages/riviere-query/src/features/querying/domain/validation-error.ts:10
+Defined in: packages/riviere-schema/dist/published-language/graph-validation.d.ts:4
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **code**: `ValidationErrorCode`
 
-Defined in: packages/riviere-query/src/features/querying/domain/validation-error.ts:14
+Defined in: packages/riviere-schema/dist/published-language/graph-validation.d.ts:7
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/validation-error
 
 > `readonly` **message**: `string`
 
-Defined in: packages/riviere-query/src/features/querying/domain/validation-error.ts:13
+Defined in: packages/riviere-schema/dist/published-language/graph-validation.d.ts:6
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: packages/riviere-query/src/features/querying/domain/validation-error
 
 > `readonly` **path**: `string`
 
-Defined in: packages/riviere-query/src/features/querying/domain/validation-error.ts:12
+Defined in: packages/riviere-schema/dist/published-language/graph-validation.d.ts:5

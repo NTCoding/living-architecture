@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ComponentCounts
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:2
+Defined in: packages/riviere-query/src/domain/component-counts.ts:2
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **API**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:5
+Defined in: packages/riviere-query/src/domain/component-counts.ts:5
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-counts
 
 > `readonly` **Custom**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:10
+Defined in: packages/riviere-query/src/domain/component-counts.ts:10
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-counts
 
 > `readonly` **DomainOp**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:7
+Defined in: packages/riviere-query/src/domain/component-counts.ts:7
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-counts
 
 > `readonly` **Event**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:8
+Defined in: packages/riviere-query/src/domain/component-counts.ts:8
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-counts
 
 > `readonly` **EventHandler**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:9
+Defined in: packages/riviere-query/src/domain/component-counts.ts:9
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-counts
 
 > `readonly` **total**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:11
+Defined in: packages/riviere-query/src/domain/component-counts.ts:11
 
 ***
 
@@ -64,7 +64,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-counts
 
 > `readonly` **UI**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:4
+Defined in: packages/riviere-query/src/domain/component-counts.ts:4
 
 ***
 
@@ -72,4 +72,4 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-counts
 
 > `readonly` **UseCase**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-counts.ts:6
+Defined in: packages/riviere-query/src/domain/component-counts.ts:6

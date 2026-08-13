@@ -1,4 +1,4 @@
-import type { CustomPropertyDefinition } from '@living-architecture/riviere-schema'
+import type { CustomPropertyDefinition } from '@living-architecture/riviere-schema/schema'
 
 /** @riviere-role command-use-case-result-value */
 export type DefineCustomTypeErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND' | 'VALIDATION_ERROR'
@@ -6,14 +6,14 @@ export type DefineCustomTypeErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND' | 
 /** @riviere-role command-use-case-result */
 export type DefineCustomTypeResult =
   | {
-    description: string | undefined
-    name: string
-    optionalProperties: Record<string, CustomPropertyDefinition>
-    requiredProperties: Record<string, CustomPropertyDefinition>
-    success: true
-  }
+      description: string | undefined
+      name: string
+      optionalProperties: Record<string, CustomPropertyDefinition>
+      requiredProperties: Record<string, CustomPropertyDefinition>
+      success: true
+    }
   | {
-    code: DefineCustomTypeErrorCode
-    message: string
-    success: false
-  }
+      code: DefineCustomTypeErrorCode
+      message: string
+      success: false
+    }

@@ -1,4 +1,4 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 
 /** @riviere-role command-use-case-result-value */
 export type FinalizeGraphErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND' | 'VALIDATION_ERROR'
@@ -9,11 +9,11 @@ export type FinalizedGraph = RiviereGraph
 /** @riviere-role command-use-case-result */
 export type FinalizeGraphResult =
   | {
-    finalGraph: FinalizedGraph
-    success: true
-  }
+      finalGraph: FinalizedGraph
+      success: true
+    }
   | {
-    code: FinalizeGraphErrorCode
-    message: string
-    success: false
-  }
+      code: FinalizeGraphErrorCode
+      message: string
+      success: false
+    }

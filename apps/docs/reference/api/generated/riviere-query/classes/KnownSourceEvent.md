@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: KnownSourceEvent
 
-Defined in: packages/riviere-query/src/features/querying/domain/known-source-event.ts:8
+Defined in: packages/riviere-query/src/domain/known-source-event.ts:8
 
 A subscribed event where the source domain is known.
 
@@ -18,7 +18,7 @@ value-object
 
 > `readonly` **eventName**: `EventName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/known-source-event.ts:10
+Defined in: packages/riviere-query/src/domain/known-source-event.ts:10
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/known-source-eve
 
 > `readonly` **sourceDomain**: `DomainName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/known-source-event.ts:11
+Defined in: packages/riviere-query/src/domain/known-source-event.ts:11
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/known-source-eve
 
 > `readonly` **sourceKnown**: `true`
 
-Defined in: packages/riviere-query/src/features/querying/domain/known-source-event.ts:12
+Defined in: packages/riviere-query/src/domain/known-source-event.ts:12
 
 ## Methods
 
@@ -42,7 +42,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/known-source-eve
 
 > `static` **parse**(`input`): `KnownSourceEvent`
 
-Defined in: packages/riviere-query/src/features/querying/domain/known-source-event.ts:24
+Defined in: packages/riviere-query/src/domain/known-source-event.ts:24
 
 #### Parameters
 

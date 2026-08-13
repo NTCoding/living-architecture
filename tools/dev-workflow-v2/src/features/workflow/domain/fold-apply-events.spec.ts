@@ -1,9 +1,9 @@
-import {
-  applyEvents, EMPTY_STATE 
-} from './fold'
+import { applyEvents } from './fold'
 import type { WorkflowEvent } from './workflow-events'
+import { getInitialWorkflowState } from './workflow-types'
 
 const AT = '2026-01-01T00:00:00Z'
+const EMPTY_STATE = getInitialWorkflowState()
 
 describe('applyEvents', () => {
   it('returns EMPTY_STATE for empty event sequence', () => {

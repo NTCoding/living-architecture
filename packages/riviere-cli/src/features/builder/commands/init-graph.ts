@@ -1,7 +1,7 @@
-import { RiviereBuilder } from '@living-architecture/riviere-builder/features/building/domain/builder-facade'
-import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
-import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
-import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { RiviereBuilder } from '@living-architecture/riviere-builder/domain/builder-facade'
+import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
+import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
 import { SystemType } from '../domain/system-type'
 import type { InitGraphInput } from './init-graph-input'
 import type { InitGraphResult } from './init-graph-result'
@@ -33,9 +33,7 @@ export class InitGraph {
     const builderOptions = {
       ...(input.name === undefined ? {} : { name: input.name }),
       domains: Object.fromEntries(
-        parsedDomains.map(({
-          domain, systemType 
-        }) => [
+        parsedDomains.map(({ domain, systemType }) => [
           domain.name,
           {
             description: domain.description,

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { handleGlobalError } from './global-error-handler'
 import { GitError } from '../platform/infra/external-clients/git/git-errors'
-import { FileReadError } from '../platform/infra/external-clients/filesystem/index'
+import { FileReadError } from '../platform/infra/external-clients/filesystem/file-reader'
 import {
   CliErrorCode,
   ConfigValidationError,

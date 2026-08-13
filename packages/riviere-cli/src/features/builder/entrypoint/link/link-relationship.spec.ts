@@ -1,9 +1,7 @@
-import {
-  describe, expect, it 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema/validation'
 import { createProgram } from '../../../../shell/cli'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import {
@@ -12,6 +10,14 @@ import {
   createTestContext,
   setupCommandTest,
 } from '../../../../platform/__fixtures__/command-test-fixtures'
+
+function parseValidGraph(value: unknown) {
+  const result = parseRiviereGraph(value)
+  if (!result.success) {
+    expect.fail(result.issues.join('\n'))
+  }
+  return result.graph
+}
 
 const sourceComponent = {
   id: 'orders:checkout:api:create-order',
@@ -77,7 +83,7 @@ describe('riviere builder link relationship fields', () => {
       '5',
     ])
 
-    const graph = parseRiviereGraph(
+    const graph = parseValidGraph(
       JSON.parse(await readFile(join(ctx.testDir, '.riviere', 'graph.json'), 'utf-8')),
     )
     expect(graph.links).toStrictEqual([
@@ -136,7 +142,7 @@ describe('riviere builder link relationship fields', () => {
       'src/api/orders.ts',
     ])
 
-    const graph = parseRiviereGraph(
+    const graph = parseValidGraph(
       JSON.parse(await readFile(join(ctx.testDir, '.riviere', 'graph.json'), 'utf-8')),
     )
     expect(graph.links[0].sourceLocation).toStrictEqual({

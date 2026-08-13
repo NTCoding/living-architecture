@@ -1,11 +1,9 @@
-import {
-  describe, expect, it 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createProgram } from '../../../../shell/cli'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema/validation'
 import {
   type TestContext,
   assertDefined,
@@ -13,6 +11,14 @@ import {
   createTestContext,
   setupCommandTest,
 } from '../../../../platform/__fixtures__/command-test-fixtures'
+
+function parseValidGraph(value: unknown) {
+  const result = parseRiviereGraph(value)
+  if (!result.success) {
+    expect.fail(result.issues.join('\n'))
+  }
+  return result.graph
+}
 
 describe('riviere builder define-relationship-type', () => {
   const ctx: TestContext = createTestContext()
@@ -40,7 +46,7 @@ describe('riviere builder define-relationship-type', () => {
       'Invokes the target during execution',
     ])
 
-    const graph = parseRiviereGraph(
+    const graph = parseValidGraph(
       JSON.parse(await readFile(join(ctx.testDir, '.riviere', 'graph.json'), 'utf-8')),
     )
     expect(graph.metadata.relationshipTypes?.executes?.description).toBe(

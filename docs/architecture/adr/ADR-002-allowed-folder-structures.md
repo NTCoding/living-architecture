@@ -9,7 +9,7 @@
 
 These files must remain aligned. Any change to the architecture must update both.
 
-## Standard Structure
+## Application Structure
 
 ```text
 features/
@@ -26,6 +26,9 @@ features/
 │   └── adapters/          ← implementations of domain ports
 │       └── {adapter}/
 │
+data-access/                ← repositories shared by multiple features
+└── {concept}/
+
 platform/
 ├── adapters/              ← shared implementations of shared domain ports
 │   └── {adapter}/
@@ -100,6 +103,8 @@ The `_platform/` convention applies inside any location. It is importable only f
 
 **data-access/** — Aggregate repositories and query-model loaders. This layer inherently knows the application state it reconstructs or persists. It is separate from generic infrastructure and must not become a home for domain behaviour.
 
+Feature-owned data access lives under `features/{feature}/data-access/{concept}/`. When one aggregate is used by multiple features in the same application package, its single repository lives under package-level `data-access/{concept}/`; do not duplicate the repository or make one feature import another feature's private data-access location.
+
 **adapters/** — Narrow implementations of domain ports. A domain-port adapter translates between one domain port and one generic client API. It contains no domain decisions, application orchestration, direct Node API calls, third-party package calls, or coordination across multiple clients. Node and third-party calls belong to the separately enforced generic external-client role; otherwise the adapter would bypass that client contract and combine translation with external I/O. See the [`domain-port-adapter` role definition](../../../.riviere/role-definitions/domain-port-adapter.md) for the concrete Oxlint and GitHub examples.
 
 **platform/domain/** — Shared domain-aware code used across features. It must not import other locations.
@@ -128,16 +133,42 @@ For CLI code, platform CLI infrastructure owns shared response-envelope formatti
 - `_platform` is importable only from within its parent location.
 - Circular imports are rejected by the role-enforcement Oxlint runner.
 
-## Library Packages
+## Package Configurations
 
-Libraries use the same `features/` + `platform/` structure as applications. The package is NOT the feature — still wrap in `features/{name}/`. Libraries don't need `shell/` unless they wire an app.
+Every source package must be assigned to one Rivière role-enforcement configuration or explicitly listed as unassigned. This prevents a new package silently escaping architecture enforcement.
 
-**Entry point:** Libraries use `src/index.ts` as their package entry point. It contains only explicit public exports pointing directly to the files that own those declarations; do not add nested barrel files. `shell/` is for app wiring only, not package exports.
+### Application
+
+Application packages use the `features/`, optional package-level `data-access/`, `platform/`, and optional `shell/` structure above. A feature cannot import another feature. Shared application code belongs in package-level `data-access/` when it reconstructs an aggregate used by multiple features, or in `platform/` when it is shared domain-aware code, a port adapter, or generic infrastructure.
+
+### Domain Model
+
+A domain-model package contains one isolated domain model under `src/domain/`:
+
+```text
+domain/
+└── ...                    ← unrestricted domain organisation
+```
+
+It has no `features/`, `platform/`, or `shell/` locations. Its domain cannot import another domain model. It may import a published-language package because the published language defines the interoperable structures the domain consumes or produces.
+
+### Published Language
+
+A published-language package defines an interoperable language under `src/published-language/`:
+
+```text
+published-language/
+└── ...                    ← schemas, data structures, unions, parsers and value objects
+```
+
+Only the roles in `publishedLanguageRoles` plus `value-object` are permitted there. A published language cannot import another internal location. A package whose published annotations have associated ESLint integration may also contain `src/eslint/`; it is outside the published language and cannot contain role-bearing exports.
+
+### Package Entry Points
+
+Published packages use `src/index.ts` only as their package entry point. It contains explicit public exports pointing directly to the files that own those declarations; do not add nested barrel files. `shell/` is app wiring, not a package-export location.
 
 ## Local Exceptions
 
-**React applications** extend the standard feature sub-folders with `components/` and `hooks/`. Entrypoints are page components. Shell contains routing and providers.
-
-**Flat packages** too small for internal layering (schemas, config, decorators) use flat `src/` with no features/platform/shell structure.
+**Éclair** is not assigned to Rivière role enforcement yet. Its existing boundaries remain checked by `.dependency-cruiser.frontend.mjs`; adding it to role enforcement requires an approved configuration that honestly describes and enforces its roles and locations.
 
 **Claude Code plugin packages** may keep host-required prompt artifacts outside `src/` when the host loader requires fixed top-level locations. For `tools/dev-workflow-v2`, this includes command and state markdown under `tools/dev-workflow-v2/commands/` and `tools/dev-workflow-v2/states/`, hook scripts under `tools/dev-workflow-v2/hooks/`, and plugin metadata under `tools/dev-workflow-v2/.claude-plugin/`. Runtime TypeScript still belongs under `src/`.

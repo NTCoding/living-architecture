@@ -5,13 +5,13 @@ import path from 'node:path'
 type ReadDirectory = (
   rootDir: PathLike,
   options: {
-    recursive: true
     withFileTypes: true
   },
 ) => Array<{
+  isDirectory: () => boolean
   isFile: () => boolean
+  isSymbolicLink: () => boolean
   name: string
-  parentPath: string
 }>
 
 /** @riviere-role external-client-service */
@@ -44,20 +44,25 @@ function extractScanDirectory(includePattern: string): string {
 
 function walkFiles(rootDir: string, scanDirectory: string, readDirectory: ReadDirectory): string[] {
   const absoluteScanDirectory = path.join(rootDir, scanDirectory)
-  const entries = readDirectory(absoluteScanDirectory, {
-    recursive: true,
-    withFileTypes: true,
+  return walkDirectory(absoluteScanDirectory, scanDirectory, readDirectory)
+}
+
+function walkDirectory(
+  absoluteDirectory: string,
+  relativeDirectory: string,
+  readDirectory: ReadDirectory,
+): string[] {
+  return readDirectory(absoluteDirectory, { withFileTypes: true }).flatMap((entry) => {
+    const absolutePath = path.join(absoluteDirectory, entry.name)
+    const relativePath = normalizePath(path.join(relativeDirectory, entry.name))
+    if (entry.isFile()) {
+      return [relativePath]
+    }
+    if (entry.isDirectory() && !entry.isSymbolicLink()) {
+      return walkDirectory(absolutePath, relativePath, readDirectory)
+    }
+    return []
   })
-  return entries
-    .filter((entry) => entry.isFile())
-    .map((entry) =>
-      normalizePath(
-        path.join(
-          scanDirectory,
-          path.relative(absoluteScanDirectory, path.join(entry.parentPath, entry.name)),
-        ),
-      ),
-    )
 }
 
 function matchesAny(filePath: string, patterns: readonly string[]): boolean {

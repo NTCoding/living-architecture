@@ -6,7 +6,7 @@ import type {
   OperationBehavior,
   DomainMetadata,
   SystemType,
-} from '@living-architecture/riviere-schema'
+} from '@living-architecture/riviere-schema/schema'
 import {
   nodeIdSchema,
   edgeIdSchema,
@@ -283,13 +283,13 @@ export function parseDomainMetadata(
     const entities:
       | Record<ReturnType<typeof entityNameSchema.parse>, EntityDefinition>
       | undefined = value.entities
-        ? Object.fromEntries(
+      ? Object.fromEntries(
           Object.entries(value.entities).map(([entityName, definition]) => [
             entityNameSchema.parse(entityName),
             definition,
           ]),
         )
-        : undefined
+      : undefined
 
     const parsedValue: DomainMetadata = {
       description: value.description,

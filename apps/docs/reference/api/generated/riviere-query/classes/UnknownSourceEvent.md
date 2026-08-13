@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: UnknownSourceEvent
 
-Defined in: packages/riviere-query/src/features/querying/domain/unknown-source-event.ts:7
+Defined in: packages/riviere-query/src/domain/unknown-source-event.ts:7
 
 A subscribed event where the source domain is unknown.
 
@@ -18,7 +18,7 @@ value-object
 
 > `readonly` **eventName**: `EventName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/unknown-source-event.ts:9
+Defined in: packages/riviere-query/src/domain/unknown-source-event.ts:9
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/unknown-source-e
 
 > `readonly` **sourceKnown**: `false`
 
-Defined in: packages/riviere-query/src/features/querying/domain/unknown-source-event.ts:10
+Defined in: packages/riviere-query/src/domain/unknown-source-event.ts:10
 
 ## Methods
 
@@ -34,7 +34,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/unknown-source-e
 
 > `static` **parse**(`input`): `UnknownSourceEvent`
 
-Defined in: packages/riviere-query/src/features/querying/domain/unknown-source-event.ts:17
+Defined in: packages/riviere-query/src/domain/unknown-source-event.ts:17
 
 #### Parameters
 

@@ -5,7 +5,7 @@ import type {
   Link,
   Component,
   APIComponent,
-} from '@living-architecture/riviere-schema'
+} from '@living-architecture/riviere-schema/schema'
 
 export type NodeType = ComponentType | 'External'
 

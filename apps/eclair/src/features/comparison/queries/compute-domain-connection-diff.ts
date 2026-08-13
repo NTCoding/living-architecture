@@ -1,7 +1,5 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type {
-  Node, NodeType 
-} from '@/platform/domain/eclair-types'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { Node, NodeType } from '@/platform/domain/eclair-types'
 
 export interface EdgeDetail {
   sourceNodeName: string

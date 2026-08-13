@@ -1,5 +1,7 @@
-import { roleEnforcement } from '@living-architecture/riviere-role-enforcement'
-import { standard } from './configurations/standard'
+import { roleEnforcementConfiguration } from '@living-architecture/riviere-role-enforcement'
+import { app } from './configurations/app'
+import { domainModel } from './configurations/domain-model'
+import { publishedLanguage } from './configurations/published-language'
 import { allRoles } from './roles'
 
 /**
@@ -10,8 +12,8 @@ import { allRoles } from './roles'
  * Any change to the architecture must update both.
  */
 
-export const config = roleEnforcement({
-  configurations: { standard },
+export const config = roleEnforcementConfiguration({
+  configurations: { app, domainModel, publishedLanguage },
   ignorePatterns: [
     '**/__fixtures__/**',
     '**/*-fixtures.ts',
@@ -20,8 +22,5 @@ export const config = roleEnforcement({
   ],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: allRoles,
-  workspacePackageSources: {
-    '@living-architecture/riviere-builder': 'packages/riviere-builder/src/index.ts',
-    '@living-architecture/riviere-query': 'packages/riviere-query/src/index.ts',
-  },
+  unassignedPackages: ['apps/docs', 'apps/eclair'],
 })

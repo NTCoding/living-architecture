@@ -17,6 +17,4 @@ export {
   // Other decorators
   Custom,
   Ignore,
-  // Utilities
-  getCustomType,
-} from './decorators'
+} from './published-language/decorators'

@@ -14,6 +14,7 @@ interface OxlintClientDependencies {
     options: {
       cwd: string
       encoding: 'utf8'
+      maxBuffer: number
     },
   ) => {
     error?: Error
@@ -50,6 +51,7 @@ export function runOxlint(
       {
         cwd: input.configDir,
         encoding: 'utf8',
+        maxBuffer: 50 * 1024 * 1024,
       },
     )
 

@@ -5,7 +5,7 @@ import {
   DomainListLoader,
   EntryPointListLoader,
   OrphanListLoader,
-} from '../data-access/query-loaders'
+} from '../data-access/graph/query-loaders'
 import { DetectOrphans } from './detect-orphans'
 import { ListComponents } from './list-components'
 import { ListDomains } from './list-domains'

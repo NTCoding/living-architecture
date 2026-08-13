@@ -1,18 +1,24 @@
-import type { BashForbiddenConfig } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { parseStateName } from './workflow-types'
-import { implementingState } from './states/implementing'
-import { reviewingState } from './states/reviewing'
-import { submittingPrState } from './states/submitting-pr'
-import { awaitingCiState } from './states/awaiting-ci'
-import { awaitingPrFeedbackState } from './states/awaiting-pr-feedback'
-import { addressingFeedbackState } from './states/addressing-feedback'
-import { reflectingState } from './states/reflecting'
-import { completeState } from './states/complete'
-import { blockedState } from './states/blocked'
+import { defineImplementingState } from './states/implementing'
+import { defineReviewingState } from './states/reviewing'
+import { defineSubmittingPrState } from './states/submitting-pr'
+import { defineAwaitingCiState } from './states/awaiting-ci'
+import { defineAwaitingPrFeedbackState } from './states/awaiting-pr-feedback'
+import { defineAddressingFeedbackState } from './states/addressing-feedback'
+import { defineReflectingState } from './states/reflecting'
+import { defineCompleteState } from './states/complete'
+import { defineBlockedState } from './states/blocked'
 
-export const BASH_FORBIDDEN: BashForbiddenConfig = {
-  commands: ['git push', 'gh pr'],
-  flags: ['--no-verify', '--force', '--hard'],
+const WORKFLOW_REGISTRY = {
+  IMPLEMENTING: defineImplementingState(),
+  REVIEWING: defineReviewingState(),
+  SUBMITTING_PR: defineSubmittingPrState(),
+  AWAITING_CI: defineAwaitingCiState(),
+  AWAITING_PR_FEEDBACK: defineAwaitingPrFeedbackState(),
+  ADDRESSING_FEEDBACK: defineAddressingFeedbackState(),
+  REFLECTING: defineReflectingState(),
+  COMPLETE: defineCompleteState(),
+  BLOCKED: defineBlockedState(),
 }
 
 /** @riviere-role domain-service */
@@ -20,14 +26,7 @@ export function getStateDefinition(state: string) {
   return WORKFLOW_REGISTRY[parseStateName(state)]
 }
 
-export const WORKFLOW_REGISTRY = {
-  IMPLEMENTING: implementingState,
-  REVIEWING: reviewingState,
-  SUBMITTING_PR: submittingPrState,
-  AWAITING_CI: awaitingCiState,
-  AWAITING_PR_FEEDBACK: awaitingPrFeedbackState,
-  ADDRESSING_FEEDBACK: addressingFeedbackState,
-  REFLECTING: reflectingState,
-  COMPLETE: completeState,
-  BLOCKED: blockedState,
+/** @riviere-role domain-service */
+export function getWorkflowRegistry() {
+  return WORKFLOW_REGISTRY
 }

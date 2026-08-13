@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: EntityTransition
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity-transition.ts:8
+Defined in: packages/riviere-query/src/domain/entity-transition.ts:8
 
 A state transition in an entity's state machine.
 
@@ -18,7 +18,7 @@ value-object
 
 > `readonly` **from**: [`State`](State.md)
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity-transition.ts:10
+Defined in: packages/riviere-query/src/domain/entity-transition.ts:10
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/entity-transitio
 
 > `readonly` **to**: [`State`](State.md)
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity-transition.ts:11
+Defined in: packages/riviere-query/src/domain/entity-transition.ts:11
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/entity-transitio
 
 > `readonly` **triggeredBy**: `OperationName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity-transition.ts:12
+Defined in: packages/riviere-query/src/domain/entity-transition.ts:12
 
 ## Methods
 
@@ -42,7 +42,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/entity-transitio
 
 > `static` **parse**(`input`): `EntityTransition`
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity-transition.ts:24
+Defined in: packages/riviere-query/src/domain/entity-transition.ts:24
 
 #### Parameters
 

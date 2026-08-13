@@ -26,10 +26,6 @@ pageClass: reference
 - [RiviereBuilder](classes/RiviereBuilder.md)
 - [SourceConflictError](classes/SourceConflictError.md)
 
-## Interfaces
-
-- [ComponentIdParts](interfaces/ComponentIdParts.md)
-
 ## Functions
 
 - [findNearMatches](functions/findNearMatches.md)

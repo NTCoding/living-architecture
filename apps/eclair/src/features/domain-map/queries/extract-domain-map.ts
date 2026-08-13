@@ -1,16 +1,12 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type {
-  Node, Edge 
-} from '@xyflow/react'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { Node, Edge } from '@xyflow/react'
 import dagre from 'dagre'
 import { getClosestHandle } from '@/platform/infra/layout/handle-positioning'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import type * as DomainMapEdgeTypes from './edgeAggregation'
 import { LayoutError } from '@/platform/infra/errors/errors'
 import { aggregateDomainEdges } from './edge-aggregation'
-import {
-  aggregateExternalEdges, createExternalNodeId 
-} from './external-domain-handling'
+import { aggregateExternalEdges, createExternalNodeId } from './external-domain-handling'
 import { getEffectiveNodeType } from '@/platform/domain/node-type-presentation'
 import { semanticRelationshipSummary } from './edgeAggregation'
 

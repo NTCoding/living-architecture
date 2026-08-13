@@ -1,4 +1,4 @@
-import { ComponentListLoader } from '../data-access/query-loaders'
+import { ComponentListLoader } from '../data-access/graph/query-loaders'
 import { ComponentType } from '../../../platform/domain/component-type'
 import type { ListComponentsInput } from './list-components-input'
 import type { ListComponentsResult } from './list-components-result'

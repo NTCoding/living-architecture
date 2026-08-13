@@ -11,11 +11,11 @@ export {
   location,
   locationConfiguration,
   role,
-  roleEnforcement,
+  roleEnforcementConfiguration,
 } from './features/enforcement/domain/role-enforcement-builder'
 export type {
   LocationBuilder,
   LocationConfiguration,
-  RoleEnforcementResult,
+  RoleEnforcementConfiguration,
 } from './features/enforcement/domain/role-enforcement-builder'
 export { RoleEnforcementExecutionError } from './features/enforcement/domain/role-enforcement-execution-error'

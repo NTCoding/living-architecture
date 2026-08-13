@@ -3,7 +3,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcement,
+  roleEnforcementConfiguration,
 } from '../domain/role-enforcement-builder'
 import {
   createTestRoleEnforcementApplication,
@@ -29,7 +29,7 @@ const testLocations = locationConfiguration(
   location<TestRoleName>('/shell', ['role-main']),
 )
 
-const testConfig = roleEnforcement({
+const testConfig = roleEnforcementConfiguration({
   configurations: {
     test: {
       packages: ['packages/pkg-a'],

@@ -5,8 +5,10 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcement,
+  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
 } from './role-enforcement-builder'
+import { RoleEnforcementExecutionError } from './role-enforcement-execution-error'
 
 function expectBuiltRole(result: BuiltRole, expected: object): void {
   expect(result).toBeInstanceOf(BuiltRole)
@@ -141,7 +143,7 @@ describe('role', () => {
   })
 })
 
-describe('roleEnforcement', () => {
+describe('roleEnforcementConfiguration', () => {
   const testRoles = [
     role('cli-entrypoint', { targets: ['function'] }),
     role('aggregate', { targets: ['class'] }),
@@ -153,7 +155,7 @@ describe('roleEnforcement', () => {
         .subLocation('/domain', ['aggregate'])
         .subLocation('/entrypoint', ['cli-entrypoint']),
     )
-    const result = roleEnforcement({
+    const result = roleEnforcementConfiguration({
       configurations: {
         standard: {
           packages: ['packages/app-a', 'packages/app-b'],
@@ -179,7 +181,7 @@ describe('roleEnforcement', () => {
 
   it('derives TypeScript and TSX include patterns from every enforced package', () => {
     const locations = locationConfiguration(location('/domain', { allowAnySubLocations: true }))
-    const result = roleEnforcement({
+    const result = roleEnforcementConfiguration({
       configurations: {
         standard: {
           packages: ['packages/my-app'],
@@ -204,7 +206,7 @@ describe('roleEnforcement', () => {
   })
 
   it('keeps configuration values needed by the runner', () => {
-    const result = roleEnforcement({
+    const result = roleEnforcementConfiguration({
       configurations: {
         standard: {
           packages: ['packages/my-app'],
@@ -215,7 +217,6 @@ describe('roleEnforcement', () => {
       importAliases: { '@/': 'packages/my-app/src/' },
       roleDefinitionsDir: '.riviere/role-definitions',
       roles: testRoles,
-      workspacePackageSources: { '@generic/pkg': 'packages/pkg/src/index.ts' },
     })
 
     expect(result).toMatchObject({
@@ -223,7 +224,6 @@ describe('roleEnforcement', () => {
       importAliases: { '@/': 'packages/my-app/src/' },
       roleDefinitionsDir: '.riviere/role-definitions',
       roles: testRoles,
-      workspacePackageSources: { '@generic/pkg': 'packages/pkg/src/index.ts' },
     })
   })
 
@@ -237,7 +237,7 @@ describe('roleEnforcement', () => {
       ),
     )
 
-    const result = roleEnforcement({
+    const result = roleEnforcementConfiguration({
       configurations: {
         standard: {
           packages: ['packages/app'],
@@ -250,9 +250,7 @@ describe('roleEnforcement', () => {
     })
 
     expect(
-      result.locationHierarchy.map(({
-        name, parentId, pathTemplate 
-      }) => ({
+      result.locationHierarchy.map(({ name, parentId, pathTemplate }) => ({
         name,
         parentId,
         pathTemplate,
@@ -282,6 +280,58 @@ describe('roleEnforcement', () => {
   })
 })
 
+describe('RoleEnforcementConfiguration.parse', () => {
+  const completeConfiguration = {
+    assignedPackages: [],
+    ignorePatterns: [],
+    include: ['packages/app/src/**/*.ts'],
+    locationHierarchy: [],
+    roleDefinitionsDir: '.riviere/role-definitions',
+    roles: [],
+    unassignedPackages: [],
+  }
+
+  it('returns the configuration when all required values are present', () => {
+    const result = RoleEnforcementConfiguration.parse(completeConfiguration)
+
+    expect(result).toStrictEqual({
+      success: true,
+      data: expect.any(RoleEnforcementConfiguration),
+    })
+  })
+
+  it('returns an error when the configuration is not an object', () => {
+    const result = RoleEnforcementConfiguration.parse(undefined)
+
+    expect(result).toStrictEqual({
+      success: false,
+      error: new RoleEnforcementExecutionError('Role enforcement configuration must be an object.'),
+    })
+  })
+
+  it.each([
+    'assignedPackages',
+    'include',
+    'ignorePatterns',
+    'locationHierarchy',
+    'roles',
+    'roleDefinitionsDir',
+    'unassignedPackages',
+  ])("returns an error when '%s' is missing", (missingProperty) => {
+    const incompleteConfiguration: Record<string, unknown> = { ...completeConfiguration }
+    delete incompleteConfiguration[missingProperty]
+
+    const result = RoleEnforcementConfiguration.parse(incompleteConfiguration)
+
+    expect(result).toStrictEqual({
+      success: false,
+      error: new RoleEnforcementExecutionError(
+        `Role enforcement configuration is missing required property '${missingProperty}'.`,
+      ),
+    })
+  })
+})
+
 describe('createRoleFactory', () => {
   it('produces a role with typed name constraint', () => {
     type TestRole = 'aggregate' | 'aggregate-repository'
@@ -308,5 +358,30 @@ describe('createRoleFactory', () => {
 
     expect(result.allowedInputs).toStrictEqual(['command-use-case-input'])
     expect(result.forbiddenDependencies).toStrictEqual(['command-use-case'])
+  })
+
+  it.each([
+    [{ requiresDecoratorSignature: true }, ['function']],
+    [{ requiresStringLiteralConstant: true }, ['variable']],
+    [{ requiresDataStructure: true }, ['interface']],
+    [{ requiresUnion: true }, ['type-alias']],
+    [{ returns: [{ success: true, '*': 'semantic-role' }] }, ['function']],
+  ] as const)('infers the declaration target from a semantic role rule', (options, targets) => {
+    type TestRole = 'semantic-role'
+    const typedRole = createRoleFactory<TestRole>()
+
+    const result = typedRole('semantic-role', options)
+
+    expect(result.targets).toStrictEqual(targets)
+  })
+
+  it('rejects a role without a declaration target or semantic rule', () => {
+    type TestRole = 'invalid-role'
+    const typedRole = createRoleFactory<TestRole>()
+
+    expect(() => {
+      // @ts-expect-error untyped JavaScript callers still require runtime protection
+      typedRole('invalid-role', {})
+    }).toThrow('A role must declare a target or semantic rule.')
   })
 })

@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event'
 import {
   describe, expect, it,
 } from 'vitest'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import { ThemeProvider } from '@/platform/infra/theme/ThemeContext'
 import { ModulesPage } from './ModulesPage'
 

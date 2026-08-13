@@ -1,10 +1,10 @@
-import { WORKFLOW_EVENT_SCHEMA } from './workflow-events'
+import { parseWorkflowEvent } from './workflow-events'
 
 const AT = '2026-01-01T00:00:00Z'
 
-describe('WORKFLOW_EVENT_SCHEMA — pr-feedback-verification-failed', () => {
+describe('parseWorkflowEvent — pr-feedback-verification-failed', () => {
   it('accepts failure reason payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'pr-feedback-verification-failed',
       at: AT,
       reason: 'CodeRabbit feedback did not appear.',
@@ -19,7 +19,7 @@ describe('WORKFLOW_EVENT_SCHEMA — pr-feedback-verification-failed', () => {
 
   it('rejects missing reason', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'pr-feedback-verification-failed',
         at: AT,
       }),

@@ -1,6 +1,4 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { extractDomainDetails } from './extract-domain-details'
 import {
   parseNode,
@@ -8,7 +6,7 @@ import {
   parseDomainKey,
   type RawNode,
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',

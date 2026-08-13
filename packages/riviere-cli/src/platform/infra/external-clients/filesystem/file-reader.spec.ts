@@ -2,7 +2,8 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { FileReadError, fileExists, readJsonFile, readTextFile } from './index'
+import { FileReadError, readJsonFile, readTextFile } from './file-reader'
+import { fileExists } from './file-existence'
 
 const temporaryDirectories: string[] = []
 

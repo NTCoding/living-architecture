@@ -1,6 +1,6 @@
 import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
-import { ExtractionConfigError } from '../domain/extraction-config-error'
-import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts/features/extraction/domain/connection-detection/connection-detection-error'
+import { ExtractionConfigError } from '../data-access/extraction-project/extraction-config-error'
+import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts/domain/connection-detection/connection-detection-error'
 import type { ExtractDraftComponentsInput } from './extract-draft-components-input'
 import type { ExtractDraftComponentsResult } from './extract-draft-components-result'
 

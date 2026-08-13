@@ -1,12 +1,14 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type {
-  Node, Edge, NodeType, NodeId 
-} from '@/platform/domain/eclair-types'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { Node, Edge, NodeType, NodeId } from '@/platform/domain/eclair-types'
 import { GraphError } from '@/platform/infra/errors/errors'
 
-interface NodeAddition {node: Node}
+interface NodeAddition {
+  node: Node
+}
 
-interface NodeRemoval {node: Node}
+interface NodeRemoval {
+  node: Node
+}
 
 interface NodeModification {
   before: Node
@@ -14,9 +16,13 @@ interface NodeModification {
   changedFields: string[]
 }
 
-interface EdgeAddition {edge: Edge}
+interface EdgeAddition {
+  edge: Edge
+}
 
-interface EdgeRemoval {edge: Edge}
+interface EdgeRemoval {
+  edge: Edge
+}
 
 interface EdgeModification {
   before: Edge
@@ -61,9 +67,13 @@ export interface NodeTypeChanges {
   modified: NodeModification[]
 }
 
-interface ByDomainAccumulator {data: Record<string, DomainChanges>}
+interface ByDomainAccumulator {
+  data: Record<string, DomainChanges>
+}
 
-interface ByNodeTypeAccumulator {data: Map<NodeType, NodeTypeChanges>}
+interface ByNodeTypeAccumulator {
+  data: Map<NodeType, NodeTypeChanges>
+}
 
 export interface GraphDiff {
   nodes: NodeDiff

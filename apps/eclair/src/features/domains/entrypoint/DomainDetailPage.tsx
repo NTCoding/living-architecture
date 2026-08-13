@@ -2,7 +2,7 @@ import {
   useState, useRef, useCallback, forwardRef 
 } from 'react'
 import { useParams } from 'react-router-dom'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import {
   extractDomainDetails, type DomainDetails
 } from '../queries/extract-domain-details'

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: DuplicateComponentError
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:52
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:52
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new DuplicateComponentError**(`componentId`): `DuplicateComponentError`
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:55
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:55
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:53
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:53
 
 ***
 

@@ -1,4 +1,4 @@
-import { EntryPointListLoader } from '../data-access/query-loaders'
+import { EntryPointListLoader } from '../data-access/graph/query-loaders'
 import type { ListEntryPointsInput } from './list-entry-points-input'
 import type { ListEntryPointsResult } from './list-entry-points-result'
 import { toQueryGraphLoadFailure } from './query-graph-load-failure'

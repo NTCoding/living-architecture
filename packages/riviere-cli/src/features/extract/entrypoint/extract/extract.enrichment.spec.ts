@@ -1,11 +1,6 @@
-import {
-  writeFile, mkdir 
-} from 'node:fs/promises'
+import { writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
-import {
-  describe, it, expect 
-} from 'vitest'
-import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
+import { describe, it, expect } from 'vitest'
 import type { TestContext } from '../../../../platform/__fixtures__/command-test-fixtures'
 import {
   createTestContext,
@@ -131,11 +126,12 @@ describe('riviere extract enrichment', () => {
       const configPath = join(ctx.testDir, 'extract.yaml')
       await writeFile(configPath, configWithLiteralExtract)
 
-      const draftComponents: DraftComponent[] = [
+      const draftComponents = [
         {
           type: 'useCase',
           name: 'PlaceOrder',
           domain: 'orders',
+          module: 'orders',
           location: {
             file: join(srcDir, 'order-service.ts'),
             line: 2,

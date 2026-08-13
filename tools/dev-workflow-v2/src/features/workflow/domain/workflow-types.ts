@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const STATE_NAMES = [
+const STATE_NAMES = [
   'IMPLEMENTING',
   'REVIEWING',
   'SUBMITTING_PR',
@@ -14,16 +14,7 @@ export const STATE_NAMES = [
 
 type StateName = (typeof STATE_NAMES)[number]
 
-export const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
-
-const LIVING_ARCHITECTURE_REVIEW_TYPES = [
-  'architecture-review',
-  'code-review',
-  'bug-scanner',
-  'task-check',
-] as const
-
-export const LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA = z.enum(LIVING_ARCHITECTURE_REVIEW_TYPES)
+const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
 
 /** @riviere-role domain-service */
 export function createWorkflowStateSchema<T extends readonly [string, ...string[]]>(stateNames: T) {
@@ -106,7 +97,7 @@ export class WorkflowState {
   }
 }
 
-export const INITIAL_STATE = WorkflowState.parse({
+const INITIAL_STATE = WorkflowState.parse({
   currentStateMachineState: 'IMPLEMENTING',
   architectureReviewPassed: false,
   codeReviewPassed: false,
@@ -120,4 +111,19 @@ export const INITIAL_STATE = WorkflowState.parse({
 /** @riviere-role domain-service */
 export function parseStateName(value: string): StateName {
   return STATE_NAME_SCHEMA.parse(value)
+}
+
+/** @riviere-role domain-service */
+export function getWorkflowStateNames() {
+  return STATE_NAMES
+}
+
+/** @riviere-role domain-service */
+export function getWorkflowStateNameSchema() {
+  return STATE_NAME_SCHEMA
+}
+
+/** @riviere-role domain-service */
+export function getInitialWorkflowState(): WorkflowState {
+  return INITIAL_STATE
 }

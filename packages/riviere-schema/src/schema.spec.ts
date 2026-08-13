@@ -5,52 +5,25 @@ import type {
   APIComponent,
   Link,
   GraphMetadata,
-} from './schema'
-import {
-  parseRiviereGraph,
-  formatValidationErrors,
-  RiviereSchemaValidationError,
-} from './validation'
+} from './published-language/schema'
+import { parseRiviereGraph } from './published-language/validation'
 
-describe('formatValidationErrors()', () => {
-  it('returns generic message when errors is null', () => {
-    const result = formatValidationErrors(null)
-    expect(result).toBe('validation failed without specific errors')
-  })
+function parseValidGraph(input: unknown): RiviereGraph {
+  const result = parseRiviereGraph(input)
+  expect(result.success).toBe(true)
+  if (!result.success) {
+    expect.fail(result.issues.join('\n'))
+  }
+  return result.graph
+}
 
-  it('returns generic message when errors is empty array', () => {
-    const result = formatValidationErrors([])
-    expect(result).toBe('validation failed without specific errors')
-  })
-
-  it('formats single error with path and message', () => {
-    const errors = [
-      {
-        instancePath: '/version',
-        message: 'must match pattern',
-      },
-    ]
-    const result = formatValidationErrors(errors)
-    expect(result).toBe('/version: must match pattern')
-  })
-
-  it('formats multiple errors joined by newlines', () => {
-    const errors = [
-      {
-        instancePath: '/version',
-        message: 'must match pattern',
-      },
-      {
-        instancePath: '/components/0/type',
-        message: 'must be equal to one of the allowed values',
-      },
-    ]
-    const result = formatValidationErrors(errors)
-    expect(result).toBe(
-      '/version: must match pattern\n/components/0/type: must be equal to one of the allowed values',
-    )
-  })
-})
+function expectInvalidGraph(input: unknown, expectedIssue: string): void {
+  const result = parseRiviereGraph(input)
+  expect(result.success).toBe(false)
+  if (!result.success) {
+    expect(result.issues.join('\n')).toContain(expectedIssue)
+  }
+}
 
 describe('parseRiviereGraph()', () => {
   it('parses valid graph and returns typed RiviereGraph', () => {
@@ -68,7 +41,7 @@ describe('parseRiviereGraph()', () => {
       links: [],
     }
 
-    const result = parseRiviereGraph(input)
+    const result = parseValidGraph(input)
 
     expect(result.version).toBe('1.0')
     expect(result.components).toHaveLength(0)
@@ -89,7 +62,7 @@ describe('parseRiviereGraph()', () => {
       links: [],
     }
 
-    const result = parseRiviereGraph(input)
+    const result = parseValidGraph(input)
 
     expect(result.metadata.domains['alerts']?.systemType).toBe('external-service')
   })
@@ -124,7 +97,7 @@ describe('parseRiviereGraph()', () => {
       ],
     }
 
-    const result = parseRiviereGraph(input)
+    const result = parseValidGraph(input)
 
     expect(result.metadata.relationshipTypes?.['executes']?.description).toBe(
       'Invokes the target during execution',
@@ -132,7 +105,7 @@ describe('parseRiviereGraph()', () => {
     expect(result.links[0]).toStrictEqual(input.links[0])
   })
 
-  it('throws RiviereSchemaValidationError on invalid component type', () => {
+  it('returns validation issues for an invalid component type', () => {
     const input = {
       version: '1.0',
       metadata: {
@@ -159,11 +132,10 @@ describe('parseRiviereGraph()', () => {
       links: [],
     }
 
-    expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-    expect(() => parseRiviereGraph(input)).toThrow(/Invalid RiviereGraph/)
+    expectInvalidGraph(input, '/components/0/type')
   })
 
-  it('throws RiviereSchemaValidationError on missing required field', () => {
+  it('returns validation issues for a missing required field', () => {
     const input = {
       metadata: {
         domains: {
@@ -177,11 +149,10 @@ describe('parseRiviereGraph()', () => {
       links: [],
     }
 
-    expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-    expect(() => parseRiviereGraph(input)).toThrow(/version|Invalid RiviereGraph/i)
+    expectInvalidGraph(input, 'version')
   })
 
-  it('throws RiviereSchemaValidationError on invalid version format', () => {
+  it('returns validation issues for an invalid version format', () => {
     const input = {
       version: 'not-a-version',
       metadata: {
@@ -196,8 +167,7 @@ describe('parseRiviereGraph()', () => {
       links: [],
     }
 
-    expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-    expect(() => parseRiviereGraph(input)).toThrow(/Invalid RiviereGraph/)
+    expectInvalidGraph(input, '/version')
   })
 
   it('parses external link target with optional route', () => {
@@ -224,7 +194,7 @@ describe('parseRiviereGraph()', () => {
       ],
     }
 
-    const result = parseRiviereGraph(input)
+    const result = parseValidGraph(input)
 
     expect(result.externalLinks?.[0]?.target).toStrictEqual({
       name: 'Fraud Detection Service',

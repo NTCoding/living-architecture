@@ -2,12 +2,12 @@ import { expect, it, vi } from 'vitest'
 import {
   location,
   locationConfiguration,
-  roleEnforcement,
-  type RoleEnforcementResult,
+  roleEnforcementConfiguration,
+  type RoleEnforcementConfiguration,
 } from './role-enforcement-builder'
 import { RoleEnforcementProject } from './role-enforcement-project'
 
-const config: RoleEnforcementResult = roleEnforcement({
+const config: RoleEnforcementConfiguration = roleEnforcementConfiguration({
   configurations: {
     test: {
       packages: ['packages/pkg-a', 'packages/pkg-b'],
@@ -56,6 +56,7 @@ it('selects package configuration and targets during execution', () => {
   expect(runner).toHaveBeenCalledWith({
     config: {
       ...config,
+      assignedPackages: ['packages/pkg-a'],
       include: ['packages/pkg-a/src/**/*.ts', 'packages/pkg-a/src/**/*.tsx'],
       locationHierarchy: config.locationHierarchy.filter(
         (location) => location.packagePath === 'packages/pkg-a',

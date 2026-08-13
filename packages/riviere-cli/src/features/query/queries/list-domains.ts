@@ -1,4 +1,4 @@
-import { DomainListLoader } from '../data-access/query-loaders'
+import { DomainListLoader } from '../data-access/graph/query-loaders'
 import type { ListDomainsInput } from './list-domains-input'
 import type { ListDomainsResult } from './list-domains-result'
 import { toQueryGraphLoadFailure } from './query-graph-load-failure'

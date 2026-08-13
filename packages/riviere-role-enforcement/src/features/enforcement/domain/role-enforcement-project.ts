@@ -4,12 +4,12 @@ import type {
   RoleEnforcementRunner,
   RoleEnforcementRunnerResult,
 } from './ports/role-enforcement-runner'
-import type { RoleEnforcementResult } from './role-enforcement-builder'
+import type { RoleEnforcementConfiguration } from './role-enforcement-builder'
 
 /** @riviere-role aggregate */
 export class RoleEnforcementProject {
   constructor(
-    private readonly config: RoleEnforcementResult,
+    private readonly config: RoleEnforcementConfiguration,
     private readonly configDir: string,
     private readonly lintTargets: readonly string[],
   ) {}
@@ -34,7 +34,7 @@ export class RoleEnforcementProject {
 
 function selectLintTargets(
   lintTargets: readonly string[],
-  config: RoleEnforcementResult,
+  config: RoleEnforcementConfiguration,
 ): string[] {
   return lintTargets
     .filter((filePath) => matchesAny(filePath, config.include))

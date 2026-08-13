@@ -1,1 +1,1 @@
-export * from './features/building/domain'
+export * from './domain'

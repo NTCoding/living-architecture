@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import { STATE_NAME_SCHEMA } from './workflow-types'
+import { getWorkflowStateNameSchema } from './workflow-types'
+
+const STATE_NAME_SCHEMA = getWorkflowStateNameSchema()
 
 const KNOWN_WORKFLOW_EVENT_TYPES = [
   'session-started',
@@ -128,7 +130,7 @@ const WRITE_CHECKED_SCHEMA = z.object({
   reason: z.string().optional(),
 })
 
-export const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
+const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
   SESSION_STARTED_SCHEMA,
   TRANSITIONED_SCHEMA,
   ISSUE_RECORDED_SCHEMA,

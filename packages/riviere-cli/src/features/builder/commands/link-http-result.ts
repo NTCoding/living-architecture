@@ -1,4 +1,4 @@
-import type { Link } from '@living-architecture/riviere-schema'
+import type { Link } from '@living-architecture/riviere-schema/schema'
 
 /** @riviere-role command-use-case-result-value */
 export interface MatchedApi {
@@ -18,13 +18,13 @@ export type LinkHttpErrorCode =
 /** @riviere-role command-use-case-result */
 export type LinkHttpResult =
   | {
-    link: Link
-    matchedApi: MatchedApi
-    success: true
-  }
+      link: Link
+      matchedApi: MatchedApi
+      success: true
+    }
   | {
-    code: LinkHttpErrorCode
-    message: string
-    suggestions: string[]
-    success: false
-  }
+      code: LinkHttpErrorCode
+      message: string
+      suggestions: string[]
+      success: false
+    }

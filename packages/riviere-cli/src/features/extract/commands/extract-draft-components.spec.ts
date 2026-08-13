@@ -17,8 +17,8 @@ vi.mock('../data-access/extraction-project/extraction-project-repository', () =>
 
 import { ExtractDraftComponents } from './extract-draft-components'
 import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
-import { ExtractionConfigError } from '../domain/extraction-config-error'
-import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts/features/extraction/domain/connection-detection/connection-detection-error'
+import { ExtractionConfigError } from '../data-access/extraction-project/extraction-config-error'
+import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts/domain/connection-detection/connection-detection-error'
 
 const DRAFT_ONLY_RESULT = {
   kind: 'draftOnly' as const,
@@ -30,9 +30,15 @@ class UnexpectedLoadingError extends Error {}
 describe('extractDraftComponents', () => {
   beforeEach(() => {
     vi.resetAllMocks()
-    mocks.loadFromChangedProjectMock.mockReturnValue({extractDraftComponents: mocks.extractDraftComponentsMethodMock,})
-    mocks.loadFromFullProjectMock.mockReturnValue({extractDraftComponents: mocks.extractDraftComponentsMethodMock,})
-    mocks.loadFromSelectedFilesMock.mockReturnValue({extractDraftComponents: mocks.extractDraftComponentsMethodMock,})
+    mocks.loadFromChangedProjectMock.mockReturnValue({
+      extractDraftComponents: mocks.extractDraftComponentsMethodMock,
+    })
+    mocks.loadFromFullProjectMock.mockReturnValue({
+      extractDraftComponents: mocks.extractDraftComponentsMethodMock,
+    })
+    mocks.loadFromSelectedFilesMock.mockReturnValue({
+      extractDraftComponents: mocks.extractDraftComponentsMethodMock,
+    })
     mocks.extractDraftComponentsMethodMock.mockReturnValue(DRAFT_ONLY_RESULT)
   })
 

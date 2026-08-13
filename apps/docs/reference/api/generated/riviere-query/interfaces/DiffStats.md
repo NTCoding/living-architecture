@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: DiffStats
 
-Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:2
+Defined in: packages/riviere-query/src/domain/diff-stats.ts:2
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **componentsAdded**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:4
+Defined in: packages/riviere-query/src/domain/diff-stats.ts:4
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:4
 
 > `readonly` **componentsModified**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:6
+Defined in: packages/riviere-query/src/domain/diff-stats.ts:6
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:6
 
 > `readonly` **componentsRemoved**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:5
+Defined in: packages/riviere-query/src/domain/diff-stats.ts:5
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:5
 
 > `readonly` **linksAdded**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:7
+Defined in: packages/riviere-query/src/domain/diff-stats.ts:7
 
 ***
 
@@ -48,4 +48,4 @@ Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:7
 
 > `readonly` **linksRemoved**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/diff-stats.ts:8
+Defined in: packages/riviere-query/src/domain/diff-stats.ts:8

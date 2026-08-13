@@ -13,9 +13,6 @@
   "references": [
     {
       "path": "../riviere-schema/tsconfig.lib.json"
-    },
-    {
-      "path": "../riviere-query/tsconfig.lib.json"
     }
   ],
   "exclude": [

@@ -3,10 +3,10 @@ import { performance } from 'node:perf_hooks'
 import { fileURLToPath } from 'node:url'
 import { createOxlintRoleEnforcementRunner } from '../features/enforcement/adapters/oxlint/oxlint-role-enforcement-runner'
 import { RunRoleEnforcement } from '../features/enforcement/commands/run-role-enforcement'
-import { RoleEnforcementProjectRepository } from '../features/enforcement/data-access/role-enforcement-project-repository'
+import { RoleEnforcementProjectRepository } from '../features/enforcement/data-access/role-enforcement/role-enforcement-project-repository'
 import { main } from '../features/enforcement/entrypoint/cli/entrypoint'
 import { findFileUp } from '../platform/infra/external-clients/filesystem/find-file-up'
-import { runOxlint } from '../platform/infra/external-clients/oxlint/index'
+import { runOxlint } from '../platform/infra/external-clients/oxlint/oxlint-client'
 
 const configModulePath = process.argv[2]
 if (configModulePath === undefined) {

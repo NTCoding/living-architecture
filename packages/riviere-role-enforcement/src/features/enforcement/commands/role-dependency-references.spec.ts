@@ -15,7 +15,7 @@ const roles = [
   }),
 ] as const
 
-const config = enforcementBuilder.roleEnforcement({
+const config = enforcementBuilder.roleEnforcementConfiguration({
   configurations: {
     test: {
       packages: ['packages/pkg-a'],

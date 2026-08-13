@@ -1,28 +1,26 @@
-import type {
-  ConnectionTimings,
-  DraftComponent,
-  EnrichedComponent,
-  ExtractedLink,
-} from '@living-architecture/riviere-extract-ts'
-import type { ExternalLink } from '@living-architecture/riviere-schema'
+import type { ExternalLink } from '@living-architecture/riviere-schema/schema'
+import type { DraftComponent } from '@living-architecture/riviere-extract-ts/domain/component-extraction/draft-component'
+import type { ConnectionTimings } from '@living-architecture/riviere-extract-ts/domain/connection-detection/connection-detection-values'
+import type { ExtractedLink } from '@living-architecture/riviere-extract-ts/domain/connection-detection/extracted-link'
+import type { EnrichedComponent } from '@living-architecture/riviere-extract-ts/domain/value-extraction/enriched-component'
 
 interface ExtractDraftComponentsDraftOnlyResult {
   kind: 'draftOnly'
-  components: DraftComponent[]
+  components: readonly DraftComponent[]
 }
 
 interface ExtractDraftComponentsFullResult {
   kind: 'full'
-  components: EnrichedComponent[]
-  links: ExtractedLink[]
-  externalLinks: ExternalLink[]
-  timings: ConnectionTimings[]
-  failedFields: string[]
+  components: readonly EnrichedComponent[]
+  links: readonly ExtractedLink[]
+  externalLinks: readonly ExternalLink[]
+  timings: readonly ConnectionTimings[]
+  failedFields: readonly string[]
 }
 
 interface ExtractDraftComponentsFieldFailureResult {
   kind: 'fieldFailure'
-  failedFields: string[]
+  failedFields: readonly string[]
 }
 
 interface ExtractDraftComponentsConfigFailureResult {

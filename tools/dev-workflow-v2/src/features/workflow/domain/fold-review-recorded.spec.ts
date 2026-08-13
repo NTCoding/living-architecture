@@ -1,8 +1,9 @@
-import { applyEvent, EMPTY_STATE } from './fold'
+import { applyEvent } from './fold'
 import type { WorkflowEvent } from './workflow-events'
-import type { WorkflowState } from './workflow-types'
+import { getInitialWorkflowState, type WorkflowState } from './workflow-types'
 
 const AT = '2026-01-01T00:00:00Z'
+const EMPTY_STATE = getInitialWorkflowState()
 
 function makeState(overrides: Partial<WorkflowState>): WorkflowState {
   return EMPTY_STATE.with(overrides)

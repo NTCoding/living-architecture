@@ -5,7 +5,7 @@ import {
   ConfigValidationError,
 } from '../platform/infra/cli/presentation/error-codes'
 import { GitError } from '../platform/infra/external-clients/git/git-errors'
-import { FileReadError } from '../platform/infra/external-clients/filesystem/index'
+import { FileReadError } from '../platform/infra/external-clients/filesystem/file-reader'
 
 /** @riviere-role cli-error-handler */
 export function handleGlobalError(error: unknown): never {

@@ -4,7 +4,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { RiviereQuery } from '@living-architecture/riviere-query'
 import type { Entity } from '@living-architecture/riviere-query'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import { EntityAccordion } from '@/platform/infra/ui/EntityAccordion/EntityAccordion'
 
 interface EntitiesPageProps {readonly graph: RiviereGraph}
@@ -29,16 +29,16 @@ export function EntitiesPage({ graph }: Readonly<EntitiesPageProps>): React.Reac
   const filteredEntities = useMemo(() => {
     return entities.filter((entity) => {
       const matchesSearch =
-        entity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        entity.domain.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesDomain = selectedDomain === 'all' || entity.domain === selectedDomain
+        entity.name.value.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        entity.domain.value.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesDomain = selectedDomain === 'all' || entity.domain.value === selectedDomain
 
       return matchesSearch && matchesDomain
     })
   }, [entities, searchQuery, selectedDomain])
 
   const domains = useMemo(() => {
-    return Array.from(new Set(entities.map((e) => e.domain)))
+    return Array.from(new Set(entities.map((e) => e.domain.value)))
   }, [entities])
 
   const totalOperations = useMemo(() => {
@@ -120,7 +120,7 @@ export function EntitiesPage({ graph }: Readonly<EntitiesPageProps>): React.Reac
         <div data-testid="entities-list" className="space-y-4">
           {filteredEntities.map((entity) => (
             <EntityAccordion
-              key={`${entity.domain}-${entity.name}`}
+              key={`${entity.domain.value}-${entity.name.value}`}
               entity={entity}
               onViewOnGraph={handleViewOnGraph}
             />

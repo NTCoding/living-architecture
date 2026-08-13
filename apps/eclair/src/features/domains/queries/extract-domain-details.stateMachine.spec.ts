@@ -1,6 +1,4 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { extractDomainDetails } from './extract-domain-details'
 import {
   parseNode,
@@ -8,7 +6,7 @@ import {
   parseDomainKey,
   type RawNode,
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 
 const testSourceLocation = {
   repository: 'test-repo',
@@ -103,8 +101,13 @@ describe('extractDomainDetails - entity state machine', () => {
     })
 
     const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
-    const orderEntity = result?.entities.find((e) => e.name === 'Order')
+    const orderEntity = result?.entities.find((e) => e.name.value === 'Order')
 
-    expect(orderEntity?.states).toStrictEqual(['Draft', 'Placed', 'Confirmed', 'Shipped'])
+    expect(orderEntity?.states.map((state) => state.value)).toStrictEqual([
+      'Draft',
+      'Placed',
+      'Confirmed',
+      'Shipped',
+    ])
   })
 })

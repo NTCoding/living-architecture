@@ -1,4 +1,4 @@
-import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement-project-repository'
+import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement/role-enforcement-project-repository'
 import { PackageFilterError } from '../domain/filter-config-by-package'
 import type { RoleEnforcementRunner } from '../domain/ports/role-enforcement-runner'
 import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'

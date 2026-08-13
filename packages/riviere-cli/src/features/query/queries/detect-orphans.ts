@@ -1,4 +1,4 @@
-import { OrphanListLoader } from '../data-access/query-loaders'
+import { OrphanListLoader } from '../data-access/graph/query-loaders'
 import type { DetectOrphansInput } from './detect-orphans-input'
 import type { DetectOrphansResult } from './detect-orphans-result'
 import { toQueryGraphLoadFailure } from './query-graph-load-failure'

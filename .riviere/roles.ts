@@ -16,6 +16,7 @@ type RoleName =
   | 'command-use-case-input'
   | 'command-use-case-result'
   | 'command-use-case-result-value'
+  | 'data-access-error'
   | 'domain-error'
   | 'domain-event'
   | 'domain-port'
@@ -25,6 +26,12 @@ type RoleName =
   | 'external-client-model'
   | 'external-client-service'
   | 'main'
+  | 'published-language-annotation'
+  | 'published-language-data-structure'
+  | 'published-language-field-name'
+  | 'published-language-parser'
+  | 'published-language-schema'
+  | 'published-language-union'
   | 'query-model'
   | 'query-model-error'
   | 'query-model-loader'
@@ -66,9 +73,10 @@ export const allRoles = [
   role('external-client-service', { targets: ['function'] }),
   role('aggregate-repository', {
     targets: ['class'],
-    allowedOutputs: ['aggregate', 'domain-error'],
+    allowedOutputs: ['aggregate'],
     forbiddenDependencies: ['aggregate-repository'],
   }),
+  role('data-access-error', { targets: ['class'] }),
   role('aggregate', {
     targets: ['interface', 'type-alias', 'class'],
     minPublicMethods: 1,
@@ -142,6 +150,27 @@ export const allRoles = [
       'aggregate-repository',
       'query-model-loader',
     ],
+  }),
+  role('published-language-annotation', {
+    requiresDecoratorSignature: true,
+  }),
+  role('published-language-data-structure', {
+    requiresDataStructure: true,
+  }),
+  role('published-language-field-name', {
+    requiresStringLiteralConstant: true,
+  }),
+  role('published-language-parser', {
+    returns: [
+      { success: true, '*': 'published-language-schema' },
+      { success: false, '*': '*' },
+    ],
+  }),
+  role('published-language-schema', {
+    requiresDataStructure: true,
+  }),
+  role('published-language-union', {
+    requiresUnion: true,
   }),
 ] as const
 

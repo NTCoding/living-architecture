@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: FlowStep
 
-Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:4
+Defined in: packages/riviere-query/src/domain/flow-step.ts:4
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **component**: `Component`
 
-Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:6
+Defined in: packages/riviere-query/src/domain/flow-step.ts:6
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:6
 
 > `readonly` **depth**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:8
+Defined in: packages/riviere-query/src/domain/flow-step.ts:8
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:8
 
 > `readonly` **externalLinks**: `ExternalLink`[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:9
+Defined in: packages/riviere-query/src/domain/flow-step.ts:9
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:9
 
 > `readonly` **outgoingLinks**: `Link`[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/flow-step.ts:7
+Defined in: packages/riviere-query/src/domain/flow-step.ts:7

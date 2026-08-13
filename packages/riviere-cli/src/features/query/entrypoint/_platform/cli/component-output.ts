@@ -1,5 +1,3 @@
-import type { Component } from '@living-architecture/riviere-schema'
-
 interface ComponentOutput {
   id: string
   type: string
@@ -8,7 +6,7 @@ interface ComponentOutput {
 }
 
 /** @riviere-role cli-output-formatter */
-export function toComponentOutput(component: Component): ComponentOutput {
+export function toComponentOutput(component: ComponentOutput): ComponentOutput {
   return {
     id: component.id,
     type: component.type,

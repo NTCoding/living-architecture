@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: RelationshipTypeNotFoundError
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:120
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:120
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new RelationshipTypeNotFoundError**(`relationshipType`, `definedTypes`): `RelationshipTypeNotFoundError`
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:124
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:124
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **definedTypes**: `string`[]
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:122
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:122
 
 ***
 
@@ -90,7 +90,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **relationshipType**: `string`
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:121
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:121
 
 ***
 

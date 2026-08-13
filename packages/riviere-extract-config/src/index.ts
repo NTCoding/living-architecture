@@ -1,12 +1,10 @@
-export * from './extraction-config-schema'
+export * from './published-language/extraction-config-schema'
 export {
-  isValidExtractionConfig,
-  validateExtractionConfig,
-  validateExtractionConfigSchema,
+  ValidatedConfiguration,
+  ValidatedModule,
+} from './published-language/validated-configuration'
+export {
+  parseExtractionConfigSchema,
   parseExtractionConfig,
-  formatValidationErrors,
-  mapAjvErrors,
-  ExtractionConfigValidationError,
   type ValidationError,
-  type ValidationResult,
-} from './validation'
+} from './published-language/validation'

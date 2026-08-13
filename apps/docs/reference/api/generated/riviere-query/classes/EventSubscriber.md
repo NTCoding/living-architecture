@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: EventSubscriber
 
-Defined in: packages/riviere-query/src/features/querying/domain/event-subscriber.ts:9
+Defined in: packages/riviere-query/src/domain/event-subscriber.ts:9
 
 An event handler that subscribes to an event.
 
@@ -18,7 +18,7 @@ value-object
 
 > `readonly` **domain**: `DomainName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/event-subscriber.ts:13
+Defined in: packages/riviere-query/src/domain/event-subscriber.ts:13
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/event-subscriber
 
 > `readonly` **handlerId**: `HandlerId`
 
-Defined in: packages/riviere-query/src/features/querying/domain/event-subscriber.ts:11
+Defined in: packages/riviere-query/src/domain/event-subscriber.ts:11
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/event-subscriber
 
 > `readonly` **handlerName**: `HandlerName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/event-subscriber.ts:12
+Defined in: packages/riviere-query/src/domain/event-subscriber.ts:12
 
 ## Methods
 
@@ -42,7 +42,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/event-subscriber
 
 > `static` **parse**(`input`): `EventSubscriber`
 
-Defined in: packages/riviere-query/src/features/querying/domain/event-subscriber.ts:25
+Defined in: packages/riviere-query/src/domain/event-subscriber.ts:25
 
 #### Parameters
 

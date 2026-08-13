@@ -1,20 +1,60 @@
-import type { RiviereQuery } from '@living-architecture/riviere-query'
+import { findNearMatches } from '@living-architecture/riviere-builder/domain/error-recovery/component-suggestion'
+import { ComponentId } from '@living-architecture/riviere-schema/component-id'
+import {
+  ComponentId as QueryComponentId,
+  ComponentNotFoundError,
+  RiviereQuery,
+} from '@living-architecture/riviere-query'
 import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 
 /** @riviere-role query-model */
 export type TraceFlowGraph = ReturnType<RiviereQuery['traceFlow']>
 
 /** @riviere-role query-model */
-export type FlowTrace =
-  | {
-    flow: TraceFlowGraph
-    success: true
+export class FoundFlowTrace {
+  readonly success = true
+
+  private constructor(readonly flow: TraceFlowGraph) {}
+
+  static parse(graph: unknown, componentIdInput: string): FlowTrace {
+    const query = RiviereQuery.fromJSON(graph)
+    try {
+      return new FoundFlowTrace(query.traceFlow(QueryComponentId.parse(componentIdInput)))
+    } catch (error) {
+      if (!(error instanceof ComponentNotFoundError)) throw error
+
+      const parsedComponentId = ComponentId.parse(componentIdInput)
+      if (!parsedComponentId.success) {
+        return MissingFlowTrace.parse(error.message, [])
+      }
+      const matches = findNearMatches(
+        query.components(),
+        { name: parsedComponentId.componentId.name() },
+        { limit: 3 },
+      )
+      return MissingFlowTrace.parse(
+        error.message,
+        matches.map((match) => match.component.id),
+      )
+    }
   }
-  | {
-    message: string
-    suggestions: string[]
-    success: false
+}
+
+class MissingFlowTrace {
+  readonly success = false
+
+  private constructor(
+    readonly message: string,
+    readonly suggestions: string[],
+  ) {}
+
+  static parse(message: string, suggestions: string[]): MissingFlowTrace {
+    return new MissingFlowTrace(message, suggestions)
   }
+}
+
+/** @riviere-role query-model */
+export type FlowTrace = FoundFlowTrace | MissingFlowTrace
 
 /** @riviere-role query-model */
 export type TraceFlowResult = FlowTrace | QueryGraphLoadFailure

@@ -11,11 +11,11 @@ import {
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import { WorkflowState } from './workflow-types'
-import { WORKFLOW_REGISTRY, getStateDefinition } from './registry'
+import { getInitialWorkflowState, WorkflowState } from './workflow-types'
+import { getStateDefinition, getWorkflowRegistry } from './registry'
 import type { WorkflowEvent } from './workflow-events'
 import { parseWorkflowEvent } from './workflow-events'
-import { applyEvent, EMPTY_STATE } from './fold'
+import { applyEvent } from './fold'
 import {
   buildPullRequestCreationRequest,
   parsePullRequestDescriptionOptions,
@@ -45,6 +45,7 @@ const PR_FEEDBACK_TIMEOUT_MS = 300_000
 const PR_FEEDBACK_MAX_ATTEMPTS =
   Math.floor(PR_FEEDBACK_TIMEOUT_MS / PR_FEEDBACK_POLL_INTERVAL_MS) + 1
 const REQUIRED_CONSECUTIVE_CLEAN_CODERABBIT_POLLS = 2
+const WORKFLOW_REGISTRY = getWorkflowRegistry()
 
 const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
   'record-issue': {
@@ -113,13 +114,13 @@ function readPrFeedback(
   prNumber: number,
 ):
   | {
-    ok: true
-    feedback: ReturnType<ReadWorkflowPullRequestFeedback>
-  }
+      ok: true
+      feedback: ReturnType<ReadWorkflowPullRequestFeedback>
+    }
   | {
-    ok: false
-    reason: string
-  } {
+      ok: false
+      reason: string
+    } {
   try {
     return {
       ok: true,
@@ -145,7 +146,7 @@ export class Workflow {
   }
 
   static createFresh(deps: WorkflowDeps): Workflow {
-    return new Workflow(EMPTY_STATE, deps)
+    return new Workflow(getInitialWorkflowState(), deps)
   }
 
   static rehydrate(state: unknown, deps: WorkflowDeps): Workflow {

@@ -72,6 +72,29 @@ it('removes the temporary configuration after execution', () => {
   )
 })
 
+it('captures complete output from a large enforcement run', () => {
+  const clientDependencies = dependencies({
+    status: 1,
+    stderr: '',
+    stdout: '',
+  })
+
+  runOxlint(
+    {
+      config,
+      configDir: '/var/folders/fake-dir',
+      lintTargets: ['packages/example/src/domain/example.ts'],
+    },
+    clientDependencies,
+  )
+
+  expect(clientDependencies.spawnSync).toHaveBeenCalledWith(
+    expect.any(String),
+    expect.any(Array),
+    expect.objectContaining({ maxBuffer: 50 * 1024 * 1024 }),
+  )
+})
+
 it('defaults the exit code to one when the process has no status', () => {
   const result = runOxlint(
     {

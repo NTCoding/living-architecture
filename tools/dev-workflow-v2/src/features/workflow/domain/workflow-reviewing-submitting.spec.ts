@@ -10,7 +10,9 @@ import {
 } from './fixtures/workflow-test-fixtures'
 import { Workflow } from './workflow'
 import { applyEvents } from './fold'
-import { reviewingState } from './states/reviewing'
+import { defineReviewingState } from './states/reviewing'
+
+const reviewingState = defineReviewingState()
 
 const CREATE_PR_OPTIONS = [
   '--title',
@@ -39,10 +41,7 @@ function getReviewingTransitionGuard(): NonNullable<typeof reviewingState.transi
   return transitionGuard
 }
 
-function getFailureReason(result: {
-  readonly pass: boolean;
-  readonly reason?: string 
-}): string {
+function getFailureReason(result: { readonly pass: boolean; readonly reason?: string }): string {
   if (result.pass || result.reason === undefined) {
     throw new WorkflowStateError('Expected failed REVIEWING transition guard result.')
   }
@@ -166,9 +165,7 @@ describe('Workflow', () => {
 
   describe('SUBMITTING_PR state', () => {
     it('records PR number with URL', () => {
-      const {
-        result, state, events 
-      } = spec
+      const { result, state, events } = spec
         .given(...eventsToSubmittingPr())
         .when((wf) => wf.executeRecording('record-pr', 99, 'https://github.com/x/y/pull/99'))
       expect(result).toStrictEqual({ pass: true })
@@ -185,9 +182,7 @@ describe('Workflow', () => {
     })
 
     it('records PR number without URL', () => {
-      const {
-        result, state, events 
-      } = spec
+      const { result, state, events } = spec
         .given(...eventsToSubmittingPr())
         .when((wf) => wf.executeRecording('record-pr', 99))
       expect(result).toStrictEqual({ pass: true })
@@ -356,9 +351,7 @@ describe('Workflow', () => {
 
   describe('AWAITING_CI state', () => {
     it('records CI passed', () => {
-      const {
-        result, state 
-      } = spec
+      const { result, state } = spec
         .given(...eventsToAwaitingCi())
         .when((wf) => wf.executeRecording('record-ci-passed'))
       expect(result).toStrictEqual({ pass: true })
@@ -366,9 +359,7 @@ describe('Workflow', () => {
     })
 
     it('records CI failed', () => {
-      const {
-        result, state 
-      } = spec
+      const { result, state } = spec
         .given(...eventsToAwaitingCi())
         .when((wf) => wf.executeRecording('record-ci-failed', 'test failures'))
       expect(result).toStrictEqual({ pass: true })

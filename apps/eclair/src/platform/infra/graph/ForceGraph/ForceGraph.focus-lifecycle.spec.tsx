@@ -4,7 +4,7 @@ import {
 import {
   act, render, waitFor,
 } from '@testing-library/react'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import { ForceGraph } from './ForceGraph'
 import {
   parseDomainMetadata, parseNode,

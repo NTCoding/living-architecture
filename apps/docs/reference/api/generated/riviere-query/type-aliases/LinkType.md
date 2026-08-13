@@ -6,4 +6,8 @@ pageClass: reference
 
 > **LinkType** = `"sync"` \| `"async"`
 
-Defined in: packages/riviere-schema/dist/schema.d.ts:83
+Defined in: packages/riviere-schema/dist/published-language/schema.d.ts:102
+
+## Riviere-role
+
+published-language-union

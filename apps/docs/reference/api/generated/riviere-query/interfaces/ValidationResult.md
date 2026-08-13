@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ValidationResult
 
-Defined in: packages/riviere-query/src/features/querying/domain/validation-result.ts:4
+Defined in: packages/riviere-schema/dist/published-language/graph-validation.d.ts:17
 
 ## Riviere-role
 
@@ -14,9 +14,9 @@ value-object
 
 ### errors
 
-> `readonly` **errors**: [`ValidationError`](ValidationError.md)[]
+> `readonly` **errors**: readonly [`ValidationError`](ValidationError.md)[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/validation-result.ts:7
+Defined in: packages/riviere-schema/dist/published-language/graph-validation.d.ts:19
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: packages/riviere-query/src/features/querying/domain/validation-resul
 
 > `readonly` **valid**: `boolean`
 
-Defined in: packages/riviere-query/src/features/querying/domain/validation-result.ts:6
+Defined in: packages/riviere-schema/dist/published-language/graph-validation.d.ts:18

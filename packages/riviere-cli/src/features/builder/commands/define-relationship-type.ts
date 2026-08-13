@@ -1,7 +1,7 @@
-import { RelationshipTypeAlreadyDefinedError } from '@living-architecture/riviere-builder/features/building/domain/construction/construction-errors'
-import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
-import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
-import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { RelationshipTypeAlreadyDefinedError } from '@living-architecture/riviere-builder/domain/construction/construction-errors'
+import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
+import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
 import type { DefineRelationshipTypeInput } from './define-relationship-type-input'
 import type {
   DefineRelationshipTypeErrorCode,

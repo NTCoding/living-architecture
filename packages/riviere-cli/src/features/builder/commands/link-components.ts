@@ -2,11 +2,11 @@ import {
   ComponentNotFoundError,
   DuplicateLinkError,
   RelationshipTypeNotFoundError,
-} from '@living-architecture/riviere-builder/features/building/domain/construction/construction-errors'
+} from '@living-architecture/riviere-builder/domain/construction/construction-errors'
 import { ComponentId } from '@living-architecture/riviere-schema/component-id'
-import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
-import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
-import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
+import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
 import { LinkType } from '../domain/link-type'
 import { ComponentType } from '../../../platform/domain/component-type'
 import type { LinkComponentsInput } from './link-components-input'
@@ -30,8 +30,8 @@ export class LinkComponents {
         condition?: string
         sourceLocation?: NonNullable<LinkComponentsInput['sourceLocation']>
       } = {
-        from: input.from,
-        to: ComponentId.create({
+        from: parsedInput.sourceId.toString(),
+        to: ComponentId.parseFromParts({
           domain: input.targetDomain,
           module: input.targetModule,
           name: input.targetName,
@@ -76,14 +76,22 @@ export class LinkComponents {
 
 function parseInput(input: LinkComponentsInput):
   | {
-    success: false
-    result: LinkComponentsResult
-  }
+      success: false
+      result: LinkComponentsResult
+    }
   | {
-    success: true
-    componentType: ComponentType
-    linkType: LinkType | undefined
-  } {
+      success: true
+      componentType: ComponentType
+      linkType: LinkType | undefined
+      sourceId: ComponentId
+    } {
+  const sourceId = ComponentId.parse(input.from)
+  if (!sourceId.success) {
+    return {
+      result: failure('VALIDATION_ERROR', sourceId.message),
+      success: false,
+    }
+  }
   const componentType = ComponentType.parse(input.targetType)
   if (!componentType.success) {
     return {
@@ -101,6 +109,7 @@ function parseInput(input: LinkComponentsInput):
   return {
     componentType: componentType.data,
     linkType: linkType?.data,
+    sourceId: sourceId.componentId,
     success: true,
   }
 }

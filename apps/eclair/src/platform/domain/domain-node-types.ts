@@ -1,4 +1,4 @@
-import type { SystemType } from '@living-architecture/riviere-schema'
+import type { SystemType } from '@living-architecture/riviere-schema/schema'
 
 export type DomainMapSystemType = SystemType | 'external'
 

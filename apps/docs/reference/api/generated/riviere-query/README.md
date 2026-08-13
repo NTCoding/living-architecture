@@ -12,6 +12,7 @@ pageClass: reference
 - [EntityTransition](classes/EntityTransition.md)
 - [EventHandlerInfo](classes/EventHandlerInfo.md)
 - [EventSubscriber](classes/EventSubscriber.md)
+- [InvalidRiviereGraphError](classes/InvalidRiviereGraphError.md)
 - [KnownSourceEvent](classes/KnownSourceEvent.md)
 - [LinkId](classes/LinkId.md)
 - [PublishedEvent](classes/PublishedEvent.md)

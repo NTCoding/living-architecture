@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: ComponentId
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-id.ts:6
+Defined in: packages/riviere-query/src/domain/component-id.ts:6
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **value**: `string`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-id.ts:9
+Defined in: packages/riviere-query/src/domain/component-id.ts:9
 
 ## Methods
 
@@ -24,7 +24,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-id.ts:
 
 > **localeCompare**(`other`): `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-id.ts:15
+Defined in: packages/riviere-query/src/domain/component-id.ts:15
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-id.ts:
 
 > **toJSON**(): `string`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-id.ts:19
+Defined in: packages/riviere-query/src/domain/component-id.ts:19
 
 #### Returns
 
@@ -54,7 +54,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-id.ts:
 
 > `static` **parse**(`value`): `ComponentId`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-id.ts:11
+Defined in: packages/riviere-query/src/domain/component-id.ts:11
 
 #### Parameters
 

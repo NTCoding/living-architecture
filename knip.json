@@ -20,6 +20,17 @@
       "entry": ["src/index.ts", "src/shell/bin.ts"],
       "project": ["src/**/*.ts"]
     },
+    "packages/riviere-schema": {
+      "entry": [
+        "src/published-language/component-id.ts",
+        "src/published-language/custom-property-type.ts",
+        "src/published-language/graph-validation.ts",
+        "src/published-language/link-id.ts",
+        "src/published-language/schema.ts",
+        "src/published-language/validation.ts"
+      ],
+      "project": ["src/**/*.ts"]
+    },
     "packages/*": {
       "project": ["src/**/*.ts"]
     },

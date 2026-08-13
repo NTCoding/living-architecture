@@ -4,7 +4,9 @@ import {
   eventsToAddressingFeedback,
   unresolvedThread,
 } from './fixtures/workflow-test-fixtures'
-import { addressingFeedbackState } from './states/addressing-feedback'
+import { defineAddressingFeedbackState } from './states/addressing-feedback'
+
+const addressingFeedbackState = defineAddressingFeedbackState()
 import { WorkflowState } from './workflow-types'
 
 function addressingTransitionGuard(): NonNullable<typeof addressingFeedbackState.transitionGuard> {

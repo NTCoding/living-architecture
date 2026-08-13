@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: PublishedEvent
 
-Defined in: packages/riviere-query/src/features/querying/domain/published-event.ts:10
+Defined in: packages/riviere-query/src/domain/published-event.ts:10
 
 A published event with its subscribers.
 
@@ -18,7 +18,7 @@ value-object
 
 > `readonly` **domain**: `DomainName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/published-event.ts:14
+Defined in: packages/riviere-query/src/domain/published-event.ts:14
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/published-event.
 
 > `readonly` **eventName**: `EventName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/published-event.ts:13
+Defined in: packages/riviere-query/src/domain/published-event.ts:13
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/published-event.
 
 > `readonly` **handlers**: [`EventSubscriber`](EventSubscriber.md)[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/published-event.ts:15
+Defined in: packages/riviere-query/src/domain/published-event.ts:15
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/published-event.
 
 > `readonly` **id**: `EventId`
 
-Defined in: packages/riviere-query/src/features/querying/domain/published-event.ts:12
+Defined in: packages/riviere-query/src/domain/published-event.ts:12
 
 ## Methods
 
@@ -50,7 +50,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/published-event.
 
 > `static` **parse**(`input`): `PublishedEvent`
 
-Defined in: packages/riviere-query/src/features/querying/domain/published-event.ts:29
+Defined in: packages/riviere-query/src/domain/published-event.ts:29
 
 #### Parameters
 

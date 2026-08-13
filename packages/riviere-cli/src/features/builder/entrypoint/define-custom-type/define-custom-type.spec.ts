@@ -1,6 +1,4 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createProgram } from '../../../../shell/cli'
@@ -68,7 +66,9 @@ describe('riviere builder define-custom-type', () => {
       const content = await readFile(graphPath, 'utf-8')
       const graph: unknown = JSON.parse(content)
 
-      expect(graph).toMatchObject({metadata: { customTypes: { MessageQueue: { description: 'Async message queue' } } },})
+      expect(graph).toMatchObject({
+        metadata: { customTypes: { MessageQueue: { description: 'Async message queue' } } },
+      })
     })
 
     it('stores required properties when provided', async () => {
@@ -256,6 +256,26 @@ describe('riviere builder define-custom-type', () => {
       const output = ctx.consoleOutput.join('\n')
       expect(output).toContain(CliErrorCode.ValidationError)
       expect(output).toContain('Property name cannot be empty')
+    })
+
+    it('returns VALIDATION_ERROR for empty property type', async () => {
+      await createGraphWithDomain(ctx.testDir, 'orders')
+
+      const program = createProgram()
+      await program.parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'define-custom-type',
+        '--name',
+        'MessageQueue',
+        '--required-property',
+        'queueName:',
+      ])
+
+      const output = ctx.consoleOutput.join('\n')
+      expect(output).toContain(CliErrorCode.ValidationError)
+      expect(output).toContain('Property type cannot be empty')
     })
 
     it('returns VALIDATION_ERROR for duplicate property names', async () => {

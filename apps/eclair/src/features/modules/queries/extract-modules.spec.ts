@@ -4,7 +4,7 @@ import {
   expect,
   it,
 } from 'vitest'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import { extractModules } from './extract-modules'
 
 const graph: RiviereGraph = {

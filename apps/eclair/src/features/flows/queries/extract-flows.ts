@@ -9,7 +9,7 @@ import type {
   Link,
   RiviereGraph,
   SourceLocation,
-} from '@living-architecture/riviere-schema'
+} from '@living-architecture/riviere-schema/schema'
 import { getEffectiveNodeType } from '@/platform/domain/node-type-presentation'
 
 export interface EntryPoint {

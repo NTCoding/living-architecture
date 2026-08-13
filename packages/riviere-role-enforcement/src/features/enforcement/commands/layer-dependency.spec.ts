@@ -26,7 +26,7 @@ const layerTestLocations = enforcementBuilder.locationConfiguration(
     .subLocation('/infra', ['role-infra'], { dependencyRules: { locations: [] } }),
 )
 
-const layerTestConfig = enforcementBuilder.roleEnforcement({
+const layerTestConfig = enforcementBuilder.roleEnforcementConfiguration({
   configurations: {
     test: {
       packages: ['packages/pkg-a'],
@@ -299,7 +299,7 @@ function createAdapterLayerConfig() {
       .location<(typeof layerTestRoles)[number]['name']>('/platform')
       .subLocation('/infra', ['external-client-service']),
   )
-  return enforcementBuilder.roleEnforcement({
+  return enforcementBuilder.roleEnforcementConfiguration({
     configurations: {
       test: {
         packages: ['packages/pkg-a'],
@@ -313,7 +313,7 @@ function createAdapterLayerConfig() {
 }
 
 function createCrossPackageLayerConfig() {
-  return enforcementBuilder.roleEnforcement({
+  return enforcementBuilder.roleEnforcementConfiguration({
     configurations: {
       application: {
         packages: ['packages/pkg-a'],

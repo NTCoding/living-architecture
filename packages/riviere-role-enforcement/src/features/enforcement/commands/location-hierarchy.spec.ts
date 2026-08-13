@@ -4,7 +4,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcement,
+  roleEnforcementConfiguration,
   type LocationConfiguration,
 } from '../domain/role-enforcement-builder'
 import * as fixtureWorkspace from './test-fixture-workspace'
@@ -39,7 +39,7 @@ export function source(): string {
       const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
         configDir: workspaceDir,
         configModule: {
-          config: roleEnforcement({
+          config: roleEnforcementConfiguration({
             configurations: {
               test: {
                 packages: ['packages/pkg-a'],
@@ -55,6 +55,49 @@ export function source(): string {
 
       assert.equal(result.exitCode, 1)
       assert.match(result.stdout, /role-a cannot live in packages\/pkg-a\/src\/infra\/source.ts/)
+    },
+  )
+})
+
+it('a sub-location does not use roles permitted by its parent location', () => {
+  const roles = [role('role-a', { targets: ['function'] })] as const
+
+  fixtureWorkspace.withWorkspaceFixture(
+    {
+      prefix: 'role-enforcement-child-location-roles-',
+      roles,
+      files: {
+        'packages/pkg-a/src/entrypoint/_platform/cli/input.ts': `/** @riviere-role role-a */
+export function input(): string {
+  return 'input'
+}
+`,
+      },
+    },
+    (workspaceDir) => {
+      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
+        configDir: workspaceDir,
+        configModule: {
+          config: roleEnforcementConfiguration({
+            configurations: {
+              test: {
+                packages: ['packages/pkg-a'],
+                locations: locationConfiguration(
+                  location<'role-a'>('/entrypoint').subLocation(
+                    location<'role-a'>('/_platform', ['role-a']).subLocation('/cli', []),
+                  ),
+                ),
+              },
+            },
+            ignorePatterns: [],
+            roleDefinitionsDir: '.riviere/role-definitions',
+            roles,
+          }),
+        },
+      })
+
+      assert.equal(result.exitCode, 1)
+      assert.match(result.stdout, /role-a cannot live/)
     },
   )
 })
@@ -96,7 +139,9 @@ it('prevents sibling location instances importing one another', () => {
 
 it('allows a location with sibling restrictions to import platform', () => {
   const locations = locationConfiguration(
-    location<never>('/features/{feature}', {dependencyRules: { canImportSiblings: false },}).subLocation('/commands', []),
+    location<never>('/features/{feature}', {
+      dependencyRules: { canImportSiblings: false },
+    }).subLocation('/commands', []),
     location<never>('/platform').subLocation('/domain', []),
   )
 
@@ -152,9 +197,11 @@ it('allows imports within a restricted location', () => {
   )
 })
 
-it('allows importing all sub-locations with a wildcard', () => {
+it('importing a location elsewhere in the package allows imports from its sub-locations', () => {
   const locations = locationConfiguration(
-    location<never>('/entrypoint', [], {dependencyRules: { locations: [{ location: '/infra/cli/*' }] },}),
+    location<never>('/entrypoint', [], {
+      dependencyRules: { locations: [{ location: '**/platform/infra/cli' }] },
+    }),
     location<never>('/platform').subLocation(
       location<never>('/infra', []).subLocation(
         location<never>('/cli', []).subLocation('/input', []).subLocation('/presentation', []),
@@ -172,6 +219,49 @@ it('allows importing all sub-locations with a wildcard', () => {
     (result) => {
       assert.equal(result.exitCode, 0, result.stdout)
       assert.equal(result.stderr, '')
+    },
+  )
+})
+
+it('a location beginning with a slash refers to a sibling location', () => {
+  const locations = locationConfiguration(
+    location<never>('/features/{feature}')
+      .subLocation('/commands', [], {
+        dependencyRules: { locations: [{ location: '/domain' }] },
+      })
+      .subLocation('/domain', []),
+    location<never>('/platform').subLocation('/domain', []),
+  )
+
+  runFixture(
+    locations,
+    {
+      'packages/pkg-a/src/features/orders/commands/run.ts': `import '../../../platform/domain/shared'\n`,
+      'packages/pkg-a/src/platform/domain/shared.ts': `void 'shared'\n`,
+    },
+    (result) => {
+      assert.equal(result.exitCode, 1)
+      assert.match(result.stdout, /cannot import location '\/domain'/)
+    },
+  )
+})
+
+it('a double-star location can refer to a location elsewhere in the package', () => {
+  const locations = locationConfiguration(
+    location<never>('/features/{feature}').subLocation('/domain', [], {
+      dependencyRules: { locations: [{ location: '**/platform/domain' }] },
+    }),
+    location<never>('/platform').subLocation('/domain', []),
+  )
+
+  runFixture(
+    locations,
+    {
+      'packages/pkg-a/src/features/orders/domain/order.ts': `import '../../../platform/domain/shared'\n`,
+      'packages/pkg-a/src/platform/domain/shared.ts': `void 'shared'\n`,
+    },
+    (result) => {
+      assert.equal(result.exitCode, 0, result.stdout)
     },
   )
 })
@@ -259,7 +349,9 @@ function privateLocationConfiguration(): LocationConfiguration<never> {
   return locationConfiguration(
     location<never>('/commands', []),
     location<never>('/entrypoint', [])
-      .subLocation('/_platform', [], {dependencyRules: { importableFrom: 'withinParentLocation' },})
+      .subLocation('/_platform', [], {
+        dependencyRules: { importableFrom: 'withinParentLocation' },
+      })
       .subLocation('/http', []),
   )
 }
@@ -295,7 +387,7 @@ function runFixture(
 }
 
 function createConfig(locations: LocationConfiguration<never>) {
-  return roleEnforcement({
+  return roleEnforcementConfiguration({
     configurations: {
       test: {
         packages: ['packages/pkg-a'],

@@ -1,4 +1,4 @@
-import type { ExternalLink } from '@living-architecture/riviere-schema'
+import type { ExternalLink } from '@living-architecture/riviere-schema/schema'
 
 /** @riviere-role command-use-case-result-value */
 export type LinkExternalErrorCode =
@@ -10,12 +10,12 @@ export type LinkExternalErrorCode =
 /** @riviere-role command-use-case-result */
 export type LinkExternalResult =
   | {
-    externalLink: ExternalLink
-    success: true
-  }
+      externalLink: ExternalLink
+      success: true
+    }
   | {
-    code: LinkExternalErrorCode
-    message: string
-    suggestions: string[]
-    success: false
-  }
+      code: LinkExternalErrorCode
+      message: string
+      suggestions: string[]
+      success: false
+    }

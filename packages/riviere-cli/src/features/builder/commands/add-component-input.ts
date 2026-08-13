@@ -8,6 +8,7 @@ export interface AddComponentInput {
   filePath: string
   graphPathOption?: string
   lineNumber?: number
+  columnNumber?: number
   route?: string
   apiType?: string
   httpMethod?: string

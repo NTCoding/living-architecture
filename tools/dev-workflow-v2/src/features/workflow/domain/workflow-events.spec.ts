@@ -1,12 +1,10 @@
-import {
-  WORKFLOW_EVENT_SCHEMA, parseWorkflowEvent, type WorkflowEvent 
-} from './workflow-events'
+import { parseWorkflowEvent, type WorkflowEvent } from './workflow-events'
 
 const AT = '2026-01-01T00:00:00Z'
 
-describe('WORKFLOW_EVENT_SCHEMA — session-started', () => {
+describe('parseWorkflowEvent — session-started', () => {
   it('accepts valid payload', () => {
-    const result: WorkflowEvent = WORKFLOW_EVENT_SCHEMA.parse({
+    const result: WorkflowEvent = parseWorkflowEvent({
       type: 'session-started',
       at: AT,
     })
@@ -14,7 +12,7 @@ describe('WORKFLOW_EVENT_SCHEMA — session-started', () => {
   })
 
   it('accepts optional repository', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'session-started',
       at: AT,
       repository: 'owner/repo',
@@ -23,9 +21,9 @@ describe('WORKFLOW_EVENT_SCHEMA — session-started', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — issue-recorded', () => {
+describe('parseWorkflowEvent — issue-recorded', () => {
   it('accepts valid payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'issue-recorded',
       at: AT,
       issueNumber: 42,
@@ -35,7 +33,7 @@ describe('WORKFLOW_EVENT_SCHEMA — issue-recorded', () => {
 
   it('rejects missing issueNumber', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'issue-recorded',
         at: AT,
       }),
@@ -43,9 +41,9 @@ describe('WORKFLOW_EVENT_SCHEMA — issue-recorded', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — branch-recorded', () => {
+describe('parseWorkflowEvent — branch-recorded', () => {
   it('accepts valid payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'branch-recorded',
       at: AT,
       branch: 'feature/foo',
@@ -55,7 +53,7 @@ describe('WORKFLOW_EVENT_SCHEMA — branch-recorded', () => {
 
   it('rejects missing branch', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'branch-recorded',
         at: AT,
       }),
@@ -63,9 +61,9 @@ describe('WORKFLOW_EVENT_SCHEMA — branch-recorded', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — architecture-review-completed', () => {
+describe('parseWorkflowEvent — architecture-review-completed', () => {
   it('accepts passed payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'architecture-review-completed',
       at: AT,
       passed: true,
@@ -75,7 +73,7 @@ describe('WORKFLOW_EVENT_SCHEMA — architecture-review-completed', () => {
 
   it('rejects missing passed', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'architecture-review-completed',
         at: AT,
       }),
@@ -83,9 +81,9 @@ describe('WORKFLOW_EVENT_SCHEMA — architecture-review-completed', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — code-review-completed', () => {
+describe('parseWorkflowEvent — code-review-completed', () => {
   it('accepts passed payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'code-review-completed',
       at: AT,
       passed: true,
@@ -95,7 +93,7 @@ describe('WORKFLOW_EVENT_SCHEMA — code-review-completed', () => {
 
   it('rejects missing passed', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'code-review-completed',
         at: AT,
       }),
@@ -103,9 +101,9 @@ describe('WORKFLOW_EVENT_SCHEMA — code-review-completed', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — bug-scanner-completed', () => {
+describe('parseWorkflowEvent — bug-scanner-completed', () => {
   it('accepts passed payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'bug-scanner-completed',
       at: AT,
       passed: true,
@@ -115,7 +113,7 @@ describe('WORKFLOW_EVENT_SCHEMA — bug-scanner-completed', () => {
 
   it('rejects missing passed', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'bug-scanner-completed',
         at: AT,
       }),
@@ -123,9 +121,9 @@ describe('WORKFLOW_EVENT_SCHEMA — bug-scanner-completed', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — pr-recorded', () => {
+describe('parseWorkflowEvent — pr-recorded', () => {
   it('accepts valid payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'pr-recorded',
       at: AT,
       prNumber: 7,
@@ -134,7 +132,7 @@ describe('WORKFLOW_EVENT_SCHEMA — pr-recorded', () => {
   })
 
   it('accepts optional prUrl', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'pr-recorded',
       at: AT,
       prNumber: 7,
@@ -145,7 +143,7 @@ describe('WORKFLOW_EVENT_SCHEMA — pr-recorded', () => {
 
   it('rejects missing prNumber', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'pr-recorded',
         at: AT,
       }),
@@ -153,9 +151,9 @@ describe('WORKFLOW_EVENT_SCHEMA — pr-recorded', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — ci-completed', () => {
+describe('parseWorkflowEvent — ci-completed', () => {
   it('accepts passed payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'ci-completed',
       at: AT,
       passed: true,
@@ -164,7 +162,7 @@ describe('WORKFLOW_EVENT_SCHEMA — ci-completed', () => {
   })
 
   it('accepts failed payload with output', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'ci-completed',
       at: AT,
       passed: false,
@@ -175,7 +173,7 @@ describe('WORKFLOW_EVENT_SCHEMA — ci-completed', () => {
 
   it('rejects missing passed', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'ci-completed',
         at: AT,
       }),
@@ -183,9 +181,9 @@ describe('WORKFLOW_EVENT_SCHEMA — ci-completed', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — feedback-checked', () => {
+describe('parseWorkflowEvent — feedback-checked', () => {
   it('accepts clean payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'feedback-checked',
       at: AT,
       clean: true,
@@ -194,7 +192,7 @@ describe('WORKFLOW_EVENT_SCHEMA — feedback-checked', () => {
   })
 
   it('accepts dirty payload with unresolvedCount', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'feedback-checked',
       at: AT,
       clean: false,
@@ -205,7 +203,7 @@ describe('WORKFLOW_EVENT_SCHEMA — feedback-checked', () => {
   })
 
   it('accepts dirty payload with null reviewDecision', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'feedback-checked',
       at: AT,
       clean: false,
@@ -217,7 +215,7 @@ describe('WORKFLOW_EVENT_SCHEMA — feedback-checked', () => {
 
   it('rejects missing clean', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'feedback-checked',
         at: AT,
       }),
@@ -225,9 +223,9 @@ describe('WORKFLOW_EVENT_SCHEMA — feedback-checked', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — feedback-addressed', () => {
+describe('parseWorkflowEvent — feedback-addressed', () => {
   it('accepts valid payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'feedback-addressed',
       at: AT,
     })
@@ -235,13 +233,16 @@ describe('WORKFLOW_EVENT_SCHEMA — feedback-addressed', () => {
   })
 
   it('rejects missing at', () => {
-    expect(() => WORKFLOW_EVENT_SCHEMA.parse({ type: 'feedback-addressed' })).toThrow('Required')
+    const malformedEvent = { type: 'feedback-addressed', at: AT }
+    Reflect.deleteProperty(malformedEvent, 'at')
+
+    expect(() => parseWorkflowEvent(malformedEvent)).toThrow('Required')
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — task-check-passed', () => {
+describe('parseWorkflowEvent — task-check-passed', () => {
   it('accepts valid payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'task-check-passed',
       at: AT,
     })
@@ -249,7 +250,10 @@ describe('WORKFLOW_EVENT_SCHEMA — task-check-passed', () => {
   })
 
   it('rejects missing at', () => {
-    expect(() => WORKFLOW_EVENT_SCHEMA.parse({ type: 'task-check-passed' })).toThrow('Required')
+    const malformedEvent = { type: 'task-check-passed', at: AT }
+    Reflect.deleteProperty(malformedEvent, 'at')
+
+    expect(() => parseWorkflowEvent(malformedEvent)).toThrow('Required')
   })
 })
 
@@ -300,9 +304,9 @@ describe('parseWorkflowEvent — review-recorded', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — bash-checked', () => {
+describe('parseWorkflowEvent — bash-checked', () => {
   it('accepts valid payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'bash-checked',
       at: AT,
       tool: 'Bash',
@@ -313,7 +317,7 @@ describe('WORKFLOW_EVENT_SCHEMA — bash-checked', () => {
   })
 
   it('accepts optional reason', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'bash-checked',
       at: AT,
       tool: 'Bash',
@@ -326,7 +330,7 @@ describe('WORKFLOW_EVENT_SCHEMA — bash-checked', () => {
 
   it('rejects missing command', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'bash-checked',
         at: AT,
         tool: 'Bash',
@@ -336,9 +340,9 @@ describe('WORKFLOW_EVENT_SCHEMA — bash-checked', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — write-checked', () => {
+describe('parseWorkflowEvent — write-checked', () => {
   it('accepts valid payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'write-checked',
       at: AT,
       tool: 'Write',
@@ -349,7 +353,7 @@ describe('WORKFLOW_EVENT_SCHEMA — write-checked', () => {
   })
 
   it('accepts optional reason', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'write-checked',
       at: AT,
       tool: 'Write',
@@ -362,7 +366,7 @@ describe('WORKFLOW_EVENT_SCHEMA — write-checked', () => {
 
   it('rejects missing filePath', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'write-checked',
         at: AT,
         tool: 'Write',
@@ -372,9 +376,9 @@ describe('WORKFLOW_EVENT_SCHEMA — write-checked', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — transitioned', () => {
+describe('parseWorkflowEvent — transitioned', () => {
   it('accepts valid payload', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'transitioned',
       at: AT,
       from: 'IMPLEMENTING',
@@ -384,7 +388,7 @@ describe('WORKFLOW_EVENT_SCHEMA — transitioned', () => {
   })
 
   it('accepts optional preBlockedState', () => {
-    const result = WORKFLOW_EVENT_SCHEMA.parse({
+    const result = parseWorkflowEvent({
       type: 'transitioned',
       at: AT,
       from: 'IMPLEMENTING',
@@ -396,7 +400,7 @@ describe('WORKFLOW_EVENT_SCHEMA — transitioned', () => {
 
   it('rejects missing from', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'transitioned',
         at: AT,
         to: 'REVIEWING',
@@ -406,7 +410,7 @@ describe('WORKFLOW_EVENT_SCHEMA — transitioned', () => {
 
   it('rejects missing to', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'transitioned',
         at: AT,
         from: 'IMPLEMENTING',
@@ -415,10 +419,10 @@ describe('WORKFLOW_EVENT_SCHEMA — transitioned', () => {
   })
 })
 
-describe('WORKFLOW_EVENT_SCHEMA — discriminant validation', () => {
+describe('parseWorkflowEvent — discriminant validation', () => {
   it('rejects unknown type discriminant', () => {
     expect(() =>
-      WORKFLOW_EVENT_SCHEMA.parse({
+      parseWorkflowEvent({
         type: 'unknown-event',
         at: AT,
       }),
@@ -426,10 +430,16 @@ describe('WORKFLOW_EVENT_SCHEMA — discriminant validation', () => {
   })
 
   it('rejects missing type field', () => {
-    expect(() => WORKFLOW_EVENT_SCHEMA.parse({ at: AT })).toThrow('Invalid discriminator value')
+    const malformedEvent = { type: 'session-started', at: AT }
+    Reflect.deleteProperty(malformedEvent, 'type')
+
+    expect(() => parseWorkflowEvent(malformedEvent)).toThrow('Invalid discriminator value')
   })
 
   it('rejects missing at when type is present', () => {
-    expect(() => WORKFLOW_EVENT_SCHEMA.parse({ type: 'session-started' })).toThrow('Required')
+    const malformedEvent = { type: 'session-started', at: AT }
+    Reflect.deleteProperty(malformedEvent, 'at')
+
+    expect(() => parseWorkflowEvent(malformedEvent)).toThrow('Required')
   })
 })

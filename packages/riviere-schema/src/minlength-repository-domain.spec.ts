@@ -1,6 +1,16 @@
-import {
-  parseRiviereGraph, RiviereSchemaValidationError 
-} from './validation'
+import { parseRiviereGraph } from './published-language/validation'
+
+function expectInvalid(input: unknown, fieldName: string): void {
+  const result = parseRiviereGraph(input)
+  expect(result.success).toBe(false)
+  if (!result.success) {
+    expect(result.issues.join('\n')).toContain(fieldName)
+  }
+}
+
+function expectValid(input: unknown): void {
+  expect(parseRiviereGraph(input).success).toBe(true)
+}
 
 describe('minLength validation: metadata fields', () => {
   const baseGraph = {
@@ -26,8 +36,7 @@ describe('minLength validation: metadata fields', () => {
           sources: [{ repository: '' }],
         },
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/repository/)
+      expectInvalid(input, 'repository')
     })
 
     it('rejects repository with length < 3', () => {
@@ -38,8 +47,7 @@ describe('minLength validation: metadata fields', () => {
           sources: [{ repository: 'ab' }],
         },
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/repository/)
+      expectInvalid(input, 'repository')
     })
 
     it('accepts repository with length >= 3', () => {
@@ -50,7 +58,7 @@ describe('minLength validation: metadata fields', () => {
           sources: [{ repository: 'abc' }],
         },
       }
-      expect(() => parseRiviereGraph(input)).not.toThrow()
+      expectValid(input)
     })
   })
 
@@ -73,8 +81,7 @@ describe('minLength validation: metadata fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/repository/)
+      expectInvalid(input, 'repository')
     })
 
     it('rejects repository with length < 3', () => {
@@ -95,8 +102,7 @@ describe('minLength validation: metadata fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/repository/)
+      expectInvalid(input, 'repository')
     })
 
     it('accepts repository with length >= 3', () => {
@@ -117,7 +123,7 @@ describe('minLength validation: metadata fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).not.toThrow()
+      expectValid(input)
     })
   })
 
@@ -134,8 +140,7 @@ describe('minLength validation: metadata fields', () => {
           },
         },
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/description/)
+      expectInvalid(input, 'description')
     })
 
     it('rejects description with length < 3', () => {
@@ -150,8 +155,7 @@ describe('minLength validation: metadata fields', () => {
           },
         },
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/description/)
+      expectInvalid(input, 'description')
     })
 
     it('accepts description with length >= 3', () => {
@@ -166,7 +170,7 @@ describe('minLength validation: metadata fields', () => {
           },
         },
       }
-      expect(() => parseRiviereGraph(input)).not.toThrow()
+      expectValid(input)
     })
   })
 })

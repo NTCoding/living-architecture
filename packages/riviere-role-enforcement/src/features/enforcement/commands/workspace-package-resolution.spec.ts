@@ -3,7 +3,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcement,
+  roleEnforcementConfiguration,
 } from '../domain/role-enforcement-builder'
 import {
   createTestRoleEnforcementApplication,
@@ -22,7 +22,7 @@ const workspacePackageTestRoles = [
   }),
 ] as const
 
-const workspacePackageConfig = roleEnforcement({
+const workspacePackageConfig = roleEnforcementConfiguration({
   configurations: {
     test: {
       packages: ['packages/pkg-a'],
@@ -32,19 +32,26 @@ const workspacePackageConfig = roleEnforcement({
   ignorePatterns: [],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: workspacePackageTestRoles,
-  workspacePackageSources: { '@generic/pkg-lib': 'packages/pkg-lib/src/index.ts' },
 })
 
 const workspacePackageBootstrap = {
   prefix: 'role-enforcement-pkg-',
   roles: workspacePackageTestRoles,
   files: {
-    'packages/pkg-lib/src/beta.ts': `/** @riviere-role role-b */
+    'node_modules/@generic/pkg-lib/package.json': JSON.stringify({
+      name: '@generic/pkg-lib',
+      exports: {
+        '.': { '@living-architecture/source': './src/index.ts' },
+        './package.json': './package.json',
+        './domain/*': { '@living-architecture/source': './src/domain/*.ts' },
+      },
+    }),
+    'node_modules/@generic/pkg-lib/src/beta.ts': `/** @riviere-role role-b */
 export class Beta {
   cancel(): void {}
 }
 `,
-    'packages/pkg-lib/src/index.ts': `export * from './beta'
+    'node_modules/@generic/pkg-lib/src/index.ts': `export * from './beta'
 `,
     'packages/pkg-a/src/repositories/betaRepository.ts': `import type { Beta } from '@generic/pkg-lib'
 
@@ -74,7 +81,7 @@ it('resolves roles imported from a workspace package subpath', () => {
   withWorkspaceFixture(workspacePackageBootstrap, (workspaceDir) => {
     writeFixtureFile(
       workspaceDir,
-      'packages/pkg-lib/src/domain/beta.ts',
+      'node_modules/@generic/pkg-lib/src/domain/beta.ts',
       `/** @riviere-role role-b */
 export class Beta {
   cancel(): void {}
@@ -109,7 +116,7 @@ it('rejects aggregate-repository returning unannotated class from workspace pack
   withWorkspaceFixture(workspacePackageBootstrap, (workspaceDir) => {
     writeFixtureFile(
       workspaceDir,
-      'packages/pkg-lib/src/beta.ts',
+      'node_modules/@generic/pkg-lib/src/beta.ts',
       `export class Beta {
   cancel(): void {}
 }

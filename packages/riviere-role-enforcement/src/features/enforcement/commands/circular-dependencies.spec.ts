@@ -4,7 +4,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcement,
+  roleEnforcementConfiguration,
 } from '../domain/role-enforcement-builder'
 import * as fixtureWorkspace from './test-fixture-workspace'
 
@@ -36,7 +36,7 @@ export function second(): string {
       const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
         configDir: workspaceDir,
         configModule: {
-          config: roleEnforcement({
+          config: roleEnforcementConfiguration({
             configurations: {
               test: {
                 packages: ['packages/pkg-a'],

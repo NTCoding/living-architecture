@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
-import { fileExists } from '../filesystem/index'
+import { fileExists } from '../filesystem/file-existence'
 
 /** @riviere-role external-client-error */
 export class PackageFileResolveError extends Error {

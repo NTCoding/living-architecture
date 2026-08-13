@@ -5,7 +5,7 @@ import {
   render, screen 
 } from '@testing-library/react'
 import { ForceGraph } from './ForceGraph'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import type { Theme } from '@/types/theme'
 import {
   parseNode,

@@ -1,7 +1,8 @@
-import { ComponentNotFoundError } from '@living-architecture/riviere-builder/features/building/domain/construction/construction-errors'
-import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
-import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
-import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { ComponentNotFoundError } from '@living-architecture/riviere-builder/domain/construction/construction-errors'
+import { ComponentId } from '@living-architecture/riviere-schema/component-id'
+import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
+import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
 import { LinkType } from '../domain/link-type'
 import type { LinkExternalInput } from './link-external-input'
 import type { LinkExternalErrorCode, LinkExternalResult } from './link-external-result'
@@ -11,17 +12,19 @@ export class LinkExternal {
   constructor(private readonly repository: RiviereBuilderRepository) {}
 
   execute(input: LinkExternalInput): LinkExternalResult {
-    const type = input.type === undefined ? undefined : LinkType.parse(input.type)
-    if (type !== undefined && !type.success) {
-      return failure('VALIDATION_ERROR', `Invalid link type: ${input.type}`)
-    }
+    const parsedInput = parseInput(input)
+    if (!parsedInput.success) return parsedInput.result
 
     try {
       const builder = this.repository.load(input.graphPathOption)
       const externalLinkInput = {
-        from: input.from,
-        target: input.target,
-        ...(type?.success === true ? { type: type.data.value } : {}),
+        from: parsedInput.sourceId.toString(),
+        target: {
+          ...(input.targetDomain === undefined ? {} : { domain: input.targetDomain }),
+          name: input.targetName,
+          ...(input.targetUrl === undefined ? {} : { url: input.targetUrl }),
+        },
+        ...(parsedInput.linkType === undefined ? {} : { type: parsedInput.linkType.value }),
       }
       const externalLink = builder.linkExternal(externalLinkInput)
       this.repository.save(builder)
@@ -41,6 +44,31 @@ export class LinkExternal {
       }
       throw error
     }
+  }
+}
+
+function parseInput(
+  input: LinkExternalInput,
+):
+  | { success: false; result: LinkExternalResult }
+  | { success: true; sourceId: ComponentId; linkType: LinkType | undefined } {
+  const sourceId = ComponentId.parse(input.from)
+  if (!sourceId.success) {
+    return { result: failure('VALIDATION_ERROR', sourceId.message), success: false }
+  }
+
+  const linkType = input.type === undefined ? undefined : LinkType.parse(input.type)
+  if (linkType !== undefined && !linkType.success) {
+    return {
+      result: failure('VALIDATION_ERROR', `Invalid link type: ${input.type}`),
+      success: false,
+    }
+  }
+
+  return {
+    linkType: linkType?.data,
+    sourceId: sourceId.componentId,
+    success: true,
   }
 }
 

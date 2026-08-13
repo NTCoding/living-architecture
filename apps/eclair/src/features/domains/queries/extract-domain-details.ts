@@ -1,4 +1,8 @@
-import type { RiviereGraph, SystemType, SourceLocation } from '@living-architecture/riviere-schema'
+import type {
+  RiviereGraph,
+  SystemType,
+  SourceLocation,
+} from '@living-architecture/riviere-schema/schema'
 import {
   nodeIdSchema,
   type DomainName,
@@ -131,33 +135,45 @@ export function extractDomainDetails(
   )
 
   const publishedEvents: DomainEvent[] = queryPublished.map((pe) => {
-    const nodeId = nodeIdSchema.parse(pe.id)
+    const nodeId = nodeIdSchema.parse(pe.id.value)
     const component = componentById.get(nodeId)
     const schema = component?.type === 'Event' ? component.eventSchema : undefined
     return {
-      id: pe.id,
-      eventName: pe.eventName,
+      id: pe.id.value,
+      eventName: pe.eventName.value,
       sourceLocation: component?.sourceLocation,
-      handlers: pe.handlers,
+      handlers: pe.handlers.map((handler) => ({
+        domain: handler.domain.value,
+        handlerId: handler.handlerId.value,
+        handlerName: handler.handlerName.value,
+      })),
       schema,
     }
   })
 
-  const domainHandlers = queryHandlers.filter((h) => h.domain === domainId)
+  const domainHandlers = queryHandlers.filter((handler) => handler.domain.value === domainId)
   const consumedHandlers: DomainEventHandler[] = domainHandlers.map((h) => {
-    const nodeId = nodeIdSchema.parse(h.id)
+    const nodeId = nodeIdSchema.parse(h.id.value)
     const component = componentById.get(nodeId)
     const description =
       component?.description !== undefined && typeof component?.description === 'string'
         ? component.description
         : undefined
     return {
-      id: h.id,
-      handlerName: h.handlerName,
+      id: h.id.value,
+      handlerName: h.handlerName.value,
       description,
       sourceLocation: component?.sourceLocation,
-      subscribedEvents: h.subscribedEvents,
-      subscribedEventsWithDomain: h.subscribedEventsWithDomain,
+      subscribedEvents: h.subscribedEvents.map((eventName) => eventName.value),
+      subscribedEventsWithDomain: h.subscribedEventsWithDomain.map((event) =>
+        event.sourceKnown
+          ? {
+              eventName: event.eventName.value,
+              sourceDomain: event.sourceDomain.value,
+              sourceKnown: true,
+            }
+          : { eventName: event.eventName.value, sourceKnown: false },
+      ),
     }
   })
 

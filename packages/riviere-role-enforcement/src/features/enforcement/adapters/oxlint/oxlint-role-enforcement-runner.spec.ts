@@ -1,16 +1,26 @@
 import { expect, it, vi } from 'vitest'
-import { OxlintExecutionError } from '../../../../platform/infra/external-clients/oxlint/index'
+import { OxlintExecutionError } from '../../../../platform/infra/external-clients/oxlint/oxlint-execution-error'
 import type { RoleEnforcementRunnerInput } from '../../domain/ports/role-enforcement-runner'
-import { RoleEnforcementResult } from '../../domain/role-enforcement-builder'
+import { RoleEnforcementConfiguration } from '../../domain/role-enforcement-builder'
 import { createOxlintRoleEnforcementRunner } from './oxlint-role-enforcement-runner'
 
+function parseConfiguration(value: unknown): RoleEnforcementConfiguration {
+  const parsed = RoleEnforcementConfiguration.parse(value)
+  if (!parsed.success) {
+    throw parsed.error
+  }
+  return parsed.data
+}
+
 const input: RoleEnforcementRunnerInput = {
-  config: RoleEnforcementResult.parse({
+  config: parseConfiguration({
+    assignedPackages: ['packages/pkg-a'],
     ignorePatterns: ['**/*.spec.ts'],
     include: ['src/**/*.ts'],
     locationHierarchy: [],
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: [],
+    unassignedPackages: [],
   }),
   configDir: '/repo/packages/pkg-a',
   lintTargets: ['src/index.ts'],
@@ -93,10 +103,9 @@ it('preserves optional enforcement configuration', () => {
 
   runner({
     ...input,
-    config: RoleEnforcementResult.parse({
+    config: parseConfiguration({
       ...input.config,
       importAliases: { '@generic/*': 'packages/generic/src/*' },
-      workspacePackageSources: { '@generic/package': 'packages/generic/src/index.ts' },
     }),
   })
 
@@ -116,7 +125,6 @@ it('preserves optional enforcement configuration', () => {
             'error',
             expect.objectContaining({
               importAliases: { '@generic/*': 'packages/generic/src/*' },
-              workspacePackageSources: { '@generic/package': 'packages/generic/src/index.ts' },
             }),
           ],
         },

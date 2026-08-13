@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: GraphStats
 
-Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:2
+Defined in: packages/riviere-query/src/domain/graph-stats.ts:2
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **apiCount**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:7
+Defined in: packages/riviere-query/src/domain/graph-stats.ts:7
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:7
 
 > `readonly` **componentCount**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:4
+Defined in: packages/riviere-query/src/domain/graph-stats.ts:4
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:4
 
 > `readonly` **domainCount**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:6
+Defined in: packages/riviere-query/src/domain/graph-stats.ts:6
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:6
 
 > `readonly` **entityCount**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:8
+Defined in: packages/riviere-query/src/domain/graph-stats.ts:8
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:8
 
 > `readonly` **eventCount**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:9
+Defined in: packages/riviere-query/src/domain/graph-stats.ts:9
 
 ***
 
@@ -56,4 +56,4 @@ Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:9
 
 > `readonly` **linkCount**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/graph-stats.ts:5
+Defined in: packages/riviere-query/src/domain/graph-stats.ts:5

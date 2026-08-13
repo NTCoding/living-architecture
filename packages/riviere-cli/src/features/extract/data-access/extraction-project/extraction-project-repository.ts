@@ -1,63 +1,46 @@
 import { dirname, posix, resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import { globSync } from 'glob'
-import type { DraftComponent } from '@living-architecture/riviere-extract-ts'
-import { resolveConfig } from '@living-architecture/riviere-extract-ts'
+import { DraftComponent } from '@living-architecture/riviere-extract-ts/domain/component-extraction/draft-component'
 import {
-  type ExtractionConfig,
-  formatValidationErrors,
-  isValidExtractionConfig,
-  type ModuleConfig,
-  type Module,
-  type ResolvedExtractionConfig,
-  validateExtractionConfig,
+  type DraftConfiguration,
+  type DraftModule,
+  parseExtractionConfig,
+  type ValidatedModuleInput,
+  type ValidatedModule,
+  ValidatedConfiguration,
+  type ValidationError,
 } from '@living-architecture/riviere-extract-config'
 import {
   FileReadError,
-  fileExists,
   readJsonFile,
   readTextFile,
-} from '../../../../platform/infra/external-clients/filesystem/index'
-import { resolveFileOrPackagePath } from '../../../../platform/infra/external-clients/node-modules/index'
+} from '../../../../platform/infra/external-clients/filesystem/file-reader'
+import { fileExists } from '../../../../platform/infra/external-clients/filesystem/file-existence'
+import { resolveFileOrPackagePath } from '../../../../platform/infra/external-clients/node-modules/node-module-file-resolver'
 import { detectChangedTypeScriptFiles } from '../../../../platform/infra/external-clients/git/git-changed-files'
 import { getRepositoryInfo } from '../../../../platform/infra/external-clients/git/git-repository-info'
-import { ExtractionConfigError } from '../../domain/extraction-config-error'
-import { ExtractionProject } from '../../domain/extraction-project'
-import {
-  createConfiguredProject,
-  findModuleTsConfigDir,
-} from '../../../../platform/infra/external-clients/ts-morph/index'
+import { ExtractionProject } from '@living-architecture/riviere-extract-ts/domain/extraction-project'
+import { createConfiguredProject } from '../../../../platform/infra/external-clients/ts-morph/create-configured-project'
+import { findModuleTsConfigDir } from '../../../../platform/infra/external-clients/ts-morph/find-module-tsconfig-dir'
+import { ExtractionConfigError } from './extraction-config-error'
 
 class ExtractionConfigLoadError extends Error {}
-interface FullProjectParams {
-  configPath: string
-  useTsConfig: boolean
-}
+type FullProjectParams = { configPath: string; useTsConfig: boolean }
 
-interface ChangedProjectParams {
-  baseBranch?: string
-  configPath: string
-  useTsConfig: boolean
-}
+type ChangedProjectParams = FullProjectParams & { baseBranch?: string }
 
-interface SelectedFilesProjectParams {
-  configPath: string
-  filePaths: string[]
-  useTsConfig: boolean
-}
-
-interface DraftEnrichmentParams {
-  configPath: string
-  draftComponentsPath: string
-  useTsConfig: boolean
-}
-
-type ParsedConfigState = Readonly<{
-  configDir: string
-  resolvedConfig: ResolvedExtractionConfig
-}>
+type SelectedFilesProjectParams = FullProjectParams & { filePaths: string[] }
+type DraftEnrichmentParams = FullProjectParams & { draftComponentsPath: string }
+type ParsedConfigState = Readonly<{ configDir: string; configuration: ValidatedConfiguration }>
+type DraftComponentInput = Parameters<typeof DraftComponent.parse>[0]
 
 const NOT_USED = { notUsed: true } as const
+
+function formatExtractionConfigErrors(errors: readonly ValidationError[]): string {
+  if (errors.length === 0) return 'validation failed without specific errors'
+  return errors.map((error) => `${error.path}: ${error.message}`).join('\n')
+}
 
 /** @riviere-role aggregate-repository */
 export class ExtractionProjectRepository {
@@ -108,24 +91,23 @@ export class ExtractionProjectRepository {
     const configDir = dirname(resolve(configPath))
     const expanded = this.expandModuleRefs(parsed, configDir)
 
-    if (!isValidExtractionConfig(expanded)) {
-      const validationResult = validateExtractionConfig(expanded)
+    const extractionConfig = parseExtractionConfig(expanded)
+    if (!extractionConfig.success) {
       throw new ExtractionConfigError(
         'VALIDATION_ERROR',
-        `Invalid extraction config:\n${formatValidationErrors(validationResult.errors)}`,
+        `Invalid extraction config:\n${formatExtractionConfigErrors(extractionConfig.errors)}`,
       )
     }
 
     return {
       configDir,
-      resolvedConfig: this.resolveConfigWithExtends(expanded, configDir),
+      configuration: this.resolveConfiguration(extractionConfig.configuration, configDir),
     }
   }
 
   private parseConfigFile(content: string): unknown {
     try {
-      const parsed: unknown = parseYaml(content)
-      return parsed
+      return parseYaml(content)
     } catch (error) {
       throw new ExtractionConfigError('VALIDATION_ERROR', `Invalid config file: ${String(error)}`)
     }
@@ -166,16 +148,21 @@ export class ExtractionProjectRepository {
     return parsed
   }
 
-  private resolveConfigWithExtends(
-    config: ExtractionConfig,
+  private resolveConfiguration(
+    config: DraftConfiguration,
     configDir: string,
-  ): ResolvedExtractionConfig {
-    return resolveConfig({
+  ): ValidatedConfiguration {
+    const result = ValidatedConfiguration.parse({
       ...config,
-      modules: config.modules.map((moduleConfig) =>
-        this.resolveModuleConfig(moduleConfig, configDir),
-      ),
+      modules: config.modules.map((module) => this.resolveModule(module, configDir)),
     })
+    if (!result.success) {
+      throw new ExtractionConfigError(
+        'VALIDATION_ERROR',
+        formatExtractionConfigErrors(result.errors),
+      )
+    }
+    return result.data
   }
 
   private loadDraftComponentsFromFile(filePath: string): DraftComponent[] {
@@ -183,10 +170,10 @@ export class ExtractionProjectRepository {
     if (!this.isDraftComponentArray(parsed)) {
       throw new FileReadError(`Enrich file does not contain valid draft components: ${filePath}`)
     }
-    return parsed
+    return parsed.map((component) => DraftComponent.parse(component))
   }
 
-  private loadExtendedModule(source: string, configDir: string): Partial<Module> {
+  private loadExtendedModule(source: string, configDir: string): Partial<ValidatedModuleInput> {
     const filePath = resolveFileOrPackagePath({
       baseDirectory: configDir,
       packageRelativePath: 'src/default-extraction.config.json',
@@ -216,22 +203,22 @@ export class ExtractionProjectRepository {
     parsed: { modules: unknown[] },
     source: string,
     configDir: string,
-  ): Module {
+  ): ValidatedModuleInput {
     if (parsed.modules.length === 0) {
       throw new ExtractionConfigLoadError(
         `Invalid extended config in '${source}': Config has empty modules array`,
       )
     }
 
-    if (!isValidExtractionConfig(parsed)) {
-      const validationResult = validateExtractionConfig(parsed)
+    const extractionConfig = parseExtractionConfig(parsed)
+    if (!extractionConfig.success) {
       throw new ExtractionConfigLoadError(
         `Invalid extended config in '${source}': ` +
-          formatValidationErrors(validationResult.errors),
+          formatExtractionConfigErrors(extractionConfig.errors),
       )
     }
 
-    const [first] = this.resolveConfigWithExtends(parsed, configDir).modules
+    const [first] = this.resolveConfiguration(extractionConfig.configuration, configDir).modules
     /* v8 ignore start -- resolved config returns one module for one-module input */
     if (first === undefined) {
       throw new ExtractionConfigLoadError(
@@ -239,14 +226,13 @@ export class ExtractionProjectRepository {
       )
     }
     /* v8 ignore stop */
-    return first
+    return this.moduleInput(first)
   }
 
-  private topLevelRulesToModule(parsed: Partial<Module>): Module {
+  private topLevelRulesToModule(
+    parsed: Partial<ValidatedModuleInput>,
+  ): Partial<ValidatedModuleInput> {
     return {
-      name: 'extended',
-      path: '.',
-      glob: '**',
       api: parsed.api ?? NOT_USED,
       useCase: parsed.useCase ?? NOT_USED,
       domainOp: parsed.domainOp ?? NOT_USED,
@@ -256,51 +242,31 @@ export class ExtractionProjectRepository {
     }
   }
 
-  private resolveModuleConfig(moduleConfig: ModuleConfig, configDir: string): Module {
-    const extendsSource = moduleConfig.extends
+  private resolveModule(module: DraftModule, configDir: string): ValidatedModuleInput {
+    const extendsSource = module.extends
     if (extendsSource === undefined) {
-      const [resolvedModule] = resolveConfig({ modules: [moduleConfig] }).modules
-      /* v8 ignore start -- resolveConfig returns one module for one-module input */
-      if (resolvedModule === undefined) {
-        throw new TypeError(`Expected resolved module for '${moduleConfig.name}'`)
-      }
-      /* v8 ignore end */
-      return resolvedModule
+      return module
     }
 
     const baseModule = this.loadExtendedModule(extendsSource, configDir)
-    const mergedCustomTypes = this.mergeCustomTypes(
-      baseModule.customTypes,
-      moduleConfig.customTypes,
-    )
+    const mergedCustomTypes =
+      baseModule.customTypes === undefined && module.customTypes === undefined
+        ? undefined
+        : { ...baseModule.customTypes, ...module.customTypes }
 
     return {
-      name: moduleConfig.name,
-      domain: moduleConfig.domain,
-      path: moduleConfig.path,
-      glob: moduleConfig.glob,
-      ...(moduleConfig.modules !== undefined && { modules: moduleConfig.modules }),
-      api: moduleConfig.api ?? baseModule.api,
-      useCase: moduleConfig.useCase ?? baseModule.useCase,
-      domainOp: moduleConfig.domainOp ?? baseModule.domainOp,
-      event: moduleConfig.event ?? baseModule.event,
-      eventHandler: moduleConfig.eventHandler ?? baseModule.eventHandler,
-      ui: moduleConfig.ui ?? baseModule.ui,
+      name: module.name,
+      domain: module.domain,
+      path: module.path,
+      glob: module.glob,
+      ...(module.modules !== undefined && { modules: module.modules }),
+      api: module.api ?? baseModule.api,
+      useCase: module.useCase ?? baseModule.useCase,
+      domainOp: module.domainOp ?? baseModule.domainOp,
+      event: module.event ?? baseModule.event,
+      eventHandler: module.eventHandler ?? baseModule.eventHandler,
+      ui: module.ui ?? baseModule.ui,
       ...(mergedCustomTypes !== undefined && { customTypes: mergedCustomTypes }),
-    }
-  }
-
-  private mergeCustomTypes(
-    base: Module['customTypes'],
-    local: ModuleConfig['customTypes'],
-  ): Module['customTypes'] {
-    if (base === undefined && local === undefined) {
-      return undefined
-    }
-
-    return {
-      ...base,
-      ...local,
     }
   }
 
@@ -310,28 +276,32 @@ export class ExtractionProjectRepository {
     useTsConfig: boolean,
     draftComponents: DraftComponent[] = [],
   ): ExtractionProject {
-    return new ExtractionProject(
-      this.createModuleContexts(
+    const projectResult = ExtractionProject.parse({
+      configuration: parsedConfigState.configuration,
+      moduleSources: this.createModuleSources(
         parsedConfigState.configDir,
-        parsedConfigState.resolvedConfig,
+        parsedConfigState.configuration,
         sourceFilePaths,
         useTsConfig,
       ),
-      parsedConfigState.resolvedConfig,
-      getRepositoryInfo().name,
+      repositoryName: getRepositoryInfo().name,
       draftComponents,
-    )
+    })
+    if (!projectResult.success) {
+      throw new ExtractionConfigError('VALIDATION_ERROR', projectResult.error)
+    }
+    return projectResult.data
   }
 
   private resolveSourceFilePaths(parsedConfigState: ParsedConfigState): string[] {
-    const sourceFilePaths = parsedConfigState.resolvedConfig.modules
+    const sourceFilePaths = parsedConfigState.configuration.modules
       .flatMap((module) =>
         globSync(posix.join(module.path, module.glob), { cwd: parsedConfigState.configDir }),
       )
       .map((filePath) => resolve(parsedConfigState.configDir, filePath))
 
     if (sourceFilePaths.length === 0) {
-      const patterns = parsedConfigState.resolvedConfig.modules
+      const patterns = parsedConfigState.configuration.modules
         .map((module) => posix.join(module.path, module.glob))
         .join(', ')
       throw new ExtractionConfigError(
@@ -369,15 +339,19 @@ export class ExtractionProjectRepository {
     return allSourceFiles.filter((filePath) => requestedAbsolute.has(filePath))
   }
 
-  private createModuleContexts(
+  private createModuleSources(
     configDir: string,
-    resolvedConfig: ResolvedExtractionConfig,
+    configuration: ValidatedConfiguration,
     sourceFilePaths: string[],
     useTsConfig: boolean,
   ) {
     const sourceFileSet = new Set(sourceFilePaths)
 
-    return resolvedConfig.modules.map((module) => {
+    const sources = new Map<
+      ValidatedModule,
+      { files: string[]; project: ReturnType<typeof createConfiguredProject> }
+    >()
+    for (const module of configuration.modules) {
       const allModuleFiles = globSync(posix.join(module.path, module.glob), { cwd: configDir }).map(
         (filePath) => resolve(configDir, filePath),
       )
@@ -386,12 +360,9 @@ export class ExtractionProjectRepository {
       const project = createConfiguredProject(moduleConfigDir, !useTsConfig)
       project.addSourceFilesAtPaths(moduleFiles)
 
-      return {
-        files: moduleFiles,
-        module,
-        project,
-      }
-    })
+      sources.set(module, { files: moduleFiles, project })
+    }
+    return sources
   }
 
   private hasModulesArray(value: unknown): value is { modules: unknown[] } {
@@ -412,22 +383,50 @@ export class ExtractionProjectRepository {
     )
   }
 
-  private isDraftComponentArray(value: unknown): value is DraftComponent[] {
+  private isDraftComponentArray(value: unknown): value is DraftComponentInput[] {
     if (!Array.isArray(value)) return false
-    return value.every(
-      (item) =>
-        typeof item === 'object' &&
-        item !== null &&
-        'type' in item &&
-        'name' in item &&
-        'domain' in item &&
-        'location' in item,
+    return value.every((item: unknown) => this.isDraftComponentInput(item))
+  }
+
+  private isDraftComponentInput(value: unknown): value is DraftComponentInput {
+    if (!this.isRecord(value)) return false
+    return (
+      typeof value.type === 'string' &&
+      typeof value.name === 'string' &&
+      typeof value.domain === 'string' &&
+      typeof value.module === 'string' &&
+      this.isSourceLocation(value.location)
     )
   }
 
-  private isTopLevelRulesConfig(value: unknown): value is Partial<Module> {
+  private isSourceLocation(value: unknown): value is DraftComponentInput['location'] {
+    return this.isRecord(value) && typeof value.file === 'string' && typeof value.line === 'number'
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null
+  }
+
+  private isTopLevelRulesConfig(value: unknown): value is Partial<ValidatedModuleInput> {
     return (
       typeof value === 'object' && value !== null && !Array.isArray(value) && !('modules' in value)
     )
+  }
+
+  private moduleInput(module: ValidatedModule): ValidatedModuleInput {
+    return {
+      name: module.name,
+      domain: module.domain,
+      path: module.path,
+      glob: module.glob,
+      ...(module.modules !== undefined && { modules: module.modules }),
+      api: module.api,
+      useCase: module.useCase,
+      domainOp: module.domainOp,
+      event: module.event,
+      eventHandler: module.eventHandler,
+      ui: module.ui,
+      ...(module.customTypes !== undefined && { customTypes: module.customTypes }),
+    }
   }
 }

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ExternalDomain
 
-Defined in: packages/riviere-query/src/features/querying/domain/external-domain.ts:4
+Defined in: packages/riviere-query/src/domain/external-domain.ts:4
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **connectionCount**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/external-domain.ts:8
+Defined in: packages/riviere-query/src/domain/external-domain.ts:8
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/external-domain.
 
 > `readonly` **name**: `string`
 
-Defined in: packages/riviere-query/src/features/querying/domain/external-domain.ts:6
+Defined in: packages/riviere-query/src/domain/external-domain.ts:6
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: packages/riviere-query/src/features/querying/domain/external-domain.
 
 > `readonly` **sourceDomains**: `DomainName`[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/external-domain.ts:7
+Defined in: packages/riviere-query/src/domain/external-domain.ts:7

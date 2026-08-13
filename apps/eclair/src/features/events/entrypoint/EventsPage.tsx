@@ -4,7 +4,7 @@ import {
 import {
   useNavigate, useSearchParams 
 } from 'react-router-dom'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import { EventAccordion } from '@/platform/infra/ui/EventAccordion/EventAccordion'
 import { compareByCodePoint } from '../queries/compare-by-code-point'
 import type { DomainEvent } from '../queries/domain-event-types'

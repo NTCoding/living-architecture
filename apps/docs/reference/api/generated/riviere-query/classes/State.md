@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: State
 
-Defined in: packages/riviere-query/src/features/querying/domain/state.ts:6
+Defined in: packages/riviere-query/src/domain/state.ts:6
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **value**: `string`
 
-Defined in: packages/riviere-query/src/features/querying/domain/state.ts:9
+Defined in: packages/riviere-query/src/domain/state.ts:9
 
 ## Methods
 
@@ -24,7 +24,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/state.ts:9
 
 > **toJSON**(): `string`
 
-Defined in: packages/riviere-query/src/features/querying/domain/state.ts:15
+Defined in: packages/riviere-query/src/domain/state.ts:15
 
 #### Returns
 
@@ -36,7 +36,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/state.ts:15
 
 > `static` **parse**(`value`): `State`
 
-Defined in: packages/riviere-query/src/features/querying/domain/state.ts:11
+Defined in: packages/riviere-query/src/domain/state.ts:11
 
 #### Parameters
 

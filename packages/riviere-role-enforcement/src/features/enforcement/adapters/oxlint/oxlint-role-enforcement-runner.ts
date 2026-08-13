@@ -1,9 +1,9 @@
 import {
-  createOxlintImportSpecifier,
-  OxlintExecutionError,
   type OxlintClient,
   type OxlintConfig,
-} from '../../../../platform/infra/external-clients/oxlint/index'
+} from '../../../../platform/infra/external-clients/oxlint/oxlint-config'
+import { OxlintExecutionError } from '../../../../platform/infra/external-clients/oxlint/oxlint-execution-error'
+import { createOxlintImportSpecifier } from '../../../../platform/infra/external-clients/oxlint/oxlint-path-resolution'
 import type {
   RoleEnforcementRunner,
   RoleEnforcementRunnerInput,
@@ -67,7 +67,6 @@ function createOxlintConfig(
           locationHierarchy: config.locationHierarchy,
           roleDefinitionsDir: config.roleDefinitionsDir,
           roles: config.roles,
-          ...(config.workspacePackageSources !== undefined && {workspacePackageSources: config.workspacePackageSources,}),
         },
       ],
     },

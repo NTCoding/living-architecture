@@ -1,10 +1,8 @@
-import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
-import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
-import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
+import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
 import type { ComponentSummaryInput } from './component-summary-input'
-import type {
-  ComponentSummaryErrorCode, ComponentSummaryResult 
-} from './component-summary-result'
+import type { ComponentSummaryErrorCode, ComponentSummaryResult } from './component-summary-result'
 
 /** @riviere-role command-use-case */
 export class ComponentSummary {

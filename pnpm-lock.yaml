@@ -226,9 +226,6 @@ importers:
 
   packages/riviere-builder:
     dependencies:
-      '@living-architecture/riviere-query':
-        specifier: workspace:*
-        version: link:../riviere-query
       '@living-architecture/riviere-schema':
         specifier: workspace:*
         version: link:../riviere-schema
@@ -289,9 +286,6 @@ importers:
       '@living-architecture/riviere-schema':
         specifier: workspace:*
         version: link:../riviere-schema
-      minimatch:
-        specifier: ^10.0.1
-        version: 10.2.5
       ts-morph:
         specifier: ^24.0.0
         version: 24.0.0

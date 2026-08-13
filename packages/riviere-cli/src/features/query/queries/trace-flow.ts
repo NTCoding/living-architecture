@@ -1,4 +1,4 @@
-import { FlowTraceLoader } from '../data-access/query-loaders'
+import { FlowTraceLoader } from '../data-access/graph/query-loaders'
 import type { TraceFlowInput } from './trace-flow-input'
 import type { TraceFlowResult } from './trace-flow-result'
 import { toQueryGraphLoadFailure } from './query-graph-load-failure'

@@ -1,72 +1,57 @@
-import {
-  ComponentId, InvalidComponentIdError 
-} from './component-id'
+import { ComponentId } from './published-language/component-id'
 
 describe('ComponentId', () => {
-  describe('create', () => {
-    it('creates ID from parts with correct format', () => {
-      const id = ComponentId.create({
+  describe('parseFromParts', () => {
+    it('parses an ID from its parts', () => {
+      const componentId = ComponentId.parseFromParts({
         domain: 'orders',
         module: 'checkout',
         type: 'domainop',
         name: 'Place Order',
       })
 
-      expect(id.toString()).toBe('orders:checkout:domainop:place-order')
+      expect(componentId.toString()).toBe('orders:checkout:domainop:place-order')
     })
 
-    it('lowercases and hyphenates name', () => {
-      const id = ComponentId.create({
+    it('lowercases and hyphenates the component name', () => {
+      const componentId = ComponentId.parseFromParts({
         domain: 'orders',
         module: 'checkout',
         type: 'usecase',
         name: 'Handle Customer Request',
       })
 
-      expect(id.toString()).toBe('orders:checkout:usecase:handle-customer-request')
-    })
-
-    it('exposes name segment', () => {
-      const id = ComponentId.create({
-        domain: 'orders',
-        module: 'checkout',
-        type: 'domainop',
-        name: 'Place Order',
-      })
-
-      expect(id.name()).toBe('place-order')
+      expect(componentId.toString()).toBe('orders:checkout:usecase:handle-customer-request')
+      expect(componentId.name()).toBe('handle-customer-request')
     })
   })
 
   describe('parse', () => {
-    it('parses valid ID string', () => {
-      const id = ComponentId.parse('orders:checkout:domainop:place-order')
+    it('returns a component ID for a valid value', () => {
+      const result = ComponentId.parse('orders:checkout:domainop:place-order')
 
-      expect(id.name()).toBe('place-order')
-      expect(id.toString()).toBe('orders:checkout:domainop:place-order')
+      expect(result).toStrictEqual({
+        componentId: ComponentId.parseFromParts({
+          domain: 'orders',
+          module: 'checkout',
+          type: 'domainop',
+          name: 'place-order',
+        }),
+        success: true,
+      })
     })
 
-    it('throws InvalidComponentIdError on invalid format with too few segments', () => {
-      expect(() => ComponentId.parse('orders:checkout')).toThrow(InvalidComponentIdError)
-      expect(() => ComponentId.parse('orders:checkout')).toThrow(
-        "Invalid component ID format: 'orders:checkout'. Expected 'domain:module:type:name'",
-      )
-    })
+    it.each(['orders:checkout', 'orders:checkout:domainop:place:order', ''])(
+      'returns the validation failure for invalid value %j',
+      (value) => {
+        const result = ComponentId.parse(value)
 
-    it('throws InvalidComponentIdError on invalid format with too many segments', () => {
-      expect(() => ComponentId.parse('orders:checkout:domainop:place:order')).toThrow(
-        InvalidComponentIdError,
-      )
-      expect(() => ComponentId.parse('orders:checkout:domainop:place:order')).toThrow(
-        "Invalid component ID format: 'orders:checkout:domainop:place:order'. Expected 'domain:module:type:name'",
-      )
-    })
-
-    it('throws InvalidComponentIdError on empty string', () => {
-      expect(() => ComponentId.parse('')).toThrow(InvalidComponentIdError)
-      expect(() => ComponentId.parse('')).toThrow(
-        "Invalid component ID format: ''. Expected 'domain:module:type:name'",
-      )
-    })
+        expect(result).toStrictEqual({
+          success: false,
+          invalidValue: value,
+          message: `Invalid component ID format: '${value}'. Expected 'domain:module:type:name'`,
+        })
+      },
+    )
   })
 })

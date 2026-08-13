@@ -1,4 +1,4 @@
-import type { Link } from '@living-architecture/riviere-schema'
+import type { Link } from '@living-architecture/riviere-schema/schema'
 
 /** @riviere-role command-use-case-result-value */
 export type LinkComponentsErrorCode =
@@ -10,12 +10,12 @@ export type LinkComponentsErrorCode =
 /** @riviere-role command-use-case-result */
 export type LinkComponentsResult =
   | {
-    link: Link
-    success: true
-  }
+      link: Link
+      success: true
+    }
   | {
-    code: LinkComponentsErrorCode
-    message: string
-    suggestions: string[]
-    success: false
-  }
+      code: LinkComponentsErrorCode
+      message: string
+      suggestions: string[]
+      success: false
+    }

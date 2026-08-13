@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: Entity
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:8
+Defined in: packages/riviere-query/src/domain/entity.ts:8
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **businessRules**: readonly `string`[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:28
+Defined in: packages/riviere-query/src/domain/entity.ts:28
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:28
 
 > `readonly` **domain**: `DomainName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:24
+Defined in: packages/riviere-query/src/domain/entity.ts:24
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:24
 
 > `readonly` **name**: `EntityName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:23
+Defined in: packages/riviere-query/src/domain/entity.ts:23
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:23
 
 > `readonly` **operations**: readonly `DomainOpComponent`[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:25
+Defined in: packages/riviere-query/src/domain/entity.ts:25
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:25
 
 > `readonly` **states**: readonly [`State`](State.md)[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:26
+Defined in: packages/riviere-query/src/domain/entity.ts:26
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:26
 
 > `readonly` **transitions**: readonly [`EntityTransition`](EntityTransition.md)[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:27
+Defined in: packages/riviere-query/src/domain/entity.ts:27
 
 ## Methods
 
@@ -64,7 +64,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:27
 
 > **firstOperationId**(): `string` \| `undefined`
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:39
+Defined in: packages/riviere-query/src/domain/entity.ts:39
 
 #### Returns
 
@@ -76,7 +76,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:39
 
 > **hasBusinessRules**(): `boolean`
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:35
+Defined in: packages/riviere-query/src/domain/entity.ts:35
 
 #### Returns
 
@@ -88,7 +88,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:35
 
 > **hasStates**(): `boolean`
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:31
+Defined in: packages/riviere-query/src/domain/entity.ts:31
 
 #### Returns
 
@@ -100,7 +100,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:31
 
 > `static` **parse**(`name`, `domain`, `operations`, `states`, `transitions`, `businessRules`): `Entity`
 
-Defined in: packages/riviere-query/src/features/querying/domain/entity.ts:11
+Defined in: packages/riviere-query/src/domain/entity.ts:11
 
 #### Parameters
 

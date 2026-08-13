@@ -1,7 +1,7 @@
-import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
-import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
+import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
+import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
 import { ComponentType } from '../../../platform/domain/component-type'
-import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
 import type { ComponentChecklistInput } from './component-checklist-input'
 import type {
   ComponentChecklistErrorCode,
@@ -20,7 +20,7 @@ export class ComponentChecklist {
 
     try {
       const builder = this.repository.load(input.graphPathOption)
-      const allComponents = builder.query().components()
+      const allComponents = builder.components()
       const filteredComponents =
         componentType === undefined
           ? allComponents

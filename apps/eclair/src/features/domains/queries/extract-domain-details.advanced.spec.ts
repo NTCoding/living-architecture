@@ -1,6 +1,4 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { extractDomainDetails } from './extract-domain-details'
 import {
   parseNode,
@@ -10,7 +8,7 @@ import {
   type RawNode,
   type RawEdge,
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',
@@ -571,7 +569,7 @@ describe('extractDomainDetails - advanced tests', () => {
       })
 
       const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
-      const orderEntity = result?.entities.find((e) => e.name === 'Order')
+      const orderEntity = result?.entities.find((e) => e.name.value === 'Order')
       const beginOp = orderEntity?.operations.find((op) => op.operationName === 'begin')
 
       expect(beginOp?.behavior).toStrictEqual({
@@ -611,7 +609,7 @@ describe('extractDomainDetails - advanced tests', () => {
       })
 
       const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
-      const orderEntity = result?.entities.find((e) => e.name === 'Order')
+      const orderEntity = result?.entities.find((e) => e.name.value === 'Order')
       const beginOp = orderEntity?.operations.find((op) => op.operationName === 'begin')
 
       expect(beginOp?.stateChanges).toStrictEqual([
@@ -658,7 +656,7 @@ describe('extractDomainDetails - advanced tests', () => {
       })
 
       const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
-      const orderEntity = result?.entities.find((e) => e.name === 'Order')
+      const orderEntity = result?.entities.find((e) => e.name.value === 'Order')
       const beginOp = orderEntity?.operations.find((op) => op.operationName === 'begin')
 
       expect(beginOp?.signature?.parameters).toHaveLength(2)
@@ -693,7 +691,7 @@ describe('extractDomainDetails - advanced tests', () => {
       })
 
       const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
-      const orderEntity = result?.entities.find((e) => e.name === 'Order')
+      const orderEntity = result?.entities.find((e) => e.name.value === 'Order')
       const beginOp = orderEntity?.operations.find((op) => op.operationName === 'begin')
 
       expect(beginOp?.sourceLocation?.filePath).toBe('src/Order.ts')

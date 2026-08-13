@@ -2,8 +2,8 @@ import { createOpenCodeWorkflowPlugin } from '@nt-ai-lab/deterministic-agent-wor
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { WORKFLOW_DEFINITION } from '../features/workflow/data-access/workflow-definition'
-import { ROUTES, PRE_TOOL_USE_POLICY } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { isWriteAllowed } from '../features/workflow/domain/workflow-predicates'
 import { createWorkflowGitStatusReader } from '../features/workflow/adapters/git/workflow-git-status-reader'
 import { createWorkflowPullRequestCreator } from '../features/workflow/adapters/github/workflow-pull-request-creator'
 import { createWorkflowPullRequestFeedbackReader } from '../features/workflow/adapters/github/workflow-pull-request-feedback-reader'
@@ -13,12 +13,20 @@ import {
   createGithubPullRequestFeedbackClient,
   runGh,
 } from '../platform/infra/external-clients/github/index'
+import { createWorkflowDefinition } from './workflow-definition'
 
-type Workflow = ReturnType<typeof WORKFLOW_DEFINITION.buildWorkflow>
-type WorkflowState = ReturnType<typeof WORKFLOW_DEFINITION.initialState>
-type WorkflowDeps = Parameters<typeof WORKFLOW_DEFINITION.buildWorkflow>[1]
-type StateName = Parameters<typeof WORKFLOW_DEFINITION.buildTransitionContext>[1]
-type WorkflowOperation = Parameters<NonNullable<typeof WORKFLOW_DEFINITION.getOperationBody>>[0]
+const workflowDefinition = createWorkflowDefinition()
+const routes = createWorkflowRoutes(workflowDefinition.stateSchema)
+const bashForbidden = {
+  commands: ['git push', 'gh pr'],
+  flags: ['--no-verify', '--force', '--hard'],
+}
+
+type Workflow = ReturnType<typeof workflowDefinition.buildWorkflow>
+type WorkflowState = ReturnType<typeof workflowDefinition.initialState>
+type WorkflowDeps = Parameters<typeof workflowDefinition.buildWorkflow>[1]
+type StateName = Parameters<typeof workflowDefinition.buildTransitionContext>[1]
+type WorkflowOperation = Parameters<NonNullable<typeof workflowDefinition.getOperationBody>>[0]
 
 function sleepMs(ms: number): void {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
@@ -111,10 +119,10 @@ const basePlugin = createOpenCodeWorkflowPlugin<
   StateName,
   WorkflowOperation
 >({
-  workflowDefinition: WORKFLOW_DEFINITION,
-  routes: ROUTES,
-  bashForbidden: PRE_TOOL_USE_POLICY.bashForbidden,
-  isWriteAllowed: PRE_TOOL_USE_POLICY.isWriteAllowed,
+  workflowDefinition,
+  routes,
+  bashForbidden,
+  isWriteAllowed,
   pluginRoot,
   commandDirectories: [join(pluginRoot, 'commands')],
   commandPrefix: 'dev-workflow-v2:',

@@ -3,6 +3,14 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 
 const ROLE_TAG = /@riviere-role\s+(\S+)/g
+const DECORATOR_CONTEXT_TYPES = new Set([
+  'ClassAccessorDecoratorContext',
+  'ClassDecoratorContext',
+  'ClassFieldDecoratorContext',
+  'ClassGetterDecoratorContext',
+  'ClassMethodDecoratorContext',
+  'ClassSetterDecoratorContext',
+])
 
 function parseAllRoleNames(text) {
   return [...text.matchAll(ROLE_TAG)].map((match) => match[1])
@@ -72,6 +80,9 @@ export default {
           TSTypeAliasDeclaration(node) {
             validateDeclaration(node, 'type-alias')
           },
+          VariableDeclaration(node) {
+            validateVariableDeclaration(node)
+          },
           ImportDeclaration(node) {
             if (isTestFile) {
               return
@@ -85,6 +96,17 @@ export default {
             validateForbiddenDependencies()
             validateForbiddenMethodCalls()
           },
+        }
+
+        function validateVariableDeclaration(node) {
+          if (!isTopLevelExported(node)) {
+            return
+          }
+          if (node.declarations.length !== 1 || node.declarations[0]?.id.type !== 'Identifier') {
+            report(node, 'An exported variable declaration must declare exactly one named variable.')
+            return
+          }
+          validateDeclaration(node, 'variable')
         }
 
         function validateConfiguredSubLocations(node, locationChain, filePath) {
@@ -218,21 +240,16 @@ export default {
 
         function locationRuleAllows(rule, source, targetChain, node, resolvedImport) {
           const candidates = targetChain.filter((target) =>
-            locationNameMatches(rule.location, target.location.name),
+            locationRuleMatches(rule.location, source, target, locationHierarchy),
           )
-          for (const target of candidates) {
-            if (!sameConcreteParentWhenSharedTemplate(source, target, locationHierarchy)) {
-              continue
-            }
-            if (!Array.isArray(rule.roles)) {
-              return true
-            }
-            const importedRoles = readImportedRoles(node, resolvedImport)
-            if (importedRoles.length > 0 && importedRoles.every((role) => rule.roles.includes(role))) {
-              return true
-            }
+          if (candidates.length === 0) {
+            return false
           }
-          return false
+          if (!Array.isArray(rule.roles)) {
+            return true
+          }
+          const importedRoles = readImportedRoles(node, resolvedImport)
+          return importedRoles.length > 0 && importedRoles.every((role) => rule.roles.includes(role))
         }
 
         function readImportedRoles(node, resolvedImport) {
@@ -333,12 +350,20 @@ export default {
             roleName,
           })
 
+          validateRoleContract(node, target, role, name)
+        }
+
+        function validateRoleContract(node, target, role, name) {
           if (target === 'function') {
             validateFunctionContract(node, role, name)
-          }
-
-          if (target === 'class') {
+          } else if (target === 'class') {
             validateClassContract(node, role, name)
+          } else if (target === 'variable') {
+            validateVariableContract(node, role, name)
+          } else if (target === 'interface') {
+            validateInterfaceContract(node, role, name)
+          } else if (target === 'type-alias') {
+            validateTypeAliasContract(node, role, name)
           }
         }
 
@@ -396,9 +421,8 @@ export default {
         }
 
         function isRoleAllowedInFile(roleName, filePath) {
-          return resolveLocationChain(filePath, locationHierarchy).some((location) =>
-            location.location.allowedRoles.includes(roleName),
-          )
+          const location = resolveLocationChain(filePath, locationHierarchy).at(-1)
+          return location?.location.allowedRoles.includes(roleName) === true
         }
 
         function validateForbiddenDependencies() {
@@ -655,6 +679,18 @@ export default {
         }
 
         function validateFunctionContract(node, role, name) {
+          if (role.requiresDecoratorSignature === true && !hasDecoratorSignature(node)) {
+            report(
+              node,
+              `Role '${role.name}' requires a decorator signature on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+            )
+            return
+          }
+
+          if (Array.isArray(role.returns)) {
+            validateReturnShapes(node, role, name)
+          }
+
           if (Array.isArray(role.allowedInputs)) {
             if (node.params.length !== 1) {
               report(
@@ -683,6 +719,176 @@ export default {
               )
             }
           }
+        }
+
+        function validateReturnShapes(node, role, name) {
+          const returnType = unwrapTypeAnnotation(node.returnType)
+          if (returnType?.type !== 'TSUnionType') {
+            report(
+              node,
+              `Role '${role.name}' requires explicit success and failure return branches on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+            )
+            return
+          }
+
+          for (const requiredShape of role.returns) {
+            const branch = returnType.types.find(
+              (member) => readSuccessDiscriminator(member) === requiredShape.success,
+            )
+            if (branch === undefined) {
+              report(
+                node,
+                `Role '${role.name}' requires explicit success and failure return branches on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+              )
+              return
+            }
+
+            const values = readNonDiscriminatorProperties(branch)
+            if (values.length === 0) {
+              report(
+                node,
+                `Role '${role.name}' requires a value on its ${requiredShape.success ? 'success' : 'failure'} branch on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+              )
+              return
+            }
+
+            const requiredRole = requiredShape['*']
+            if (
+              requiredRole !== '*' &&
+              !values.some((property) => readTypeRole(property.typeAnnotation, filename) === requiredRole)
+            ) {
+              report(
+                node,
+                `Role '${role.name}' requires its ${requiredShape.success ? 'success' : 'failure'} branch to return role '${requiredRole}' on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+              )
+              return
+            }
+          }
+        }
+
+        function readSuccessDiscriminator(typeNode) {
+          if (typeNode.type !== 'TSTypeLiteral') {
+            return null
+          }
+          const successProperty = typeNode.members.find(
+            (member) => member.type === 'TSPropertySignature' && readMemberName(member.key) === 'success',
+          )
+          const successType = unwrapTypeAnnotation(successProperty?.typeAnnotation)
+          if (successType?.type !== 'TSLiteralType') {
+            return null
+          }
+          const literal = successType.literal
+          return literal?.type === 'Literal' && typeof literal.value === 'boolean'
+            ? literal.value
+            : null
+        }
+
+        function readNonDiscriminatorProperties(typeNode) {
+          if (typeNode.type !== 'TSTypeLiteral') {
+            return []
+          }
+          return typeNode.members.filter(
+            (member) =>
+              member.type === 'TSPropertySignature' && readMemberName(member.key) !== 'success',
+          )
+        }
+
+        function validateVariableContract(node, role, name) {
+          if (role.requiresStringLiteralConstant !== true) {
+            return
+          }
+          const initializer = unwrapExpression(node.declarations[0]?.init)
+          if (node.kind === 'const' && isStringLiteral(initializer)) {
+            return
+          }
+          report(
+            node,
+            `Role '${role.name}' requires a string-literal constant on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+          )
+        }
+
+        function validateInterfaceContract(node, role, name) {
+          if (role.requiresDataStructure !== true) {
+            return
+          }
+          const hasCallableMember = node.body.body.some((member) => {
+            if (
+              member.type === 'TSMethodSignature' ||
+              member.type === 'TSCallSignatureDeclaration' ||
+              member.type === 'TSConstructSignatureDeclaration'
+            ) {
+              return true
+            }
+            return (
+              member.type === 'TSPropertySignature' &&
+              isCallableTypeAnnotation(member.typeAnnotation)
+            )
+          })
+          if (hasCallableMember) {
+            report(
+              node,
+              `Role '${role.name}' does not allow methods on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+            )
+          }
+        }
+
+        function validateTypeAliasContract(node, role, name) {
+          if (role.requiresUnion !== true || node.typeAnnotation.type === 'TSUnionType') {
+            return
+          }
+          report(
+            node,
+            `Role '${role.name}' requires a union type on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+          )
+        }
+
+        function unwrapExpression(node) {
+          if (
+            node?.type === 'TSAsExpression' ||
+            node?.type === 'TSTypeAssertion' ||
+            node?.type === 'TSNonNullExpression' ||
+            node?.type === 'TSInstantiationExpression'
+          ) {
+            return unwrapExpression(node.expression)
+          }
+          return node
+        }
+
+        function isStringLiteral(node) {
+          return (
+            (node?.type === 'Literal' && typeof node.value === 'string') ||
+            (node?.type === 'StringLiteral' && typeof node.value === 'string')
+          )
+        }
+
+        function hasDecoratorSignature(node) {
+          if (hasDecoratorParameters(node.params)) {
+            return true
+          }
+
+          const returnType = unwrapTypeAnnotation(node.returnType)
+          return returnType?.type === 'TSFunctionType' && hasDecoratorParameters(returnType.params)
+        }
+
+        function hasDecoratorParameters(params) {
+          return params.length === 2 && containsDecoratorContextType(params[1]?.typeAnnotation)
+        }
+
+        function containsDecoratorContextType(typeAnnotation) {
+          const typeNode = unwrapTypeAnnotation(typeAnnotation)
+          if (typeNode?.type === 'TSUnionType') {
+            return typeNode.types.some(containsDecoratorContextType)
+          }
+          if (typeNode?.type !== 'TSTypeReference' || typeNode.typeName?.type !== 'Identifier') {
+            return false
+          }
+          return DECORATOR_CONTEXT_TYPES.has(typeNode.typeName.name)
+        }
+
+        function unwrapTypeAnnotation(typeAnnotation) {
+          return typeAnnotation?.type === 'TSTypeAnnotation'
+            ? typeAnnotation.typeAnnotation
+            : typeAnnotation
         }
 
         function validateClassContract(node, role, name) {
@@ -1077,6 +1283,8 @@ export default {
               statement,
               localTypeName,
               currentFile,
+              options.configDir,
+              options.importAliases,
             )
             if (importedReference !== undefined) {
               importCache.set(cacheKey, importedReference)
@@ -1084,60 +1292,8 @@ export default {
             }
           }
 
-          const workspaceRef = readWorkspacePackageReference(localTypeName)
-          importCache.set(cacheKey, workspaceRef)
-          return workspaceRef
-        }
-
-        function readWorkspacePackageReference(localTypeName) {
-          const workspacePackageSources = options.workspacePackageSources ?? {}
-          for (const statement of sourceCode.ast.body) {
-            const ref = readWorkspaceImportStatement(statement, localTypeName, workspacePackageSources)
-            if (ref !== null) {
-              return ref
-            }
-          }
+          importCache.set(cacheKey, null)
           return null
-        }
-
-        function readWorkspaceImportStatement(statement, localTypeName, workspacePackageSources) {
-          if (statement.type !== 'ImportDeclaration') {
-            return null
-          }
-          const importSource = statement.source.value
-          if (typeof importSource !== 'string' || importSource.startsWith('.')) {
-            return null
-          }
-          const specifier = (statement.specifiers ?? []).find(
-            (s) => s.type === 'ImportSpecifier' && s.local.name === localTypeName,
-          )
-          if (specifier === undefined) {
-            return null
-          }
-          const sourcePackage = Object.entries(workspacePackageSources).find(
-            ([packageName]) =>
-              importSource === packageName || importSource.startsWith(`${packageName}/`),
-          )
-          if (sourcePackage === undefined) {
-            return null
-          }
-          const [packageName, packageEntry] = sourcePackage
-          const packageSubpath = importSource.slice(packageName.length + 1)
-          const sourceEntry = packageSubpath === ''
-            ? packageEntry
-            : path.join(path.dirname(packageEntry), packageSubpath)
-          const resolvedSourcePath = resolveTypeFile(path.join(options.configDir, '_'), sourceEntry)
-          if (resolvedSourcePath === null) {
-            return null
-          }
-          const importedName =
-            specifier.imported.type === 'Identifier'
-              ? specifier.imported.name
-              : specifier.imported.value
-          return {
-            exportedName: importedName,
-            filePath: resolvedSourcePath,
-          }
         }
 
         function readExportedRole(filePath, exportedName) {
@@ -1246,21 +1402,21 @@ export default {
 }
 
 function resolveLocationChain(filePath, locations) {
+  const fileDirectorySegments = normalizePath(path.dirname(filePath)).split('/')
   const matches = locations
     .map((location) => {
       const templateSegments = location.pathTemplate.split('/')
-      const fileSegments = filePath.split('/')
-      if (fileSegments.length < templateSegments.length) {
+      if (fileDirectorySegments.length < templateSegments.length) {
         return null
       }
       for (let index = 0; index < templateSegments.length; index += 1) {
         const expected = templateSegments[index]
-        if (!isTemplateSegment(expected) && expected !== fileSegments[index]) {
+        if (!isTemplateSegment(expected) && expected !== fileDirectorySegments[index]) {
           return null
         }
       }
       return {
-        concretePath: fileSegments.slice(0, templateSegments.length).join('/'),
+        concretePath: fileDirectorySegments.slice(0, templateSegments.length).join('/'),
         location,
       }
     })
@@ -1318,11 +1474,29 @@ function locationById(locations, id) {
   return locations.find((location) => location.id === id)
 }
 
-function sameConcreteParentWhenSharedTemplate(source, target, locations) {
+function locationRuleMatches(configuredLocation, source, target, locations) {
+  if (configuredLocation.startsWith('**/')) {
+    return locationNameMatches(
+      `/${configuredLocation.slice(3)}`,
+      packageRelativeLocationName(target.location),
+    )
+  }
+  return (
+    locationNameMatches(configuredLocation, target.location.name) &&
+    hasSameConcreteParent(source, target, locations)
+  )
+}
+
+function packageRelativeLocationName(location) {
+  const sourceRoot = `${location.packagePath}/src`
+  return location.pathTemplate.slice(sourceRoot.length)
+}
+
+function hasSameConcreteParent(source, target, locations) {
   const sourceParent = locationById(locations, source.location.parentId)
   const targetParent = locationById(locations, target.location.parentId)
   if (sourceParent?.pathTemplate !== targetParent?.pathTemplate) {
-    return true
+    return false
   }
   const segmentCount = sourceParent.pathTemplate.split('/').length
   const sourceParentPath = source.concretePath.split('/').slice(0, segmentCount).join('/')
@@ -1331,10 +1505,8 @@ function sameConcreteParentWhenSharedTemplate(source, target, locations) {
 }
 
 function locationNameMatches(configuredName, targetName) {
-  if (!configuredName.endsWith('/*')) {
-    return configuredName === targetName
-  }
-  return targetName.startsWith(configuredName.slice(0, -1))
+  const locationName = configuredName.endsWith('/*') ? configuredName.slice(0, -2) : configuredName
+  return targetName === locationName || targetName.startsWith(`${locationName}/`)
 }
 
 function collectForbiddenMethodCallRoles(fileRoles, roleMap) {
@@ -1367,6 +1539,11 @@ function readAnnotationNode(node) {
 }
 
 function readDeclarationName(node) {
+  if (node.type === 'VariableDeclaration') {
+    const declaration = node.declarations.length === 1 ? node.declarations[0] : undefined
+    return declaration?.id.type === 'Identifier' ? declaration.id.name : null
+  }
+
   if ('id' in node && node.id != null) {
     return node.id.name
   }
@@ -1474,7 +1651,9 @@ function resolveWorkspacePackageSource(currentFile, importSource) {
   try {
     const packageJsonPath = createRequire(currentFile).resolve(`${packageName}/package.json`)
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
-    const sourceEntry = packageJson.exports?.['.']?.['@living-architecture/source']
+    const packageSubpath = importSource.slice(packageName.length)
+    const exportKey = packageSubpath === '' ? '.' : `.${packageSubpath}`
+    const sourceEntry = resolvePackageSourceExport(packageJson.exports, exportKey)
     if (typeof sourceEntry !== 'string') {
       return null
     }
@@ -1482,6 +1661,33 @@ function resolveWorkspacePackageSource(currentFile, importSource) {
   } catch {
     return null
   }
+}
+
+function resolvePackageSourceExport(exports, exportKey) {
+  if (typeof exports !== 'object' || exports === null) {
+    return null
+  }
+
+  const directExport = exports[exportKey]
+  if (typeof directExport?.['@living-architecture/source'] === 'string') {
+    return directExport['@living-architecture/source']
+  }
+
+  for (const [pattern, value] of Object.entries(exports)) {
+    const wildcardIndex = pattern.indexOf('*')
+    if (wildcardIndex === -1 || typeof value?.['@living-architecture/source'] !== 'string') {
+      continue
+    }
+    const prefix = pattern.slice(0, wildcardIndex)
+    const suffix = pattern.slice(wildcardIndex + 1)
+    if (!exportKey.startsWith(prefix) || !exportKey.endsWith(suffix)) {
+      continue
+    }
+    const wildcardValue = exportKey.slice(prefix.length, exportKey.length - suffix.length)
+    return value['@living-architecture/source'].replace('*', wildcardValue)
+  }
+
+  return null
 }
 
 function readPackageName(importSource) {
@@ -1513,12 +1719,18 @@ function escapeRegExp(value) {
   return value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)
 }
 
-function readImportDeclarationReference(statement, localTypeName, currentFile) {
+function readImportDeclarationReference(
+  statement,
+  localTypeName,
+  currentFile,
+  configDir,
+  importAliases,
+) {
   if (statement.type !== 'ImportDeclaration') {
     return undefined
   }
 
-  if (typeof statement.source.value !== 'string' || !statement.source.value.startsWith('.')) {
+  if (typeof statement.source.value !== 'string') {
     return undefined
   }
 
@@ -1533,7 +1745,7 @@ function readImportDeclarationReference(statement, localTypeName, currentFile) {
     importedSpecifier.imported.type === 'Identifier'
       ? importedSpecifier.imported.name
       : importedSpecifier.imported.value
-  const resolvedFile = resolveTypeFile(currentFile, statement.source.value)
+  const resolvedFile = resolveImportFile(currentFile, statement.source.value, configDir, importAliases)
   if (resolvedFile === null) {
     return null
   }

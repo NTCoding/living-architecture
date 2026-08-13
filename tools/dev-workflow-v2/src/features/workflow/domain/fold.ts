@@ -1,5 +1,13 @@
+import { z } from 'zod'
 import type { WorkflowEvent } from './workflow-events'
-import { LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA, WorkflowState } from './workflow-types'
+import { getInitialWorkflowState, WorkflowState } from './workflow-types'
+
+const LIVING_ARCHITECTURE_REVIEW_TYPE_SCHEMA = z.enum([
+  'architecture-review',
+  'code-review',
+  'bug-scanner',
+  'task-check',
+])
 
 function applyRecordedReviewVerdict(
   state: WorkflowState,
@@ -23,17 +31,6 @@ function applyRecordedReviewVerdict(
       return state.with({ taskCheckPassed: passed })
   }
 }
-
-export const EMPTY_STATE = WorkflowState.parse({
-  currentStateMachineState: 'IMPLEMENTING',
-  architectureReviewPassed: false,
-  codeReviewPassed: false,
-  bugScannerPassed: false,
-  taskCheckPassed: false,
-  ciPassed: false,
-  feedbackClean: false,
-  feedbackAddressed: false,
-})
 
 function applyTransitioned(
   state: WorkflowState,
@@ -87,7 +84,9 @@ function applyRecordingEvent(state: WorkflowState, event: WorkflowEvent): Workfl
     case 'task-check-passed':
       return state.with({ taskCheckPassed: true })
     case 'session-started':
-      return state.with({...(event.transcriptPath !== undefined && { transcriptPath: event.transcriptPath }),})
+      return state.with({
+        ...(event.transcriptPath !== undefined && { transcriptPath: event.transcriptPath }),
+      })
     default:
       return state
   }
@@ -101,5 +100,5 @@ export function applyEvent(state: WorkflowState, event: WorkflowEvent): Workflow
 
 /** @riviere-role domain-service */
 export function applyEvents(events: readonly WorkflowEvent[]): WorkflowState {
-  return events.reduce(applyEvent, EMPTY_STATE)
+  return events.reduce(applyEvent, getInitialWorkflowState())
 }

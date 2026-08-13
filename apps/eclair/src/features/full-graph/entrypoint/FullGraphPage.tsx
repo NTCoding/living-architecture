@@ -2,7 +2,7 @@ import {
   useState, useCallback, useMemo, useRef, useEffect 
 } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import type {
   Node, Edge,
 } from '../queries/eclair-types'

@@ -1,8 +1,15 @@
-import type {
-  OperationParameter, OperationSignature 
-} from '@living-architecture/riviere-schema'
+interface ParsedOperationParameter {
+  description?: string
+  name: string
+  type: string
+}
 
-function parseParameter(input: string): OperationParameter | undefined {
+interface ParsedOperationSignature {
+  parameters?: ParsedOperationParameter[]
+  returnType?: string
+}
+
+function parseParameter(input: string): ParsedOperationParameter | undefined {
   const parts = input.split(':')
   if (parts.length < 2 || parts.length > 3) return undefined
   const [name, type, description] = parts
@@ -16,22 +23,22 @@ function parseParameter(input: string): OperationParameter | undefined {
 
 type SignatureParseResult =
   | {
-    signature: OperationSignature
-    success: true
-  }
+      signature: ParsedOperationSignature
+      success: true
+    }
   | {
-    error: string
-    success: false
-  }
+      error: string
+      success: false
+    }
 type ParametersParseResult =
   | {
-    parameters: OperationParameter[]
-    success: true
-  }
+      parameters: ParsedOperationParameter[]
+      success: true
+    }
   | {
-    error: string
-    success: false
-  }
+      error: string
+      success: false
+    }
 
 function parseParameters(paramsPart: string): ParametersParseResult {
   if (paramsPart === '')
@@ -40,7 +47,7 @@ function parseParameters(paramsPart: string): ParametersParseResult {
       success: true,
     }
   const paramStrings = paramsPart.split(',').map((p) => p.trim())
-  const parameters: OperationParameter[] = []
+  const parameters: ParsedOperationParameter[] = []
   for (const paramStr of paramStrings) {
     const param = parseParameter(paramStr)
     if (param === undefined)
@@ -57,10 +64,10 @@ function parseParameters(paramsPart: string): ParametersParseResult {
 }
 
 function buildSignatureObject(
-  parameters: OperationParameter[],
+  parameters: ParsedOperationParameter[],
   returnType: string | undefined,
-): OperationSignature {
-  const signature: OperationSignature = {}
+): ParsedOperationSignature {
+  const signature: ParsedOperationSignature = {}
   if (parameters.length > 0) signature.parameters = parameters
   if (returnType !== undefined && returnType !== '') signature.returnType = returnType
   return signature
@@ -73,13 +80,13 @@ export function parseSignature(input: string): SignatureParseResult {
     const returnType = trimmed.slice(2).trim()
     return returnType === ''
       ? {
-        error: `Invalid signature format: '${input}'. Return type cannot be empty.`,
-        success: false,
-      }
+          error: `Invalid signature format: '${input}'. Return type cannot be empty.`,
+          success: false,
+        }
       : {
-        signature: { returnType },
-        success: true,
-      }
+          signature: { returnType },
+          success: true,
+        }
   }
   const arrowIndex = trimmed.indexOf(' -> ')
   const paramsPart = arrowIndex === -1 ? trimmed : trimmed.slice(0, arrowIndex).trim()

@@ -1,6 +1,4 @@
-import {
-  unlinkSync, existsSync, mkdtempSync 
-} from 'node:fs'
+import { unlinkSync, existsSync, mkdtempSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import type {
@@ -13,19 +11,22 @@ import { createStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store
 import { createWorkflowRunner } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { RunnerResult } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { Workflow } from '../../../domain/workflow'
-import { WORKFLOW_DEFINITION } from '../../../data-access/workflow-definition'
-import {
-  ROUTES, PRE_TOOL_USE_POLICY 
-} from '../entrypoint'
+import { isWriteAllowed } from '../../../domain/workflow-predicates'
+import { createWorkflowDefinition } from '../../../../../shell/workflow-definition'
+import { createWorkflowRoutes } from '../entrypoint'
 import { STATE_STEPS } from './workflow-cli-state-steps-test-fixtures'
 
 type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
+const workflowDefinition = createWorkflowDefinition()
 
 const runner = createWorkflowRunner({
-  workflowDefinition: WORKFLOW_DEFINITION,
-  routes: ROUTES,
-  bashForbidden: PRE_TOOL_USE_POLICY.bashForbidden,
-  isWriteAllowed: PRE_TOOL_USE_POLICY.isWriteAllowed,
+  workflowDefinition,
+  routes: createWorkflowRoutes(workflowDefinition.stateSchema),
+  bashForbidden: {
+    commands: ['git push', 'gh pr'],
+    flags: ['--no-verify', '--force', '--hard'],
+  },
+  isWriteAllowed,
 })
 
 export type TestContext = {
@@ -102,7 +103,9 @@ export function runReviewCommandWithJson(
   reviewType: ReviewType,
   reviewJson: string,
 ): RunnerResult {
-  return runner(['record-review', reviewType, reviewJson], ctx.engineDeps, ctx.workflowDeps, {getSessionId: () => ctx.sessionId,})
+  return runner(['record-review', reviewType, reviewJson], ctx.engineDeps, ctx.workflowDeps, {
+    getSessionId: () => ctx.sessionId,
+  })
 }
 
 export function runReviewCommand(

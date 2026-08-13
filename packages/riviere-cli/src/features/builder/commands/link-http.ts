@@ -1,11 +1,16 @@
 import { ComponentId } from '@living-architecture/riviere-schema/component-id'
-import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
-import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
+import type {
+  APIComponent,
+  Component,
+  HttpMethod as PublishedHttpMethod,
+  RiviereGraph,
+} from '@living-architecture/riviere-schema/schema'
+import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
+import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
 import { ComponentType } from '../../../platform/domain/component-type'
-import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
 import { HttpMethod } from '../domain/http-method'
 import { LinkType } from '../domain/link-type'
-import { findApisByPath, getAllApiPaths } from '../domain/api-component-queries'
 import type { LinkHttpInput } from './link-http-input'
 import type { LinkHttpErrorCode, LinkHttpResult } from './link-http-result'
 
@@ -46,7 +51,7 @@ export class LinkHttp {
         type?: 'sync' | 'async'
       } = {
         from: matchedApi.id,
-        to: ComponentId.create({
+        to: ComponentId.parseFromParts({
           domain: input.targetDomain,
           module: input.targetModule,
           name: input.targetName,
@@ -81,17 +86,38 @@ export class LinkHttp {
   }
 }
 
+type RestApiWithPath = APIComponent & Required<Pick<APIComponent, 'httpMethod' | 'path'>>
+
+function isRestApiWithPath(component: Component): component is RestApiWithPath {
+  return component.type === 'API' && 'path' in component && 'httpMethod' in component
+}
+
+function findApisByPath(
+  graph: RiviereGraph,
+  path: string,
+  method?: PublishedHttpMethod,
+): RestApiWithPath[] {
+  const matchingPath = graph.components.filter(isRestApiWithPath).filter((api) => api.path === path)
+  return method === undefined
+    ? matchingPath
+    : matchingPath.filter((api) => api.httpMethod === method)
+}
+
+function getAllApiPaths(graph: RiviereGraph): string[] {
+  return [...new Set(graph.components.filter(isRestApiWithPath).map((api) => api.path))]
+}
+
 function parseInput(input: LinkHttpInput):
   | {
-    success: false
-    result: LinkHttpResult
-  }
+      success: false
+      result: LinkHttpResult
+    }
   | {
-    success: true
-    componentType: ComponentType
-    httpMethod: HttpMethod | undefined
-    linkType: LinkType | undefined
-  } {
+      success: true
+      componentType: ComponentType
+      httpMethod: HttpMethod | undefined
+      linkType: LinkType | undefined
+    } {
   const componentType = ComponentType.parse(input.targetType)
   if (!componentType.success) {
     return invalidInput(`Invalid component type: ${input.targetType}`)

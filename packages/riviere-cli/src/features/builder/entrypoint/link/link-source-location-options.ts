@@ -1,5 +1,3 @@
-import type { SourceLocation } from '@living-architecture/riviere-schema'
-
 interface LinkSourceLocationOptions {
   repository?: string
   filePath?: string
@@ -9,13 +7,20 @@ interface LinkSourceLocationOptions {
 
 type LinkSourceLocationResult =
   | {
-    success: true
-    sourceLocation: SourceLocation | undefined
-  }
+      success: true
+      sourceLocation:
+        | {
+            repository: string
+            filePath: string
+            lineNumber?: number
+            columnNumber?: number
+          }
+        | undefined
+    }
   | {
-    success: false
-    message: string
-  }
+      success: false
+      message: string
+    }
 
 /** @riviere-role entrypoint-cli-input-parser */
 export function parseLinkSourceLocation(
@@ -64,13 +69,13 @@ function parsePositiveInteger(
   optionName: string,
 ):
   | {
-    success: true
-    value: number | undefined
-  }
+      success: true
+      value: number | undefined
+    }
   | {
-    success: false
-    message: string
-  } {
+      success: false
+      message: string
+    } {
   if (raw === undefined) {
     return {
       success: true,

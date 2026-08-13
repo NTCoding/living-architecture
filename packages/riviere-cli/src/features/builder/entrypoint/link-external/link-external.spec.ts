@@ -1,9 +1,5 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import {
-  mkdir, writeFile, readFile 
-} from 'node:fs/promises'
+import { describe, it, expect } from 'vitest'
+import { mkdir, writeFile, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createProgram } from '../../../../shell/cli'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
@@ -238,23 +234,32 @@ describe('riviere builder link-external', () => {
       })
     })
 
-    it('propagates error when source ID format is malformed', async () => {
+    it('returns VALIDATION_ERROR when source ID format is malformed', async () => {
       await createGraphWithComponent()
 
       const program = createProgram()
 
-      await expect(
-        program.parseAsync([
-          'node',
-          'riviere',
-          'builder',
-          'link-external',
-          '--from',
-          'malformed-id',
-          '--target-name',
-          'Stripe API',
-        ]),
-      ).rejects.toThrow(/Invalid component ID format/)
+      await program.parseAsync([
+        'node',
+        'riviere',
+        'builder',
+        'link-external',
+        '--from',
+        'malformed-id',
+        '--target-name',
+        'Stripe API',
+      ])
+
+      expect(ctx.consoleOutput[0]).toBeTruthy()
+      const output: unknown = JSON.parse(ctx.consoleOutput[0])
+      expect(output).toMatchObject({
+        success: false,
+        error: {
+          code: CliErrorCode.ValidationError,
+          message:
+            "Invalid component ID format: 'malformed-id'. Expected 'domain:module:type:name'",
+        },
+      })
     })
 
     it('returns VALIDATION_ERROR when link type is invalid', async () => {

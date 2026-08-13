@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: ComponentModification
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-modification.ts:5
+Defined in: packages/riviere-query/src/domain/component-modification.ts:5
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **after**: `Component`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-modification.ts:9
+Defined in: packages/riviere-query/src/domain/component-modification.ts:9
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-modifi
 
 > `readonly` **before**: `Component`
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-modification.ts:8
+Defined in: packages/riviere-query/src/domain/component-modification.ts:8
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-modifi
 
 > `readonly` **changedFields**: `string`[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-modification.ts:10
+Defined in: packages/riviere-query/src/domain/component-modification.ts:10
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: packages/riviere-query/src/features/querying/domain/component-modifi
 
 > `readonly` **id**: [`ComponentId`](../classes/ComponentId.md)
 
-Defined in: packages/riviere-query/src/features/querying/domain/component-modification.ts:7
+Defined in: packages/riviere-query/src/domain/component-modification.ts:7

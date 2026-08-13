@@ -1,4 +1,4 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import {
   getEffectiveNodeType,
   getNodeTypeDescription,

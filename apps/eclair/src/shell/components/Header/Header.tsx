@@ -2,7 +2,7 @@ import {
   useState, useRef, useEffect 
 } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import type { GraphName } from '@/platform/domain/eclair-types'
 import { SchemaModal } from '@/shell/components/SchemaModal/SchemaModal'
 import { useGraph } from '@/platform/infra/graph-state/GraphContext'
@@ -38,7 +38,7 @@ export function Header({
         const orphanIds = query.detectOrphans()
         return {
           hasOrphans: orphanIds.length > 0,
-          orphanNodeIds: new Set(orphanIds),
+          orphanNodeIds: new Set(orphanIds.map((componentId) => componentId.value)),
           orphanCount: orphanIds.length,
         }
       })()

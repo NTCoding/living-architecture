@@ -1,10 +1,10 @@
-import { RoleEnforcementResult } from './role-enforcement-builder'
+import { RoleEnforcementConfiguration } from './role-enforcement-builder'
 
 /** @riviere-role domain-service */
 export function filterConfigByPackage(
-  config: RoleEnforcementResult,
+  config: RoleEnforcementConfiguration,
   packagePath: string,
-): RoleEnforcementResult {
+): RoleEnforcementConfiguration {
   const normalizedPath = stripTrailingSlashes(packagePath)
 
   const filteredInclude = config.include.filter((pattern) =>
@@ -17,13 +17,14 @@ export function filterConfigByPackage(
     )
   }
 
-  return RoleEnforcementResult.parse({
+  return RoleEnforcementConfiguration.parse({
     ...config,
+    assignedPackages: [normalizedPath],
     include: filteredInclude,
     locationHierarchy: config.locationHierarchy.filter((location) =>
       location.pathTemplate.startsWith(`${normalizedPath}/`),
     ),
-  })
+  }).data
 }
 
 function extractPackagePath(includePattern: string): string {

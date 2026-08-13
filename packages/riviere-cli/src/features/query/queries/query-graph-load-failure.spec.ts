@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
-import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
+import { GraphCorruptedError } from '../data-access/graph/graph-corrupted-error'
+import { GraphNotFoundError } from '../data-access/graph/graph-not-found-error'
 import { toQueryGraphLoadFailure } from './query-graph-load-failure'
 
 class UnexpectedQueryGraphLoadError extends Error {

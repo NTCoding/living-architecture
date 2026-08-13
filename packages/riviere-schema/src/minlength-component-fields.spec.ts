@@ -1,6 +1,16 @@
-import {
-  parseRiviereGraph, RiviereSchemaValidationError 
-} from './validation'
+import { parseRiviereGraph } from './published-language/validation'
+
+function expectInvalid(input: unknown, fieldName: string): void {
+  const result = parseRiviereGraph(input)
+  expect(result.success).toBe(false)
+  if (!result.success) {
+    expect(result.issues.join('\n')).toContain(fieldName)
+  }
+}
+
+function expectValid(input: unknown): void {
+  expect(parseRiviereGraph(input).success).toBe(true)
+}
 
 describe('minLength validation: component fields', () => {
   const baseGraph = {
@@ -38,8 +48,7 @@ describe('minLength validation: component fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/path/)
+      expectInvalid(input, 'path')
     })
 
     it('rejects path with length < 3', () => {
@@ -62,8 +71,7 @@ describe('minLength validation: component fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/path/)
+      expectInvalid(input, 'path')
     })
 
     it('accepts path with length >= 3', () => {
@@ -86,7 +94,7 @@ describe('minLength validation: component fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).not.toThrow()
+      expectValid(input)
     })
   })
 
@@ -110,8 +118,7 @@ describe('minLength validation: component fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/operationName/)
+      expectInvalid(input, 'operationName')
     })
 
     it('rejects operationName with length < 2', () => {
@@ -133,8 +140,7 @@ describe('minLength validation: component fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/operationName/)
+      expectInvalid(input, 'operationName')
     })
 
     it('accepts operationName with length >= 2', () => {
@@ -156,7 +162,7 @@ describe('minLength validation: component fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).not.toThrow()
+      expectValid(input)
     })
   })
 
@@ -179,8 +185,7 @@ describe('minLength validation: component fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/operationName/)
+      expectInvalid(input, 'operationName')
     })
 
     it('rejects operationName with length < 2', () => {
@@ -201,8 +206,7 @@ describe('minLength validation: component fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/operationName/)
+      expectInvalid(input, 'operationName')
     })
 
     it('accepts operationName with length >= 2', () => {
@@ -223,7 +227,7 @@ describe('minLength validation: component fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).not.toThrow()
+      expectValid(input)
     })
   })
 
@@ -246,8 +250,7 @@ describe('minLength validation: component fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/eventName/)
+      expectInvalid(input, 'eventName')
     })
 
     it('rejects eventName with length < 3', () => {
@@ -268,8 +271,7 @@ describe('minLength validation: component fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).toThrow(RiviereSchemaValidationError)
-      expect(() => parseRiviereGraph(input)).toThrow(/eventName/)
+      expectInvalid(input, 'eventName')
     })
 
     it('accepts eventName with length >= 3', () => {
@@ -290,7 +292,7 @@ describe('minLength validation: component fields', () => {
           },
         ],
       }
-      expect(() => parseRiviereGraph(input)).not.toThrow()
+      expectValid(input)
     })
   })
 })

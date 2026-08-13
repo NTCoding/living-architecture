@@ -6,7 +6,7 @@ pageClass: reference
 
 > **compareByCodePoint**(`a`, `b`): `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/compare-by-code-point.ts:2
+Defined in: packages/riviere-query/src/domain/compare-by-code-point.ts:2
 
 ## Parameters
 

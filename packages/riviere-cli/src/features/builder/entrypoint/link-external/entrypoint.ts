@@ -2,7 +2,6 @@ import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../../../../platform/infra/cli/presentation/graph-path-option'
 import { formatError, formatSuccess } from '../../../../platform/infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
-import { buildExternalTarget } from './link-external-transformer'
 import type { LinkExternal } from '../../commands/link-external'
 
 interface LinkExternalOptions {
@@ -47,7 +46,9 @@ Examples:
       const result = linkExternal.execute({
         from: options.from,
         graphPathOption: options.graph,
-        target: buildExternalTarget(options),
+        targetDomain: options.targetDomain,
+        targetName: options.targetName,
+        targetUrl: options.targetUrl,
         type: options.linkType,
       })
       if (!result.success) {

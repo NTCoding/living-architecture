@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: EventHandlerInfo
 
-Defined in: packages/riviere-query/src/features/querying/domain/event-handler-info.ts:14
+Defined in: packages/riviere-query/src/domain/event-handler-info.ts:14
 
 Information about an event handler component.
 
@@ -18,7 +18,7 @@ value-object
 
 > `readonly` **domain**: `DomainName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/event-handler-info.ts:18
+Defined in: packages/riviere-query/src/domain/event-handler-info.ts:18
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/event-handler-in
 
 > `readonly` **handlerName**: `HandlerName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/event-handler-info.ts:17
+Defined in: packages/riviere-query/src/domain/event-handler-info.ts:17
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/event-handler-in
 
 > `readonly` **id**: `HandlerId`
 
-Defined in: packages/riviere-query/src/features/querying/domain/event-handler-info.ts:16
+Defined in: packages/riviere-query/src/domain/event-handler-info.ts:16
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/event-handler-in
 
 > `readonly` **subscribedEvents**: `EventName`[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/event-handler-info.ts:19
+Defined in: packages/riviere-query/src/domain/event-handler-info.ts:19
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/event-handler-in
 
 > `readonly` **subscribedEventsWithDomain**: `SubscribedEventWithDomain`[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/event-handler-info.ts:20
+Defined in: packages/riviere-query/src/domain/event-handler-info.ts:20
 
 ## Methods
 
@@ -58,7 +58,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/event-handler-in
 
 > `static` **parse**(`input`): `EventHandlerInfo`
 
-Defined in: packages/riviere-query/src/features/querying/domain/event-handler-info.ts:36
+Defined in: packages/riviere-query/src/domain/event-handler-info.ts:36
 
 #### Parameters
 

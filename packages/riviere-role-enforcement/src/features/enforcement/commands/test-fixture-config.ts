@@ -2,7 +2,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcement,
+  roleEnforcementConfiguration,
 } from '../domain/role-enforcement-builder'
 
 export const genericTestRoles = [
@@ -44,7 +44,7 @@ const genericTestLocations = locationConfiguration(
   location<GenericTestRoleName>('/repositories', ['role-b-repository']),
 )
 
-export const genericTestConfig = roleEnforcement({
+export const genericTestConfig = roleEnforcementConfiguration({
   configurations: {
     test: {
       packages: ['packages/pkg-a'],
@@ -57,7 +57,7 @@ export const genericTestConfig = roleEnforcement({
 })
 
 function configWithGenericAggregateOverride(aggregateOptions: Parameters<typeof role>[1]) {
-  return roleEnforcement({
+  return roleEnforcementConfiguration({
     configurations: {
       test: {
         packages: ['packages/pkg-a'],
@@ -112,7 +112,7 @@ export function configWithGenericClassStateConstraints() {
 }
 
 export function configWithGenericRepositoryMethodInputs(allowedInputs: string[]) {
-  return roleEnforcement({
+  return roleEnforcementConfiguration({
     configurations: {
       test: {
         packages: ['packages/pkg-a'],
@@ -133,7 +133,7 @@ export function configWithGenericRepositoryMethodInputs(allowedInputs: string[])
 }
 
 export function configWithGenericRepositoryMethodInputsOnly(allowedInputs: string[]) {
-  return roleEnforcement({
+  return roleEnforcementConfiguration({
     configurations: {
       test: {
         packages: ['packages/pkg-a'],

@@ -7,7 +7,7 @@ import {
 } from '@/platform/infra/graph-state/GraphContext'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
 import { EmptyState } from '@/features/empty-state/entrypoint/EmptyState'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import { OverviewPage } from '@/features/overview/entrypoint/OverviewPage'
 import { FullGraphPage } from '@/features/full-graph/entrypoint/FullGraphPage'
 import { DomainMapPage } from '@/features/domain-map/entrypoint/DomainMapPage'

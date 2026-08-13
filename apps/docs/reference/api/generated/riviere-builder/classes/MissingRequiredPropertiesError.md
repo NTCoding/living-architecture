@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: MissingRequiredPropertiesError
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:148
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:148
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new MissingRequiredPropertiesError**(`customTypeName`, `missingKeys`): `MissingRequiredPropertiesError`
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:152
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:152
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **customTypeName**: `string`
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:149
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:149
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **missingKeys**: `string`[]
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:150
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:150
 
 ***
 

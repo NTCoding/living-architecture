@@ -1,14 +1,12 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { RiviereBuilder } from '@living-architecture/riviere-builder/features/building/domain/builder-facade'
+import { RiviereBuilder } from '@living-architecture/riviere-builder/domain/builder-facade'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   type TestContext,
   createTestContext,
   setupCommandTest,
 } from '../../../platform/__fixtures__/command-test-fixtures'
-import * as addComponentDomain from '../domain/add-component'
-import * as apiQueries from '../domain/api-component-queries'
 import { AddComponent } from './add-component'
 import { AddDomain } from './add-domain'
 import { AddSource } from './add-source'
@@ -21,7 +19,7 @@ import { LinkComponents } from './link-components'
 import { LinkExternal } from './link-external'
 import { LinkHttp } from './link-http'
 import { ValidateGraph } from './validate-graph'
-import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
 
 class UnexpectedBuilderFailure extends Error {
   constructor(message: string) {
@@ -195,7 +193,7 @@ describe('builder command coverage', () => {
     expect(() =>
       new LinkComponents(new RiviereBuilderRepository()).execute({
         condition: undefined,
-        from: 'a',
+        from: 'orders:core:api:source',
         graphPathOption: undefined,
         relationshipType: undefined,
         sourceLocation: undefined,
@@ -208,9 +206,11 @@ describe('builder command coverage', () => {
     ).toThrow('link explode')
     expect(() =>
       new LinkExternal(new RiviereBuilderRepository()).execute({
-        from: 'a',
+        from: 'orders:core:api:source',
         graphPathOption: undefined,
-        target: { name: 'Stripe' },
+        targetDomain: undefined,
+        targetName: 'Stripe',
+        targetUrl: undefined,
         type: undefined,
       }),
     ).toThrow('external explode')
@@ -239,34 +239,30 @@ describe('builder command coverage', () => {
   it('includes ambiguous suggestions in link-http results', () => {
     const builder = createLoadedBuilder(ctx.testDir)
     vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
-    vi.spyOn(builder, 'build').mockReturnValue({
-      components: [],
-      links: [],
-      metadata: {
-        domains: {},
-        sources: [],
+    builder.addApi({
+      apiType: 'REST',
+      domain: 'orders',
+      httpMethod: 'POST',
+      module: 'core',
+      name: 'CreateOrder',
+      path: '/orders',
+      sourceLocation: {
+        filePath: 'src/create-order.ts',
+        repository: 'https://github.com/org/repo',
       },
-      version: '1.0',
     })
-    const matchingApis: ReturnType<typeof apiQueries.findApisByPath> = [
-      {
-        domain: 'orders',
-        httpMethod: 'POST',
-        id: 'api-a',
-        name: 'CreateOrder',
-        path: '/orders',
-        type: 'API',
+    builder.addApi({
+      apiType: 'REST',
+      domain: 'orders',
+      httpMethod: 'GET',
+      module: 'core',
+      name: 'ListOrders',
+      path: '/orders',
+      sourceLocation: {
+        filePath: 'src/list-orders.ts',
+        repository: 'https://github.com/org/repo',
       },
-      {
-        domain: 'orders',
-        httpMethod: 'GET',
-        id: 'api-b',
-        name: 'ListOrders',
-        path: '/orders',
-        type: 'API',
-      },
-    ]
-    vi.spyOn(apiQueries, 'findApisByPath').mockReturnValue(matchingApis)
+    })
 
     expect(
       new LinkHttp(new RiviereBuilderRepository()).execute({
@@ -289,7 +285,7 @@ describe('builder command coverage', () => {
   it('maps generic Error in add-component', () => {
     const builder = createLoadedBuilder(ctx.testDir)
     vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
-    vi.spyOn(addComponentDomain, 'addComponentToBuilder').mockImplementation(() => {
+    vi.spyOn(builder, 'addUI').mockImplementation(() => {
       throw new UnexpectedBuilderFailure('builder exploded')
     })
 
@@ -313,7 +309,7 @@ describe('builder command coverage', () => {
   it('rethrows non-Error values in add-component', () => {
     const builder = createLoadedBuilder(ctx.testDir)
     vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
-    vi.spyOn(addComponentDomain, 'addComponentToBuilder').mockImplementation(() => {
+    vi.spyOn(builder, 'addUI').mockImplementation(() => {
       throw 'boom'
     })
 

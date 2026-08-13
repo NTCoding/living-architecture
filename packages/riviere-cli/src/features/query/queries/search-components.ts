@@ -1,4 +1,4 @@
-import { ComponentSearchLoader } from '../data-access/query-loaders'
+import { ComponentSearchLoader } from '../data-access/graph/query-loaders'
 import type { SearchComponentsInput } from './search-components-input'
 import type { SearchComponentsResult } from './search-components-result'
 import { toQueryGraphLoadFailure } from './query-graph-load-failure'

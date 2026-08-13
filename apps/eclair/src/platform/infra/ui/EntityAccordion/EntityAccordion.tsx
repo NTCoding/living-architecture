@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Entity } from '@living-architecture/riviere-query'
-import type { DomainOpComponent } from '@living-architecture/riviere-schema'
+import type { DomainOpComponent } from '@living-architecture/riviere-schema/schema'
 import { CodeLinkMenu } from '@/platform/infra/ui/CodeLinkMenu/CodeLinkMenu'
 import { MethodCardChevron } from './MethodCardChevron'
 
@@ -84,7 +84,7 @@ export function EntityAccordion({
           </div>
           <div className="min-w-0">
             <span className="block truncate font-[var(--font-mono)] text-sm font-bold text-[var(--text-primary)]">
-              {entity.name}
+              {entity.name.value}
             </span>
             <span className="block text-xs text-[var(--text-tertiary)]">
               {operationCount} operation{operationCount === 1 ? '' : 's'}
@@ -118,11 +118,11 @@ export function EntityAccordion({
                   }
                   const borderClass = getStateBorderClass()
                   return (
-                    <div key={state} className="flex items-center gap-2">
+                    <div key={state.value} className="flex items-center gap-2">
                       <span
                         className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${borderClass}`}
                       >
-                        {state}
+                        {state.value}
                       </span>
                       {index < entity.states.length - 1 && (
                         <span className="text-[var(--text-tertiary)]">→</span>

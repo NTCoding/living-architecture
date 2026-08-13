@@ -2,37 +2,20 @@ import {
   CustomTypeNotFoundError,
   DomainNotFoundError,
   DuplicateComponentError,
-} from '@living-architecture/riviere-builder/features/building/domain/construction/construction-errors'
-import { addComponentToBuilder } from '../domain/add-component'
-import {
-  createDomainInput,
-  isAddComponentValidationError,
-} from '../domain/add-component-input-factory'
-import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
-import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
-import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+} from '@living-architecture/riviere-builder/domain/construction/construction-errors'
+import type { RiviereBuilder } from '@living-architecture/riviere-builder/domain/builder-facade'
+import { ComponentDefinition } from '../domain/component-definition'
+import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
+import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
 import type { AddComponentInput } from './add-component-input'
 import type { AddComponentErrorCode, AddComponentResult } from './add-component-result'
-
-const validComponentTypes = new Set([
-  'ui',
-  'api',
-  'usecase',
-  'domainop',
-  'event',
-  'eventhandler',
-  'custom',
-])
 
 /** @riviere-role command-use-case */
 export class AddComponent {
   constructor(private readonly repository: RiviereBuilderRepository) {}
 
   execute(input: AddComponentInput): AddComponentResult {
-    if (!validComponentTypes.has(input.componentType.toLowerCase())) {
-      return failure('VALIDATION_ERROR', `Invalid component type: ${input.componentType}`)
-    }
-
     if (
       input.lineNumber !== undefined &&
       (!Number.isSafeInteger(input.lineNumber) || input.lineNumber < 1)
@@ -48,8 +31,10 @@ export class AddComponent {
     }
 
     try {
+      const definition = ComponentDefinition.parse(input)
+      if (!definition.success) return failure('VALIDATION_ERROR', definition.message)
       const builder = this.repository.load(input.graphPathOption)
-      const componentId = addComponentToBuilder(builder, createDomainInput(input))
+      const componentId = addDefinition(builder, definition.data.value)
       this.repository.save(builder)
       return {
         success: true,
@@ -64,6 +49,25 @@ export class AddComponent {
   }
 }
 
+function addDefinition(builder: RiviereBuilder, definition: ComponentDefinition['value']): string {
+  switch (definition.type) {
+    case 'UI':
+      return builder.addUI(definition.input).id
+    case 'API':
+      return builder.addApi(definition.input).id
+    case 'UseCase':
+      return builder.addUseCase(definition.input).id
+    case 'DomainOp':
+      return builder.addDomainOp(definition.input).id
+    case 'Event':
+      return builder.addEvent(definition.input).id
+    case 'EventHandler':
+      return builder.addEventHandler(definition.input).id
+    case 'Custom':
+      return builder.addCustom(definition.input).id
+  }
+}
+
 function mapError(error: unknown): AddComponentResult {
   if (error instanceof DomainNotFoundError) {
     return failure('DOMAIN_NOT_FOUND', error.message)
@@ -73,9 +77,6 @@ function mapError(error: unknown): AddComponentResult {
   }
   if (error instanceof DuplicateComponentError) {
     return failure('DUPLICATE_COMPONENT', error.message)
-  }
-  if (isAddComponentValidationError(error)) {
-    return failure('VALIDATION_ERROR', error.message)
   }
   if (error instanceof Error) {
     return failure('VALIDATION_ERROR', error.message)

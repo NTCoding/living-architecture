@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: Flow
 
-Defined in: packages/riviere-query/src/features/querying/domain/flow.ts:5
+Defined in: packages/riviere-query/src/domain/flow.ts:5
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **entryPoint**: `Component`
 
-Defined in: packages/riviere-query/src/features/querying/domain/flow.ts:7
+Defined in: packages/riviere-query/src/domain/flow.ts:7
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: packages/riviere-query/src/features/querying/domain/flow.ts:7
 
 > `readonly` **steps**: [`FlowStep`](FlowStep.md)[]
 
-Defined in: packages/riviere-query/src/features/querying/domain/flow.ts:8
+Defined in: packages/riviere-query/src/domain/flow.ts:8

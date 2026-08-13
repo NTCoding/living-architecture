@@ -1,12 +1,8 @@
-import {
-  writeFile, mkdir 
-} from 'node:fs/promises'
+import { writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
-import {
-  describe, expect, it 
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { AddComponent } from './add-component'
-import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
 import type { AddComponentErrorCode } from './add-component-result'
 import {
   type TestContext,

@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: GraphDiff
 
-Defined in: packages/riviere-query/src/features/querying/domain/graph-diff.ts:8
+Defined in: packages/riviere-query/src/domain/graph-diff.ts:8
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **components**: `object`
 
-Defined in: packages/riviere-query/src/features/querying/domain/graph-diff.ts:10
+Defined in: packages/riviere-query/src/domain/graph-diff.ts:10
 
 #### added
 
@@ -36,7 +36,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/graph-diff.ts:10
 
 > `readonly` **links**: `object`
 
-Defined in: packages/riviere-query/src/features/querying/domain/graph-diff.ts:15
+Defined in: packages/riviere-query/src/domain/graph-diff.ts:15
 
 #### added
 
@@ -52,4 +52,4 @@ Defined in: packages/riviere-query/src/features/querying/domain/graph-diff.ts:15
 
 > `readonly` **stats**: [`DiffStats`](DiffStats.md)
 
-Defined in: packages/riviere-query/src/features/querying/domain/graph-diff.ts:19
+Defined in: packages/riviere-query/src/domain/graph-diff.ts:19

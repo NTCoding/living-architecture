@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: MissingDomainsError
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:177
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:177
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new MissingDomainsError**(): `MissingDomainsError`
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:178
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:178
 
 #### Returns
 

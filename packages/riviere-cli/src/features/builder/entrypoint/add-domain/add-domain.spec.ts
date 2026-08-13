@@ -286,16 +286,13 @@ describe('riviere builder add-domain', () => {
         throw unexpectedError
       }
 
-      vi.doMock(
-        '@living-architecture/riviere-builder/features/building/domain/builder-facade',
-        () => ({
-          RiviereBuilder: {
-            resume: vi
-              .fn()
-              .mockReturnValue({ addDomain: vi.fn().mockImplementation(throwUnexpectedError) }),
-          },
-        }),
-      )
+      vi.doMock('@living-architecture/riviere-builder/domain/builder-facade', () => ({
+        RiviereBuilder: {
+          resume: vi
+            .fn()
+            .mockReturnValue({ addDomain: vi.fn().mockImplementation(throwUnexpectedError) }),
+        },
+      }))
 
       const { createProgram } = await import('../../../../shell/cli')
       const program = createProgram()

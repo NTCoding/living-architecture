@@ -18,7 +18,7 @@ The delivery sequence first introduces the package-owned extraction model and re
 
 - Value: Extraction behaviour needed by extract commands and workflows exists through the approved package-owned extraction concepts.
 - Acceptance criteria:
-  - `ExtractionStage` exists as the approved data-only value object at `packages/riviere-extract-ts/src/features/extraction/domain/extraction-stage.ts`.
+  - `ExtractionStage` exists as the approved data-only value object at `packages/riviere-extract-ts/src/domain/extraction-stage.ts`.
   - `ExtractionStage` carries the approved extraction state: `name`, `configPath`, `useTsConfig`, `repositoryName`, `resolvedConfig`, and `moduleContexts`.
   - `ExtractComponentsForGraph` exists as the approved domain service for graph-ready components before connection detection.
   - `DetectExtractionConnections` exists as the approved domain service for connection detection.
@@ -39,8 +39,8 @@ The delivery sequence first introduces the package-owned extraction model and re
 
 - Value: Existing extract command behaviour continues through the new extraction-package aggregate instead of the old CLI-owned `ExtractionProject` model.
 - Acceptance criteria:
-  - `RiviereProject` exists as the approved aggregate at `packages/riviere-extract-ts/src/features/extraction/domain/riviere-project.ts`.
-  - `RiviereProjectRepository` exists as the aggregate repository at `packages/riviere-extract-ts/src/features/extraction/data-access/riviere-project-repository.ts`.
+  - `RiviereProject` exists as the approved aggregate at `packages/riviere-extract-ts/src/domain/riviere-project.ts`.
+  - `RiviereProjectRepository` exists as the shared aggregate repository at `packages/riviere-cli/src/data-access/riviere-project/riviere-project-repository.ts`.
   - `ExtractionProject` no longer exists.
   - `ExtractionProjectRepository` no longer exists.
   - Existing extract command behaviour still works after the replacement.
@@ -72,8 +72,8 @@ The delivery sequence first introduces the package-owned extraction model and re
 
 - Value: A project-local workflow file becomes a concrete aggregate that can rebuild one graph.
 - Acceptance criteria:
-  - `RiviereProject` exists as the approved aggregate at `packages/riviere-extract-ts/src/features/extraction/domain/riviere-project.ts`.
-  - `RiviereProjectRepository` exists as the aggregate repository at `packages/riviere-extract-ts/src/features/extraction/data-access/riviere-project-repository.ts`.
+  - `RiviereProject` exists as the approved aggregate at `packages/riviere-extract-ts/src/domain/riviere-project.ts`.
+  - `RiviereProjectRepository` exists as the shared aggregate repository at `packages/riviere-cli/src/data-access/riviere-project/riviere-project-repository.ts`.
   - `RiviereProjectRepository.load({ projectRoot, workflowName })` loads `.riviere/workflows/{workflowName}.yaml`.
   - Workflow names match the approved V1 format: `[a-z0-9][a-z0-9-]*`.
   - The repository reads required `graph.sources`, `graph.domains`, `graph.outputPath`, and `runLog.directory`.

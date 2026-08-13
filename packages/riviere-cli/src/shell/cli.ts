@@ -15,7 +15,7 @@ import { LinkComponents } from '../features/builder/commands/link-components'
 import { LinkExternal } from '../features/builder/commands/link-external'
 import { LinkHttp } from '../features/builder/commands/link-http'
 import { ValidateGraph } from '../features/builder/commands/validate-graph'
-import { RiviereBuilderRepository } from '../features/builder/data-access/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../features/builder/data-access/riviere-builder/riviere-builder-repository'
 import { createAddComponentCommand } from '../features/builder/entrypoint/add-component/entrypoint'
 import { createAddDomainCommand } from '../features/builder/entrypoint/add-domain/entrypoint'
 import { createAddSourceCommand } from '../features/builder/entrypoint/add-source/entrypoint'
@@ -48,7 +48,7 @@ import {
   EntryPointListLoader,
   FlowTraceLoader,
   OrphanListLoader,
-} from '../features/query/data-access/query-loaders'
+} from '../features/query/data-access/graph/query-loaders'
 import { createComponentsCommand } from '../features/query/entrypoint/components/entrypoint'
 import { createDomainsCommand } from '../features/query/entrypoint/domains/entrypoint'
 import { createEntryPointsCommand } from '../features/query/entrypoint/entry-points/entrypoint'
@@ -56,7 +56,9 @@ import { createOrphansCommand } from '../features/query/entrypoint/orphans/entry
 import { createSearchCommand } from '../features/query/entrypoint/search/entrypoint'
 import { createTraceCommand } from '../features/query/entrypoint/trace/entrypoint'
 
-interface PackageJson {version: string}
+interface PackageJson {
+  version: string
+}
 
 class InvalidPackageJsonError extends Error {
   constructor(reason: string) {

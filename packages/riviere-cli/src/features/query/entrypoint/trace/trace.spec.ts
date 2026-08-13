@@ -1,6 +1,4 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { createProgram } from '../../../../shell/cli'
 import { CliErrorCode } from '../../../../platform/infra/cli/presentation/error-codes'
 import type { TestContext } from '../../../../platform/__fixtures__/command-test-fixtures'
@@ -204,38 +202,6 @@ describe('riviere query trace', () => {
 
       expect(output.error.code).toBe(CliErrorCode.ComponentNotFound)
       expect(output.error.message).toContain('orders:checkout:api:nonexistent')
-    })
-
-    it('propagates unexpected errors thrown by traceFlow', async () => {
-      await createGraph(ctx.testDir, {
-        version: '1.0',
-        metadata: baseMetadata,
-        components: [apiComponent],
-        links: [],
-      })
-
-      const queryModule = await import('@living-architecture/riviere-query')
-      const queryClass = queryModule.RiviereQuery
-      const originalTraceFlow = queryClass.prototype.traceFlow
-
-      queryClass.prototype.traceFlow = () => {
-        throw new TestAssertionError('Unexpected internal error')
-      }
-
-      try {
-        await expect(
-          createProgram().parseAsync([
-            'node',
-            'riviere',
-            'query',
-            'trace',
-            'orders:checkout:api:place-order',
-            '--json',
-          ]),
-        ).rejects.toThrow('Unexpected internal error')
-      } finally {
-        queryClass.prototype.traceFlow = originalTraceFlow
-      }
     })
   })
 })

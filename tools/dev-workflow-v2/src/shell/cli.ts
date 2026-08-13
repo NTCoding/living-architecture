@@ -1,9 +1,7 @@
 import { createDefaultProcessDeps } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { createClaudeCodeWorkflowCli } from '@nt-ai-lab/deterministic-agent-workflow-claude-code'
-import { WORKFLOW_DEFINITION } from '../features/workflow/data-access/workflow-definition'
-import {
-  ROUTES, PRE_TOOL_USE_POLICY 
-} from '../features/workflow/entrypoint/workflow/entrypoint'
+import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { isWriteAllowed } from '../features/workflow/domain/workflow-predicates'
 import { createWorkflowGitStatusReader } from '../features/workflow/adapters/git/workflow-git-status-reader'
 import { createWorkflowPullRequestCreator } from '../features/workflow/adapters/github/workflow-pull-request-creator'
 import { createWorkflowPullRequestFeedbackReader } from '../features/workflow/adapters/github/workflow-pull-request-feedback-reader'
@@ -13,6 +11,14 @@ import {
   createGithubPullRequestFeedbackClient,
   runGh,
 } from '../platform/infra/external-clients/github/index'
+import { createWorkflowDefinition } from './workflow-definition'
+
+const workflowDefinition = createWorkflowDefinition()
+const routes = createWorkflowRoutes(workflowDefinition.stateSchema)
+const bashForbidden = {
+  commands: ['git push', 'gh pr'],
+  flags: ['--no-verify', '--force', '--hard'],
+}
 
 /**
  * Performs an intentionally synchronous sleep for CLI polling.
@@ -31,10 +37,10 @@ function sleepMs(ms: number): void {
 // Safe — StateName ⊂ string, WorkflowOperation ⊂ string.
 createClaudeCodeWorkflowCli({
   // @ts-expect-error WorkflowCliConfig widens StateName/WorkflowOperation to string
-  workflowDefinition: WORKFLOW_DEFINITION,
-  routes: ROUTES,
-  bashForbidden: PRE_TOOL_USE_POLICY.bashForbidden,
-  isWriteAllowed: PRE_TOOL_USE_POLICY.isWriteAllowed,
+  workflowDefinition,
+  routes,
+  bashForbidden,
+  isWriteAllowed,
   processDeps: createDefaultProcessDeps(),
   buildWorkflowDeps: (platform) => ({
     getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),

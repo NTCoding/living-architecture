@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: Domain
 
-Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:4
+Defined in: packages/riviere-query/src/domain/domain.ts:4
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **componentCounts**: [`ComponentCounts`](ComponentCounts.md)
 
-Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:9
+Defined in: packages/riviere-query/src/domain/domain.ts:9
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:9
 
 > `readonly` **description**: `string`
 
-Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:7
+Defined in: packages/riviere-query/src/domain/domain.ts:7
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:7
 
 > `readonly` **name**: `string`
 
-Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:6
+Defined in: packages/riviere-query/src/domain/domain.ts:6
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:6
 
 > `readonly` **systemType**: `SystemType`
 
-Defined in: packages/riviere-query/src/features/querying/domain/domain.ts:8
+Defined in: packages/riviere-query/src/domain/domain.ts:8

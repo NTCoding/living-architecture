@@ -1,7 +1,5 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import {
-  getEdgeType, type ConnectionDetail 
-} from './edgeAggregation'
+import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import { getEdgeType, type ConnectionDetail } from './edgeAggregation'
 
 export interface ExternalEdgeInfo {
   targetName: string

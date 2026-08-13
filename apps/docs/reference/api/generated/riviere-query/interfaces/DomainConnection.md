@@ -4,7 +4,7 @@ pageClass: reference
 
 # Interface: DomainConnection
 
-Defined in: packages/riviere-query/src/features/querying/domain/domain-connection.ts:4
+Defined in: packages/riviere-query/src/domain/domain-connection.ts:4
 
 ## Riviere-role
 
@@ -16,7 +16,7 @@ value-object
 
 > `readonly` **apiCount**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/domain-connection.ts:8
+Defined in: packages/riviere-query/src/domain/domain-connection.ts:8
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/domain-connectio
 
 > `readonly` **direction**: `"outgoing"` \| `"incoming"`
 
-Defined in: packages/riviere-query/src/features/querying/domain/domain-connection.ts:7
+Defined in: packages/riviere-query/src/domain/domain-connection.ts:7
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: packages/riviere-query/src/features/querying/domain/domain-connectio
 
 > `readonly` **eventCount**: `number`
 
-Defined in: packages/riviere-query/src/features/querying/domain/domain-connection.ts:9
+Defined in: packages/riviere-query/src/domain/domain-connection.ts:9
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: packages/riviere-query/src/features/querying/domain/domain-connectio
 
 > `readonly` **targetDomain**: `DomainName`
 
-Defined in: packages/riviere-query/src/features/querying/domain/domain-connection.ts:6
+Defined in: packages/riviere-query/src/domain/domain-connection.ts:6

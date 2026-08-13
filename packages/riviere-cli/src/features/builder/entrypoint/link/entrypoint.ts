@@ -70,16 +70,20 @@ Examples:
       }
 
       const result = linkComponents.execute({
-        condition: options.condition,
         from: options.from,
         graphPathOption: options.graph,
-        relationshipType: options.relationshipType,
-        sourceLocation: sourceLocationResult.sourceLocation,
         targetDomain: options.toDomain,
         targetModule: options.toModule,
         targetName: options.toName,
         targetType: options.toType,
         type: options.linkType,
+        ...(options.condition === undefined ? {} : { condition: options.condition }),
+        ...(options.relationshipType === undefined
+          ? {}
+          : { relationshipType: options.relationshipType }),
+        ...(sourceLocationResult.sourceLocation === undefined
+          ? {}
+          : { sourceLocation: sourceLocationResult.sourceLocation }),
       })
       if (!result.success) {
         const errorCodeByResult = {

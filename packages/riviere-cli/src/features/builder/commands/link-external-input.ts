@@ -1,9 +1,9 @@
-import type { ExternalTarget } from '@living-architecture/riviere-schema'
-
 /** @riviere-role command-use-case-input */
 export interface LinkExternalInput {
   from: string
   graphPathOption: string | undefined
-  target: ExternalTarget
+  targetDomain: string | undefined
+  targetName: string
+  targetUrl: string | undefined
   type: string | undefined
 }

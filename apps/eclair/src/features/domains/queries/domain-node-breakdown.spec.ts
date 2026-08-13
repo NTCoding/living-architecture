@@ -1,6 +1,4 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   countNodesByType,
   formatDomainNodes,
@@ -8,7 +6,7 @@ import {
   type NodeBreakdown,
 } from './domain-node-breakdown'
 import { parseNode } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { SourceLocation } from '@living-architecture/riviere-schema'
+import type { SourceLocation } from '@living-architecture/riviere-schema/schema'
 import type { RawNode } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {

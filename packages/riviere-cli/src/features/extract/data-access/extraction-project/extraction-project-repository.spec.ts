@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { ExtractionConfigError } from '../../domain/extraction-config-error'
+import { ExtractionConfigError } from './extraction-config-error'
 import { ExtractionProjectRepository } from './extraction-project-repository'
 
 const VALID_CONFIG = `modules:
@@ -159,6 +159,7 @@ describe('ExtractionProjectRepository', () => {
           '    domain: orders',
           '    path: src',
           '    glob: "**/*.ts"',
+          '    modules: "/src/{module}/"',
           '    api: { notUsed: true }',
           '    useCase: { notUsed: true }',
           '    domainOp: { notUsed: true }',
@@ -225,35 +226,6 @@ describe('ExtractionProjectRepository', () => {
           useTsConfig: false,
         }),
       ).toThrow(/Invalid extended config format/)
-    })
-  })
-
-  it('loadFromFullProject loads extends from a modules-array config file', () => {
-    withWorkspace((dir) => {
-      writeFileSync(
-        join(dir, 'extended.yml'),
-        [
-          'modules:',
-          '  - name: orders',
-          '    domain: orders',
-          '    path: src',
-          '    glob: "**/*.ts"',
-          '    api: { notUsed: true }',
-          '    useCase: { notUsed: true }',
-          '    domainOp: { notUsed: true }',
-          '    event: { notUsed: true }',
-          '    eventHandler: { notUsed: true }',
-          '    ui: { notUsed: true }',
-        ].join('\n'),
-        'utf-8',
-      )
-      writeExtendsConfig(dir, './extended.yml')
-      expect(
-        new ExtractionProjectRepository().loadFromFullProject({
-          configPath: join(dir, 'extract.yml'),
-          useTsConfig: false,
-        }),
-      ).toBeDefined()
     })
   })
 

@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { RiviereBuilder } from '@living-architecture/riviere-builder/features/building/domain/builder-facade'
+import { RiviereBuilder } from '@living-architecture/riviere-builder/domain/builder-facade'
 import {
   type TestContext,
   createTestContext,
@@ -14,7 +14,7 @@ import { FinalizeGraph } from './finalize-graph'
 import { InitGraph } from './init-graph'
 import { LinkComponents } from './link-components'
 import { LinkExternal } from './link-external'
-import { RiviereBuilderRepository } from '../data-access/riviere-builder-repository'
+import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
 
 class UnexpectedError extends Error {
   constructor(message: string) {
@@ -60,11 +60,13 @@ describe('additional builder command coverage', () => {
         type: undefined,
       }),
     ).toMatchObject({ code: 'GRAPH_CORRUPTED' })
-    expect(new FinalizeGraph(repo).execute({ graphPathOption: graphPath })).toMatchObject({code: 'GRAPH_CORRUPTED',})
+    expect(new FinalizeGraph(repo).execute({ graphPathOption: graphPath })).toMatchObject({
+      code: 'GRAPH_CORRUPTED',
+    })
     expect(
       new LinkComponents(repo).execute({
         condition: undefined,
-        from: 'a',
+        from: 'orders:core:api:source',
         graphPathOption: graphPath,
         relationshipType: undefined,
         sourceLocation: undefined,
@@ -77,9 +79,11 @@ describe('additional builder command coverage', () => {
     ).toMatchObject({ code: 'GRAPH_CORRUPTED' })
     expect(
       new LinkExternal(repo).execute({
-        from: 'a',
+        from: 'orders:core:api:source',
         graphPathOption: graphPath,
-        target: { name: 'Stripe' },
+        targetDomain: undefined,
+        targetName: 'Stripe',
+        targetUrl: undefined,
         type: undefined,
       }),
     ).toMatchObject({ code: 'GRAPH_CORRUPTED' })
@@ -96,6 +100,21 @@ describe('additional builder command coverage', () => {
         graphPathOption: undefined,
         name: 'Queue',
         optionalProperties: {},
+        requiredProperties: {},
+      }),
+    ).toMatchObject({
+      code: 'VALIDATION_ERROR',
+      success: false,
+    })
+  })
+
+  it('rejects an invalid optional custom property type', () => {
+    expect(
+      new DefineCustomType(new RiviereBuilderRepository()).execute({
+        description: undefined,
+        graphPathOption: undefined,
+        name: 'Queue',
+        optionalProperties: { retries: { type: 'not-a-property-type' } },
         requiredProperties: {},
       }),
     ).toMatchObject({
@@ -206,7 +225,9 @@ describe('additional builder command coverage', () => {
       validates: [],
     })
 
-    expect(enrichSpy).toHaveBeenCalledWith('orders:checkout:domainop:place-order', {behavior: { reads: ['order.items'] },})
+    expect(enrichSpy).toHaveBeenCalledWith('orders:checkout:domainop:place-order', {
+      behavior: { reads: ['order.items'] },
+    })
   })
 
   it('includes validates in enrichment behavior', () => {
@@ -227,7 +248,9 @@ describe('additional builder command coverage', () => {
       validates: ['order.total'],
     })
 
-    expect(enrichSpy).toHaveBeenCalledWith('orders:checkout:domainop:place-order', {behavior: { validates: ['order.total'] },})
+    expect(enrichSpy).toHaveBeenCalledWith('orders:checkout:domainop:place-order', {
+      behavior: { validates: ['order.total'] },
+    })
   })
 
   it('returns graph corrupted for define-custom-type and enrich-component', async () => {

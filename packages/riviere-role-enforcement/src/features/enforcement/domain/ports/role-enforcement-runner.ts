@@ -1,8 +1,8 @@
-import type { RoleEnforcementResult } from '../role-enforcement-builder'
+import type { RoleEnforcementConfiguration } from '../role-enforcement-builder'
 
 /** @riviere-role domain-port */
 export interface RoleEnforcementRunnerInput {
-  config: RoleEnforcementResult
+  config: RoleEnforcementConfiguration
   configDir: string
   lintTargets: readonly string[]
 }

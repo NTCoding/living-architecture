@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: ComponentTypeMismatchError
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:63
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:63
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new ComponentTypeMismatchError**(`componentId`, `existingType`, `incomingType`): `ComponentTypeMismatchError`
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:68
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:68
 
 #### Parameters
 
@@ -62,7 +62,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **componentId**: `string`
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:64
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:64
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: packages/riviere-builder/src/features/building/domain/construction/c
 
 > `readonly` **existingType**: `string`
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:65
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:65
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: packages/riviere-builder/src/features/building/domain/construction/c
 
 > `readonly` **incomingType**: `string`
 
-Defined in: packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:66
+Defined in: packages/riviere-builder/src/domain/construction/construction-errors.ts:66
 
 ***
 

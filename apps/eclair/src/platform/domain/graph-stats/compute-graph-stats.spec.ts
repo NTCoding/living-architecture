@@ -1,10 +1,6 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { computeGraphStats } from './compute-graph-stats'
-import type {
-  RiviereGraph, SourceLocation 
-} from '@living-architecture/riviere-schema'
+import type { RiviereGraph, SourceLocation } from '@living-architecture/riviere-schema/schema'
 import {
   parseNode,
   parseEdge,

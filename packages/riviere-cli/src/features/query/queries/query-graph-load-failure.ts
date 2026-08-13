@@ -1,16 +1,16 @@
-import { GraphCorruptedError } from '../../../platform/domain/graph-corrupted-error'
-import { GraphNotFoundError } from '../../../platform/domain/graph-not-found-error'
+import { GraphCorruptedError } from '../data-access/graph/graph-corrupted-error'
+import { GraphNotFoundError } from '../data-access/graph/graph-not-found-error'
 
 /** @riviere-role query-model */
 export type QueryGraphLoadFailure =
   | {
-    readonly kind: 'graphCorrupted'
-    readonly message: string
-  }
+      readonly kind: 'graphCorrupted'
+      readonly message: string
+    }
   | {
-    readonly kind: 'graphNotFound'
-    readonly message: string
-  }
+      readonly kind: 'graphNotFound'
+      readonly message: string
+    }
 
 /** @riviere-role query-model */
 export function toQueryGraphLoadFailure(error: unknown): QueryGraphLoadFailure | undefined {

@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest'
 import { createOxlintRoleEnforcementRunner } from '../adapters/oxlint/oxlint-role-enforcement-runner'
-import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement-project-repository'
+import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement/role-enforcement-project-repository'
 import { RoleEnforcementExecutionError } from '../domain/role-enforcement-execution-error'
 
 import { RunRoleEnforcement } from './run-role-enforcement'
@@ -378,14 +378,14 @@ it('returns failure when role-enforcement-plugin.mjs cannot be found', () => {
   expect(result.stderr).toContain('Cannot find role-enforcement-plugin.mjs')
 })
 
-it('wraps RoleEnforcementExecutionError from readConfig into a failure result', () => {
+it('wraps an invalid role enforcement configuration into a failure result', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
     const result = createTestRoleEnforcementApplication().execute({
       configDir: workspaceDir,
       configModule: {},
     })
     expect(result.exitCode).toBe(1)
-    expect(result.stderr).toBe("Config module must export a 'config' property.\n")
+    expect(result.stderr).toBe('Role enforcement configuration must be an object.\n')
     expect(result.stdout).toBe('')
   })
 })
