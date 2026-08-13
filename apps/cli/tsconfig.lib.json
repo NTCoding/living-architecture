@@ -27,13 +27,7 @@
       "path": "../../packages/riviere-extract-ts/domain-model/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/riviere-extract-config/published-language/tsconfig.lib.json"
-    },
-    {
       "path": "../../packages/riviere-builder/use-cases/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/riviere-builder/domain-model/tsconfig.lib.json"
     }
   ],
   "exclude": [

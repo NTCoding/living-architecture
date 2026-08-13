@@ -11,6 +11,9 @@
   "exclude": [".vitepress/**/*.spec.ts"],
   "references": [
     {
+      "path": "../cli/tsconfig.lib.json"
+    },
+    {
       "path": "./tsconfig.scripts.json"
     }
   ]
