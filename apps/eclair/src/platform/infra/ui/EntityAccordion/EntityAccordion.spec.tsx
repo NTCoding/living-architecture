@@ -113,7 +113,7 @@ function createEntity(
     links: [],
   })
   const entity = query.entities()[0]
-  if (entity === undefined) throw new Error('Entity accordion fixture must contain an entity')
+  if (entity === undefined) expect.fail('Entity accordion fixture must contain an entity')
   return entity
 }
 
