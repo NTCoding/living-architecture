@@ -7,13 +7,14 @@ if [ ! -s "$repository_node_directory/nvm.sh" ]; then
 fi
 
 export NVM_DIR="$repository_node_directory"
+# shellcheck source=/dev/null
 . "$NVM_DIR/nvm.sh"
 
 hook_starting_directory="$PWD"
-cd "$repository_root"
+cd "$repository_root" || exit 1
 nvm use --silent
 node_selection_status=$?
-cd "$hook_starting_directory"
+cd "$hook_starting_directory" || exit 1
 
 if [ "$node_selection_status" -ne 0 ]; then
   exit "$node_selection_status"

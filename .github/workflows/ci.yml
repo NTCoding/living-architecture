@@ -177,7 +177,7 @@ jobs:
           if ((${#script_files[@]})); then
             shellcheck "${script_files[@]}" || status=$?
           fi
-          shellcheck --shell=sh .husky/commit-msg .husky/pre-commit || status=$?
+          shellcheck --shell=sh .husky/use-repository-node .husky/commit-msg .husky/pre-commit || status=$?
           exit "$status"
 
   publish:
