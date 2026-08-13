@@ -1,3 +1,4 @@
+# shellcheck source=.husky/use-repository-node
 . "$(dirname "$0")/use-repository-node"
 
 pnpm exec commitlint --edit "$1"
