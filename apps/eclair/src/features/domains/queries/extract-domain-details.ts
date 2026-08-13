@@ -10,7 +10,8 @@ import {
   type EntryPoint,
   type NodeId,
 } from '@/platform/domain/eclair-types'
-import { RiviereQuery, type Entity } from '@living-architecture/riviere-query'
+import { RiviereQuery } from '@living-architecture/riviere-builder/query'
+import type { Entity } from '@living-architecture/riviere-builder/query/entity'
 import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import type { NodeBreakdown, DomainNode } from './domain-node-breakdown'
 import { countNodesByType, formatDomainNodes, extractEntryPoints } from './domain-node-breakdown'

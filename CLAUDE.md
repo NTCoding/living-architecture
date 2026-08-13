@@ -16,8 +16,7 @@ packages/   - Shared libraries (publishable to npm)
 ```
 
 Current packages:
-- `living-architecture/riviere-query` - Browser-safe query library (no Node.js dependencies)
-- `living-architecture/riviere-builder` - Node.js builder (depends on riviere-query)
+- `living-architecture/riviere-builder` - Browser-safe graph construction and querying domain model
 - `living-architecture/riviere-cli` - CLI tool with binary "riviere" (depends on riviere-builder)
 - `living-architecture/riviere-schema` - Riviere schema definitions
 - `living-architecture/riviere-extract-config` - JSON Schema and validation for extraction config DSL

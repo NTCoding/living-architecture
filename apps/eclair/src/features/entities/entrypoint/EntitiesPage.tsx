@@ -2,8 +2,8 @@ import {
   useState, useMemo, useCallback 
 } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { RiviereQuery } from '@living-architecture/riviere-query'
-import type { Entity } from '@living-architecture/riviere-query'
+import { RiviereQuery } from '@living-architecture/riviere-builder/query'
+import type { Entity } from '@living-architecture/riviere-builder/query/entity'
 import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 import { EntityAccordion } from '@/platform/infra/ui/EntityAccordion/EntityAccordion'
 

@@ -1,10 +1,7 @@
 import { findNearMatches } from '@living-architecture/riviere-builder/domain/error-recovery/component-suggestion'
+import { ComponentId as QueryComponentId } from '@living-architecture/riviere-builder/query/component-id'
 import { ComponentId } from '@living-architecture/riviere-schema/component-id'
-import {
-  ComponentId as QueryComponentId,
-  ComponentNotFoundError,
-  RiviereQuery,
-} from '@living-architecture/riviere-query'
+import { ComponentNotFoundError, RiviereQuery } from '@living-architecture/riviere-builder/query'
 import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 
 /** @riviere-role query-model */

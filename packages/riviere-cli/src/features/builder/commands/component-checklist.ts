@@ -20,7 +20,7 @@ export class ComponentChecklist {
 
     try {
       const builder = this.repository.load(input.graphPathOption)
-      const allComponents = builder.components()
+      const allComponents = builder.query().components()
       const filteredComponents =
         componentType === undefined
           ? allComponents

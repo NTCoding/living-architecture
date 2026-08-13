@@ -1,6 +1,6 @@
 # @living-architecture/riviere-builder
 
-Construct Riviere architecture graphs programmatically.
+Construct and query Riviere architecture graphs programmatically.
 
 ## Install
 

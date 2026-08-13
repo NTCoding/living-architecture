@@ -43,7 +43,7 @@ Every page serves one of these journeys. New content MUST fit an existing journe
 | Content | Source | Command | Location |
 |---------|--------|---------|----------|
 | CLI reference | riviere-cli command definitions | `pnpm nx generate-docs riviere-cli` | `packages/riviere-cli/docs/generated/cli-reference.md` → copied to `reference/cli/cli-reference.md` |
-| API docs (RiviereBuilder, RiviereQuery) | TypeDoc from source | `pnpm nx typedoc riviere-builder` / `riviere-query` | `reference/api/generated/` |
+| API docs (RiviereBuilder, RiviereQuery) | TypeDoc from source | `pnpm nx typedoc riviere-builder` | `reference/api/generated/` |
 | Rivière JSON Schema | Schema package | Built with docs | `public/schema/riviere.schema.json` |
 
 **Rules:**

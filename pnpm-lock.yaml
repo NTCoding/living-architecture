@@ -150,9 +150,9 @@ importers:
 
   apps/eclair:
     dependencies:
-      '@living-architecture/riviere-query':
+      '@living-architecture/riviere-builder':
         specifier: workspace:*
-        version: link:../../packages/riviere-query
+        version: link:../../packages/riviere-builder
       '@living-architecture/riviere-schema':
         specifier: workspace:*
         version: link:../../packages/riviere-schema
@@ -229,6 +229,9 @@ importers:
       '@living-architecture/riviere-schema':
         specifier: workspace:*
         version: link:../riviere-schema
+      zod:
+        specifier: ^4.2.1
+        version: 4.3.5
 
   packages/riviere-cli:
     dependencies:
@@ -241,9 +244,6 @@ importers:
       '@living-architecture/riviere-extract-ts':
         specifier: workspace:*
         version: link:../riviere-extract-ts
-      '@living-architecture/riviere-query':
-        specifier: workspace:*
-        version: link:../riviere-query
       '@living-architecture/riviere-schema':
         specifier: workspace:*
         version: link:../riviere-schema
@@ -289,15 +289,6 @@ importers:
       ts-morph:
         specifier: ^24.0.0
         version: 24.0.0
-
-  packages/riviere-query:
-    dependencies:
-      '@living-architecture/riviere-schema':
-        specifier: workspace:*
-        version: link:../riviere-schema
-      zod:
-        specifier: ^4.2.1
-        version: 4.3.5
 
   packages/riviere-role-enforcement:
     dependencies:

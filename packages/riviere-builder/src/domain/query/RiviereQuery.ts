@@ -51,9 +51,7 @@ import type { SearchWithFlowResult } from './search-with-flow-result'
 import type { State } from './state'
 import { queryStats } from './stats-queries'
 import { InvalidRiviereGraphError } from './errors'
-export type { LinkType } from '@living-architecture/riviere-schema/schema'
 export { ComponentNotFoundError } from './errors'
-export type { GraphDiff } from './graph-diff'
 
 function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
   const result = parseRiviereGraph(graph)
@@ -70,7 +68,7 @@ function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
  *
  * @example
  * ```typescript
- * import { RiviereQuery } from '@living-architecture/riviere-query'
+ * import { RiviereQuery } from '@living-architecture/riviere-builder/query'
  *
  * // From JSON
  * const query = RiviereQuery.fromJSON(graphData)
@@ -635,22 +633,3 @@ export class RiviereQuery {
     return queryExternalDomains(this.graphSnapshot)
   }
 }
-
-export type { ComponentCounts } from './component-counts'
-export type { ComponentModification } from './component-modification'
-export type { CrossDomainLink } from './cross-domain-link'
-export type { DiffStats } from './diff-stats'
-export type { Domain } from './domain'
-export type { DomainConnection } from './domain-connection'
-export type { Entity } from './entity'
-export type { EntityTransition } from './entity-transition'
-export type { ExternalDomain } from './external-domain'
-export type { Flow } from './flow'
-export type { FlowStep } from './flow-step'
-export type { GraphStats } from './graph-stats'
-export type { SearchWithFlowOptions } from './search-with-flow-options'
-export type { SearchWithFlowResult } from './search-with-flow-result'
-export type {
-  ValidationError,
-  ValidationResult,
-} from '@living-architecture/riviere-schema/graph-validation'

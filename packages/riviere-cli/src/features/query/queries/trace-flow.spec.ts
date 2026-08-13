@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { RiviereQuery } from '@living-architecture/riviere-query'
+import { RiviereQuery } from '@living-architecture/riviere-builder/query'
 import {
   type TestContext,
   createTestContext,

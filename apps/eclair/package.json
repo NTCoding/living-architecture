@@ -49,7 +49,7 @@
     }
   },
   "dependencies": {
-    "@living-architecture/riviere-query": "workspace:*",
+    "@living-architecture/riviere-builder": "workspace:*",
     "@living-architecture/riviere-schema": "workspace:*",
     "@xyflow/react": "^12.9.3",
     "d3": "^7.9.0",

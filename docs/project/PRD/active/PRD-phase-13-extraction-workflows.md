@@ -845,7 +845,7 @@ Phase 13 does **not** introduce new read-method names for step authors. The work
 | `builder.warnings()`                   | Non-fatal issues on the current graph (runtime logs the per-step delta).                                                                    |
 | `builder.stats()`                      | Counts of components, links, domains.                                                                                                       |
 | `builder.orphans()`                    | Component IDs with no incoming or outgoing links.                                                                                           |
-| `builder.query(): RiviereQuery`        | Full read-only query object (see `@living-architecture/riviere-query`).                                                                     |
+| `builder.query(): RiviereQuery`        | Full read-only query object from `@living-architecture/riviere-builder`.                                                                     |
 | `builder.build(): RiviereGraph`        | **Workflow-facade finalization**: underlying builder `build()` plus unresolved-workflow-diagnostic guard. Used for final output.            |
 
 `RiviereQuery` already exposes `components()`, `links()`, `find(predicate)`, `findAll(predicate)`, `componentById(id)`, `componentsInDomain(name)`, `componentsByType(type)`, `publishedEvents()`, `eventHandlers()`, `externalLinks()`, and more. Phase 13 does **not** add draft-only helper methods to `RiviereQuery`. AI steps that need incomplete-state information read it from `StepContext.diagnostics`, not from `RiviereGraph`.
@@ -983,7 +983,7 @@ riviere-workflow
 - **Location and dependency rules** added to `.riviere/role-enforcement.config.ts` so feature isolation, domain and infrastructure boundaries, adapter restrictions, folder structure, and circular-import checks apply from day one.
 - **Role enforcement:** `riviere-workflow` is enforced per `.riviere/role-enforcement.config.ts`. Every exported declaration in the package receives a `/** @riviere-role <role-name> */` tag. Roles for the new package (e.g. `workflow-runtime`, `step-handler`, `step-registry`) are added to `.riviere/roles.ts` in the same PR that introduces the package.
 - **Coverage:** 100% test coverage mandatory per the root `CLAUDE.md` testing convention.
-- **Cross-package imports:** uses `@living-architecture/riviere-builder`, `@living-architecture/riviere-extract-config`, `@living-architecture/riviere-extract-ts`, `@living-architecture/riviere-schema`, `@living-architecture/riviere-query` via workspace references; never relative paths across package boundaries.
+- **Cross-package imports:** uses `@living-architecture/riviere-builder`, `@living-architecture/riviere-extract-config`, `@living-architecture/riviere-extract-ts`, and `@living-architecture/riviere-schema` via workspace references; never relative paths across package boundaries.
 
 ### 3.7.1 Milestones
 

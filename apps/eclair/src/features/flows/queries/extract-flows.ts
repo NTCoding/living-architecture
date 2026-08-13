@@ -1,8 +1,6 @@
-import {
-  RiviereQuery,
-  type Flow as QueryFlow,
-  type FlowStep as QueryFlowStep,
-} from '@living-architecture/riviere-query'
+import { RiviereQuery } from '@living-architecture/riviere-builder/query'
+import type { Flow as QueryFlow } from '@living-architecture/riviere-builder/query/flow'
+import type { FlowStep as QueryFlowStep } from '@living-architecture/riviere-builder/query/flow-step'
 import type {
   Component,
   ExternalLink,

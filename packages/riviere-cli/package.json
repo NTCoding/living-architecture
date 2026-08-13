@@ -36,7 +36,6 @@
     "@living-architecture/riviere-builder": "workspace:*",
     "@living-architecture/riviere-extract-config": "workspace:*",
     "@living-architecture/riviere-extract-ts": "workspace:*",
-    "@living-architecture/riviere-query": "workspace:*",
     "@living-architecture/riviere-schema": "workspace:*",
     "commander": "^14.0.2",
     "glob": "^11.0.2",

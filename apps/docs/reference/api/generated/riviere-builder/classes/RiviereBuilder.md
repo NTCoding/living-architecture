@@ -241,7 +241,7 @@ The created UseCase component
 
 > **build**(): `RiviereGraph`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:456
+Defined in: packages/riviere-builder/src/domain/builder-facade.ts:461
 
 Validates and returns the completed graph.
 
@@ -250,18 +250,6 @@ Validates and returns the completed graph.
 `RiviereGraph`
 
 Valid RiviereGraph object
-
-***
-
-### components()
-
-> **components**(): readonly `Component`[]
-
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:438
-
-#### Returns
-
-readonly `Component`[]
 
 ***
 
@@ -431,11 +419,27 @@ Array of orphaned component IDs
 
 ***
 
+### query()
+
+> **query**(): [`RiviereQuery`](RiviereQuery.md)
+
+Defined in: packages/riviere-builder/src/domain/builder-facade.ts:443
+
+Returns query capabilities for the current graph state.
+
+#### Returns
+
+[`RiviereQuery`](RiviereQuery.md)
+
+A snapshot that can be queried without mutating the builder
+
+***
+
 ### serialize()
 
 > **serialize**(): `string`
 
-Defined in: packages/riviere-builder/src/domain/builder-facade.ts:447
+Defined in: packages/riviere-builder/src/domain/builder-facade.ts:452
 
 Serializes the current graph state as a JSON string.
 

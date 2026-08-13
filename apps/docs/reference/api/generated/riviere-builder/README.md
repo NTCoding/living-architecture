@@ -24,6 +24,7 @@ pageClass: reference
 - [RelationshipTypeAlreadyDefinedError](classes/RelationshipTypeAlreadyDefinedError.md)
 - [RelationshipTypeNotFoundError](classes/RelationshipTypeNotFoundError.md)
 - [RiviereBuilder](classes/RiviereBuilder.md)
+- [RiviereQuery](classes/RiviereQuery.md)
 - [SourceConflictError](classes/SourceConflictError.md)
 
 ## Functions

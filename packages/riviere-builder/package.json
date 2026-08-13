@@ -21,6 +21,18 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./query": {
+      "@living-architecture/source": "./src/domain/query/RiviereQuery.ts",
+      "types": "./dist/domain/query/RiviereQuery.d.ts",
+      "import": "./dist/domain/query/RiviereQuery.js",
+      "default": "./dist/domain/query/RiviereQuery.js"
+    },
+    "./query/*": {
+      "@living-architecture/source": "./src/domain/query/*.ts",
+      "types": "./dist/domain/query/*.d.ts",
+      "import": "./dist/domain/query/*.js",
+      "default": "./dist/domain/query/*.js"
+    },
     "./domain/*": {
       "@living-architecture/source": "./src/domain/*.ts",
       "types": "./dist/domain/*.d.ts",
@@ -33,6 +45,7 @@
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
-    "@living-architecture/riviere-schema": "workspace:*"
+    "@living-architecture/riviere-schema": "workspace:*",
+    "zod": "^4.2.1"
   }
 }

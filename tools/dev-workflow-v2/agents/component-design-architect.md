@@ -127,8 +127,7 @@ Codebase examples and anchors:
 
 - Rivière's core graph terminology includes `Component`, `Link`, `Flow`, `Entry Point`, `Domain`, `Draft Component`, `Extraction Config`, `Strict Mode`, `Lenient Mode`, and `Connection Detection`. Use these terms when they fit. If a new concept is needed, say it is proposed rather than pretending it already exists.
 - `@living-architecture/riviere-schema` owns the central graph representation.
-- `@living-architecture/riviere-builder` owns programmatic graph construction.
-- `@living-architecture/riviere-query` owns browser-safe graph querying.
+- `@living-architecture/riviere-builder` owns programmatic graph construction and querying.
 - `@living-architecture/riviere-extract-ts` owns deterministic TypeScript extraction.
 - `@living-architecture/riviere-cli` owns CLI feature orchestration and CLI-specific input/output concerns.
 - A typical CLI command flow is: entrypoint translates raw CLI input, command input factory creates typed input, command use case orchestrates load/invoke/save, repository loads and saves the aggregate, output formatter formats the result.

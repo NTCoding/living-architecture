@@ -1,6 +1,5 @@
 import type {
   APIComponent,
-  Component,
   CustomPropertyDefinition,
   CustomComponent,
   DomainMetadata,
@@ -17,6 +16,7 @@ import type {
 } from '@living-architecture/riviere-schema/schema'
 import type { ValidationResult } from '@living-architecture/riviere-schema/graph-validation'
 import { RiviereBuilder as DomainBuilder } from './riviere-builder'
+import type { RiviereQuery } from './query/RiviereQuery'
 
 type BuilderOptions = Readonly<{
   name?: string
@@ -435,8 +435,13 @@ export class RiviereBuilder {
     return this.delegate.inspection.orphans()
   }
 
-  components(): readonly Component[] {
-    return this.delegate.inspection.components()
+  /**
+   * Returns query capabilities for the current graph state.
+   *
+   * @returns A snapshot that can be queried without mutating the builder
+   */
+  query(): RiviereQuery {
+    return this.delegate.inspection.query()
   }
 
   /**

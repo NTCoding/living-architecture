@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { RiviereQuery } from '@living-architecture/riviere-query'
+import { RiviereQuery } from '@living-architecture/riviere-builder/query'
 import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
 
 export function useRiviereQuery(graph: RiviereGraph | null): RiviereQuery | null {

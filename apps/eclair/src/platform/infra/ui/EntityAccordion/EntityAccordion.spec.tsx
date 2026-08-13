@@ -6,7 +6,8 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EntityAccordion } from './EntityAccordion'
-import { RiviereQuery, type Entity } from '@living-architecture/riviere-query'
+import { RiviereQuery } from '@living-architecture/riviere-builder/query'
+import type { Entity } from '@living-architecture/riviere-builder/query/entity'
 import type {
   DomainOpComponent, SourceLocation 
 } from '@living-architecture/riviere-schema/schema'

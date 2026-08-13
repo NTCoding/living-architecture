@@ -3,8 +3,8 @@ import { RiviereBuilder } from '../builder-facade'
 import { createValidOptions, createSourceLocation } from '../../__fixtures__/builder-fixtures'
 
 describe('RiviereBuilder', () => {
-  describe('components', () => {
-    it('returns the components currently held by the builder', () => {
+  describe('query', () => {
+    it('queries the components currently held by the builder', () => {
       const builder = RiviereBuilder.new(createValidOptions())
       const component = builder.addUseCase({
         name: 'Create Order',
@@ -13,7 +13,7 @@ describe('RiviereBuilder', () => {
         sourceLocation: createSourceLocation(),
       })
 
-      expect(builder.components()).toStrictEqual([component])
+      expect(builder.query().components()).toStrictEqual([component])
     })
   })
 
