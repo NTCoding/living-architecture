@@ -3,7 +3,7 @@ import addFormats from 'ajv-formats'
 import type { RiviereGraph } from './schema'
 import rawSchema from '../../riviere.schema.json' with { type: 'json' }
 
-const ajv = new Ajv({ allErrors: true })
+const ajv = new Ajv()
 addFormats(ajv)
 
 const validate = ajv.compile<RiviereGraph>(rawSchema)
