@@ -3,7 +3,11 @@
   "targets": {
     "role-check": {
       "executor": "nx:run-commands",
-      "dependsOn": ["^build", "riviere-role-enforcement:build"],
+      "dependsOn": [
+        "^build",
+        "riviere-role-enforcement:build",
+        "@living-architecture/riviere-role-enforcement-use-cases:build"
+      ],
       "options": {
         "command": "pnpm exec tsx apps/cli/src/shell/role-enforcement-bin.ts .riviere/role-enforcement.config.ts --package packages/riviere-extract-ts/domain-model",
         "cwd": "{workspaceRoot}"
