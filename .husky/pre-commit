@@ -1,1 +1,4 @@
-npx lint-staged && pnpm run verify
+# shellcheck source=.husky/use-repository-node
+. "$(dirname "$0")/use-repository-node"
+
+pnpm exec lint-staged && pnpm run verify

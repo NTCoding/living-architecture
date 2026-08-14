@@ -1,8 +1,6 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { computeDomainConnectionDiff } from './compute-domain-connection-diff'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import {
   parseNode,
   parseEdge,

@@ -33,7 +33,7 @@ Reviewed: docs/design-reviews/eclair/refined.md
 
 ### pluralize.ts in Domain Map is Generic Infrastructure
 - **What's wrong:** The refined design places `pluralize.ts` in `features/domain-map/`. Pluralization is a generic text utility, not domain-specific to domain maps.
-- **Why it matters:** Violates separation-of-concerns principle 2 (separate generic from domain-specific). When other features need pluralization, they will either duplicate or import across feature boundaries.
+- **Why it matters:** Violates the local rule separating generic code from domain-aware code. When other features need pluralization, they will either duplicate or import across feature boundaries.
 - **Suggested fix:** Move to `platform/infra/text/` or similar generic location.
 
 ### LayoutPosition Value Object Not Actually Needed
@@ -54,7 +54,7 @@ Reviewed: docs/design-reviews/eclair/refined.md
 ## MEDIUM
 
 ### errors.ts at Root Violates Structure
-- **What's wrong:** The design shows `errors.ts` at package root. But per separation-of-concerns, there should be no generic type-grouping files spanning multiple capabilities.
+- **What's wrong:** The design shows `errors.ts` at package root. The local architecture rules do not permit generic type-grouping files spanning multiple capabilities.
 - **Why it matters:** A single errors.ts grows to contain GraphError, RenderingError, LayoutError, ContextError, CSSModuleError, DOMError, SchemaError. These belong to different layers and change for different reasons.
 - **Suggested fix:** Split errors to live with their associated capabilities: GraphError with graph handling, LayoutError with layout, etc.
 
@@ -97,8 +97,8 @@ Reviewed: docs/design-reviews/eclair/refined.md
 
 ### ArchitectureMetrics Interface is Anemic
 - **What's wrong:** The proposed `ArchitectureMetrics` is a pure data structure with readonly number fields. It has no behavior.
-- **Why it matters:** This is fine for a DTO/read model, but the design calls it a "value object" which implies it should have behavior. It's just a plain interface.
-- **Suggested fix:** Either add meaningful methods (comparisons, validation) or correctly label it as a read model, not a value object.
+- **Why it matters:** This is fine for a DTO/query model, but the design calls it a "value object" which implies it should have behavior. It's just a plain interface.
+- **Suggested fix:** Either add meaningful methods (comparisons, validation) or correctly label it as a query model, not a value object.
 
 ### GraphContext.tsx Proposed Location is Confusing
 - **What's wrong:** The design places `GraphContext.tsx` in `platform/domain/riviere/`. But contexts are React infrastructure, not domain logic.

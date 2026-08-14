@@ -19,9 +19,9 @@ Three packages enable deterministic TypeScript extraction:
 
 | Package | Purpose |
 |---------|---------|
-| `@living-architecture/riviere-extract-config` | JSON Schema defining the extraction config DSL |
-| `@living-architecture/riviere-extract-conventions` | Decorators, default config, and ESLint enforcement |
-| `@living-architecture/riviere-extract-ts` | TypeScript extractor using ts-morph for AST parsing |
+| `@living-architecture/riviere-extract-config-published-language` | JSON Schema defining the extraction config DSL |
+| `@living-architecture/riviere-extract-conventions-published-language` | Decorators, default config, and ESLint enforcement |
+| `@living-architecture/riviere-extract-ts-domain-model` | TypeScript extractor using ts-morph for AST parsing |
 
 #### Package Dependencies
 

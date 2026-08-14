@@ -1,0 +1,24 @@
+repository_root="$(git rev-parse --show-toplevel)"
+repository_node_directory="${NVM_DIR:-$HOME/.nvm}"
+
+if [ ! -s "$repository_node_directory/nvm.sh" ]; then
+  echo "NVM is required to run repository Git hooks." >&2
+  exit 1
+fi
+
+export NVM_DIR="$repository_node_directory"
+# shellcheck source=/dev/null
+. "$NVM_DIR/nvm.sh"
+
+hook_starting_directory="$PWD"
+cd "$repository_root" || exit 1
+nvm use --silent
+node_selection_status=$?
+cd "$hook_starting_directory" || exit 1
+
+if [ "$node_selection_status" -ne 0 ]; then
+  exit "$node_selection_status"
+fi
+
+unset FORCE_COLOR NO_COLOR
+unset hook_starting_directory node_selection_status repository_node_directory repository_root

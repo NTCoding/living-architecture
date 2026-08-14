@@ -1,6 +1,4 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { extractDomainDetails } from './extract-domain-details'
 import {
   parseNode,
@@ -8,7 +6,7 @@ import {
   parseDomainKey,
   type RawNode,
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 
 const testSourceLocation = {
   repository: 'test-repo',
@@ -87,13 +85,13 @@ describe('extractDomainDetails entities extraction', () => {
 
     expect(result?.entities).toHaveLength(2)
 
-    const orderEntity = result?.entities.find((e) => e.name === 'Order')
+    const orderEntity = result?.entities.find((e) => e.name.value === 'Order')
     expect(orderEntity?.operations.map((op) => op.operationName)).toStrictEqual([
       'begin',
       'confirm',
     ])
 
-    const orderItemEntity = result?.entities.find((e) => e.name === 'OrderItem')
+    const orderItemEntity = result?.entities.find((e) => e.name.value === 'OrderItem')
     expect(orderItemEntity?.operations.map((op) => op.operationName)).toStrictEqual(['add'])
   })
 
@@ -137,7 +135,7 @@ describe('extractDomainDetails entities extraction', () => {
 
     const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
-    expect(result?.entities.map((e) => e.name)).toStrictEqual(['Apple', 'Zebra'])
+    expect(result?.entities.map((e) => e.name.value)).toStrictEqual(['Apple', 'Zebra'])
     expect(result?.entities[0]?.operations.map((op) => op.operationName)).toStrictEqual([
       'aa',
       'bb',
@@ -210,7 +208,7 @@ describe('extractDomainDetails entities extraction', () => {
     })
 
     const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
-    const orderEntity = result?.entities.find((e) => e.name === 'Order')
+    const orderEntity = result?.entities.find((e) => e.name.value === 'Order')
 
     expect(orderEntity?.operations[0]?.sourceLocation).toStrictEqual({
       repository: 'test-repo',
@@ -246,7 +244,7 @@ describe('extractDomainDetails entities extraction', () => {
     })
 
     const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
-    const orderEntity = result?.entities.find((e) => e.name === 'Order')
+    const orderEntity = result?.entities.find((e) => e.name.value === 'Order')
 
     expect(orderEntity?.operations[0]?.sourceLocation).toStrictEqual({
       repository: 'test-repo',
@@ -278,7 +276,7 @@ describe('extractDomainDetails entities extraction', () => {
 
     const result = extractDomainDetails(graph, parseDomainKey('order-domain'))
 
-    const orderEntity = result?.entities.find((e) => e.name === 'Order')
+    const orderEntity = result?.entities.find((e) => e.name.value === 'Order')
     expect(orderEntity?.businessRules).toStrictEqual([])
   })
 })

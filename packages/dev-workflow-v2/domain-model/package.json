@@ -1,0 +1,26 @@
+{
+  "name": "@living-architecture/dev-workflow-v2-domain-model",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json",
+    "./domain/*": {
+      "@living-architecture/source": "./src/domain/*.ts",
+      "types": "./dist/domain/*.d.ts",
+      "import": "./dist/domain/*.js",
+      "default": "./dist/domain/*.js"
+    }
+  },
+  "dependencies": {
+    "@nt-ai-lab/deterministic-agent-workflow-dsl": "0.3.6",
+    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.3.6",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.0.0"
+  }
+}

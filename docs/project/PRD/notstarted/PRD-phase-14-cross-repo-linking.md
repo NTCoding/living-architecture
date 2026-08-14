@@ -42,7 +42,7 @@ builder.linkExternal({
 ### Merge Algorithm
 
 ```typescript
-import { mergeGraphs } from '@living-architecture/riviere-builder';
+import { mergeGraphs } from '@living-architecture/riviere-builder-domain-model';
 
 const merged = mergeGraphs([
   ordersGraph,

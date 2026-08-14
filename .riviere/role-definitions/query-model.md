@@ -1,7 +1,7 @@
 # query-model
 
 ## Purpose
-A class, interface, or type that represents the read-side model — the counterpart of an aggregate on the write side. Includes the query model class itself and the types it returns.
+A class, interface, or type shaped for the result of a concrete query use case. Includes the query model class itself and the types it returns.
 
 ## Behavioral Contract
 
@@ -17,46 +17,91 @@ Represents a result shape returned by query model methods. These are the types t
 
 ## Examples
 
-### Query Model Class
+### Design from a concrete query
+
+Use case: a user runs:
+
+```text
+riviere components --domain payments --type API
+```
+
+`ListComponents` must return only API components from the `payments` domain.
+
+The query model for that use case is the component list:
+
 ```typescript
 /** @riviere-role query-model */
-export class RiviereQuery {
-  private readonly graph: RiviereGraph
+export interface ComponentList {
+  components: Component[]
+}
+```
 
-  constructor(graph: RiviereGraph) {
-    assertValidGraph(graph)
-    this.graph = graph
-  }
+The loader builds that model specifically for the requested read:
 
-  domains(): Domain[] {
-    return queryDomains(this.graph)
+```typescript
+/** @riviere-role query-model-loader */
+export class ComponentListLoader {
+  load(
+    graphPath: string | undefined,
+    domain: string | undefined,
+    type: ComponentType | undefined,
+  ): ComponentList {
+    const components = loadQuery(graphPath).components()
+    const inDomain = domain === undefined
+      ? components
+      : components.filter((component) => component.domain === domain)
+
+    return {
+      components: type === undefined
+        ? inDomain
+        : inDomain.filter((component) => component.type === type),
+    }
   }
 }
 ```
 
-### Query Model Result Type
-```typescript
-/** @riviere-role query-model */
-export interface Domain {
-  name: string
-  componentCounts: ComponentCounts
-}
+The use case translates its input into loader criteria and returns the loaded model:
 
-/** @riviere-role query-model */
-export type DomainSummary = ReturnType<RiviereQuery['domains']>[number]
+```typescript
+/** @riviere-role query-model-use-case */
+export class ListComponents {
+  constructor(private readonly components: ComponentListLoader) {}
+
+  execute(input: ListComponentsInput): ComponentList {
+    return this.components.load(input.graphPath, input.domain, input.type)
+  }
+}
 ```
+
+Bad:
+
+```typescript
+export class RiviereQueryRepository {
+  load(): RiviereQuery
+}
+```
+
+The persisted state is a graph. `RiviereQuery` is domain behaviour used to build the query-specific `ComponentList`; it is not itself the query model.
+
+Also bad:
+
+```typescript
+export class GraphQueryModel {}
+```
+
+There is no user query called “query graph”. This generic model hides the actual use case and prevents the read from being shaped around what `ListComponents` needs.
 
 ### Edge Cases
-- A query model class with many public methods (facade pattern) is valid
-- A query model class that delegates to pure functions is the canonical pattern
-- Static factory methods (e.g., `fromJSON`) are valid
-- Branded types used by the query model (e.g., `ComponentId`) are valid
+- Usually there is one query model per query use case because each read can be shaped and optimised independently
+- Share a query model only when concrete use cases genuinely need the same read shape
+- Query models may import the domain objects and behaviour needed to build that read
+- Do not add `Model` or `QueryModel` suffixes; the role annotation already states the technical classification
 
 ## Anti-Patterns
 
 ### Common Misclassifications
 - **Not an aggregate**: Aggregates enforce behavioral invariants and expose methods that modify state. If no method modifies state, it is a query-model.
-- **Not a domain-service**: Domain services are stateless functions. Query model classes hold state.
+- **Not a domain-service**: A domain service provides reusable domain behaviour. A query model is shaped for a concrete read use case.
 - **Not a value-object**: Value objects are reusable domain concepts in the `/domain` layer. Query model types live in the `/queries` layer.
 
 ### Mixed Responsibility Signals
@@ -66,7 +111,7 @@ export type DomainSummary = ReturnType<RiviereQuery['domains']>[number]
 
 ## Decision Guidance
 - **vs aggregate**: Does any method modify state? → aggregate. All methods read-only? → query-model
-- **vs domain-service**: Does it hold state? → query-model. Stateless function operating on passed-in data? → domain-service
+- **vs domain-service**: Is it reusable domain behaviour? → domain-service. Is it a read shaped for a concrete query use case? → query-model
 - **vs value-object**: Does it live in `/queries`? → query-model. Does it live in `/domain`? → value-object
 
 ## References

@@ -1,0 +1,180 @@
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
+import { describe, expect, it } from 'vitest'
+import {
+  createAPIComponent,
+  createMinimalValidGraph,
+  createUseCaseComponent,
+  defaultSourceLocation,
+} from './__fixtures__/riviere-graph-fixtures'
+import { RiviereQuery } from './RiviereQuery'
+import { ComponentId } from './component-id'
+
+describe('nodeDepths', () => {
+  it('returns depth 0 for entry points', () => {
+    const graph = createMinimalValidGraph()
+
+    const query = new RiviereQuery(graph)
+    const depths = query.nodeDepths()
+
+    expect(depths.get(ComponentId.parse('test:mod:ui:page'))).toBe(0)
+  })
+
+  it('returns depth based on hops from entry point', () => {
+    const graph = createMinimalValidGraph()
+    graph.components.push(
+      createAPIComponent({
+        id: 'test:mod:api:users',
+        name: 'Users API',
+        domain: 'test',
+      }),
+      createUseCaseComponent({
+        id: 'test:mod:uc:getUser',
+        name: 'Get User',
+        domain: 'test',
+      }),
+    )
+    graph.links = [
+      {
+        source: 'test:mod:ui:page',
+        target: 'test:mod:api:users',
+      },
+      {
+        source: 'test:mod:api:users',
+        target: 'test:mod:uc:getUser',
+      },
+    ]
+
+    const query = new RiviereQuery(graph)
+    const depths = query.nodeDepths()
+
+    expect(depths.get(ComponentId.parse('test:mod:ui:page'))).toBe(0)
+    expect(depths.get(ComponentId.parse('test:mod:api:users'))).toBe(1)
+    expect(depths.get(ComponentId.parse('test:mod:uc:getUser'))).toBe(2)
+  })
+
+  it('returns minimum depth when reachable from multiple entry points', () => {
+    const graph = createMinimalValidGraph()
+    graph.components.push(
+      createAPIComponent({
+        id: 'test:mod:api:direct',
+        name: 'Direct API',
+        domain: 'test',
+      }),
+      createUseCaseComponent({
+        id: 'test:mod:uc:shared',
+        name: 'Shared UC',
+        domain: 'test',
+      }),
+    )
+    graph.links = [
+      {
+        source: 'test:mod:ui:page',
+        target: 'test:mod:uc:shared',
+      },
+      {
+        source: 'test:mod:api:direct',
+        target: 'test:mod:uc:shared',
+      },
+    ]
+
+    const query = new RiviereQuery(graph)
+    const depths = query.nodeDepths()
+
+    expect(depths.get(ComponentId.parse('test:mod:ui:page'))).toBe(0)
+    expect(depths.get(ComponentId.parse('test:mod:api:direct'))).toBe(0)
+    expect(depths.get(ComponentId.parse('test:mod:uc:shared'))).toBe(1)
+  })
+
+  it('excludes unreachable nodes from result', () => {
+    const graph = createMinimalValidGraph()
+    graph.components.push(
+      createUseCaseComponent({
+        id: 'test:mod:uc:orphan',
+        name: 'Orphan',
+        domain: 'test',
+      }),
+    )
+
+    const query = new RiviereQuery(graph)
+    const depths = query.nodeDepths()
+
+    expect(depths.get(ComponentId.parse('test:mod:ui:page'))).toBe(0)
+    expect(depths.has(ComponentId.parse('test:mod:uc:orphan'))).toBe(false)
+  })
+
+  it('handles source with multiple outgoing links', () => {
+    const graph = createMinimalValidGraph()
+    graph.components.push(
+      createUseCaseComponent({
+        id: 'test:mod:uc:a',
+        name: 'UC A',
+        domain: 'test',
+      }),
+      createUseCaseComponent({
+        id: 'test:mod:uc:b',
+        name: 'UC B',
+        domain: 'test',
+      }),
+    )
+    graph.links = [
+      {
+        source: 'test:mod:ui:page',
+        target: 'test:mod:uc:a',
+      },
+      {
+        source: 'test:mod:ui:page',
+        target: 'test:mod:uc:b',
+      },
+    ]
+
+    const query = new RiviereQuery(graph)
+    const depths = query.nodeDepths()
+
+    expect(depths.get(ComponentId.parse('test:mod:ui:page'))).toBe(0)
+    expect(depths.get(ComponentId.parse('test:mod:uc:a'))).toBe(1)
+    expect(depths.get(ComponentId.parse('test:mod:uc:b'))).toBe(1)
+  })
+
+  it('returns empty map for graph with no entry points', () => {
+    const graph: RiviereGraph = {
+      version: '1.0',
+      metadata: {
+        domains: {
+          test: {
+            description: 'Test',
+            systemType: 'domain',
+          },
+        },
+      },
+      components: [
+        {
+          id: 'test:mod:uc:a',
+          type: 'UseCase',
+          name: 'A',
+          domain: 'test',
+          module: 'mod',
+          sourceLocation: defaultSourceLocation,
+        },
+        {
+          id: 'test:mod:uc:b',
+          type: 'UseCase',
+          name: 'B',
+          domain: 'test',
+          module: 'mod',
+          sourceLocation: defaultSourceLocation,
+        },
+      ],
+      links: [
+        {
+          source: 'test:mod:uc:a',
+          target: 'test:mod:uc:b',
+        },
+      ],
+    }
+
+    const query = new RiviereQuery(graph)
+    const depths = query.nodeDepths()
+
+    expect(depths.size).toBe(0)
+  })
+})

@@ -1,4 +1,4 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 
 export interface GraphStats {
   totalNodes: number

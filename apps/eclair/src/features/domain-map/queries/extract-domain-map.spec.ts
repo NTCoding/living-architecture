@@ -1,11 +1,7 @@
-import {
-  describe, it, expect 
-} from 'vitest'
-import {
-  extractDomainMap, getConnectedDomains 
-} from './extract-domain-map'
+import { describe, it, expect } from 'vitest'
+import { extractDomainMap, getConnectedDomains } from './extract-domain-map'
 import type { DomainEdge } from './extract-domain-map'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import {
   parseNode,
   parseEdge,

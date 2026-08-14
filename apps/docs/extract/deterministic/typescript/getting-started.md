@@ -11,7 +11,7 @@ Extract architecture from TypeScript code in 10 minutes using decorators and con
 **Install the CLI and conventions package:**
 
 ```bash
-npm install --save-dev @living-architecture/riviere-cli @living-architecture/riviere-extract-conventions
+npm install --save-dev @living-architecture/riviere-cli @living-architecture/riviere-extract-conventions-published-language
 ```
 
 ## Step 1: Annotate Your Code
@@ -21,7 +21,7 @@ Add decorators to mark architectural components.
 **Container decorator** — all public methods become components:
 
 ```typescript
-import { APIContainer } from '@living-architecture/riviere-extract-conventions'
+import { APIContainer } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @APIContainer
 class OrderController {
@@ -38,7 +38,7 @@ class OrderController {
 **Class decorator** — the class itself is the component:
 
 ```typescript
-import { UseCase } from '@living-architecture/riviere-extract-conventions'
+import { UseCase } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @UseCase
 class PlaceOrderUseCase {
@@ -57,7 +57,7 @@ The conventions package includes a ready-to-use extraction config that detects a
 
 ```bash
 npx riviere extract \
-  --config @living-architecture/riviere-extract-conventions/default-config
+  --config @living-architecture/riviere-extract-conventions-published-language/default-config
 ```
 
 **Output (draft components JSON):**
@@ -106,7 +106,7 @@ Use `--dry-run` for a quick summary:
 
 ```bash
 npx riviere extract \
-  --config @living-architecture/riviere-extract-conventions/default-config \
+  --config @living-architecture/riviere-extract-conventions-published-language/default-config \
   --dry-run
 ```
 
@@ -134,15 +134,15 @@ The simplest way to add multiple modules is with `extends`. Inherit all detectio
 modules:
   - name: "orders"
     path: "src/orders/**/*.ts"
-    extends: "@living-architecture/riviere-extract-conventions"
+    extends: "@living-architecture/riviere-extract-conventions-published-language"
 
   - name: "shipping"
     path: "src/shipping/**/*.ts"
-    extends: "@living-architecture/riviere-extract-conventions"
+    extends: "@living-architecture/riviere-extract-conventions-published-language"
 
   - name: "inventory"
     path: "src/inventory/**/*.ts"
-    extends: "@living-architecture/riviere-extract-conventions"
+    extends: "@living-architecture/riviere-extract-conventions-published-language"
 ```
 
 Override specific rules when needed:
@@ -151,7 +151,7 @@ Override specific rules when needed:
 modules:
   - name: "orders"
     path: "src/orders/**/*.ts"
-    extends: "@living-architecture/riviere-extract-conventions"
+    extends: "@living-architecture/riviere-extract-conventions-published-language"
     event: { notUsed: true }  # Override: no events in this module
 ```
 
@@ -169,13 +169,13 @@ modules:
         inClassWith:
           hasDecorator:
             name: "APIContainer"
-            from: "@living-architecture/riviere-extract-conventions"
+            from: "@living-architecture/riviere-extract-conventions-published-language"
     useCase:
       find: "classes"
       where:
         hasDecorator:
           name: "UseCase"
-          from: "@living-architecture/riviere-extract-conventions"
+          from: "@living-architecture/riviere-extract-conventions-published-language"
     domainOp: { notUsed: true }
     event: { notUsed: true }
     eventHandler: { notUsed: true }

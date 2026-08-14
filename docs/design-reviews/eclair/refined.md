@@ -346,7 +346,7 @@ Each feature projects a specialized view from the loaded RiviereGraph:
 
 ## Notes on React Adaptation
 
-The separation-of-concerns pattern adapts to React as follows:
+The local architecture rules adapt to React as follows:
 
 - **entrypoint/** becomes Page components that receive props and render
 - **use-cases/** becomes the orchestration within Page components (useMemo + projection function + state hooks)

@@ -4,23 +4,11 @@ pageClass: reference
 
 # Class: ComponentId
 
-Defined in: packages/riviere-schema/dist/component-id.d.ts:33
+Defined in: packages/riviere-schema/published-language/dist/published-language/component-id.d.ts:10
 
-Represents a structured component identifier.
+## Riviere-role
 
-Component IDs follow the format `{domain}:{module}:{type}:{name}` in kebab-case.
-
-## Example
-
-```typescript
-const id = ComponentId.create({
-  domain: 'orders',
-  module: 'checkout',
-  type: 'api',
-  name: 'Create Order'
-})
-id.toString() // 'orders:checkout:api:create-order'
-```
+value-object
 
 ## Methods
 
@@ -28,15 +16,11 @@ id.toString() // 'orders:checkout:api:create-order'
 
 > **name**(): `string`
 
-Defined in: packages/riviere-schema/dist/component-id.d.ts:79
-
-Returns the name segment of the component ID.
+Defined in: packages/riviere-schema/published-language/dist/published-language/component-id.d.ts:23
 
 #### Returns
 
 `string`
-
-The kebab-case name portion
 
 ***
 
@@ -44,82 +28,58 @@ The kebab-case name portion
 
 > **toString**(): `string`
 
-Defined in: packages/riviere-schema/dist/component-id.d.ts:73
-
-Returns the full component ID string.
+Defined in: packages/riviere-schema/published-language/dist/published-language/component-id.d.ts:22
 
 #### Returns
 
 `string`
-
-Full ID in format `domain:module:type:name`
-
-***
-
-### create()
-
-> `static` **create**(`parts`): `ComponentId`
-
-Defined in: packages/riviere-schema/dist/component-id.d.ts:53
-
-Creates a ComponentId from individual parts.
-
-#### Parameters
-
-##### parts
-
-[`ComponentIdParts`](../interfaces/ComponentIdParts.md)
-
-Domain, module, type, and name segments
-
-#### Returns
-
-`ComponentId`
-
-A new ComponentId instance
-
-#### Example
-
-```typescript
-const id = ComponentId.create({
-  domain: 'orders',
-  module: 'checkout',
-  type: 'api',
-  name: 'Create Order'
-})
-```
 
 ***
 
 ### parse()
 
-> `static` **parse**(`id`): `ComponentId`
+> `static` **parse**(`value`): `ComponentIdParseResult`
 
-Defined in: packages/riviere-schema/dist/component-id.d.ts:67
-
-Parses a string ID into a ComponentId instance.
+Defined in: packages/riviere-schema/published-language/dist/published-language/component-id.d.ts:15
 
 #### Parameters
 
-##### id
+##### value
 
 `string`
 
-String in format `domain:module:type:name`
+#### Returns
+
+`ComponentIdParseResult`
+
+***
+
+### parseFromParts()
+
+> `static` **parseFromParts**(`parts`): `ComponentId`
+
+Defined in: packages/riviere-schema/published-language/dist/published-language/component-id.d.ts:16
+
+#### Parameters
+
+##### parts
+
+###### domain
+
+`string`
+
+###### module
+
+`string`
+
+###### name
+
+`string`
+
+###### type
+
+`string`
 
 #### Returns
 
 `ComponentId`
-
-A ComponentId instance
-
-#### Throws
-
-If the format is invalid
-
-#### Example
-
-```typescript
-const id = ComponentId.parse('orders:checkout:api:create-order')
-id.name() // 'create-order'
-```

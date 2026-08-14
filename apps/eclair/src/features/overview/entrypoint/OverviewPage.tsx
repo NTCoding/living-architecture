@@ -4,7 +4,7 @@ import {
 import { Link } from 'react-router-dom'
 import type {
   RiviereGraph, SystemType 
-} from '@living-architecture/riviere-schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import {
   domainNameSchema, type DomainName,
 } from '../queries/eclair-domain'
@@ -94,7 +94,9 @@ export function OverviewPage({
       const repository = domainComponents.find((node) => node.sourceLocation != null)
         ?.sourceLocation?.repository
 
-      const entities = allEntities.filter((e) => e.domain === domain.name).map((e) => e.name)
+      const entities = allEntities
+        .filter((entity) => entity.domain.value === domain.name)
+        .map((entity) => entity.name.value)
 
       return {
         id: domainId,

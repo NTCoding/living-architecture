@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event'
 import {
   SchemaModal, validateDownloadGraphName
 } from './SchemaModal'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import {
   nodeIdSchema, domainNameSchema, moduleNameSchema, graphNameSchema, type GraphName
 } from '@/platform/domain/eclair-types'

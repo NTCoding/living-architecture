@@ -8,16 +8,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@living-architecture/dev-workflow-v2-use-cases": "workspace:*",
     "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.3.7",
     "@nt-ai-lab/deterministic-agent-workflow-cli": "0.3.7",
-    "@nt-ai-lab/deterministic-agent-workflow-dsl": "0.3.6",
     "@nt-ai-lab/deterministic-agent-workflow-engine": "0.3.6",
     "@nt-ai-lab/deterministic-agent-workflow-event-store": "0.3.6",
     "@nt-ai-lab/deterministic-agent-workflow-opencode": "0.3.7",
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^2.0.0",
     "typescript": "^5.6.0",

@@ -1,0 +1,44 @@
+{
+  "name": "@living-architecture/riviere-extract-conventions-published-language",
+  "version": "0.6.3",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NTCoding/living-architecture.git",
+    "directory": "packages/riviere-extract-conventions/published-language"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "@living-architecture/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./default-config": "./src/published-language/default-extraction.config.json",
+    "./eslint-plugin": {
+      "types": "./src/published-language/eslint-plugin/index.d.ts",
+      "require": "./src/published-language/eslint-plugin/index.cjs",
+      "default": "./src/published-language/eslint-plugin/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/__fixtures__/**",
+    "src/published-language/default-extraction.config.json",
+    "src/published-language/eslint-plugin/*.cjs",
+    "src/published-language/eslint-plugin/*.d.ts",
+    "src/published-language/eslint-plugin/*.d.cts",
+    "!**/*.tsbuildinfo"
+  ],
+  "dependencies": {
+    "@living-architecture/riviere-extract-config-published-language": "workspace:*",
+    "@typescript-eslint/utils": "8.53.0"
+  }
+}

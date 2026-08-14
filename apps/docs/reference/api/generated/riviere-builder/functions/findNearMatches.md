@@ -4,9 +4,9 @@ pageClass: reference
 
 # Function: findNearMatches()
 
-> **findNearMatches**(`components`, `query`, `options?`): [`NearMatchResult`](../interfaces/NearMatchResult.md)[]
+> **findNearMatches**(`components`, `query`, `options?`): `Readonly`\<\{ `component`: `Component`; `mismatch?`: `Readonly`\<\{ `actual`: `string`; `expected`: `string`; `field`: `"type"` \| `"domain"`; \}\>; `score`: `number`; \}\>[]
 
-Defined in: [packages/riviere-builder/src/features/building/domain/error-recovery/component-suggestion.ts:60](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/error-recovery/component-suggestion.ts#L60)
+Defined in: packages/riviere-builder/domain-model/src/domain/error-recovery/component-suggestion.ts:75
 
 Finds components similar to a query using fuzzy matching.
 
@@ -16,25 +16,25 @@ Used for error recovery to suggest alternatives when exact matches fail.
 
 ### components
 
-`Component`[]
+readonly `Component`[]
 
 Array of components to search
 
 ### query
 
-[`NearMatchQuery`](../interfaces/NearMatchQuery.md)
+`NearMatchQuery`
 
 Search criteria with name and optional type/domain filters
 
 ### options?
 
-[`NearMatchOptions`](../interfaces/NearMatchOptions.md)
+`Readonly`\<\{ `limit?`: `number`; `threshold?`: `number`; \}\>
 
 Optional threshold and limit settings
 
 ## Returns
 
-[`NearMatchResult`](../interfaces/NearMatchResult.md)[]
+`Readonly`\<\{ `component`: `Component`; `mismatch?`: `Readonly`\<\{ `actual`: `string`; `expected`: `string`; `field`: `"type"` \| `"domain"`; \}\>; `score`: `number`; \}\>[]
 
 Array of matching components with similarity scores
 

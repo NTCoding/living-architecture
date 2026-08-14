@@ -1,6 +1,4 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   createSimulationNodes,
   createSimulationLinks,
@@ -16,10 +14,8 @@ import {
   getSemanticEdgeColor,
   getDomainColor,
 } from './VisualizationDataAdapters'
-import type { ExternalLink } from '@living-architecture/riviere-schema'
-import type {
-  Node, Edge 
-} from '@/platform/domain/eclair-types'
+import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
+import type { Node, Edge } from '@/platform/domain/eclair-types'
 import {
   parseNode,
   parseEdge,
@@ -69,7 +65,9 @@ describe('VisualizationDataAdapters', () => {
         }),
       ]
 
-      const result = createSimulationNodes(nodes, {Job: { description: 'A scheduled unit of work' },})
+      const result = createSimulationNodes(nodes, {
+        Job: { description: 'A scheduled unit of work' },
+      })
 
       expect(result[0]).toMatchObject({
         type: 'Custom',

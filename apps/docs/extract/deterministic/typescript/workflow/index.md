@@ -28,7 +28,7 @@ Standardizing how architecture components are implemented (decorators, JSDoc tag
 Open a terminal in your project directory and install the CLI and conventions package:
 
 ```bash
-npm install --save-dev @living-architecture/riviere-cli @living-architecture/riviere-extract-conventions
+npm install --save-dev @living-architecture/riviere-cli @living-architecture/riviere-extract-conventions-published-language
 ```
 
 Then use `npx riviere ...`
@@ -62,7 +62,7 @@ This step uses the TypeScript extractor instead of AI.
 2. **Annotate your code** (if using decorators):
 
    ```typescript
-   import { UseCase, APIContainer } from '@living-architecture/riviere-extract-conventions'
+   import { UseCase, APIContainer } from '@living-architecture/riviere-extract-conventions-published-language'
 
    @APIContainer
    class OrderController {
@@ -81,11 +81,11 @@ This step uses the TypeScript extractor instead of AI.
    modules:
      - name: 'orders'
        path: 'src/orders/**/*.ts'
-       extends: '@living-architecture/riviere-extract-conventions'
+       extends: '@living-architecture/riviere-extract-conventions-published-language'
 
      - name: 'shipping'
        path: 'src/shipping/**/*.ts'
-       extends: '@living-architecture/riviere-extract-conventions'
+       extends: '@living-architecture/riviere-extract-conventions-published-language'
    ```
 
 4. **Run extraction**:

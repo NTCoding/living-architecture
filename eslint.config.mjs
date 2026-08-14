@@ -5,7 +5,6 @@ import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/conf
 import importPlugin from 'eslint-plugin-import'
 import sonarjs from 'eslint-plugin-sonarjs'
 import jsdoc from 'eslint-plugin-jsdoc'
-import stylistic from '@stylistic/eslint-plugin'
 import react from 'eslint-plugin-react'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 import unicorn from 'eslint-plugin-unicorn'
@@ -223,17 +222,16 @@ export default tseslint.config(
     },
   },
   // JSDoc enforcement for public library APIs
-    {
-      files: [
-      'packages/riviere-builder/src/builder.ts',
-    'packages/riviere-cli/src/cli.ts',
-    'packages/riviere-cli/src/error-codes.ts',
-    'packages/riviere-cli/src/output.ts',
-    'packages/riviere-extract-config/src/types.ts',
-    'packages/riviere-extract-config/src/validation.ts',
-    'packages/riviere-extract-ts/src/extractor.ts',
-    'packages/riviere-extract-ts/src/resolve-config.ts',
-    'packages/riviere-extract-ts/src/predicates/evaluate-predicate.ts',
+  {
+    files: [
+      'packages/riviere-builder/domain-model/src/domain/builder-facade.ts',
+      'apps/cli/src/shell/cli.ts',
+      'apps/cli/src/infra/cli/presentation/error-codes.ts',
+      'apps/cli/src/infra/cli/presentation/output.ts',
+      'packages/riviere-extract-config/published-language/src/published-language/extraction-config-schema.ts',
+      'packages/riviere-extract-config/published-language/src/published-language/validation.ts',
+      'packages/riviere-extract-ts/domain-model/src/domain/component-extraction/extractor.ts',
+      'packages/riviere-extract-ts/domain-model/src/domain/predicate-evaluation/evaluate-predicate.ts',
       ],
       ignores: ['**/*.spec.ts'],
       plugins: { jsdoc },
@@ -259,34 +257,10 @@ export default tseslint.config(
         'jsdoc/require-returns-description': 'error',
       },
     },
-  {
-    plugins: {
-      '@stylistic': stylistic,
-    },
-    rules: {
-      '@stylistic/indent': ['error', 2],
-      '@stylistic/object-curly-newline': [
-        'error',
-        {
-          ObjectExpression: { multiline: true, minProperties: 2 },
-          ObjectPattern: { multiline: true, minProperties: 2 },
-          TSTypeLiteral: { multiline: true, minProperties: 2 },
-          TSInterfaceBody: { multiline: true, minProperties: 2 },
-          TSEnumBody: { multiline: true, minProperties: 2 },
-        },
-      ],
-      '@stylistic/object-property-newline': [
-        'error',
-        {
-          allowAllPropertiesOnSameLine: false,
-        },
-      ],
-    },
-  },
   // Thin layer enforcement — entrypoints, commands, and queries are thin orchestration files
   {
     files: ['**/entrypoint/**/*.ts', '**/commands/**/*.ts', '**/queries/**/*.ts'],
-    ignores: ['**/*.spec.ts', '**/*.test.ts', 'packages/riviere-query/src/features/querying/queries/**/*.ts', 'apps/eclair/**/queries/**/*.ts'],
+    ignores: ['**/*.spec.ts', '**/*.test.ts', 'apps/eclair/**/queries/**/*.ts'],
     rules: {
       'max-lines': ['error', { max: 150, skipBlankLines: true, skipComments: true }],
     },

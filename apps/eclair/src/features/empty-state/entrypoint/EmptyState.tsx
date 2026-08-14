@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { FileUpload } from '@/platform/infra/file-upload/FileUpload'
 import { useGraph } from '@/platform/infra/graph-state/GraphContext'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
 
 export function EmptyState(): React.ReactElement {
   const { setGraph } = useGraph()
@@ -11,8 +11,12 @@ export function EmptyState(): React.ReactElement {
     setError(null)
     try {
       const data: unknown = JSON.parse(content)
-      const graph = parseRiviereGraph(data)
-      setGraph(graph)
+      const result = parseRiviereGraph(data)
+      if (!result.success) {
+        setError(`Validation failed for ${fileName}:\n${result.issues.join('\n')}`)
+        return
+      }
+      setGraph(result.graph)
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Unknown error'
       setError(`Validation failed for ${fileName}:\n${message}`)

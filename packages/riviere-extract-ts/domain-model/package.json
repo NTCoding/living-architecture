@@ -1,0 +1,32 @@
+{
+  "name": "@living-architecture/riviere-extract-ts-domain-model",
+  "version": "0.6.3",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NTCoding/living-architecture.git",
+    "directory": "packages/riviere-extract-ts/domain-model"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    "./domain/*": {
+      "@living-architecture/source": "./src/domain/*.ts",
+      "types": "./dist/domain/*.d.ts",
+      "import": "./dist/domain/*.js",
+      "default": "./dist/domain/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/__fixtures__/**",
+    "!**/*.tsbuildinfo"
+  ],
+  "dependencies": {
+    "@living-architecture/riviere-extract-config-published-language": "workspace:*",
+    "@living-architecture/riviere-schema-published-language": "workspace:*",
+    "ts-morph": "^24.0.0"
+  }
+}

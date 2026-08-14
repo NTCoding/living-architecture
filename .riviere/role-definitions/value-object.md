@@ -1,35 +1,47 @@
 # value-object
 
 ## Purpose
-A type or class that represents a domain concept defined by its attributes rather than identity — it carries meaning but no behavior that modifies external state.
+A class that represents a domain concept defined by its attributes rather than identity. It owns its parsing and may expose immutable behavior.
 
 ## Behavioral Contract
 1. Defined by its values, not by an identity
-2. Typically immutable
-3. May have derived/computed properties but no side effects
-4. Used as building blocks within aggregates, inputs, and results
+2. Immutable: operations return new values instead of mutating the current value
+3. Has at least one static parsing method named `parse` or beginning with `parseFrom`
+4. Has a private constructor, so callers must use a parsing method
+5. May expose instance methods such as `equals`, `add`, or `toString`
+6. Does not store functions in instance data members
+7. Used as a building block within aggregates, inputs, and results
 
 ## Examples
 
 ### Canonical Example
 ```typescript
 /** @riviere-role value-object */
-export interface ModuleContext {
-  moduleName: string
-  sourceFiles: SourceFile[]
-  tsConfigPath: string
+export class Money {
+  declare private readonly brand: 'Money'
+
+  private constructor(readonly amount: number) {}
+
+  static parse(amount: number): Money {
+    return new Money(amount)
+  }
+
+  add(other: Money): Money {
+    return Money.parse(this.amount + other.amount)
+  }
 }
 ```
 
 ### Edge Cases
-- Discriminated unions are value objects: `type Outcome = 'success' | 'partial' | 'failure'`
-- Enum-like const objects can be value objects
-- A class with only getters and no mutation methods is a value object
+- Multiple input representations may use methods such as `parseFromString` and `parseFromJson`
+- Parsing may return a structured validation result when input can be invalid
+- Ordinary instance methods are allowed; callable instance data members are not
 
 ## Anti-Patterns
 
 ### Common Misclassifications
 - **Not an aggregate**: if it owns behavior that enforces invariants and is loaded through a repository, it's an aggregate
+- **Not an interface or type alias**: value objects are classes that own parsing and immutable behavior
 - **Not a command-use-case-input**: if it's specifically the parameter type for a command, use that more specific role
 - **Not an external-client-model**: if it represents an external service's data shape rather than a domain concept
 - **Not a consumer contract**: if it exists only to shape data for a builder, presenter, workflow, or CLI consumer, it is not a domain value object

@@ -47,7 +47,7 @@ export function DomainDetailView({
     return entitySearch === ''
       ? domain.entities
       : domain.entities.filter((entity) =>
-        entity.name.toLowerCase().includes(entitySearch.toLowerCase()),
+        entity.name.value.toLowerCase().includes(entitySearch.toLowerCase()),
       )
   }, [domain.entities, entitySearch])
 
@@ -376,7 +376,7 @@ function EntitiesListOrEmpty({
     return (
       <div className="max-h-[320px] space-y-3 overflow-y-auto">
         {filteredEntities.map((entity) => (
-          <EntityAccordion key={entity.name} entity={entity} />
+          <EntityAccordion key={entity.name.value} entity={entity} />
         ))}
       </div>
     )

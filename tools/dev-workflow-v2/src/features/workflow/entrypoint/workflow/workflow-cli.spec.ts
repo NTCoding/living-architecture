@@ -1,8 +1,6 @@
-import {
-  describe, it, expect, afterEach 
-} from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
 import { flattenStoredEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import type { TestContext } from './fixtures/workflow-cli-test-fixtures'
+import type { TestContext } from './__fixtures__/workflow-cli-test-fixtures'
 import {
   buildTestContext,
   cleanupDb,
@@ -10,7 +8,7 @@ import {
   runCommand,
   runReviewCommand,
   runReviewCommandWithJson,
-} from './fixtures/workflow-cli-test-fixtures'
+} from './__fixtures__/workflow-cli-test-fixtures'
 
 describe('workflow-cli commands', () => {
   const dbPaths: string[] = []

@@ -36,7 +36,7 @@ Deterministic extraction uses a language-agnostic configuration DSL to define de
 
 The config format is **language-agnostic** — defined in JSON Schema, works across TypeScript, Java, Python, etc.
 
-**Current implementation**: TypeScript (`@living-architecture/riviere-extract-ts`)
+**Current implementation**: TypeScript (`@living-architecture/riviere-extract-ts-domain-model`)
 
 **You can build extractors for other languages** using the same config format.
 

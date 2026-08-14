@@ -1,38 +1,4 @@
-import { createRoleFactory } from '@living-architecture/riviere-role-enforcement'
-
-type RoleName =
-  | 'aggregate'
-  | 'aggregate-repository'
-  | 'cli-entrypoint'
-  | 'cli-error'
-  | 'cli-error-handler'
-  | 'entrypoint-cli-input-parser'
-  | 'generic-cli-input-parser'
-  | 'cli-output-formatter'
-  | 'cli-response-formatter'
-  | 'cli-response-writer'
-  | 'command-input-factory'
-  | 'command-use-case'
-  | 'command-use-case-input'
-  | 'command-use-case-result'
-  | 'command-use-case-result-value'
-  | 'domain-error'
-  | 'domain-event'
-  | 'domain-port'
-  | 'domain-service'
-  | 'domain-port-adapter'
-  | 'external-client-error'
-  | 'external-client-model'
-  | 'external-client-service'
-  | 'main'
-  | 'query-model'
-  | 'query-model-error'
-  | 'query-model-loader'
-  | 'query-model-use-case'
-  | 'query-model-use-case-input'
-  | 'value-object'
-
-const role = createRoleFactory<RoleName>()
+import { role } from '@living-architecture/riviere-role-enforcement-domain-model'
 
 export const allRoles = [
   role('cli-entrypoint', { targets: ['function'] }),
@@ -66,9 +32,10 @@ export const allRoles = [
   role('external-client-service', { targets: ['function'] }),
   role('aggregate-repository', {
     targets: ['class'],
-    allowedOutputs: ['aggregate', 'domain-error'],
+    allowedOutputs: ['aggregate'],
     forbiddenDependencies: ['aggregate-repository'],
   }),
+  role('data-access-error', { targets: ['class'] }),
   role('aggregate', {
     targets: ['interface', 'type-alias', 'class'],
     minPublicMethods: 1,
@@ -88,17 +55,19 @@ export const allRoles = [
     ],
   }),
   role('value-object', {
-    targets: ['interface', 'type-alias', 'class'],
-    forbiddenCallableMembers: true,
+    targets: ['class'],
+    forbiddenCallableDataMembers: true,
     forbiddenSupertypes: ['Error'],
     requiredPrivateMembers: ['brand'],
+    requiresPrivateConstructor: true,
+    requiredStaticMethodNamePrefix: 'parse',
     requiresDataMembers: true,
     forbiddenDependencies: ['aggregate', 'domain-service'],
   }),
   role('domain-error', { targets: ['class'] }),
   role('domain-event', {
     targets: ['type-alias'],
-    nameMatches: '.*Event$',
+    mustBeDataStructure: true,
   }),
   role('domain-port', { targets: ['interface', 'type-alias'] }),
   role('domain-service', { targets: ['function', 'class'] }),
@@ -121,16 +90,14 @@ export const allRoles = [
   role('query-model', {
     targets: ['class', 'function', 'interface', 'type-alias'],
   }),
-  role('query-model-error', { targets: ['class'] }),
   role('query-model-loader', {
     targets: ['class'],
-    allowedOutputs: ['query-model', 'domain-error'],
+    allowedOutputs: ['query-model'],
     forbiddenDependencies: ['query-model-loader'],
   }),
   role('external-client-model', { targets: ['interface', 'type-alias', 'class'] }),
   role('external-client-error', { targets: ['class'] }),
   role('entrypoint-cli-input-parser', { targets: ['function'] }),
-  role('generic-cli-input-parser', { targets: ['function'] }),
   role('cli-error', { targets: ['class'] }),
   role('main', {
     targets: ['function'],
@@ -141,6 +108,27 @@ export const allRoles = [
       'query-model-loader',
     ],
   }),
+  role('published-language-annotation', {
+    requiresDecoratorSignature: true,
+  }),
+  role('published-language-data-structure', {
+    mustBeDataStructure: true,
+  }),
+  role('published-language-field-name', {
+    requiresStringLiteralConstant: true,
+  }),
+  role('published-language-parser', {
+    returns: [
+      { success: true, '*': 'published-language-schema' },
+      { success: false, '*': '*' },
+    ],
+  }),
+  role('published-language-schema', {
+    mustBeDataStructure: true,
+  }),
+  role('published-language-union', {
+    requiresUnion: true,
+  }),
 ] as const
 
-export type { RoleName }
+export type RoleName = (typeof allRoles)[number]['name']

@@ -1,4 +1,4 @@
-# Separation of Concerns Analysis: riviere-extract-ts
+# Architecture Analysis: riviere-extract-ts
 
 ## Package Overview
 

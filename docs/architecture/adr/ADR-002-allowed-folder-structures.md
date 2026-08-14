@@ -4,86 +4,187 @@
 
 ## Sources of Truth
 
-- **Code placement and layer rules:** [`development-skills:separation-of-concerns`](https://github.com/NTCoding/claude-skillz/blob/main/separation-of-concerns/SKILL.md) skill
-- **Dependency enforcement:** `.riviere/role-enforcement.config.ts` for first-class layer and role rules; `.dependency-cruiser.mjs` contains legacy rules pending migration to RLE
+- **Architecture decision:** this ADR
+- **Executable enforcement:** [Rivière role enforcement](../../../.riviere/role-definitions/index.md), configured by [`.riviere/role-enforcement.config.ts`](../../../.riviere/role-enforcement.config.ts)
 
-## Standard Structure
+The ADR and executable configuration implement the same rules and must change together.
+
+## Package Placement
+
+Every package declared by `pnpm-workspace.yaml` must have exactly one role-enforcement configuration or be explicitly listed as unassigned.
 
 ```text
-features/
-├── {feature}/
-│   ├── entrypoint/        ← one folder per external entrypoint
-│   │   └── {entrypoint}/
-│   │       ├── entrypoint.ts
-│   │       └── ...         ← entrypoint-specific DTOs, input mappers, output mappers
-│   ├── commands/          ← write operations, strict layering
-│   ├── queries/           ← read operations, minimal layering
-│   ├── domain/            ← business rules (required if commands exist)
-│   │   └── ports/         ← domain-owned capability contracts
-│   ├── data-access/       ← aggregate repositories and query-model loaders
-│   └── adapters/          ← implementations of domain ports
-│       └── {adapter}/
-│
-entrypoint/
-└── _platform/             ← private entrypoint code shared across features
-│   └── cli/
-│
-platform/
-├── domain/                ← shared business rules (depends on nothing)
-└── infra/                 ← shared technical concerns
-    ├── external-clients/  ← cohesive third-party tool/service clients
-    ├── persistence/       ← database clients, connection pools
-    ├── http/              ← shared formatters, error handling middleware
-    ├── cli/               ← stdin/stdout utilities, CLI I/O helpers
-    ├── messaging/         ← queue clients, event bus
-    ├── config/            ← configuration loading
-    └── logging/           ← structured logging
+apps/
+└── {app}/
 
-shell/                     ← thin wiring/routing only (no business logic)
+packages/
+└── {subdomain}/
+    ├── domain-model/
+    ├── published-language/
+    └── use-cases/
+
+tools/
+└── {tool}/
 ```
 
-All sub-folders within a feature are optional — include only what the feature needs.
+Only a complete path segment named `{subdomain}` creates a subdomain boundary. Other placeholders, including `{tool}` and `{boundary}`, are ordinary path placeholders and never receive subdomain semantics. A package rule may allow imports within the same captured subdomain or across subdomains. Location rules cannot override package rules.
 
-### Layer Responsibilities
+The executable package assignments are exactly:
 
-**entrypoint/** — Contains one folder per external entrypoint: `entrypoint/{entrypoint}/entrypoint.ts`. Opening `entrypoint/` should show the available entrypoints as folders. Entrypoint-specific DTOs, input mappers, and output mappers live under the relevant entrypoint folder. This layer translates between external and internal formats: it parses HTTP requests, CLI arguments, or queue messages into command/query inputs and maps results back to external responses. If you changed protocols (HTTP → CLI), you'd rewrite this layer but keep commands/ and domain/ unchanged. Entrypoints must not import `domain/` or persistence infrastructure directly.
+```typescript
+'apps/': app,
+'packages/{subdomain}/domain-model': domainModel,
+'packages/{subdomain}/published-language': publishedLanguage,
+'packages/{subdomain}/use-cases': useCases,
+'tools/': app,
+```
 
-Package-level `entrypoint/_platform/` contains private entrypoint code shared across features. Feature-level `entrypoint/_platform/` contains private entrypoint code shared by entrypoints within one feature. Sharing changes scope, not layer.
+Keys ending in `/` assign a configuration to each direct package beneath that directory. Therefore apps and tools are direct packages, while the three subdomain package types must live beneath `packages/{subdomain}/`.
 
-The `_platform/` convention applies inside any layer. It means code shared within the containing architectural scope, not a globally shared layer. Code outside that containing scope must not import it.
+The repository currently allows these package dependencies:
 
-**commands/** — Orchestrates write operations. Loads data, invokes domain logic, persists the result. All business rules delegated to domain/. Each command has a dedicated input type — no sharing of input DTOs, no dependency on external input types.
+- An app may import use-case packages from any subdomain.
+- A domain-model package may import published-language packages.
+- A published-language package may not import another workspace package.
+- A use-case package may import its own subdomain's domain model and published-language packages.
+- No package may import an app.
 
-**queries/** — Reads and returns data without modifying anything. Can query the database directly or load domain objects for their state. No side effects, no state changes.
+A tool is an app. Its domain-model, published-language, and use-case packages live under `packages/{subdomain}/`; they cannot be nested under `tools/{tool}/`.
 
-**domain/** — Business rules with no I/O. Validation, state transitions, invariants, calculations. Never imports from infra/, commands/, queries/, entrypoint/, or shell/.
+## App Packages
 
-**domain/ports/** — Domain-owned interfaces and function types for capabilities invoked by the domain. Contracts use domain language and contain no concrete technology types or implementation.
+```text
+src/
+├── features/
+│   └── {feature}/
+│       └── entrypoint/
+│           ├── {entrypoint}/
+│           └── _platform/
+│               └── cli/
+├── infra/
+│   └── cli/
+│       └── presentation/
+└── shell/
+```
 
-**data-access/** — Aggregate repositories and query-model loaders. This layer inherently knows the application state it reconstructs or persists. It is separate from generic infrastructure and must not become a home for domain behaviour.
+Features are isolated. Code in one feature cannot import another feature. A feature may import root `infra` and commands or queries exposed by subdomain use-case packages.
 
-**adapters/** — Narrow implementations of domain ports. A domain-port adapter translates between one domain port and one generic client API. It contains no domain decisions, application orchestration, direct Node API calls, third-party package calls, or coordination across multiple clients. Node and third-party calls belong to the separately enforced generic external-client role; otherwise the adapter would bypass that client contract and combine translation with external I/O. See the [`domain-port-adapter` role definition](../../../.riviere/role-definitions/domain-port-adapter.md) for the concrete Oxlint and GitHub examples.
+An entrypoint translates an external protocol into a command or query input and translates the result back into that protocol. It performs primitive shape validation only. Domain validation belongs in the command or query.
 
-**platform/domain/** — Shared business rules used across features. Depends on nothing.
+For example, an entrypoint passes a raw string through the command input:
 
-**platform/infra/** — Shared generic technical concerns used across features. It may depend only on other `platform/infra/` code and external libraries. It must not import entrypoint, use-case, domain, or unclassified internal application code.
+```typescript
+export interface LinkExternalInput {
+  type: string | undefined
+}
 
-Each external client stays cohesive under `platform/infra/external-clients/{client}/`. It exposes capabilities and types belonging to the external system, knows nothing about application domain types, and can be extracted into a separate library without taking application code with it.
+const result = linkExternal.execute({ type: options.linkType })
+```
 
-For CLI code, platform CLI infrastructure owns shared response-envelope formatting and output side effects. Generic `formatSuccess`/`formatError` style functions are CLI response formatters. Writing to stdout, stderr, files, or exiting belongs to CLI response writers. CLI error handlers are only for uncaught CLI-boundary exceptions and must not handle regular command/query failure control flow.
+The command parses the value through the domain-owned value object. The value object remains the single source of truth for the allowed values:
 
-**shell/** — Wires things together at startup. It constructs generic clients and domain-port adapters, then passes them into entrypoints or use cases. No business logic and no separate `composition-root` role.
+```typescript
+const parsedType = input.type === undefined ? undefined : LinkType.parse(input.type)
+if (parsedType !== undefined && !parsedType.success) {
+  return failure('VALIDATION_ERROR', parsedType.error)
+}
+```
 
-## Library Packages
+Do not duplicate the domain's allowed values in an entrypoint union or validator.
 
-Libraries use the same `features/` + `platform/` structure as applications. The package is NOT the feature — still wrap in `features/{name}/`. Libraries don't need `shell/` unless they wire an app.
+`entrypoint/_platform` contains entrypoint code shared only within that feature's entrypoint location. The `_platform` location is importable anywhere within its parent location and nowhere outside it.
 
-**Entry point:** Libraries use `src/index.ts` as their package entry point — a pure barrel file containing only re-export statements, no logic. `shell/` is for app wiring only, not package exports.
+Root `infra` contains generic technical code. It cannot import application or domain code. CLI presentation formats or writes generic responses. CLI input parsing remains in the entrypoint layer, including shared parsers under a feature's private `entrypoint/_platform/cli` location.
+
+`shell` wires the application. It may construct external clients and adapters, then pass them into app entrypoints or subdomain use cases. It contains no business decisions.
+
+## Domain-Model Packages
+
+```text
+src/
+└── domain/
+    └── ...
+```
+
+A domain-model package contains one isolated subdomain model. Its internal domain folders are unrestricted. It has no features, entrypoints, use cases, data access, adapters, infra, or shell.
+
+Domain code owns business state, rules, invariants, value objects, aggregates, domain services, domain events, and domain ports. A domain model does not import another domain model.
+
+Ports and adapters are preferred for technical capabilities. External-package imports are not globally blocked because valid domain code includes Zod value objects and domains built around libraries such as `ts-morph`. Node capabilities such as `node:path` and `node:perf_hooks` should normally be represented by domain ports.
+
+## Use-Case Packages
+
+```text
+src/
+├── features/
+│   └── {feature}/
+│       ├── commands/
+│       ├── queries/
+│       ├── data-access/
+│       │   └── {concept}/
+│       └── adapters/
+│           └── {adapter}/
+└── infra/
+    └── external-clients/
+        └── {client}/
+```
+
+Features are isolated. A feature cannot import another feature.
+
+Commands orchestrate write operations. They accept raw command input, parse domain value objects, load aggregates, invoke domain behaviour, and persist the result. Command input factories belong at the app entrypoint, not in commands.
+
+Queries perform read use cases. A query may call multiple methods on the same query model, compose results from multiple query-model methods, map known loader failures into query-use-case errors, or coordinate multiple loaders when the concrete read genuinely needs them.
+
+A query model is designed for a concrete query use case. For example, `list invalid components` may load an `InvalidComponents` query model, and `show graph statistics` may load `GraphStatistics`. Do not invent a generic `GraphQueryModel` merely because both read the same graph file.
+
+Data access lives at `data-access/{concept}`. Aggregate repositories reconstruct and persist aggregates. Query-model loaders load the concrete query model needed by a query. Data-access failures are `data-access-error`; they are not domain errors.
+
+Data access may import only aggregate and value-object roles from its own domain model. Domain services must not be called from data access. Parsing that protects an aggregate invariant belongs on the aggregate or value object and returns a clear result for the repository to handle.
+
+Adapters implement domain ports. An adapter may import only domain-port roles from its own domain model and generic clients from root infra. It translates between the port and client APIs; it does not own business decisions or instantiate shared clients.
+
+External clients contain generic interaction with a tool, service, filesystem, runtime, or third-party package. They do not import domain code.
+
+## Published-Language Packages
+
+```text
+src/
+└── published-language/
+    ├── ...
+    └── eslint-plugin/     ← optional; role enforcement disabled inside this integration
+```
+
+A published language is a minimal, stable contract intended for consumers across a boundary. It may contain published-language schemas, data structures, unions, parsers, field names, annotations, and value objects.
+
+A published-language parser parses the published language and returns either its declared successful schema shape or its declared failure shape. Application behaviour does not belong in the published language.
+
+## Location Rules
+
+- Locations and imports are unrestricted until a location declares rules.
+- Explicit sublocations are the only direct folders permitted inside a location.
+- `allowAnySubLocations: true` permits arbitrary domain organisation and cannot be combined with explicit sublocations.
+- A location with `importRules` may import its own subtree and the locations listed in `allow`. Every other location is forbidden.
+- A sublocation inherits its parent's import rules unless it explicitly disables inheritance.
+- Allowing a location allows its entire subtree.
+- `sibling` means a configured location under the same concrete parent location.
+- `root` means a configured root location in the same package.
+- `ownSubdomain` means a location in another package with the same value captured from a complete `{subdomain}` path segment.
+- `anySubdomain` means the named location in any package with a value captured from a complete `{subdomain}` path segment.
+- A string allows every role in the named location. An object with a role list allows only those roles.
+- `_platform` with `importableFrom: 'withinParentLocation'` is private to its parent location.
+- Circular imports are rejected.
+- Production code cannot import files excluded by `ignorePatterns`. Tests are exempt from production import rules so they can assemble fixtures across boundaries.
+
+Package configuration keys ending in `/` apply the configuration to each direct package beneath that directory. For example, `'apps/': app` assigns the app configuration to every direct package under `apps/`; it does not assign nested packages.
+
+## Package Entry Points
+
+Published packages use `src/index.ts` only as their package entry point. It contains explicit exports from the files that own declarations. Nested barrel files are not allowed.
 
 ## Local Exceptions
 
-**React applications** extend the standard feature sub-folders with `components/` and `hooks/`. Entrypoints are page components. Shell contains routing and providers.
+`apps/docs` is exempt from role enforcement.
 
-**Flat packages** too small for internal layering (schemas, config, decorators) use flat `src/` with no features/platform/shell structure.
+Éclair is explicitly unassigned until it has an approved configuration that honestly describes and enforces its architecture. Its existing Dependency Cruiser rules remain active.
 
-**Claude Code plugin packages** may keep host-required prompt artifacts outside `src/` when the host loader requires fixed top-level locations. For `tools/dev-workflow-v2`, this includes command and state markdown under `tools/dev-workflow-v2/commands/` and `tools/dev-workflow-v2/states/`, hook scripts under `tools/dev-workflow-v2/hooks/`, and plugin metadata under `tools/dev-workflow-v2/.claude-plugin/`. Runtime TypeScript still belongs under `src/`.
+Host-required plugin artefacts may live outside `src` when the host mandates their locations. This does not exempt runtime TypeScript from package assignment and role enforcement.

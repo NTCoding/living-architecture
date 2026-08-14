@@ -6,10 +6,11 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EntityAccordion } from './EntityAccordion'
-import { Entity } from '@living-architecture/riviere-query'
+import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
+import type { Entity } from '@living-architecture/riviere-builder-domain-model/query/entity'
 import type {
   DomainOpComponent, SourceLocation 
-} from '@living-architecture/riviere-schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 
 const defaultSourceLocation: SourceLocation = {
   repository: 'test-repo',
@@ -66,18 +67,55 @@ function createEntity(
           from: 'Pending',
           to: 'Confirmed',
         },
+        {
+          from: 'Confirmed',
+          to: 'Cancelled',
+        },
       ],
     }),
   ]
 
-  return new Entity(
-    overrides.name ?? 'Order',
-    overrides.domain ?? 'orders',
-    operations,
-    overrides.states ?? ['Draft', 'Pending', 'Confirmed', 'Cancelled'],
-    [],
-    overrides.businessRules ?? [],
-  )
+  const requestedStates = overrides.states
+  const operationsWithRequestedStates =
+    requestedStates === undefined || operations.length === 0
+      ? operations
+      : operations.map((operation, index) =>
+          index === 0
+            ? {
+                ...operation,
+                stateChanges: requestedStates.slice(1).map((state, stateIndex) => ({
+                  from: requestedStates[stateIndex] ?? '*',
+                  to: state,
+                })),
+              }
+            : { ...operation, stateChanges: undefined },
+        )
+
+  const domain = overrides.domain ?? 'orders'
+  const entityName = overrides.name ?? 'Order'
+  const query = new RiviereQuery({
+    version: '1.0',
+    metadata: {
+      name: 'Entity accordion fixture',
+      description: 'Entity accordion fixture',
+      domains: {
+        [domain]: {
+          description: `${domain} domain`,
+          systemType: 'domain',
+        },
+      },
+    },
+    components: operationsWithRequestedStates.map((operation) => ({
+      ...operation,
+      domain,
+      entity: entityName,
+      name: `${entityName}.${operation.operationName}`,
+    })),
+    links: [],
+  })
+  const entity = query.entities()[0]
+  if (entity === undefined) expect.fail('Entity accordion fixture must contain an entity')
+  return entity
 }
 
 describe('EntityAccordion', () => {
@@ -93,15 +131,15 @@ describe('EntityAccordion', () => {
         operations: [
           createDomainOp({
             id: 'op-a',
-            operationName: 'a',
+            operationName: 'aa',
           }),
           createDomainOp({
             id: 'op-b',
-            operationName: 'b',
+            operationName: 'bb',
           }),
           createDomainOp({
             id: 'op-c',
-            operationName: 'c',
+            operationName: 'cc',
           }),
         ],
       })

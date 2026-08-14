@@ -1,6 +1,6 @@
 # Refinements: riviere-query
 
-This document captures the refinements applied to the original design review using separation-of-concerns and tactical-ddd principles.
+This document captures the refinements applied to the original design review using the repository's local architecture rules and role definitions.
 
 ## Separation of Concerns Refinements
 

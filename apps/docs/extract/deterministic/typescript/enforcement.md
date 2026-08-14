@@ -17,7 +17,7 @@ ESLint catches missing decorators immediately in the IDE and during CI.
 Install the conventions package (includes ESLint plugin):
 
 ```bash
-npm install --save-dev @living-architecture/riviere-extract-conventions
+npm install --save-dev @living-architecture/riviere-extract-conventions-published-language
 ```
 
 ## ESLint Configuration
@@ -26,7 +26,7 @@ Add the enforcement rule to your ESLint config (flat config format):
 
 ```javascript
 // eslint.config.mjs
-import conventionsPlugin from '@living-architecture/riviere-extract-conventions/eslint-plugin'
+import conventionsPlugin from '@living-architecture/riviere-extract-conventions-published-language/eslint-plugin'
 
 export default [
   {
@@ -101,7 +101,7 @@ class OrderController {
 **After (fixed):**
 
 ```typescript
-import { APIContainer } from '@living-architecture/riviere-extract-conventions'
+import { APIContainer } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @APIContainer
 class OrderController {
@@ -152,7 +152,7 @@ Valid decorators:
   - @Custom('type') (custom types)
   - @Ignore (explicit exclusion)
 
-Import from: @living-architecture/riviere-extract-conventions
+Import from: @living-architecture/riviere-extract-conventions-published-language
 ```
 
 ## Enforcement Concept
