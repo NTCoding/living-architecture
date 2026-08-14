@@ -4,6 +4,11 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NTCoding/living-architecture.git",
+    "directory": "packages/riviere-builder/use-cases"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
