@@ -91,13 +91,14 @@ it('allows imports between locations by default', () => {
   )
 })
 
-it('prevents sibling location instances importing one another', () => {
+it('applies declared import rules between different location instances', () => {
   const locations = locationConfiguration<never>(
     location<never>('/features/{feature}', {
       commands: [],
       domain: [],
-      importRules: { canImportSiblings: false },
+      importRules: { allow: { root: ['infra'] } },
     }),
+    location<never>('/infra', []),
   )
 
   runFixture(
@@ -108,7 +109,7 @@ it('prevents sibling location instances importing one another', () => {
     },
     (result) => {
       assert.equal(result.exitCode, 1)
-      assert.match(result.stdout, /cannot import sibling location instance/)
+      assert.match(result.stdout, /cannot import location '\/domain'/)
     },
   )
 })

@@ -29,6 +29,12 @@ export function assignPackageConfigurations<R extends string>(
               packageConfiguration,
             ] as const,
         )
-      : [[packagePattern, configuration] as const],
+      : [[directPackagePattern(packagePattern), configuration] as const],
   )
+}
+
+function directPackagePattern(packagePattern: string): string {
+  return packagePattern.endsWith('/')
+    ? `${packagePattern.replace(/\/$/, '')}/{package}`
+    : packagePattern
 }

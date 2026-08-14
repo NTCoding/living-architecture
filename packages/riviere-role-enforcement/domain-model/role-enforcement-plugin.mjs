@@ -222,11 +222,6 @@ export default {
         }
 
         function validateSourceLocationRules(node, sourceChain, targetChain, targetRelative, resolvedImport) {
-          for (const source of sourceChain) {
-            if (rejectsSiblingImport(node, source, targetChain)) {
-              return true
-            }
-          }
           return rejectsLocationImport(
             node,
             sourceChain,
@@ -234,20 +229,6 @@ export default {
             targetRelative,
             resolvedImport,
           )
-        }
-
-        function rejectsSiblingImport(node, source, targetChain) {
-          if (source.location.importRules?.canImportSiblings !== false) {
-            return false
-          }
-          const targetPeer = targetChain.find(
-            (target) => target.location.pathTemplate === source.location.pathTemplate,
-          )
-          if (targetPeer === undefined || targetPeer.concretePath === source.concretePath) {
-            return false
-          }
-          report(node, `Location '${source.concretePath}' cannot import sibling location instance '${targetPeer.concretePath}'.`)
-          return true
         }
 
         function rejectsLocationImport(node, sourceChain, targetChain, targetRelative, resolvedImport) {

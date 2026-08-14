@@ -15,7 +15,7 @@ import { allRoles } from './roles'
 
 export const config = roleEnforcementConfiguration({
   configurations: {
-    'apps/{app}': app,
+    'apps/': app,
     'packages/{subdomain}/': [domainModel, useCases, publishedLanguage],
   },
   ignorePatterns: [

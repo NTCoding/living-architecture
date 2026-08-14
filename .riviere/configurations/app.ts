@@ -18,10 +18,10 @@ export const app = {
           importRules: { importableFrom: 'withinParentLocation' },
         },
       },
+      // Features are isolated: they cannot import from other features, only the root /infra.
       importRules: {
-        canImportSiblings: false,
         allow: {
-          sibling: ['infra'],
+          root: ['infra'],
           anySubdomain: ['commands', 'queries'],
         },
       },

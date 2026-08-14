@@ -173,6 +173,22 @@ describe('roleEnforcementConfiguration', () => {
     ])
   })
 
+  it('applies a package configuration to each package directly inside its configured folder', () => {
+    const locations = locationConfiguration(location('/features', []))
+
+    const result = roleEnforcementConfiguration({
+      configurations: {
+        'apps/': { locations },
+      },
+      ignorePatterns: [],
+      roleDefinitionsDir: '.riviere/role-definitions',
+      roles: testRoles,
+    })
+
+    expect(result.assignedPackages).toStrictEqual(['apps/{package}'])
+    expect(result.include).toStrictEqual(['apps/*/src/**/*.ts', 'apps/*/src/**/*.tsx'])
+  })
+
   it('assigns several package types beneath the same parent pattern', () => {
     const domainLocations = locationConfiguration(
       location('/domain', { allowAnySubLocations: true }),

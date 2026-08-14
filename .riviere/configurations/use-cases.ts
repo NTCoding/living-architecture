@@ -52,7 +52,6 @@ export const useCases = {
           },
         },
       },
-      importRules: { canImportSiblings: false },
     }),
 
     location('/infra', {

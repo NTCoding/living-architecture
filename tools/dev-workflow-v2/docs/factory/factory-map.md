@@ -172,20 +172,16 @@ role('command-use-case', {
 Illustrative location concept:
 
 ```typescript
-location<RoleName>('src/features/{feature}', {
-  importRules: {
-    canImportSiblings: false,
-    allow: [{ location: '**/platform' }],
+location<RoleName>('/features/{feature}', {
+  entrypoint: {
+    '{entrypoint}': entrypointRoles,
   },
-  })
-  .subLocation('/commands', commandRoles, {
-    importRules: { allow: [{ siblingOrRoot: 'data-access' }] },
-  })
-  .subLocation('/data-access/{concept}', dataAccessRoles)
-  .subLocation('/domain', domainRoles, {
-    allowAnySubLocations: true,
-  })
-  .subLocation('/entrypoint/{entrypoint}', entrypointRoles)
+  importRules: {
+    allow: {
+      root: ['infra'],
+    },
+  },
+})
 ```
 
 These snippets explain the concept only. Inspect `.riviere/roles.ts` and `.riviere/role-enforcement.config.ts` for actual role and location definitions.

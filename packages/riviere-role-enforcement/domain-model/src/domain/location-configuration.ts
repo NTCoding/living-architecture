@@ -10,7 +10,6 @@ interface AllowedImportScopes<R extends string> {
 
 interface LocationImportRules<R extends string> {
   readonly allow?: AllowedImportScopes<R>
-  readonly canImportSiblings?: false
   readonly inheritParentImportRules?: false
   readonly importableFrom?: 'withinParentLocation'
 }
