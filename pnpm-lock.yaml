@@ -8,6 +8,7 @@ overrides:
   '@typescript-eslint/project-service@8.53.0>@typescript-eslint/tsconfig-utils': 8.53.0
   '@typescript-eslint/project-service@8.53.0>@typescript-eslint/types': 8.54.0
   nanoid@: 3.3.17
+  postcss: 8.5.25
 
 importers:
 
@@ -135,7 +136,7 @@ importers:
         version: 7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
       vitepress:
         specifier: ^1.5.0
-        version: 1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.13.2(debug@4.4.3(supports-color@7.2.0)))(change-case@5.4.4)(lightningcss@1.30.2)(postcss@8.5.26)(search-insights@2.17.3)(typescript@5.9.3)
+        version: 1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.13.2(debug@4.4.3(supports-color@7.2.0)))(change-case@5.4.4)(lightningcss@1.30.2)(postcss@8.5.25)(search-insights@2.17.3)(typescript@5.9.3)
       vitest:
         specifier: ^4.0.8
         version: 4.0.17(@types/node@24.10.9)(@vitest/browser-playwright@4.0.17)(jiti@2.6.1)(jsdom@27.4.0(supports-color@7.2.0))(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
@@ -174,7 +175,7 @@ importers:
     dependencies:
       vitepress:
         specifier: ^1.5.0
-        version: 1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.13.2(debug@4.4.3(supports-color@7.2.0)))(change-case@5.4.4)(lightningcss@1.30.2)(postcss@8.5.26)(search-insights@2.17.3)(typescript@5.9.3)
+        version: 1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.13.2(debug@4.4.3(supports-color@7.2.0)))(change-case@5.4.4)(lightningcss@1.30.2)(postcss@8.5.25)(search-insights@2.17.3)(typescript@5.9.3)
     devDependencies:
       jsdom:
         specifier: ^26.1.0
@@ -414,20 +415,26 @@ importers:
         specifier: workspace:*
         version: link:../../packages/dev-workflow-v2/use-cases
       '@nt-ai-lab/deterministic-agent-workflow-claude-code':
-        specifier: 0.3.7
-        version: 0.3.7
+        specifier: 0.4.0
+        version: 0.4.0
       '@nt-ai-lab/deterministic-agent-workflow-cli':
-        specifier: 0.3.7
-        version: 0.3.7
+        specifier: 0.4.0
+        version: 0.4.0
+      '@nt-ai-lab/deterministic-agent-workflow-codex':
+        specifier: 0.4.0
+        version: 0.4.0
       '@nt-ai-lab/deterministic-agent-workflow-engine':
-        specifier: 0.3.6
-        version: 0.3.6
+        specifier: 0.4.0
+        version: 0.4.0
       '@nt-ai-lab/deterministic-agent-workflow-event-store':
-        specifier: 0.3.6
-        version: 0.3.6
+        specifier: 0.4.0
+        version: 0.4.0
       '@nt-ai-lab/deterministic-agent-workflow-opencode':
-        specifier: 0.3.7
-        version: 0.3.7
+        specifier: 0.4.0
+        version: 0.4.0
+      tsx:
+        specifier: 4.21.0
+        version: 4.21.0
       zod:
         specifier: ^3.23.0
         version: 3.25.76
@@ -1872,23 +1879,32 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.3.7':
-    resolution: {integrity: sha512-ACkEDSVlnrCtZCtCaMO1rXhVqyWfJhPhq+2vBF93qd3XjAUT+NfoH+tvUFaAgMP5HPLEeCqgY68uW20P9/Ae0A==}
+  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.4.0':
+    resolution: {integrity: sha512-MDzYq3MsLJ5uJg1Jpk/dvNxFao24KTY9ST/8BP1h4sDBVbkD0/IOuUexZpXIY5nmflj9N59lNT5FtHLO2eEKzA==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-cli@0.3.7':
-    resolution: {integrity: sha512-MXSzBPdKWgduri+bLcwGArztHqFOKj+CHpWiBIhCQ96XAtZyx5GDhFxUencc8hprhehO+7rGWE5RmMugQRseVg==}
+  '@nt-ai-lab/deterministic-agent-workflow-cli@0.4.0':
+    resolution: {integrity: sha512-ugYkeZdFH9/JdnUnyoadtsobLGXTW/kdRYviHap1btKFRF0aQesNsK5IrkBn07/dmrg79BP8TI5Q5jsayuLi0g==}
+
+  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.0':
+    resolution: {integrity: sha512-pZfevU3QjO1IgLQq4/AXBcCK2Pg8CByiQI9xAZ36l7ATHh2nN5d2A0WNQWHLExJkUULYvDM90jIivigC2AOC9w==}
 
   '@nt-ai-lab/deterministic-agent-workflow-dsl@0.3.6':
     resolution: {integrity: sha512-HluSmsDvoIgYIepnNn8GcGMZs65AtJ3ydoZW0b9H4BlU38Qr6BHz08aEj9+OetDcy4pkFqQj4JfAlxaacl+wnQ==}
 
+  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.4.0':
+    resolution: {integrity: sha512-/sh6oryzVpBtXWu/+Qd+etdkMWhBAYimJTCePuB/dLZfIWc+DCIQyrmo/007Ig18Ym4URzq6/QgIwAYNrq3Pug==}
+
   '@nt-ai-lab/deterministic-agent-workflow-engine@0.3.6':
     resolution: {integrity: sha512-06hbQQ1p5NkHKPMTBK6CQj/t6LQ1SwApak3vNqkkO4bVMlamcsIIDcw0DLyBvbQ69osesIWa6y/nVuH3phNuwQ==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.3.6':
-    resolution: {integrity: sha512-Tliiq38wgXmDu1BC1JHnJootGXADtjcmmLyHqaLbGuU+u59lpbvzfLESk9vkr+srudkwIRkiURTe2WjHYeNyPA==}
+  '@nt-ai-lab/deterministic-agent-workflow-engine@0.4.0':
+    resolution: {integrity: sha512-L8FBrNVpAGSj6aHXuHXX8aTMe6OXpdB9TlWLph6ZWh8419U9Fe3qUZb1g9TSjZCAH71e/QmZEh+CvFJeY6RfjA==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.3.7':
-    resolution: {integrity: sha512-3ba4wMHFDmcz2c/OyXOuc5Jmj6IiKqUbZ3tNq7a/SAaO4LOak11y34Lf+W1hw88hk+akzeBizeCi+euzMd+Ohw==}
+  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.4.0':
+    resolution: {integrity: sha512-02O5C1Gc1G5PmdaYa1XX7l8TLlgaJwPFEIo5mJM+MYR+37fizYqm5jzg1PxCpUhifh54FOPJxfsBOqgBWOb2Ig==}
+
+  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.4.0':
+    resolution: {integrity: sha512-II1sldOUBra0gDF0FuZHrtFFk1PITPWms+8y1m4bH6mIJy/dfKNUEfyRABsTRDpr1KTSBGFiKmnxGfclZTKOZw==}
 
   '@nx/devkit@22.5.2':
     resolution: {integrity: sha512-5JuCMlU6AwXBKCoMWp1hTyTzjfB5vXL5khmoziZPmnaIBg+gX0Hp13YhWfO1C6/HuXS+i4mor7dtFHukPKWemQ==}
@@ -6126,8 +6142,8 @@ packages:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
     engines: {node: '>= 0.4'}
 
-  postcss@8.5.26:
-    resolution: {integrity: sha512-u82N74LFzG8ca+dD8puPnplTXoGH4fTPpVGuIbt36G3qvNlkvfD0lEAZSxaly3KX8TS/L1A1gsCEmvKmBcVbkQ==}
+  postcss@8.5.25:
+    resolution: {integrity: sha512-DTPx3RWSSnWyzLxQnlH0rJP+EW5ekl16ZU4/psbIhA0e53kJfdgaN5vKM+xP7yJtXVu+nfdVFmlgFDEKAe4Pyw==}
     engines: {node: ^10 || ^12 || >=14}
 
   preact@10.28.2:
@@ -7177,7 +7193,7 @@ packages:
     hasBin: true
     peerDependencies:
       markdown-it-mathjax3: ^4
-      postcss: ^8
+      postcss: 8.5.25
     peerDependenciesMeta:
       markdown-it-mathjax3:
         optional: true
@@ -8950,37 +8966,52 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.3.7':
+  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.4.0':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.3.7
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.6
+      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.4.0
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.0
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-cli@0.3.7':
+  '@nt-ai-lab/deterministic-agent-workflow-cli@0.4.0':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-dsl': 0.3.6
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.6
-      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.3.6
+      '@nt-ai-lab/deterministic-agent-workflow-dsl': 0.4.0
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.0
+      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.0
+      zod: 3.25.76
+
+  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.0':
+    dependencies:
+      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.4.0
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.0
+      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.0
       zod: 3.25.76
 
   '@nt-ai-lab/deterministic-agent-workflow-dsl@0.3.6':
     dependencies:
       '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.6
 
+  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.4.0':
+    dependencies:
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.0
+
   '@nt-ai-lab/deterministic-agent-workflow-engine@0.3.6':
     dependencies:
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.3.6':
+  '@nt-ai-lab/deterministic-agent-workflow-engine@0.4.0':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.6
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.3.7':
+  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.4.0':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.3.7
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.6
-      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.3.6
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.0
+      zod: 3.25.76
+
+  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.4.0':
+    dependencies:
+      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.4.0
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.0
+      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.0
       '@opencode-ai/plugin': 1.4.3
       zod: 3.25.76
     transitivePeerDependencies:
@@ -10431,7 +10462,7 @@ snapshots:
       '@vue/shared': 3.5.41
       estree-walker: 2.0.2
       magic-string: 0.30.21
-      postcss: 8.5.26
+      postcss: 8.5.25
       source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.5.41':
@@ -13851,7 +13882,7 @@ snapshots:
 
   possible-typed-array-names@1.1.0: {}
 
-  postcss@8.5.26:
+  postcss@8.5.25:
     dependencies:
       nanoid: 3.3.17
       picocolors: 1.1.1
@@ -14977,7 +15008,7 @@ snapshots:
   vite@5.4.21(@types/node@22.19.7)(lightningcss@1.30.2):
     dependencies:
       esbuild: 0.21.5
-      postcss: 8.5.26
+      postcss: 8.5.25
       rollup: 4.62.4
     optionalDependencies:
       '@types/node': 22.19.7
@@ -14987,7 +15018,7 @@ snapshots:
   vite@5.4.21(@types/node@24.10.9)(lightningcss@1.30.2):
     dependencies:
       esbuild: 0.21.5
-      postcss: 8.5.26
+      postcss: 8.5.25
       rollup: 4.62.4
     optionalDependencies:
       '@types/node': 24.10.9
@@ -14999,7 +15030,7 @@ snapshots:
       esbuild: 0.27.7
       fdir: 6.5.0(picomatch@4.0.5)
       picomatch: 4.0.5
-      postcss: 8.5.26
+      postcss: 8.5.25
       rollup: 4.62.4
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -15015,7 +15046,7 @@ snapshots:
       esbuild: 0.27.7
       fdir: 6.5.0(picomatch@4.0.5)
       picomatch: 4.0.5
-      postcss: 8.5.26
+      postcss: 8.5.25
       rollup: 4.62.4
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -15026,7 +15057,7 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.9.0
 
-  vitepress@1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.13.2(debug@4.4.3(supports-color@7.2.0)))(change-case@5.4.4)(lightningcss@1.30.2)(postcss@8.5.26)(search-insights@2.17.3)(typescript@5.9.3):
+  vitepress@1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.13.2(debug@4.4.3(supports-color@7.2.0)))(change-case@5.4.4)(lightningcss@1.30.2)(postcss@8.5.25)(search-insights@2.17.3)(typescript@5.9.3):
     dependencies:
       '@docsearch/css': 3.8.2
       '@docsearch/js': 3.8.2(@algolia/client-search@5.46.3)(search-insights@2.17.3)
@@ -15047,7 +15078,7 @@ snapshots:
       vite: 5.4.21(@types/node@24.10.9)(lightningcss@1.30.2)
       vue: 3.5.41(typescript@5.9.3)
     optionalDependencies:
-      postcss: 8.5.26
+      postcss: 8.5.25
     transitivePeerDependencies:
       - '@algolia/client-search'
       - '@types/node'

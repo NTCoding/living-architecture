@@ -385,7 +385,13 @@ Definition files:
 - `packages/dev-workflow-v2/use-cases/src/features/workflow/**`
 - `tools/dev-workflow-v2/src/features/workflow/entrypoint/**`
 - `tools/dev-workflow-v2/src/shell/opencode-plugin.ts`
+- `tools/dev-workflow-v2/src/shell/codex-cli.ts`
+- `tools/dev-workflow-v2/src/shell/codex-workflow-command.ts`
+- `tools/dev-workflow-v2/plugin.json`
 - `tools/dev-workflow-v2/.claude-plugin/plugin.json`
+- `tools/dev-workflow-v2/.codex-plugin/plugin.json`
+- `tools/dev-workflow-v2/skills/**`
+- `tools/dev-workflow-v2/com.openai.codex/hooks/**`
 
 Surface shape:
 
@@ -394,7 +400,8 @@ Surface shape:
 - TypeScript workflow code enforces state transitions and records events.
 - Hooks block selected tool actions before execution.
 - OpenCode plugin code bridges Claude Code plugin behavior into OpenCode.
-- Plugin metadata controls Claude Code plugin cache identity.
+- The portable Agent Plugin manifest exposes shared skills without placing provider files in an application root.
+- Client metadata and extension files load the Claude Code and Codex integrations from the installed plugin.
 
 Mechanism examples:
 

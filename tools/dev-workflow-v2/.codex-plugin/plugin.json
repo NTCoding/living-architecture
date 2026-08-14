@@ -1,0 +1,35 @@
+{
+  "name": "dev-workflow-v2",
+  "version": "0.0.146",
+  "description": "Event-sourced workflow state machine for a structured task lifecycle.",
+  "author": {
+    "name": "NTCoding",
+    "url": "https://github.com/NTCoding"
+  },
+  "homepage": "https://github.com/NTCoding/living-architecture/tree/main/tools/dev-workflow-v2",
+  "repository": "https://github.com/NTCoding/living-architecture",
+  "license": "MIT",
+  "keywords": [
+    "development-workflow",
+    "planning",
+    "implementation",
+    "code-review"
+  ],
+  "skills": "./skills/",
+  "hooks": "./com.openai.codex/hooks/hooks.json",
+  "interface": {
+    "displayName": "Dev Workflow V2",
+    "shortDescription": "Run the structured development workflow.",
+    "longDescription": "Plan, implement, verify, review, and submit work through the event-sourced development workflow.",
+    "developerName": "NTCoding",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/NTCoding/living-architecture/tree/main/tools/dev-workflow-v2",
+    "defaultPrompt": [
+      "Ask me for a topic or planning ID, then use $dev-workflow-start-planning to start a planning topic."
+    ]
+  }
+}

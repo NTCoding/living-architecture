@@ -14,7 +14,26 @@ Claude Code creates the worktree. The plugin owns everything from task selection
 
 ## Commands
 
+### Codex
+
+`dev-workflow-v2` is an Agent Plugin. Its portable skills are in `skills/`, and its Codex hook configuration is in `com.openai.codex/`. The application installs this plugin; it does not copy provider files into the application's `.agents/` or `.codex/` directories.
+
+After installing the plugin, invoke the matching skill rather than describing the operation in prose:
+
+```text
+$dev-workflow-start-planning <topic>
+$dev-workflow-planning-status
+$dev-workflow-continue-planning
+$dev-workflow-choose-next-task
+$dev-workflow-start-implementation <issue-number>
+$dev-workflow-optimize-factory
+```
+
+The skills reference the same command and state Markdown used by Claude Code. Codex's shared workflow runner reads `CODEX_THREAD_ID`, so workflow operations use the active task session without copying an ID from hook output.
+
 ### Planning lifecycle
+
+### Claude Code
 
 ```bash
 /dev-workflow-v2:start-planning <topic>
