@@ -16,5 +16,11 @@
     "@nt-ai-lab/deterministic-agent-workflow-dsl": "0.3.6",
     "@nt-ai-lab/deterministic-agent-workflow-engine": "0.3.6",
     "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.0.0"
   }
 }
