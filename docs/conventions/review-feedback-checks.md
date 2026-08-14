@@ -125,7 +125,7 @@ interface DraftComponent {
   location: { file: string; line: number }
 }
 ```
-The type is identical to what's exported from `@living-architecture/riviere-extract-ts`. This creates:
+The type is identical to what's exported from `@living-architecture/riviere-extract-ts-domain-model`. This creates:
 - Maintenance burden: changes in source require manual sync
 - Potential drift: types can diverge silently
 - Wasted code: duplication with no benefit
@@ -149,7 +149,7 @@ interface DraftComponent {
 
 **Example (GOOD):**
 ```typescript
-import { type DraftComponent } from '@living-architecture/riviere-extract-ts'
+import { type DraftComponent } from '@living-architecture/riviere-extract-ts-domain-model'
 ```
 
 **Detection:** Local interface/type definitions that match exported types from project packages. Check if the local definition could be replaced with an import.

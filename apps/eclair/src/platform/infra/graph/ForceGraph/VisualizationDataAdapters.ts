@@ -1,7 +1,5 @@
-import type * as RiviereSchema from '@living-architecture/riviere-schema'
-import type {
-  Node, NodeType, Edge 
-} from '@/platform/domain/eclair-types'
+import type * as RiviereSchema from '@living-architecture/riviere-schema-published-language/schema'
+import type { Node, NodeType, Edge } from '@/platform/domain/eclair-types'
 import * as GraphTypes from '../graph-types'
 import type { Theme } from '@/types/theme'
 import {

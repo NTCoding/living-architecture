@@ -1,0 +1,35 @@
+{
+  "name": "@living-architecture/riviere-builder-use-cases",
+  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "@living-architecture/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./features/*": {
+      "@living-architecture/source": "./src/features/*.ts",
+      "types": "./dist/features/*.d.ts",
+      "import": "./dist/features/*.js",
+      "default": "./dist/features/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/__fixtures__/**",
+    "!**/*.tsbuildinfo"
+  ],
+  "dependencies": {
+    "@living-architecture/riviere-builder-domain-model": "workspace:*",
+    "@living-architecture/riviere-schema-published-language": "workspace:*"
+  }
+}

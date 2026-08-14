@@ -1,4 +1,4 @@
-import type { Component } from '@living-architecture/riviere-schema'
+import type { Component } from '@living-architecture/riviere-schema-published-language/schema'
 import { getEffectiveNodeType } from '@/platform/domain/node-type-presentation'
 
 export type NodeTypeBreakdown = Record<string, number>

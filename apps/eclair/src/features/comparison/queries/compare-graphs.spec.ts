@@ -1,11 +1,7 @@
-import {
-  describe, it, expect 
-} from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { compareGraphs } from './compare-graphs'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
-import type {
-  Node, Edge 
-} from '@/platform/domain/eclair-types'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
+import type { Node, Edge } from '@/platform/domain/eclair-types'
 import {
   parseNode,
   parseEdge,

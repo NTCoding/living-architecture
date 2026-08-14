@@ -6,9 +6,9 @@ A narrow implementation of one domain port using one generic external-client API
 
 ## Rules
 
-1. Implements exactly one domain port.
+1. Implements a cohesive domain port.
 2. Translates the port input into the external-client input.
-3. Invokes exactly one external-client API.
+3. Invokes the generic external-client API needed for that translation.
 4. Translates the external-client result or error into the port result or error.
 5. Contains no domain decisions, application orchestration, or direct infrastructure calls.
 6. Lives in `adapters/{adapter}/`.
@@ -26,7 +26,7 @@ Allowing the domain-port adapter to import those implementation dependencies wou
 The real Oxlint implementation added in commit [`2474599b`](https://github.com/NTCoding/living-architecture/commit/2474599b591df037d5e3e5d665e171db65f459a0) demonstrates the boundary.
 
 ```typescript
-// packages/riviere-role-enforcement/src/features/enforcement/adapters/oxlint/
+// packages/riviere-role-enforcement/use-cases/src/features/enforcement/adapters/oxlint/
 // oxlint-role-enforcement-runner.ts
 export function createOxlintRoleEnforcementRunner(
   oxlintClient: OxlintClient,
@@ -53,7 +53,7 @@ export function createOxlintRoleEnforcementRunner(
 
 That adapter knows both contracts: `RoleEnforcementRunnerInput` from the domain port and `OxlintConfig` from the generic Oxlint client. It owns their translation and maps `OxlintExecutionError` into the port's failure result. It does not know how Oxlint is installed or executed.
 
-The external mechanics live in `packages/riviere-role-enforcement/src/platform/infra/external-clients/oxlint/oxlint-client.ts`. That file imports `node:child_process`, `node:fs`, `node:path`, and `node:url`; locates the Oxlint binary; writes the temporary configuration; spawns Oxlint; captures its streams and exit status; and removes the temporary file. It accepts only `OxlintConfig` and primitive paths, so it knows nothing about role-enforcement domain types.
+The external mechanics live in `packages/riviere-role-enforcement/use-cases/src/infra/external-clients/oxlint/oxlint-client.ts`. That file imports `node:child_process`, `node:fs`, `node:path`, and `node:url`; locates the Oxlint binary; writes the temporary configuration; spawns Oxlint; captures its streams and exit status; and removes the temporary file. It accepts only `OxlintConfig` and primitive paths, so it knows nothing about role-enforcement domain types.
 
 Putting the following code in `oxlint-role-enforcement-runner.ts` would be the violation:
 
@@ -84,10 +84,6 @@ export function createOxlintRoleEnforcementRunner(
   }
 }
 ```
-
-The same rule covers third-party packages. `tools/dev-workflow-v2/src/features/workflow/adapters/github/workflow-pull-request-creator.ts` maps the domain-owned `CreateWorkflowPullRequest` contract to `GithubPullRequestCreationInput` and maps `GithubPullRequest` back to the domain result. It does not import `zod` or execute `gh`. Those details stay together in `tools/dev-workflow-v2/src/platform/infra/external-clients/github/create-pull-request.ts`, where `zod` validates the external JSON and the injected `GhRunner` invokes the external CLI.
-
-The restriction is intentionally structural: a domain-port adapter may import its domain port and one project-controlled external-client API, but no external package directly. This gives RLE a deterministic rule and prevents a new SDK, CLI, or Node implementation from being hidden in an application adapter under a plausible role name.
 
 ## Anti-Patterns
 

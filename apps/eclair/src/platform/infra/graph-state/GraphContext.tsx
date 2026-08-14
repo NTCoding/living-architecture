@@ -8,9 +8,8 @@ import {
   useSyncExternalStore,
   useMemo,
 } from 'react'
-import {
-  parseRiviereGraph, type RiviereGraph
-} from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
 import {
   graphNameSchema, type GraphName
 } from '@/platform/domain/eclair-types'
@@ -45,7 +44,11 @@ export async function fetchAndValidateDemoGraph(
   }
   const content = await response.text()
   const data: unknown = JSON.parse(content)
-  return parseRiviereGraph(data)
+  const result = parseRiviereGraph(data)
+  if (!result.success) {
+    throw new GraphError(`Invalid RiviereGraph:\n${result.issues.join('\n')}`)
+  }
+  return result.graph
 }
 
 function getIsDemoMode(): boolean {

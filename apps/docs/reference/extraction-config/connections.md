@@ -74,13 +74,13 @@ modules:
     name: orders
     path: ../../orders
     modules: /src/{module}
-    extends: '@living-architecture/riviere-extract-conventions'
+    extends: '@living-architecture/riviere-extract-conventions-published-language'
 
   - domain: bff
     name: bff
     path: ../../bff
     modules: /src/{module}
-    extends: '@living-architecture/riviere-extract-conventions'
+    extends: '@living-architecture/riviere-extract-conventions-published-language'
 
 connections:
   eventPublishers:

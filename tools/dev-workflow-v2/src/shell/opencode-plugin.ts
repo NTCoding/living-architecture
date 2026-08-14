@@ -1,30 +1,30 @@
 import { createOpenCodeWorkflowPlugin } from '@nt-ai-lab/deterministic-agent-workflow-opencode'
+import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
+import { createWorkflowPullRequestCreator } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-creator'
+import { createWorkflowPullRequestFeedbackReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-feedback-reader'
+import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
+import { readGitRepositoryStatus } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/git-client'
+import { createGithubPullRequestClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/create-pull-request'
+import { createGithubPullRequestFeedbackClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-pr-feedback'
+import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/github-cli'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import {
-  dirname, join 
-} from 'node:path'
-import type { Workflow } from '../features/workflow/domain/workflow'
-import type {
-  WorkflowState,
-  StateName,
-  WorkflowOperation,
-} from '../features/workflow/domain/workflow-types'
-import { WORKFLOW_DEFINITION } from '../features/workflow/data-access/workflow-definition'
-import {
-  ROUTES, PRE_TOOL_USE_POLICY 
-} from '../features/workflow/entrypoint/workflow/entrypoint'
-import { createWorkflowGitStatusReader } from '../features/workflow/adapters/git/workflow-git-status-reader'
-import { createWorkflowPullRequestCreator } from '../features/workflow/adapters/github/workflow-pull-request-creator'
-import { createWorkflowPullRequestFeedbackReader } from '../features/workflow/adapters/github/workflow-pull-request-feedback-reader'
-import { readGitRepositoryStatus } from '../platform/infra/external-clients/git/index'
-import {
-  createGithubPullRequestClient,
-  createGithubPullRequestFeedbackClient,
-  runGh,
-} from '../platform/infra/external-clients/github/index'
+import { dirname, join } from 'node:path'
+import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
 
-type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
+const workflowConfiguration = configureWorkflow({})
+const workflowDefinition = workflowConfiguration
+const routes = createWorkflowRoutes(workflowDefinition.stateSchema)
+const bashForbidden = {
+  commands: ['git push', 'gh pr'],
+  flags: ['--no-verify', '--force', '--hard'],
+}
+
+type Workflow = ReturnType<typeof workflowDefinition.buildWorkflow>
+type WorkflowState = ReturnType<typeof workflowDefinition.initialState>
+type WorkflowDeps = Parameters<typeof workflowDefinition.buildWorkflow>[1]
+type StateName = Parameters<typeof workflowDefinition.buildTransitionContext>[1]
+type WorkflowOperation = Parameters<NonNullable<typeof workflowDefinition.getOperationBody>>[0]
 
 function sleepMs(ms: number): void {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
@@ -117,10 +117,10 @@ const basePlugin = createOpenCodeWorkflowPlugin<
   StateName,
   WorkflowOperation
 >({
-  workflowDefinition: WORKFLOW_DEFINITION,
-  routes: ROUTES,
-  bashForbidden: PRE_TOOL_USE_POLICY.bashForbidden,
-  isWriteAllowed: PRE_TOOL_USE_POLICY.isWriteAllowed,
+  workflowDefinition,
+  routes,
+  bashForbidden,
+  isWriteAllowed: workflowConfiguration.isWriteAllowed,
   pluginRoot,
   commandDirectories: [join(pluginRoot, 'commands')],
   commandPrefix: 'dev-workflow-v2:',

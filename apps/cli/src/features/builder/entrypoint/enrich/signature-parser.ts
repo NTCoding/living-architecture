@@ -1,0 +1,107 @@
+interface ParsedOperationParameter {
+  description?: string
+  name: string
+  type: string
+}
+
+interface ParsedOperationSignature {
+  parameters?: ParsedOperationParameter[]
+  returnType?: string
+}
+
+function parseParameter(input: string): ParsedOperationParameter | undefined {
+  const parts = input.split(':')
+  if (parts.length < 2 || parts.length > 3) return undefined
+  const [name, type, description] = parts
+  if (name === undefined || name === '' || type === undefined || type === '') return undefined
+  return {
+    ...(description !== undefined && description !== '' ? { description: description.trim() } : {}),
+    name: name.trim(),
+    type: type.trim(),
+  }
+}
+
+type SignatureParseResult =
+  | {
+      signature: ParsedOperationSignature
+      success: true
+    }
+  | {
+      error: string
+      success: false
+    }
+type ParametersParseResult =
+  | {
+      parameters: ParsedOperationParameter[]
+      success: true
+    }
+  | {
+      error: string
+      success: false
+    }
+
+function parseParameters(paramsPart: string): ParametersParseResult {
+  if (paramsPart === '')
+    return {
+      parameters: [],
+      success: true,
+    }
+  const paramStrings = paramsPart.split(',').map((p) => p.trim())
+  const parameters: ParsedOperationParameter[] = []
+  for (const paramStr of paramStrings) {
+    const param = parseParameter(paramStr)
+    if (param === undefined)
+      return {
+        error: `Invalid parameter format: '${paramStr}'. Expected 'name:type' or 'name:type:description'.`,
+        success: false,
+      }
+    parameters.push(param)
+  }
+  return {
+    parameters,
+    success: true,
+  }
+}
+
+function buildSignatureObject(
+  parameters: ParsedOperationParameter[],
+  returnType: string | undefined,
+): ParsedOperationSignature {
+  const signature: ParsedOperationSignature = {}
+  if (parameters.length > 0) signature.parameters = parameters
+  if (returnType !== undefined && returnType !== '') signature.returnType = returnType
+  return signature
+}
+
+/** @riviere-role entrypoint-cli-input-parser */
+export function parseSignature(input: string): SignatureParseResult {
+  const trimmed = input.trim()
+  if (trimmed.startsWith('->')) {
+    const returnType = trimmed.slice(2).trim()
+    return returnType === ''
+      ? {
+          error: `Invalid signature format: '${input}'. Return type cannot be empty.`,
+          success: false,
+        }
+      : {
+          signature: { returnType },
+          success: true,
+        }
+  }
+  const arrowIndex = trimmed.indexOf(' -> ')
+  const paramsPart = arrowIndex === -1 ? trimmed : trimmed.slice(0, arrowIndex).trim()
+  const returnType = arrowIndex === -1 ? undefined : trimmed.slice(arrowIndex + 4).trim()
+  const paramsResult = parseParameters(paramsPart)
+  if (!paramsResult.success) return paramsResult
+  const signature = buildSignatureObject(paramsResult.parameters, returnType)
+  if (paramsResult.parameters.length === 0 && returnType === undefined) {
+    return {
+      error: `Invalid signature format: '${input}'. Expected 'param:type, ... -> ReturnType' or '-> ReturnType' or 'param:type'.`,
+      success: false,
+    }
+  }
+  return {
+    signature,
+    success: true,
+  }
+}

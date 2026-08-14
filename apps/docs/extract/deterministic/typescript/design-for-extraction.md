@@ -11,7 +11,7 @@ When code does not follow a stable Convention, extraction can miss Components or
 In the ecommerce demo app, event publishing uses the `@EventPublisherContainer` decorator:
 
 ```typescript
-import { EventPublisherContainer } from '@living-architecture/riviere-extract-conventions'
+import { EventPublisherContainer } from '@living-architecture/riviere-extract-conventions-published-language'
 import { eventBus, OrderPlaced } from './events'
 
 @EventPublisherContainer
@@ -33,7 +33,7 @@ The Golden Path uses shared conventions so extraction can map code to Components
 ### 1) Event classes use `@Event`
 
 ```typescript
-import { Event } from '@living-architecture/riviere-extract-conventions'
+import { Event } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @Event
 export class OrderPlaced {
@@ -44,7 +44,7 @@ export class OrderPlaced {
 ### 2) Event handlers declare subscribed events
 
 ```typescript
-import { EventHandlerContainer } from '@living-architecture/riviere-extract-conventions'
+import { EventHandlerContainer } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @EventHandlerContainer
 export class PaymentCompletedHandler {

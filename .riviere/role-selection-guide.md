@@ -24,7 +24,6 @@ If yes, it is:
 - `cli-entrypoint`, or
 - a component used by the `cli-entrypoint` to process the raw inputs, such as:
   - `entrypoint-cli-input-parser`
-  - `generic-cli-input-parser` when the parsing is primitive technical machinery with no entrypoint meaning
   - `command-input-factory`
 
 ## 2. Loading previously stored state
@@ -86,9 +85,9 @@ If yes, it is part of the query side. Ask: does it orchestrate the query, or doe
 - If it orchestrates (loads a query model, calls query methods, returns a result): `query-model-use-case`
 - If it is the query model itself (holds immutable state, exposes read-only methods): `query-model`
 - If it defines result types returned by the query model: `query-model`
-- If it loads the query model from storage: `query-model-loader`
+- If it loads the concrete result for an actual query use case from storage: `query-model-loader`
 - If it defines the input contract for a query use case: `query-model-use-case-input`
-- If it is an error thrown during query operations: `query-model-error`
+- If loading the query model fails: `data-access-error`
 
 **Critical distinction from commands:** If the code loads state but NEVER modifies or saves it, it belongs on the query side. The presence of a repository-like loading pattern does not automatically make something a `command-use-case` + `aggregate-repository`.
 
@@ -98,9 +97,9 @@ If yes, it is part of the query side. Ask: does it orchestrate the query, or doe
 
 Keep the three responsibilities separate:
 
-- A generic client under `platform/infra/external-clients/{client}/` knows only the external system's API and types.
-- A `domain-port` under `domain/ports/` defines the capability the domain needs in domain language.
-- A `domain-port-adapter` under `adapters/{client}/` implements one domain port using one generic client API.
+- A generic client under the use-case package's `infra/external-clients/{client}/` knows only the external system's API and types.
+- A `domain-port` in the subdomain's domain-model package defines the capability the domain needs in domain language.
+- A `domain-port-adapter` under the use-case feature's `adapters/{client}/` implements one domain port using one generic client API.
 
 The adapter translates between the two contracts. It does not contain domain decisions, application orchestration, direct Node API calls, or third-party package calls. It must not coordinate multiple clients. The Node and third-party restriction is specific to this architecture's deliberate split between a domain-port adapter and a generic external client; it is not a claim that all adapters everywhere must avoid technology imports. See [`domain-port-adapter`](role-definitions/domain-port-adapter.md) for the concrete Oxlint and GitHub examples and the failure caused by combining the two roles.
 

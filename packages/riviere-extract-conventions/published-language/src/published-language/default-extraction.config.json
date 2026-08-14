@@ -1,0 +1,153 @@
+{
+  "$schema": "https://living-architecture.dev/schemas/extraction-config.schema.json",
+  "modules": [
+    {
+      "name": "default",
+      "domain": "default",
+      "path": ".",
+      "glob": "**/*.ts",
+      "api": {
+        "find": "methods",
+        "where": {
+          "inClassWith": {
+            "hasDecorator": {
+              "name": "APIContainer",
+              "from": "@living-architecture/riviere-extract-conventions-published-language"
+            }
+          }
+        },
+        "extract": {
+          "apiType": { "literal": "REST" },
+          "route": { "fromProperty": { "name": "route", "kind": "instance" } },
+          "method": { "fromProperty": { "name": "method", "kind": "instance" } }
+        }
+      },
+      "useCase": {
+        "find": "classes",
+        "where": {
+          "hasDecorator": {
+            "name": "UseCase",
+            "from": "@living-architecture/riviere-extract-conventions-published-language"
+          }
+        }
+      },
+      "domainOp": {
+        "find": "methods",
+        "where": {
+          "inClassWith": {
+            "hasDecorator": {
+              "name": "DomainOpContainer",
+              "from": "@living-architecture/riviere-extract-conventions-published-language"
+            }
+          }
+        },
+        "extract": {
+          "operationName": { "fromMethodName": true }
+        }
+      },
+      "event": {
+        "find": "classes",
+        "where": {
+          "hasDecorator": {
+            "name": "Event",
+            "from": "@living-architecture/riviere-extract-conventions-published-language"
+          }
+        },
+        "extract": {
+          "eventName": { "fromClassName": true }
+        }
+      },
+      "eventHandler": {
+        "find": "methods",
+        "where": {
+          "inClassWith": {
+            "hasDecorator": {
+              "name": "EventHandlerContainer",
+              "from": "@living-architecture/riviere-extract-conventions-published-language"
+            }
+          }
+        },
+        "extract": {
+          "subscribedEvents": { "fromProperty": { "name": "subscribedEvents", "kind": "instance" } }
+        }
+      },
+      "ui": {
+        "find": "classes",
+        "where": {
+          "hasDecorator": {
+            "name": "UI",
+            "from": "@living-architecture/riviere-extract-conventions-published-language"
+          }
+        },
+        "extract": {
+          "route": { "fromProperty": { "name": "route", "kind": "static" } }
+        }
+      },
+      "customTypes": {
+        "eventPublisher": {
+          "find": "methods",
+          "where": {
+            "inClassWith": {
+              "hasDecorator": {
+                "name": "EventPublisherContainer",
+                "from": "@living-architecture/riviere-extract-conventions-published-language"
+              }
+            }
+          },
+          "extract": {
+            "publishedEventType": { "fromParameterType": { "position": 0 } }
+          }
+        },
+        "httpCall": {
+          "find": "methods",
+          "where": {
+            "and": [
+              {
+                "hasDecorator": {
+                  "name": "HttpCall",
+                  "from": "@living-architecture/riviere-extract-conventions-published-language"
+                }
+              },
+              {
+                "inClassWith": {
+                  "hasDecorator": {
+                    "name": "HttpClient",
+                    "from": "@living-architecture/riviere-extract-conventions-published-language"
+                  }
+                }
+              }
+            ]
+          },
+          "extract": {
+            "serviceName": {
+              "fromClassDecoratorArg": {
+                "decorator": "HttpClient",
+                "position": 0
+              }
+            },
+            "route": {
+              "fromDecoratorArg": {
+                "decorator": "HttpCall",
+                "position": 0
+              }
+            },
+            "method": {
+              "fromDecoratorArg": {
+                "decorator": "HttpCall",
+                "position": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "eventPublishers": [
+      {
+        "fromType": "eventPublisher",
+        "metadataKey": "publishedEventType"
+      }
+    ]
+  }
+}

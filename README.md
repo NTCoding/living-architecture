@@ -84,15 +84,14 @@ See the [extraction guide](https://living-architecture.dev/extract/) for AI-assi
 
 | Package | Purpose | Install |
 |---------|---------|---------|
-| `@living-architecture/riviere-schema` | Schema definition and validation | `npm i @living-architecture/riviere-schema` |
-| `@living-architecture/riviere-query` | Query graphs. Browser-safe. | `npm i @living-architecture/riviere-query` |
-| `@living-architecture/riviere-builder` | Build graphs programmatically | `npm i @living-architecture/riviere-builder` |
+| `@living-architecture/riviere-schema-published-language` | Schema definition and validation | `npm i @living-architecture/riviere-schema-published-language` |
+| `@living-architecture/riviere-builder-domain-model` | Build and query graphs programmatically | `npm i @living-architecture/riviere-builder-domain-model` |
 | `@living-architecture/riviere-cli` | CLI for extraction workflows | `npm i -g @living-architecture/riviere-cli` |
 
 ## Build a Graph
 
 ```typescript
-import { RiviereBuilder } from '@living-architecture/riviere-builder';
+import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model';
 
 const builder = RiviereBuilder.new({
   sources: [{ repository: 'https://github.com/your-org/your-repo' }],
@@ -126,7 +125,7 @@ const graph = builder.build();
 ## Query a Graph
 
 ```typescript
-import { RiviereQuery } from '@living-architecture/riviere-query';
+import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model';
 
 const query = RiviereQuery.fromJSON(graphData);
 
@@ -145,7 +144,7 @@ const events = query.componentsByType('Event');
 
 ## The Rivière Schema
 
-Rivière graphs are JSON documents conforming to the [Rivière schema](./packages/riviere-schema/riviere.schema.json).
+Rivière graphs are JSON documents conforming to the [Rivière schema](./packages/riviere-schema/published-language/riviere.schema.json).
 
 ```json
 {
@@ -159,7 +158,7 @@ Rivière graphs are JSON documents conforming to the [Rivière schema](./package
 }
 ```
 
-See [examples](./packages/riviere-schema/examples/) for complete multi-domain graphs.
+See [examples](./packages/riviere-schema/published-language/examples/) for complete multi-domain graphs.
 
 ## Visualize with Éclair
 

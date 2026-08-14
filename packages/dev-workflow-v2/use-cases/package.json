@@ -1,0 +1,39 @@
+{
+  "name": "@living-architecture/dev-workflow-v2-use-cases",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json",
+    "./commands/*": {
+      "@living-architecture/source": "./src/features/workflow/commands/*.ts",
+      "types": "./dist/features/workflow/commands/*.d.ts",
+      "import": "./dist/features/workflow/commands/*.js",
+      "default": "./dist/features/workflow/commands/*.js"
+    },
+    "./adapters/*": {
+      "@living-architecture/source": "./src/features/workflow/adapters/*.ts",
+      "types": "./dist/features/workflow/adapters/*.d.ts",
+      "import": "./dist/features/workflow/adapters/*.js",
+      "default": "./dist/features/workflow/adapters/*.js"
+    },
+    "./external-clients/*": {
+      "@living-architecture/source": "./src/infra/external-clients/*.ts",
+      "types": "./dist/infra/external-clients/*.d.ts",
+      "import": "./dist/infra/external-clients/*.js",
+      "default": "./dist/infra/external-clients/*.js"
+    }
+  },
+  "dependencies": {
+    "@living-architecture/dev-workflow-v2-domain-model": "workspace:*",
+    "@nt-ai-lab/deterministic-agent-workflow-dsl": "0.3.6",
+    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.3.6",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.0.0"
+  }
+}

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { compareByCodePoint } from '../queries/compare-by-code-point'
 import { extractFlows } from '../queries/extract-flows'
 import { FlowCard } from '../components/FlowCard/FlowCard'

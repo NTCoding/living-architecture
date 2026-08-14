@@ -5,7 +5,7 @@ Annotate TypeScript code with architectural component markers.
 ## Installation
 
 ```bash
-npm install --save-dev @living-architecture/riviere-extract-conventions
+npm install --save-dev @living-architecture/riviere-extract-conventions-published-language
 ```
 
 ## Decorator Categories
@@ -24,7 +24,7 @@ All public methods in the class become separate components.
 ### @APIContainer
 
 ```typescript
-import { APIContainer, APIEndpoint } from '@living-architecture/riviere-extract-conventions'
+import { APIContainer, APIEndpoint } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @APIContainer
 class OrderController {
@@ -43,7 +43,7 @@ class OrderController {
 ### @DomainOpContainer
 
 ```typescript
-import { DomainOpContainer, DomainOp } from '@living-architecture/riviere-extract-conventions'
+import { DomainOpContainer, DomainOp } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @DomainOpContainer
 class Order {
@@ -62,7 +62,7 @@ class Order {
 ### @EventHandlerContainer
 
 ```typescript
-import { EventHandlerContainer, EventHandler } from '@living-architecture/riviere-extract-conventions'
+import { EventHandlerContainer, EventHandler } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @EventHandlerContainer
 class OrderEventHandlers {
@@ -80,7 +80,7 @@ The class itself is the architectural component.
 ### @UseCase
 
 ```typescript
-import { UseCase } from '@living-architecture/riviere-extract-conventions'
+import { UseCase } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @UseCase
 class PlaceOrderUseCase {
@@ -93,7 +93,7 @@ class PlaceOrderUseCase {
 ### @Event
 
 ```typescript
-import { Event } from '@living-architecture/riviere-extract-conventions'
+import { Event } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @Event
 class OrderPlaced {
@@ -108,7 +108,7 @@ class OrderPlaced {
 ### @UI
 
 ```typescript
-import { UI } from '@living-architecture/riviere-extract-conventions'
+import { UI } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @UI
 class OrderList {
@@ -125,7 +125,7 @@ Individual methods marked as components (without container decorator on class).
 ### @APIEndpoint
 
 ```typescript
-import { APIEndpoint } from '@living-architecture/riviere-extract-conventions'
+import { APIEndpoint } from '@living-architecture/riviere-extract-conventions-published-language'
 
 class OrderController {
   @APIEndpoint
@@ -143,7 +143,7 @@ class OrderController {
 ### @DomainOp
 
 ```typescript
-import { DomainOp } from '@living-architecture/riviere-extract-conventions'
+import { DomainOp } from '@living-architecture/riviere-extract-conventions-published-language'
 
 class Order {
   @DomainOp
@@ -161,7 +161,7 @@ class Order {
 ### @EventHandler
 
 ```typescript
-import { EventHandler } from '@living-architecture/riviere-extract-conventions'
+import { EventHandler } from '@living-architecture/riviere-extract-conventions-published-language'
 
 class OrderHandlers {
   @EventHandler
@@ -178,7 +178,7 @@ class OrderHandlers {
 Define custom component types:
 
 ```typescript
-import { Custom } from '@living-architecture/riviere-extract-conventions'
+import { Custom } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @Custom('saga')
 class OrderSaga {
@@ -191,7 +191,7 @@ class OrderSaga {
 Exclude classes from extraction:
 
 ```typescript
-import { Ignore } from '@living-architecture/riviere-extract-conventions'
+import { Ignore } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @Ignore
 class TestHelper {
@@ -221,7 +221,7 @@ The conventions package provides a default config that detects all decorator typ
 modules:
   - name: "orders"
     path: "src/orders/**/*.ts"
-    extends: "@living-architecture/riviere-extract-conventions"
+    extends: "@living-architecture/riviere-extract-conventions-published-language"
 ```
 
 [View Default Config Source](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-extract-conventions/src/default-extraction.config.json)

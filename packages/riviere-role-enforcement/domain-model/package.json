@@ -1,0 +1,35 @@
+{
+  "name": "@living-architecture/riviere-role-enforcement-domain-model",
+  "version": "0.4.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NTCoding/living-architecture.git",
+    "directory": "packages/riviere-role-enforcement/domain-model"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "@living-architecture/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./plugin": "./role-enforcement-plugin.mjs"
+  },
+  "files": [
+    "dist",
+    "!dist/**/__fixtures__/**",
+    "role-enforcement-plugin.mjs",
+    "!**/*.tsbuildinfo"
+  ],
+  "dependencies": {
+    "minimatch": "^10.0.1"
+  }
+}

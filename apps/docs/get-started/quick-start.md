@@ -11,13 +11,13 @@ Build your first Riviere graph in 5 minutes.
 ## Installation
 
 ```bash
-npm install @living-architecture/riviere-builder
+npm install @living-architecture/riviere-builder-domain-model
 ```
 
 ## Basic Usage
 
 ```typescript
-import { RiviereBuilder } from '@living-architecture/riviere-builder'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model'
 
 const builder = new RiviereBuilder({
   name: 'my-service',

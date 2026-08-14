@@ -1,0 +1,52 @@
+{
+  "name": "@living-architecture/riviere-builder-domain-model",
+  "version": "0.11.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NTCoding/living-architecture.git",
+    "directory": "packages/riviere-builder/domain-model"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "@living-architecture/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./query": {
+      "@living-architecture/source": "./src/domain/query/RiviereQuery.ts",
+      "types": "./dist/domain/query/RiviereQuery.d.ts",
+      "import": "./dist/domain/query/RiviereQuery.js",
+      "default": "./dist/domain/query/RiviereQuery.js"
+    },
+    "./query/*": {
+      "@living-architecture/source": "./src/domain/query/*.ts",
+      "types": "./dist/domain/query/*.d.ts",
+      "import": "./dist/domain/query/*.js",
+      "default": "./dist/domain/query/*.js"
+    },
+    "./domain/*": {
+      "@living-architecture/source": "./src/domain/*.ts",
+      "types": "./dist/domain/*.d.ts",
+      "import": "./dist/domain/*.js",
+      "default": "./dist/domain/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/__fixtures__/**",
+    "!**/*.tsbuildinfo"
+  ],
+  "dependencies": {
+    "@living-architecture/riviere-schema-published-language": "workspace:*",
+    "zod": "^4.2.1"
+  }
+}

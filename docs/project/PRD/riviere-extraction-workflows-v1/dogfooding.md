@@ -32,7 +32,7 @@ Relevant existing coverage:
 - CI currently installs dependencies, builds all domains, runs architectural lint/tests, verifies extraction output, and verifies connection output. Reference: `../ecommerce-demo-app/.github/workflows/architecture.yml` lines 24-40.
 - `.riviere/config/extraction.config.json` combines seven module configs with `$ref`: orders, shipping, inventory, payment, notifications, BFF, and UI. It also configures event publisher connection detection. Reference: `../ecommerce-demo-app/.riviere/config/extraction.config.json` lines 1-20.
 - The module configs intentionally cover multiple extraction styles:
-  - orders uses `@living-architecture/riviere-extract-conventions` via `extends`.
+  - orders uses `@living-architecture/riviere-extract-conventions-published-language` via `extends`.
   - shipping uses JSDoc tags, event publishers, and a `backgroundJob` custom type.
   - inventory uses custom decorators.
   - payment uses interface-based matching.

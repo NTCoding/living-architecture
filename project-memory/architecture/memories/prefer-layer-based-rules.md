@@ -23,20 +23,23 @@ A `_platform` folder is a private internal package within its containing layer. 
 
 Prefer a small number of broad, target-based layer rules with minimal configuration. Do not replace a layer boundary with lists of projects, locations, roles, or forbidden dependencies when one generic layer rule can express it.
 
-A layer dependency rule is a location rule. Define it on the existing `location(...)` or `subLocation(...)` that owns the boundary. Do not create a separate collection of path matchers that classifies the same files again. Source and target locations must both be resolved from the configured location tree, otherwise role placement and dependency enforcement can drift apart.
+A layer import rule is a location rule. Define it in the owning location's `importRules`. Do not create a separate collection of path matchers that classifies the same files again. Source and target locations must both be resolved from the configured location tree, otherwise role placement and import enforcement can drift apart.
 
 For example, generic infrastructure is defined once as the parent location of its more specific role locations:
 
 ```ts
-location<RoleName>('src/platform')
-  .subLocation('/infra', [], {
-    mayImportRoles: [],
+location<RoleName>('/platform').subLocation(
+  location<RoleName>('/infra', [], {
+    importRules: { allow: [] },
   })
-  .subLocation('/infra/external-clients/{client}', externalClientRoles)
-  .subLocation('/infra/cli/input', ['generic-cli-input-parser'])
+    .subLocation('/external-clients/{client}', externalClientRoles)
+    .subLocation(
+      location<RoleName>('/cli', []).subLocation('/input', ['generic-cli-input-parser']),
+    ),
+)
 ```
 
-The `/infra` location owns the import rule directly. Imports within that location, including its child locations, are allowed normally. `mayImportRoles: []` says that no application-owned role may cross into infra from outside that location; external packages remain allowed. Its child locations refine role placement without redefining the infra path in a second rule system. A nested `dependencyRule`, a repeated `locationName: 'infra'`, or a separate `layerRule('infra', { matches: ['**/infra/**'] })` is invalid because each duplicates information already expressed by the location.
+The `infra` location owns the import rule directly. Imports within that location, including its sublocations, are allowed normally. `allow: []` says that infra cannot import another internal location; external packages remain allowed. Its sublocations refine role placement without redefining the infra path in a second rule system. A repeated path matcher or separate layer-rule collection is invalid because it duplicates information already expressed by the location hierarchy.
 
 A file-size limit is not an architectural role. Do not create helper/component roles, unannotated-export exemptions, barrel-based privacy, or `_platform` folders solely to split a large file. First extract genuinely generic technical capabilities into infra, then re-evaluate the remaining code against the actual lint limit. If it fits, keep it inside the existing role. If it does not, identify the genuinely separate responsibilities and give each a real role.
 

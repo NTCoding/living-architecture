@@ -801,7 +801,7 @@ None. Connection detection uses ts-morph (already a dependency of `riviere-extra
 
 **9.1.1 No new packages — all changes modify existing packages** (Firm)
 
-Connection detection uses the same ts-morph `Project`, same source files, same AST as component extraction. Same state dependencies → same module (separation-of-concerns principle 4).
+Connection detection uses the same ts-morph `Project`, same source files, same AST as component extraction. The same state dependencies belong in the same module.
 
 | Package                       | Change                                                                               |
 | ----------------------------- | ------------------------------------------------------------------------------------ |

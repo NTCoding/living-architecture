@@ -9,7 +9,7 @@ import {
 } from 'vitest'
 import { AppShell } from './AppShell'
 import { ExportProvider } from '@/platform/infra/export/ExportContext'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import {
   graphNameSchema, nodeIdSchema, domainNameSchema, moduleNameSchema, type GraphName
 } from '@/platform/domain/eclair-types'

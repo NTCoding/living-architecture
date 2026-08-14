@@ -1,4 +1,4 @@
-import type * as RiviereSchema from '@living-architecture/riviere-schema'
+import type * as RiviereSchema from '@living-architecture/riviere-schema-published-language/schema'
 import * as EclairDomain from '@/platform/domain/eclair-types'
 import { getEffectiveNodeType } from '@/platform/domain/node-type-presentation'
 

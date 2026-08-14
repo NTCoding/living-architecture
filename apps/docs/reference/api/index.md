@@ -5,7 +5,7 @@
 The main class. Create an instance, add components, connect them, build a graph.
 
 ```typescript
-import { RiviereBuilder } from '@living-architecture/riviere-builder'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model'
 
 const builder = RiviereBuilder.new({
   sources: [{ type: 'git', url: 'https://github.com/your-org/your-repo' }],
@@ -64,6 +64,8 @@ builder.link({ from: api.id, to: useCase.id, type: 'sync' })
 Query and analyze Riviere graphs.
 
 ```typescript
+import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model'
+
 // From builder
 const query = builder.query()
 
@@ -75,40 +77,40 @@ const query = RiviereQuery.fromJSON(jsonContents)
 
 | Method | Purpose |
 |--------|---------|
-| [`components()`](/reference/api/generated/riviere-query/classes/RiviereQuery#components) | Get all components |
-| [`componentById(id)`](/reference/api/generated/riviere-query/classes/RiviereQuery#componentbyid) | Find component by ID |
-| [`componentsInDomain(domainId)`](/reference/api/generated/riviere-query/classes/RiviereQuery#componentsindomain) | Components in a domain |
-| [`componentsByType(type)`](/reference/api/generated/riviere-query/classes/RiviereQuery#componentsbytype) | Components of a type |
-| [`find(predicate)`](/reference/api/generated/riviere-query/classes/RiviereQuery#find) | Find with custom function |
-| [`findAll(predicate)`](/reference/api/generated/riviere-query/classes/RiviereQuery#findall) | Find all matching |
+| [`components()`](/reference/api/generated/riviere-builder/classes/RiviereQuery#components) | Get all components |
+| [`componentById(id)`](/reference/api/generated/riviere-builder/classes/RiviereQuery#componentbyid) | Find component by ID |
+| [`componentsInDomain(domainId)`](/reference/api/generated/riviere-builder/classes/RiviereQuery#componentsindomain) | Components in a domain |
+| [`componentsByType(type)`](/reference/api/generated/riviere-builder/classes/RiviereQuery#componentsbytype) | Components of a type |
+| [`find(predicate)`](/reference/api/generated/riviere-builder/classes/RiviereQuery#find) | Find with custom function |
+| [`findAll(predicate)`](/reference/api/generated/riviere-builder/classes/RiviereQuery#findall) | Find all matching |
 
 ### Link methods
 
 | Method | Purpose |
 |--------|---------|
-| [`links()`](/reference/api/generated/riviere-query/classes/RiviereQuery#links) | Get all links |
+| [`links()`](/reference/api/generated/riviere-builder/classes/RiviereQuery#links) | Get all links |
 
 ### Domain methods
 
 | Method | Purpose |
 |--------|---------|
-| [`domains()`](/reference/api/generated/riviere-query/classes/RiviereQuery#domains) | Domain info with component counts |
-| [`entities(domainId?)`](/reference/api/generated/riviere-query/classes/RiviereQuery#entities) | Entity names in domain |
-| [`crossDomainLinks(domainId)`](/reference/api/generated/riviere-query/classes/RiviereQuery#crossdomainlinks) | Links leaving domain |
+| [`domains()`](/reference/api/generated/riviere-builder/classes/RiviereQuery#domains) | Domain info with component counts |
+| [`entities(domainId?)`](/reference/api/generated/riviere-builder/classes/RiviereQuery#entities) | Entity names in domain |
+| [`crossDomainLinks(domainId)`](/reference/api/generated/riviere-builder/classes/RiviereQuery#crossdomainlinks) | Links leaving domain |
 
 ### Analysis methods
 
 | Method | Purpose |
 |--------|---------|
-| [`entryPoints()`](/reference/api/generated/riviere-query/classes/RiviereQuery#entrypoints) | UI/API/EventHandler with no incoming links |
+| [`entryPoints()`](/reference/api/generated/riviere-builder/classes/RiviereQuery#entrypoints) | UI/API/EventHandler with no incoming links |
 
 ---
 
 ## Full Documentation
 
 - [RiviereBuilder](/reference/api/generated/riviere-builder/classes/RiviereBuilder) — Build graphs with type-safe methods
-- [RiviereQuery](/reference/api/generated/riviere-query/classes/RiviereQuery) — Query and analyze graphs
-- [Types](/reference/api/generated/riviere-query/README) — All TypeScript type definitions
+- [RiviereQuery](/reference/api/generated/riviere-builder/classes/RiviereQuery) — Query and analyze graphs
+- [Types](/reference/api/generated/riviere-builder/README) — All TypeScript type definitions
 
 ## See Also
 

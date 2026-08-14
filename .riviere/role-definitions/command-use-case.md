@@ -56,4 +56,4 @@ export class ExtractDraftComponents {
 
 ## References
 - [CQRS Pattern](https://martinfowler.com/bliki/CQRS.html) — Commands vs queries separation
-- Separation of Concerns Skill Q3: "Orchestrates write operations?" → commands/
+- ADR-002: "Orchestrates write operations?" → commands/

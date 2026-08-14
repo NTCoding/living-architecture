@@ -2,7 +2,7 @@ import {
   useState, useCallback 
 } from 'react'
 import type { Node } from '../queries/eclair-types'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
 import {
   compareGraphs, type GraphDiff
 } from '../queries/compare-graphs'
@@ -59,12 +59,18 @@ function buildChangeItems(diff: GraphDiff): ChangeItemBase[] {
 function parseGraphFile(content: string, fileName: string): UploadState {
   try {
     const data: unknown = JSON.parse(content)
-    const graph = parseRiviereGraph(data)
+    const result = parseRiviereGraph(data)
+    if (!result.success) {
+      return {
+        status: 'error',
+        error: { message: result.issues.join('\n') },
+      }
+    }
     return {
       status: 'loaded',
       file: {
         name: fileName,
-        graph,
+        graph: result.graph,
       },
     }
   } catch (e) {

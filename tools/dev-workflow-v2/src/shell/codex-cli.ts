@@ -2,17 +2,23 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createDefaultProcessDeps } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { createCodexWorkflowCli } from '@nt-ai-lab/deterministic-agent-workflow-codex'
-import { WORKFLOW_DEFINITION } from '../features/workflow/data-access/workflow-definition'
-import { ROUTES, PRE_TOOL_USE_POLICY } from '../features/workflow/entrypoint/workflow/entrypoint'
-import { createWorkflowGitStatusReader } from '../features/workflow/adapters/git/workflow-git-status-reader'
-import { createWorkflowPullRequestCreator } from '../features/workflow/adapters/github/workflow-pull-request-creator'
-import { createWorkflowPullRequestFeedbackReader } from '../features/workflow/adapters/github/workflow-pull-request-feedback-reader'
-import { readGitRepositoryStatus } from '../platform/infra/external-clients/git/index'
-import {
-  createGithubPullRequestClient,
-  createGithubPullRequestFeedbackClient,
-  runGh,
-} from '../platform/infra/external-clients/github/index'
+import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
+import { createWorkflowPullRequestCreator } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-creator'
+import { createWorkflowPullRequestFeedbackReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-feedback-reader'
+import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
+import { readGitRepositoryStatus } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/git-client'
+import { createGithubPullRequestClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/create-pull-request'
+import { createGithubPullRequestFeedbackClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-pr-feedback'
+import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/github-cli'
+import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+
+const workflowConfiguration = configureWorkflow({})
+const workflowDefinition = workflowConfiguration
+const routes = createWorkflowRoutes(workflowDefinition.stateSchema)
+const bashForbidden = {
+  commands: ['git push', 'gh pr'],
+  flags: ['--no-verify', '--force', '--hard'],
+}
 
 const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const workflowCommand =
@@ -54,10 +60,10 @@ function sleepMs(ms: number): void {
 
 /** @riviere-role main */
 createCodexWorkflowCli({
-  workflowDefinition: WORKFLOW_DEFINITION,
-  routes: ROUTES,
-  bashForbidden: PRE_TOOL_USE_POLICY.bashForbidden,
-  isWriteAllowed: PRE_TOOL_USE_POLICY.isWriteAllowed,
+  workflowDefinition,
+  routes,
+  bashForbidden,
+  isWriteAllowed: workflowConfiguration.isWriteAllowed,
   workflowCommand,
   workflowRoot,
   processDeps,

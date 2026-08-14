@@ -19,7 +19,7 @@ Reviewed: docs/design-reviews/riviere-cli/refined.md
 ### Entrypoint Imports Domain Directly via parseTypeSpecificInput
 
 - **What's wrong:** The entrypoint example in section 1 (line 166 of refined.md) shows `parseTypeSpecificInput(options)` which suggests the entrypoint is aware of component type variations. The entrypoint is doing domain-level parsing decisions, not just mapping CLI strings to a command object.
-- **Why it matters:** Violates separation of concerns checklist item 14: "entrypoint/ is thin (parse input -> invoke use-case -> map output) and never imports from domain/". The entrypoint should not know about component type semantics.
+- **Why it matters:** Violates [ADR-002](../../architecture/adr/ADR-002-allowed-folder-structures.md): entrypoints validate primitive input shape and never import from `domain/`. The entrypoint should not know about component type semantics.
 - **Suggested fix:** Move type-specific input parsing to the use case. Entrypoint should pass raw options; use case or domain decides how to interpret them.
 
 ### Value Object SourceLocation Uses Primitive for filePath
@@ -39,7 +39,7 @@ Reviewed: docs/design-reviews/riviere-cli/refined.md
 ### Generic Type-Grouping File: platform/domain/value-objects/
 
 - **What's wrong:** The design places all value objects in `platform/domain/value-objects/` as a flat folder. This is a generic type-grouping approach (collecting all things of type "value object" together).
-- **Why it matters:** Violates separation of concerns checklist item 13: "Verify no generic type-grouping files (types.ts, errors.ts, validators.ts) spanning multiple capabilities." Value objects should be co-located with the domain concepts they represent or grouped by domain concept, not by "being a value object."
+- **Why it matters:** Violates the local architecture rule against generic type-grouping files spanning multiple capabilities. Value objects should be co-located with the domain concepts they represent or grouped by domain concept, not by "being a value object."
 - **Suggested fix:** Group value objects by the domain concept they belong to. E.g., `platform/domain/architectural-classification/component-type.ts` is good. `platform/domain/source-tracking/source-location.ts`, `platform/domain/source-tracking/repository-url.ts`, `platform/domain/source-tracking/file-path.ts` would be better than a flat `value-objects/` folder.
 
 ### Unclear Boundary: module-ref-resolver in extract-architecture/domain

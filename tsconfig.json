@@ -4,13 +4,10 @@
   "files": [],
   "references": [
     {
-      "path": "./packages/riviere-query"
+      "path": "./packages/riviere-builder/domain-model"
     },
     {
-      "path": "./packages/riviere-builder"
-    },
-    {
-      "path": "./packages/riviere-cli"
+      "path": "./apps/cli"
     },
     {
       "path": "./apps/eclair"
@@ -19,19 +16,34 @@
       "path": "./apps/docs"
     },
     {
-      "path": "./packages/riviere-schema"
+      "path": "./packages/riviere-schema/published-language"
     },
     {
-      "path": "./packages/riviere-extract-config"
+      "path": "./packages/riviere-extract-config/published-language"
     },
     {
-      "path": "./packages/riviere-extract-conventions"
+      "path": "./packages/riviere-extract-conventions/published-language"
     },
     {
-      "path": "./packages/riviere-extract-ts"
+      "path": "./packages/riviere-extract-ts/domain-model"
     },
     {
-      "path": "./packages/riviere-role-enforcement"
+      "path": "./packages/riviere-role-enforcement/domain-model"
+    },
+    {
+      "path": "./packages/riviere-builder/use-cases"
+    },
+    {
+      "path": "./packages/riviere-extract-ts/use-cases"
+    },
+    {
+      "path": "./packages/riviere-role-enforcement/use-cases"
+    },
+    {
+      "path": "./packages/dev-workflow-v2/domain-model"
+    },
+    {
+      "path": "./packages/dev-workflow-v2/use-cases"
     }
   ]
 }

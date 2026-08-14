@@ -7,7 +7,7 @@ import {
 import userEvent from '@testing-library/user-event'
 import { FlowTrace } from './FlowTrace'
 import type { FlowStep } from '../../queries/extract-flows'
-import type { RiviereGraph } from '@living-architecture/riviere-schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import {
   parseNode, parseEdge, parseDomainMetadata 
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'

@@ -119,8 +119,7 @@ Open `http://localhost:5173/eclair/`
 | Package | Description |
 |---------|-------------|
 | `@living-architecture/riviere-cli` | CLI for extraction and graph building |
-| `@living-architecture/riviere-builder` | Node.js library for building graphs |
-| `@living-architecture/riviere-query` | Browser-safe library for querying graphs |
-| `@living-architecture/riviere-extract-config` | Extraction config schema and validation |
-| `@living-architecture/riviere-extract-conventions` | TypeScript decorators for component marking |
-| `@living-architecture/riviere-extract-ts` | TypeScript component extractor |
+| `@living-architecture/riviere-builder-domain-model` | Browser-safe library for building and querying graphs |
+| `@living-architecture/riviere-extract-config-published-language` | Extraction config schema and validation |
+| `@living-architecture/riviere-extract-conventions-published-language` | TypeScript decorators for component marking |
+| `@living-architecture/riviere-extract-ts-domain-model` | TypeScript component extractor |

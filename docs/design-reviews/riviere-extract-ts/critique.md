@@ -7,7 +7,7 @@ Reviewed: docs/design-reviews/riviere-extract-ts/refined.md
 ### Missing use-cases/ layer violates Separation of Concerns architecture
 
 - **What's wrong:** The refined design has `features/component-extraction/entrypoint/` going directly to `domain/`. There is no `use-cases/` layer. Every feature should have `entrypoint/`, `use-cases/`, and `domain/`. The design claims "entrypoint/ only where needed" but this contradicts the mandatory three-layer structure.
-- **Why it matters:** Without use-cases/, orchestration logic will leak into either entrypoint or domain. The entrypoint becomes fat (parsing + orchestration + output mapping) or domain becomes polluted with workflow concerns. This is exactly what the Separation of Concerns skill prohibits.
+- **Why it matters:** Without use-cases/, orchestration logic will leak into either entrypoint or domain. The entrypoint becomes fat (parsing + orchestration + output mapping) or domain becomes polluted with workflow concerns. This violates the dependency direction defined in ADR-002.
 - **Suggested fix:** Add `use-cases/` to each feature. Move orchestration from `extractDraftComponents` into a use case. The entrypoint should only parse input and invoke the use case.
 
 ### predicate-matching and value-extraction features have no entrypoint/

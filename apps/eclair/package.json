@@ -49,8 +49,8 @@
     }
   },
   "dependencies": {
-    "@living-architecture/riviere-query": "workspace:*",
-    "@living-architecture/riviere-schema": "workspace:*",
+    "@living-architecture/riviere-builder-domain-model": "workspace:*",
+    "@living-architecture/riviere-schema-published-language": "workspace:*",
     "@xyflow/react": "^12.9.3",
     "d3": "^7.9.0",
     "dagre": "^0.8.5",

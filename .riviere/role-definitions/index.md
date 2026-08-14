@@ -4,30 +4,35 @@
 
 These resources inform how roles are classified and where code should live:
 
-- [Separation of Concerns Skill](https://github.com/NTCoding/claude-skillz/blob/main/separation-of-concerns/SKILL.md) — Code placement decision tree (Q1-Q7): wiring → entrypoint → commands → queries → domain → infra
-- [Tactical DDD Skill](https://github.com/NTCoding/claude-skillz/blob/main/tactical-ddd/SKILL.md) — Aggregate design, value objects, domain services, repositories
 - [ADR-002: Allowed Folder Structures](../../docs/architecture/adr/ADR-002-allowed-folder-structures.md) — Canonical directory layout
+- [Role enforcement configuration](../role-enforcement.config.ts) — Executable location, dependency, and role rules
+- [Architecture memory](../../project-memory/architecture/README.md) — Approved local architecture decisions and examples
 - [Software Design Conventions](../../docs/conventions/software-design.md) — SD-001 through SD-023
 
 ## Dependency Rules
 
 Dependencies point inward:
-- `entrypoint/` → commands and queries; never domain or data access directly
-- `commands/` → domain and data access; never concrete domain-port adapters
-- `queries/` → query models and data access
-- `domain/` → domain code and domain ports only; never adapters or infrastructure
-- `data-access/` → reconstructs aggregates or query models from persisted data
-- `adapters/` → one domain port and one generic client API; never external packages directly
-- `infra/` → external packages and generic technical capabilities whose APIs use only language primitives or external-system types; never application-owned code from entrypoint, commands, queries, domain, data access, adapters, or shell
-- `shell/` → constructs concrete dependencies and passes them into entrypoints
 
-Concrete test: `readJsonFile(filePath): unknown` and `resolveFileOrPackagePath(...): string` qualify because their contracts contain only primitives and external technical concepts. `loadDraftComponentsFromFile(filePath): DraftComponent[]` does not qualify because its contract and validation use an application-owned type. See the [full extraction repository example](../../project-memory/architecture/memories/prefer-layer-based-rules.md).
+- App `entrypoint/` → subdomain commands and queries plus app `infra/`; never domain or data access directly
+- Use-case `commands/` → own-subdomain domain and feature data access; never concrete domain-port adapters
+- Use-case `queries/` → own-subdomain domain and feature data access
+- Domain-model `domain/` → its own model and permitted published languages; never use cases, adapters, infra, apps, or another domain model
+- Use-case `data-access/{concept}/` → aggregate and value-object roles from its own domain plus generic clients; never domain services
+- Use-case `adapters/{adapter}/` → domain ports from its own subdomain plus generic client APIs; never external packages directly
+- Root `infra/` → external packages and generic technical capabilities; never app, use-case, or domain declarations
+- App `shell/` → constructs concrete dependencies and passes them into entrypoints
+
+Concrete test: `readJsonFile(filePath): unknown` and `resolveFileOrPackagePath(...): string` qualify because their contracts contain only primitives and external technical concepts. `loadDraftComponentsFromFile(filePath): DraftComponent[]` does not qualify because its contract and validation use an application-owned type.
 
 ## Automated Enforcement
 
-Role enforcement is automated via an oxlint plugin. It checks annotations, location constraints, dependency rules, and I/O contracts at lint time. The enforcement config at `.riviere/role-enforcement.config.ts` is the source of truth for what's enforced. The separation-of-concerns skill defines the architectural principles; role enforcement automates their verification.
+Rivière role enforcement is automated via an Oxlint plugin. It checks annotations, location constraints, import rules, and input/output contracts at lint time. ADR-002 defines the architecture and `.riviere/role-enforcement.config.ts` is its executable form. Changes must update both.
 
-Import rules belong directly to their `location(...)` or `subLocation(...)` definitions. Imports within the same configured location are allowed normally. A location may restrict imports crossing its boundary to specific target roles or forbid direct external-package imports. Role-specific exceptions, such as command-to-command and adapter-to-adapter imports, use the existing role `forbiddenDependencies` rule. RLE must not maintain a second list of path matchers for architectural layers.
+Import rules belong in the relevant location's `importRules`. Imports are unrestricted until a location declares import rules. That location can then import only its own subtree, inherited imports, and locations listed in `allow`. `sibling` means the same concrete parent location; `root` means the same package root; `ownSubdomain` and `anySubdomain` use the configured `{subdomain}` path capture. Allowing a location allows everything inside it unless a role subset is supplied. Explicit sublocations are the complete list of permitted folders unless `allowAnySubLocations` is set.
+
+The enforcer checks static imports, re-exports, dynamic imports, CommonJS `require()` calls and TypeScript import types. Non-literal dynamic imports and `require()` calls are rejected because their target cannot be checked. Production code cannot import ignored fixture files. Test files are deliberately exempt from production import rules so tests can assemble fixtures across boundaries.
+
+Some behavioural guidance is intentionally reviewed rather than mechanically counted. For example, an adapter should stay focused on one port-to-client translation and a CLI entrypoint should invoke one use case. The executable rules enforce the permitted locations and roles; review checks whether a particular declaration remains cohesive.
 
 ## Classification Decision Tree
 

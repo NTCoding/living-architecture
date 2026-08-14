@@ -17,8 +17,11 @@ This workflow is deliberately independent of Claude Code, Codex, OpenCode, Kimi,
 ## Development Setup
 
 ```bash
-pnpm install
-nx run-many -t build    # Verify setup works
+nvm install
+nvm use
+corepack enable
+pnpm install --frozen-lockfile
+pnpm nx run-many -t build    # Verify setup works
 ```
 
 ## Commands
@@ -54,7 +57,7 @@ chore: update dependencies
 Follow the conventions in [`docs/conventions/`](docs/conventions/):
 - [`software-design.md`](docs/conventions/software-design.md) — Design principles
 - [`testing.md`](docs/conventions/testing.md) — Testing requirements
-- Code placement follows the [`development-skills:separation-of-concerns`](https://github.com/NTCoding/claude-skillz/blob/main/separation-of-concerns/SKILL.md) skill
+- Code placement follows [`ADR-002`](docs/architecture/adr/ADR-002-allowed-folder-structures.md) and the executable rules in [`.riviere/role-enforcement.config.ts`](.riviere/role-enforcement.config.ts)
 
 ## Testing Requirements
 
@@ -83,7 +86,3 @@ If your harness supports agents, you can run these against your changes:
 External contributors use this lightweight public workflow: make the change and raise a detailed pull request.
 
 Members of the maintainer team use the full [`maintainer workflow`](docs/workflow/task-workflow.md), including planning, GitHub issues and the development harness.
-
-## AI-Assisted Development
-
-This project was built with [Claude Code](https://claude.com/claude-code) with skills from [claude-skillz](https://github.com/NTCoding/claude-skillz).

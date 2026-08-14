@@ -1,0 +1,47 @@
+{
+  "name": "@living-architecture/riviere-cli",
+  "version": "0.11.4",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NTCoding/living-architecture.git",
+    "directory": "apps/cli"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "@living-architecture/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/__fixtures__/**",
+    "!**/*.tsbuildinfo"
+  ],
+  "bin": {
+    "riviere": "./dist/bin.js",
+    "riviere-role-enforcement": "./dist/role-enforcement-bin.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@living-architecture/riviere-builder-use-cases": "workspace:*",
+    "@living-architecture/riviere-extract-ts-domain-model": "workspace:*",
+    "@living-architecture/riviere-extract-ts-use-cases": "workspace:*",
+    "@living-architecture/riviere-role-enforcement-domain-model": "workspace:*",
+    "@living-architecture/riviere-role-enforcement-use-cases": "workspace:*",
+    "@living-architecture/riviere-schema-published-language": "workspace:*",
+    "commander": "^14.0.2",
+    "zod": "^4.3.5"
+  }
+}

@@ -1,0 +1,359 @@
+import { Project } from 'ts-morph'
+import { describe, expect, it } from 'vitest'
+import {
+  createConfigWithCustomTypes,
+  createConfigWithRule,
+  createOrdersUseCaseConfig,
+  createResolvedConfig,
+} from '../../__fixtures__/test-fixtures'
+import { DraftComponent } from './draft-component'
+import { extractComponents } from './extractor'
+
+function createTestProject() {
+  return new Project({ useInMemoryFileSystem: true })
+}
+
+function extract(
+  project: Project,
+  paths: string[],
+  config: ReturnType<typeof createResolvedConfig>,
+) {
+  const [module] = config.modules
+  if (module === undefined) {
+    throw new TypeError('Expected one module in test config')
+  }
+  return extractComponents(project, paths, module)
+}
+
+describe('extractComponents', () => {
+  it('returns empty array when no source files provided', () => {
+    const project = createTestProject()
+    const result = extract(project, [], createResolvedConfig())
+    expect(result).toStrictEqual([])
+  })
+
+  describe('edge cases', () => {
+    it('returns empty array when file path not found in project', () => {
+      const project = createTestProject()
+      const result = extract(project, ['nonexistent.ts'], createResolvedConfig())
+      expect(result).toStrictEqual([])
+    })
+
+    it('matches module path when file path uses Windows backslashes', () => {
+      const project = createTestProject()
+      project.createSourceFile(
+        'orders\\use-cases\\create-order.ts',
+        `
+        function UseCase() { return (target: any) => target }
+        @UseCase
+        export class CreateOrder {}
+      `,
+      )
+      const result = extract(
+        project,
+        ['orders\\use-cases\\create-order.ts'],
+        createOrdersUseCaseConfig(),
+      )
+      expect(result).toStrictEqual([
+        DraftComponent.parse({
+          type: 'useCase',
+          name: 'CreateOrder',
+          location: {
+            file: 'orders\\use-cases\\create-order.ts',
+            line: 3,
+          },
+          domain: 'orders',
+          module: 'orders-module',
+        }),
+      ])
+    })
+
+    it('extracts components when source file paths are absolute and module paths are relative', () => {
+      const project = createTestProject()
+      const absolutePath = '/project/root/orders/use-cases/create-order.ts'
+      project.createSourceFile(
+        absolutePath,
+        `
+        function UseCase() { return (target: any) => target }
+        @UseCase
+        export class CreateOrder {}
+      `,
+      )
+      const result = extract(project, [absolutePath], createOrdersUseCaseConfig())
+      expect(result).toStrictEqual([
+        DraftComponent.parse({
+          type: 'useCase',
+          name: 'CreateOrder',
+          location: {
+            file: absolutePath,
+            line: 3,
+          },
+          domain: 'orders',
+          module: 'orders-module',
+        }),
+      ])
+    })
+
+    it('extracts components when absolute file path is outside configDir', () => {
+      const project = createTestProject()
+      const absolutePath = '/other/project/orders/use-cases/create-order.ts'
+      project.createSourceFile(
+        absolutePath,
+        `
+        function UseCase() { return (target: any) => target }
+        @UseCase
+        export class CreateOrder {}
+      `,
+      )
+      const result = extract(project, [absolutePath], createOrdersUseCaseConfig())
+      expect(result).toStrictEqual([
+        DraftComponent.parse({
+          type: 'useCase',
+          name: 'CreateOrder',
+          location: {
+            file: absolutePath,
+            line: 3,
+          },
+          domain: 'orders',
+          module: 'orders-module',
+        }),
+      ])
+    })
+
+    it('extracts components when Windows absolute paths used with configDir', () => {
+      const project = createTestProject()
+      const absolutePath = 'C:\\project\\root\\orders\\use-cases\\create-order.ts'
+      project.createSourceFile(
+        absolutePath,
+        `
+        function UseCase() { return (target: any) => target }
+        @UseCase
+        export class CreateOrder {}
+      `,
+      )
+      const result = extract(project, [absolutePath], createOrdersUseCaseConfig())
+      expect(result).toStrictEqual([
+        DraftComponent.parse({
+          type: 'useCase',
+          name: 'CreateOrder',
+          location: {
+            file: absolutePath,
+            line: 3,
+          },
+          domain: 'orders',
+          module: 'orders-module',
+        }),
+      ])
+    })
+
+    it('skips anonymous classes without names', () => {
+      const project = createTestProject()
+      project.createSourceFile(
+        'orders/anon.ts',
+        `
+        function UseCase() { return (target: any) => target }
+        @UseCase
+        export default class {}
+      `,
+      )
+      const result = extract(project, ['orders/anon.ts'], createOrdersUseCaseConfig())
+      expect(result).toStrictEqual([])
+    })
+  })
+
+  describe('function extraction', () => {
+    it('extracts function as component when rule matches JSDoc', () => {
+      const project = createTestProject()
+      project.createSourceFile(
+        'orders/domain/process-order.ts',
+        `
+        /** @domainOp */
+        export function processOrder() {}
+      `,
+      )
+      const config = createConfigWithRule('orders', 'orders/**', 'domainOp', {
+        find: 'functions',
+        where: { hasJSDoc: { tag: 'domainOp' } },
+      })
+      const result = extract(project, ['orders/domain/process-order.ts'], config)
+      expect(result).toStrictEqual([
+        DraftComponent.parse({
+          type: 'domainOp',
+          name: 'processOrder',
+          location: {
+            file: 'orders/domain/process-order.ts',
+            line: 3,
+          },
+          domain: 'orders',
+          module: 'orders-module',
+        }),
+      ])
+    })
+
+    it('skips anonymous exported functions without names', () => {
+      const project = createTestProject()
+      project.createSourceFile(
+        'orders/domain/anon-func.ts',
+        `
+        /** @domainOp */
+        export default function() {}
+      `,
+      )
+      const config = createConfigWithRule('orders', 'orders/**', 'domainOp', {
+        find: 'functions',
+        where: { hasJSDoc: { tag: 'domainOp' } },
+      })
+      const result = extract(project, ['orders/domain/anon-func.ts'], config)
+      expect(result).toStrictEqual([])
+    })
+  })
+
+  describe('class extraction', () => {
+    it('extracts class as component when rule matches decorator', () => {
+      const project = createTestProject()
+      project.createSourceFile(
+        'orders/use-cases/create-order.ts',
+        `
+        function UseCase() { return (target: any) => target }
+        @UseCase
+        export class CreateOrder {}
+      `,
+      )
+      const result = extract(
+        project,
+        ['orders/use-cases/create-order.ts'],
+        createOrdersUseCaseConfig(),
+      )
+      expect(result).toStrictEqual([
+        DraftComponent.parse({
+          type: 'useCase',
+          name: 'CreateOrder',
+          location: {
+            file: 'orders/use-cases/create-order.ts',
+            line: 3,
+          },
+          domain: 'orders',
+          module: 'orders-module',
+        }),
+      ])
+    })
+
+    it('extracts class with different name and file location', () => {
+      const project = createTestProject()
+      project.createSourceFile(
+        'shipping/handlers/ship-order.ts',
+        `
+        function EventHandler() { return (target: any) => target }
+        @EventHandler
+        export class ShipOrder {}
+      `,
+      )
+      const config = createConfigWithRule('shipping', 'shipping/**', 'eventHandler', {
+        find: 'classes',
+        where: { hasDecorator: { name: 'EventHandler' } },
+      })
+      const result = extract(project, ['shipping/handlers/ship-order.ts'], config)
+      expect(result).toStrictEqual([
+        DraftComponent.parse({
+          type: 'eventHandler',
+          name: 'ShipOrder',
+          location: {
+            file: 'shipping/handlers/ship-order.ts',
+            line: 3,
+          },
+          domain: 'shipping',
+          module: 'shipping-module',
+        }),
+      ])
+    })
+  })
+
+  describe('custom type extraction', () => {
+    it('extracts function as custom type when customTypes rule matches', () => {
+      const project = createTestProject()
+      project.createSourceFile(
+        'shipping/jobs/tracking-update.ts',
+        `
+        /** @backgroundJob */
+        export function runTrackingUpdate() {}
+      `,
+      )
+      const config = createConfigWithCustomTypes('shipping', 'shipping/**', {
+        backgroundJob: {
+          find: 'functions',
+          where: { hasJSDoc: { tag: 'backgroundJob' } },
+        },
+      })
+      const result = extract(project, ['shipping/jobs/tracking-update.ts'], config)
+      expect(result).toStrictEqual([
+        DraftComponent.parse({
+          type: 'backgroundJob',
+          name: 'runTrackingUpdate',
+          location: {
+            file: 'shipping/jobs/tracking-update.ts',
+            line: 3,
+          },
+          domain: 'shipping',
+          module: 'shipping-module',
+        }),
+      ])
+    })
+
+    it('extracts class as custom type when customTypes rule matches', () => {
+      const project = createTestProject()
+      project.createSourceFile('orders/sagas/order-saga.ts', `export class OrderSaga {}`)
+      const config = createConfigWithCustomTypes('orders', 'orders/**', {
+        saga: {
+          find: 'classes',
+          where: { nameEndsWith: { suffix: 'Saga' } },
+        },
+      })
+      const result = extract(project, ['orders/sagas/order-saga.ts'], config)
+      expect(result).toStrictEqual([
+        DraftComponent.parse({
+          type: 'saga',
+          name: 'OrderSaga',
+          location: {
+            file: 'orders/sagas/order-saga.ts',
+            line: 1,
+          },
+          domain: 'orders',
+          module: 'orders-module',
+        }),
+      ])
+    })
+
+    it('extracts method as custom type when customTypes rule matches', () => {
+      const project = createTestProject()
+      project.createSourceFile(
+        'orders/policies/policy.ts',
+        `
+        function Policy() { return (target: any, key: string) => {} }
+        class OrderPolicies {
+          @Policy
+          validateOrder() {}
+        }
+      `,
+      )
+      const config = createConfigWithCustomTypes('orders', 'orders/**', {
+        policy: {
+          find: 'methods',
+          where: { hasDecorator: { name: 'Policy' } },
+        },
+      })
+      const result = extract(project, ['orders/policies/policy.ts'], config)
+      expect(result).toStrictEqual([
+        DraftComponent.parse({
+          type: 'policy',
+          name: 'validateOrder',
+          location: {
+            file: 'orders/policies/policy.ts',
+            line: 4,
+          },
+          domain: 'orders',
+          module: 'orders-module',
+        }),
+      ])
+    })
+  })
+})

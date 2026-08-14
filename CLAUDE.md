@@ -11,22 +11,31 @@ For planning, discovery, PRD, architecture, delivery planning, or future-project
 ## Monorepo Structure
 
 ```text
-apps/       - Deployable applications (not published)
-packages/   - Shared libraries (publishable to npm)
+apps/       - Applications that aggregate subdomain use cases
+packages/   - Subdomains split into domain-model, use-cases, and published-language packages
+tools/      - Standalone app packages; their subdomain packages live under packages/
 ```
 
 Current packages:
-- `living-architecture/riviere-query` - Browser-safe query library (no Node.js dependencies)
-- `living-architecture/riviere-builder` - Node.js builder (depends on riviere-query)
-- `living-architecture/riviere-cli` - CLI tool with binary "riviere" (depends on riviere-builder)
-- `living-architecture/riviere-schema` - Riviere schema definitions
-- `living-architecture/riviere-extract-config` - JSON Schema and validation for extraction config DSL
-- `living-architecture/riviere-extract-conventions` - Decorators for marking architectural components (depends on riviere-extract-config)
-- `living-architecture/riviere-extract-ts` - TypeScript component extractor using ts-morph for AST parsing (depends on riviere-extract-config)
+- `packages/dev-workflow-v2/domain-model` - Maintainer workflow domain model
+- `packages/dev-workflow-v2/use-cases` - Maintainer workflow commands and adapters
+- `packages/riviere-builder/domain-model` - Browser-safe graph construction and querying domain model
+- `packages/riviere-builder/use-cases` - Commands, queries and data access for graph building and querying
+- `packages/riviere-schema/published-language` - Rivière graph contract
+- `packages/riviere-extract-config/published-language` - Extraction config contract
+- `packages/riviere-extract-conventions/published-language` - Annotations and ESLint integration for extraction conventions
+- `packages/riviere-extract-ts/domain-model` - TypeScript extraction domain model using ts-morph
+- `packages/riviere-extract-ts/use-cases` - TypeScript extraction commands and data access
+- `packages/riviere-role-enforcement/domain-model` - Role-enforcement domain model and Oxlint plugin
+- `packages/riviere-role-enforcement/use-cases` - Role-enforcement command, repository, adapter and external clients
 
 Apps:
-- `living-architecture/eclair` - Web app for viewing your software architecture via Riviere a schema
-- `living-architecture/docs` - Living architecture documentation website
+- `apps/cli` - CLI entrypoints and composition shell
+- `apps/eclair` - Web app for viewing your software architecture via a Rivière schema
+- `apps/docs` - Living architecture documentation website
+
+Tools:
+- `tools/dev-workflow-v2` - Maintainer workflow app and plugin entrypoints
 
 Key documents:
 - `docs/project/PRD/` - Current PRD folders
@@ -35,7 +44,7 @@ Key documents:
 - `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`
 - `docs/architecture/adr/` - Decision records
 
-All code must follow the audit checklist in the [`development-skills:separation-of-concerns`](https://github.com/NTCoding/claude-skillz/blob/main/separation-of-concerns/SKILL.md) skill.
+All code must follow [ADR-002](docs/architecture/adr/ADR-002-allowed-folder-structures.md) and the executable rules in [`.riviere/role-enforcement.config.ts`](.riviere/role-enforcement.config.ts). Keep those two files aligned.
 
 Use domain terminology from the contextive definitions. Do not invent new terms or use technical jargon when domain terminology exists.
 
@@ -79,15 +88,15 @@ pnpm nx graph
 # Add backend application
 pnpm nx g @nx/node:application apps/[app-name]
 
-# Add shared library (publishable)
-pnpm nx g @nx/js:library packages/[pkg-name] --publishable --importPath=@living-architecture/[pkg-name]
+# Add a subdomain package
+pnpm nx g @nx/js:library packages/[subdomain]/[domain-model|use-cases|published-language] --publishable --importPath=@living-architecture/[package-name]
 ```
 
 After generating a new project:
-1. Update the project's package.json with correct name: `@living-architecture/[project-name]`
+1. Update the project's package.json with the correct published package name
 2. Create the 3-file tsconfig structure (tsconfig.json, tsconfig.lib.json, tsconfig.spec.json)
 3. Add vitest.config.ts if tests are needed with 100% coverage as the default
-4. If importing from another project, add `"@living-architecture/[pkg-name]": "workspace:*"` to dependencies
+4. If importing from another project, add its published package name with `"workspace:*"` to dependencies
 5. Run `pnpm nx sync` to update TypeScript project references
 6. Update this CLAUDE.md "Current packages" section
 

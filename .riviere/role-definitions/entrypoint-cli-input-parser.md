@@ -13,14 +13,14 @@ Parses or validates raw CLI input using the meaning of a specific entrypoint.
 
 ## Canonical Example
 
-Sharing does not change this role into `generic-cli-input-parser` and does not move it to infra. It changes only where the parser lives inside the entrypoint layer. Always choose the narrowest entrypoint scope containing every caller.
+Sharing does not move this role to infra. It changes only where the parser lives inside the entrypoint layer. Always choose the narrowest entrypoint scope containing every caller.
 
 ### Used by one entrypoint
 
 Keep the parser beside that entrypoint:
 
 ```text
-packages/riviere-cli/src/features/builder/entrypoint/link/
+apps/cli/src/features/builder/entrypoint/link/
 ├── entrypoint.ts
 └── link-source-location-options.ts
 ```
@@ -70,7 +70,7 @@ export function parseLinkSourceLocation(
 Move the parser to that feature's private entrypoint platform:
 
 ```text
-packages/riviere-cli/src/features/{feature}/entrypoint/_platform/cli/
+apps/cli/src/features/{feature}/entrypoint/_platform/cli/
 ├── input-parsers/
 │   └── {parser}.ts
 └── option-validators/
@@ -80,26 +80,14 @@ packages/riviere-cli/src/features/{feature}/entrypoint/_platform/cli/
 For example, Builder's `validateLinkType` is used by the `link` and `link-external` entrypoints, while `validateHttpMethod` is used by the `link-http` entrypoint and its validator. These are Builder CLI option rules, so their common scope is:
 
 ```text
-packages/riviere-cli/src/features/builder/entrypoint/_platform/cli/option-validators/
+apps/cli/src/features/builder/entrypoint/_platform/cli/option-validators/
 ```
 
-They must not move to `platform/infra/cli` merely because several Builder entrypoints call them.
+They must not move to root `infra/cli` merely because several Builder entrypoints call them.
 
-### Shared by entrypoints in multiple features
+### Similar parsing in multiple features
 
-Move the parser to the package's private entrypoint platform:
-
-```text
-packages/riviere-cli/src/entrypoint/_platform/cli/
-├── input-parsers/
-│   └── {parser}.ts
-└── option-validators/
-    └── {validator}.ts
-```
-
-The real component-type parsing is the example. `isValidComponentType` is called by Builder entrypoints such as `component-checklist`, and by the Query `components` entrypoint. It encodes application values including `UseCase`, `DomainOp`, and `EventHandler`, so it remains `entrypoint-cli-input-parser` in the shared entrypoint layer. Cross-feature reuse does not make those values generic CLI primitives.
-
-Nothing outside the containing entrypoint layer may import either `_platform`. `_platform` is private reuse within a layer, not a public shared library.
+Features remain isolated. Keep small primitive conversions beside their entrypoints rather than creating a shared abstraction to save a few lines. If substantial cross-feature parsing genuinely emerges, review the app boundary before adding a new location. Domain-aware validation never moves into app infra: pass the raw command or query input through the entrypoint and let the use case parse the domain-owned value object. There is no package-root `src/entrypoint/`; every entrypoint belongs to a feature.
 
 ### When generic infra is correct
 
@@ -120,13 +108,13 @@ Do not extract a one-use primitive function merely to make the entrypoint file s
 
 ## Common Misclassifications
 
-- Primitive conversion without entrypoint meaning is a `generic-cli-input-parser`.
+- Primitive conversion used by an entrypoint remains private to that entrypoint until substantial reuse justifies reviewing the boundary.
 - Reusable domain validation belongs to the domain that owns the rule.
-- Reuse across entrypoints changes the `_platform` scope, not the role or layer.
+- Reuse within one feature changes the `_platform` scope, not the role or location.
+- Similar code in separate features does not by itself justify a shared abstraction. Domain-aware validation belongs in the subdomain use case and domain model.
 
 ## Anti-Patterns
 
 - Placing this role in an infrastructure layer.
-- Labelling entrypoint-specific parsing as `generic-cli-input-parser`.
 - Duplicating a parser in several entrypoints instead of moving it to their narrowest common entrypoint `_platform`.
 - Moving a parser to infra solely because several entrypoints use it.

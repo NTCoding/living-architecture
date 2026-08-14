@@ -4,7 +4,7 @@ pageClass: reference
 
 # Class: DuplicateDomainError
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:2](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L2)
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:2
 
 ## Riviere-role
 
@@ -20,7 +20,7 @@ domain-error
 
 > **new DuplicateDomainError**(`domainName`): `DuplicateDomainError`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:5](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L5)
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:5
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > `readonly` **domainName**: `string`
 
-Defined in: [packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts:3](https://github.com/NTCoding/living-architecture/blob/main/packages/riviere-builder/src/features/building/domain/construction/construction-errors.ts#L3)
+Defined in: packages/riviere-builder/domain-model/src/domain/construction/construction-errors.ts:3
 
 ***
 
