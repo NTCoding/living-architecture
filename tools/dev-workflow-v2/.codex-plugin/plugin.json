@@ -1,6 +1,6 @@
 {
   "name": "dev-workflow-v2",
-  "version": "0.0.144",
+  "version": "0.0.146",
   "description": "Event-sourced workflow state machine for a structured task lifecycle.",
   "author": {
     "name": "NTCoding",
@@ -29,7 +29,7 @@
     ],
     "websiteURL": "https://github.com/NTCoding/living-architecture/tree/main/tools/dev-workflow-v2",
     "defaultPrompt": [
-      "Use $dev-workflow-start-planning to start a planning topic."
+      "Ask me for a topic or planning ID, then use $dev-workflow-start-planning to start a planning topic."
     ]
   }
 }
