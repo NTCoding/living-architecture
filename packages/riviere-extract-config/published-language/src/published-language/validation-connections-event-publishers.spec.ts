@@ -2,7 +2,7 @@ import {
   validateExtractionConfig,
   createMinimalConfig,
   createMinimalModule,
-} from './validation-fixtures'
+} from './__fixtures__/validation-fixtures'
 
 describe('eventPublishers validation', () => {
   function configWithEventPublisher(

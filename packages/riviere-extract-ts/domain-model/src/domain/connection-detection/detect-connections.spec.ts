@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { buildComponent } from './call-graph/call-graph-fixtures'
+import { buildComponent } from './call-graph/__fixtures__/call-graph-fixtures'
 import { ConnectionDetectionError } from './connection-detection-error'
 import { ConnectionDetectionOptions } from './connection-detection-values'
 import { detectConnections } from './detect-connections'
-import { createProject } from './detect-connections-fixtures'
+import { createProject } from './__fixtures__/detect-connections-fixtures'
 
 function createOptions(params: {
   allowIncomplete?: boolean

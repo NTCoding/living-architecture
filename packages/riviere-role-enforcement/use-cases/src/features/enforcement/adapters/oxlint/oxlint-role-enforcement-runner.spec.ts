@@ -56,6 +56,7 @@ it('translates the domain runner input into an Oxlint request', () => {
           {
             configDir: '/repo/packages/pkg-a',
             configDisplayPath: 'role-enforcement.config.ts',
+            ignorePatterns: ['**/*.spec.ts'],
             locationHierarchy: [],
             roleDefinitionsDir: '.riviere/role-definitions',
             roles: [],

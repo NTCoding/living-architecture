@@ -6,9 +6,9 @@ A narrow implementation of one domain port using one generic external-client API
 
 ## Rules
 
-1. Implements exactly one domain port.
+1. Implements a cohesive domain port.
 2. Translates the port input into the external-client input.
-3. Invokes exactly one external-client API.
+3. Invokes the generic external-client API needed for that translation.
 4. Translates the external-client result or error into the port result or error.
 5. Contains no domain decisions, application orchestration, or direct infrastructure calls.
 6. Lives in `adapters/{adapter}/`.

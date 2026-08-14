@@ -8,7 +8,7 @@ import {
   getFirstCallExpression,
   nextFile,
   sharedProject,
-} from './type-resolver-fixtures'
+} from './__fixtures__/type-resolver-fixtures'
 
 describe('resolveCallExpressionReceiverType coverage', () => {
   it('returns uncertain when call has no property access receiver in lenient mode', () => {

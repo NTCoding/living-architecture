@@ -3,7 +3,7 @@ import {
   spec,
   eventsToAddressingFeedback,
   unresolvedThread,
-} from './fixtures/workflow-test-fixtures'
+} from './__fixtures__/workflow-test-fixtures'
 import { defineAddressingFeedbackState } from './states/addressing-feedback'
 
 const addressingFeedbackState = defineAddressingFeedbackState()

@@ -11,21 +11,26 @@ For planning, discovery, PRD, architecture, delivery planning, or future-project
 ## Monorepo Structure
 
 ```text
-apps/       - Deployable applications (not published)
-packages/   - Shared libraries (publishable to npm)
+apps/       - Applications that aggregate subdomain use cases
+packages/   - Subdomains split into domain-model, use-cases, and published-language packages
+tools/      - Standalone tools using the same package types plus an app
 ```
 
 Current packages:
-- `living-architecture/riviere-builder` - Browser-safe graph construction and querying domain model
-- `living-architecture/riviere-cli` - CLI tool with binary "riviere" (depends on riviere-builder)
-- `living-architecture/riviere-schema` - Riviere schema definitions
-- `living-architecture/riviere-extract-config` - JSON Schema and validation for extraction config DSL
-- `living-architecture/riviere-extract-conventions` - Decorators for marking architectural components (depends on riviere-extract-config)
-- `living-architecture/riviere-extract-ts` - TypeScript component extractor using ts-morph for AST parsing (depends on riviere-extract-config)
+- `packages/riviere-builder/domain-model` - Browser-safe graph construction and querying domain model
+- `packages/riviere-builder/use-cases` - Commands, queries and data access for graph building and querying
+- `packages/riviere-schema/published-language` - Rivière graph contract
+- `packages/riviere-extract-config/published-language` - Extraction config contract
+- `packages/riviere-extract-conventions/published-language` - Annotations and ESLint integration for extraction conventions
+- `packages/riviere-extract-ts/domain-model` - TypeScript extraction domain model using ts-morph
+- `packages/riviere-extract-ts/use-cases` - TypeScript extraction commands and data access
+- `packages/riviere-role-enforcement/domain-model` - Role-enforcement domain model and Oxlint plugin
+- `packages/riviere-role-enforcement/use-cases` - Role-enforcement command, repository, adapter and external clients
 
 Apps:
-- `living-architecture/eclair` - Web app for viewing your software architecture via Riviere a schema
-- `living-architecture/docs` - Living architecture documentation website
+- `apps/cli` - CLI entrypoints and composition shell
+- `apps/eclair` - Web app for viewing your software architecture via a Rivière schema
+- `apps/docs` - Living architecture documentation website
 
 Key documents:
 - `docs/project/PRD/` - Current PRD folders

@@ -1,5 +1,6 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
-import { ComponentTypeMismatchError, RiviereBuilder } from './index'
+import { RiviereBuilder } from './builder-facade'
+import { ComponentTypeMismatchError } from './construction/construction-errors'
 
 function createValidOptions() {
   return {

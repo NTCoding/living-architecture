@@ -1,4 +1,4 @@
-import { validateExtractionConfig, createMutableConfig } from './validation-fixtures'
+import { validateExtractionConfig, createMutableConfig } from './__fixtures__/validation-fixtures'
 
 describe('required extraction rules validation', () => {
   it('returns error when api detection defined but apiType extraction missing', () => {

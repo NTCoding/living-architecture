@@ -1,4 +1,7 @@
-import { validateExtractionConfigSchema, createMutableConfig } from './validation-fixtures'
+import {
+  validateExtractionConfigSchema,
+  createMutableConfig,
+} from './__fixtures__/validation-fixtures'
 
 describe('extraction rules schema validation', () => {
   describe('literal extraction rule', () => {

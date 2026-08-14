@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { minimatch } from 'minimatch'
 
 const ROLE_TAG = /@riviere-role\s+(\S+)/g
 const DECORATOR_CONTEXT_TYPES = new Set([
@@ -89,6 +90,35 @@ export default {
             }
             validateHierarchyImport(node, sourceLocationChain)
           },
+          ExportNamedDeclaration(node) {
+            if (!isTestFile && node.source !== null) {
+              validateHierarchyImport(node, sourceLocationChain)
+            }
+          },
+          ExportAllDeclaration(node) {
+            if (!isTestFile) {
+              validateHierarchyImport(node, sourceLocationChain)
+            }
+          },
+          ImportExpression(node) {
+            if (!isTestFile) {
+              validateDependencyExpression(node, node.source, sourceLocationChain)
+            }
+          },
+          TSImportType(node) {
+            if (!isTestFile) {
+              validateDependencyExpression(node, node.source, sourceLocationChain)
+            }
+          },
+          CallExpression(node) {
+            if (
+              !isTestFile &&
+              node.callee.type === 'Identifier' &&
+              node.callee.name === 'require'
+            ) {
+              validateDependencyExpression(node, node.arguments[0], sourceLocationChain)
+            }
+          },
           'Program:exit'() {
             if (isTestFile) {
               return
@@ -148,6 +178,10 @@ export default {
 
           for (const targetFile of resolveImportedFiles(node, resolvedImport)) {
             const targetRelative = normalizePath(readRelativeFilePath(targetFile, options.configDir))
+            if (matchesAnyPattern(targetRelative, options.ignorePatterns ?? [])) {
+              report(node, `Production code cannot import ignored file '${targetRelative}'.`)
+              return
+            }
             const targetChain = resolveLocationChain(targetRelative, locationHierarchy)
             if (targetChain.length === 0) {
               continue
@@ -162,16 +196,32 @@ export default {
           }
         }
 
+        function validateDependencyExpression(node, source, sourceChain) {
+          const importSource = readStringLiteralValue(source)
+          if (importSource === null) {
+            report(node, 'Dependency target must be a string literal so its location can be checked.')
+            return
+          }
+          validateHierarchyImport(
+            {
+              ...node,
+              source: { value: importSource },
+              specifiers: [],
+            },
+            sourceChain,
+          )
+        }
+
         function resolveImportedFiles(node, resolvedImport) {
           const files = []
           for (const specifier of node.specifiers ?? []) {
-            if (specifier.type !== 'ImportSpecifier') {
+            if (specifier.type !== 'ImportSpecifier' && specifier.type !== 'ExportSpecifier') {
               continue
             }
+            const imported =
+              specifier.type === 'ImportSpecifier' ? specifier.imported : specifier.local
             const importedName =
-              specifier.imported.type === 'Identifier'
-                ? specifier.imported.name
-                : specifier.imported.value
+              imported.type === 'Identifier' ? imported.name : imported.value
             const exportedFile = resolveExportedFile(resolvedImport, importedName)
             if (exportedFile !== null) {
               files.push(exportedFile)
@@ -263,22 +313,32 @@ export default {
         }
 
         function readImportedRoles(node, resolvedImport) {
-          const roles = []
-          for (const specifier of node.specifiers ?? []) {
-            if (specifier.type === 'ImportSpecifier') {
-              const importedName =
-                specifier.imported.type === 'Identifier'
-                  ? specifier.imported.name
-                  : specifier.imported.value
-              const importedRole = readExportedRole(resolvedImport, importedName)
-              if (importedRole !== null) {
-                roles.push(importedRole)
-              }
-            } else if (specifier.type === 'ImportNamespaceSpecifier') {
-              roles.push(...readAllExportedRoles(resolvedImport))
-            }
+          const roles = (node.specifiers ?? []).flatMap((specifier) =>
+            readSpecifierRoles(specifier, resolvedImport),
+          )
+          return [...new Set(roles.length === 0 ? readAllExportedRoles(resolvedImport) : roles)]
+        }
+
+        function readSpecifierRoles(specifier, resolvedImport) {
+          if (specifier.type === 'ImportNamespaceSpecifier') {
+            return readAllExportedRoles(resolvedImport)
           }
-          return [...new Set(roles)]
+          if (specifier.type === 'ImportSpecifier') {
+            return readNamedExportRole(resolvedImport, specifier.imported)
+          }
+          if (specifier.type === 'ExportSpecifier') {
+            return readNamedExportRole(resolvedImport, specifier.local)
+          }
+          return []
+        }
+
+        function readNamedExportRole(resolvedImport, imported) {
+          if (imported === null || imported === undefined) {
+            return []
+          }
+          const importedName = imported.type === 'Identifier' ? imported.name : imported.value
+          const importedRole = readExportedRole(resolvedImport, importedName)
+          return importedRole === null ? [] : [importedRole]
         }
 
         function validateDeclaration(node, target) {
@@ -821,10 +881,78 @@ export default {
         }
 
         function validateInterfaceContract(node, role, name) {
-          if (role.requiresDataStructure !== true) {
+          if (role.mustBeDataStructure !== true) {
             return
           }
-          const hasCallableMember = node.body.body.some((member) => {
+          const hasCallableMember = hasCallableTypeMembers(node.body.body)
+          if (hasCallableMember) {
+            report(
+              node,
+              `Role '${role.name}' does not allow methods on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+            )
+          }
+        }
+
+        function validateTypeAliasContract(node, role, name) {
+          if (role.mustBeDataStructure === true) {
+            const result = inspectDataStructureType(node.typeAnnotation)
+            if (!result.isDataStructure) {
+              report(
+                node,
+                `Role '${role.name}' must be a data structure on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+              )
+              return
+            }
+            if (result.hasCallableMember) {
+              report(
+                node,
+                `Role '${role.name}' does not allow methods on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+              )
+              return
+            }
+          }
+          if (role.requiresUnion !== true || node.typeAnnotation.type === 'TSUnionType') {
+            return
+          }
+          report(
+            node,
+            `Role '${role.name}' requires a union type on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+          )
+        }
+
+        function inspectDataStructureType(typeNode) {
+          if (typeNode.type === 'TSTypeLiteral') {
+            return {
+              isDataStructure: true,
+              hasCallableMember: hasCallableTypeMembers(typeNode.members),
+            }
+          }
+          if (typeNode.type === 'TSUnionType' || typeNode.type === 'TSIntersectionType') {
+            const members = typeNode.types.map(inspectDataStructureType)
+            return {
+              isDataStructure: members.every((member) => member.isDataStructure),
+              hasCallableMember: members.some((member) => member.hasCallableMember),
+            }
+          }
+          if (isZodInferType(typeNode)) {
+            return { isDataStructure: true, hasCallableMember: false }
+          }
+          return { isDataStructure: false, hasCallableMember: false }
+        }
+
+        function isZodInferType(typeNode) {
+          return (
+            typeNode.type === 'TSTypeReference' &&
+            typeNode.typeName?.type === 'TSQualifiedName' &&
+            typeNode.typeName.left?.type === 'Identifier' &&
+            typeNode.typeName.left.name === 'z' &&
+            typeNode.typeName.right?.type === 'Identifier' &&
+            typeNode.typeName.right.name === 'infer'
+          )
+        }
+
+        function hasCallableTypeMembers(members) {
+          return members.some((member) => {
             if (
               member.type === 'TSMethodSignature' ||
               member.type === 'TSCallSignatureDeclaration' ||
@@ -837,22 +965,6 @@ export default {
               isCallableTypeAnnotation(member.typeAnnotation)
             )
           })
-          if (hasCallableMember) {
-            report(
-              node,
-              `Role '${role.name}' does not allow methods on '${name}'. ${referenceForKnownRole(options, role.name)}`,
-            )
-          }
-        }
-
-        function validateTypeAliasContract(node, role, name) {
-          if (role.requiresUnion !== true || node.typeAnnotation.type === 'TSUnionType') {
-            return
-          }
-          report(
-            node,
-            `Role '${role.name}' requires a union type on '${name}'. ${referenceForKnownRole(options, role.name)}`,
-          )
         }
 
         function unwrapExpression(node) {
@@ -872,6 +984,13 @@ export default {
             (node?.type === 'Literal' && typeof node.value === 'string') ||
             (node?.type === 'StringLiteral' && typeof node.value === 'string')
           )
+        }
+
+        function readStringLiteralValue(node) {
+          if (node?.type === 'TSLiteralType') {
+            return readStringLiteralValue(node.literal)
+          }
+          return isStringLiteral(node) ? node.value : null
         }
 
         function hasDecoratorSignature(node) {
@@ -1412,6 +1531,10 @@ export default {
       },
     },
   },
+}
+
+function matchesAnyPattern(filePath, patterns) {
+  return patterns.some((pattern) => minimatch(filePath, pattern, { dot: true }))
 }
 
 function resolveLocationChain(filePath, locations) {

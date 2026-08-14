@@ -5,13 +5,10 @@ import {
   role,
   roleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement'
-import {
-  createTestRoleEnforcementApplication,
-  withWorkspaceFixture,
-} from './test-fixture-workspace'
+import { runTestRoleEnforcement, withWorkspaceFixture } from './__fixtures__/test-fixture-workspace'
 
 const dataStructureRole = role('data-structure', {
-  requiresDataStructure: true,
+  mustBeDataStructure: true,
 })
 const unionRole = role('union', {
   requiresUnion: true,
@@ -39,11 +36,7 @@ function runWith(source: string) {
         'packages/pkg-a/src/published-language/types.ts': source,
       },
     },
-    (workspaceDir) =>
-      createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: { config },
-      }),
+    (workspaceDir) => runTestRoleEnforcement(config, workspaceDir),
   )
 }
 
@@ -78,6 +71,48 @@ export interface Link {
 
   expect(result.exitCode).toBe(1)
   expect(result.stdout).toContain("Role 'data-structure' does not allow methods")
+})
+
+it('allows a type alias containing data', () => {
+  const result = runWith(`/** @riviere-role data-structure */
+export type Link = {
+  source: string
+  target: string
+}
+`)
+
+  expect(result.exitCode).toBe(0)
+})
+
+it('rejects a method in a type-alias data structure', () => {
+  const result = runWith(`/** @riviere-role data-structure */
+export type Link = {
+  resolve(): string
+}
+`)
+
+  expect(result.exitCode).toBe(1)
+  expect(result.stdout).toContain("Role 'data-structure' does not allow methods")
+})
+
+it('rejects a function-valued field in a type-alias data structure', () => {
+  const result = runWith(`/** @riviere-role data-structure */
+export type Link = {
+  resolve: () => string
+}
+`)
+
+  expect(result.exitCode).toBe(1)
+  expect(result.stdout).toContain("Role 'data-structure' does not allow methods")
+})
+
+it('rejects a callable type alias as a data structure', () => {
+  const result = runWith(`/** @riviere-role data-structure */
+export type Link = () => string
+`)
+
+  expect(result.exitCode).toBe(1)
+  expect(result.stdout).toContain("Role 'data-structure' must be a data structure")
 })
 
 it('allows a published union', () => {

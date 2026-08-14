@@ -6,10 +6,10 @@ import {
   roleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement'
 import {
-  createTestRoleEnforcementApplication,
+  runTestRoleEnforcement,
   withWorkspaceFixture,
   writeFixtureFile,
-} from './test-fixture-workspace'
+} from './__fixtures__/test-fixture-workspace'
 
 const testRoles = [
   role('role-a', {
@@ -72,10 +72,7 @@ export function runRoleMain(): void {
 }
 `,
     )
-    const result = createTestRoleEnforcementApplication().execute({
-      configDir: workspaceDir,
-      configModule: { config: testConfig },
-    })
+    const result = runTestRoleEnforcement(testConfig, workspaceDir)
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('forbids non-construction usage')
@@ -95,10 +92,7 @@ export function runRoleMain(): void {
 }
 `,
     )
-    const result = createTestRoleEnforcementApplication().execute({
-      configDir: workspaceDir,
-      configModule: { config: testConfig },
-    })
+    const result = runTestRoleEnforcement(testConfig, workspaceDir)
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('forbids non-construction usage')
@@ -117,10 +111,7 @@ export function runRoleMain(): void {
 }
 `,
     )
-    const result = createTestRoleEnforcementApplication().execute({
-      configDir: workspaceDir,
-      configModule: { config: testConfig },
-    })
+    const result = runTestRoleEnforcement(testConfig, workspaceDir)
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
   })

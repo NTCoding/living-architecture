@@ -1,6 +1,6 @@
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
-import { createConfigWithRule } from '../../test-fixtures'
+import { createConfigWithRule } from '../../__fixtures__/test-fixtures'
 import { extractComponents } from './extractor'
 
 function createTestProject() {

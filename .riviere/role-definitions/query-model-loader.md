@@ -43,7 +43,7 @@ export class ComponentListLoader {
 
 ### Mixed Responsibility Signals
 - If the loader has a save/persist method — it may be an aggregate-repository
-- If reusable domain behaviour is needed to shape the read — call the domain service while building the query model; do not return the domain service as the query model
+- If domain behaviour is needed to shape the read, the responsibility is outside data access. The loader may import only the query model contract needed for its return value.
 
 ## Decision Guidance
 - **vs aggregate-repository**: Does it save state? → aggregate-repository. Load only, returning a query-model? → query-model-loader

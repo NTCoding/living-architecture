@@ -16,7 +16,7 @@ export class TestAssertionError extends Error {
 }
 
 export function loadDefaultConfig(): unknown {
-  const configPath = join(CURRENT_DIR, 'default-extraction.config.json')
+  const configPath = join(CURRENT_DIR, '../default-extraction.config.json')
   const configContent = readFileSync(configPath, 'utf-8')
   return JSON.parse(configContent)
 }

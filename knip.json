@@ -17,7 +17,7 @@
         "esbuild.config.mjs",
         "scripts/generate-docs.ts",
         "src/shell/bin.ts",
-        "src/shell/index.ts",
+        "src/index.ts",
         "src/shell/role-enforcement-bin.ts"
       ],
       "project": ["src/**/*.ts"]

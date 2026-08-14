@@ -2,10 +2,10 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { runOxlint } from '../../../infra/external-clients/oxlint/oxlint-client'
-import { createOxlintRoleEnforcementRunner } from '../adapters/oxlint/oxlint-role-enforcement-runner'
-import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement/role-enforcement-project-repository'
-import { RunRoleEnforcement } from './run-role-enforcement'
+import { runOxlint } from '../../../../infra/external-clients/oxlint/oxlint-client'
+import { createOxlintRoleEnforcementRunner } from '../../adapters/oxlint/oxlint-role-enforcement-runner'
+import { RoleEnforcementProjectRepository } from '../../data-access/role-enforcement/role-enforcement-project-repository'
+import { RunRoleEnforcement } from '../run-role-enforcement'
 import { genericTestRoles } from './test-fixture-config'
 
 interface WorkspaceBootstrap {
@@ -14,14 +14,24 @@ interface WorkspaceBootstrap {
   readonly files: Readonly<Record<string, string>>
 }
 
-export function createTestRoleEnforcementApplication(): RunRoleEnforcement {
+export function createTestRoleEnforcementApplication(configModule: unknown): RunRoleEnforcement {
   const pluginPath = fileURLToPath(
     import.meta.resolve('@living-architecture/riviere-role-enforcement/plugin'),
   )
   return new RunRoleEnforcement({
     now: () => 0,
-    projectRepository: new RoleEnforcementProjectRepository(),
+    projectRepository: new RoleEnforcementProjectRepository({
+      loadTypeScriptModule: () => configModule,
+    }),
     runner: createOxlintRoleEnforcementRunner(runOxlint, pluginPath),
+  })
+}
+
+export function runTestRoleEnforcement(config: unknown, configDir: string, packageFilter?: string) {
+  return createTestRoleEnforcementApplication({ config }).execute({
+    configDir,
+    configModulePath: 'test-role-enforcement.config.ts',
+    ...(packageFilter === undefined ? {} : { packageFilter }),
   })
 }
 

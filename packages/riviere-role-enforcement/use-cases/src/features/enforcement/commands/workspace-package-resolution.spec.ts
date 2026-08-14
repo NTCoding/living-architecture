@@ -6,10 +6,10 @@ import {
   roleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement'
 import {
-  createTestRoleEnforcementApplication,
+  runTestRoleEnforcement,
   withWorkspaceFixture,
   writeFixtureFile,
-} from './test-fixture-workspace'
+} from './__fixtures__/test-fixture-workspace'
 
 const workspacePackageTestRoles = [
   role('role-b', {
@@ -67,10 +67,7 @@ export class BetaRepository {
 
 it('accepts aggregate-repository returning aggregate from workspace package via barrel export', () => {
   withWorkspaceFixture(workspacePackageBootstrap, (workspaceDir) => {
-    const result = createTestRoleEnforcementApplication().execute({
-      configDir: workspaceDir,
-      configModule: { config: workspacePackageConfig },
-    })
+    const result = runTestRoleEnforcement(workspacePackageConfig, workspaceDir)
 
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
@@ -102,10 +99,7 @@ export class BetaRepository {
 `,
     )
 
-    const result = createTestRoleEnforcementApplication().execute({
-      configDir: workspaceDir,
-      configModule: { config: workspacePackageConfig },
-    })
+    const result = runTestRoleEnforcement(workspacePackageConfig, workspaceDir)
 
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
@@ -137,10 +131,7 @@ export class BetaRepository {
 `,
     )
 
-    const result = createTestRoleEnforcementApplication().execute({
-      configDir: workspaceDir,
-      configModule: { config: workspacePackageConfig },
-    })
+    const result = runTestRoleEnforcement(workspacePackageConfig, workspaceDir)
 
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
@@ -158,10 +149,7 @@ it('rejects aggregate-repository returning unannotated class from workspace pack
 `,
     )
 
-    const result = createTestRoleEnforcementApplication().execute({
-      configDir: workspaceDir,
-      configModule: { config: workspacePackageConfig },
-    })
+    const result = runTestRoleEnforcement(workspacePackageConfig, workspaceDir)
 
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')

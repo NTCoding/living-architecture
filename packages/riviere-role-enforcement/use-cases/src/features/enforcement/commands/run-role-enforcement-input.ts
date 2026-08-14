@@ -1,6 +1,6 @@
 /** @riviere-role command-use-case-input */
 export interface RunRoleEnforcementInput {
-  configModule: unknown
+  configModulePath: string
   configDir: string
   packageFilter?: string
 }

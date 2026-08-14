@@ -3,7 +3,7 @@ import * as fs from 'node:fs'
 import path from 'node:path'
 import { it } from 'vitest'
 import * as enforcementBuilder from '@living-architecture/riviere-role-enforcement'
-import * as fixtureWorkspace from './test-fixture-workspace'
+import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
 const layerTestRoles = [
   enforcementBuilder.role('role-infra', { targets: ['function', 'interface', 'type-alias'] }),
@@ -119,10 +119,7 @@ export function createOxlintAdapter(): string {
 `,
     )
 
-    const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-      configDir: workspaceDir,
-      configModule: { config: createAdapterLayerConfig() },
-    })
+    const result = fixtureWorkspace.runTestRoleEnforcement(createAdapterLayerConfig(), workspaceDir)
 
     assert.equal(result.exitCode, 1)
     assert.match(
@@ -155,10 +152,7 @@ export function run(): string {
 `,
     )
 
-    const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-      configDir: workspaceDir,
-      configModule: { config: createAdapterLayerConfig() },
-    })
+    const result = fixtureWorkspace.runTestRoleEnforcement(createAdapterLayerConfig(), workspaceDir)
 
     assert.equal(result.exitCode, 1)
     assert.match(
@@ -247,10 +241,10 @@ export function consume(port: DomainPort): string {
       'dir',
     )
 
-    const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-      configDir: workspaceDir,
-      configModule: { config: createCrossPackageLayerConfig() },
-    })
+    const result = fixtureWorkspace.runTestRoleEnforcement(
+      createCrossPackageLayerConfig(),
+      workspaceDir,
+    )
 
     assert.equal(result.exitCode, 1)
     assert.equal(result.stderr, '')
@@ -259,10 +253,7 @@ export function consume(port: DomainPort): string {
 })
 
 function runLayerEnforcement(workspaceDir: string) {
-  return fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-    configDir: workspaceDir,
-    configModule: { config: layerTestConfig },
-  })
+  return fixtureWorkspace.runTestRoleEnforcement(layerTestConfig, workspaceDir)
 }
 
 function createAdapterLayerConfig() {

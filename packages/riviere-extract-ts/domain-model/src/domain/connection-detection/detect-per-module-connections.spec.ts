@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { buildComponent } from './call-graph/call-graph-fixtures'
+import { buildComponent } from './call-graph/__fixtures__/call-graph-fixtures'
 import { PerModuleConnectionOptions } from './connection-detection-values'
 import { detectPerModuleConnections } from './detect-connections'
-import { createProject } from './detect-connections-fixtures'
+import { createProject } from './__fixtures__/detect-connections-fixtures'
 
 function createOptions(params: {
   sourceFilePaths: string[]

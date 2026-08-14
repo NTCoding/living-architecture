@@ -6,7 +6,7 @@ import {
   createModuleWithoutPath,
   createModuleWithoutApi,
   createMutableConfig,
-} from './validation-fixtures'
+} from './__fixtures__/validation-fixtures'
 import type { DraftConfiguration } from './extraction-config-schema'
 
 describe('validateExtractionConfig', () => {

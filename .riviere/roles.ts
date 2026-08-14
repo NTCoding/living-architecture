@@ -1,45 +1,4 @@
-import { createRoleFactory } from '@living-architecture/riviere-role-enforcement'
-
-type RoleName =
-  | 'aggregate'
-  | 'aggregate-repository'
-  | 'cli-entrypoint'
-  | 'cli-error'
-  | 'cli-error-handler'
-  | 'entrypoint-cli-input-parser'
-  | 'generic-cli-input-parser'
-  | 'cli-output-formatter'
-  | 'cli-response-formatter'
-  | 'cli-response-writer'
-  | 'command-input-factory'
-  | 'command-use-case'
-  | 'command-use-case-input'
-  | 'command-use-case-result'
-  | 'command-use-case-result-value'
-  | 'data-access-error'
-  | 'domain-error'
-  | 'domain-event'
-  | 'domain-port'
-  | 'domain-service'
-  | 'domain-port-adapter'
-  | 'external-client-error'
-  | 'external-client-model'
-  | 'external-client-service'
-  | 'main'
-  | 'published-language-annotation'
-  | 'published-language-data-structure'
-  | 'published-language-field-name'
-  | 'published-language-parser'
-  | 'published-language-schema'
-  | 'published-language-union'
-  | 'query-model'
-  | 'query-model-error'
-  | 'query-model-loader'
-  | 'query-model-use-case'
-  | 'query-model-use-case-input'
-  | 'value-object'
-
-const role = createRoleFactory<RoleName>()
+import { role } from '@living-architecture/riviere-role-enforcement'
 
 export const allRoles = [
   role('cli-entrypoint', { targets: ['function'] }),
@@ -108,7 +67,7 @@ export const allRoles = [
   role('domain-error', { targets: ['class'] }),
   role('domain-event', {
     targets: ['type-alias'],
-    nameMatches: '.*Event$',
+    mustBeDataStructure: true,
   }),
   role('domain-port', { targets: ['interface', 'type-alias'] }),
   role('domain-service', { targets: ['function', 'class'] }),
@@ -131,7 +90,6 @@ export const allRoles = [
   role('query-model', {
     targets: ['class', 'function', 'interface', 'type-alias'],
   }),
-  role('query-model-error', { targets: ['class'] }),
   role('query-model-loader', {
     targets: ['class'],
     allowedOutputs: ['query-model'],
@@ -140,7 +98,6 @@ export const allRoles = [
   role('external-client-model', { targets: ['interface', 'type-alias', 'class'] }),
   role('external-client-error', { targets: ['class'] }),
   role('entrypoint-cli-input-parser', { targets: ['function'] }),
-  role('generic-cli-input-parser', { targets: ['function'] }),
   role('cli-error', { targets: ['class'] }),
   role('main', {
     targets: ['function'],
@@ -155,7 +112,7 @@ export const allRoles = [
     requiresDecoratorSignature: true,
   }),
   role('published-language-data-structure', {
-    requiresDataStructure: true,
+    mustBeDataStructure: true,
   }),
   role('published-language-field-name', {
     requiresStringLiteralConstant: true,
@@ -167,11 +124,11 @@ export const allRoles = [
     ],
   }),
   role('published-language-schema', {
-    requiresDataStructure: true,
+    mustBeDataStructure: true,
   }),
   role('published-language-union', {
     requiresUnion: true,
   }),
 ] as const
 
-export type { RoleName }
+export type RoleName = (typeof allRoles)[number]['name']

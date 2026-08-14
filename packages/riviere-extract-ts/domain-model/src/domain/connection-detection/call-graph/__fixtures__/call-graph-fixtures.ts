@@ -1,6 +1,6 @@
 import { Project } from 'ts-morph'
-import { EnrichedComponent } from '../../value-extraction/enriched-component'
-import { CallGraphOptions } from './call-graph-types'
+import { EnrichedComponent } from '../../../value-extraction/enriched-component'
+import { CallGraphOptions } from '../call-graph-types'
 
 export const sharedProject = new Project({
   useInMemoryFileSystem: true,

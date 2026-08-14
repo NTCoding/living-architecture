@@ -6,7 +6,7 @@ import {
   role,
   roleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement'
-import * as fixtureWorkspace from './test-fixture-workspace'
+import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
 it('a file cannot satisfy a required sub-location', () => {
   const roles = [role('repository', { targets: ['class'] })] as const
@@ -27,17 +27,15 @@ export class Repository {}
       },
     },
     (workspaceDir) => {
-      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: {
-          config: roleEnforcementConfiguration({
-            configurations: { 'packages/pkg-a': { locations } },
-            ignorePatterns: [],
-            roleDefinitionsDir: '.riviere/role-definitions',
-            roles,
-          }),
-        },
-      })
+      const result = fixtureWorkspace.runTestRoleEnforcement(
+        roleEnforcementConfiguration({
+          configurations: { 'packages/pkg-a': { locations } },
+          ignorePatterns: [],
+          roleDefinitionsDir: '.riviere/role-definitions',
+          roles,
+        }),
+        workspaceDir,
+      )
 
       assert.equal(result.exitCode, 1)
       assert.match(result.stdout, /Unconfigured sub-location 'data-access'/)

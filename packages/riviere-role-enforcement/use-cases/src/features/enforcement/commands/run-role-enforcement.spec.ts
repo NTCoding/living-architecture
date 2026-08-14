@@ -11,26 +11,26 @@ import {
   configWithGenericRepositoryMethodInputsOnly,
   configWithGenericRequiredPrivateMembers,
   genericTestConfig,
-} from './test-fixture-config'
+} from './__fixtures__/test-fixture-config'
 import {
   createTestRoleEnforcementApplication,
+  runTestRoleEnforcement,
   withGenericFixtureWorkspace,
   writeCommandFile,
   writeDomainFile,
   writeRepositoryFile,
-} from './test-fixture-workspace'
+} from './__fixtures__/test-fixture-workspace'
 
 function runWith(config: typeof genericTestConfig, workspaceDir: string) {
-  return createTestRoleEnforcementApplication().execute({
-    configDir: workspaceDir,
-    configModule: { config },
-  })
+  return runTestRoleEnforcement(config, workspaceDir)
 }
 
 function createEmptyProjectRepository() {
   return new RoleEnforcementProjectRepository({
     findFilesMatchingPatterns: () => [],
+    loadTypeScriptModule: () => ({ config: genericTestConfig }),
     readDirectory: () => [],
+    readRoleDefinitionFileNames: () => genericTestConfig.roles.map((role) => `${role.name}.md`),
     realpath: (filePath) => filePath,
   })
 }
@@ -329,7 +329,7 @@ it('wraps RoleEnforcementExecutionError from the oxlint adapter into a failure r
       },
     }).execute({
       configDir: workspaceDir,
-      configModule: { config: genericTestConfig },
+      configModulePath: 'test-role-enforcement.config.ts',
     })
 
     expect(result.exitCode).toBe(1)
@@ -352,7 +352,7 @@ it('rethrows non-domain errors from the oxlint adapter', () => {
     expect(() =>
       runner.execute({
         configDir: workspaceDir,
-        configModule: { config: genericTestConfig },
+        configModulePath: 'test-role-enforcement.config.ts',
       }),
     ).toThrow(unexpected)
   })
@@ -372,7 +372,7 @@ it('returns failure when role-enforcement-plugin.mjs cannot be found', () => {
     ),
   }).execute({
     configDir: '/var/folders/fake-dir',
-    configModule: { config: genericTestConfig },
+    configModulePath: 'test-role-enforcement.config.ts',
   })
   expect(result.exitCode).toBe(1)
   expect(result.stderr).toContain('Cannot find role-enforcement-plugin.mjs')
@@ -380,9 +380,9 @@ it('returns failure when role-enforcement-plugin.mjs cannot be found', () => {
 
 it('wraps an invalid role enforcement configuration into a failure result', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
-    const result = createTestRoleEnforcementApplication().execute({
+    const result = createTestRoleEnforcementApplication({}).execute({
       configDir: workspaceDir,
-      configModule: {},
+      configModulePath: 'test-role-enforcement.config.ts',
     })
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('Role enforcement configuration must be an object.\n')
@@ -392,11 +392,7 @@ it('wraps an invalid role enforcement configuration into a failure result', () =
 
 it('wraps RoleEnforcementExecutionError from readConfigForPackage into a failure result', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
-    const result = createTestRoleEnforcementApplication().execute({
-      configDir: workspaceDir,
-      configModule: { config: genericTestConfig },
-      packageFilter: 'packages/pkg-missing',
-    })
+    const result = runTestRoleEnforcement(genericTestConfig, workspaceDir, 'packages/pkg-missing')
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toContain("No include patterns match package 'packages/pkg-missing'")
     expect(result.stdout).toBe('')

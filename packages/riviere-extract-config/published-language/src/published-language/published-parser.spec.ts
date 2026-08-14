@@ -1,4 +1,4 @@
-import { createMinimalConfig } from './validation-fixtures'
+import { createMinimalConfig } from './__fixtures__/validation-fixtures'
 import { parseExtractionConfig, parseExtractionConfigSchema } from './validation'
 
 describe('published-language parsers', () => {

@@ -6,6 +6,7 @@ import {
 } from '@living-architecture/riviere-role-enforcement'
 import type { RunRoleEnforcementInput } from './run-role-enforcement-input'
 import type { RunRoleEnforcementResult } from './run-role-enforcement-result'
+import { RoleEnforcementProjectLoadError } from '../data-access/role-enforcement/role-enforcement-project-load-error'
 
 interface RunRoleEnforcementDependencies {
   now: () => number
@@ -24,7 +25,7 @@ export class RunRoleEnforcement {
   execute(input: RunRoleEnforcementInput): RunRoleEnforcementResult {
     const start = this.deps.now()
     try {
-      const project = this.deps.projectRepository.load(input.configModule, input.configDir)
+      const project = this.deps.projectRepository.load(input.configModulePath, input.configDir)
       const adapterResult = project.execute(this.deps.runner, input.packageFilter)
       return {
         durationMs: this.deps.now() - start,
@@ -33,7 +34,11 @@ export class RunRoleEnforcement {
         stdout: adapterResult.stdout,
       }
     } catch (error) {
-      if (error instanceof RoleEnforcementExecutionError || error instanceof PackageFilterError) {
+      if (
+        error instanceof RoleEnforcementExecutionError ||
+        error instanceof PackageFilterError ||
+        error instanceof RoleEnforcementProjectLoadError
+      ) {
         return {
           durationMs: this.deps.now() - start,
           exitCode: 1,

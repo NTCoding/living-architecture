@@ -1,4 +1,4 @@
-import { validateExtractionConfig, createMinimalModule } from './validation-fixtures'
+import { validateExtractionConfig, createMinimalModule } from './__fixtures__/validation-fixtures'
 
 describe('module extends validation', () => {
   describe('valid configs with extends', () => {

@@ -5,15 +5,12 @@ import {
   role,
   roleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement'
-import {
-  createTestRoleEnforcementApplication,
-  withWorkspaceFixture,
-} from './test-fixture-workspace'
+import { runTestRoleEnforcement, withWorkspaceFixture } from './__fixtures__/test-fixture-workspace'
 
 type TestRole = 'parser' | 'schema'
 
 const schemaRole = role('schema', {
-  requiresDataStructure: true,
+  mustBeDataStructure: true,
 })
 const parserRole = role('parser', {
   returns: [
@@ -49,11 +46,7 @@ export interface Graph {
         'packages/pkg-a/src/published-language/parser.ts': parserSource,
       },
     },
-    (workspaceDir) =>
-      createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: { config },
-      }),
+    (workspaceDir) => runTestRoleEnforcement(config, workspaceDir),
   )
 }
 

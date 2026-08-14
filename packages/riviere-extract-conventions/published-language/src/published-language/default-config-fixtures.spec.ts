@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import * as extractionConfig from '@living-architecture/riviere-extract-config'
-import { getDraftConfiguration, getFirstModule, loadDefaultConfig } from './default-config-fixtures'
+import {
+  getDraftConfiguration,
+  getFirstModule,
+  loadDefaultConfig,
+} from './__fixtures__/default-config-fixtures'
 
 describe('getDraftConfiguration', () => {
   it('throws when config is invalid', () => {

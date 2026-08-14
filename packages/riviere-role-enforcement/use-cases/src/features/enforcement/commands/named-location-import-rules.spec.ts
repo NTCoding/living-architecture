@@ -6,7 +6,7 @@ import {
   roleEnforcementConfiguration,
   type LocationConfiguration,
 } from '@living-architecture/riviere-role-enforcement'
-import * as fixtureWorkspace from './test-fixture-workspace'
+import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
 it('a sibling import includes every sub-location below that sibling', () => {
   const locations = locationConfiguration<never>(
@@ -91,20 +91,18 @@ it("an own-subdomain import allows a named location in the subdomain's other pac
       },
     },
     (workspaceDir) => {
-      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: {
-          config: roleEnforcementConfiguration({
-            configurations: {
-              'modules/{subdomain}/consumer': { locations: consumerLocations },
-              'modules/{subdomain}/provider': { locations: providerLocations },
-            },
-            ignorePatterns: [],
-            roleDefinitionsDir: '.riviere/role-definitions',
-            roles: [],
-          }),
-        },
-      })
+      const result = fixtureWorkspace.runTestRoleEnforcement(
+        roleEnforcementConfiguration({
+          configurations: {
+            'modules/{subdomain}/consumer': { locations: consumerLocations },
+            'modules/{subdomain}/provider': { locations: providerLocations },
+          },
+          ignorePatterns: [],
+          roleDefinitionsDir: '.riviere/role-definitions',
+          roles: [],
+        }),
+        workspaceDir,
+      )
 
       assert.equal(result.exitCode, 0, result.stdout)
     },
@@ -132,20 +130,18 @@ it("an any-subdomain import allows another subdomain's named location", () => {
       },
     },
     (workspaceDir) => {
-      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: {
-          config: roleEnforcementConfiguration({
-            configurations: {
-              'modules/{subdomain}/consumer': { locations: consumerLocations },
-              'modules/{subdomain}/exporter': { locations: exporterLocations },
-            },
-            ignorePatterns: [],
-            roleDefinitionsDir: '.riviere/role-definitions',
-            roles: [],
-          }),
-        },
-      })
+      const result = fixtureWorkspace.runTestRoleEnforcement(
+        roleEnforcementConfiguration({
+          configurations: {
+            'modules/{subdomain}/consumer': { locations: consumerLocations },
+            'modules/{subdomain}/exporter': { locations: exporterLocations },
+          },
+          ignorePatterns: [],
+          roleDefinitionsDir: '.riviere/role-definitions',
+          roles: [],
+        }),
+        workspaceDir,
+      )
 
       assert.equal(result.exitCode, 0, result.stdout)
     },
@@ -174,20 +170,18 @@ it('an any-subdomain import allows the named location in a different package gro
     },
     (workspaceDir) => {
       const interfacePackage = { locations: interfaceLocations }
-      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: {
-          config: roleEnforcementConfiguration({
-            configurations: {
-              'interfaces/': interfacePackage,
-              'modules/{subdomain}/consumer': { locations: consumerLocations },
-            },
-            ignorePatterns: [],
-            roleDefinitionsDir: '.riviere/role-definitions',
-            roles: [],
-          }),
-        },
-      })
+      const result = fixtureWorkspace.runTestRoleEnforcement(
+        roleEnforcementConfiguration({
+          configurations: {
+            'interfaces/': interfacePackage,
+            'modules/{subdomain}/consumer': { locations: consumerLocations },
+          },
+          ignorePatterns: [],
+          roleDefinitionsDir: '.riviere/role-definitions',
+          roles: [],
+        }),
+        workspaceDir,
+      )
 
       assert.equal(result.exitCode, 0, result.stdout)
     },
@@ -212,17 +206,15 @@ function runFixture(
       const configurations = Object.fromEntries(
         packagePaths.map((packagePath) => [packagePath, { locations }]),
       )
-      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: {
-          config: roleEnforcementConfiguration({
-            configurations,
-            ignorePatterns: [],
-            roleDefinitionsDir: '.riviere/role-definitions',
-            roles: [],
-          }),
-        },
-      })
+      const result = fixtureWorkspace.runTestRoleEnforcement(
+        roleEnforcementConfiguration({
+          configurations,
+          ignorePatterns: [],
+          roleDefinitionsDir: '.riviere/role-definitions',
+          roles: [],
+        }),
+        workspaceDir,
+      )
       assertResult(result)
     },
   )

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { buildComponent } from './call-graph-fixtures'
+import { buildComponent } from './__fixtures__/call-graph-fixtures'
 import { CallSite, RawLink } from './call-graph-types'
 
 type ExtractedLinkMockMode =

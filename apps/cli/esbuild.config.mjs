@@ -48,7 +48,7 @@ await esbuild.build({
 
 // Library entry point (no side effects)
 await esbuild.build({
-  entryPoints: ['src/shell/index.ts'],
+  entryPoints: ['src/index.ts'],
   bundle: true,
   platform: 'node',
   target: 'node18',

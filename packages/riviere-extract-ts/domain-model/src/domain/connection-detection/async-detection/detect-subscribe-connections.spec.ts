@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildComponent } from '../call-graph/call-graph-fixtures'
+import { buildComponent } from '../call-graph/__fixtures__/call-graph-fixtures'
 import { ConnectionDetectionError } from '../connection-detection-error'
 import { AsyncDetectionOptions } from './async-detection-options'
 import { detectSubscribeConnections } from './detect-subscribe-connections'

@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { ComponentIndex } from '../component-index'
 import { buildCallGraph } from './build-call-graph'
-import { buildComponent, defaultOptions, nextFile, sharedProject } from './call-graph-fixtures'
+import {
+  buildComponent,
+  defaultOptions,
+  nextFile,
+  sharedProject,
+} from './__fixtures__/call-graph-fixtures'
 import { CallGraphOptions } from './call-graph-types'
 
 describe('buildCallGraph coverage - receiver resolution', () => {

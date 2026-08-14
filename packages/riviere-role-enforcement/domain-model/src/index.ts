@@ -1,7 +1,6 @@
 export { PackageFilterError, filterConfigByPackage } from './domain/filter-config-by-package'
 export {
   BuiltRole,
-  createRoleFactory,
   location,
   locationConfiguration,
   role,

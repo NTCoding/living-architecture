@@ -1,6 +1,8 @@
 import { type LocationBuilder, type LocationConfiguration } from './location-configuration'
 import { assignPackageConfigurations } from './assign-package-configurations'
 import { RoleEnforcementExecutionError } from './role-enforcement-execution-error'
+import { validateRoleConfiguration } from './validate-role-configuration'
+import { validateNoRepeatedInheritedImports } from './validate-location-import-rules'
 
 export { location, locationConfiguration } from './location-configuration'
 export type { LocationBuilder, LocationConfiguration } from './location-configuration'
@@ -39,7 +41,7 @@ type RoleOptions<R extends string = string> = RoleConstraints<R> &
   (
     | {
         readonly targets: readonly RoleTarget[]
-        readonly requiresDataStructure?: never
+        readonly mustBeDataStructure?: never
         readonly requiresDecoratorSignature?: never
         readonly requiresStringLiteralConstant?: never
         readonly requiresUnion?: never
@@ -47,7 +49,7 @@ type RoleOptions<R extends string = string> = RoleConstraints<R> &
       }
     | {
         readonly targets?: never
-        readonly requiresDataStructure?: never
+        readonly mustBeDataStructure?: never
         readonly requiresDecoratorSignature: true
         readonly requiresStringLiteralConstant?: never
         readonly requiresUnion?: never
@@ -57,13 +59,13 @@ type RoleOptions<R extends string = string> = RoleConstraints<R> &
         readonly targets?: never
         readonly requiresDecoratorSignature?: never
         readonly requiresStringLiteralConstant: true
-        readonly requiresDataStructure?: never
+        readonly mustBeDataStructure?: never
         readonly requiresUnion?: never
         readonly returns?: never
       }
     | {
-        readonly targets?: never
-        readonly requiresDataStructure: true
+        readonly targets?: readonly ('interface' | 'type-alias')[]
+        readonly mustBeDataStructure: true
         readonly requiresDecoratorSignature?: never
         readonly requiresStringLiteralConstant?: never
         readonly requiresUnion?: never
@@ -71,14 +73,14 @@ type RoleOptions<R extends string = string> = RoleConstraints<R> &
       }
     | {
         readonly targets?: never
-        readonly requiresDataStructure?: never
+        readonly mustBeDataStructure?: never
         readonly requiresDecoratorSignature?: never
         readonly requiresStringLiteralConstant?: never
         readonly requiresUnion: true
         readonly returns?: never
       }
     | {
-        readonly requiresDataStructure?: never
+        readonly mustBeDataStructure?: never
         readonly requiresDecoratorSignature?: never
         readonly requiresStringLiteralConstant?: never
         readonly requiresUnion?: never
@@ -90,7 +92,7 @@ type RoleOptions<R extends string = string> = RoleConstraints<R> &
 interface BuiltRoleDefinition<N extends string = string> extends RoleConstraints {
   readonly name: N
   readonly requiresDecoratorSignature?: true
-  readonly requiresDataStructure?: true
+  readonly mustBeDataStructure?: true
   readonly requiresStringLiteralConstant?: true
   readonly requiresUnion?: true
   readonly returns?: readonly ReturnShape[]
@@ -115,7 +117,7 @@ export class BuiltRole<N extends string = string> {
   declare readonly requiresPrivateConstructor?: true
   declare readonly requiredStaticMethodNamePrefix?: string
   declare readonly requiresDecoratorSignature?: true
-  declare readonly requiresDataStructure?: true
+  declare readonly mustBeDataStructure?: true
   declare readonly requiresStringLiteralConstant?: true
   declare readonly requiresUnion?: true
   declare readonly returns?: readonly ReturnShape[]
@@ -142,16 +144,6 @@ export function role<const N extends string>(name: N, options: RoleOptions): Bui
   })
 }
 
-/** @riviere-role domain-service */
-export function createRoleFactory<R extends string>() {
-  return <const N extends R>(name: N, options: RoleOptions<R>): BuiltRole<N> =>
-    BuiltRole.parse({
-      name,
-      ...options,
-      targets: inferredTargets(options),
-    })
-}
-
 function inferredTargets(options: RoleOptions): readonly RoleTarget[] {
   if (options.requiresDecoratorSignature === true) {
     return ['function']
@@ -159,8 +151,8 @@ function inferredTargets(options: RoleOptions): readonly RoleTarget[] {
   if (options.requiresStringLiteralConstant === true) {
     return ['variable']
   }
-  if (options.requiresDataStructure === true) {
-    return ['interface']
+  if (options.mustBeDataStructure === true) {
+    return options.targets ?? ['interface', 'type-alias']
   }
   if (options.requiresUnion === true) {
     return ['type-alias']
@@ -310,6 +302,11 @@ export function roleEnforcementConfiguration<const R extends string>(
   const assignedConfigurations = assignPackageConfigurations(input.configurations)
   const assignedPackages = assignedConfigurations.map(([packagePattern]) => packagePattern)
   const unassignedPackages = input.unassignedPackages ?? []
+  const locationHierarchy = assignedConfigurations.flatMap(([packagePattern, configuration]) =>
+    buildFluentLocationHierarchy(packagePattern, configuration.locations),
+  )
+  validateNoRepeatedInheritedImports(locationHierarchy)
+  validateRoleConfiguration(input.roles, locationHierarchy)
   return RoleEnforcementConfiguration.parse({
     assignedPackages,
     ignorePatterns: [
@@ -321,9 +318,7 @@ export function roleEnforcementConfiguration<const R extends string>(
       `${toGlobPattern(packagePattern)}/src/**/*.ts`,
       `${toGlobPattern(packagePattern)}/src/**/*.tsx`,
     ]),
-    locationHierarchy: assignedConfigurations.flatMap(([packagePattern, configuration]) =>
-      buildFluentLocationHierarchy(packagePattern, configuration.locations),
-    ),
+    locationHierarchy,
     roleDefinitionsDir: input.roleDefinitionsDir,
     roles: input.roles,
     unassignedPackages,

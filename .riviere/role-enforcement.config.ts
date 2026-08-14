@@ -23,12 +23,7 @@ export const config = roleEnforcementConfiguration({
     'tools/{tool}/domain-model': domainModel,
     'tools/{tool}/use-cases': useCases,
   },
-  ignorePatterns: [
-    '**/__fixtures__/**',
-    '**/*-fixtures.ts',
-    '**/test-fixtures.ts',
-    '**/test-fixture-*.ts',
-  ],
+  ignorePatterns: ['**/__fixtures__/**'],
   roleDefinitionsDir: '.riviere/role-definitions',
   roles: allRoles,
   unassignedPackages: ['apps/docs', 'apps/eclair'],

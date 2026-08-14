@@ -5,10 +5,7 @@ import {
   role,
   roleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement'
-import {
-  createTestRoleEnforcementApplication,
-  withWorkspaceFixture,
-} from './test-fixture-workspace'
+import { runTestRoleEnforcement, withWorkspaceFixture } from './__fixtures__/test-fixture-workspace'
 
 const fieldNameRole = role('field-name', {
   requiresStringLiteralConstant: true,
@@ -36,11 +33,7 @@ function runWith(source: string) {
         'packages/pkg-a/src/published-language/field-name.ts': source,
       },
     },
-    (workspaceDir) =>
-      createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: { config },
-      }),
+    (workspaceDir) => runTestRoleEnforcement(config, workspaceDir),
   )
 }
 

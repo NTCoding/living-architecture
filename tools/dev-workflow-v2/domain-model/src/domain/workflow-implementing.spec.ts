@@ -5,7 +5,7 @@ import {
   transitioned,
   eventsToReviewing,
   codeReviewFailed,
-} from './fixtures/workflow-test-fixtures'
+} from './__fixtures__/workflow-test-fixtures'
 
 describe('Workflow', () => {
   describe('createFresh', () => {

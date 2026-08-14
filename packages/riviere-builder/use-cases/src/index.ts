@@ -1,1 +1,1 @@
-export * from './features/builder/commands/add-component'
+export { AddComponent } from './features/builder/commands/add-component'

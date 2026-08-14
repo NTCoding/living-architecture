@@ -5,10 +5,7 @@ import {
   role,
   roleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement'
-import {
-  createTestRoleEnforcementApplication,
-  withWorkspaceFixture,
-} from './test-fixture-workspace'
+import { runTestRoleEnforcement, withWorkspaceFixture } from './__fixtures__/test-fixture-workspace'
 
 const annotationRole = role('annotation', {
   requiresDecoratorSignature: true,
@@ -37,10 +34,7 @@ function runWith(source: string) {
       },
     },
     (workspaceDir) => {
-      return createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: { config },
-      })
+      return runTestRoleEnforcement(config, workspaceDir)
     },
   )
 }

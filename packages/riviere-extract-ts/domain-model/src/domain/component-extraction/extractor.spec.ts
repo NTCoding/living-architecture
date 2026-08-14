@@ -5,7 +5,7 @@ import {
   createConfigWithRule,
   createOrdersUseCaseConfig,
   createResolvedConfig,
-} from '../../test-fixtures'
+} from '../../__fixtures__/test-fixtures'
 import { DraftComponent } from './draft-component'
 import { extractComponents } from './extractor'
 

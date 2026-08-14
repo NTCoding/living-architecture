@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildComponent } from './call-graph-fixtures'
+import { buildComponent } from './__fixtures__/call-graph-fixtures'
 import { CallSite, RawLink, UncertainRawLink } from './call-graph-types'
 import { deduplicateLinks } from './deduplicate-links'
 

@@ -7,7 +7,7 @@ import {
   eventsToAwaitingCi,
   makeDeps,
   reviewRecorded,
-} from './fixtures/workflow-test-fixtures'
+} from './__fixtures__/workflow-test-fixtures'
 import { Workflow } from './workflow'
 import { applyEvents } from './fold'
 import { defineReviewingState } from './states/reviewing'

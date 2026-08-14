@@ -3,13 +3,13 @@ import { RunRoleEnforcement } from '@living-architecture/riviere-role-enforcemen
 /** @riviere-role cli-entrypoint */
 export function main(
   application: RunRoleEnforcement,
-  configModule: unknown,
+  configModulePath: string,
   configDir: string,
   packageFilter?: string,
 ): number {
   const result = application.execute({
     configDir,
-    configModule,
+    configModulePath,
     ...(packageFilter === undefined ? {} : { packageFilter }),
   })
   if (result.stdout !== '') {

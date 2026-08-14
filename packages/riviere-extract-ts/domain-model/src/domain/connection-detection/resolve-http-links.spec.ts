@@ -1,7 +1,7 @@
 import type { HttpLinkConfig } from '@living-architecture/riviere-extract-config'
 import { describe, expect, it } from 'vitest'
 import type { EnrichedComponent } from '../value-extraction/enriched-component'
-import { buildComponent } from './call-graph/call-graph-fixtures'
+import { buildComponent } from './call-graph/__fixtures__/call-graph-fixtures'
 import { ExtractedLink } from './extracted-link'
 import { resolveHttpLinks, stripResolvedCustomTypes } from './resolve-http-links'
 

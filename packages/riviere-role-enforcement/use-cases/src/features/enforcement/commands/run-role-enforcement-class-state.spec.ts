@@ -1,16 +1,16 @@
 import { expect, it } from 'vitest'
-import { configWithGenericClassStateConstraints, genericTestConfig } from './test-fixture-config'
 import {
-  createTestRoleEnforcementApplication,
+  configWithGenericClassStateConstraints,
+  genericTestConfig,
+} from './__fixtures__/test-fixture-config'
+import {
+  runTestRoleEnforcement,
   withGenericFixtureWorkspace,
   writeDomainFile,
-} from './test-fixture-workspace'
+} from './__fixtures__/test-fixture-workspace'
 
 function runWith(config: typeof genericTestConfig, workspaceDir: string) {
-  return createTestRoleEnforcementApplication().execute({
-    configDir: workspaceDir,
-    configModule: { config },
-  })
+  return runTestRoleEnforcement(config, workspaceDir)
 }
 
 it('rejects classes with callable instance data members when role forbids them', () => {

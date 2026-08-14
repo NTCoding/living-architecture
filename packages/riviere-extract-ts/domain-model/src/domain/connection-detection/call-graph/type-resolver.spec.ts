@@ -7,7 +7,7 @@ import {
   getFirstCallExpression,
   nextFile,
   sharedProject,
-} from './type-resolver-fixtures'
+} from './__fixtures__/type-resolver-fixtures'
 
 describe('resolveCallExpressionReceiverType', () => {
   it('resolves type from explicitly typed constructor parameter', () => {

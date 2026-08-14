@@ -1,9 +1,9 @@
-import type { DraftConfiguration, ValidatedModuleInput } from './extraction-config-schema'
+import type { DraftConfiguration, ValidatedModuleInput } from '../extraction-config-schema'
 import {
   parseExtractionConfig,
   parseExtractionConfigSchema,
   type ValidationError,
-} from './validation'
+} from '../validation'
 
 type ValidationResult = { valid: true; errors: [] } | { valid: false; errors: ValidationError[] }
 

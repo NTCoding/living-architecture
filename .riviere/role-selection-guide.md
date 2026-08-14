@@ -24,7 +24,6 @@ If yes, it is:
 - `cli-entrypoint`, or
 - a component used by the `cli-entrypoint` to process the raw inputs, such as:
   - `entrypoint-cli-input-parser`
-  - `generic-cli-input-parser` when the parsing is primitive technical machinery with no entrypoint meaning
   - `command-input-factory`
 
 ## 2. Loading previously stored state
@@ -88,7 +87,7 @@ If yes, it is part of the query side. Ask: does it orchestrate the query, or doe
 - If it defines result types returned by the query model: `query-model`
 - If it loads the concrete result for an actual query use case from storage: `query-model-loader`
 - If it defines the input contract for a query use case: `query-model-use-case-input`
-- If it is an error thrown during query operations: `query-model-error`
+- If loading the query model fails: `data-access-error`
 
 **Critical distinction from commands:** If the code loads state but NEVER modifies or saves it, it belongs on the query side. The presence of a repository-like loading pattern does not automatically make something a `command-use-case` + `aggregate-repository`.
 

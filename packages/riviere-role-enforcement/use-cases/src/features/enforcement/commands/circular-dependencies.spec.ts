@@ -6,7 +6,7 @@ import {
   role,
   roleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement'
-import * as fixtureWorkspace from './test-fixture-workspace'
+import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
 const moduleFunction = role('module-function', { targets: ['function'] })
 
@@ -33,23 +33,21 @@ export function second(): string {
       },
     },
     (workspaceDir) => {
-      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: {
-          config: roleEnforcementConfiguration({
-            configurations: {
-              'packages/pkg-a': {
-                locations: locationConfiguration(
-                  location('/domain', ['module-function'], { allowAnySubLocations: true }),
-                ),
-              },
+      const result = fixtureWorkspace.runTestRoleEnforcement(
+        roleEnforcementConfiguration({
+          configurations: {
+            'packages/pkg-a': {
+              locations: locationConfiguration(
+                location('/domain', ['module-function'], { allowAnySubLocations: true }),
+              ),
             },
-            ignorePatterns: [],
-            roleDefinitionsDir: '.riviere/role-definitions',
-            roles: [moduleFunction],
-          }),
-        },
-      })
+          },
+          ignorePatterns: [],
+          roleDefinitionsDir: '.riviere/role-definitions',
+          roles: [moduleFunction],
+        }),
+        workspaceDir,
+      )
 
       assert.equal(result.exitCode, 1)
       assert.match(result.stdout, /Dependency cycle detected/)

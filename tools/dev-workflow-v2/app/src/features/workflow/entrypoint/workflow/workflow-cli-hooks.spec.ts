@@ -1,11 +1,11 @@
 import { describe, it, expect, afterEach } from 'vitest'
-import type { TestContext } from './fixtures/workflow-cli-test-fixtures'
+import type { TestContext } from './__fixtures__/workflow-cli-test-fixtures'
 import {
   buildTestContext,
   cleanupDb,
   runCommand,
   runHook,
-} from './fixtures/workflow-cli-test-fixtures'
+} from './__fixtures__/workflow-cli-test-fixtures'
 
 describe('workflow-cli hooks', () => {
   const dbPaths: string[] = []

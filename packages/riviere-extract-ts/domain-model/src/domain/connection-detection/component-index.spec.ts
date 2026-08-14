@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { EnrichedComponent } from '../value-extraction/enriched-component'
-import { buildComponent as buildFixtureComponent } from './call-graph/call-graph-fixtures'
+import { buildComponent as buildFixtureComponent } from './call-graph/__fixtures__/call-graph-fixtures'
 import { ComponentIndex } from './component-index'
 
 function buildComponent(overrides: Partial<EnrichedComponent> = {}): EnrichedComponent {

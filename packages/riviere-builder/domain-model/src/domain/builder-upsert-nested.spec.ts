@@ -1,5 +1,5 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
-import { RiviereBuilder } from './index'
+import { RiviereBuilder } from './builder-facade'
 
 function createValidOptions() {
   return {

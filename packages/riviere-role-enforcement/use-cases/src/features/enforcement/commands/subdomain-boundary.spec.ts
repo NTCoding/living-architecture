@@ -6,7 +6,7 @@ import {
   role,
   roleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement'
-import * as fixtureWorkspace from './test-fixture-workspace'
+import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
 const roles = [role('example', { targets: ['function'] })] as const
 type RoleName = (typeof roles)[number]['name']
@@ -178,21 +178,19 @@ function runBoundaryFixture(
           }),
         ),
       }
-      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: {
-          config: roleEnforcementConfiguration({
-            configurations: {
-              'interfaces/': interfacePackage,
-              'modules/{subdomain}/consumer': consumer,
-              'modules/{subdomain}/provider': provider,
-            },
-            ignorePatterns: [],
-            roleDefinitionsDir: '.riviere/role-definitions',
-            roles,
-          }),
-        },
-      })
+      const result = fixtureWorkspace.runTestRoleEnforcement(
+        roleEnforcementConfiguration({
+          configurations: {
+            'interfaces/': interfacePackage,
+            'modules/{subdomain}/consumer': consumer,
+            'modules/{subdomain}/provider': provider,
+          },
+          ignorePatterns: [],
+          roleDefinitionsDir: '.riviere/role-definitions',
+          roles,
+        }),
+        workspaceDir,
+      )
       assertResult(result)
     },
   )
@@ -234,21 +232,19 @@ function runGenericBoundaryFixture(
           }),
         ),
       }
-      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: {
-          config: roleEnforcementConfiguration({
-            configurations: {
-              'interfaces/': interfacePackage,
-              'groups/{boundary}/consumer': consumer,
-              'groups/{boundary}/provider': provider,
-            },
-            ignorePatterns: [],
-            roleDefinitionsDir: '.riviere/role-definitions',
-            roles,
-          }),
-        },
-      })
+      const result = fixtureWorkspace.runTestRoleEnforcement(
+        roleEnforcementConfiguration({
+          configurations: {
+            'interfaces/': interfacePackage,
+            'groups/{boundary}/consumer': consumer,
+            'groups/{boundary}/provider': provider,
+          },
+          ignorePatterns: [],
+          roleDefinitionsDir: '.riviere/role-definitions',
+          roles,
+        }),
+        workspaceDir,
+      )
       assertResult(result)
     },
   )

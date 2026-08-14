@@ -7,12 +7,16 @@ import {
 import type { findFilesMatchingPatterns } from '../../../../infra/external-clients/filesystem/find-files-matching-patterns'
 import { findFilesMatchingPatterns as defaultFindFilesMatchingPatterns } from '../../../../infra/external-clients/filesystem/find-files-matching-patterns'
 import { readWorkspacePackagePatterns as defaultReadWorkspacePackagePatterns } from '../../../../infra/external-clients/filesystem/read-workspace-package-patterns'
+import { loadTypeScriptModule as defaultLoadTypeScriptModule } from '../../../../infra/external-clients/typescript/load-typescript-module'
+import { RoleEnforcementProjectLoadError } from './role-enforcement-project-load-error'
 
 type ReadDirectory = Parameters<typeof findFilesMatchingPatterns>[3]
 
 const defaultDependencies = {
   findFilesMatchingPatterns: defaultFindFilesMatchingPatterns,
+  loadTypeScriptModule: defaultLoadTypeScriptModule,
   readDirectory: defaultReadDirectory,
+  readRoleDefinitionFileNames: defaultReadRoleDefinitionFileNames,
   readWorkspacePackagePatterns: defaultReadWorkspacePackagePatterns,
   realpath: (filePath: string) => realpathSync(filePath),
 }
@@ -22,6 +26,12 @@ function defaultReadDirectory(
   options: Parameters<ReadDirectory>[1],
 ): ReturnType<ReadDirectory> {
   return readdirSync(rootDir, options)
+}
+
+function defaultReadRoleDefinitionFileNames(directoryPath: string): readonly string[] {
+  return readdirSync(directoryPath, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => entry.name)
 }
 
 /** @riviere-role aggregate-repository */
@@ -35,9 +45,17 @@ export class RoleEnforcementProjectRepository {
     }
   }
 
-  load(configModule: unknown, configDir: string): RoleEnforcementProject {
-    const config = readConfig(configModule)
+  load(configModulePath: string, configDir: string): RoleEnforcementProject {
     const canonicalConfigDir = this.dependencies.realpath(configDir)
+    const config = readConfig(
+      this.dependencies.loadTypeScriptModule(path.resolve(canonicalConfigDir, configModulePath)),
+    )
+    validateRoleDefinitionFiles(
+      config,
+      this.dependencies.readRoleDefinitionFileNames(
+        path.resolve(canonicalConfigDir, config.roleDefinitionsDir),
+      ),
+    )
     const workspacePatterns = this.dependencies.readWorkspacePackagePatterns(canonicalConfigDir)
     const packagePatterns = workspacePatterns ?? packagePatternsFromConfiguration(config)
     const workspacePackageManifests = this.dependencies.findFilesMatchingPatterns(
@@ -56,6 +74,32 @@ export class RoleEnforcementProjectRepository {
       this.dependencies.readDirectory,
     )
     return new RoleEnforcementProject(config, canonicalConfigDir, lintTargets)
+  }
+}
+
+function validateRoleDefinitionFiles(
+  config: RoleEnforcementConfiguration,
+  fileNames: readonly string[],
+): void {
+  const definitionFiles = fileNames.filter(
+    (fileName) => fileName.endsWith('.md') && fileName !== 'index.md',
+  )
+  const definedRoles = new Set(definitionFiles.map((fileName) => fileName.slice(0, -3)))
+  for (const configuredRole of config.roles) {
+    if (!definedRoles.has(configuredRole.name)) {
+      throw new RoleEnforcementProjectLoadError(
+        `Role '${configuredRole.name}' has no definition file at '${config.roleDefinitionsDir}/${configuredRole.name}.md'.`,
+      )
+    }
+  }
+  const configuredRoles = new Set(config.roles.map((role) => role.name))
+  for (const definitionFile of definitionFiles) {
+    const roleName = definitionFile.slice(0, -3)
+    if (!configuredRoles.has(roleName)) {
+      throw new RoleEnforcementProjectLoadError(
+        `Role definition '${definitionFile}' has no configured role.`,
+      )
+    }
   }
 }
 

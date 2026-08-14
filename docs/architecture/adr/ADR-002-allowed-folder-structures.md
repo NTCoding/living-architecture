@@ -52,7 +52,6 @@ src/
 │               └── cli/
 ├── infra/
 │   └── cli/
-│       ├── input/
 │       └── presentation/
 └── shell/
 ```
@@ -84,7 +83,7 @@ Do not duplicate the domain's allowed values in an entrypoint union or validator
 
 `entrypoint/_platform` contains entrypoint code shared only within that feature's entrypoint location. The `_platform` location is importable anywhere within its parent location and nowhere outside it.
 
-Root `infra` contains generic technical code. It cannot import application or domain code. CLI input parsers accept generic input; CLI presentation formats or writes generic responses.
+Root `infra` contains generic technical code. It cannot import application or domain code. CLI presentation formats or writes generic responses. CLI input parsing remains in the entrypoint layer, including shared parsers under a feature's private `entrypoint/_platform/cli` location.
 
 `shell` wires the application. It may construct external clients and adapters, then pass them into app entrypoints or subdomain use cases. It contains no business decisions.
 
@@ -163,6 +162,9 @@ A published-language parser parses the published language and returns either its
 - A string allows every role in the named location. An object with a role list allows only those roles.
 - `_platform` with `importableFrom: 'withinParentLocation'` is private to its parent location.
 - Circular imports are rejected.
+- Production code cannot import files excluded by `ignorePatterns`. Tests are exempt from production import rules so they can assemble fixtures across boundaries.
+
+Package configuration keys ending in `/` apply the configuration to each direct package beneath that directory. For example, `'apps/': app` assigns the app configuration to every direct package under `apps/`.
 
 ## Package Entry Points
 

@@ -1,13 +1,16 @@
 import { describe, it, expect, afterEach } from 'vitest'
-import type { TestContext } from './fixtures/workflow-cli-test-fixtures'
+import type { TestContext } from './__fixtures__/workflow-cli-test-fixtures'
 import {
   buildTestContext,
   cleanupDb,
   progressToState,
   runCommand,
   runReviewCommand,
-} from './fixtures/workflow-cli-test-fixtures'
-import { recordPassingPreReviews, recordTaskCheck } from './fixtures/review-command-test-fixtures'
+} from './__fixtures__/workflow-cli-test-fixtures'
+import {
+  recordPassingPreReviews,
+  recordTaskCheck,
+} from './__fixtures__/review-command-test-fixtures'
 
 describe('workflow-cli transitions', () => {
   const dbPaths: string[] = []

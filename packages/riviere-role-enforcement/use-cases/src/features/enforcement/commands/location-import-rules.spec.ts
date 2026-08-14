@@ -6,7 +6,7 @@ import {
   role,
   roleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement'
-import * as fixtureWorkspace from './test-fixture-workspace'
+import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
 it("a sub-location inherits its parent location's allowed imports", () => {
   const locations = locationConfiguration<never>(
@@ -104,20 +104,40 @@ export class Repository {
       },
     },
     (workspaceDir) => {
-      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: {
-          config: roleEnforcementConfiguration({
-            configurations: { 'packages/pkg-a': { locations } },
-            ignorePatterns: [],
-            roleDefinitionsDir: '.riviere/role-definitions',
-            roles,
-          }),
-        },
-      })
+      const result = fixtureWorkspace.runTestRoleEnforcement(
+        roleEnforcementConfiguration({
+          configurations: { 'packages/pkg-a': { locations } },
+          ignorePatterns: [],
+          roleDefinitionsDir: '.riviere/role-definitions',
+          roles,
+        }),
+        workspaceDir,
+      )
 
       assert.equal(result.exitCode, 1)
       assert.match(result.stdout, /cannot import location '\/domain'/)
+    },
+  )
+})
+
+it("a file directly inside a location obeys that location's import rules", () => {
+  const locations = locationConfiguration<never>(
+    location<never>('/first', {
+      nested: [],
+      importRules: { allow: {} },
+    }),
+    location<never>('/second', []),
+  )
+
+  runFixture(
+    locations,
+    {
+      'packages/pkg-a/src/first/source.ts': `import '../second/target'\n`,
+      'packages/pkg-a/src/second/target.ts': `void 'target'\n`,
+    },
+    (result) => {
+      assert.equal(result.exitCode, 1)
+      assert.match(result.stdout, /cannot import location '\/second'/)
     },
   )
 })
@@ -136,17 +156,15 @@ function runFixture(
       files: { '.riviere/role-definitions/.gitkeep': '', ...files },
     },
     (workspaceDir) => {
-      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-        configDir: workspaceDir,
-        configModule: {
-          config: roleEnforcementConfiguration({
-            configurations: { 'packages/pkg-a': { locations } },
-            ignorePatterns: [],
-            roleDefinitionsDir: '.riviere/role-definitions',
-            roles: [],
-          }),
-        },
-      })
+      const result = fixtureWorkspace.runTestRoleEnforcement(
+        roleEnforcementConfiguration({
+          configurations: { 'packages/pkg-a': { locations } },
+          ignorePatterns: [],
+          roleDefinitionsDir: '.riviere/role-definitions',
+          roles: [],
+        }),
+        workspaceDir,
+      )
       assertResult(result)
     },
   )

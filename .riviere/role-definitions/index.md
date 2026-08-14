@@ -18,7 +18,7 @@ Dependencies point inward:
 - Use-case `queries/` → own-subdomain domain and feature data access
 - Domain-model `domain/` → its own model and permitted published languages; never use cases, adapters, infra, apps, or another domain model
 - Use-case `data-access/{concept}/` → aggregate and value-object roles from its own domain plus generic clients; never domain services
-- Use-case `adapters/{adapter}/` → one domain port and one generic client API; never external packages directly
+- Use-case `adapters/{adapter}/` → domain ports from its own subdomain plus generic client APIs; never external packages directly
 - Root `infra/` → external packages and generic technical capabilities; never app, use-case, or domain declarations
 - App `shell/` → constructs concrete dependencies and passes them into entrypoints
 
@@ -26,9 +26,13 @@ Concrete test: `readJsonFile(filePath): unknown` and `resolveFileOrPackagePath(.
 
 ## Automated Enforcement
 
-Role enforcement is automated via an oxlint plugin. It checks annotations, location constraints, import rules, and I/O contracts at lint time. ADR-002 defines the architecture and `.riviere/role-enforcement.config.ts` is its executable form. Changes must update both.
+Rivière role enforcement is automated via an Oxlint plugin. It checks annotations, location constraints, import rules, and input/output contracts at lint time. ADR-002 defines the architecture and `.riviere/role-enforcement.config.ts` is its executable form. Changes must update both.
 
 Import rules belong in the relevant location's `importRules`. Imports are unrestricted until a location declares import rules. That location can then import only its own subtree, inherited imports, and locations listed in `allow`. `sibling` means the same concrete parent location; `root` means the same package root; `ownSubdomain` and `anySubdomain` use the configured `{subdomain}` path capture. Allowing a location allows everything inside it unless a role subset is supplied. Explicit sublocations are the complete list of permitted folders unless `allowAnySubLocations` is set.
+
+The enforcer checks static imports, re-exports, dynamic imports, CommonJS `require()` calls and TypeScript import types. Non-literal dynamic imports and `require()` calls are rejected because their target cannot be checked. Production code cannot import ignored fixture files. Test files are deliberately exempt from production import rules so tests can assemble fixtures across boundaries.
+
+Some behavioural guidance is intentionally reviewed rather than mechanically counted. For example, an adapter should stay focused on one port-to-client translation and a CLI entrypoint should invoke one use case. The executable rules enforce the permitted locations and roles; review checks whether a particular declaration remains cohesive.
 
 ## Classification Decision Tree
 

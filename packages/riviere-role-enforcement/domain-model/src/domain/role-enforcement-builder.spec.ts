@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   BuiltRole,
-  createRoleFactory,
   location,
   locationConfiguration,
   role,
@@ -376,56 +375,23 @@ describe('RoleEnforcementConfiguration.parse', () => {
   })
 })
 
-describe('createRoleFactory', () => {
-  it('produces a role with typed name constraint', () => {
-    type TestRole = 'aggregate' | 'aggregate-repository'
-    const typedRole = createRoleFactory<TestRole>()
-
-    const result = typedRole('aggregate', { targets: ['class'] })
-
-    expectBuiltRole(result, {
-      name: 'aggregate',
-      targets: ['class'],
-    })
-  })
-
-  it('type-checks role references in options', () => {
-    type TestRole = 'command-use-case' | 'command-use-case-input' | 'command-use-case-result'
-    const typedRole = createRoleFactory<TestRole>()
-
-    const result = typedRole('command-use-case', {
-      targets: ['class'],
-      allowedInputs: ['command-use-case-input'],
-      allowedOutputs: ['command-use-case-result'],
-      forbiddenDependencies: ['command-use-case'],
-    })
-
-    expect(result.allowedInputs).toStrictEqual(['command-use-case-input'])
-    expect(result.forbiddenDependencies).toStrictEqual(['command-use-case'])
-  })
-
+describe('semantic role rules', () => {
   it.each([
     [{ requiresDecoratorSignature: true }, ['function']],
     [{ requiresStringLiteralConstant: true }, ['variable']],
-    [{ requiresDataStructure: true }, ['interface']],
+    [{ mustBeDataStructure: true }, ['interface', 'type-alias']],
     [{ requiresUnion: true }, ['type-alias']],
     [{ returns: [{ success: true, '*': 'semantic-role' }] }, ['function']],
   ] as const)('infers the declaration target from a semantic role rule', (options, targets) => {
-    type TestRole = 'semantic-role'
-    const typedRole = createRoleFactory<TestRole>()
-
-    const result = typedRole('semantic-role', options)
+    const result = role('semantic-role', options)
 
     expect(result.targets).toStrictEqual(targets)
   })
 
   it('rejects a role without a declaration target or semantic rule', () => {
-    type TestRole = 'invalid-role'
-    const typedRole = createRoleFactory<TestRole>()
-
     expect(() => {
       // @ts-expect-error untyped JavaScript callers still require runtime protection
-      typedRole('invalid-role', {})
+      role('invalid-role', {})
     }).toThrow('A role must declare a target or semantic rule.')
   })
 })

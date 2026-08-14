@@ -1,7 +1,7 @@
 import { Project, SyntaxKind } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { ComponentIndex } from '../component-index'
-import { buildComponent } from './call-graph-fixtures'
+import { buildComponent } from './__fixtures__/call-graph-fixtures'
 import {
   findMethodInProject,
   getCalledMethodName,

@@ -4,7 +4,6 @@ import type { RoleName } from '../roles'
 // #region Roles
 const entrypointRoles: RoleName[] = [
   'cli-entrypoint',
-  'cli-error-handler',
   'cli-output-formatter',
   'command-input-factory',
   'entrypoint-cli-input-parser',
@@ -13,10 +12,8 @@ const entrypointPlatformCliRoles: RoleName[] = [
   'entrypoint-cli-input-parser',
   'cli-output-formatter',
 ]
-const genericCliInputRoles: RoleName[] = ['generic-cli-input-parser']
 const cliPresentationRoles: RoleName[] = [
   'cli-error',
-  'cli-error-handler',
   'cli-output-formatter',
   'cli-response-formatter',
   'cli-response-writer',
@@ -34,7 +31,7 @@ export const app = {
           importRules: { importableFrom: 'withinParentLocation' },
         },
       },
-      // Features are isolated: they cannot import from other features, only the root /infra.
+      // Features are isolated from each other. They may use root infra and subdomain use cases.
       importRules: {
         allow: {
           root: ['infra'],
@@ -44,7 +41,6 @@ export const app = {
     }),
 
     location('/infra', {
-      'cli/input': genericCliInputRoles,
       'cli/presentation': cliPresentationRoles,
       importRules: { allow: {} },
     }),

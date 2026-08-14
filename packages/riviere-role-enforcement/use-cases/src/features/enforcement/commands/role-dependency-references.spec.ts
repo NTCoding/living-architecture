@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { it } from 'vitest'
 import * as enforcementBuilder from '@living-architecture/riviere-role-enforcement'
-import * as fixtureWorkspace from './test-fixture-workspace'
+import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
 const roles = [
   enforcementBuilder.role('role-value', {
@@ -170,8 +170,5 @@ function assertPasses(workspaceDir: string): void {
 }
 
 function runEnforcement(workspaceDir: string) {
-  return fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-    configDir: workspaceDir,
-    configModule: { config },
-  })
+  return fixtureWorkspace.runTestRoleEnforcement(config, workspaceDir)
 }

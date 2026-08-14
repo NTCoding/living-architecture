@@ -3,7 +3,7 @@ import {
   makeDeps,
   eventsToAwaitingPrFeedback,
   unresolvedThread,
-} from './fixtures/workflow-test-fixtures'
+} from './__fixtures__/workflow-test-fixtures'
 import { Workflow } from './workflow'
 import { applyEvents } from './fold'
 

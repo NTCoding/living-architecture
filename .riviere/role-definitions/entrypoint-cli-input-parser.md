@@ -13,7 +13,7 @@ Parses or validates raw CLI input using the meaning of a specific entrypoint.
 
 ## Canonical Example
 
-Sharing does not change this role into `generic-cli-input-parser` and does not move it to infra. It changes only where the parser lives inside the entrypoint layer. Always choose the narrowest entrypoint scope containing every caller.
+Sharing does not move this role to infra. It changes only where the parser lives inside the entrypoint layer. Always choose the narrowest entrypoint scope containing every caller.
 
 ### Used by one entrypoint
 
@@ -83,17 +83,11 @@ For example, Builder's `validateLinkType` is used by the `link` and `link-extern
 apps/cli/src/features/builder/entrypoint/_platform/cli/option-validators/
 ```
 
-They must not move to `platform/infra/cli` merely because several Builder entrypoints call them.
+They must not move to root `infra/cli` merely because several Builder entrypoints call them.
 
-### Shared by entrypoints in multiple features
+### Similar parsing in multiple features
 
-Cross-feature code is no longer private to one feature's entrypoint location. Generic CLI parsing shared across features belongs in:
-
-```text
-apps/cli/src/infra/cli/input/
-```
-
-It may work only with CLI and language primitives. Domain-aware validation does not move into app infra: pass the raw command/query input through the entrypoint and let the use case parse the domain-owned value object. There is no package-root `src/entrypoint/`; every entrypoint belongs to a feature.
+Features remain isolated. Keep small primitive conversions beside their entrypoints rather than creating a shared abstraction to save a few lines. If substantial cross-feature parsing genuinely emerges, review the app boundary before adding a new location. Domain-aware validation never moves into app infra: pass the raw command or query input through the entrypoint and let the use case parse the domain-owned value object. There is no package-root `src/entrypoint/`; every entrypoint belongs to a feature.
 
 ### When generic infra is correct
 
@@ -114,14 +108,13 @@ Do not extract a one-use primitive function merely to make the entrypoint file s
 
 ## Common Misclassifications
 
-- Primitive conversion without entrypoint meaning is a `generic-cli-input-parser`.
+- Primitive conversion used by an entrypoint remains private to that entrypoint until substantial reuse justifies reviewing the boundary.
 - Reusable domain validation belongs to the domain that owns the rule.
 - Reuse within one feature changes the `_platform` scope, not the role or location.
-- Reuse across features requires app `infra/cli/input/` for generic parsing. Domain-aware validation belongs in the subdomain use case and domain model.
+- Similar code in separate features does not by itself justify a shared abstraction. Domain-aware validation belongs in the subdomain use case and domain model.
 
 ## Anti-Patterns
 
 - Placing this role in an infrastructure layer.
-- Labelling entrypoint-specific parsing as `generic-cli-input-parser`.
 - Duplicating a parser in several entrypoints instead of moving it to their narrowest common entrypoint `_platform`.
 - Moving a parser to infra solely because several entrypoints use it.

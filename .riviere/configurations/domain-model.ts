@@ -12,7 +12,7 @@ const domainRoles: RoleName[] = [
 ]
 // #endregion
 
-// Package-level rules mean domain-model cannot import any other package or layer.
+// A domain model cannot import another domain model or any app or use-case layer.
 export const domainModel = {
   locations: locationConfiguration<RoleName>(
     location('/domain', domainRoles, {

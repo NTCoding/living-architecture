@@ -3,7 +3,7 @@ import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
 import { enrichComponents } from './enrich-components'
-import { createValidatedModule } from '../../test-fixtures'
+import { createValidatedModule } from '../../__fixtures__/test-fixtures'
 
 const project = new Project({ useInMemoryFileSystem: true })
 

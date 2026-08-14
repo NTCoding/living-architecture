@@ -63,6 +63,7 @@ function createOxlintConfig(
         {
           configDir,
           configDisplayPath: 'role-enforcement.config.ts',
+          ignorePatterns: config.ignorePatterns,
           ...(config.importAliases !== undefined && { importAliases: config.importAliases }),
           locationHierarchy: config.locationHierarchy,
           roleDefinitionsDir: config.roleDefinitionsDir,

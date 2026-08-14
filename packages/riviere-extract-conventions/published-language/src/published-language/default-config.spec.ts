@@ -8,7 +8,7 @@ import {
   getFirstModule,
   getDraftConfiguration,
   TestAssertionError,
-} from './default-config-fixtures'
+} from './__fixtures__/default-config-fixtures'
 
 function narrowToDetectionRule(rule: ComponentRule | undefined) {
   if (!rule) {

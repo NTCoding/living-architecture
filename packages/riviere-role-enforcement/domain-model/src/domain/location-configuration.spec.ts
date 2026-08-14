@@ -69,6 +69,15 @@ describe('location configuration', () => {
     expect(result.subLocations[0]?.allowedRoles).toStrictEqual(['aggregate'])
   })
 
+  it('exposes roles and import rules from a location definition', () => {
+    const result = location('/domain', ['aggregate'], {
+      importRules: { allow: { root: ['utilities'] } },
+    })
+
+    expect(result.allowedRoles).toStrictEqual(['aggregate'])
+    expect(result.importRules).toStrictEqual({ allow: { root: ['utilities'] } })
+  })
+
   it('ignores empty path segments when checking nested unrestricted locations', () => {
     expect(() =>
       location('/features', {
@@ -76,6 +85,28 @@ describe('location configuration', () => {
         '/domain//connection-detection': [],
       }),
     ).toThrow("Location '/domain/' cannot define both allowAnySubLocations and subLocations")
+  })
+
+  it('rejects a child import rule already allowed by its parent', () => {
+    expect(() =>
+      roleEnforcementConfiguration({
+        configurations: {
+          'packages/app': {
+            locations: locationConfiguration(
+              location('/areas/{area}', {
+                actions: {
+                  importRules: { allow: { root: ['utilities'] } },
+                },
+                importRules: { allow: { root: ['utilities'] } },
+              }),
+            ),
+          },
+        },
+        ignorePatterns: [],
+        roleDefinitionsDir: '.riviere/role-definitions',
+        roles: [],
+      }),
+    ).toThrow("Location '/actions' repeats inherited root import 'utilities'.")
   })
 })
 

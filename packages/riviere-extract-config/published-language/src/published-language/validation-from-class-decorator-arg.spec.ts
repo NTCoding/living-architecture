@@ -1,4 +1,7 @@
-import { validateExtractionConfigSchema, createMutableConfig } from './validation-fixtures'
+import {
+  validateExtractionConfigSchema,
+  createMutableConfig,
+} from './__fixtures__/validation-fixtures'
 
 describe('fromClassDecoratorArg extraction rule schema validation', () => {
   it('returns valid when decorator and position are provided', () => {

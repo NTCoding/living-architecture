@@ -21,10 +21,12 @@ const minimalConfig = roleEnforcementConfiguration({
   roles: [role('role-entry', { targets: ['function'] })] as const,
 })
 
-function createRepository() {
+function createRepository(configModule: unknown = { config: minimalConfig }) {
   return new RoleEnforcementProjectRepository({
     findFilesMatchingPatterns: vi.fn((): string[] => []),
+    loadTypeScriptModule: vi.fn(() => configModule),
     readDirectory: vi.fn((): [] => []),
+    readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md']),
     realpath: vi.fn((filePath: string): string => filePath),
   })
 }
@@ -46,11 +48,13 @@ describe('RoleEnforcementProjectRepository', () => {
     const findFilesMatchingPatterns = vi.fn((): string[] => [])
     const repository = new RoleEnforcementProjectRepository({
       findFilesMatchingPatterns,
+      loadTypeScriptModule: vi.fn(() => ({ config })),
       readWorkspacePackagePatterns: vi.fn(() => ({
         include: ['packages/*', 'packages/*/*', 'apps/*/', 'tools/*'],
         ignore: ['tools/legacy'],
       })),
       readDirectory: vi.fn((): [] => []),
+      readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md']),
       realpath: vi.fn((filePath: string): string => filePath),
     })
     const config = configurationWithPackageAssignments({
@@ -58,7 +62,7 @@ describe('RoleEnforcementProjectRepository', () => {
       unassignedPackages: [],
     })
 
-    repository.load({ config }, '/repo')
+    repository.load('config.ts', '/repo')
 
     expect(findFilesMatchingPatterns).toHaveBeenNthCalledWith(
       1,
@@ -81,7 +85,9 @@ describe('RoleEnforcementProjectRepository', () => {
       .mockReturnValueOnce([])
     const repository = new RoleEnforcementProjectRepository({
       findFilesMatchingPatterns,
+      loadTypeScriptModule: vi.fn(() => ({ config })),
       readDirectory: vi.fn((): [] => []),
+      readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md']),
       realpath: vi.fn((filePath: string): string => filePath),
     })
     const config = configurationWithPackageAssignments({
@@ -89,7 +95,7 @@ describe('RoleEnforcementProjectRepository', () => {
       unassignedPackages: [],
     })
 
-    expect(() => repository.load({ config }, '/repo')).toThrow(
+    expect(() => repository.load('config.ts', '/repo')).toThrow(
       "Workspace package 'packages/new-package' has no role-enforcement configuration and is not explicitly unassigned.",
     )
   })
@@ -101,7 +107,9 @@ describe('RoleEnforcementProjectRepository', () => {
       .mockReturnValueOnce([])
     const repository = new RoleEnforcementProjectRepository({
       findFilesMatchingPatterns,
+      loadTypeScriptModule: vi.fn(() => ({ config })),
       readDirectory: vi.fn((): [] => []),
+      readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md']),
       realpath: vi.fn((filePath: string): string => filePath),
     })
     const config = configurationWithPackageAssignments({
@@ -109,7 +117,7 @@ describe('RoleEnforcementProjectRepository', () => {
       unassignedPackages: ['apps/eclair'],
     })
 
-    expect(() => repository.load({ config }, '/repo')).not.toThrow()
+    expect(() => repository.load('config.ts', '/repo')).not.toThrow()
   })
 
   it('rejects a workspace package assigned to more than one configuration', () => {
@@ -119,7 +127,9 @@ describe('RoleEnforcementProjectRepository', () => {
       .mockReturnValueOnce([])
     const repository = new RoleEnforcementProjectRepository({
       findFilesMatchingPatterns,
+      loadTypeScriptModule: vi.fn(() => ({ config })),
       readDirectory: vi.fn((): [] => []),
+      readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md']),
       realpath: vi.fn((filePath: string): string => filePath),
     })
     const config = configurationWithPackageAssignments({
@@ -127,7 +137,7 @@ describe('RoleEnforcementProjectRepository', () => {
       unassignedPackages: [],
     })
 
-    expect(() => repository.load({ config }, '/repo')).toThrow(
+    expect(() => repository.load('config.ts', '/repo')).toThrow(
       "Workspace package 'packages/pkg-a' is assigned to more than one role-enforcement configuration.",
     )
   })
@@ -139,7 +149,9 @@ describe('RoleEnforcementProjectRepository', () => {
       .mockReturnValueOnce([])
     const repository = new RoleEnforcementProjectRepository({
       findFilesMatchingPatterns,
+      loadTypeScriptModule: vi.fn(() => ({ config })),
       readDirectory: vi.fn((): [] => []),
+      readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md']),
       realpath: vi.fn((filePath: string): string => filePath),
     })
     const config = configurationWithPackageAssignments({
@@ -147,30 +159,25 @@ describe('RoleEnforcementProjectRepository', () => {
       unassignedPackages: ['packages/pkg-a'],
     })
 
-    expect(() => repository.load({ config }, '/repo')).not.toThrow()
+    expect(() => repository.load('config.ts', '/repo')).not.toThrow()
   })
 
   it('loads a project when the module exports config directly', () => {
-    expect(createRepository().load({ config: minimalConfig }, '/repo')).toBeInstanceOf(
-      RoleEnforcementProject,
-    )
+    expect(createRepository().load('config.ts', '/repo')).toBeInstanceOf(RoleEnforcementProject)
   })
 
   it('loads a project when the module wraps config in a default export', () => {
-    expect(createRepository().load({ default: { config: minimalConfig } }, '/repo')).toBeInstanceOf(
-      RoleEnforcementProject,
-    )
+    expect(
+      createRepository({ default: { config: minimalConfig } }).load('config.ts', '/repo'),
+    ).toBeInstanceOf(RoleEnforcementProject)
   })
 
   it('prefers top-level config when both exports exist', () => {
-    const repository = createRepository()
-    const project = repository.load(
-      {
-        config: minimalConfig,
-        default: { config: {} },
-      },
-      '/repo',
-    )
+    const repository = createRepository({
+      config: minimalConfig,
+      default: { config: {} },
+    })
+    const project = repository.load('config.ts', '/repo')
 
     expect(project).toBeInstanceOf(RoleEnforcementProject)
   })
@@ -178,14 +185,14 @@ describe('RoleEnforcementProjectRepository', () => {
   it.each([null, 'not-an-object', { other: 'value' }])(
     'throws when the module does not export config',
     (configModule) => {
-      expect(() => createRepository().load(configModule, '/repo')).toThrow(
+      expect(() => createRepository(configModule).load('config.ts', '/repo')).toThrow(
         'Role enforcement configuration must be an object.',
       )
     },
   )
 
   it.each(['not-an-object', null])('throws when config is not an object', (config) => {
-    expect(() => createRepository().load({ config }, '/repo')).toThrow(
+    expect(() => createRepository({ config }).load('config.ts', '/repo')).toThrow(
       'Role enforcement configuration must be an object.',
     )
   })
@@ -210,10 +217,38 @@ describe('RoleEnforcementProjectRepository', () => {
     }
     delete incomplete[missingKey]
 
-    expect(() => createRepository().load({ config: incomplete }, '/repo')).toThrow(
+    expect(() => createRepository({ config: incomplete }).load('config.ts', '/repo')).toThrow(
       new RoleEnforcementExecutionError(
         `Role enforcement configuration is missing required property '${missingKey}'.`,
       ),
+    )
+  })
+
+  it('rejects a role without a Markdown definition', () => {
+    const repository = new RoleEnforcementProjectRepository({
+      findFilesMatchingPatterns: vi.fn((): string[] => []),
+      loadTypeScriptModule: vi.fn(() => ({ config: minimalConfig })),
+      readDirectory: vi.fn((): [] => []),
+      readRoleDefinitionFileNames: vi.fn(() => []),
+      realpath: vi.fn((filePath: string): string => filePath),
+    })
+
+    expect(() => repository.load('config.ts', '/repo')).toThrow(
+      "Role 'role-entry' has no definition file at '.riviere/role-definitions/role-entry.md'.",
+    )
+  })
+
+  it('rejects a Markdown definition that has no configured role', () => {
+    const repository = new RoleEnforcementProjectRepository({
+      findFilesMatchingPatterns: vi.fn((): string[] => []),
+      loadTypeScriptModule: vi.fn(() => ({ config: minimalConfig })),
+      readDirectory: vi.fn((): [] => []),
+      readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md', 'unused-role.md', 'index.md']),
+      realpath: vi.fn((filePath: string): string => filePath),
+    })
+
+    expect(() => repository.load('config.ts', '/repo')).toThrow(
+      "Role definition 'unused-role.md' has no configured role.",
     )
   })
 })
