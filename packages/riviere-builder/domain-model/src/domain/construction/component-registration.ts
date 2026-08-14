@@ -1,4 +1,4 @@
-import type { Component } from '@living-architecture/riviere-schema/schema'
+import type { Component } from '@living-architecture/riviere-schema-published-language/schema'
 import type { BuilderGraph } from '../builder-graph'
 import { ComponentTypeMismatchError, DuplicateComponentError } from './construction-errors'
 import { mergeComponentForUpsert } from '../enrichment/upsert-merge'

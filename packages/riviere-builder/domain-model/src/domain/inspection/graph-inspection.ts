@@ -1,4 +1,4 @@
-import type { ValidationResult } from '@living-architecture/riviere-schema/graph-validation'
+import type { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import type { BuilderGraph } from '../builder-graph'
 import { RiviereQuery } from '../query/RiviereQuery'
 import {

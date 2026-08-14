@@ -288,10 +288,10 @@ describe('ExtractionProjectRepository', () => {
   it('loadFromFullProject loads package-based extends from node_modules', () => {
     withWorkspace((dir) => {
       const pkgDir = join(dir, 'node_modules', 'my-config')
-      mkdirSync(join(pkgDir, 'src'), { recursive: true })
+      mkdirSync(join(pkgDir, 'src', 'published-language'), { recursive: true })
       writeFileSync(join(pkgDir, 'package.json'), JSON.stringify({ name: 'my-config' }), 'utf-8')
       writeFileSync(
-        join(pkgDir, 'src', 'default-extraction.config.json'),
+        join(pkgDir, 'src', 'published-language', 'default-extraction.config.json'),
         '{"api":{"notUsed":true}}',
         'utf-8',
       )

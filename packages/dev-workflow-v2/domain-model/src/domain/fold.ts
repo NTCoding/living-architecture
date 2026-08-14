@@ -102,5 +102,5 @@ export function applyEvent(state: WorkflowState, event: WorkflowEvent): Workflow
 
 /** @riviere-role domain-service */
 export function applyEvents(events: readonly WorkflowEvent[]): WorkflowState {
-  return events.reduce(applyEvent, getInitialWorkflowState())
+  return events.reduce((state, event) => applyEvent(state, event), getInitialWorkflowState())
 }

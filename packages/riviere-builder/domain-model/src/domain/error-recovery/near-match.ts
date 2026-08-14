@@ -12,7 +12,7 @@ export class NearMatch {
   findNearMatches(
     query: Readonly<{
       name: string
-      type?: import('@living-architecture/riviere-schema/schema').ComponentType
+      type?: import('@living-architecture/riviere-schema-published-language/schema').ComponentType
       domain?: string
     }>,
     options?: Readonly<{

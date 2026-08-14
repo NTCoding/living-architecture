@@ -7,7 +7,7 @@ export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../../node_modules/.vite/packages/riviere-extract-conventions',
   test: {
-    name: '@living-architecture/riviere-extract-conventions',
+    name: '@living-architecture/riviere-extract-conventions-published-language',
     testTimeout: 30_000,
     watch: false,
     globals: true,

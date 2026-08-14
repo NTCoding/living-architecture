@@ -6,7 +6,7 @@ import {
   type Project,
   SyntaxKind,
 } from 'ts-morph'
-import { ComponentId } from '@living-architecture/riviere-schema/component-id'
+import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 import type { EnrichedComponent } from '../../value-extraction/enriched-component'
 import type { ComponentIndex } from '../component-index'
 import type { ExtractedLink } from '../extracted-link'

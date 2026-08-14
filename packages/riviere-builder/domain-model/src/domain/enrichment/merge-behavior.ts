@@ -1,7 +1,7 @@
 import type {
   DomainOpComponent,
   OperationBehavior,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { deduplicateStrings } from '../collection-utils/deduplicate-strings'
 
 function mergeStringArray(existing: string[] | undefined, incoming: string[]): string[] {

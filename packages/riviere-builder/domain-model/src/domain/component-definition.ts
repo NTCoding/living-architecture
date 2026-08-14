@@ -1,4 +1,4 @@
-import type { Component } from '@living-architecture/riviere-schema/schema'
+import type { Component } from '@living-architecture/riviere-schema-published-language/schema'
 import { ComponentType } from './component-type'
 import { ApiDefinition } from './api-definition'
 import { CustomComponentDefinition } from './custom-component-definition'

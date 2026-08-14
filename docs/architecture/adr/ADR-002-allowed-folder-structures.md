@@ -25,12 +25,21 @@ packages/
 
 tools/
 └── {tool}/
-    ├── app/
-    ├── domain-model/
-    └── use-cases/
 ```
 
-`{subdomain}` is an enforced boundary. A package rule may allow imports within the same captured subdomain or across subdomains. Location rules cannot override package rules.
+Only a complete path segment named `{subdomain}` creates a subdomain boundary. Other placeholders, including `{tool}` and `{boundary}`, are ordinary path placeholders and never receive subdomain semantics. A package rule may allow imports within the same captured subdomain or across subdomains. Location rules cannot override package rules.
+
+The executable package assignments are exactly:
+
+```typescript
+'apps/': app,
+'packages/{subdomain}/domain-model': domainModel,
+'packages/{subdomain}/published-language': publishedLanguage,
+'packages/{subdomain}/use-cases': useCases,
+'tools/': app,
+```
+
+Keys ending in `/` assign a configuration to each direct package beneath that directory. Therefore apps and tools are direct packages, while the three subdomain package types must live beneath `packages/{subdomain}/`.
 
 The repository currently allows these package dependencies:
 
@@ -39,6 +48,8 @@ The repository currently allows these package dependencies:
 - A published-language package may not import another workspace package.
 - A use-case package may import its own subdomain's domain model and published-language packages.
 - No package may import an app.
+
+A tool is an app. Its domain-model, published-language, and use-case packages live under `packages/{subdomain}/`; they cannot be nested under `tools/{tool}/`.
 
 ## App Packages
 
@@ -157,14 +168,14 @@ A published-language parser parses the published language and returns either its
 - Allowing a location allows its entire subtree.
 - `sibling` means a configured location under the same concrete parent location.
 - `root` means a configured root location in the same package.
-- `ownSubdomain` means a location in another package with the same captured `{subdomain}` value.
-- `anySubdomain` means the named location in any package that captured `{subdomain}`.
+- `ownSubdomain` means a location in another package with the same value captured from a complete `{subdomain}` path segment.
+- `anySubdomain` means the named location in any package with a value captured from a complete `{subdomain}` path segment.
 - A string allows every role in the named location. An object with a role list allows only those roles.
 - `_platform` with `importableFrom: 'withinParentLocation'` is private to its parent location.
 - Circular imports are rejected.
 - Production code cannot import files excluded by `ignorePatterns`. Tests are exempt from production import rules so they can assemble fixtures across boundaries.
 
-Package configuration keys ending in `/` apply the configuration to each direct package beneath that directory. For example, `'apps/': app` assigns the app configuration to every direct package under `apps/`.
+Package configuration keys ending in `/` apply the configuration to each direct package beneath that directory. For example, `'apps/': app` assigns the app configuration to every direct package under `apps/`; it does not assign nested packages.
 
 ## Package Entry Points
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema/validation'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
 import { createProgram } from '../../../../shell/cli'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import {

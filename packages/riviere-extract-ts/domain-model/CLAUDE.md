@@ -31,7 +31,7 @@ Reads extraction configs and extracts component nodes from TypeScript source cod
 
 ### Dependencies
 
-- **@living-architecture/riviere-extract-config** - Config schema, types, and validation (already built at extraction time)
+- **@living-architecture/riviere-extract-config-published-language** - Config schema, types, and validation (already built at extraction time)
 - **ts-morph** - TypeScript AST parsing and compiler API access
 
 ### What This Package Does NOT Do

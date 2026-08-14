@@ -4,7 +4,7 @@ import {
   locationConfiguration,
   role,
   roleEnforcementConfiguration,
-} from '@living-architecture/riviere-role-enforcement'
+} from '@living-architecture/riviere-role-enforcement-domain-model'
 import { runTestRoleEnforcement, withWorkspaceFixture } from './__fixtures__/test-fixture-workspace'
 
 type TestRole = 'parser' | 'schema'

@@ -2,7 +2,7 @@ import type {
   Component,
   ComponentType,
   RiviereGraph,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 
 /** @riviere-role domain-service */
 export function findComponent(

@@ -85,6 +85,14 @@ export function createTestContext(): TestContext {
   }
 }
 
+export function runIsolatedGit(directory: string, args: string[]): void {
+  const env = { ...process.env }
+  for (const name of Object.keys(env)) {
+    if (name.startsWith('GIT_')) delete env[name]
+  }
+  execFileSync('/usr/bin/git', args, { cwd: directory, env, stdio: 'ignore' })
+}
+
 export function setupCommandTest(ctx: TestContext): void {
   beforeEach(async () => {
     ctx.testDir = await mkdtemp(join(tmpdir(), 'riviere-test-'))
@@ -92,10 +100,10 @@ export function setupCommandTest(ctx: TestContext): void {
     ctx.consoleOutput = []
     process.chdir(ctx.testDir)
     ctx.testDir = process.cwd()
-    execFileSync('/usr/bin/git', ['init', '--initial-branch=main'], { stdio: 'ignore' })
-    execFileSync('/usr/bin/git', ['config', 'user.email', 'test@example.com'])
-    execFileSync('/usr/bin/git', ['config', 'user.name', 'Test User'])
-    execFileSync('/usr/bin/git', ['remote', 'add', 'origin', 'https://github.com/test/repo.git'])
+    runIsolatedGit(ctx.testDir, ['init', '--initial-branch=main'])
+    runIsolatedGit(ctx.testDir, ['config', 'user.email', 'test@example.com'])
+    runIsolatedGit(ctx.testDir, ['config', 'user.name', 'Test User'])
+    runIsolatedGit(ctx.testDir, ['remote', 'add', 'origin', 'https://github.com/test/repo.git'])
     vi.spyOn(console, 'log').mockImplementation((msg: string) => ctx.consoleOutput.push(msg))
     vi.spyOn(process, 'exit').mockImplementation((code?: string | number | null | undefined) => {
       throw new ProcessExitError(typeof code === 'number' ? code : 0)

@@ -6,7 +6,7 @@ export default defineConfig(() => ({
   cacheDir: '../../../node_modules/.vite/packages/riviere-builder',
   plugins: [],
   test: {
-    name: '@living-architecture/riviere-builder',
+    name: '@living-architecture/riviere-builder-domain-model',
     watch: false,
     globals: true,
     environment: 'node',

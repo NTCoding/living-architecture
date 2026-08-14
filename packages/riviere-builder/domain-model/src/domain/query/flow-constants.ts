@@ -1,4 +1,4 @@
-import type { ComponentType } from '@living-architecture/riviere-schema/schema'
+import type { ComponentType } from '@living-architecture/riviere-schema-published-language/schema'
 
 const entryPointTypes: ReadonlySet<ComponentType> = new Set<ComponentType>([
   'UI',

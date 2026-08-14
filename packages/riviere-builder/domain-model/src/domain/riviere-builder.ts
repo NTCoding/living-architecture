@@ -2,7 +2,7 @@ import type {
   DomainMetadata,
   RiviereGraph,
   SourceInfo,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { BuilderGraph } from './builder-graph'
 import { GraphConstruction } from './construction/graph-construction'
 import { GraphEnrichment } from './enrichment/graph-enrichment'

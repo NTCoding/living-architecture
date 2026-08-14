@@ -1,5 +1,5 @@
 {
-  "name": "@living-architecture/riviere-builder",
+  "name": "@living-architecture/riviere-builder-domain-model",
   "version": "0.10.3",
   "publishConfig": {
     "access": "public"
@@ -42,10 +42,11 @@
   },
   "files": [
     "dist",
+    "!dist/**/__fixtures__/**",
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
-    "@living-architecture/riviere-schema": "workspace:*",
+    "@living-architecture/riviere-schema-published-language": "workspace:*",
     "zod": "^4.2.1"
   }
 }

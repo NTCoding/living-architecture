@@ -168,6 +168,21 @@ describe('RoleEnforcementConfiguration.validateWorkspacePackages', () => {
     )
   })
 
+  it.each(['domain-model', 'use-cases', 'published-language'])(
+    "rejects a nested '%s' package when only direct tool packages are configured",
+    (nestedPackage) => {
+      const config = configuredWorkspace({
+        'tools/': {
+          locations: locationConfiguration(location('/application', [])),
+        },
+      })
+
+      expect(() => config.validateWorkspacePackages([`tools/automation/${nestedPackage}`])).toThrow(
+        `Workspace package 'tools/automation/${nestedPackage}' has no role-enforcement configuration`,
+      )
+    },
+  )
+
   it('rejects a workspace package assigned more than once', () => {
     const locations = locationConfiguration(location('/domain', []))
     const config = configuredWorkspace({

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import * as extractionConfig from '@living-architecture/riviere-extract-config'
+import * as extractionConfig from '@living-architecture/riviere-extract-config-published-language'
 import {
   getDraftConfiguration,
   getFirstModule,

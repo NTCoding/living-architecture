@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { extractDomainMap } from './extract-domain-map'
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { parseNode, parseDomainMetadata } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {

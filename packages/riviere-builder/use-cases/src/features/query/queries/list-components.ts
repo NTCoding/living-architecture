@@ -1,5 +1,5 @@
 import { ComponentListLoader } from '../data-access/graph/query-loaders'
-import { ComponentType } from '@living-architecture/riviere-builder/domain/component-type'
+import { ComponentType } from '@living-architecture/riviere-builder-domain-model/domain/component-type'
 import type { ListComponentsInput } from './list-components-input'
 import type { ListComponentsResult } from './list-components-result'
 import { toQueryGraphLoadFailure } from './query-graph-load-failure'

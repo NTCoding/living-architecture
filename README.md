@@ -84,14 +84,14 @@ See the [extraction guide](https://living-architecture.dev/extract/) for AI-assi
 
 | Package | Purpose | Install |
 |---------|---------|---------|
-| `@living-architecture/riviere-schema` | Schema definition and validation | `npm i @living-architecture/riviere-schema` |
-| `@living-architecture/riviere-builder` | Build and query graphs programmatically | `npm i @living-architecture/riviere-builder` |
+| `@living-architecture/riviere-schema-published-language` | Schema definition and validation | `npm i @living-architecture/riviere-schema-published-language` |
+| `@living-architecture/riviere-builder-domain-model` | Build and query graphs programmatically | `npm i @living-architecture/riviere-builder-domain-model` |
 | `@living-architecture/riviere-cli` | CLI for extraction workflows | `npm i -g @living-architecture/riviere-cli` |
 
 ## Build a Graph
 
 ```typescript
-import { RiviereBuilder } from '@living-architecture/riviere-builder';
+import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model';
 
 const builder = RiviereBuilder.new({
   sources: [{ repository: 'https://github.com/your-org/your-repo' }],
@@ -125,7 +125,7 @@ const graph = builder.build();
 ## Query a Graph
 
 ```typescript
-import { RiviereQuery } from '@living-architecture/riviere-builder';
+import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model';
 
 const query = RiviereQuery.fromJSON(graphData);
 

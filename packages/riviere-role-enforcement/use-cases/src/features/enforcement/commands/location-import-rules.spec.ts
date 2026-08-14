@@ -5,7 +5,7 @@ import {
   locationConfiguration,
   role,
   roleEnforcementConfiguration,
-} from '@living-architecture/riviere-role-enforcement'
+} from '@living-architecture/riviere-role-enforcement-domain-model'
 import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
 it("a sub-location inherits its parent location's allowed imports", () => {

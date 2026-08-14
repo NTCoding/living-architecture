@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest'
 import { OxlintExecutionError } from '../../../../infra/external-clients/oxlint/oxlint-execution-error'
-import type { RoleEnforcementRunnerInput } from '@living-architecture/riviere-role-enforcement'
-import { RoleEnforcementConfiguration } from '@living-architecture/riviere-role-enforcement'
+import type { RoleEnforcementRunnerInput } from '@living-architecture/riviere-role-enforcement-domain-model'
+import { RoleEnforcementConfiguration } from '@living-architecture/riviere-role-enforcement-domain-model'
 import { createOxlintRoleEnforcementRunner } from './oxlint-role-enforcement-runner'
 
 function parseConfiguration(value: unknown): RoleEnforcementConfiguration {

@@ -5,13 +5,13 @@ import {
   locationConfiguration,
   role,
   roleEnforcementConfiguration,
-} from '@living-architecture/riviere-role-enforcement'
+} from '@living-architecture/riviere-role-enforcement-domain-model'
 import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
 const roles = [role('example', { targets: ['function'] })] as const
 type RoleName = (typeof roles)[number]['name']
 
-it('allows a configured package to import another package in its own subdomain', () => {
+it("ownSubdomain treats a path segment placeholder called '{subdomain}' as a subdomain", () => {
   runBoundaryFixture(
     'modules/alpha/consumer/src/actions/consume.ts',
     `import { value } from '../../../provider/src/api/value'
@@ -53,7 +53,7 @@ export function consume(): string { return value() }
   )
 })
 
-it('a configured package boundary can use any placeholder name', () => {
+it('ownSubdomain does not treat a differently named path segment placeholder as a subdomain', () => {
   runGenericBoundaryFixture(
     'groups/alpha/consumer/src/actions/consume.ts',
     `import { value } from '../../../provider/src/api/value'
@@ -61,11 +61,14 @@ it('a configured package boundary can use any placeholder name', () => {
 /** @riviere-role example */
 export function consume(): string { return value() }
 `,
-    (result) => assert.equal(result.exitCode, 0, result.stdout),
+    (result) => {
+      assert.equal(result.exitCode, 1)
+      assert.match(result.stdout, /Location '\/actions' cannot import location '\/api'/)
+    },
   )
 })
 
-it('allows an explicitly configured location in any subdomain', () => {
+it("anySubdomain treats a path segment placeholder called '{subdomain}' as a subdomain", () => {
   const consumerLocations = locationConfiguration(
     location<RoleName>('/actions', ['example'], {
       allowAnySubLocations: true,
@@ -97,7 +100,7 @@ export function consume(): string { return alpha() + beta() }
   )
 })
 
-it('an application can import an allowed location from any configured package boundary', () => {
+it('anySubdomain does not treat a differently named path segment placeholder as a subdomain', () => {
   runGenericBoundaryFixture(
     'interfaces/cli/src/entry/consume.ts',
     `import { alpha } from '../../../../groups/alpha/consumer/src/actions/alpha'
@@ -105,7 +108,10 @@ it('an application can import an allowed location from any configured package bo
 /** @riviere-role example */
 export function consume(): string { return alpha() }
 `,
-    (result) => assert.equal(result.exitCode, 0, result.stdout),
+    (result) => {
+      assert.equal(result.exitCode, 1)
+      assert.match(result.stdout, /Location '\/entry' cannot import location '\/actions'/)
+    },
   )
 })
 

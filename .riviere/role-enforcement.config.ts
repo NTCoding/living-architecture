@@ -1,4 +1,4 @@
-import { roleEnforcementConfiguration } from '@living-architecture/riviere-role-enforcement'
+import { roleEnforcementConfiguration } from '@living-architecture/riviere-role-enforcement-domain-model'
 import { app } from './configurations/app'
 import { domainModel } from './configurations/domain-model'
 import { publishedLanguage } from './configurations/published-language'
@@ -19,9 +19,7 @@ export const config = roleEnforcementConfiguration({
     'packages/{subdomain}/domain-model': domainModel,
     'packages/{subdomain}/published-language': publishedLanguage,
     'packages/{subdomain}/use-cases': useCases,
-    'tools/{tool}/app': app,
-    'tools/{tool}/domain-model': domainModel,
-    'tools/{tool}/use-cases': useCases,
+    'tools/': app,
   },
   ignorePatterns: ['**/__fixtures__/**'],
   roleDefinitionsDir: '.riviere/role-definitions',

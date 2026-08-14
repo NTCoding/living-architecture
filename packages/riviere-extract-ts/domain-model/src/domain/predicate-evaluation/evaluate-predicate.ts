@@ -1,4 +1,4 @@
-import type { Predicate } from '@living-architecture/riviere-extract-config'
+import type { Predicate } from '@living-architecture/riviere-extract-config-published-language'
 import type {
   ClassDeclaration,
   Decorator,

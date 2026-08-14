@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import * as fs from 'node:fs'
 import path from 'node:path'
 import { it } from 'vitest'
-import * as enforcementBuilder from '@living-architecture/riviere-role-enforcement'
+import * as enforcementBuilder from '@living-architecture/riviere-role-enforcement-domain-model'
 import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
 const layerTestRoles = [

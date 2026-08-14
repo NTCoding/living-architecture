@@ -1,4 +1,4 @@
-import type { FromGenericArgExtractionRule } from '@living-architecture/riviere-extract-config'
+import type { FromGenericArgExtractionRule } from '@living-architecture/riviere-extract-config-published-language'
 import type { ClassDeclaration } from 'ts-morph'
 import { SyntaxKind } from 'ts-morph'
 import { ExtractionError } from './literal-detection'

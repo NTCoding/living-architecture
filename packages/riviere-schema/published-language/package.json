@@ -1,5 +1,5 @@
 {
-  "name": "@living-architecture/riviere-schema",
+  "name": "@living-architecture/riviere-schema-published-language",
   "version": "0.8.3",
   "type": "module",
   "publishConfig": {
@@ -61,6 +61,7 @@
   },
   "files": [
     "dist",
+    "!dist/**/__fixtures__/**",
     "riviere.schema.json",
     "!**/*.tsbuildinfo"
   ],

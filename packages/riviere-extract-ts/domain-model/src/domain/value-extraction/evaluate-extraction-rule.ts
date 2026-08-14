@@ -7,7 +7,7 @@ import type {
   FromMethodNameExtractionRule,
   FromPropertyExtractionRule,
   LiteralExtractionRule,
-} from '@living-architecture/riviere-extract-config'
+} from '@living-architecture/riviere-extract-config-published-language'
 import { SyntaxKind } from 'ts-morph'
 import { ExtractionError, extractLiteralValue } from './literal-detection'
 import { applyTransforms } from './transforms'

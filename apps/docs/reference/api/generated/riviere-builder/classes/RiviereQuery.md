@@ -14,7 +14,7 @@ analyze domain models, and compare graph versions.
 ## Example
 
 ```typescript
-import { RiviereQuery } from '@living-architecture/riviere-builder/query'
+import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
 
 // From JSON
 const query = RiviereQuery.fromJSON(graphData)

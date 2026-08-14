@@ -1,10 +1,10 @@
-import type { Component } from '@living-architecture/riviere-schema/schema'
-import type { ComponentId } from '@living-architecture/riviere-schema/component-id'
+import type { Component } from '@living-architecture/riviere-schema-published-language/schema'
+import type { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 import { ComponentNotFoundError } from '../construction/construction-errors'
 import { similarityScore } from '../text-similarity/string-similarity'
 type NearMatchQuery = Readonly<{
   name: string
-  type?: import('@living-architecture/riviere-schema/schema').ComponentType
+  type?: import('@living-architecture/riviere-schema-published-language/schema').ComponentType
   domain?: string
 }>
 

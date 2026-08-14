@@ -1,4 +1,4 @@
-import type { DomainOpComponent } from '@living-architecture/riviere-schema/schema'
+import type { DomainOpComponent } from '@living-architecture/riviere-schema-published-language/schema'
 import type { BuilderGraph } from '../builder-graph'
 import { InvalidEnrichmentTargetError } from './enrichment-errors'
 import { createComponentNotFoundError } from '../construction/builder-internals'

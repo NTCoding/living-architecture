@@ -2,7 +2,7 @@ import type {
   Component,
   CustomComponent,
   OperationBehavior,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { mergeBehavior } from './merge-behavior'
 
 type Primitive = string | number | boolean

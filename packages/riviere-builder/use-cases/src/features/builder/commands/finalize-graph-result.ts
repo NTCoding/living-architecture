@@ -1,4 +1,4 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 
 /** @riviere-role command-use-case-result-value */
 export type FinalizeGraphErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND' | 'VALIDATION_ERROR'

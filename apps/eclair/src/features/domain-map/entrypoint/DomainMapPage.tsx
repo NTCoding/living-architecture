@@ -12,7 +12,7 @@ import type {
   Node, Edge, NodeMouseHandler, EdgeMouseHandler 
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { useExport } from '@/platform/infra/export/ExportContext'
 import {
   generateExportFilename,

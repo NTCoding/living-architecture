@@ -5,7 +5,7 @@
 The main class. Create an instance, add components, connect them, build a graph.
 
 ```typescript
-import { RiviereBuilder } from '@living-architecture/riviere-builder'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model'
 
 const builder = RiviereBuilder.new({
   sources: [{ type: 'git', url: 'https://github.com/your-org/your-repo' }],
@@ -64,7 +64,7 @@ builder.link({ from: api.id, to: useCase.id, type: 'sync' })
 Query and analyze Riviere graphs.
 
 ```typescript
-import { RiviereQuery } from '@living-architecture/riviere-builder'
+import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model'
 
 // From builder
 const query = builder.query()

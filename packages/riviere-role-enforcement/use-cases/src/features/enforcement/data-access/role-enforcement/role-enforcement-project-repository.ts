@@ -3,7 +3,7 @@ import path from 'node:path'
 import {
   RoleEnforcementConfiguration,
   RoleEnforcementProject,
-} from '@living-architecture/riviere-role-enforcement'
+} from '@living-architecture/riviere-role-enforcement-domain-model'
 import type { findFilesMatchingPatterns } from '../../../../infra/external-clients/filesystem/find-files-matching-patterns'
 import { findFilesMatchingPatterns as defaultFindFilesMatchingPatterns } from '../../../../infra/external-clients/filesystem/find-files-matching-patterns'
 import { readWorkspacePackagePatterns as defaultReadWorkspacePackagePatterns } from '../../../../infra/external-clients/filesystem/read-workspace-package-patterns'

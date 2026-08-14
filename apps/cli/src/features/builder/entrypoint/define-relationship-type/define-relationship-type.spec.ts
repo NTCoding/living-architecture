@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createProgram } from '../../../../shell/cli'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema/validation'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
 import {
   type TestContext,
   assertDefined,

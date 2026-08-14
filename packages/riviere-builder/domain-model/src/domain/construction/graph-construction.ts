@@ -10,7 +10,7 @@ import type {
   SystemType,
   UIComponent,
   UseCaseComponent,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import type { BuilderGraph } from '../builder-graph'
 import {
   CustomTypeAlreadyDefinedError,

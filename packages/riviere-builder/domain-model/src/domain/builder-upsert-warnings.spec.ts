@@ -1,4 +1,4 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { RiviereBuilder } from './builder-facade'
 import { ComponentTypeMismatchError } from './construction/construction-errors'
 

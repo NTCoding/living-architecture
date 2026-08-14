@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { RiviereBuilder } from '@living-architecture/riviere-builder/domain/builder-facade'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/builder-facade'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   type TestContext,

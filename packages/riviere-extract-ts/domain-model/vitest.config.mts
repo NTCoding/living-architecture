@@ -7,7 +7,7 @@ export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../../node_modules/.vite/packages/riviere-extract-ts',
   test: {
-    name: '@living-architecture/riviere-extract-ts',
+    name: '@living-architecture/riviere-extract-ts-domain-model',
     watch: false,
     globals: true,
     environment: 'node',

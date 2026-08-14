@@ -1,13 +1,13 @@
-import { RiviereQuery } from '@living-architecture/riviere-builder/query'
-import type { Flow as QueryFlow } from '@living-architecture/riviere-builder/query/flow'
-import type { FlowStep as QueryFlowStep } from '@living-architecture/riviere-builder/query/flow-step'
+import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
+import type { Flow as QueryFlow } from '@living-architecture/riviere-builder-domain-model/query/flow'
+import type { FlowStep as QueryFlowStep } from '@living-architecture/riviere-builder-domain-model/query/flow-step'
 import type {
   Component,
   ExternalLink,
   Link,
   RiviereGraph,
   SourceLocation,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { getEffectiveNodeType } from '@/platform/domain/node-type-presentation'
 
 export interface EntryPoint {

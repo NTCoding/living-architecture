@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { DraftComponent } from '@living-architecture/riviere-extract-ts/domain/component-extraction/draft-component'
+import type { DraftComponent } from '@living-architecture/riviere-extract-ts-domain-model/domain/component-extraction/draft-component'
 import { categorizeComponents } from './categorize-components'
 
 function createDraftComponent(type: string, name: string, domain: string): DraftComponent {

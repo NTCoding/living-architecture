@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { RiviereBuilder } from '@living-architecture/riviere-builder/domain/builder-facade'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema/validation'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/builder-facade'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
 import { GraphCorruptedError } from './graph-corrupted-error'
 import { GraphNotFoundError } from './graph-not-found-error'
 

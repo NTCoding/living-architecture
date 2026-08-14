@@ -2,8 +2,8 @@ import type {
   Component,
   CustomTypeDefinition,
   DomainMetadata,
-} from '@living-architecture/riviere-schema/schema'
-import { ComponentId } from '@living-architecture/riviere-schema/component-id'
+} from '@living-architecture/riviere-schema-published-language/schema'
+import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 import { createSourceNotFoundError } from '../error-recovery/component-suggestion'
 import { ComponentNotFoundError } from './construction-errors'
 import {

@@ -1,5 +1,5 @@
-import { ComponentNotFoundError } from '@living-architecture/riviere-builder/domain/construction/construction-errors'
-import { InvalidEnrichmentTargetError } from '@living-architecture/riviere-builder/domain/enrichment/enrichment-errors'
+import { ComponentNotFoundError } from '@living-architecture/riviere-builder-domain-model/domain/construction/construction-errors'
+import { InvalidEnrichmentTargetError } from '@living-architecture/riviere-builder-domain-model/domain/enrichment/enrichment-errors'
 import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'

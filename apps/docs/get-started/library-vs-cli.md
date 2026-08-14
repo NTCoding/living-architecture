@@ -63,7 +63,7 @@ The Library provides **programmatic control** for building graphs in TypeScript 
 5. Validate and export the graph
 
 ```typescript
-import { RiviereBuilder } from '@living-architecture/riviere-builder'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model'
 
 const builder = new RiviereBuilder({
   name: 'my-service',

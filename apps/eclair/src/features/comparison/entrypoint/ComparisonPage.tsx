@@ -2,7 +2,7 @@ import {
   useState, useCallback 
 } from 'react'
 import type { Node } from '../queries/eclair-types'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema/validation'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
 import {
   compareGraphs, type GraphDiff
 } from '../queries/compare-graphs'

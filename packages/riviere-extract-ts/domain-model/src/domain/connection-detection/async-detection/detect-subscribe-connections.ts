@@ -1,8 +1,8 @@
 import {
   EVENT_NAME_FIELD,
   SUBSCRIBED_EVENTS_FIELD,
-} from '@living-architecture/riviere-schema/schema'
-import { ComponentId } from '@living-architecture/riviere-schema/component-id'
+} from '@living-architecture/riviere-schema-published-language/schema'
+import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 import type { EnrichedComponent } from '../../value-extraction/enriched-component'
 import { ConnectionDetectionError } from '../connection-detection-error'
 import { ExtractedLink } from '../extracted-link'

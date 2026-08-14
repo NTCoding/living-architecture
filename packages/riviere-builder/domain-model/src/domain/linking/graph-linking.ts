@@ -1,5 +1,8 @@
-import type { ExternalLink, Link } from '@living-architecture/riviere-schema/schema'
-import { LinkId } from '@living-architecture/riviere-schema/link-id'
+import type {
+  ExternalLink,
+  Link,
+} from '@living-architecture/riviere-schema-published-language/schema'
+import { LinkId } from '@living-architecture/riviere-schema-published-language/link-id'
 import type { BuilderGraph } from '../builder-graph'
 import { createComponentNotFoundError } from '../construction/builder-internals'
 import {

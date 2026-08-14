@@ -1,4 +1,4 @@
-import type { Transform } from '@living-architecture/riviere-extract-config'
+import type { Transform } from '@living-architecture/riviere-extract-config-published-language'
 import { describe, expect, it } from 'vitest'
 import {
   applyTransforms,

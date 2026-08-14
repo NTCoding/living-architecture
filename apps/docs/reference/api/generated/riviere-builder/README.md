@@ -2,7 +2,7 @@
 pageClass: reference
 ---
 
-# @living-architecture/riviere-builder
+# @living-architecture/riviere-builder-domain-model
 
 ## Classes
 

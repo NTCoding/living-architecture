@@ -24,6 +24,7 @@
   },
   "files": [
     "dist",
+    "!dist/**/__fixtures__/**",
     "!**/*.tsbuildinfo"
   ],
   "bin": {
@@ -35,11 +36,11 @@
   },
   "dependencies": {
     "@living-architecture/riviere-builder-use-cases": "workspace:*",
-    "@living-architecture/riviere-extract-ts": "workspace:*",
+    "@living-architecture/riviere-extract-ts-domain-model": "workspace:*",
     "@living-architecture/riviere-extract-ts-use-cases": "workspace:*",
-    "@living-architecture/riviere-role-enforcement": "workspace:*",
+    "@living-architecture/riviere-role-enforcement-domain-model": "workspace:*",
     "@living-architecture/riviere-role-enforcement-use-cases": "workspace:*",
-    "@living-architecture/riviere-schema": "workspace:*",
+    "@living-architecture/riviere-schema-published-language": "workspace:*",
     "commander": "^14.0.2",
     "zod": "^4.3.5"
   }

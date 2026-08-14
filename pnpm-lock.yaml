@@ -148,19 +148,19 @@ importers:
       '@living-architecture/riviere-builder-use-cases':
         specifier: workspace:*
         version: link:../../packages/riviere-builder/use-cases
-      '@living-architecture/riviere-extract-ts':
+      '@living-architecture/riviere-extract-ts-domain-model':
         specifier: workspace:*
         version: link:../../packages/riviere-extract-ts/domain-model
       '@living-architecture/riviere-extract-ts-use-cases':
         specifier: workspace:*
         version: link:../../packages/riviere-extract-ts/use-cases
-      '@living-architecture/riviere-role-enforcement':
+      '@living-architecture/riviere-role-enforcement-domain-model':
         specifier: workspace:*
         version: link:../../packages/riviere-role-enforcement/domain-model
       '@living-architecture/riviere-role-enforcement-use-cases':
         specifier: workspace:*
         version: link:../../packages/riviere-role-enforcement/use-cases
-      '@living-architecture/riviere-schema':
+      '@living-architecture/riviere-schema-published-language':
         specifier: workspace:*
         version: link:../../packages/riviere-schema/published-language
       commander:
@@ -182,10 +182,10 @@ importers:
 
   apps/eclair:
     dependencies:
-      '@living-architecture/riviere-builder':
+      '@living-architecture/riviere-builder-domain-model':
         specifier: workspace:*
         version: link:../../packages/riviere-builder/domain-model
-      '@living-architecture/riviere-schema':
+      '@living-architecture/riviere-schema-published-language':
         specifier: workspace:*
         version: link:../../packages/riviere-schema/published-language
       '@xyflow/react':
@@ -256,9 +256,62 @@ importers:
         specifier: ^4.1.17
         version: 4.1.18
 
+  packages/dev-workflow-v2/domain-model:
+    dependencies:
+      '@nt-ai-lab/deterministic-agent-workflow-dsl':
+        specifier: 0.3.6
+        version: 0.3.6
+      '@nt-ai-lab/deterministic-agent-workflow-engine':
+        specifier: 0.3.6
+        version: 0.3.6
+      zod:
+        specifier: ^3.23.0
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.7
+      '@vitest/coverage-v8':
+        specifier: ^2.0.0
+        version: 2.1.9(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(supports-color@7.2.0)(vitest@2.1.9(@types/node@22.19.7)(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(jsdom@27.4.0(supports-color@7.2.0))(lightningcss@1.30.2)(supports-color@7.2.0))
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@22.19.7)(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(jsdom@27.4.0(supports-color@7.2.0))(lightningcss@1.30.2)(supports-color@7.2.0)
+
+  packages/dev-workflow-v2/use-cases:
+    dependencies:
+      '@living-architecture/dev-workflow-v2-domain-model':
+        specifier: workspace:*
+        version: link:../domain-model
+      '@nt-ai-lab/deterministic-agent-workflow-dsl':
+        specifier: 0.3.6
+        version: 0.3.6
+      '@nt-ai-lab/deterministic-agent-workflow-engine':
+        specifier: 0.3.6
+        version: 0.3.6
+      zod:
+        specifier: ^3.23.0
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.7
+      '@vitest/coverage-v8':
+        specifier: ^2.0.0
+        version: 2.1.9(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(supports-color@7.2.0)(vitest@2.1.9(@types/node@22.19.7)(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(jsdom@27.4.0(supports-color@7.2.0))(lightningcss@1.30.2)(supports-color@7.2.0))
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@22.19.7)(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(jsdom@27.4.0(supports-color@7.2.0))(lightningcss@1.30.2)(supports-color@7.2.0)
+
   packages/riviere-builder/domain-model:
     dependencies:
-      '@living-architecture/riviere-schema':
+      '@living-architecture/riviere-schema-published-language':
         specifier: workspace:*
         version: link:../../riviere-schema/published-language
       zod:
@@ -267,10 +320,10 @@ importers:
 
   packages/riviere-builder/use-cases:
     dependencies:
-      '@living-architecture/riviere-builder':
+      '@living-architecture/riviere-builder-domain-model':
         specifier: workspace:*
         version: link:../domain-model
-      '@living-architecture/riviere-schema':
+      '@living-architecture/riviere-schema-published-language':
         specifier: workspace:*
         version: link:../../riviere-schema/published-language
 
@@ -285,7 +338,7 @@ importers:
 
   packages/riviere-extract-conventions/published-language:
     dependencies:
-      '@living-architecture/riviere-extract-config':
+      '@living-architecture/riviere-extract-config-published-language':
         specifier: workspace:*
         version: link:../../riviere-extract-config/published-language
       '@typescript-eslint/utils':
@@ -294,10 +347,10 @@ importers:
 
   packages/riviere-extract-ts/domain-model:
     dependencies:
-      '@living-architecture/riviere-extract-config':
+      '@living-architecture/riviere-extract-config-published-language':
         specifier: workspace:*
         version: link:../../riviere-extract-config/published-language
-      '@living-architecture/riviere-schema':
+      '@living-architecture/riviere-schema-published-language':
         specifier: workspace:*
         version: link:../../riviere-schema/published-language
       ts-morph:
@@ -306,13 +359,13 @@ importers:
 
   packages/riviere-extract-ts/use-cases:
     dependencies:
-      '@living-architecture/riviere-extract-config':
+      '@living-architecture/riviere-extract-config-published-language':
         specifier: workspace:*
         version: link:../../riviere-extract-config/published-language
-      '@living-architecture/riviere-extract-ts':
+      '@living-architecture/riviere-extract-ts-domain-model':
         specifier: workspace:*
         version: link:../domain-model
-      '@living-architecture/riviere-schema':
+      '@living-architecture/riviere-schema-published-language':
         specifier: workspace:*
         version: link:../../riviere-schema/published-language
       glob:
@@ -333,7 +386,7 @@ importers:
 
   packages/riviere-role-enforcement/use-cases:
     dependencies:
-      '@living-architecture/riviere-role-enforcement':
+      '@living-architecture/riviere-role-enforcement-domain-model':
         specifier: workspace:*
         version: link:../domain-model
       minimatch:
@@ -355,11 +408,11 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1(ajv@8.18.0)
 
-  tools/dev-workflow-v2/app:
+  tools/dev-workflow-v2:
     dependencies:
       '@living-architecture/dev-workflow-v2-use-cases':
         specifier: workspace:*
-        version: link:../use-cases
+        version: link:../../packages/dev-workflow-v2/use-cases
       '@nt-ai-lab/deterministic-agent-workflow-claude-code':
         specifier: 0.3.7
         version: 0.3.7
@@ -375,59 +428,6 @@ importers:
       '@nt-ai-lab/deterministic-agent-workflow-opencode':
         specifier: 0.3.7
         version: 0.3.7
-      zod:
-        specifier: ^3.23.0
-        version: 3.25.76
-    devDependencies:
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.19.7
-      '@vitest/coverage-v8':
-        specifier: ^2.0.0
-        version: 2.1.9(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(supports-color@7.2.0)(vitest@2.1.9(@types/node@22.19.7)(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(jsdom@27.4.0(supports-color@7.2.0))(lightningcss@1.30.2)(supports-color@7.2.0))
-      typescript:
-        specifier: ^5.6.0
-        version: 5.9.3
-      vitest:
-        specifier: ^2.0.0
-        version: 2.1.9(@types/node@22.19.7)(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(jsdom@27.4.0(supports-color@7.2.0))(lightningcss@1.30.2)(supports-color@7.2.0)
-
-  tools/dev-workflow-v2/domain-model:
-    dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-dsl':
-        specifier: 0.3.6
-        version: 0.3.6
-      '@nt-ai-lab/deterministic-agent-workflow-engine':
-        specifier: 0.3.6
-        version: 0.3.6
-      zod:
-        specifier: ^3.23.0
-        version: 3.25.76
-    devDependencies:
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.19.7
-      '@vitest/coverage-v8':
-        specifier: ^2.0.0
-        version: 2.1.9(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(supports-color@7.2.0)(vitest@2.1.9(@types/node@22.19.7)(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(jsdom@27.4.0(supports-color@7.2.0))(lightningcss@1.30.2)(supports-color@7.2.0))
-      typescript:
-        specifier: ^5.6.0
-        version: 5.9.3
-      vitest:
-        specifier: ^2.0.0
-        version: 2.1.9(@types/node@22.19.7)(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(jsdom@27.4.0(supports-color@7.2.0))(lightningcss@1.30.2)(supports-color@7.2.0)
-
-  tools/dev-workflow-v2/use-cases:
-    dependencies:
-      '@living-architecture/dev-workflow-v2-domain-model':
-        specifier: workspace:*
-        version: link:../domain-model
-      '@nt-ai-lab/deterministic-agent-workflow-dsl':
-        specifier: 0.3.6
-        version: 0.3.6
-      '@nt-ai-lab/deterministic-agent-workflow-engine':
-        specifier: 0.3.6
-        version: 0.3.6
       zod:
         specifier: ^3.23.0
         version: 3.25.76

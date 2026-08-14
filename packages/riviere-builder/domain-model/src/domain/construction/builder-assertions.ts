@@ -1,7 +1,7 @@
 import type {
   CustomTypeDefinition,
   DomainMetadata,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import {
   CustomTypeNotFoundError,
   DomainNotFoundError,

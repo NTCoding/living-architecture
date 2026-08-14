@@ -1,5 +1,5 @@
 export { RiviereBuilder } from './domain/builder-facade'
-export { ComponentId } from '@living-architecture/riviere-schema/component-id'
+export { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 export {
   BuildValidationError,
   ComponentNotFoundError,

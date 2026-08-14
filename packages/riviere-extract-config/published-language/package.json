@@ -1,5 +1,5 @@
 {
-  "name": "@living-architecture/riviere-extract-config",
+  "name": "@living-architecture/riviere-extract-config-published-language",
   "version": "0.6.3",
   "type": "module",
   "publishConfig": {
@@ -25,6 +25,7 @@
   },
   "files": [
     "dist",
+    "!dist/**/__fixtures__/**",
     "extraction-config.schema.json",
     "!**/*.tsbuildinfo"
   ],

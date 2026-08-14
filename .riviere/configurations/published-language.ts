@@ -1,7 +1,9 @@
-import { location, locationConfiguration } from '@living-architecture/riviere-role-enforcement'
+import {
+  location,
+  locationConfiguration,
+} from '@living-architecture/riviere-role-enforcement-domain-model'
 import type { RoleName } from '../roles'
 
-// #region Roles
 const publishedLanguageRoles: RoleName[] = [
   'published-language-annotation',
   'published-language-schema',
@@ -11,7 +13,6 @@ const publishedLanguageRoles: RoleName[] = [
   'published-language-field-name',
   'value-object',
 ]
-// #endregion
 
 export const publishedLanguage = {
   locations: locationConfiguration<RoleName>(

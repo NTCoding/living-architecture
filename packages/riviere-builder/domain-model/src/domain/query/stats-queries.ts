@@ -1,4 +1,7 @@
-import type { DomainOpComponent, RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type {
+  DomainOpComponent,
+  RiviereGraph,
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { GraphStats } from './graph-stats'
 
 /** @riviere-role domain-service */

@@ -1,9 +1,9 @@
-import { ComponentNotFoundError } from '@living-architecture/riviere-builder/domain/construction/construction-errors'
-import { ComponentId } from '@living-architecture/riviere-schema/component-id'
+import { ComponentNotFoundError } from '@living-architecture/riviere-builder-domain-model/domain/construction/construction-errors'
+import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
-import { LinkType } from '@living-architecture/riviere-builder/domain/link-type'
+import { LinkType } from '@living-architecture/riviere-builder-domain-model/domain/link-type'
 import type { LinkExternalInput } from './link-external-input'
 import type { LinkExternalErrorCode, LinkExternalResult } from './link-external-result'
 

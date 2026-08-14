@@ -1,4 +1,4 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import type { Node, Edge, NodeType, NodeId } from '@/platform/domain/eclair-types'
 import { GraphError } from '@/platform/infra/errors/errors'
 

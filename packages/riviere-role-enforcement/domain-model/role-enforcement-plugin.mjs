@@ -1648,7 +1648,10 @@ function anySubdomainRuleMatches(configuredLocation, target) {
   if (!locationNameMatches(`/${configuredLocation}`, target.location.name)) {
     return false
   }
-  return readPackageBoundaries(target.location.packagePath, concretePackagePath(target)).size > 0
+  return readPackageBoundaries(
+    target.location.packagePath,
+    concretePackagePath(target),
+  ).has('subdomain')
 }
 
 function haveSameSubdomain(source, target) {
@@ -1660,8 +1663,9 @@ function haveSameSubdomain(source, target) {
     target.location.packagePath,
     concretePackagePath(target),
   )
-  return [...sourceBoundaries].some(
-    ([boundaryName, boundaryValue]) => targetBoundaries.get(boundaryName) === boundaryValue,
+  const sourceSubdomain = sourceBoundaries.get('subdomain')
+  return (
+    sourceSubdomain !== undefined && sourceSubdomain === targetBoundaries.get('subdomain')
   )
 }
 

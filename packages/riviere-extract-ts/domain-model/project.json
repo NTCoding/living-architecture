@@ -1,6 +1,19 @@
 {
-  "name": "riviere-extract-ts",
+  "name": "riviere-extract-ts-domain-model",
   "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "node ../../../scripts/build-public-exports.mjs . --clean",
+          "tsc --build tsconfig.lib.json",
+          "node ../../../scripts/build-public-exports.mjs ."
+        ],
+        "cwd": "{projectRoot}",
+        "parallel": false
+      },
+      "outputs": ["{projectRoot}/dist"]
+    },
     "role-check": {
       "executor": "nx:run-commands",
       "dependsOn": [

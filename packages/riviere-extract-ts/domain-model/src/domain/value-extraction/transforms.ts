@@ -1,4 +1,4 @@
-import type { Transform } from '@living-architecture/riviere-extract-config'
+import type { Transform } from '@living-architecture/riviere-extract-config-published-language'
 
 /** @riviere-role domain-service */
 export function stripSuffix(value: string, suffix: string): string {

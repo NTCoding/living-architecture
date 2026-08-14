@@ -1,8 +1,8 @@
-import type { ExternalLink } from '@living-architecture/riviere-schema/schema'
-import type { DraftComponent } from '@living-architecture/riviere-extract-ts/domain/component-extraction/draft-component'
-import type { ConnectionTimings } from '@living-architecture/riviere-extract-ts/domain/connection-detection/connection-detection-values'
-import type { ExtractedLink } from '@living-architecture/riviere-extract-ts/domain/connection-detection/extracted-link'
-import type { EnrichedComponent } from '@living-architecture/riviere-extract-ts/domain/value-extraction/enriched-component'
+import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
+import type { DraftComponent } from '@living-architecture/riviere-extract-ts-domain-model/domain/component-extraction/draft-component'
+import type { ConnectionTimings } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-values'
+import type { ExtractedLink } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/extracted-link'
+import type { EnrichedComponent } from '@living-architecture/riviere-extract-ts-domain-model/domain/value-extraction/enriched-component'
 
 interface EnrichDraftComponentsDraftOnlyResult {
   kind: 'draftOnly'

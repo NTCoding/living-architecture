@@ -2,7 +2,7 @@ packages:
   - packages/*
   - packages/*/*
   - apps/*
-  - tools/*/*
+  - tools/*
 
 autoInstallPeers: true
 engineStrict: true

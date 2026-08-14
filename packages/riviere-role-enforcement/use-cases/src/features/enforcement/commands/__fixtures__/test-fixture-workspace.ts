@@ -16,7 +16,7 @@ interface WorkspaceBootstrap {
 
 export function createTestRoleEnforcementApplication(configModule: unknown): RunRoleEnforcement {
   const pluginPath = fileURLToPath(
-    import.meta.resolve('@living-architecture/riviere-role-enforcement/plugin'),
+    import.meta.resolve('@living-architecture/riviere-role-enforcement-domain-model/plugin'),
   )
   return new RunRoleEnforcement({
     now: () => 0,

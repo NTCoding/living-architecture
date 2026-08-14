@@ -33,10 +33,17 @@ export interface ChangedFilesResult {
 
 type GitExecutor = (binary: string, args: readonly string[], cwd: string) => string
 
+function isolatedGitEnvironment(): NodeJS.ProcessEnv {
+  return Object.fromEntries(
+    Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')),
+  )
+}
+
 /* v8 ignore start -- @preserve: default executor delegates to execFileSync; tested via CLI integration */
 function defaultGitExecutor(binary: string, args: readonly string[], cwd: string): string {
   return execFileSync(binary, args, {
     cwd,
+    env: isolatedGitEnvironment(),
     encoding: 'utf-8',
     stdio: ['pipe', 'pipe', 'pipe'],
   }).trim()

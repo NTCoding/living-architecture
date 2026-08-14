@@ -1,4 +1,4 @@
-import type { SourceLocation } from '@living-architecture/riviere-schema/schema'
+import type { SourceLocation } from '@living-architecture/riviere-schema-published-language/schema'
 import type { EnrichedComponent } from '../../value-extraction/enriched-component'
 
 /** @riviere-role domain-service */

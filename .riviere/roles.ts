@@ -1,4 +1,4 @@
-import { role } from '@living-architecture/riviere-role-enforcement'
+import { role } from '@living-architecture/riviere-role-enforcement-domain-model'
 
 export const allRoles = [
   role('cli-entrypoint', { targets: ['function'] }),

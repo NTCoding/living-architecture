@@ -4,7 +4,7 @@ import {
 import { Link } from 'react-router-dom'
 import type {
   RiviereGraph, SystemType 
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import {
   domainNameSchema, type DomainName,
 } from '../queries/eclair-domain'

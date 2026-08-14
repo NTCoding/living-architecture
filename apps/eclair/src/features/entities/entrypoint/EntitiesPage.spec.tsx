@@ -10,7 +10,7 @@ import { EntitiesPage } from './EntitiesPage'
 import {
   parseNode, parseEdge, parseDomainMetadata 
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 const testSourceLocation = {
   repository: 'test-repo',
   filePath: 'src/test.ts',

@@ -266,13 +266,13 @@ modules:
         inClassWith:
           hasDecorator:
             name: "APIContainer"
-            from: "@living-architecture/riviere-extract-conventions"
+            from: "@living-architecture/riviere-extract-conventions-published-language"
     useCase:
       find: "classes"
       where:
         hasDecorator:
           name: "UseCase"
-          from: "@living-architecture/riviere-extract-conventions"
+          from: "@living-architecture/riviere-extract-conventions-published-language"
     domainOp: { notUsed: true }
     event: { notUsed: true }
     eventHandler: { notUsed: true }
@@ -345,20 +345,20 @@ modules:
   # All modules inherit detection rules from the conventions package
   - name: "orders"
     path: "src/orders/**/*.ts"
-    extends: "@living-architecture/riviere-extract-conventions"
+    extends: "@living-architecture/riviere-extract-conventions-published-language"
 
   - name: "shipping"
     path: "src/shipping/**/*.ts"
-    extends: "@living-architecture/riviere-extract-conventions"
+    extends: "@living-architecture/riviere-extract-conventions-published-language"
 
   - name: "inventory"
     path: "src/inventory/**/*.ts"
-    extends: "@living-architecture/riviere-extract-conventions"
+    extends: "@living-architecture/riviere-extract-conventions-published-language"
 
   # Override specific rules when needed
   - name: "payments"
     path: "src/payments/**/*.ts"
-    extends: "@living-architecture/riviere-extract-conventions"
+    extends: "@living-architecture/riviere-extract-conventions-published-language"
     event: { notUsed: true }  # No events in payments module
     ui: { notUsed: true }      # No UI in payments module
 ```

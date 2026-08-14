@@ -1,4 +1,7 @@
-import type { ExtractionRule, ValidatedModule } from '@living-architecture/riviere-extract-config'
+import type {
+  ExtractionRule,
+  ValidatedModule,
+} from '@living-architecture/riviere-extract-config-published-language'
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'

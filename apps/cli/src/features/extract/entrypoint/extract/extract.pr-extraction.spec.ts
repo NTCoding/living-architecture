@@ -1,5 +1,4 @@
 import { appendFile, rm, writeFile } from 'node:fs/promises'
-import { execFileSync } from 'node:child_process'
 import { join } from 'node:path'
 import { describe, it, expect, vi } from 'vitest'
 import type { TestContext } from '../../../../__fixtures__/command-test-fixtures'
@@ -8,6 +7,7 @@ import {
   setupCommandTest,
   parseErrorOutput,
   parseCommandWithErrorHandling,
+  runIsolatedGit,
 } from '../../../../__fixtures__/command-test-fixtures'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import {
@@ -16,17 +16,13 @@ import {
   createValidExtractFixture,
 } from '../../__fixtures__/extraction-test-fixtures'
 
-function runGit(directory: string, args: string[]): void {
-  execFileSync('/usr/bin/git', args, { cwd: directory, stdio: 'ignore' })
-}
-
 async function createFeatureBranchChange(directory: string, sourceFile: string): Promise<void> {
-  runGit(directory, ['add', '.'])
-  runGit(directory, ['commit', '-m', 'base'])
-  runGit(directory, ['checkout', '-b', 'feature'])
+  runIsolatedGit(directory, ['add', '.'])
+  runIsolatedGit(directory, ['commit', '-m', 'base'])
+  runIsolatedGit(directory, ['checkout', '-b', 'feature'])
   await appendFile(sourceFile, '\n// feature branch change\n')
-  runGit(directory, ['add', sourceFile])
-  runGit(directory, ['commit', '-m', 'change source'])
+  runIsolatedGit(directory, ['add', sourceFile])
+  runIsolatedGit(directory, ['commit', '-m', 'change source'])
 }
 
 describe('riviere extract PR extraction', () => {

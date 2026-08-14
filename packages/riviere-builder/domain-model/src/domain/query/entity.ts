@@ -1,4 +1,4 @@
-import type { DomainOpComponent } from '@living-architecture/riviere-schema/schema'
+import type { DomainOpComponent } from '@living-architecture/riviere-schema-published-language/schema'
 import type { DomainName } from './domain-name'
 import type { EntityName } from './entity-name'
 import { EntityTransition } from './entity-transition'

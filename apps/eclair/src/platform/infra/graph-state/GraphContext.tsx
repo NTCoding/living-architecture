@@ -8,8 +8,8 @@ import {
   useSyncExternalStore,
   useMemo,
 } from 'react'
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema/validation'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
 import {
   graphNameSchema, type GraphName
 } from '@/platform/domain/eclair-types'

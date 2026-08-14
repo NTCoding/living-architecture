@@ -1,7 +1,7 @@
 import { dirname, posix, resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import { globSync } from 'glob'
-import { DraftComponent } from '@living-architecture/riviere-extract-ts/domain/component-extraction/draft-component'
+import { DraftComponent } from '@living-architecture/riviere-extract-ts-domain-model/domain/component-extraction/draft-component'
 import {
   type DraftConfiguration,
   type DraftModule,
@@ -10,7 +10,7 @@ import {
   type ValidatedModule,
   ValidatedConfiguration,
   type ValidationError,
-} from '@living-architecture/riviere-extract-config'
+} from '@living-architecture/riviere-extract-config-published-language'
 import {
   FileReadError,
   readJsonFile,
@@ -21,7 +21,7 @@ import { resolveFileOrPackagePath } from '../../../../infra/external-clients/nod
 import { detectChangedTypeScriptFiles } from '../../../../infra/external-clients/git/git-changed-files'
 import { GitError } from '../../../../infra/external-clients/git/git-errors'
 import { getRepositoryInfo } from '../../../../infra/external-clients/git/git-repository-info'
-import { ExtractionProject } from '@living-architecture/riviere-extract-ts/domain/extraction-project'
+import { ExtractionProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-project'
 import { createConfiguredProject } from '../../../../infra/external-clients/ts-morph/create-configured-project'
 import { findModuleTsConfigDir } from '../../../../infra/external-clients/ts-morph/find-module-tsconfig-dir'
 import { ExtractionConfigError } from './extraction-config-error'
@@ -197,7 +197,7 @@ export class ExtractionProjectRepository {
   private loadExtendedModule(source: string, configDir: string): ResolvedModuleDefaults {
     const filePath = resolveFileOrPackagePath({
       baseDirectory: configDir,
-      packageRelativePath: 'src/default-extraction.config.json',
+      packageRelativePath: 'src/published-language/default-extraction.config.json',
       source,
     })
     if (!fileExists(filePath))

@@ -10,7 +10,7 @@ describe('module extends validation', () => {
             domain: 'orders',
             path: 'orders',
             glob: '**',
-            extends: '@living-architecture/riviere-extract-conventions',
+            extends: '@living-architecture/riviere-extract-conventions-published-language',
           },
         ],
       })
@@ -40,7 +40,7 @@ describe('module extends validation', () => {
             domain: 'orders',
             path: 'orders',
             glob: '**',
-            extends: '@living-architecture/riviere-extract-conventions',
+            extends: '@living-architecture/riviere-extract-conventions-published-language',
             event: { notUsed: true },
           },
         ],
@@ -56,7 +56,7 @@ describe('module extends validation', () => {
             domain: 'orders',
             path: 'orders',
             glob: '**',
-            extends: '@living-architecture/riviere-extract-conventions',
+            extends: '@living-architecture/riviere-extract-conventions-published-language',
           },
           {
             ...createMinimalModule(),
@@ -79,7 +79,7 @@ describe('module extends validation', () => {
             domain: 'orders',
             path: 'orders',
             glob: '**',
-            extends: '@living-architecture/riviere-extract-conventions',
+            extends: '@living-architecture/riviere-extract-conventions-published-language',
           },
         ],
       })
@@ -93,7 +93,7 @@ describe('module extends validation', () => {
           {
             name: 'orders',
             domain: 'orders',
-            extends: '@living-architecture/riviere-extract-conventions',
+            extends: '@living-architecture/riviere-extract-conventions-published-language',
           },
         ],
       })

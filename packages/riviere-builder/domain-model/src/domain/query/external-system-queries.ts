@@ -1,4 +1,4 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { compareByCodePoint } from './compare-by-code-point'
 import { DomainName } from './domain-name'
 import { ExternalDomain } from './external-domain'

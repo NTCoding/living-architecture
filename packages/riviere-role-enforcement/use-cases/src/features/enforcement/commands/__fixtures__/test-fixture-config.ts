@@ -3,7 +3,7 @@ import {
   locationConfiguration,
   role,
   roleEnforcementConfiguration,
-} from '@living-architecture/riviere-role-enforcement'
+} from '@living-architecture/riviere-role-enforcement-domain-model'
 
 export const genericTestRoles = [
   role('role-a', {

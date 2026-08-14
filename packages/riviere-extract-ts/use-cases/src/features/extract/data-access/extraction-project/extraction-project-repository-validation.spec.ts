@@ -2,8 +2,8 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { ExtractionProject } from '@living-architecture/riviere-extract-ts/domain/extraction-project'
-import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config'
+import { ExtractionProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-project'
+import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { ExtractionProjectRepository } from './extraction-project-repository'
 
 const VALID_CONFIG = `modules:

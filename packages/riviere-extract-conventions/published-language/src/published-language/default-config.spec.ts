@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   parseExtractionConfig,
   type ComponentRule,
-} from '@living-architecture/riviere-extract-config'
+} from '@living-architecture/riviere-extract-config-published-language'
 import {
   loadDefaultConfig,
   getFirstModule,
@@ -34,7 +34,7 @@ function assertContainerDecorator(
 
   expect(detection.where.inClassWith.hasDecorator).toStrictEqual({
     name: expectedDecorator,
-    from: '@living-architecture/riviere-extract-conventions',
+    from: '@living-architecture/riviere-extract-conventions-published-language',
   })
 }
 
@@ -54,7 +54,7 @@ function assertDirectDecorator(rule: ComponentRule | undefined, expectedDecorato
 
   expect(detection.where.hasDecorator).toStrictEqual({
     name: expectedDecorator,
-    from: '@living-architecture/riviere-extract-conventions',
+    from: '@living-architecture/riviere-extract-conventions-published-language',
   })
 }
 
@@ -103,14 +103,14 @@ describe('Default extraction config', () => {
           {
             hasDecorator: {
               name: 'HttpCall',
-              from: '@living-architecture/riviere-extract-conventions',
+              from: '@living-architecture/riviere-extract-conventions-published-language',
             },
           },
           {
             inClassWith: {
               hasDecorator: {
                 name: 'HttpClient',
-                from: '@living-architecture/riviere-extract-conventions',
+                from: '@living-architecture/riviere-extract-conventions-published-language',
               },
             },
           },

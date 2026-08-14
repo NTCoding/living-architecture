@@ -1,4 +1,4 @@
-import { RiviereQuery } from '@living-architecture/riviere-builder/query'
+import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
 import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 
 /** @riviere-role query-model */

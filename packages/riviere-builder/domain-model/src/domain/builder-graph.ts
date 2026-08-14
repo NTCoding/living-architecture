@@ -6,7 +6,7 @@ import type {
   Link,
   RelationshipTypeDefinition,
   SourceInfo,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 
 type BuilderGraphDefinition = Readonly<{
   version: string

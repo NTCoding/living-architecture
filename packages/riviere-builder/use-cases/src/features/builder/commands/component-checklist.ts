@@ -1,6 +1,6 @@
 import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
-import { ComponentType } from '@living-architecture/riviere-builder/domain/component-type'
+import { ComponentType } from '@living-architecture/riviere-builder-domain-model/domain/component-type'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
 import type { ComponentChecklistInput } from './component-checklist-input'
 import type {

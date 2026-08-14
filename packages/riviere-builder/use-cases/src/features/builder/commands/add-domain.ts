@@ -1,8 +1,8 @@
-import { DuplicateDomainError } from '@living-architecture/riviere-builder/domain/construction/construction-errors'
+import { DuplicateDomainError } from '@living-architecture/riviere-builder-domain-model/domain/construction/construction-errors'
 import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
-import { SystemType } from '@living-architecture/riviere-builder/domain/system-type'
+import { SystemType } from '@living-architecture/riviere-builder-domain-model/domain/system-type'
 import type { AddDomainInput } from './add-domain-input'
 import type { AddDomainErrorCode, AddDomainResult } from './add-domain-result'
 

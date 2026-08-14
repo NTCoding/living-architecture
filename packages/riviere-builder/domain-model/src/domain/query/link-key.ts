@@ -1,4 +1,4 @@
-import type { Link } from '@living-architecture/riviere-schema/schema'
+import type { Link } from '@living-architecture/riviere-schema-published-language/schema'
 import { LinkId } from './link-id'
 
 /** @riviere-role domain-service */

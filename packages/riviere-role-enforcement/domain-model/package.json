@@ -1,5 +1,5 @@
 {
-  "name": "@living-architecture/riviere-role-enforcement",
+  "name": "@living-architecture/riviere-role-enforcement-domain-model",
   "version": "0.3.3",
   "type": "module",
   "publishConfig": {
@@ -25,6 +25,7 @@
   },
   "files": [
     "dist",
+    "!dist/**/__fixtures__/**",
     "role-enforcement-plugin.mjs",
     "!**/*.tsbuildinfo"
   ],

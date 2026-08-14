@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { NodeTypeBadge } from '@/platform/infra/ui/NodeTypeBadge/NodeTypeBadge'
 import { extractModules } from '../queries/extract-modules'
 import type { Theme } from '@/types/theme'

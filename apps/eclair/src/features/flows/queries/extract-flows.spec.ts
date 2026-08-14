@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { extractFlows } from './extract-flows'
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import {
   parseNode,
   parseEdge,

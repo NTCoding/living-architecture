@@ -6,7 +6,7 @@
   "frontmatterGlobals": {
     "pageClass": "reference"
   },
-  "name": "@living-architecture/riviere-builder",
+  "name": "@living-architecture/riviere-builder-domain-model",
   "readme": "none",
   "excludePrivate": true,
   "excludeProtected": true,

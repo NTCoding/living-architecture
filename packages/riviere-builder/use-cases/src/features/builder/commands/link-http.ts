@@ -1,16 +1,16 @@
-import { ComponentId } from '@living-architecture/riviere-schema/component-id'
+import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 import type {
   APIComponent,
   Component,
   HttpMethod as PublishedHttpMethod,
   RiviereGraph,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
-import { ComponentType } from '@living-architecture/riviere-builder/domain/component-type'
+import { ComponentType } from '@living-architecture/riviere-builder-domain-model/domain/component-type'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
-import { HttpMethod } from '@living-architecture/riviere-builder/domain/http-method'
-import { LinkType } from '@living-architecture/riviere-builder/domain/link-type'
+import { HttpMethod } from '@living-architecture/riviere-builder-domain-model/domain/http-method'
+import { LinkType } from '@living-architecture/riviere-builder-domain-model/domain/link-type'
 import type { LinkHttpInput } from './link-http-input'
 import type { LinkHttpErrorCode, LinkHttpResult } from './link-http-result'
 

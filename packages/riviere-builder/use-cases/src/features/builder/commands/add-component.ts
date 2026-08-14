@@ -2,9 +2,9 @@ import {
   CustomTypeNotFoundError,
   DomainNotFoundError,
   DuplicateComponentError,
-} from '@living-architecture/riviere-builder/domain/construction/construction-errors'
-import type { RiviereBuilder } from '@living-architecture/riviere-builder/domain/builder-facade'
-import { ComponentDefinition } from '@living-architecture/riviere-builder/domain/component-definition'
+} from '@living-architecture/riviere-builder-domain-model/domain/construction/construction-errors'
+import type { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/builder-facade'
+import { ComponentDefinition } from '@living-architecture/riviere-builder-domain-model/domain/component-definition'
 import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'

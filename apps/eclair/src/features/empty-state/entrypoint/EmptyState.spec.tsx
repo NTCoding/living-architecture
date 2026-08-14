@@ -10,7 +10,7 @@ import {
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 import type {
   RiviereGraph, SourceLocation
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import {
   dropFilesOnElement, getDropZone
 } from '@/test/setup'

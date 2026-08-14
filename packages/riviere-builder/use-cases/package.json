@@ -1,6 +1,9 @@
 {
   "name": "@living-architecture/riviere-builder-use-cases",
   "version": "0.0.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -22,10 +25,11 @@
   },
   "files": [
     "dist",
+    "!dist/**/__fixtures__/**",
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
-    "@living-architecture/riviere-builder": "workspace:*",
-    "@living-architecture/riviere-schema": "workspace:*"
+    "@living-architecture/riviere-builder-domain-model": "workspace:*",
+    "@living-architecture/riviere-schema-published-language": "workspace:*"
   }
 }

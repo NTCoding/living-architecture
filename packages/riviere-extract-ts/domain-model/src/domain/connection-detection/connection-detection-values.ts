@@ -1,8 +1,8 @@
 import type {
   EventPublisherConfig,
   HttpLinkConfig,
-} from '@living-architecture/riviere-extract-config'
-import type { ExternalLink } from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-extract-config-published-language'
+import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
 import type { EnrichedComponent } from '../value-extraction/enriched-component'
 import type { ExtractedLink } from './extracted-link'
 

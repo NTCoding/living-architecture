@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest'
 import { createOxlintRoleEnforcementRunner } from '../adapters/oxlint/oxlint-role-enforcement-runner'
 import { RoleEnforcementProjectRepository } from '../data-access/role-enforcement/role-enforcement-project-repository'
-import { RoleEnforcementExecutionError } from '@living-architecture/riviere-role-enforcement'
+import { RoleEnforcementExecutionError } from '@living-architecture/riviere-role-enforcement-domain-model'
 
 import { RunRoleEnforcement } from './run-role-enforcement'
 import {

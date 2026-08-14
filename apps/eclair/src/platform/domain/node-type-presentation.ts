@@ -2,7 +2,7 @@ import type {
   Component,
   RiviereGraph,
   CustomTypeDefinition,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import type { Theme } from '@/types/theme'
 import { compareByCodePoint } from './compare-by-code-point'
 

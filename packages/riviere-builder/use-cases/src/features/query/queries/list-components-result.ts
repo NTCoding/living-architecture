@@ -1,5 +1,5 @@
-import { RiviereQuery } from '@living-architecture/riviere-builder/query'
-import type { ComponentType } from '@living-architecture/riviere-schema/schema'
+import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
+import type { ComponentType } from '@living-architecture/riviere-schema-published-language/schema'
 import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 
 /** @riviere-role query-model */

@@ -1,4 +1,4 @@
-import { ComponentId } from '@living-architecture/riviere-schema/component-id'
+import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 import { ExtractedLink } from '../extracted-link'
 import type { CallSite, RawLink, UncertainRawLink } from './call-graph-types'
 

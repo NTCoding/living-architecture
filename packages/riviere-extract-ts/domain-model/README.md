@@ -1,4 +1,4 @@
-# @living-architecture/riviere-extract-ts
+# @living-architecture/riviere-extract-ts-domain-model
 
 TypeScript extractor for detecting architectural components from source code.
 
@@ -11,14 +11,14 @@ Extracts architectural components from TypeScript code using deterministic, conf
 ## Installation
 
 ```bash
-npm install @living-architecture/riviere-extract-ts
+npm install @living-architecture/riviere-extract-ts-domain-model
 ```
 
 ## Usage
 
 ```typescript
-import { extractComponents } from '@living-architecture/riviere-extract-ts'
-import type { ExtractionConfig } from '@living-architecture/riviere-extract-config'
+import { extractComponents } from '@living-architecture/riviere-extract-ts-domain-model'
+import type { ExtractionConfig } from '@living-architecture/riviere-extract-config-published-language'
 
 const config: ExtractionConfig = {
   modules: [
@@ -65,16 +65,16 @@ Draft components (before connection detection):
 
 ```bash
 # Tests (coverage enabled by default)
-pnpm nx test riviere-extract-ts
+pnpm nx test riviere-extract-ts-domain-model
 
 # Build
-pnpm nx build riviere-extract-ts
+pnpm nx build riviere-extract-ts-domain-model
 ```
 
 ## Related Packages
 
-- **@living-architecture/riviere-extract-config** - Config schema and validation
-- **@living-architecture/riviere-extract-conventions** - Decorators for marking components
+- **@living-architecture/riviere-extract-config-published-language** - Config schema and validation
+- **@living-architecture/riviere-extract-conventions-published-language** - Decorators for marking components
 
 ## License
 

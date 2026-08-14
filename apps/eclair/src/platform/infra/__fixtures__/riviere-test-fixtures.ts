@@ -6,7 +6,7 @@ import type {
   OperationBehavior,
   DomainMetadata,
   SystemType,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import {
   nodeIdSchema,
   edgeIdSchema,

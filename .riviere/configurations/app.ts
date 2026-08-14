@@ -1,7 +1,9 @@
-import { location, locationConfiguration } from '@living-architecture/riviere-role-enforcement'
+import {
+  location,
+  locationConfiguration,
+} from '@living-architecture/riviere-role-enforcement-domain-model'
 import type { RoleName } from '../roles'
 
-// #region Roles
 const entrypointRoles: RoleName[] = [
   'cli-entrypoint',
   'cli-output-formatter',
@@ -19,7 +21,6 @@ const cliPresentationRoles: RoleName[] = [
   'cli-response-writer',
 ]
 const shellRoles: RoleName[] = ['main', 'cli-error-handler']
-// #endregion
 
 export const app = {
   locations: locationConfiguration<RoleName>(
@@ -31,7 +32,7 @@ export const app = {
           importRules: { importableFrom: 'withinParentLocation' },
         },
       },
-      // Features are isolated from each other. They may use root infra and subdomain use cases.
+      // Features cannot import from each other. They can only import root infra and commands or queries from any subdomain.
       importRules: {
         allow: {
           root: ['infra'],

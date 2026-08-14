@@ -3,7 +3,7 @@ import {
   PackageFilterError,
   type RoleEnforcementRunner,
   RoleEnforcementExecutionError,
-} from '@living-architecture/riviere-role-enforcement'
+} from '@living-architecture/riviere-role-enforcement-domain-model'
 import type { RunRoleEnforcementInput } from './run-role-enforcement-input'
 import type { RunRoleEnforcementResult } from './run-role-enforcement-result'
 import { RoleEnforcementProjectLoadError } from '../data-access/role-enforcement/role-enforcement-project-load-error'

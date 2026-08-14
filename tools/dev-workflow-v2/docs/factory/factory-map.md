@@ -144,7 +144,8 @@ Definition files:
 - `.riviere/role-selection-guide.md`
 - `.riviere/role-definitions/**`
 - `.riviere/canonical-role-configurations.md`
-- `packages/riviere-role-enforcement/src/**`
+- `packages/riviere-role-enforcement/domain-model/src/**`
+- `packages/riviere-role-enforcement/use-cases/src/**`
 - `packages/riviere-role-enforcement/role-enforcement-plugin.mjs`
 
 Surface shape:
@@ -237,7 +238,7 @@ Relationship boundaries:
 Verification entrypoints:
 
 - `pnpm exec nx run @living-architecture/source:role-check`
-- `pnpm exec tsx packages/riviere-role-enforcement/src/shell/bin.ts .riviere/role-enforcement.config.ts --package <package-path>`
+- `pnpm exec tsx apps/cli/src/shell/role-enforcement-bin.ts .riviere/role-enforcement.config.ts --package <package-path>`
 - `pnpm exec nx test riviere-role-enforcement`
 
 ## Eclair Dependency Cruiser
@@ -378,11 +379,11 @@ Definition files:
 - `tools/dev-workflow-v2/commands/*.md`
 - `tools/dev-workflow-v2/states/*.md`
 - `tools/dev-workflow-v2/hooks/**`
-- `tools/dev-workflow-v2/src/features/workflow/domain/workflow.ts`
-- `tools/dev-workflow-v2/src/features/workflow/domain/states/*.ts`
-- `tools/dev-workflow-v2/src/features/workflow/domain/registry.ts`
-- `tools/dev-workflow-v2/src/features/workflow/entrypoint/workflow-cli.ts`
-- `tools/dev-workflow-v2/src/features/workflow/infra/persistence/workflow-definition.ts`
+- `packages/dev-workflow-v2/domain-model/src/domain/workflow.ts`
+- `packages/dev-workflow-v2/domain-model/src/domain/states/*.ts`
+- `packages/dev-workflow-v2/domain-model/src/domain/registry.ts`
+- `packages/dev-workflow-v2/use-cases/src/features/workflow/**`
+- `tools/dev-workflow-v2/src/features/workflow/entrypoint/**`
 - `tools/dev-workflow-v2/src/shell/opencode-plugin.ts`
 - `tools/dev-workflow-v2/.claude-plugin/plugin.json`
 

@@ -54,5 +54,7 @@ await esbuild.build({
   target: 'node18',
   format: 'esm',
   outfile: 'dist/index.js',
+  banner: {js: executableBanner,},
   external: externalDependencies,
+  define: { INJECTED_VERSION: JSON.stringify(pkg.version) },
 })

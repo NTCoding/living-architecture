@@ -1,4 +1,4 @@
-import type { Component } from '@living-architecture/riviere-schema/schema'
+import type { Component } from '@living-architecture/riviere-schema-published-language/schema'
 import { FlowStep } from './flow-step'
 
 /** @riviere-role value-object */

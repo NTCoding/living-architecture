@@ -7,7 +7,7 @@ import {
   RoleEnforcementConfiguration,
   RoleEnforcementExecutionError,
   RoleEnforcementProject,
-} from '@living-architecture/riviere-role-enforcement'
+} from '@living-architecture/riviere-role-enforcement-domain-model'
 import { RoleEnforcementProjectRepository } from './role-enforcement-project-repository'
 
 const minimalConfig = roleEnforcementConfiguration({

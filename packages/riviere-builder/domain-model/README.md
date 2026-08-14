@@ -1,11 +1,11 @@
-# @living-architecture/riviere-builder
+# @living-architecture/riviere-builder-domain-model
 
 Construct and query Riviere architecture graphs programmatically.
 
 ## Install
 
 ```bash
-npm install @living-architecture/riviere-builder
+npm install @living-architecture/riviere-builder-domain-model
 ```
 
 ## Documentation

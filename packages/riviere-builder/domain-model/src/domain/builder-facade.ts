@@ -13,8 +13,8 @@ import type {
   SystemType,
   UIComponent,
   UseCaseComponent,
-} from '@living-architecture/riviere-schema/schema'
-import type { ValidationResult } from '@living-architecture/riviere-schema/graph-validation'
+} from '@living-architecture/riviere-schema-published-language/schema'
+import type { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { RiviereBuilder as DomainBuilder } from './riviere-builder'
 import type { RiviereQuery } from './query/RiviereQuery'
 
@@ -417,7 +417,7 @@ export class RiviereBuilder {
   nearMatches(
     query: Readonly<{
       name: string
-      type?: import('@living-architecture/riviere-schema/schema').ComponentType
+      type?: import('@living-architecture/riviere-schema-published-language/schema').ComponentType
       domain?: string
     }>,
     options?: Readonly<{

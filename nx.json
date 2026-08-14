@@ -73,9 +73,9 @@
   },
   "release": {
     "projectsRelationship": "independent",
-    "projects": ["packages/*", "@living-architecture/riviere-role-enforcement-use-cases"],
+    "projects": ["riviere-*", "@living-architecture/riviere-*"],
     "version": {
-      "preVersionCommand": "pnpm exec nx run-many -t build --projects=packages/*",
+      "preVersionCommand": "pnpm exec nx run-many -t build --projects=riviere-*,@living-architecture/riviere-*",
       "conventionalCommits": true,
       "fallbackCurrentVersionResolver": "disk",
       "updateDependents": "auto"

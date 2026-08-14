@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import {
   parseExtractionConfig,
   type DraftConfiguration,
-} from '@living-architecture/riviere-extract-config'
+} from '@living-architecture/riviere-extract-config-published-language'
 
 const CURRENT_DIR = dirname(fileURLToPath(import.meta.url))
 

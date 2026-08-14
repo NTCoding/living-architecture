@@ -12,7 +12,7 @@
           "inClassWith": {
             "hasDecorator": {
               "name": "APIContainer",
-              "from": "@living-architecture/riviere-extract-conventions"
+              "from": "@living-architecture/riviere-extract-conventions-published-language"
             }
           }
         },
@@ -27,7 +27,7 @@
         "where": {
           "hasDecorator": {
             "name": "UseCase",
-            "from": "@living-architecture/riviere-extract-conventions"
+            "from": "@living-architecture/riviere-extract-conventions-published-language"
           }
         }
       },
@@ -37,7 +37,7 @@
           "inClassWith": {
             "hasDecorator": {
               "name": "DomainOpContainer",
-              "from": "@living-architecture/riviere-extract-conventions"
+              "from": "@living-architecture/riviere-extract-conventions-published-language"
             }
           }
         },
@@ -50,7 +50,7 @@
         "where": {
           "hasDecorator": {
             "name": "Event",
-            "from": "@living-architecture/riviere-extract-conventions"
+            "from": "@living-architecture/riviere-extract-conventions-published-language"
           }
         },
         "extract": {
@@ -63,7 +63,7 @@
           "inClassWith": {
             "hasDecorator": {
               "name": "EventHandlerContainer",
-              "from": "@living-architecture/riviere-extract-conventions"
+              "from": "@living-architecture/riviere-extract-conventions-published-language"
             }
           }
         },
@@ -76,7 +76,7 @@
         "where": {
           "hasDecorator": {
             "name": "UI",
-            "from": "@living-architecture/riviere-extract-conventions"
+            "from": "@living-architecture/riviere-extract-conventions-published-language"
           }
         },
         "extract": {
@@ -90,7 +90,7 @@
             "inClassWith": {
               "hasDecorator": {
                 "name": "EventPublisherContainer",
-                "from": "@living-architecture/riviere-extract-conventions"
+                "from": "@living-architecture/riviere-extract-conventions-published-language"
               }
             }
           },
@@ -105,14 +105,14 @@
               {
                 "hasDecorator": {
                   "name": "HttpCall",
-                  "from": "@living-architecture/riviere-extract-conventions"
+                  "from": "@living-architecture/riviere-extract-conventions-published-language"
                 }
               },
               {
                 "inClassWith": {
                   "hasDecorator": {
                     "name": "HttpClient",
-                    "from": "@living-architecture/riviere-extract-conventions"
+                    "from": "@living-architecture/riviere-extract-conventions-published-language"
                   }
                 }
               }

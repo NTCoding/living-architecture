@@ -7,7 +7,7 @@ import type {
   RiviereGraph,
   SourceLocation,
   UseCaseComponent,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 
 class TestAssertionError extends Error {
   constructor(message: string) {

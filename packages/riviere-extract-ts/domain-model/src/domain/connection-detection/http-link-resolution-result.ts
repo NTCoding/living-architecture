@@ -1,4 +1,4 @@
-import type { ExternalLink } from '@living-architecture/riviere-schema/schema'
+import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
 import type { ExtractedLink } from './extracted-link'
 
 /** @riviere-role value-object */

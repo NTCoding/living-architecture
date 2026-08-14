@@ -1,4 +1,4 @@
-import type { SourceLocation } from '@living-architecture/riviere-schema/schema'
+import type { SourceLocation } from '@living-architecture/riviere-schema-published-language/schema'
 
 export interface EventSubscriber {
   handlerId: string

@@ -2,7 +2,7 @@ import type {
   RiviereGraph,
   SystemType,
   SourceLocation,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import {
   nodeIdSchema,
   type DomainName,
@@ -10,8 +10,8 @@ import {
   type EntryPoint,
   type NodeId,
 } from '@/platform/domain/eclair-types'
-import { RiviereQuery } from '@living-architecture/riviere-builder/query'
-import type { Entity } from '@living-architecture/riviere-builder/query/entity'
+import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
+import type { Entity } from '@living-architecture/riviere-builder-domain-model/query/entity'
 import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import type { NodeBreakdown, DomainNode } from './domain-node-breakdown'
 import { countNodesByType, formatDomainNodes, extractEntryPoints } from './domain-node-breakdown'

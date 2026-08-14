@@ -42,12 +42,12 @@ A ready-to-use extraction config is provided for teams adopting our decorator co
 Import the default config in your project:
 
 ```typescript
-import defaultConfig from '@living-architecture/riviere-extract-conventions/default-config'
+import defaultConfig from '@living-architecture/riviere-extract-conventions-published-language/default-config'
 ```
 
 Or reference it directly in your extraction tooling:
 ```bash
-riviere extract --config ./node_modules/@living-architecture/riviere-extract-conventions/src/default-extraction.config.json
+riviere extract --config ./node_modules/@living-architecture/riviere-extract-conventions-published-language/src/default-extraction.config.json
 ```
 
 ### What It Does
@@ -69,7 +69,7 @@ The default config detects all 6 component types using class-level decorators:
 Detection rules:
 - Container types find `methods` in classes with decorators
 - Class types find `classes` with decorators
-- All decorators from `@living-architecture/riviere-extract-conventions`
+- All decorators from `@living-architecture/riviere-extract-conventions-published-language`
 - Path: `**/*.ts` (all TypeScript files)
 
 The extractor (riviere-extract-ts) will:
@@ -91,7 +91,7 @@ An ESLint plugin ensures all classes have component decorators.
 ### Setup
 
 ```javascript
-import conventionsPlugin from '@living-architecture/riviere-extract-conventions/eslint-plugin'
+import conventionsPlugin from '@living-architecture/riviere-extract-conventions-published-language/eslint-plugin'
 
 export default [
   {

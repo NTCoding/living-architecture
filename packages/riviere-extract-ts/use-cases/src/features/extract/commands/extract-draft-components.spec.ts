@@ -18,7 +18,7 @@ vi.mock('../data-access/extraction-project/extraction-project-repository', () =>
 import { ExtractDraftComponents } from './extract-draft-components'
 import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
 import { ExtractionConfigError } from '../data-access/extraction-project/extraction-config-error'
-import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts/domain/connection-detection/connection-detection-error'
+import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-error'
 
 const DRAFT_ONLY_RESULT = {
   kind: 'draftOnly' as const,

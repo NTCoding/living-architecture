@@ -9,7 +9,7 @@ import {
   validateExtractionConfig,
   parseExtractionConfig,
   isValidExtractionConfig,
-} from '@living-architecture/riviere-extract-config';
+} from '@living-architecture/riviere-extract-config-published-language';
 
 const config = { modules: [{ name: 'orders', path: 'orders', glob: 'src/**', api: { find: 'classes', where: { hasDecorator: { name: 'Controller' } } } }] };
 

@@ -1,4 +1,4 @@
-import { RelationshipTypeAlreadyDefinedError } from '@living-architecture/riviere-builder/domain/construction/construction-errors'
+import { RelationshipTypeAlreadyDefinedError } from '@living-architecture/riviere-builder-domain-model/domain/construction/construction-errors'
 import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'

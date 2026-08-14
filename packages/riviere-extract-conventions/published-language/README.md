@@ -5,7 +5,7 @@ Decorators for marking architectural components in TypeScript code.
 ## Installation
 
 ```bash
-npm install @living-architecture/riviere-extract-conventions
+npm install @living-architecture/riviere-extract-conventions-published-language
 ```
 
 ## Usage
@@ -18,7 +18,7 @@ import {
   Event,
   DomainOp,
   Ignore,
-} from '@living-architecture/riviere-extract-conventions'
+} from '@living-architecture/riviere-extract-conventions-published-language'
 
 // Container decorator - all public methods are API endpoints
 @APIContainer
@@ -61,7 +61,7 @@ class OrderCreated {
 ## Building
 
 ```bash
-nx build riviere-extract-conventions
+nx build riviere-extract-conventions-published-language
 ```
 
 ## Documentation

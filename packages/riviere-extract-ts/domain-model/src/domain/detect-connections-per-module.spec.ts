@@ -3,7 +3,7 @@ import { Project } from 'ts-morph'
 import {
   type ConnectionsConfig,
   ValidatedConfiguration,
-} from '@living-architecture/riviere-extract-config'
+} from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
 import { ExtractionProject } from './extraction-project'
 

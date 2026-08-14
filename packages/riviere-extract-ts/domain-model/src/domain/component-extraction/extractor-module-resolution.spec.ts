@@ -1,4 +1,4 @@
-import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config'
+import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { extractComponents } from './extractor'

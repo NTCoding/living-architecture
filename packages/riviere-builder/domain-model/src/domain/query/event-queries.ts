@@ -2,7 +2,7 @@ import type {
   EventComponent,
   EventHandlerComponent,
   RiviereGraph,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { DomainName } from './domain-name'
 import { EventHandlerInfo } from './event-handler-info'
 import { EventId } from './event-id'

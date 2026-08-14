@@ -7,7 +7,7 @@ export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../../node_modules/.vite/packages/riviere-schema',
   test: {
-    name: '@living-architecture/riviere-schema/schema',
+    name: '@living-architecture/riviere-schema-published-language/schema',
     watch: false,
     globals: true,
     environment: 'node',

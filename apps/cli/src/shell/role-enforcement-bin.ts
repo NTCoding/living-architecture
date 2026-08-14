@@ -19,7 +19,7 @@ if (configModulePath === undefined) {
   const packageFilter = readPackageFilter(process.argv)
   const absolutePath = path.resolve(configModulePath)
   const pluginPath = fileURLToPath(
-    import.meta.resolve('@living-architecture/riviere-role-enforcement/plugin'),
+    import.meta.resolve('@living-architecture/riviere-role-enforcement-domain-model/plugin'),
   )
   const application = new RunRoleEnforcement({
     now: () => performance.now(),

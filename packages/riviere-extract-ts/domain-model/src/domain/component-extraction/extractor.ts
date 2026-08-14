@@ -2,7 +2,7 @@ import type {
   ComponentType,
   DetectionRule,
   ValidatedModule,
-} from '@living-architecture/riviere-extract-config'
+} from '@living-architecture/riviere-extract-config-published-language'
 import {
   Scope,
   type ClassDeclaration,

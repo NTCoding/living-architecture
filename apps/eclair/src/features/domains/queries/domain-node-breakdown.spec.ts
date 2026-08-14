@@ -6,7 +6,7 @@ import {
   type NodeBreakdown,
 } from './domain-node-breakdown'
 import { parseNode } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
-import type { SourceLocation } from '@living-architecture/riviere-schema/schema'
+import type { SourceLocation } from '@living-architecture/riviere-schema-published-language/schema'
 import type { RawNode } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
 
 const testSourceLocation = {

@@ -3,7 +3,10 @@
   "ignoreDependencies": ["tailwindcss", "oxlint"],
   "workspaces": {
     ".": {
-      "entry": [".opencode/plugins/dev-workflow-v2.js"]
+      "entry": [
+        ".opencode/plugins/dev-workflow-v2.js",
+        "scripts/build-public-exports.mjs"
+      ]
     },
     "apps/eclair": {
       "entry": ["src/main.tsx"],
@@ -55,7 +58,7 @@
     "packages/*": {
       "project": ["src/**/*.ts"]
     },
-    "tools/dev-workflow-v2/app": {
+    "tools/dev-workflow-v2": {
       "entry": ["src/shell/cli.ts", "src/shell/opencode-plugin.ts"],
       "project": ["src/**/*.ts"]
     }

@@ -2,7 +2,7 @@ import {
   useEffect, useRef, useCallback, useState, useMemo 
 } from 'react'
 import * as d3 from 'd3'
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import type { Edge } from '@/platform/domain/eclair-types'
 import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
 import type { Theme } from '@/types/theme'

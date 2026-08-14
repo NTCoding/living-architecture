@@ -3,7 +3,7 @@ import type {
   ExternalLink,
   Link,
   RiviereGraph,
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { ComponentId } from './component-id'
 import { componentById, searchComponents } from './component-queries'
 import { ComponentNotFoundError } from './errors'

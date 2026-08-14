@@ -5,8 +5,8 @@ import type {
   ExternalLink,
   Link,
   RiviereGraph,
-} from '@living-architecture/riviere-schema/schema'
-import { parseRiviereGraph } from '@living-architecture/riviere-schema/validation'
+} from '@living-architecture/riviere-schema-published-language/schema'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
 import type { GraphDiff } from './graph-diff'
 
 import type { ComponentDepths } from './component-depths'
@@ -43,7 +43,7 @@ import { findEntryPoints, queryFlows, searchWithFlowContext, traceFlowFrom } fro
 import { diffGraphs } from './graph-diff'
 import type { GraphStats } from './graph-stats'
 import { detectOrphanComponents } from './graph-validation'
-import { ValidationResult } from '@living-architecture/riviere-schema/graph-validation'
+import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import type { LinkId } from './link-id'
 import type { PublishedEvent } from './published-event'
 import type { SearchWithFlowOptions } from './search-with-flow-options'
@@ -68,7 +68,7 @@ function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
  *
  * @example
  * ```typescript
- * import { RiviereQuery } from '@living-architecture/riviere-builder/query'
+ * import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
  *
  * // From JSON
  * const query = RiviereQuery.fromJSON(graphData)

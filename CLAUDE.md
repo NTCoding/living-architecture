@@ -13,10 +13,12 @@ For planning, discovery, PRD, architecture, delivery planning, or future-project
 ```text
 apps/       - Applications that aggregate subdomain use cases
 packages/   - Subdomains split into domain-model, use-cases, and published-language packages
-tools/      - Standalone tools using the same package types plus an app
+tools/      - Standalone app packages; their subdomain packages live under packages/
 ```
 
 Current packages:
+- `packages/dev-workflow-v2/domain-model` - Maintainer workflow domain model
+- `packages/dev-workflow-v2/use-cases` - Maintainer workflow commands and adapters
 - `packages/riviere-builder/domain-model` - Browser-safe graph construction and querying domain model
 - `packages/riviere-builder/use-cases` - Commands, queries and data access for graph building and querying
 - `packages/riviere-schema/published-language` - Rivière graph contract
@@ -31,6 +33,9 @@ Apps:
 - `apps/cli` - CLI entrypoints and composition shell
 - `apps/eclair` - Web app for viewing your software architecture via a Rivière schema
 - `apps/docs` - Living architecture documentation website
+
+Tools:
+- `tools/dev-workflow-v2` - Maintainer workflow app and plugin entrypoints
 
 Key documents:
 - `docs/project/PRD/` - Current PRD folders
@@ -83,15 +88,15 @@ pnpm nx graph
 # Add backend application
 pnpm nx g @nx/node:application apps/[app-name]
 
-# Add shared library (publishable)
-pnpm nx g @nx/js:library packages/[pkg-name] --publishable --importPath=@living-architecture/[pkg-name]
+# Add a subdomain package
+pnpm nx g @nx/js:library packages/[subdomain]/[domain-model|use-cases|published-language] --publishable --importPath=@living-architecture/[package-name]
 ```
 
 After generating a new project:
-1. Update the project's package.json with correct name: `@living-architecture/[project-name]`
+1. Update the project's package.json with the correct published package name
 2. Create the 3-file tsconfig structure (tsconfig.json, tsconfig.lib.json, tsconfig.spec.json)
 3. Add vitest.config.ts if tests are needed with 100% coverage as the default
-4. If importing from another project, add `"@living-architecture/[pkg-name]": "workspace:*"` to dependencies
+4. If importing from another project, add its published package name with `"workspace:*"` to dependencies
 5. Run `pnpm nx sync` to update TypeScript project references
 6. Update this CLAUDE.md "Current packages" section
 

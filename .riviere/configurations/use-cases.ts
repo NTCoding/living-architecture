@@ -1,7 +1,9 @@
-import { location, locationConfiguration } from '@living-architecture/riviere-role-enforcement'
+import {
+  location,
+  locationConfiguration,
+} from '@living-architecture/riviere-role-enforcement-domain-model'
 import type { RoleName } from '../roles'
 
-// #region Roles
 const commandRoles: RoleName[] = [
   'command-use-case',
   'command-use-case-input',
@@ -20,7 +22,6 @@ const externalClientRoles: RoleName[] = [
   'external-client-model',
   'external-client-error',
 ]
-// #endregion
 
 export const useCases = {
   locations: locationConfiguration<RoleName>(

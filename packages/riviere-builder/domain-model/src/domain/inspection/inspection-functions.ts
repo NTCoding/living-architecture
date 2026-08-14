@@ -7,8 +7,8 @@ import type {
   RiviereGraph,
   SourceInfo,
   RelationshipTypeDefinition,
-} from '@living-architecture/riviere-schema/schema'
-import { ValidationResult } from '@living-architecture/riviere-schema/graph-validation'
+} from '@living-architecture/riviere-schema-published-language/schema'
+import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 
 type InspectionWarning =
   | Readonly<{

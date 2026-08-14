@@ -1,4 +1,4 @@
-import type { StateTransition } from '@living-architecture/riviere-schema/schema'
+import type { StateTransition } from '@living-architecture/riviere-schema-published-language/schema'
 
 /** @riviere-role domain-service */
 export function deduplicateStateTransitions(

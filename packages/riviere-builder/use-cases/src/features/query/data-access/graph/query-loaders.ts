@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { isAbsolute, relative, resolve, sep } from 'node:path'
-import type { ComponentType } from '@living-architecture/riviere-schema/schema'
+import type { ComponentType } from '@living-architecture/riviere-schema-published-language/schema'
 import { OrphanList } from '../../queries/detect-orphans-result'
 import { ComponentList } from '../../queries/list-components-result'
 import { DomainList } from '../../queries/list-domains-result'

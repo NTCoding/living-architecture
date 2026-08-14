@@ -7,7 +7,7 @@ export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../../node_modules/.vite/packages/riviere-role-enforcement',
   test: {
-    name: '@living-architecture/riviere-role-enforcement',
+    name: '@living-architecture/riviere-role-enforcement-domain-model',
     watch: false,
     globals: true,
     environment: 'node',

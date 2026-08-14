@@ -2,13 +2,13 @@ import {
   ComponentNotFoundError,
   DuplicateLinkError,
   RelationshipTypeNotFoundError,
-} from '@living-architecture/riviere-builder/domain/construction/construction-errors'
-import { ComponentId } from '@living-architecture/riviere-schema/component-id'
+} from '@living-architecture/riviere-builder-domain-model/domain/construction/construction-errors'
+import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
-import { LinkType } from '@living-architecture/riviere-builder/domain/link-type'
-import { ComponentType } from '@living-architecture/riviere-builder/domain/component-type'
+import { LinkType } from '@living-architecture/riviere-builder-domain-model/domain/link-type'
+import { ComponentType } from '@living-architecture/riviere-builder-domain-model/domain/component-type'
 import type { LinkComponentsInput } from './link-components-input'
 import type { LinkComponentsErrorCode, LinkComponentsResult } from './link-components-result'
 

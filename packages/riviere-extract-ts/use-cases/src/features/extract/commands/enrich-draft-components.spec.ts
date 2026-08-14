@@ -15,7 +15,7 @@ import { EnrichDraftComponents } from './enrich-draft-components'
 import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
 import { ExtractionConfigError } from '../data-access/extraction-project/extraction-config-error'
 import { ExtractionDataAccessError } from '../data-access/extraction-project/extraction-project-error'
-import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts/domain/connection-detection/connection-detection-error'
+import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-error'
 
 class UnexpectedLoadingError extends Error {}
 

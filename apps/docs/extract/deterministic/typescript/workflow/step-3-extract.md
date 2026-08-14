@@ -16,7 +16,7 @@ This step uses config-driven detection instead of AI. Components are found by sc
 **Install the CLI and conventions package:**
 
 ```bash
-npm install --save-dev @living-architecture/riviere-cli @living-architecture/riviere-extract-conventions
+npm install --save-dev @living-architecture/riviere-cli @living-architecture/riviere-extract-conventions-published-language
 ```
 
 ::: tip AI-Assisted Config Generation
@@ -45,13 +45,13 @@ You can mix strategies across different modules.
 Install the conventions package and annotate your code:
 
 ```bash
-npm install @living-architecture/riviere-extract-conventions
+npm install @living-architecture/riviere-extract-conventions-published-language
 ```
 
 **Container decorator** — all public methods become components:
 
 ```typescript
-import { APIContainer } from '@living-architecture/riviere-extract-conventions'
+import { APIContainer } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @APIContainer
 class OrderController {
@@ -64,7 +64,7 @@ class OrderController {
 **Class decorator** — the class itself is the component:
 
 ```typescript
-import { UseCase } from '@living-architecture/riviere-extract-conventions'
+import { UseCase } from '@living-architecture/riviere-extract-conventions-published-language'
 
 @UseCase
 class PlaceOrderUseCase {
@@ -109,11 +109,11 @@ Inherit detection rules from the conventions package:
 modules:
   - name: 'orders'
     path: 'src/orders/**/*.ts'
-    extends: '@living-architecture/riviere-extract-conventions'
+    extends: '@living-architecture/riviere-extract-conventions-published-language'
 
   - name: 'shipping'
     path: 'src/shipping/**/*.ts'
-    extends: '@living-architecture/riviere-extract-conventions'
+    extends: '@living-architecture/riviere-extract-conventions-published-language'
 ```
 
 ### Custom Config
@@ -131,14 +131,14 @@ modules:
         inClassWith:
           hasDecorator:
             name: 'APIContainer'
-            from: '@living-architecture/riviere-extract-conventions'
+            from: '@living-architecture/riviere-extract-conventions-published-language'
 
     useCase:
       find: 'classes'
       where:
         hasDecorator:
           name: 'UseCase'
-          from: '@living-architecture/riviere-extract-conventions'
+          from: '@living-architecture/riviere-extract-conventions-published-language'
 
     domainOp: { notUsed: true }
     event: { notUsed: true }
@@ -155,7 +155,7 @@ modules:
   # Decorators
   - name: 'orders'
     path: 'src/orders/**/*.ts'
-    extends: '@living-architecture/riviere-extract-conventions'
+    extends: '@living-architecture/riviere-extract-conventions-published-language'
 
   # JSDoc
   - name: 'shipping'
@@ -343,7 +343,7 @@ api:
     inClassWith:
       hasDecorator:
         name: 'APIContainer'
-        from: '@living-architecture/riviere-extract-conventions'
+        from: '@living-architecture/riviere-extract-conventions-published-language'
   extract:
     apiType: { literal: 'REST' }
     httpMethod: { fromDecoratorName: true }

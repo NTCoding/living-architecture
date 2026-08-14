@@ -19,7 +19,7 @@
   "exclude": ["node_modules", "dist"],
   "references": [
     {
-      "path": "../use-cases"
+      "path": "../../packages/dev-workflow-v2/use-cases"
     }
   ]
 }

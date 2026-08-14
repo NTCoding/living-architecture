@@ -1,7 +1,10 @@
-import { findNearMatches } from '@living-architecture/riviere-builder/domain/error-recovery/component-suggestion'
-import { ComponentId as QueryComponentId } from '@living-architecture/riviere-builder/query/component-id'
-import { ComponentId } from '@living-architecture/riviere-schema/component-id'
-import { ComponentNotFoundError, RiviereQuery } from '@living-architecture/riviere-builder/query'
+import { findNearMatches } from '@living-architecture/riviere-builder-domain-model/domain/error-recovery/component-suggestion'
+import { ComponentId as QueryComponentId } from '@living-architecture/riviere-builder-domain-model/query/component-id'
+import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
+import {
+  ComponentNotFoundError,
+  RiviereQuery,
+} from '@living-architecture/riviere-builder-domain-model/query'
 import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 
 /** @riviere-role query-model */

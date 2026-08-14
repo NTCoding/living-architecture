@@ -1,6 +1,9 @@
 {
   "name": "@living-architecture/riviere-extract-ts-use-cases",
   "version": "0.0.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -22,12 +25,13 @@
   },
   "files": [
     "dist",
+    "!dist/**/__fixtures__/**",
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
-    "@living-architecture/riviere-extract-config": "workspace:*",
-    "@living-architecture/riviere-extract-ts": "workspace:*",
-    "@living-architecture/riviere-schema": "workspace:*",
+    "@living-architecture/riviere-extract-config-published-language": "workspace:*",
+    "@living-architecture/riviere-extract-ts-domain-model": "workspace:*",
+    "@living-architecture/riviere-schema-published-language": "workspace:*",
     "glob": "^11.0.2",
     "ts-morph": "^24.0.0",
     "yaml": "^2.7.0"

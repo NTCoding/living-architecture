@@ -7,7 +7,7 @@ import { createOxlintImportSpecifier } from '../../../../infra/external-clients/
 import type {
   RoleEnforcementRunner,
   RoleEnforcementRunnerInput,
-} from '@living-architecture/riviere-role-enforcement'
+} from '@living-architecture/riviere-role-enforcement-domain-model'
 
 /** @riviere-role domain-port-adapter */
 export function createOxlintRoleEnforcementRunner(

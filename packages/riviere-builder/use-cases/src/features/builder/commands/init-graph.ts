@@ -1,8 +1,8 @@
-import { RiviereBuilder } from '@living-architecture/riviere-builder/domain/builder-facade'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/builder-facade'
 import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
-import { SystemType } from '@living-architecture/riviere-builder/domain/system-type'
+import { SystemType } from '@living-architecture/riviere-builder-domain-model/domain/system-type'
 import type { InitGraphInput } from './init-graph-input'
 import type { InitGraphResult } from './init-graph-result'
 

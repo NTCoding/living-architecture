@@ -4,11 +4,11 @@ import type {
   DetectionRule,
   ExtractBlock,
   ValidatedModuleInput,
-} from '@living-architecture/riviere-extract-config'
+} from '@living-architecture/riviere-extract-config-published-language'
 import {
   ValidatedConfiguration,
   ValidatedModule,
-} from '@living-architecture/riviere-extract-config'
+} from '@living-architecture/riviere-extract-config-published-language'
 
 const NOT_USED = { notUsed: true } as const
 

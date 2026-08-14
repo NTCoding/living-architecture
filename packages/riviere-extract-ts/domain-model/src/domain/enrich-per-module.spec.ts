@@ -5,7 +5,7 @@ import {
   ValidatedConfiguration,
   ValidatedModule,
   type ValidatedModuleInput,
-} from '@living-architecture/riviere-extract-config'
+} from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
 import type { ExtractedLink } from './connection-detection/extracted-link'
 import { ExtractionProject, OrphanedDraftComponentError } from './extraction-project'

@@ -2,8 +2,8 @@ import type { Project } from 'ts-morph'
 import type {
   ValidatedConfiguration,
   ValidatedModule,
-} from '@living-architecture/riviere-extract-config'
-import type { ExternalLink } from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-extract-config-published-language'
+import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
 import type { DraftComponent } from './component-extraction/draft-component'
 import { extractComponents } from './component-extraction/extractor'
 import {

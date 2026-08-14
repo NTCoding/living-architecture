@@ -2,9 +2,9 @@ import {
   useState, useMemo, useCallback 
 } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { RiviereQuery } from '@living-architecture/riviere-builder/query'
-import type { Entity } from '@living-architecture/riviere-builder/query/entity'
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
+import type { Entity } from '@living-architecture/riviere-builder-domain-model/query/entity'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { EntityAccordion } from '@/platform/infra/ui/EntityAccordion/EntityAccordion'
 
 interface EntitiesPageProps {readonly graph: RiviereGraph}

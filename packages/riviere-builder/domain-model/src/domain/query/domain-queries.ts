@@ -1,4 +1,7 @@
-import type { DomainOpComponent, RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type {
+  DomainOpComponent,
+  RiviereGraph,
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { compareByCodePoint } from './compare-by-code-point'
 import { ComponentCounts } from './component-counts'
 import { componentsInDomain } from './component-queries'

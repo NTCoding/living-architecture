@@ -5,7 +5,7 @@ import { ForceGraph } from '@/platform/infra/graph/ForceGraph/ForceGraph'
 import { GraphTooltip } from '@/platform/infra/graph/GraphTooltip/GraphTooltip'
 import type { TooltipData } from '@/platform/infra/graph/graph-types'
 import type { FlowStep } from '../../queries/extract-flows'
-import type { RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import type { Theme } from '@/types/theme'
 import { DEFAULT_THEME } from '@/types/theme'
 

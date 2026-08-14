@@ -1,6 +1,9 @@
 {
   "name": "@living-architecture/riviere-role-enforcement-use-cases",
   "version": "0.0.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -16,10 +19,11 @@
   },
   "files": [
     "dist",
+    "!dist/**/__fixtures__/**",
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
-    "@living-architecture/riviere-role-enforcement": "workspace:*",
+    "@living-architecture/riviere-role-enforcement-domain-model": "workspace:*",
     "minimatch": "^10.0.1",
     "tsx": "^4.21.0",
     "yaml": "^2.7.0"

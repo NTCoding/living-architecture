@@ -5,13 +5,13 @@ export class Domain {
   declare private readonly brand: 'Domain'
   readonly name: string
   readonly description: string
-  readonly systemType: import('@living-architecture/riviere-schema/schema').SystemType
+  readonly systemType: import('@living-architecture/riviere-schema-published-language/schema').SystemType
   readonly componentCounts: ComponentCounts
 
   private constructor(input: {
     readonly name: string
     readonly description: string
-    readonly systemType: import('@living-architecture/riviere-schema/schema').SystemType
+    readonly systemType: import('@living-architecture/riviere-schema-published-language/schema').SystemType
     readonly componentCounts: ComponentCounts
   }) {
     this.name = input.name
@@ -23,7 +23,7 @@ export class Domain {
   static parse(input: {
     readonly name: string
     readonly description: string
-    readonly systemType: import('@living-architecture/riviere-schema/schema').SystemType
+    readonly systemType: import('@living-architecture/riviere-schema-published-language/schema').SystemType
     readonly componentCounts: ComponentCounts
   }): Domain {
     return new Domain(input)

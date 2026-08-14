@@ -3,7 +3,7 @@ import type {
   DetectionRule,
   ExtractionRule,
   ValidatedModule,
-} from '@living-architecture/riviere-extract-config'
+} from '@living-architecture/riviere-extract-config-published-language'
 import type { ClassDeclaration, MethodDeclaration, Project } from 'ts-morph'
 import { ExtractionError } from './literal-detection'
 import { applyTransforms } from './transforms'

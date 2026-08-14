@@ -6,11 +6,11 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EntityAccordion } from './EntityAccordion'
-import { RiviereQuery } from '@living-architecture/riviere-builder/query'
-import type { Entity } from '@living-architecture/riviere-builder/query/entity'
+import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
+import type { Entity } from '@living-architecture/riviere-builder-domain-model/query/entity'
 import type {
   DomainOpComponent, SourceLocation 
-} from '@living-architecture/riviere-schema/schema'
+} from '@living-architecture/riviere-schema-published-language/schema'
 
 const defaultSourceLocation: SourceLocation = {
   repository: 'test-repo',

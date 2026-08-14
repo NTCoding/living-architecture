@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import type { Entity } from '@living-architecture/riviere-builder/query/entity'
-import type { DomainOpComponent } from '@living-architecture/riviere-schema/schema'
+import type { Entity } from '@living-architecture/riviere-builder-domain-model/query/entity'
+import type { DomainOpComponent } from '@living-architecture/riviere-schema-published-language/schema'
 import { CodeLinkMenu } from '@/platform/infra/ui/CodeLinkMenu/CodeLinkMenu'
 import { MethodCardChevron } from './MethodCardChevron'
 

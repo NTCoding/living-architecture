@@ -2,7 +2,7 @@ import type {
   FromConstructorParamsExtractionRule,
   FromMethodSignatureExtractionRule,
   FromParameterTypeExtractionRule,
-} from '@living-architecture/riviere-extract-config'
+} from '@living-architecture/riviere-extract-config-published-language'
 import type { ClassDeclaration, MethodDeclaration, ParameterDeclaration } from 'ts-morph'
 import { ExtractionError } from './literal-detection'
 import { applyTransforms } from './transforms'

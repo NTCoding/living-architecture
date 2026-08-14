@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { it } from 'vitest'
-import * as enforcementBuilder from '@living-architecture/riviere-role-enforcement'
+import * as enforcementBuilder from '@living-architecture/riviere-role-enforcement-domain-model'
 import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
 const roles = [

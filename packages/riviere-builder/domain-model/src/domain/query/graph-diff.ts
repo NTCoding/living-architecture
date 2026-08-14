@@ -1,4 +1,8 @@
-import type { Component, Link, RiviereGraph } from '@living-architecture/riviere-schema/schema'
+import type {
+  Component,
+  Link,
+  RiviereGraph,
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { ComponentId } from './component-id'
 import { ComponentModification } from './component-modification'
 import { DiffStats } from './diff-stats'
