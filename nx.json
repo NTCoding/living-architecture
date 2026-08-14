@@ -49,6 +49,9 @@
     "build": {
       "dependsOn": ["lint", "^build"]
     },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
     "depcruise-eclair": {
       "dependsOn": ["^build"]
     },

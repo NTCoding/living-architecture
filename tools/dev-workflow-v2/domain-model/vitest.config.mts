@@ -8,7 +8,7 @@ export default defineConfig({
       reportsDirectory: './test-output/vitest/coverage',
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.spec.ts', 'src/**/*-test-fixtures.ts'],
+      exclude: ['src/**/*.spec.ts', 'src/**/__fixtures__/**'],
       thresholds: {
         lines: 100,
         statements: 100,
