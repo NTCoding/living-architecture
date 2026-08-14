@@ -33,6 +33,8 @@ The skills reference the same command and state Markdown used by Claude Code. Co
 
 ### Planning lifecycle
 
+### Claude Code
+
 ```bash
 /dev-workflow-v2:start-planning <topic>
 ```

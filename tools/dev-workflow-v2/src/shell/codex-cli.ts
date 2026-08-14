@@ -22,7 +22,7 @@ const bashForbidden = {
 
 const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const workflowCommand =
-  'pnpm --dir "$(git rev-parse --show-toplevel)" exec tsx "$(git rev-parse --show-toplevel)/tools/dev-workflow-v2/src/shell/codex-workflow-command.ts"'
+  'pnpm --dir "$PLUGIN_ROOT" exec tsx "$PLUGIN_ROOT/src/shell/codex-workflow-command.ts"'
 const defaultProcessDeps = createDefaultProcessDeps()
 const processDeps = {
   ...defaultProcessDeps,

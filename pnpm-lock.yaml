@@ -432,6 +432,9 @@ importers:
       '@nt-ai-lab/deterministic-agent-workflow-opencode':
         specifier: 0.4.0
         version: 0.4.0
+      tsx:
+        specifier: 4.21.0
+        version: 4.21.0
       zod:
         specifier: ^3.23.0
         version: 3.25.76
