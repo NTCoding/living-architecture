@@ -1,5 +1,6 @@
 {
   "name": "@living-architecture/source",
+  "implicitDependencies": ["@living-architecture/riviere-role-enforcement-use-cases"],
   "targets": {
     "lint-md": {
       "executor": "nx:run-commands",
@@ -24,6 +25,7 @@
     },
     "role-check": {
       "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
       "options": {
           "command": "pnpm exec tsx apps/cli/src/shell/role-enforcement-bin.ts .riviere/role-enforcement.config.ts",
         "cwd": "{workspaceRoot}"

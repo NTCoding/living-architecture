@@ -189,7 +189,7 @@ describe('roleEnforcementConfiguration', () => {
     expect(result.include).toStrictEqual(['apps/*/src/**/*.ts', 'apps/*/src/**/*.tsx'])
   })
 
-  it('assigns several package types beneath the same parent pattern', () => {
+  it('assigns explicitly named packages beneath the same parent pattern', () => {
     const domainLocations = locationConfiguration(
       location('/domain', { allowAnySubLocations: true }),
     )
@@ -197,10 +197,8 @@ describe('roleEnforcementConfiguration', () => {
 
     const result = roleEnforcementConfiguration({
       configurations: {
-        'packages/{subdomain}/': [
-          { packageType: 'domain-model', locations: domainLocations },
-          { packageType: 'use-cases', locations: useCaseLocations },
-        ],
+        'packages/{subdomain}/domain-model': { locations: domainLocations },
+        'packages/{subdomain}/use-cases': { locations: useCaseLocations },
       },
       ignorePatterns: [],
       roleDefinitionsDir: '.riviere/role-definitions',

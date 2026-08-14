@@ -2,7 +2,6 @@ type AllowedLocation<R extends string> = string | Readonly<Record<string, readon
 
 interface AllowedImportScopes<R extends string> {
   readonly anySubdomain?: readonly AllowedLocation<R>[]
-  readonly otherSubdomain?: readonly AllowedLocation<R>[]
   readonly ownSubdomain?: readonly AllowedLocation<R>[]
   readonly root?: readonly AllowedLocation<R>[]
   readonly sibling?: readonly AllowedLocation<R>[]

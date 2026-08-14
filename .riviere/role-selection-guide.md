@@ -98,9 +98,9 @@ If yes, it is part of the query side. Ask: does it orchestrate the query, or doe
 
 Keep the three responsibilities separate:
 
-- A generic client under `platform/infra/external-clients/{client}/` knows only the external system's API and types.
-- A `domain-port` under `domain/ports/` defines the capability the domain needs in domain language.
-- A `domain-port-adapter` under `adapters/{client}/` implements one domain port using one generic client API.
+- A generic client under the use-case package's `infra/external-clients/{client}/` knows only the external system's API and types.
+- A `domain-port` in the subdomain's domain-model package defines the capability the domain needs in domain language.
+- A `domain-port-adapter` under the use-case feature's `adapters/{client}/` implements one domain port using one generic client API.
 
 The adapter translates between the two contracts. It does not contain domain decisions, application orchestration, direct Node API calls, or third-party package calls. It must not coordinate multiple clients. The Node and third-party restriction is specific to this architecture's deliberate split between a domain-port adapter and a generic external client; it is not a claim that all adapters everywhere must avoid technology imports. See [`domain-port-adapter`](role-definitions/domain-port-adapter.md) for the concrete Oxlint and GitHub examples and the failure caused by combining the two roles.
 

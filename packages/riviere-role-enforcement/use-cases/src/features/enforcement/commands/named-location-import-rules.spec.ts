@@ -70,14 +70,14 @@ it('a root import does not allow another package with the same root location', (
   )
 })
 
-it("an own-subdomain import allows a location in the subdomain's domain model", () => {
-  const useCaseLocations = locationConfiguration<never>(
-    location<never>('/features/{feature}', {
-      commands: { importRules: { allow: { ownSubdomain: ['domain'] } } },
+it("an own-subdomain import allows a named location in the subdomain's other package", () => {
+  const consumerLocations = locationConfiguration<never>(
+    location<never>('/actions', {
+      importRules: { allow: { ownSubdomain: ['api'] } },
     }),
   )
-  const domainModelLocations = locationConfiguration<never>(
-    location<never>('/domain', { allowAnySubLocations: true }),
+  const providerLocations = locationConfiguration<never>(
+    location<never>('/api', { allowAnySubLocations: true }),
   )
 
   fixtureWorkspace.withWorkspaceFixture(
@@ -86,8 +86,8 @@ it("an own-subdomain import allows a location in the subdomain's domain model", 
       roles: [],
       files: {
         '.riviere/role-definitions/.gitkeep': '',
-        'packages/orders/use-cases/src/features/checkout/commands/run.ts': `import '../../../../domain-model/src/domain/order'\n`,
-        'packages/orders/domain-model/src/domain/order.ts': `void 'order'\n`,
+        'modules/alpha/consumer/src/actions/run.ts': `import '../../../provider/src/api/value'\n`,
+        'modules/alpha/provider/src/api/value.ts': `void 'value'\n`,
       },
     },
     (workspaceDir) => {
@@ -96,8 +96,8 @@ it("an own-subdomain import allows a location in the subdomain's domain model", 
         configModule: {
           config: roleEnforcementConfiguration({
             configurations: {
-              'packages/orders/use-cases': { locations: useCaseLocations },
-              'packages/orders/domain-model': { locations: domainModelLocations },
+              'modules/{subdomain}/consumer': { locations: consumerLocations },
+              'modules/{subdomain}/provider': { locations: providerLocations },
             },
             ignorePatterns: [],
             roleDefinitionsDir: '.riviere/role-definitions',
@@ -111,26 +111,24 @@ it("an own-subdomain import allows a location in the subdomain's domain model", 
   )
 })
 
-it("a location can import another subdomain's published language when allowed", () => {
-  const useCaseLocations = locationConfiguration<never>(
-    location<never>('/features/{feature}', {
-      commands: {
-        importRules: { allow: { otherSubdomain: ['published-language'] } },
-      },
+it("an any-subdomain import allows another subdomain's named location", () => {
+  const consumerLocations = locationConfiguration<never>(
+    location<never>('/actions', {
+      importRules: { allow: { anySubdomain: ['contract'] } },
     }),
   )
-  const publishedLanguageLocations = locationConfiguration<never>(
-    location<never>('/published-language', { allowAnySubLocations: true }),
+  const exporterLocations = locationConfiguration<never>(
+    location<never>('/contract', { allowAnySubLocations: true }),
   )
 
   fixtureWorkspace.withWorkspaceFixture(
     {
-      prefix: 'role-enforcement-other-subdomain-import-',
+      prefix: 'role-enforcement-any-subdomain-import-',
       roles: [],
       files: {
         '.riviere/role-definitions/.gitkeep': '',
-        'packages/orders/use-cases/src/features/checkout/commands/run.ts': `import '../../../../../../graph/published-language/src/published-language/schema'\n`,
-        'packages/graph/published-language/src/published-language/schema.ts': `void 'schema'\n`,
+        'modules/alpha/consumer/src/actions/run.ts': `import '../../../../beta/exporter/src/contract/schema'\n`,
+        'modules/beta/exporter/src/contract/schema.ts': `void 'schema'\n`,
       },
     },
     (workspaceDir) => {
@@ -139,8 +137,50 @@ it("a location can import another subdomain's published language when allowed", 
         configModule: {
           config: roleEnforcementConfiguration({
             configurations: {
-              'packages/orders/use-cases': { locations: useCaseLocations },
-              'packages/graph/published-language': { locations: publishedLanguageLocations },
+              'modules/{subdomain}/consumer': { locations: consumerLocations },
+              'modules/{subdomain}/exporter': { locations: exporterLocations },
+            },
+            ignorePatterns: [],
+            roleDefinitionsDir: '.riviere/role-definitions',
+            roles: [],
+          }),
+        },
+      })
+
+      assert.equal(result.exitCode, 0, result.stdout)
+    },
+  )
+})
+
+it('an any-subdomain import allows the named location in a different package group', () => {
+  const interfaceLocations = locationConfiguration<never>(
+    location<never>('/entry', {
+      importRules: { allow: { anySubdomain: ['actions'] } },
+    }),
+  )
+  const consumerLocations = locationConfiguration<never>(
+    location<never>('/actions', { allowAnySubLocations: true }),
+  )
+
+  fixtureWorkspace.withWorkspaceFixture(
+    {
+      prefix: 'role-enforcement-any-subdomain-import-',
+      roles: [],
+      files: {
+        '.riviere/role-definitions/.gitkeep': '',
+        'interfaces/cli/src/entry/run.ts': `import '../../../../modules/alpha/consumer/src/actions/run'\n`,
+        'modules/alpha/consumer/src/actions/run.ts': `void 'run'\n`,
+      },
+    },
+    (workspaceDir) => {
+      const interfacePackage = { locations: interfaceLocations }
+      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
+        configDir: workspaceDir,
+        configModule: {
+          config: roleEnforcementConfiguration({
+            configurations: {
+              'interfaces/': interfacePackage,
+              'modules/{subdomain}/consumer': { locations: consumerLocations },
             },
             ignorePatterns: [],
             roleDefinitionsDir: '.riviere/role-definitions',

@@ -1,15 +1,33 @@
 import { location, locationConfiguration } from '@living-architecture/riviere-role-enforcement'
 import type { RoleName } from '../roles'
-import {
-  adapterRoles,
-  commandRoles,
-  dataAccessRoles,
-  externalClientRoles,
-  queryRoles,
-} from './location-roles'
+
+// #region Roles
+const commandRoles: RoleName[] = [
+  'command-use-case',
+  'command-use-case-input',
+  'command-use-case-result',
+  'command-use-case-result-value',
+]
+const queryRoles: RoleName[] = [
+  'query-model-use-case',
+  'query-model-use-case-input',
+  'query-model',
+  'query-model-error',
+]
+const dataAccessRoles: RoleName[] = [
+  'aggregate-repository',
+  'query-model-loader',
+  'data-access-error',
+]
+const adapterRoles: RoleName[] = ['domain-port-adapter']
+const externalClientRoles: RoleName[] = [
+  'external-client-service',
+  'external-client-model',
+  'external-client-error',
+]
+// #endregion
 
 export const useCases = {
-  packageType: 'use-cases',
   locations: locationConfiguration<RoleName>(
     location('/features/{feature}', {
       commands: {
@@ -18,7 +36,7 @@ export const useCases = {
           allow: {
             sibling: ['data-access'],
             ownSubdomain: ['domain'],
-            otherSubdomain: ['published-language'],
+            anySubdomain: ['published-language'],
           },
         },
       },
@@ -28,7 +46,7 @@ export const useCases = {
           allow: {
             sibling: ['data-access'],
             ownSubdomain: ['domain'],
-            otherSubdomain: ['published-language'],
+            anySubdomain: ['published-language'],
           },
         },
       },
@@ -39,7 +57,7 @@ export const useCases = {
             sibling: ['queries'],
             root: ['infra'],
             ownSubdomain: [{ domain: ['aggregate', 'value-object'] }],
-            otherSubdomain: ['published-language'],
+            anySubdomain: ['published-language'],
           },
         },
       },

@@ -122,6 +122,21 @@ describe('RoleEnforcementConfiguration.validateWorkspacePackages', () => {
     )
   })
 
+  it('rejects a package outside the explicitly configured package folders', () => {
+    const config = configuredWorkspace({
+      'modules/{group}/consumer': {
+        locations: locationConfiguration(location('/actions', [])),
+      },
+      'modules/{group}/provider': {
+        locations: locationConfiguration(location('/api', [])),
+      },
+    })
+
+    expect(() => config.validateWorkspacePackages(['modules/payments/random'])).toThrow(
+      "Workspace package 'modules/payments/random' has no role-enforcement configuration",
+    )
+  })
+
   it('rejects a workspace package assigned more than once', () => {
     const locations = locationConfiguration(location('/domain', []))
     const config = configuredWorkspace({

@@ -1,12 +1,28 @@
 import { location, locationConfiguration } from '@living-architecture/riviere-role-enforcement'
 import type { RoleName } from '../roles'
-import {
-  cliPresentationRoles,
-  entrypointPlatformCliRoles,
-  entrypointRoles,
-  genericCliInputRoles,
-  shellRoles,
-} from './location-roles'
+
+// #region Roles
+const entrypointRoles: RoleName[] = [
+  'cli-entrypoint',
+  'cli-error-handler',
+  'cli-output-formatter',
+  'command-input-factory',
+  'entrypoint-cli-input-parser',
+]
+const entrypointPlatformCliRoles: RoleName[] = [
+  'entrypoint-cli-input-parser',
+  'cli-output-formatter',
+]
+const genericCliInputRoles: RoleName[] = ['generic-cli-input-parser']
+const cliPresentationRoles: RoleName[] = [
+  'cli-error',
+  'cli-error-handler',
+  'cli-output-formatter',
+  'cli-response-formatter',
+  'cli-response-writer',
+]
+const shellRoles: RoleName[] = ['main', 'cli-error-handler']
+// #endregion
 
 export const app = {
   locations: locationConfiguration<RoleName>(
@@ -36,7 +52,7 @@ export const app = {
     location('/shell', shellRoles, {
       importRules: {
         allow: {
-          sibling: ['features', 'infra'],
+          root: ['features', 'infra'],
           anySubdomain: ['commands', 'queries', 'data-access', 'adapters', 'external-clients'],
         },
       },

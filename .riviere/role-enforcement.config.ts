@@ -16,7 +16,12 @@ import { allRoles } from './roles'
 export const config = roleEnforcementConfiguration({
   configurations: {
     'apps/': app,
-    'packages/{subdomain}/': [domainModel, useCases, publishedLanguage],
+    'packages/{subdomain}/domain-model': domainModel,
+    'packages/{subdomain}/published-language': publishedLanguage,
+    'packages/{subdomain}/use-cases': useCases,
+    'tools/{tool}/app': app,
+    'tools/{tool}/domain-model': domainModel,
+    'tools/{tool}/use-cases': useCases,
   },
   ignorePatterns: [
     '**/__fixtures__/**',

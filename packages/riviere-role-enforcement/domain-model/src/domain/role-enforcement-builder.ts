@@ -178,13 +178,9 @@ interface RoleEnforcementConfigurationInput<R extends string> {
   readonly configurations: Readonly<
     Record<
       string,
-      | {
-          readonly locations: LocationConfiguration<R>
-        }
-      | {
-          readonly packageType: string
-          readonly locations: LocationConfiguration<R>
-        }[]
+      {
+        readonly locations: LocationConfiguration<R>
+      }
     >
   >
   readonly ignorePatterns: readonly string[]

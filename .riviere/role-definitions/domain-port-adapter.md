@@ -26,7 +26,7 @@ Allowing the domain-port adapter to import those implementation dependencies wou
 The real Oxlint implementation added in commit [`2474599b`](https://github.com/NTCoding/living-architecture/commit/2474599b591df037d5e3e5d665e171db65f459a0) demonstrates the boundary.
 
 ```typescript
-// packages/riviere-role-enforcement/src/features/enforcement/adapters/oxlint/
+// packages/riviere-role-enforcement/use-cases/src/features/enforcement/adapters/oxlint/
 // oxlint-role-enforcement-runner.ts
 export function createOxlintRoleEnforcementRunner(
   oxlintClient: OxlintClient,
@@ -53,7 +53,7 @@ export function createOxlintRoleEnforcementRunner(
 
 That adapter knows both contracts: `RoleEnforcementRunnerInput` from the domain port and `OxlintConfig` from the generic Oxlint client. It owns their translation and maps `OxlintExecutionError` into the port's failure result. It does not know how Oxlint is installed or executed.
 
-The external mechanics live in `packages/riviere-role-enforcement/src/platform/infra/external-clients/oxlint/oxlint-client.ts`. That file imports `node:child_process`, `node:fs`, `node:path`, and `node:url`; locates the Oxlint binary; writes the temporary configuration; spawns Oxlint; captures its streams and exit status; and removes the temporary file. It accepts only `OxlintConfig` and primitive paths, so it knows nothing about role-enforcement domain types.
+The external mechanics live in `packages/riviere-role-enforcement/use-cases/src/infra/external-clients/oxlint/oxlint-client.ts`. That file imports `node:child_process`, `node:fs`, `node:path`, and `node:url`; locates the Oxlint binary; writes the temporary configuration; spawns Oxlint; captures its streams and exit status; and removes the temporary file. It accepts only `OxlintConfig` and primitive paths, so it knows nothing about role-enforcement domain types.
 
 Putting the following code in `oxlint-role-enforcement-runner.ts` would be the violation:
 
@@ -84,8 +84,6 @@ export function createOxlintRoleEnforcementRunner(
   }
 }
 ```
-
-`tools/dev-workflow-v2/src/features/workflow/adapters/github/workflow-pull-request-creator.ts` maps the domain-owned `CreateWorkflowPullRequest` contract to `GithubPullRequestCreationInput` and maps `GithubPullRequest` back to the domain result. Executing `gh` and validating its external JSON stay together in `tools/dev-workflow-v2/src/platform/infra/external-clients/github/create-pull-request.ts`.
 
 ## Anti-Patterns
 

@@ -20,7 +20,7 @@ Sharing does not change this role into `generic-cli-input-parser` and does not m
 Keep the parser beside that entrypoint:
 
 ```text
-packages/riviere-cli/src/features/builder/entrypoint/link/
+apps/cli/src/features/builder/entrypoint/link/
 ├── entrypoint.ts
 └── link-source-location-options.ts
 ```
@@ -70,7 +70,7 @@ export function parseLinkSourceLocation(
 Move the parser to that feature's private entrypoint platform:
 
 ```text
-packages/riviere-cli/src/features/{feature}/entrypoint/_platform/cli/
+apps/cli/src/features/{feature}/entrypoint/_platform/cli/
 ├── input-parsers/
 │   └── {parser}.ts
 └── option-validators/
@@ -80,30 +80,20 @@ packages/riviere-cli/src/features/{feature}/entrypoint/_platform/cli/
 For example, Builder's `validateLinkType` is used by the `link` and `link-external` entrypoints, while `validateHttpMethod` is used by the `link-http` entrypoint and its validator. These are Builder CLI option rules, so their common scope is:
 
 ```text
-packages/riviere-cli/src/features/builder/entrypoint/_platform/cli/option-validators/
+apps/cli/src/features/builder/entrypoint/_platform/cli/option-validators/
 ```
 
 They must not move to `platform/infra/cli` merely because several Builder entrypoints call them.
 
 ### Shared by entrypoints in multiple features
 
-Cross-feature code is no longer private to one feature's entrypoint location. Place it according to what it knows.
-
-Domain-aware parsing and normalisation belongs in shared domain:
+Cross-feature code is no longer private to one feature's entrypoint location. Generic CLI parsing shared across features belongs in:
 
 ```text
-packages/riviere-cli/src/platform/domain/component-types.ts
+apps/cli/src/infra/cli/input/
 ```
 
-The real component-type functions are the example. Builder and Query entrypoints both use them, and they encode domain values including `UseCase`, `DomainOp`, and `EventHandler`. They therefore belong in `platform/domain/`, not generic CLI infrastructure.
-
-Generic CLI parsing shared across features belongs in:
-
-```text
-packages/riviere-cli/src/platform/infra/cli/input/
-```
-
-It may work only with CLI and language primitives. There is no package-root `src/entrypoint/`; every entrypoint belongs to a feature.
+It may work only with CLI and language primitives. Domain-aware validation does not move into app infra: pass the raw command/query input through the entrypoint and let the use case parse the domain-owned value object. There is no package-root `src/entrypoint/`; every entrypoint belongs to a feature.
 
 ### When generic infra is correct
 
@@ -127,7 +117,7 @@ Do not extract a one-use primitive function merely to make the entrypoint file s
 - Primitive conversion without entrypoint meaning is a `generic-cli-input-parser`.
 - Reusable domain validation belongs to the domain that owns the rule.
 - Reuse within one feature changes the `_platform` scope, not the role or location.
-- Reuse across features requires `platform/domain/` for domain-aware code or `platform/infra/cli/input/` for generic parsing.
+- Reuse across features requires app `infra/cli/input/` for generic parsing. Domain-aware validation belongs in the subdomain use case and domain model.
 
 ## Anti-Patterns
 

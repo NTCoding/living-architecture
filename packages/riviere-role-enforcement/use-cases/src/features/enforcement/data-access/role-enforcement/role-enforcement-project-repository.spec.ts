@@ -42,10 +42,14 @@ function configurationWithPackageAssignments(params: {
 }
 
 describe('RoleEnforcementProjectRepository', () => {
-  it('discovers flat packages and packages inside a subdomain', () => {
+  it('discovers every package declared by the workspace', () => {
     const findFilesMatchingPatterns = vi.fn((): string[] => [])
     const repository = new RoleEnforcementProjectRepository({
       findFilesMatchingPatterns,
+      readWorkspacePackagePatterns: vi.fn(() => ({
+        include: ['packages/*', 'packages/*/*', 'apps/*/', 'tools/*'],
+        ignore: ['tools/legacy'],
+      })),
       readDirectory: vi.fn((): [] => []),
       realpath: vi.fn((filePath: string): string => filePath),
     })
@@ -59,8 +63,13 @@ describe('RoleEnforcementProjectRepository', () => {
     expect(findFilesMatchingPatterns).toHaveBeenNthCalledWith(
       1,
       '/repo',
-      ['packages/*/package.json', 'packages/*/*/package.json'],
-      [],
+      [
+        'packages/*/package.json',
+        'packages/*/*/package.json',
+        'apps/*/package.json',
+        'tools/*/package.json',
+      ],
+      ['tools/legacy/package.json'],
       expect.any(Function),
     )
   })

@@ -148,9 +148,6 @@ export default {
 
           for (const targetFile of resolveImportedFiles(node, resolvedImport)) {
             const targetRelative = normalizePath(readRelativeFilePath(targetFile, options.configDir))
-            if (rejectsCrossSubdomainImport(node, targetRelative)) {
-              return
-            }
             const targetChain = resolveLocationChain(targetRelative, locationHierarchy)
             if (targetChain.length === 0) {
               continue
@@ -163,44 +160,6 @@ export default {
             }
             validateTargetLocationRules(node, targetChain)
           }
-        }
-
-        function rejectsCrossSubdomainImport(node, targetRelative) {
-          const sourcePackage = readArchitecturalPackage(relativeFilePath)
-          const targetPackage = readArchitecturalPackage(targetRelative)
-          if (
-            sourcePackage === null ||
-            targetPackage === null ||
-            sourcePackage.path === targetPackage.path ||
-            targetPackage.packageType === 'published-language' ||
-            (sourcePackage.packageType === 'use-cases' &&
-              targetPackage.packageType === 'domain-model' &&
-              sourcePackage.subdomain === targetPackage.subdomain) ||
-            (sourcePackage.packageType === 'app' && targetPackage.packageType === 'use-cases')
-          ) {
-            return false
-          }
-          if (targetPackage.packageType === 'app') {
-            report(node, 'No package can import an app.')
-            return true
-          }
-          if (sourcePackage.packageType === 'published-language') {
-            report(node, 'A published-language package cannot import another workspace package.')
-            return true
-          }
-          if (sourcePackage.packageType === 'domain-model') {
-            report(node, 'A domain-model package can import only published-language packages.')
-            return true
-          }
-          if (sourcePackage.packageType === 'use-cases') {
-            report(
-              node,
-              `Use-cases for '${sourcePackage.subdomain}' cannot import '${targetPackage.path}'.`,
-            )
-            return true
-          }
-          report(node, `An app cannot import '${targetPackage.packageType}' directly.`)
-          return true
         }
 
         function resolveImportedFiles(node, resolvedImport) {
@@ -1535,9 +1494,6 @@ function locationRuleMatches(rule, source, target, locations) {
   if (typeof rule.ownSubdomain === 'string') {
     return ownSubdomainRuleMatches(rule.ownSubdomain, source, target)
   }
-  if (typeof rule.otherSubdomain === 'string') {
-    return otherSubdomainRuleMatches(rule.otherSubdomain, source, target)
-  }
   if (typeof rule.anySubdomain === 'string') {
     return anySubdomainRuleMatches(rule.anySubdomain, target)
   }
@@ -1562,34 +1518,44 @@ function ownSubdomainRuleMatches(configuredLocation, source, target) {
   if (!locationNameMatches(`/${configuredLocation}`, target.location.name)) {
     return false
   }
-  const sourcePackage = readArchitecturalPackage(`${source.concretePath}/source.ts`)
-  const targetPackage = readArchitecturalPackage(`${target.concretePath}/target.ts`)
-  return (
-    sourcePackage?.packageType === 'use-cases' &&
-    targetPackage?.packageType === 'domain-model' &&
-    sourcePackage.subdomain === targetPackage.subdomain
-  )
-}
-
-function otherSubdomainRuleMatches(configuredPackageType, source, target) {
-  if (!locationNameMatches(`/${configuredPackageType}`, target.location.name)) {
-    return false
-  }
-  const sourcePackage = readArchitecturalPackage(`${source.concretePath}/source.ts`)
-  const targetPackage = readArchitecturalPackage(`${target.concretePath}/target.ts`)
-  return (
-    sourcePackage?.subdomain !== undefined &&
-    targetPackage?.packageType === configuredPackageType &&
-    targetPackage.subdomain !== sourcePackage.subdomain
-  )
+  return haveSameSubdomain(source, target)
 }
 
 function anySubdomainRuleMatches(configuredLocation, target) {
   if (!locationNameMatches(`/${configuredLocation}`, target.location.name)) {
     return false
   }
-  const targetPackage = readArchitecturalPackage(`${target.concretePath}/target.ts`)
-  return targetPackage?.packageType === 'use-cases'
+  return readPackageBoundaries(target.location.packagePath, concretePackagePath(target)).size > 0
+}
+
+function haveSameSubdomain(source, target) {
+  const sourceBoundaries = readPackageBoundaries(
+    source.location.packagePath,
+    concretePackagePath(source),
+  )
+  const targetBoundaries = readPackageBoundaries(
+    target.location.packagePath,
+    concretePackagePath(target),
+  )
+  return [...sourceBoundaries].some(
+    ([boundaryName, boundaryValue]) => targetBoundaries.get(boundaryName) === boundaryValue,
+  )
+}
+
+function readPackageBoundaries(packagePattern, concretePath) {
+  const patternSegments = packagePattern.split('/')
+  const concreteSegments = concretePath.split('/')
+  const boundaries = new Map()
+  for (const [index, segment] of patternSegments.entries()) {
+    if (!isTemplateSegment(segment)) {
+      continue
+    }
+    const concreteSegment = concreteSegments[index]
+    if (concreteSegment !== undefined) {
+      boundaries.set(segment.slice(1, -1), concreteSegment)
+    }
+  }
+  return boundaries
 }
 
 function siblingRuleMatches(configuredLocation, source, target, locations) {
@@ -1831,21 +1797,6 @@ function isInsideDirectory(filePath, directoryPath) {
 
 function isNodeInside(candidate, container) {
   return candidate.range[0] >= container.range[0] && candidate.range[1] <= container.range[1]
-}
-
-function readArchitecturalPackage(filePath) {
-  const segments = normalizePath(filePath).split('/')
-  if (segments[0] === 'apps' && segments[2] === 'src' && segments[1] !== undefined) {
-    return { packageType: 'app', path: `apps/${segments[1]}`, subdomain: null }
-  }
-  if (segments[0] !== 'packages' || segments[3] !== 'src') return null
-  const subdomain = segments[1]
-  const packageType = segments[2]
-  if (
-    subdomain === undefined ||
-    !['domain-model', 'published-language', 'use-cases'].includes(packageType)
-  ) return null
-  return { packageType, path: `packages/${subdomain}/${packageType}`, subdomain }
 }
 
 function normalizePath(value) {

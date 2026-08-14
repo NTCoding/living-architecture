@@ -20,6 +20,7 @@
   ],
   "dependencies": {
     "@living-architecture/riviere-role-enforcement": "workspace:*",
-    "minimatch": "^10.0.1"
+    "minimatch": "^10.0.1",
+    "yaml": "^2.7.0"
   }
 }

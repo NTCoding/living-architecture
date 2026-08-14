@@ -6,12 +6,14 @@ import {
 } from '@living-architecture/riviere-role-enforcement'
 import type { findFilesMatchingPatterns } from '../../../../infra/external-clients/filesystem/find-files-matching-patterns'
 import { findFilesMatchingPatterns as defaultFindFilesMatchingPatterns } from '../../../../infra/external-clients/filesystem/find-files-matching-patterns'
+import { readWorkspacePackagePatterns as defaultReadWorkspacePackagePatterns } from '../../../../infra/external-clients/filesystem/read-workspace-package-patterns'
 
 type ReadDirectory = Parameters<typeof findFilesMatchingPatterns>[3]
 
 const defaultDependencies = {
   findFilesMatchingPatterns: defaultFindFilesMatchingPatterns,
   readDirectory: defaultReadDirectory,
+  readWorkspacePackagePatterns: defaultReadWorkspacePackagePatterns,
   realpath: (filePath: string) => realpathSync(filePath),
 }
 
@@ -36,11 +38,12 @@ export class RoleEnforcementProjectRepository {
   load(configModule: unknown, configDir: string): RoleEnforcementProject {
     const config = readConfig(configModule)
     const canonicalConfigDir = this.dependencies.realpath(configDir)
-    const packageRoots = findPackageRoots(config)
+    const workspacePatterns = this.dependencies.readWorkspacePackagePatterns(canonicalConfigDir)
+    const packagePatterns = workspacePatterns ?? packagePatternsFromConfiguration(config)
     const workspacePackageManifests = this.dependencies.findFilesMatchingPatterns(
       canonicalConfigDir,
-      packageRoots.flatMap((root) => [`${root}/*/package.json`, `${root}/*/*/package.json`]),
-      [],
+      packagePatterns.include.map((pattern) => `${withoutTrailingSlash(pattern)}/package.json`),
+      packagePatterns.ignore.map((pattern) => `${withoutTrailingSlash(pattern)}/package.json`),
       this.dependencies.readDirectory,
     )
     config.validateWorkspacePackages(
@@ -56,14 +59,22 @@ export class RoleEnforcementProjectRepository {
   }
 }
 
-function findPackageRoots(config: RoleEnforcementConfiguration): string[] {
-  return [
+function packagePatternsFromConfiguration(config: RoleEnforcementConfiguration) {
+  const packageRoots = [
     ...new Set(
       [...config.assignedPackages, ...config.unassignedPackages].map(
         (packagePath) => packagePath.split('/')[0],
       ),
     ),
   ].filter((root): root is string => root !== undefined && root.length > 0)
+  return {
+    include: packageRoots.flatMap((root) => [`${root}/*`, `${root}/*/*`]),
+    ignore: [],
+  }
+}
+
+function withoutTrailingSlash(value: string): string {
+  return value.endsWith('/') ? value.slice(0, -1) : value
 }
 
 function readConfig(configModule: unknown): RoleEnforcementConfiguration {

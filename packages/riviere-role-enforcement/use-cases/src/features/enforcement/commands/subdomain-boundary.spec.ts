@@ -11,287 +11,261 @@ import * as fixtureWorkspace from './test-fixture-workspace'
 const roles = [role('example', { targets: ['function'] })] as const
 type RoleName = (typeof roles)[number]['name']
 
-const locations = locationConfiguration(
-  location<RoleName>('/domain', ['example'], { allowAnySubLocations: true }),
-  location<RoleName>('/commands', ['example'], { allowAnySubLocations: true }),
-  location<RoleName>('/entrypoint', ['example'], { allowAnySubLocations: true }),
-)
-
-it('allows use cases to import their own domain model', () => {
-  withBoundaryFixture((workspaceDir) => {
-    fixtureWorkspace.writeFixtureFile(
-      workspaceDir,
-      'packages/alpha/use-cases/src/commands/consume.ts',
-      `import { value } from '../../../domain-model/src/domain/value'
+it('allows a configured package to import another package in its own subdomain', () => {
+  runBoundaryFixture(
+    'modules/alpha/consumer/src/actions/consume.ts',
+    `import { value } from '../../../provider/src/api/value'
 
 /** @riviere-role example */
-export function consume(): string {
-  return value()
-}
+export function consume(): string { return value() }
 `,
-    )
-
-    const result = runBoundaryEnforcement(workspaceDir)
-
-    assert.equal(result.exitCode, 0)
-    assert.equal(result.stderr, '')
-  })
+    (result) => assert.equal(result.exitCode, 0, result.stdout),
+  )
 })
 
-it('rejects a domain model importing its use cases', () => {
-  withBoundaryFixture((workspaceDir) => {
-    fixtureWorkspace.writeFixtureFile(
-      workspaceDir,
-      'packages/alpha/domain-model/src/domain/consume.ts',
-      `import { alpha } from '../../../use-cases/src/commands/alpha'
+it('rejects an import that has not been allowed by its location', () => {
+  runBoundaryFixture(
+    'modules/alpha/provider/src/api/consume.ts',
+    `import { alpha } from '../../../consumer/src/actions/alpha'
 
 /** @riviere-role example */
-export function consume(): string {
-  return alpha()
-}
+export function consume(): string { return alpha() }
 `,
-    )
-
-    const result = runBoundaryEnforcement(workspaceDir)
-
-    assert.equal(result.exitCode, 1)
-    assert.match(
-      result.stdout,
-      /A domain-model package can import only published-language packages/,
-    )
-  })
+    (result) => {
+      assert.equal(result.exitCode, 1)
+      assert.match(result.stdout, /Location '\/api' cannot import location '\/actions'/)
+    },
+  )
 })
 
-it('rejects a domain model importing another subdomain', () => {
-  withBoundaryFixture((workspaceDir) => {
-    fixtureWorkspace.writeFixtureFile(
-      workspaceDir,
-      'packages/alpha/domain-model/src/domain/consume.ts',
-      `import { value } from '../../../../beta/domain-model/src/domain/value'
+it('does not apply an own-subdomain allowance to another subdomain', () => {
+  runBoundaryFixture(
+    'modules/alpha/consumer/src/actions/consume.ts',
+    `import { value } from '../../../../beta/provider/src/api/value'
 
 /** @riviere-role example */
-export function consume(): string {
-  return value()
-}
+export function consume(): string { return value() }
 `,
-    )
-
-    const result = runBoundaryEnforcement(workspaceDir)
-
-    assert.equal(result.exitCode, 1)
-    assert.match(
-      result.stdout,
-      /A domain-model package can import only published-language packages/,
-    )
-  })
+    (result) => {
+      assert.equal(result.exitCode, 1)
+      assert.match(result.stdout, /Location '\/actions' cannot import location '\/api'/)
+    },
+  )
 })
 
-it('rejects use cases importing another subdomain', () => {
-  withBoundaryFixture((workspaceDir) => {
-    fixtureWorkspace.writeFixtureFile(
-      workspaceDir,
-      'packages/alpha/use-cases/src/commands/consume.ts',
-      `import { value } from '../../../../beta/domain-model/src/domain/value'
+it('a configured package boundary can use any placeholder name', () => {
+  runGenericBoundaryFixture(
+    'groups/alpha/consumer/src/actions/consume.ts',
+    `import { value } from '../../../provider/src/api/value'
 
 /** @riviere-role example */
-export function consume(): string {
-  return value()
-}
+export function consume(): string { return value() }
 `,
-    )
-
-    const result = runBoundaryEnforcement(workspaceDir)
-
-    assert.equal(result.exitCode, 1)
-    assert.match(
-      result.stdout,
-      /Use-cases for 'alpha' cannot import 'packages\/beta\/domain-model'/,
-    )
-  })
+    (result) => assert.equal(result.exitCode, 0, result.stdout),
+  )
 })
 
-it('does not let a location import rule override the subdomain boundary', () => {
-  withBoundaryFixture((workspaceDir) => {
-    fixtureWorkspace.writeFixtureFile(
-      workspaceDir,
-      'packages/alpha/use-cases/src/commands/consume.ts',
-      `import { value } from '../../../../beta/domain-model/src/domain/value'
+it('allows an explicitly configured location in any subdomain', () => {
+  const consumerLocations = locationConfiguration(
+    location<RoleName>('/actions', ['example'], {
+      allowAnySubLocations: true,
+      importRules: { allow: { anySubdomain: ['api'] } },
+    }),
+  )
+  runBoundaryFixture(
+    'modules/alpha/consumer/src/actions/consume.ts',
+    `import { value } from '../../../../beta/provider/src/api/value'
 
 /** @riviere-role example */
-export function consume(): string {
-  return value()
-}
+export function consume(): string { return value() }
 `,
-    )
-
-    const result = runBoundaryEnforcement(
-      workspaceDir,
-      locationConfiguration(
-        location<RoleName>('/commands', ['example'], {
-          allowAnySubLocations: true,
-          importRules: { allow: { root: ['domain'] } },
-        }),
-        location<RoleName>('/domain', ['example'], { allowAnySubLocations: true }),
-        location<RoleName>('/entrypoint', ['example'], { allowAnySubLocations: true }),
-      ),
-    )
-
-    assert.equal(result.exitCode, 1)
-    assert.match(
-      result.stdout,
-      /Use-cases for 'alpha' cannot import 'packages\/beta\/domain-model'/,
-    )
-  })
+    (result) => assert.equal(result.exitCode, 0, result.stdout),
+    consumerLocations,
+  )
 })
 
-it('allows an app to aggregate multiple subdomains', () => {
-  withBoundaryFixture((workspaceDir) => {
-    fixtureWorkspace.writeFixtureFile(
-      workspaceDir,
-      'apps/cli/src/entrypoint/consume.ts',
-      `import { alpha } from '../../../../packages/alpha/use-cases/src/commands/alpha'
-import { beta } from '../../../../packages/beta/use-cases/src/commands/beta'
+it('allows a package to import allowed packages from multiple subdomains', () => {
+  runBoundaryFixture(
+    'interfaces/cli/src/entry/consume.ts',
+    `import { alpha } from '../../../../modules/alpha/consumer/src/actions/alpha'
+import { beta } from '../../../../modules/beta/consumer/src/actions/beta'
 
 /** @riviere-role example */
-export function consume(): string {
-  return alpha() + beta()
-}
+export function consume(): string { return alpha() + beta() }
 `,
-    )
-
-    const result = runBoundaryEnforcement(workspaceDir)
-
-    assert.equal(result.exitCode, 0)
-    assert.equal(result.stderr, '')
-  })
+    (result) => assert.equal(result.exitCode, 0, result.stdout),
+  )
 })
 
-it('rejects an app importing a domain model directly', () => {
-  withBoundaryFixture((workspaceDir) => {
-    fixtureWorkspace.writeFixtureFile(
-      workspaceDir,
-      'apps/cli/src/entrypoint/consume.ts',
-      `import { value } from '../../../../packages/alpha/domain-model/src/domain/value'
+it('an application can import an allowed location from any configured package boundary', () => {
+  runGenericBoundaryFixture(
+    'interfaces/cli/src/entry/consume.ts',
+    `import { alpha } from '../../../../groups/alpha/consumer/src/actions/alpha'
 
 /** @riviere-role example */
-export function consume(): string {
-  return value()
-}
+export function consume(): string { return alpha() }
 `,
-    )
-
-    const result = runBoundaryEnforcement(workspaceDir)
-
-    assert.equal(result.exitCode, 1)
-    assert.match(result.stdout, /An app cannot import 'domain-model' directly/)
-  })
+    (result) => assert.equal(result.exitCode, 0, result.stdout),
+  )
 })
 
-it('rejects a domain model importing an app', () => {
-  withBoundaryFixture((workspaceDir) => {
-    fixtureWorkspace.writeFixtureFile(
-      workspaceDir,
-      'packages/alpha/domain-model/src/domain/consume.ts',
-      `import { main } from '../../../../../apps/cli/src/entrypoint/main'
+it('rejects a package importing a package type it was not allowed', () => {
+  runBoundaryFixture(
+    'interfaces/cli/src/entry/consume.ts',
+    `import { value } from '../../../../modules/alpha/provider/src/api/value'
 
 /** @riviere-role example */
-export function consume(): void {
-  main()
-}
+export function consume(): string { return value() }
 `,
-    )
-
-    const result = runBoundaryEnforcement(workspaceDir)
-
-    assert.equal(result.exitCode, 1)
-    assert.match(result.stdout, /No package can import an app/)
-  })
+    (result) => {
+      assert.equal(result.exitCode, 1)
+      assert.match(result.stdout, /Location '\/entry' cannot import location '\/api'/)
+    },
+  )
 })
 
-it('rejects use cases importing an app', () => {
-  withBoundaryFixture((workspaceDir) => {
-    fixtureWorkspace.writeFixtureFile(
-      workspaceDir,
-      'packages/alpha/use-cases/src/commands/consume.ts',
-      `import { main } from '../../../../../apps/cli/src/entrypoint/main'
+it('rejects imports into a package that no package may import', () => {
+  runBoundaryFixture(
+    'modules/alpha/provider/src/api/consume.ts',
+    `import { main } from '../../../../../interfaces/cli/src/entry/main'
 
 /** @riviere-role example */
-export function consume(): void {
-  main()
-}
+export function consume(): void { main() }
 `,
-    )
-
-    const result = runBoundaryEnforcement(workspaceDir)
-
-    assert.equal(result.exitCode, 1)
-    assert.match(result.stdout, /No package can import an app/)
-  })
+    (result) => {
+      assert.equal(result.exitCode, 1)
+      assert.match(result.stdout, /Location '\/api' cannot import location '\/entry'/)
+    },
+  )
 })
 
-function withBoundaryFixture(fn: (workspaceDir: string) => void): void {
+function runBoundaryFixture(
+  filePath: string,
+  contents: string,
+  assertResult: (result: { exitCode: number; stderr: string; stdout: string }) => void,
+  configuredConsumerLocations = consumerLocations(),
+): void {
   fixtureWorkspace.withWorkspaceFixture(
     {
-      prefix: 'role-enforcement-subdomain-boundary-',
+      prefix: 'role-enforcement-package-boundary-',
       roles,
       files: {
-        'apps/cli/src/entrypoint/main.ts': `/** @riviere-role example */
-export function main(): void {}
-`,
-        'packages/alpha/domain-model/src/domain/value.ts': `/** @riviere-role example */
-export function value(): string {
-  return 'alpha'
-}
-`,
-        'packages/alpha/use-cases/src/commands/alpha.ts': `/** @riviere-role example */
-export function alpha(): string {
-  return 'alpha'
-}
-`,
-        'packages/beta/domain-model/src/domain/value.ts': `/** @riviere-role example */
-export function value(): string {
-  return 'beta'
-}
-`,
-        'packages/beta/use-cases/src/commands/beta.ts': `/** @riviere-role example */
-export function beta(): string {
-  return 'beta'
-}
-`,
+        'interfaces/cli/src/entry/main.ts': roleFunction('main', 'void'),
+        'modules/alpha/provider/src/api/value.ts': roleFunction('value', 'string'),
+        'modules/alpha/consumer/src/actions/alpha.ts': roleFunction('alpha', 'string'),
+        'modules/beta/provider/src/api/value.ts': roleFunction('value', 'string'),
+        'modules/beta/consumer/src/actions/beta.ts': roleFunction('beta', 'string'),
+        [filePath]: contents,
       },
     },
-    fn,
+    (workspaceDir) => {
+      const provider = {
+        locations: locationConfiguration(
+          location<RoleName>('/api', ['example'], {
+            allowAnySubLocations: true,
+            importRules: { allow: {} },
+          }),
+        ),
+      }
+      const consumer = {
+        locations: configuredConsumerLocations,
+      }
+      const interfacePackage = {
+        locations: locationConfiguration(
+          location<RoleName>('/entry', ['example'], {
+            allowAnySubLocations: true,
+            importRules: { allow: { anySubdomain: ['actions'] } },
+          }),
+        ),
+      }
+      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
+        configDir: workspaceDir,
+        configModule: {
+          config: roleEnforcementConfiguration({
+            configurations: {
+              'interfaces/': interfacePackage,
+              'modules/{subdomain}/consumer': consumer,
+              'modules/{subdomain}/provider': provider,
+            },
+            ignorePatterns: [],
+            roleDefinitionsDir: '.riviere/role-definitions',
+            roles,
+          }),
+        },
+      })
+      assertResult(result)
+    },
   )
 }
 
-function runBoundaryEnforcement(workspaceDir: string, configuredLocations = locations) {
-  return fixtureWorkspace.createTestRoleEnforcementApplication().execute({
-    configDir: workspaceDir,
-    configModule: {
-      config: roleEnforcementConfiguration({
-        configurations: {
-          'packages/alpha/domain-model': {
-            locations: locationConfiguration(
-              location<RoleName>('/domain', ['example'], { allowAnySubLocations: true }),
-            ),
-          },
-          'packages/alpha/use-cases': { locations: configuredLocations },
-          'packages/beta/domain-model': {
-            locations: locationConfiguration(
-              location<RoleName>('/domain', ['example'], { allowAnySubLocations: true }),
-            ),
-          },
-          'packages/beta/use-cases': { locations: configuredLocations },
-          'apps/cli': {
-            locations: locationConfiguration(
-              location<RoleName>('/entrypoint', ['example'], { allowAnySubLocations: true }),
-            ),
-          },
-        },
-        ignorePatterns: [],
-        roleDefinitionsDir: '.riviere/role-definitions',
-        roles,
-      }),
+function runGenericBoundaryFixture(
+  filePath: string,
+  contents: string,
+  assertResult: (result: { exitCode: number; stderr: string; stdout: string }) => void,
+): void {
+  fixtureWorkspace.withWorkspaceFixture(
+    {
+      prefix: 'role-enforcement-generic-boundary-',
+      roles,
+      files: {
+        'interfaces/cli/src/entry/main.ts': roleFunction('main', 'void'),
+        'groups/alpha/provider/src/api/value.ts': roleFunction('value', 'string'),
+        'groups/alpha/consumer/src/actions/alpha.ts': roleFunction('alpha', 'string'),
+        [filePath]: contents,
+      },
     },
-  })
+    (workspaceDir) => {
+      const provider = {
+        locations: locationConfiguration(
+          location<RoleName>('/api', ['example'], {
+            allowAnySubLocations: true,
+            importRules: { allow: {} },
+          }),
+        ),
+      }
+      const consumer = {
+        locations: consumerLocations(),
+      }
+      const interfacePackage = {
+        locations: locationConfiguration(
+          location<RoleName>('/entry', ['example'], {
+            allowAnySubLocations: true,
+            importRules: { allow: { anySubdomain: ['actions'] } },
+          }),
+        ),
+      }
+      const result = fixtureWorkspace.createTestRoleEnforcementApplication().execute({
+        configDir: workspaceDir,
+        configModule: {
+          config: roleEnforcementConfiguration({
+            configurations: {
+              'interfaces/': interfacePackage,
+              'groups/{boundary}/consumer': consumer,
+              'groups/{boundary}/provider': provider,
+            },
+            ignorePatterns: [],
+            roleDefinitionsDir: '.riviere/role-definitions',
+            roles,
+          }),
+        },
+      })
+      assertResult(result)
+    },
+  )
+}
+
+function consumerLocations() {
+  return locationConfiguration(
+    location<RoleName>('/actions', ['example'], {
+      allowAnySubLocations: true,
+      importRules: { allow: { ownSubdomain: ['api'] } },
+    }),
+  )
+}
+
+function roleFunction(name: string, returnType: 'string' | 'void'): string {
+  const body = returnType === 'string' ? `return '${name}'` : ''
+  return `/** @riviere-role example */
+export function ${name}(): ${returnType} { ${body} }
+`
 }

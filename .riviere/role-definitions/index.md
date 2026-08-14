@@ -12,22 +12,23 @@ These resources inform how roles are classified and where code should live:
 ## Dependency Rules
 
 Dependencies point inward:
-- `entrypoint/` → commands, queries, and `platform/infra/cli/*`; never domain or data access directly
-- `commands/` → domain and data access; never concrete domain-port adapters
-- `queries/` → query models and data access
-- `domain/` → domain code and domain ports only; never adapters or infrastructure
-- `data-access/` → reconstructs aggregates or query models from persisted data
-- `adapters/` → one domain port and one generic client API; never external packages directly
-- `infra/` → external packages and generic technical capabilities whose APIs use only language primitives or external-system types; never application-owned code from entrypoint, commands, queries, domain, data access, adapters, or shell
-- `shell/` → constructs concrete dependencies and passes them into entrypoints
 
-Concrete test: `readJsonFile(filePath): unknown` and `resolveFileOrPackagePath(...): string` qualify because their contracts contain only primitives and external technical concepts. `loadDraftComponentsFromFile(filePath): DraftComponent[]` does not qualify because its contract and validation use an application-owned type. See the [full extraction repository example](../../project-memory/architecture/memories/prefer-layer-based-rules.md).
+- App `entrypoint/` → subdomain commands and queries plus app `infra/`; never domain or data access directly
+- Use-case `commands/` → own-subdomain domain and feature data access; never concrete domain-port adapters
+- Use-case `queries/` → own-subdomain domain and feature data access
+- Domain-model `domain/` → its own model and permitted published languages; never use cases, adapters, infra, apps, or another domain model
+- Use-case `data-access/{concept}/` → aggregate and value-object roles from its own domain plus generic clients; never domain services
+- Use-case `adapters/{adapter}/` → one domain port and one generic client API; never external packages directly
+- Root `infra/` → external packages and generic technical capabilities; never app, use-case, or domain declarations
+- App `shell/` → constructs concrete dependencies and passes them into entrypoints
+
+Concrete test: `readJsonFile(filePath): unknown` and `resolveFileOrPackagePath(...): string` qualify because their contracts contain only primitives and external technical concepts. `loadDraftComponentsFromFile(filePath): DraftComponent[]` does not qualify because its contract and validation use an application-owned type.
 
 ## Automated Enforcement
 
 Role enforcement is automated via an oxlint plugin. It checks annotations, location constraints, import rules, and I/O contracts at lint time. ADR-002 defines the architecture and `.riviere/role-enforcement.config.ts` is its executable form. Changes must update both.
 
-Import rules belong in the relevant location's `importRules`. Imports are unrestricted until a location declares import rules. That location can then import only its own subtree, locations inherited from its parent, and locations listed in `allow`. A sublocation inherits its parent's import rules unless it declares `inheritParentImportRules: false`. `siblingOrRoot: 'data-access'` permits configured `data-access` locations that are either a sibling or a package-root location in the same package; it never permits another package. Location globs are used for other relationships, and cross-package globs begin with `**/`. Allowing a location allows everything inside it. Allowing one sibling does not allow any other sibling. Explicit sublocations are the complete list of permitted folders unless `allowAnySubLocations` is set. Role-specific restrictions use the existing role `forbiddenDependencies` rule. Rivière role enforcement must not maintain a second list of path matchers for architectural locations.
+Import rules belong in the relevant location's `importRules`. Imports are unrestricted until a location declares import rules. That location can then import only its own subtree, inherited imports, and locations listed in `allow`. `sibling` means the same concrete parent location; `root` means the same package root; `ownSubdomain` and `anySubdomain` use the configured `{subdomain}` path capture. Allowing a location allows everything inside it unless a role subset is supplied. Explicit sublocations are the complete list of permitted folders unless `allowAnySubLocations` is set.
 
 ## Classification Decision Tree
 

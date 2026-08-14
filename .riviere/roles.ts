@@ -134,7 +134,7 @@ export const allRoles = [
   role('query-model-error', { targets: ['class'] }),
   role('query-model-loader', {
     targets: ['class'],
-    allowedOutputs: ['query-model', 'domain-error'],
+    allowedOutputs: ['query-model'],
     forbiddenDependencies: ['query-model-loader'],
   }),
   role('external-client-model', { targets: ['interface', 'type-alias', 'class'] }),

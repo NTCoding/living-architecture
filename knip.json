@@ -55,10 +55,9 @@
     "packages/*": {
       "project": ["src/**/*.ts"]
     },
-    "tools/dev-workflow-v2": {
+    "tools/dev-workflow-v2/app": {
       "entry": ["src/shell/cli.ts", "src/shell/opencode-plugin.ts"],
-      "project": ["src/**/*.ts"],
-      "ignoreDependencies": ["@types/better-sqlite3"]
+      "project": ["src/**/*.ts"]
     }
   },
   "ignore": [
