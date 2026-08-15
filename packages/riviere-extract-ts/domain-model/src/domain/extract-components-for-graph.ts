@@ -49,7 +49,7 @@ function buildGraphExtractionResult(input: GraphExtractionInput): ExtractCompone
   const enrichment = enrichGraphComponents(input)
   return enrichment.kind === 'fieldFailure'
     ? failedGraphExtraction(enrichment.failedFields)
-    : successfulGraphExtraction(repositoryName, enrichment)
+    : successfulGraphExtraction({ repository: repositoryName, enrichment })
 }
 
 function enrichGraphComponents(input: GraphExtractionInput): EnrichmentResult {
@@ -74,9 +74,10 @@ function failedGraphExtraction(failedFields: string[]): ExtractComponentsForGrap
 }
 
 function successfulGraphExtraction(
-  repository: string,
-  { components, failedFields }: SuccessfulEnrichment,
+  input: SuccessfulGraphExtractionInput,
 ): ExtractComponentsForGraphResult {
+  const { repository, enrichment } = input
+  const { components, failedFields } = enrichment
   return {
     ok: true,
     repository,
@@ -123,6 +124,16 @@ type OrphanedDraftModulesInput = {
 type ModuleContextInput = {
   readonly contexts: readonly EnrichmentModuleContext[]
   readonly module: ValidatedModule
+}
+
+type SuccessfulGraphExtractionInput = {
+  readonly repository: string
+  readonly enrichment: SuccessfulEnrichment
+}
+
+type OrphanedModuleNamesInput = {
+  readonly draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>
+  readonly knownModuleNames: ReadonlySet<string>
 }
 
 type EnrichmentModuleContext = {
@@ -186,7 +197,7 @@ function assertAllDraftsMatchModules(
   modules: readonly ValidatedModule[],
 ): void {
   const knownModuleNames = new Set(moduleNames(modules))
-  const orphanedModules = orphanedModuleNames(draftsByModule, knownModuleNames)
+  const orphanedModules = orphanedModuleNames({ draftsByModule, knownModuleNames })
   if (orphanedModules.length > 0) {
     throw new OrphanedDraftComponentError(orphanedModules, [...knownModuleNames])
   }
@@ -201,10 +212,8 @@ function moduleNames(modules: readonly ValidatedModule[]): string[] {
   return names
 }
 
-function orphanedModuleNames(
-  draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
-  knownModuleNames: ReadonlySet<string>,
-): string[] {
+function orphanedModuleNames(input: OrphanedModuleNamesInput): string[] {
+  const { draftsByModule, knownModuleNames } = input
   const orphaned: string[] = []
   for (const name of draftsByModule.keys()) {
     const isKnownModule = knownModuleNames.has(name)
@@ -248,8 +257,8 @@ function failuresFields(result: ReturnType<typeof enrichComponents>): string[] {
 }
 
 function extractDraftsByModule(stage: ExtractionStage): Map<string, DraftComponent[]> {
-  const grouped = new Map<string, DraftComponent[]>()
-  const contexts = stage.moduleContexts
+  const grouped = new Map<string, DraftComponent[]>(),
+    contexts = stage.moduleContexts
   for (const context of contexts) {
     const module = context.module
     const name = module.name
@@ -259,24 +268,23 @@ function extractDraftsByModule(stage: ExtractionStage): Map<string, DraftCompone
 }
 
 function extractModuleDrafts(context: ModuleContext): DraftComponent[] {
-  const project = context.project
-  const files = [...context.files]
-  const module = context.module
+  const { project, module, files: contextFiles } = context
+  const files = [...contextFiles]
   const drafts = extractComponents(project, files, module)
   const orphanedModules = orphanedDraftModules({ drafts, module })
   if (orphanedModules.length > 0) {
-    throw new OrphanedDraftComponentError(orphanedModules, [module.name])
+    const moduleName = module.name
+    throw new OrphanedDraftComponentError(orphanedModules, [moduleName])
   }
   return drafts
 }
 
 function orphanedDraftModules(input: OrphanedDraftModulesInput): string[] {
   const { drafts, module } = input
-  const orphanedModules: string[] = []
-  const moduleDomain = module.domain
+  const orphanedModules: string[] = [],
+    moduleDomain = module.domain
   for (const draft of drafts) {
-    const draftDomain = draft.domain
-    const draftModule = draft.module
+    const { domain: draftDomain, module: draftModule } = draft
     if (draftDomain === moduleDomain) continue
     orphanedModules.push(draftModule)
   }
@@ -284,8 +292,8 @@ function orphanedDraftModules(input: OrphanedDraftModulesInput): string[] {
 }
 
 function contextForModule(input: ModuleContextInput): EnrichmentModuleContext {
-  const { contexts, module } = input
-  const moduleName = module.name
+  const { contexts, module } = input,
+    moduleName = module.name
   for (const context of contexts) {
     const contextModule = context.module
     const contextModuleName = contextModule.name
