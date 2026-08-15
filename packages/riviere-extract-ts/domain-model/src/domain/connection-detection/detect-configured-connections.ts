@@ -95,7 +95,7 @@ function detectPerModule(
 
 function perModuleOptions(input: PerModuleOptionsInput) {
   const { source, allComponents, options } = input
-  const httpLinks = options.httpLinks
+  const { httpLinks } = options
   return PerModuleConnectionOptions.parse({
     allComponents,
     allowIncomplete: options.allowIncomplete,
@@ -134,9 +134,8 @@ function combinePerModuleResults(perModuleResults: PerModuleResults): Configured
   const moduleLinks: ExtractedLink[] = []
   const externalLinks: ExternalLink[] = []
   for (const result of perModuleResults) {
-    const links = result.links
-    const resultExternalLinks = result.externalLinks
-    moduleLinks.push(...links)
+    const { links: resultLinks, externalLinks: resultExternalLinks } = result
+    moduleLinks.push(...resultLinks)
     externalLinks.push(...resultExternalLinks)
   }
   return {

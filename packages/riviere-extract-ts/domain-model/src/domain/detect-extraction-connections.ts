@@ -23,6 +23,17 @@ type ModuleOwnershipInput = {
   readonly files: readonly string[]
 }
 
+type ConfiguredSource = {
+  readonly files: readonly string[]
+  readonly project: ExtractionStage['moduleContexts'][number]['project']
+  readonly components: readonly EnrichedComponent[]
+}
+
+type ConfiguredSourcesInput = {
+  readonly stage: ExtractionStage
+  readonly allComponents: readonly EnrichedComponent[]
+}
+
 /** @riviere-role domain-service */
 export class DetectExtractionConnections {
   execute(
@@ -30,7 +41,7 @@ export class DetectExtractionConnections {
     allComponents: readonly EnrichedComponent[],
     options: { readonly allowIncomplete: false },
   ) {
-    const sources = configuredSources(stage, allComponents)
+    const sources = configuredSources({ stage, allComponents })
     const connectionConfig = connectionOptions({
       stage,
       allowIncomplete: options.allowIncomplete,
@@ -43,14 +54,8 @@ export class DetectExtractionConnections {
   }
 }
 
-function configuredSources(
-  stage: ExtractionStage,
-  allComponents: readonly EnrichedComponent[],
-): {
-  files: readonly string[]
-  project: ExtractionStage['moduleContexts'][number]['project']
-  components: readonly EnrichedComponent[]
-}[] {
+function configuredSources(input: ConfiguredSourcesInput): ConfiguredSource[] {
+  const { stage, allComponents } = input
   const { resolvedConfig } = stage
   const modules = resolvedConfig.modules
   return modules.map((module) => configuredSource({ stage, module, allComponents }))
@@ -90,8 +95,7 @@ function moduleOwnsComponent(input: ModuleOwnershipInput): boolean {
   const { file } = location
   const { domain: moduleDomain } = module
   const isConfiguredFile = files.includes(file)
-  const isSameDomain = domain === moduleDomain
-  if (!isConfiguredFile || !isSameDomain) return false
+  if (!isConfiguredFile || domain !== moduleDomain) return false
   const resolvedModule = resolveModuleName(file, module)
   return resolvedModule === componentModule
 }

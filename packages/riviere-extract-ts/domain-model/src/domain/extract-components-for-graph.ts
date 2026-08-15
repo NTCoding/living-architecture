@@ -103,6 +103,28 @@ type EnrichmentInput = {
   readonly allowIncomplete: boolean
 }
 
+type EnrichModuleInput = {
+  readonly module: ValidatedModule
+  readonly moduleContexts: readonly EnrichmentModuleContext[]
+  readonly draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>
+}
+
+type EnrichExistingModuleInput = {
+  readonly moduleDrafts: readonly DraftComponent[]
+  readonly module: ValidatedModule
+  readonly project: Project
+}
+
+type OrphanedDraftModulesInput = {
+  readonly drafts: readonly DraftComponent[]
+  readonly module: ValidatedModule
+}
+
+type ModuleContextInput = {
+  readonly contexts: readonly EnrichmentModuleContext[]
+  readonly module: ValidatedModule
+}
+
 type EnrichmentModuleContext = {
   readonly module: ValidatedModule
   readonly project: Project
@@ -138,7 +160,7 @@ function enrichModules(
   moduleContexts: readonly EnrichmentModuleContext[],
   draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
 ): ModuleEnrichment[] {
-  return modules.map((module) => enrichModule(module, moduleContexts, draftsByModule))
+  return modules.map((module) => enrichModule({ module, moduleContexts, draftsByModule }))
 }
 
 function componentsFromResults(results: readonly ModuleEnrichment[]): EnrichedComponent[] {
@@ -185,7 +207,8 @@ function orphanedModuleNames(
 ): string[] {
   const orphaned: string[] = []
   for (const name of draftsByModule.keys()) {
-    if (!knownModuleNames.has(name)) orphaned.push(name)
+    const isKnownModule = knownModuleNames.has(name)
+    if (!isKnownModule) orphaned.push(name)
   }
   return orphaned
 }
@@ -195,24 +218,18 @@ interface ModuleEnrichment {
   readonly failedFields: string[]
 }
 
-function enrichModule(
-  module: ValidatedModule,
-  moduleContexts: readonly EnrichmentModuleContext[],
-  draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
-): ModuleEnrichment {
-  const context = contextForModule(moduleContexts, module)
+function enrichModule(input: EnrichModuleInput): ModuleEnrichment {
+  const { module, moduleContexts, draftsByModule } = input
+  const context = contextForModule({ contexts: moduleContexts, module })
   const moduleName = module.name
   const moduleDrafts = draftsByModule.get(moduleName) ?? []
   if (moduleDrafts.length === 0) return { components: [], failedFields: [] }
   const project = context.project
-  return enrichExistingModule(moduleDrafts, module, project)
+  return enrichExistingModule({ moduleDrafts, module, project })
 }
 
-function enrichExistingModule(
-  moduleDrafts: readonly DraftComponent[],
-  module: ValidatedModule,
-  project: Project,
-): ModuleEnrichment {
+function enrichExistingModule(input: EnrichExistingModuleInput): ModuleEnrichment {
+  const { moduleDrafts, module, project } = input
   const result = enrichComponents(moduleDrafts, module, project)
   return {
     components: result.components,
@@ -246,38 +263,33 @@ function extractModuleDrafts(context: ModuleContext): DraftComponent[] {
   const files = [...context.files]
   const module = context.module
   const drafts = extractComponents(project, files, module)
-  const orphanedModules = orphanedDraftModules(drafts, module)
+  const orphanedModules = orphanedDraftModules({ drafts, module })
   if (orphanedModules.length > 0) {
     throw new OrphanedDraftComponentError(orphanedModules, [module.name])
   }
   return drafts
 }
 
-function orphanedDraftModules(
-  drafts: readonly DraftComponent[],
-  module: ValidatedModule,
-): string[] {
+function orphanedDraftModules(input: OrphanedDraftModulesInput): string[] {
+  const { drafts, module } = input
   const orphanedModules: string[] = []
   const moduleDomain = module.domain
   for (const draft of drafts) {
     const draftDomain = draft.domain
-    if (draftDomain !== moduleDomain) {
-      const draftModule = draft.module
-      orphanedModules.push(draftModule)
-    }
+    const draftModule = draft.module
+    if (draftDomain === moduleDomain) continue
+    orphanedModules.push(draftModule)
   }
   return orphanedModules
 }
 
-function contextForModule(
-  contexts: readonly EnrichmentModuleContext[],
-  module: ValidatedModule,
-): EnrichmentModuleContext {
+function contextForModule(input: ModuleContextInput): EnrichmentModuleContext {
+  const { contexts, module } = input
+  const moduleName = module.name
   for (const context of contexts) {
     const contextModule = context.module
     const contextModuleName = contextModule.name
-    const moduleName = module.name
     if (contextModuleName === moduleName) return context
   }
-  throw new TypeError(`Missing context for module '${module.name}'`)
+  throw new TypeError(`Missing context for module '${moduleName}'`)
 }
