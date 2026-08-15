@@ -29,29 +29,45 @@ export class ExtractComponentsForGraph {
     options: { readonly allowIncomplete: false },
   ): ExtractComponentsForGraphResult {
     const draftsByModule = extractDraftsByModule(stage)
-    const enrichment = enrichComponentsForModules(
-      stage.resolvedConfig.modules,
-      stage.moduleContexts,
-      draftsByModule,
-      options.allowIncomplete,
-    )
+    return buildGraphExtractionResult(stage, draftsByModule, options.allowIncomplete)
+  }
+}
 
-    if (enrichment.kind === 'fieldFailure') {
-      return {
-        ok: false,
-        failure: {
-          reason: 'Field enrichment failed',
-          failedFields: enrichment.failedFields,
-        },
-      }
-    }
+function buildGraphExtractionResult(
+  stage: ExtractionStage,
+  draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
+  allowIncomplete: false,
+): ExtractComponentsForGraphResult {
+  const enrichment = enrichComponentsForModules(
+    stage.resolvedConfig.modules,
+    stage.moduleContexts,
+    draftsByModule,
+    allowIncomplete,
+  )
+  return enrichment.kind === 'fieldFailure'
+    ? failedGraphExtraction(enrichment.failedFields)
+    : successfulGraphExtraction(stage.repositoryName, enrichment)
+}
 
-    return {
-      ok: true,
-      repository: stage.repositoryName,
-      components: enrichment.components,
-      failedFields: enrichment.failedFields,
-    }
+function failedGraphExtraction(failedFields: string[]): ExtractComponentsForGraphResult {
+  return {
+    ok: false,
+    failure: {
+      reason: 'Field enrichment failed',
+      failedFields,
+    },
+  }
+}
+
+function successfulGraphExtraction(
+  repository: string,
+  enrichment: SuccessfulEnrichment,
+): ExtractComponentsForGraphResult {
+  return {
+    ok: true,
+    repository,
+    components: enrichment.components,
+    failedFields: enrichment.failedFields,
   }
 }
 
@@ -114,14 +130,12 @@ function enrichModule(
   moduleContexts: readonly EnrichmentModuleContext[],
   draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
 ): ModuleEnrichment {
-  /* v8 ignore start -- extractDraftsByModule materialises every configured module */
+  const context = contextForModule(moduleContexts, module)
   const moduleDrafts = draftsByModule.get(module.name) ?? []
-  /* v8 ignore stop */
   if (moduleDrafts.length === 0) {
     return { components: [], failedFields: [] }
   }
 
-  const context = contextForModule(moduleContexts, module)
   const result = enrichComponents(moduleDrafts, module, context.project)
   return {
     components: result.components,
@@ -153,10 +167,8 @@ function contextForModule(
   module: ValidatedModule,
 ): EnrichmentModuleContext {
   const context = contexts.find((candidate) => candidate.module.name === module.name)
-  /* v8 ignore start -- ExtractionStage.parse rejects missing configured contexts */
   if (context === undefined) {
     throw new TypeError(`Missing context for module '${module.name}'`)
   }
-  /* v8 ignore stop */
   return context
 }

@@ -166,6 +166,18 @@ describe('ExtractComponentsForGraph.execute', () => {
     ).toThrow('Draft components reference unknown modules: [unknown]. Known modules: [orders]')
   })
 
+  it('reports a missing context at the service boundary', () => {
+    const stage = createStage()
+    const invalidStage = Object.assign(Object.create(Object.getPrototypeOf(stage)), {
+      ...stage,
+      moduleContexts: [],
+    })
+
+    expect(() =>
+      new ExtractComponentsForGraph().execute(invalidStage, { allowIncomplete: false }),
+    ).toThrowError(new TypeError("Missing context for module 'orders'"))
+  })
+
   it('enriches drafts against their configured modules', () => {
     const ordersDraft = createDraft('orders', 'PlaceOrder')
     const shippingDraft = createDraft('shipping', 'PrepareShipment')

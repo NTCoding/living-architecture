@@ -6,7 +6,6 @@ import type { ExternalLink } from '@living-architecture/riviere-schema-published
 import type { Project } from 'ts-morph'
 import type { EnrichedComponent } from '../value-extraction/enriched-component'
 import {
-  ConnectionTimings,
   CrossModuleConnectionOptions,
   PerModuleConnectionOptions,
 } from './connection-detection-values'
@@ -26,7 +25,6 @@ type ConfiguredConnectionSource = {
 type ConfiguredConnectionsResult = {
   readonly links: ExtractedLink[]
   readonly externalLinks: ExternalLink[]
-  readonly timings: ConnectionTimings[]
 }
 
 type ConfiguredConnectionsOptions = {
@@ -57,30 +55,37 @@ function detectPerModule(
   return detectPerModuleConnections(
     source.project,
     source.components,
-    PerModuleConnectionOptions.parse({
-      allComponents,
-      allowIncomplete: options.allowIncomplete,
-      repository: options.repository,
-      sourceFilePaths: [...source.files],
-      ...(options.httpLinks === undefined ? {} : { httpLinks: options.httpLinks }),
-    }),
+    perModuleOptions(source, allComponents, options),
   )
+}
+
+function perModuleOptions(
+  source: ConfiguredConnectionSource,
+  allComponents: readonly EnrichedComponent[],
+  options: ConfiguredConnectionsOptions,
+) {
+  return PerModuleConnectionOptions.parse({
+    allComponents,
+    allowIncomplete: options.allowIncomplete,
+    repository: options.repository,
+    sourceFilePaths: [...source.files],
+    ...(options.httpLinks === undefined ? {} : { httpLinks: options.httpLinks }),
+  })
 }
 
 function detectCrossModule(
   allComponents: readonly EnrichedComponent[],
   options: ConfiguredConnectionsOptions,
 ) {
-  return detectCrossModuleConnections(
-    allComponents,
-    CrossModuleConnectionOptions.parse({
-      allowIncomplete: options.allowIncomplete,
-      repository: options.repository,
-      ...(options.eventPublishers === undefined
-        ? {}
-        : { eventPublishers: options.eventPublishers }),
-    }),
-  )
+  return detectCrossModuleConnections(allComponents, crossModuleOptions(options))
+}
+
+function crossModuleOptions(options: ConfiguredConnectionsOptions) {
+  return CrossModuleConnectionOptions.parse({
+    allowIncomplete: options.allowIncomplete,
+    repository: options.repository,
+    ...(options.eventPublishers === undefined ? {} : { eventPublishers: options.eventPublishers }),
+  })
 }
 
 function combineResults(
@@ -93,27 +98,5 @@ function combineResults(
       ...crossModuleResult.links,
     ]),
     externalLinks: perModuleResults.flatMap((result) => result.externalLinks),
-    timings: [
-      ...perModuleResults.map((result) => toPerModuleTiming(result.timings)),
-      toCrossModuleTiming(crossModuleResult.timings),
-    ],
   }
-}
-
-function toPerModuleTiming(timings: { callGraphMs: number; setupMs: number }) {
-  return ConnectionTimings.parse({
-    callGraphMs: timings.callGraphMs,
-    asyncDetectionMs: 0,
-    setupMs: timings.setupMs,
-    totalMs: timings.callGraphMs + timings.setupMs,
-  })
-}
-
-function toCrossModuleTiming(timings: { asyncDetectionMs: number }) {
-  return ConnectionTimings.parse({
-    callGraphMs: 0,
-    asyncDetectionMs: timings.asyncDetectionMs,
-    setupMs: 0,
-    totalMs: timings.asyncDetectionMs,
-  })
 }

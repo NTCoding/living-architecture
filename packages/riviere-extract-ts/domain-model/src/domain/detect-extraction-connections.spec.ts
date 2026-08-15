@@ -25,6 +25,7 @@ vi.mock('./connection-detection/detect-connections', () => ({
 function createStage(
   withEventPublishers = false,
   modulesPattern: string | undefined = undefined,
+  domains: string[] = ['orders', 'shipping'],
 ): ExtractionStage {
   const result = ValidatedConfiguration.parse({
     ...(withEventPublishers
@@ -41,9 +42,9 @@ function createStage(
           },
         }
       : {}),
-    modules: ['orders', 'shipping'].map((name) => ({
+    modules: ['orders', 'shipping'].map((name, index) => ({
       name,
-      domain: name,
+      domain: domains[index] ?? name,
       path: name,
       glob: '**/*.ts',
       ...(modulesPattern === undefined ? {} : { modules: modulesPattern }),
@@ -71,7 +72,7 @@ function createStage(
     resolvedConfig: result.data,
     moduleContexts: result.data.modules.map((module) => ({
       module,
-      files: [`${module.name}/order.ts`],
+      files: [modulesPattern === '{module}/' ? 'checkout/order.ts' : `${module.name}/order.ts`],
       project: new Project(),
     })),
   })
@@ -113,25 +114,10 @@ describe('DetectExtractionConnections.execute', () => {
     expect({
       links: result.links,
       externalLinks: result.externalLinks,
-      timings: result.timings,
       perModuleCallCount: mockDetectPerModuleConnections.mock.calls.length,
     }).toStrictEqual({
       links: [ExtractedLink.parse({ source: 'orders:useCase:A', target: 'orders:useCase:B' })],
       externalLinks: [],
-      timings: [
-        expect.objectContaining({
-          callGraphMs: 2,
-          asyncDetectionMs: 0,
-          setupMs: 3,
-          totalMs: 5,
-        }),
-        expect.objectContaining({
-          callGraphMs: 0,
-          asyncDetectionMs: 5,
-          setupMs: 0,
-          totalMs: 5,
-        }),
-      ],
       perModuleCallCount: 1,
     })
     expect(mockDetectPerModuleConnections.mock.calls[0]?.[1]).toStrictEqual(components)
@@ -203,6 +189,22 @@ describe('DetectExtractionConnections.execute', () => {
     expect(mockDetectPerModuleConnections.mock.calls[0]?.[1]).toStrictEqual([component])
   })
 
+  it('keeps same-domain module components separated by source files', () => {
+    const components = [
+      createComponent('orders', 'PlaceOrder', 'commerce'),
+      createComponent('shipping', 'PrepareShipment', 'commerce'),
+    ]
+
+    new DetectExtractionConnections().execute(
+      createStage(false, undefined, ['commerce', 'commerce']),
+      components,
+      { allowIncomplete: false },
+    )
+
+    expect(mockDetectPerModuleConnections.mock.calls[0]?.[1]).toStrictEqual([components[0]])
+    expect(mockDetectPerModuleConnections.mock.calls[1]?.[1]).toStrictEqual([components[1]])
+  })
+
   it('rejects stage contexts that do not match configured modules', () => {
     const stage = createStage()
     expect(() =>
@@ -214,7 +216,7 @@ describe('DetectExtractionConnections.execute', () => {
         resolvedConfig: stage.resolvedConfig,
         moduleContexts: [],
       }),
-    ).toThrow('Module contexts must match resolved configuration exactly')
+    ).toThrowError(new TypeError('Module contexts must match resolved configuration exactly'))
   })
 
   it('rejects duplicate stage contexts', () => {
@@ -231,7 +233,7 @@ describe('DetectExtractionConnections.execute', () => {
         resolvedConfig: stage.resolvedConfig,
         moduleContexts: [firstContext, firstContext],
       }),
-    ).toThrow('Module contexts must match resolved configuration exactly')
+    ).toThrowError(new TypeError('Module contexts must match resolved configuration exactly'))
   })
 
   it('rejects a context from a foreign configuration', () => {
@@ -270,6 +272,18 @@ describe('DetectExtractionConnections.execute', () => {
           { module: foreignModule, files: [], project: new Project() },
         ],
       }),
-    ).toThrow('Module contexts must match resolved configuration exactly')
+    ).toThrowError(new TypeError('Module contexts must match resolved configuration exactly'))
+  })
+
+  it('reports a missing context at the service boundary', () => {
+    const stage = createStage()
+    const invalidStage = Object.assign(Object.create(Object.getPrototypeOf(stage)), {
+      ...stage,
+      moduleContexts: [],
+    })
+
+    expect(() =>
+      new DetectExtractionConnections().execute(invalidStage, [], { allowIncomplete: false }),
+    ).toThrowError(new TypeError("Missing context for module 'orders'"))
   })
 })

@@ -27,25 +27,38 @@ function configuredSources(
   project: ExtractionStage['moduleContexts'][number]['project']
   components: readonly EnrichedComponent[]
 }[] {
-  return stage.resolvedConfig.modules.map((module) => {
-    const context = contextForModule(stage, module)
-    return {
-      files: context.files,
-      project: context.project,
-      components: allComponents.filter((component) => moduleOwnsComponent(component, module)),
-    }
-  })
+  return stage.resolvedConfig.modules.map((module) =>
+    configuredSource(stage, module, allComponents),
+  )
+}
+
+function configuredSource(
+  stage: ExtractionStage,
+  module: ValidatedModule,
+  allComponents: readonly EnrichedComponent[],
+) {
+  const context = contextForModule(stage, module)
+  return {
+    files: context.files,
+    project: context.project,
+    components: allComponents.filter((component) =>
+      moduleOwnsComponent(component, module, context.files),
+    ),
+  }
 }
 
 function contextForModule(stage: ExtractionStage, module: ValidatedModule) {
   const context = stage.moduleContexts.find((candidate) => candidate.module === module)
-  /* v8 ignore start -- ExtractionStage.parse guarantees one matching context */
   if (context === undefined) throw new TypeError(`Missing context for module '${module.name}'`)
-  /* v8 ignore stop */
   return context
 }
 
-function moduleOwnsComponent(component: EnrichedComponent, module: ValidatedModule): boolean {
+function moduleOwnsComponent(
+  component: EnrichedComponent,
+  module: ValidatedModule,
+  files: readonly string[],
+): boolean {
+  if (!files.includes(component.location.file)) return false
   if (component.domain !== module.domain) return false
   return resolveModuleName(component.location.file, module) === component.module
 }
