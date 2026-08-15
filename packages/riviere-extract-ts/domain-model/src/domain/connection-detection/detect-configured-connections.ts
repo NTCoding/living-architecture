@@ -40,10 +40,13 @@ export function detectConfiguredConnections(
   allComponents: readonly EnrichedComponent[],
   options: ConfiguredConnectionsOptions,
 ): ConfiguredConnectionsResult {
-  const usableSources = sources.filter(hasComponents)
-  const perModuleResults = usableSources.map((source) =>
-    detectPerModule(source, allComponents, options),
-  )
+  const perModuleResults = []
+  for (const source of sources) {
+    const components = source.components
+    if (components.length > 0) {
+      perModuleResults.push(detectPerModule(source, allComponents, options))
+    }
+  }
   const crossModuleResult = detectCrossModule(allComponents, options)
   return combineResults(perModuleResults, crossModuleResult)
 }
@@ -58,11 +61,6 @@ function detectPerModule(
     source.components,
     perModuleOptions(source, allComponents, options),
   )
-}
-
-function hasComponents(source: ConfiguredConnectionSource): boolean {
-  const components = source.components
-  return components.length > 0
 }
 
 function perModuleOptions(
@@ -98,18 +96,14 @@ function combineResults(
   perModuleResults: readonly ReturnType<typeof detectPerModuleConnections>[],
   crossModuleResult: ReturnType<typeof detectCrossModuleConnections>,
 ): ConfiguredConnectionsResult {
-  const moduleLinks = perModuleResults.flatMap(linksFromResult)
-  const externalLinks = perModuleResults.flatMap(externalLinksFromResult)
+  const moduleLinks: ExtractedLink[] = []
+  const externalLinks: ExternalLink[] = []
+  for (const result of perModuleResults) {
+    moduleLinks.push(...result.links)
+    externalLinks.push(...result.externalLinks)
+  }
   return {
     links: deduplicateCrossStrategy([...moduleLinks, ...crossModuleResult.links]),
     externalLinks,
   }
-}
-
-function linksFromResult(result: ReturnType<typeof detectPerModuleConnections>) {
-  return result.links
-}
-
-function externalLinksFromResult(result: ReturnType<typeof detectPerModuleConnections>) {
-  return result.externalLinks
 }

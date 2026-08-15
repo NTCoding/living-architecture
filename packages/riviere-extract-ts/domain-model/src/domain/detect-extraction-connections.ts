@@ -25,7 +25,8 @@ function configuredSources(
   project: ExtractionStage['moduleContexts'][number]['project']
   components: readonly EnrichedComponent[]
 }[] {
-  const modules = stage.resolvedConfig.modules
+  const { resolvedConfig } = stage
+  const modules = resolvedConfig.modules
   return modules.map((module) => configuredSource(stage, module, allComponents))
 }
 
@@ -53,9 +54,10 @@ function componentsForModule(
 
 function contextForModule(stage: ExtractionStage, module: ValidatedModule) {
   const contexts = stage.moduleContexts
-  const context = contexts.find((candidate) => candidate.module === module)
-  if (context === undefined) throw new TypeError(`Missing context for module '${module.name}'`)
-  return context
+  for (const context of contexts) {
+    if (context.module === module) return context
+  }
+  throw new TypeError(`Missing context for module '${module.name}'`)
 }
 
 function moduleOwnsComponent(
@@ -63,21 +65,21 @@ function moduleOwnsComponent(
   module: ValidatedModule,
   files: readonly string[],
 ): boolean {
-  const location = component.location
-  const file = location.file
-  if (!files.includes(file)) return false
-  if (component.domain !== module.domain) return false
+  const { location, domain, module: componentModule } = component
+  const { file } = location
+  if (!files.includes(file) || domain !== module.domain) return false
   const resolvedModule = resolveModuleName(file, module)
-  return resolvedModule === component.module
+  return resolvedModule === componentModule
 }
 
 function connectionOptions(stage: ExtractionStage, allowIncomplete: boolean) {
-  const connections = stage.resolvedConfig.connections
+  const { resolvedConfig, repositoryName } = stage
+  const connections = resolvedConfig.connections
   const eventPublishers = connections?.eventPublishers
   const httpLinks = connections?.httpLinks
   return {
     allowIncomplete,
-    repository: stage.repositoryName,
+    repository: repositoryName,
     ...(eventPublishers === undefined ? {} : { eventPublishers }),
     ...(httpLinks === undefined ? {} : { httpLinks }),
   }

@@ -12,39 +12,7 @@ interface ModuleContext {
 
 type ResolvedExtractionConfig = ValidatedConfiguration
 
-/** @riviere-role value-object */
-export class ExtractionStage {
-  declare private brand: 'ExtractionStage'
-
-  static parse(params: {
-    name: string
-    configPath: string
-    useTsConfig: boolean
-    repositoryName: string
-    resolvedConfig: ResolvedExtractionConfig
-    moduleContexts: readonly ModuleContext[]
-  }): ExtractionStage {
-    const modules = params.resolvedConfig.modules
-    validateModuleContexts(modules, params.moduleContexts)
-    return new ExtractionStage(params)
-  }
-
-  private constructor(params: {
-    name: string
-    configPath: string
-    useTsConfig: boolean
-    repositoryName: string
-    resolvedConfig: ResolvedExtractionConfig
-    moduleContexts: readonly ModuleContext[]
-  }) {
-    this.name = params.name
-    this.configPath = params.configPath
-    this.useTsConfig = params.useTsConfig
-    this.repositoryName = params.repositoryName
-    this.resolvedConfig = params.resolvedConfig
-    this.moduleContexts = params.moduleContexts
-  }
-
+interface ExtractionStageParams {
   readonly name: string
   readonly configPath: string
   readonly useTsConfig: boolean
@@ -53,13 +21,33 @@ export class ExtractionStage {
   readonly moduleContexts: readonly ModuleContext[]
 }
 
+/** @riviere-role value-object */
+export class ExtractionStage {
+  declare private brand: 'ExtractionStage'
+
+  static parse(params: ExtractionStageParams): ExtractionStage {
+    const modules = params.resolvedConfig.modules
+    validateModuleContexts(modules, params.moduleContexts)
+    return new ExtractionStage(params)
+  }
+
+  private constructor(params: ExtractionStageParams) {
+    Object.assign(this, params)
+  }
+
+  declare readonly name: string
+  declare readonly configPath: string
+  declare readonly useTsConfig: boolean
+  declare readonly repositoryName: string
+  declare readonly resolvedConfig: ResolvedExtractionConfig
+  declare readonly moduleContexts: readonly ModuleContext[]
+}
+
 function validateModuleContexts(
   modules: readonly ValidatedModule[],
   contexts: readonly ModuleContext[],
 ): void {
-  const expectedIndexes = indexesForModules(modules)
-  const actualIndexes = indexesForContexts(modules, contexts)
-  if (actualIndexes !== expectedIndexes) {
+  if (indexesForContexts(modules, contexts) !== indexesForModules(modules)) {
     throw new TypeError('Module contexts must match resolved configuration exactly')
   }
 }
@@ -73,7 +61,11 @@ function indexesForContexts(
   modules: readonly ValidatedModule[],
   contexts: readonly ModuleContext[],
 ): string {
-  const indexes = contexts.map((context) => modules.indexOf(context.module))
+  const indexes: number[] = []
+  for (const context of contexts) {
+    const module = context.module
+    indexes.push(modules.indexOf(module))
+  }
   indexes.sort((left, right) => left - right)
   return indexes.join(',')
 }

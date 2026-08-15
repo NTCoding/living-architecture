@@ -38,13 +38,17 @@ function buildGraphExtractionResult(
   draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
   allowIncomplete: false,
 ): ExtractComponentsForGraphResult {
-  const modules = stage.resolvedConfig.modules
-  const contexts = stage.moduleContexts
-  const repository = stage.repositoryName
-  const enrichment = enrichComponentsForModules(modules, contexts, draftsByModule, allowIncomplete)
+  const { resolvedConfig, moduleContexts, repositoryName } = stage
+  const modules = resolvedConfig.modules
+  const enrichment = enrichComponentsForModules(
+    modules,
+    moduleContexts,
+    draftsByModule,
+    allowIncomplete,
+  )
   return enrichment.kind === 'fieldFailure'
     ? failedGraphExtraction(enrichment.failedFields)
-    : successfulGraphExtraction(repository, enrichment)
+    : successfulGraphExtraction(repositoryName, enrichment)
 }
 
 function failedGraphExtraction(failedFields: string[]): ExtractComponentsForGraphResult {
@@ -59,9 +63,8 @@ function failedGraphExtraction(failedFields: string[]): ExtractComponentsForGrap
 
 function successfulGraphExtraction(
   repository: string,
-  enrichment: SuccessfulEnrichment,
+  { components, failedFields }: SuccessfulEnrichment,
 ): ExtractComponentsForGraphResult {
-  const { components, failedFields } = enrichment
   return {
     ok: true,
     repository,
@@ -99,6 +102,13 @@ export function enrichComponentsForModules(
 ): EnrichmentResult {
   assertAllDraftsMatchModules(draftsByModule, modules)
   const results = enrichModules(modules, moduleContexts, draftsByModule)
+  return createEnrichmentResult(results, allowIncomplete)
+}
+
+function createEnrichmentResult(
+  results: readonly ModuleEnrichment[],
+  allowIncomplete: boolean,
+): EnrichmentResult {
   const components = componentsFromResults(results)
   const failedFields = uniqueFailedFields(results)
   if (failedFields.length > 0 && !allowIncomplete) {
@@ -117,20 +127,19 @@ function enrichModules(
 }
 
 function componentsFromResults(results: readonly ModuleEnrichment[]): EnrichedComponent[] {
-  return results.flatMap(resultComponents)
-}
-
-function resultComponents(result: ModuleEnrichment): EnrichedComponent[] {
-  return result.components
+  const components: EnrichedComponent[] = []
+  for (const result of results) {
+    components.push(...result.components)
+  }
+  return components
 }
 
 function uniqueFailedFields(results: readonly ModuleEnrichment[]): string[] {
-  const fields = results.flatMap(resultFailedFields)
-  return [...new Set(fields)]
-}
-
-function resultFailedFields(result: ModuleEnrichment): string[] {
-  return result.failedFields
+  const fields = new Set<string>()
+  for (const result of results) {
+    for (const field of result.failedFields) fields.add(field)
+  }
+  return [...fields]
 }
 
 function assertAllDraftsMatchModules(
@@ -145,19 +154,20 @@ function assertAllDraftsMatchModules(
 }
 
 function moduleNames(modules: readonly ValidatedModule[]): string[] {
-  return modules.map(moduleName)
-}
-
-function moduleName(module: ValidatedModule): string {
-  return module.name
+  const names: string[] = []
+  for (const module of modules) names.push(module.name)
+  return names
 }
 
 function orphanedModuleNames(
   draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
   knownModuleNames: ReadonlySet<string>,
 ): string[] {
-  const moduleNames = [...draftsByModule.keys()]
-  return moduleNames.filter((name) => !knownModuleNames.has(name))
+  const orphaned: string[] = []
+  for (const name of draftsByModule.keys()) {
+    if (!knownModuleNames.has(name)) orphaned.push(name)
+  }
+  return orphaned
 }
 
 interface ModuleEnrichment {
@@ -172,9 +182,9 @@ function enrichModule(
 ): ModuleEnrichment {
   const context = contextForModule(moduleContexts, module)
   const moduleDrafts = draftsByModule.get(module.name) ?? []
-  return moduleDrafts.length === 0
-    ? { components: [], failedFields: [] }
-    : enrichExistingModule(moduleDrafts, module, context.project)
+  if (moduleDrafts.length === 0) return { components: [], failedFields: [] }
+  const project = context.project
+  return enrichExistingModule(moduleDrafts, module, project)
 }
 
 function enrichExistingModule(
@@ -190,8 +200,9 @@ function enrichExistingModule(
 }
 
 function failuresFields(result: ReturnType<typeof enrichComponents>): string[] {
-  const failures = result.failures
-  return failures.map((failure) => failure.field)
+  const fields: string[] = []
+  for (const failure of result.failures) fields.push(failure.field)
+  return fields
 }
 
 function extractDraftsByModule(stage: ExtractionStage): Map<string, DraftComponent[]> {
@@ -212,7 +223,7 @@ function extractModuleDrafts(context: ModuleContext): DraftComponent[] {
   const drafts = extractComponents(project, files, module)
   const orphanedModules = orphanedDraftModules(drafts, module)
   if (orphanedModules.length > 0) {
-    throw new OrphanedDraftComponentError(orphanedModules, [context.module.name])
+    throw new OrphanedDraftComponentError(orphanedModules, [module.name])
   }
   return drafts
 }
@@ -221,30 +232,20 @@ function orphanedDraftModules(
   drafts: readonly DraftComponent[],
   module: ValidatedModule,
 ): string[] {
-  const foreignDrafts = drafts.filter((draft) => isForeignDraft(draft, module))
-  return foreignDrafts.map(draftModule)
-}
-
-function isForeignDraft(draft: DraftComponent, module: ValidatedModule): boolean {
-  return draft.domain !== module.domain
-}
-
-function draftModule(draft: DraftComponent): string {
-  return draft.module
+  const orphanedModules: string[] = []
+  for (const draft of drafts) {
+    if (draft.domain !== module.domain) orphanedModules.push(draft.module)
+  }
+  return orphanedModules
 }
 
 function contextForModule(
   contexts: readonly EnrichmentModuleContext[],
   module: ValidatedModule,
 ): EnrichmentModuleContext {
-  const context = contexts.find((candidate) => contextMatches(candidate, module))
-  if (context === undefined) {
-    throw new TypeError(`Missing context for module '${module.name}'`)
+  for (const context of contexts) {
+    const contextModule = context.module
+    if (contextModule.name === module.name) return context
   }
-  return context
-}
-
-function contextMatches(context: EnrichmentModuleContext, module: ValidatedModule): boolean {
-  const contextModule = context.module
-  return contextModule.name === module.name
+  throw new TypeError(`Missing context for module '${module.name}'`)
 }
