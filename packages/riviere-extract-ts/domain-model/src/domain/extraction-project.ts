@@ -6,12 +6,11 @@ import type {
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
 import type { DraftComponent } from './component-extraction/draft-component'
-import { extractComponents } from './component-extraction/extractor'
+import { extractComponents, resolveModuleName } from './component-extraction/extractor'
 import { ConnectionTimings } from './connection-detection/connection-detection-values'
 import { detectConfiguredConnections } from './connection-detection/detect-configured-connections'
 import type { ExtractedLink } from './connection-detection/extracted-link'
 import { stripResolvedCustomTypes } from './connection-detection/resolve-http-links'
-import { moduleOwnsComponent } from './detect-extraction-connections'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import { enrichComponentsForModules } from './extract-components-for-graph'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
@@ -47,6 +46,16 @@ interface ExtractionProjectInput {
   moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>
   repositoryName: string
   draftComponents?: readonly DraftComponent[]
+}
+
+interface ComponentOwnershipInput {
+  readonly component: {
+    readonly domain: string
+    readonly location?: { readonly file: string }
+    readonly module: string
+  }
+  readonly module: ValidatedModule
+  readonly files: readonly string[]
 }
 
 type ExtractionProjectParseResult =
@@ -202,12 +211,23 @@ export class ExtractionProject {
   }
 
   private sourceFor(module: ValidatedModule): ModuleSource {
-    const source = this.moduleSources.get(module)
-    /* v8 ignore start -- parse rejects missing module sources */
-    if (source === undefined) throw new TypeError(`Missing source for module '${module.name}'`)
-    /* v8 ignore stop */
-    return source
+    return sourceForModule(this.moduleSources, module)
   }
+}
+
+/** @riviere-role domain-service */
+export function moduleOwnsComponent(input: ComponentOwnershipInput): boolean {
+  const { component, module, files } = input
+  const { location, domain, module: componentModule } = component
+  const { domain: moduleDomain } = module
+  if (location === undefined) {
+    return domain === moduleDomain && componentModule === module.name
+  }
+  const { file } = location
+  const isConfiguredFile = files.length === 0 || files.includes(file)
+  if (!isConfiguredFile || domain !== moduleDomain) return false
+  const resolvedModule = files.length === 0 ? module.name : resolveModuleName(file, module)
+  return resolvedModule === componentModule
 }
 
 interface ProjectConnectionDetectionInput {
@@ -252,12 +272,7 @@ function configuredSource(
   project: Project
   components: readonly EnrichedComponent[]
 } {
-  const source = input.moduleSources.get(module)
-  /* v8 ignore start -- ExtractionProject.parse rejects missing module sources */
-  if (source === undefined) {
-    throw new TypeError(`Missing source for module '${module.name}'`)
-  }
-  /* v8 ignore stop */
+  const source = sourceForModule(input.moduleSources, module)
   return {
     files: source.files,
     project: source.project,
@@ -295,8 +310,8 @@ function groupDraftsByModule(
     if (moduleDrafts.length > 0) grouped.set(module.name, moduleDrafts)
   }
 
-  const matchedDrafts = [...grouped.values()].flat()
-  const unmatchedDrafts = drafts.filter((draft) => !matchedDrafts.includes(draft))
+  const matchedDrafts = new Set([...grouped.values()].flat())
+  const unmatchedDrafts = drafts.filter((draft) => !matchedDrafts.has(draft))
   if (unmatchedDrafts.length > 0) {
     throw new OrphanedDraftComponentError(
       [...new Set(unmatchedDrafts.map((draft) => draft.domain))],
@@ -306,4 +321,17 @@ function groupDraftsByModule(
   }
 
   return grouped
+}
+
+function sourceForModule(
+  moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
+  module: ValidatedModule,
+): ModuleSource {
+  const source = moduleSources.get(module)
+  /* v8 ignore start -- ExtractionProject.parse rejects missing module sources */
+  if (source === undefined) {
+    throw new TypeError(`Missing source for module '${module.name}'`)
+  }
+  /* v8 ignore stop */
+  return source
 }

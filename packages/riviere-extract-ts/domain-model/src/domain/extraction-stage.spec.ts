@@ -10,18 +10,14 @@ type ModuleContext = {
 }
 
 function invalidContextsFor(
-  description: string,
+  createInvalidContexts: (
+    context: ModuleContext,
+    foreignModule: ModuleContext['module'],
+  ) => ModuleContext[],
   context: ModuleContext,
   foreignModule: ModuleContext['module'],
 ): ModuleContext[] {
-  switch (description) {
-    case 'a missing module context':
-      return []
-    case 'duplicate contexts':
-      return [context, context]
-    default:
-      return [context, { module: foreignModule, files: [], project: new Project() }]
-  }
+  return createInvalidContexts(context, foreignModule)
 }
 
 function createConfiguration() {
@@ -73,10 +69,16 @@ describe('ExtractionStage', () => {
   })
 
   it.each([
-    'a missing module context',
-    'duplicate contexts',
-    'a context for a module absent from the configuration',
-  ])('rejects %s', (description) => {
+    ['a missing module context', () => []],
+    ['duplicate contexts', (context: ModuleContext) => [context, context]],
+    [
+      'a context for a module absent from the configuration',
+      (context: ModuleContext, foreignModule: ModuleContext['module']) => [
+        context,
+        { module: foreignModule, files: [], project: new Project() },
+      ],
+    ],
+  ])('rejects %s', (_description, createInvalidContexts) => {
     const resolvedConfig = createConfiguration()
     const module = resolvedConfig.modules[0]
     assert(module)
@@ -100,7 +102,7 @@ describe('ExtractionStage', () => {
     assert(foreignResult.success)
     const foreignModule = foreignResult.data.modules[0]
     assert(foreignModule)
-    const invalidContexts = invalidContextsFor(description, context, foreignModule)
+    const invalidContexts = invalidContextsFor(createInvalidContexts, context, foreignModule)
 
     expect(() =>
       ExtractionStage.parse({

@@ -116,7 +116,9 @@ describe('riviere extract — connection detection', () => {
         '--stats',
       ])
 
-      expect(stderrOutput.some((line) => line.startsWith('Extraction completed in'))).toBe(true)
+      expect(
+        stderrOutput.some((line) => line.startsWith('Connection detection completed in')),
+      ).toBe(true)
     })
   })
 

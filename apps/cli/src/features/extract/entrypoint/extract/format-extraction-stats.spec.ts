@@ -106,7 +106,7 @@ describe('formatTimingLine', () => {
     })
 
     expect(line).toBe(
-      'Extraction completed in 1.23s (call graph: 0.80s, detection: 0.30s, setup: 0.13s)',
+      'Connection detection completed in 1.23s (call graph: 0.80s, detection: 0.30s, setup: 0.13s)',
     )
   })
 
@@ -119,7 +119,7 @@ describe('formatTimingLine', () => {
     })
 
     expect(line).toBe(
-      'Extraction completed in 0.00s (call graph: 0.00s, detection: 0.00s, setup: 0.00s)',
+      'Connection detection completed in 0.00s (call graph: 0.00s, detection: 0.00s, setup: 0.00s)',
     )
   })
 
@@ -132,7 +132,7 @@ describe('formatTimingLine', () => {
     })
 
     expect(line).toBe(
-      'Extraction completed in 0.00s (call graph: 0.00s, detection: 0.00s, setup: 0.00s)',
+      'Connection detection completed in 0.00s (call graph: 0.00s, detection: 0.00s, setup: 0.00s)',
     )
   })
 })

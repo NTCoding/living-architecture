@@ -116,7 +116,7 @@ type EnrichExistingModuleInput = {
   readonly project: Project
 }
 
-type OrphanedDraftModulesInput = {
+type OrphanedDraftDomainsInput = {
   readonly drafts: readonly DraftComponent[]
   readonly module: ValidatedModule
 }
@@ -271,14 +271,14 @@ function extractModuleDrafts(context: ModuleContext): DraftComponent[] {
   const { project, module, files: contextFiles } = context
   const files = [...contextFiles]
   const drafts = extractComponents(project, files, module)
-  const orphanedModules = orphanedDraftModules({ drafts, module })
-  if (orphanedModules.length > 0) {
-    throw new OrphanedDraftComponentError(orphanedModules, [module.domain], 'domains')
+  const orphanedDomains = orphanedDraftDomains({ drafts, module })
+  if (orphanedDomains.length > 0) {
+    throw new OrphanedDraftComponentError(orphanedDomains, [module.domain], 'domains')
   }
   return drafts
 }
 
-function orphanedDraftModules(input: OrphanedDraftModulesInput): string[] {
+function orphanedDraftDomains(input: OrphanedDraftDomainsInput): string[] {
   const { drafts, module } = input
   const orphanedDomains = new Set<string>(),
     moduleDomain = module.domain

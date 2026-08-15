@@ -1,8 +1,8 @@
 import type { EnrichedComponent } from './value-extraction/enriched-component'
 import type { ValidatedModule } from '@living-architecture/riviere-extract-config-published-language'
-import { resolveModuleName } from './component-extraction/extractor'
 import { detectConfiguredConnections } from './connection-detection/detect-configured-connections'
 import type { ExtractionStage } from './extraction-stage'
+import { moduleOwnsComponent } from './extraction-project'
 
 type ConfiguredSourceInput = {
   readonly stage: ExtractionStage
@@ -16,16 +16,6 @@ type ConnectionOptionsInput = {
 }
 
 type OptionalConnectionSettings = ExtractionStage['resolvedConfig']['connections']
-
-interface ComponentOwnershipInput {
-  readonly component: {
-    readonly domain: string
-    readonly location?: { readonly file: string }
-    readonly module: string
-  }
-  readonly module: ValidatedModule
-  readonly files: readonly string[]
-}
 
 type ConfiguredSource = {
   readonly files: readonly string[]
@@ -91,21 +81,6 @@ function contextForModule(stage: ExtractionStage, module: ValidatedModule) {
     if (context.module === module) return context
   }
   throw new TypeError(`Missing context for module '${module.name}'`)
-}
-
-/** @riviere-role domain-service */
-export function moduleOwnsComponent(input: ComponentOwnershipInput): boolean {
-  const { component, module, files } = input
-  const { location, domain, module: componentModule } = component
-  const { domain: moduleDomain } = module
-  if (location === undefined) {
-    return domain === moduleDomain && componentModule === module.name
-  }
-  const { file } = location
-  const isConfiguredFile = files.length === 0 || files.includes(file)
-  if (!isConfiguredFile || domain !== moduleDomain) return false
-  const resolvedModule = files.length === 0 ? module.name : resolveModuleName(file, module)
-  return resolvedModule === componentModule
 }
 
 function connectionOptions(input: ConnectionOptionsInput) {
