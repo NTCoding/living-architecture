@@ -152,6 +152,7 @@ describe('ExtractComponentsForGraph.execute', () => {
       failedFields: [],
     })
     expect(mockEnrichComponents).toHaveBeenCalledTimes(1)
+    expect(mockExtractComponents).toHaveBeenCalledTimes(2)
   })
 
   it('rejects drafts that reference an unknown module', () => {

@@ -56,11 +56,12 @@ function validateModuleContexts(
   modules: readonly ValidatedModule[],
   contexts: readonly ModuleContext[],
 ): void {
-  const contextNames = new Set(contexts.map((context) => context.module.name))
-  const missingModules = modules
-    .map((module) => module.name)
-    .filter((name) => !contextNames.has(name))
-  if (missingModules.length > 0) {
-    throw new TypeError(`Missing context for module(s): [${missingModules.join(', ')}]`)
+  const expectedIndexes = modules.map((_, index) => index).join(',')
+  const actualIndexes = contexts
+    .map((context) => modules.indexOf(context.module))
+    .sort((left, right) => left - right)
+    .join(',')
+  if (actualIndexes !== expectedIndexes) {
+    throw new TypeError('Module contexts must match resolved configuration exactly')
   }
 }

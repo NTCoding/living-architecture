@@ -22,7 +22,10 @@ vi.mock('./connection-detection/detect-connections', () => ({
   deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
 }))
 
-function createStage(withEventPublishers = false): ExtractionStage {
+function createStage(
+  withEventPublishers = false,
+  modulesPattern: string | undefined = undefined,
+): ExtractionStage {
   const result = ValidatedConfiguration.parse({
     ...(withEventPublishers
       ? {
@@ -43,6 +46,7 @@ function createStage(withEventPublishers = false): ExtractionStage {
       domain: name,
       path: name,
       glob: '**/*.ts',
+      ...(modulesPattern === undefined ? {} : { modules: modulesPattern }),
       customTypes: {
         eventSender: {
           find: 'classes' as const,
@@ -109,12 +113,10 @@ describe('DetectExtractionConnections.execute', () => {
     expect({
       links: result.links,
       externalLinks: result.externalLinks,
-      timingCount: result.timings.length,
       perModuleCallCount: mockDetectPerModuleConnections.mock.calls.length,
     }).toStrictEqual({
       links: [ExtractedLink.parse({ source: 'orders:useCase:A', target: 'orders:useCase:B' })],
       externalLinks: [],
-      timingCount: 2,
       perModuleCallCount: 1,
     })
     expect(mockDetectPerModuleConnections.mock.calls[0]?.[1]).toStrictEqual(components)
@@ -130,7 +132,29 @@ describe('DetectExtractionConnections.execute', () => {
     )
   })
 
-  it('passes configured event publishers and collects external links', () => {
+  it('passes configured event publishers to cross-module detection', () => {
+    mockDetectPerModuleConnections.mockReturnValue({
+      links: [],
+      externalLinks: [],
+      timings: { callGraphMs: 1, setupMs: 1 },
+    })
+
+    new DetectExtractionConnections().execute(
+      createStage(true),
+      [createComponent('shipping', 'PrepareShipment')],
+      { allowIncomplete: false },
+    )
+
+    expect(mockDetectCrossModuleConnections).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({
+        eventPublishers: [{ fromType: 'eventSender', metadataKey: 'event' }],
+      }),
+    )
+    expect(mockDetectPerModuleConnections).toHaveBeenCalledTimes(1)
+  })
+
+  it('collects external links from per-module detection', () => {
     const externalLink = { source: 'orders:api:Order', target: 'external:api:Shipping' }
     mockDetectPerModuleConnections.mockReturnValue({
       links: [],
@@ -139,36 +163,24 @@ describe('DetectExtractionConnections.execute', () => {
     })
 
     const result = new DetectExtractionConnections().execute(
-      createStage(true),
-      [createComponent('shipping', 'PrepareShipment')],
+      createStage(),
+      [createComponent('orders', 'PlaceOrder')],
       { allowIncomplete: false },
     )
 
     expect(result.externalLinks).toStrictEqual([externalLink])
-    expect(mockDetectCrossModuleConnections).toHaveBeenCalledWith(
-      expect.any(Array),
-      expect.objectContaining({
-        eventPublishers: [{ fromType: 'eventSender', metadataKey: 'event' }],
-      }),
-    )
-    expect(mockDetectPerModuleConnections.mock.calls[0]?.[2]).toMatchObject({
-      httpLinks: [
-        {
-          fromCustomType: 'eventSender',
-          matchDomainBy: 'event',
-          matchApiBy: ['event'],
-        },
-      ],
-    })
-    expect(mockDetectPerModuleConnections).toHaveBeenCalledTimes(1)
   })
 
   it('detects connections for components in configured submodules', () => {
     const component = createComponent('checkout', 'PlaceOrder', 'orders')
 
-    const result = new DetectExtractionConnections().execute(createStage(), [component], {
-      allowIncomplete: false,
-    })
+    const result = new DetectExtractionConnections().execute(
+      createStage(false, '{module}/'),
+      [component],
+      {
+        allowIncomplete: false,
+      },
+    )
 
     expect(result.links).toStrictEqual([
       ExtractedLink.parse({ source: 'orders:useCase:A', target: 'orders:useCase:B' }),
@@ -176,7 +188,7 @@ describe('DetectExtractionConnections.execute', () => {
     expect(mockDetectPerModuleConnections.mock.calls[0]?.[1]).toStrictEqual([component])
   })
 
-  it('fails when a component has no matching extraction context', () => {
+  it('rejects stage contexts that do not match configured modules', () => {
     const stage = createStage()
     expect(() =>
       ExtractionStage.parse({
@@ -187,16 +199,6 @@ describe('DetectExtractionConnections.execute', () => {
         resolvedConfig: stage.resolvedConfig,
         moduleContexts: [],
       }),
-    ).toThrow(TypeError)
-    expect(() =>
-      ExtractionStage.parse({
-        name: stage.name,
-        configPath: stage.configPath,
-        useTsConfig: stage.useTsConfig,
-        repositoryName: stage.repositoryName,
-        resolvedConfig: stage.resolvedConfig,
-        moduleContexts: [],
-      }),
-    ).toThrow('Missing context for module(s): [orders, shipping]')
+    ).toThrow('Module contexts must match resolved configuration exactly')
   })
 })

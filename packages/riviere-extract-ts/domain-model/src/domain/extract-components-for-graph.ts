@@ -17,7 +17,7 @@ type ExtractComponentsForGraphResult =
       readonly ok: false
       readonly failure: {
         readonly reason: string
-        readonly failedFields?: string[]
+        readonly failedFields: string[]
       }
     }
 
@@ -75,26 +75,9 @@ function enrichDraftComponentValues(
   draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
   allowIncomplete: boolean,
 ): EnrichmentResult {
-  const components: EnrichedComponent[] = []
-  const failedFieldSet = new Set<string>()
-
-  for (const module of modules) {
-    /* v8 ignore start -- extractDraftsByModule materialises every configured module */
-    const moduleDrafts = draftsByModule.get(module.name) ?? []
-    /* v8 ignore stop */
-    if (moduleDrafts.length === 0) {
-      continue
-    }
-
-    const context = contextForModule(moduleContexts, module)
-    const result = enrichComponents(moduleDrafts, module, context.project)
-    components.push(...result.components)
-    for (const failure of result.failures) {
-      failedFieldSet.add(failure.field)
-    }
-  }
-
-  const failedFields = [...failedFieldSet]
+  const results = modules.map((module) => enrichModule(module, moduleContexts, draftsByModule))
+  const components = results.flatMap((result) => result.components)
+  const failedFields = [...new Set(results.flatMap((result) => result.failedFields))]
   if (failedFields.length > 0 && !allowIncomplete) {
     return { kind: 'fieldFailure', failedFields }
   }
@@ -102,19 +85,48 @@ function enrichDraftComponentValues(
   return { kind: 'enriched', components, failedFields }
 }
 
+interface ModuleEnrichment {
+  readonly components: EnrichedComponent[]
+  readonly failedFields: string[]
+}
+
+function enrichModule(
+  module: ValidatedModule,
+  moduleContexts: readonly ModuleContext[],
+  draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
+): ModuleEnrichment {
+  /* v8 ignore start -- extractDraftsByModule materialises every configured module */
+  const moduleDrafts = draftsByModule.get(module.name) ?? []
+  /* v8 ignore stop */
+  if (moduleDrafts.length === 0) {
+    return { components: [], failedFields: [] }
+  }
+
+  const context = contextForModule(moduleContexts, module)
+  const result = enrichComponents(moduleDrafts, module, context.project)
+  return {
+    components: result.components,
+    failedFields: result.failures.map((failure) => failure.field),
+  }
+}
+
 function extractDraftsByModule(stage: ExtractionStage): Map<string, DraftComponent[]> {
   const grouped = new Map<string, DraftComponent[]>()
   for (const context of stage.moduleContexts) {
-    const drafts = extractComponents(context.project, [...context.files], context.module)
-    const orphanedModules = drafts
-      .filter((draft) => draft.domain !== context.module.domain)
-      .map((draft) => draft.module)
-    if (orphanedModules.length > 0) {
-      throw new OrphanedDraftComponentError(orphanedModules, [context.module.name])
-    }
-    grouped.set(context.module.name, drafts)
+    grouped.set(context.module.name, extractModuleDrafts(context))
   }
   return grouped
+}
+
+function extractModuleDrafts(context: ModuleContext): DraftComponent[] {
+  const drafts = extractComponents(context.project, [...context.files], context.module)
+  const orphanedModules = drafts
+    .filter((draft) => draft.domain !== context.module.domain)
+    .map((draft) => draft.module)
+  if (orphanedModules.length > 0) {
+    throw new OrphanedDraftComponentError(orphanedModules, [context.module.name])
+  }
+  return drafts
 }
 
 function contextForModule(

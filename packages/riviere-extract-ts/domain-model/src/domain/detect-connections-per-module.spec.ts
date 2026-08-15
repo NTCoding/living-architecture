@@ -165,7 +165,16 @@ describe('ExtractionProject.extractDraftComponents', () => {
       includeConnections: true,
     })
 
-    expect(result.kind).toBe('full')
+    expect(result).toMatchObject({
+      kind: 'full',
+      links: [
+        {
+          source: 'orders:useCase:OrderService',
+          target: 'orders:repository:OrderRepo',
+          type: 'sync',
+        },
+      ],
+    })
     expect(mockDetectCrossModule).toHaveBeenCalledWith(
       expect.any(Array),
       expect.objectContaining({ eventPublishers }),

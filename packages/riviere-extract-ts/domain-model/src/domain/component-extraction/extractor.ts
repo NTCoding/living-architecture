@@ -79,7 +79,13 @@ function resolveComponentContext(filePath: string, module: ValidatedModule): Com
   }
 }
 
-function resolveModuleName(filePath: string, module: ValidatedModule): string {
+/**
+ * @riviere-role domain-service
+ * @param filePath - source file path
+ * @param module - validated module configuration
+ * @returns resolved module name
+ */
+export function resolveModuleName(filePath: string, module: ValidatedModule): string {
   if (module.modules === undefined) {
     return module.name
   }
