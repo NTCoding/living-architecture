@@ -24,7 +24,8 @@ export class ExtractionStage {
     resolvedConfig: ResolvedExtractionConfig
     moduleContexts: readonly ModuleContext[]
   }): ExtractionStage {
-    validateModuleContexts(params.resolvedConfig.modules, params.moduleContexts)
+    const modules = params.resolvedConfig.modules
+    validateModuleContexts(modules, params.moduleContexts)
     return new ExtractionStage(params)
   }
 
@@ -56,12 +57,23 @@ function validateModuleContexts(
   modules: readonly ValidatedModule[],
   contexts: readonly ModuleContext[],
 ): void {
-  const expectedIndexes = modules.map((_, index) => index).join(',')
-  const actualIndexes = contexts
-    .map((context) => modules.indexOf(context.module))
-    .sort((left, right) => left - right)
-    .join(',')
+  const expectedIndexes = indexesForModules(modules)
+  const actualIndexes = indexesForContexts(modules, contexts)
   if (actualIndexes !== expectedIndexes) {
     throw new TypeError('Module contexts must match resolved configuration exactly')
   }
+}
+
+function indexesForModules(modules: readonly ValidatedModule[]): string {
+  const indexes = modules.map((_, index) => index)
+  return indexes.join(',')
+}
+
+function indexesForContexts(
+  modules: readonly ValidatedModule[],
+  contexts: readonly ModuleContext[],
+): string {
+  const indexes = contexts.map((context) => modules.indexOf(context.module))
+  indexes.sort((left, right) => left - right)
+  return indexes.join(',')
 }

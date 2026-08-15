@@ -11,11 +11,9 @@ export class DetectExtractionConnections {
     allComponents: readonly EnrichedComponent[],
     options: { readonly allowIncomplete: false },
   ) {
-    return detectConfiguredConnections(
-      configuredSources(stage, allComponents),
-      allComponents,
-      connectionOptions(stage, options.allowIncomplete),
-    )
+    const sources = configuredSources(stage, allComponents)
+    const connectionConfig = connectionOptions(stage, options.allowIncomplete)
+    return detectConfiguredConnections(sources, allComponents, connectionConfig)
   }
 }
 
@@ -27,9 +25,8 @@ function configuredSources(
   project: ExtractionStage['moduleContexts'][number]['project']
   components: readonly EnrichedComponent[]
 }[] {
-  return stage.resolvedConfig.modules.map((module) =>
-    configuredSource(stage, module, allComponents),
-  )
+  const modules = stage.resolvedConfig.modules
+  return modules.map((module) => configuredSource(stage, module, allComponents))
 }
 
 function configuredSource(
@@ -38,17 +35,25 @@ function configuredSource(
   allComponents: readonly EnrichedComponent[],
 ) {
   const context = contextForModule(stage, module)
+  const components = componentsForModule(allComponents, module, context.files)
   return {
     files: context.files,
     project: context.project,
-    components: allComponents.filter((component) =>
-      moduleOwnsComponent(component, module, context.files),
-    ),
+    components,
   }
 }
 
+function componentsForModule(
+  allComponents: readonly EnrichedComponent[],
+  module: ValidatedModule,
+  files: readonly string[],
+): readonly EnrichedComponent[] {
+  return allComponents.filter((component) => moduleOwnsComponent(component, module, files))
+}
+
 function contextForModule(stage: ExtractionStage, module: ValidatedModule) {
-  const context = stage.moduleContexts.find((candidate) => candidate.module === module)
+  const contexts = stage.moduleContexts
+  const context = contexts.find((candidate) => candidate.module === module)
   if (context === undefined) throw new TypeError(`Missing context for module '${module.name}'`)
   return context
 }
@@ -58,19 +63,22 @@ function moduleOwnsComponent(
   module: ValidatedModule,
   files: readonly string[],
 ): boolean {
-  if (!files.includes(component.location.file)) return false
+  const location = component.location
+  const file = location.file
+  if (!files.includes(file)) return false
   if (component.domain !== module.domain) return false
-  return resolveModuleName(component.location.file, module) === component.module
+  const resolvedModule = resolveModuleName(file, module)
+  return resolvedModule === component.module
 }
 
 function connectionOptions(stage: ExtractionStage, allowIncomplete: boolean) {
   const connections = stage.resolvedConfig.connections
+  const eventPublishers = connections?.eventPublishers
+  const httpLinks = connections?.httpLinks
   return {
     allowIncomplete,
     repository: stage.repositoryName,
-    ...(connections?.eventPublishers === undefined
-      ? {}
-      : { eventPublishers: connections.eventPublishers }),
-    ...(connections?.httpLinks === undefined ? {} : { httpLinks: connections.httpLinks }),
+    ...(eventPublishers === undefined ? {} : { eventPublishers }),
+    ...(httpLinks === undefined ? {} : { httpLinks }),
   }
 }

@@ -160,10 +160,7 @@ describe('ExtractComponentsForGraph.execute', () => {
 
     expect(() =>
       new ExtractComponentsForGraph().execute(createStage(), { allowIncomplete: false }),
-    ).toThrow(OrphanedDraftComponentError)
-    expect(() =>
-      new ExtractComponentsForGraph().execute(createStage(), { allowIncomplete: false }),
-    ).toThrow('Draft components reference unknown modules: [unknown]. Known modules: [orders]')
+    ).toThrowError(new OrphanedDraftComponentError(['unknown'], ['orders']))
   })
 
   it('reports a missing context at the service boundary', () => {
