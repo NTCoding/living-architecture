@@ -1,4 +1,5 @@
 import type { ValidatedModule } from '@living-architecture/riviere-extract-config-published-language'
+import type { Project } from 'ts-morph'
 import type { DraftComponent } from './component-extraction/draft-component'
 import { extractComponents } from './component-extraction/extractor'
 import type { ExtractionStage } from './extraction-stage'
@@ -28,7 +29,7 @@ export class ExtractComponentsForGraph {
     options: { readonly allowIncomplete: false },
   ): ExtractComponentsForGraphResult {
     const draftsByModule = extractDraftsByModule(stage)
-    const enrichment = enrichDraftComponentValues(
+    const enrichment = enrichComponentsForModules(
       stage.resolvedConfig.modules,
       stage.moduleContexts,
       draftsByModule,
@@ -67,14 +68,21 @@ interface SuccessfulEnrichment {
 
 type EnrichmentResult = FieldFailureEnrichment | SuccessfulEnrichment
 
+type EnrichmentModuleContext = {
+  readonly module: ValidatedModule
+  readonly project: Project
+}
+
 type ModuleContext = ExtractionStage['moduleContexts'][number]
 
-function enrichDraftComponentValues(
+/** @riviere-role domain-service */
+export function enrichComponentsForModules(
   modules: readonly ValidatedModule[],
-  moduleContexts: readonly ModuleContext[],
+  moduleContexts: readonly EnrichmentModuleContext[],
   draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
   allowIncomplete: boolean,
 ): EnrichmentResult {
+  assertAllDraftsMatchModules(draftsByModule, modules)
   const results = modules.map((module) => enrichModule(module, moduleContexts, draftsByModule))
   const components = results.flatMap((result) => result.components)
   const failedFields = [...new Set(results.flatMap((result) => result.failedFields))]
@@ -85,6 +93,17 @@ function enrichDraftComponentValues(
   return { kind: 'enriched', components, failedFields }
 }
 
+function assertAllDraftsMatchModules(
+  draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
+  modules: readonly ValidatedModule[],
+): void {
+  const knownModuleNames = new Set(modules.map((module) => module.name))
+  const orphanedModules = [...draftsByModule.keys()].filter((name) => !knownModuleNames.has(name))
+  if (orphanedModules.length > 0) {
+    throw new OrphanedDraftComponentError(orphanedModules, [...knownModuleNames])
+  }
+}
+
 interface ModuleEnrichment {
   readonly components: EnrichedComponent[]
   readonly failedFields: string[]
@@ -92,7 +111,7 @@ interface ModuleEnrichment {
 
 function enrichModule(
   module: ValidatedModule,
-  moduleContexts: readonly ModuleContext[],
+  moduleContexts: readonly EnrichmentModuleContext[],
   draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
 ): ModuleEnrichment {
   /* v8 ignore start -- extractDraftsByModule materialises every configured module */
@@ -130,9 +149,9 @@ function extractModuleDrafts(context: ModuleContext): DraftComponent[] {
 }
 
 function contextForModule(
-  contexts: readonly ModuleContext[],
+  contexts: readonly EnrichmentModuleContext[],
   module: ValidatedModule,
-): ModuleContext {
+): EnrichmentModuleContext {
   const context = contexts.find((candidate) => candidate.module.name === module.name)
   /* v8 ignore start -- ExtractionStage.parse rejects missing configured contexts */
   if (context === undefined) {

@@ -113,10 +113,25 @@ describe('DetectExtractionConnections.execute', () => {
     expect({
       links: result.links,
       externalLinks: result.externalLinks,
+      timings: result.timings,
       perModuleCallCount: mockDetectPerModuleConnections.mock.calls.length,
     }).toStrictEqual({
       links: [ExtractedLink.parse({ source: 'orders:useCase:A', target: 'orders:useCase:B' })],
       externalLinks: [],
+      timings: [
+        expect.objectContaining({
+          callGraphMs: 2,
+          asyncDetectionMs: 0,
+          setupMs: 3,
+          totalMs: 5,
+        }),
+        expect.objectContaining({
+          callGraphMs: 0,
+          asyncDetectionMs: 5,
+          setupMs: 0,
+          totalMs: 5,
+        }),
+      ],
       perModuleCallCount: 1,
     })
     expect(mockDetectPerModuleConnections.mock.calls[0]?.[1]).toStrictEqual(components)
@@ -198,6 +213,62 @@ describe('DetectExtractionConnections.execute', () => {
         repositoryName: stage.repositoryName,
         resolvedConfig: stage.resolvedConfig,
         moduleContexts: [],
+      }),
+    ).toThrow('Module contexts must match resolved configuration exactly')
+  })
+
+  it('rejects duplicate stage contexts', () => {
+    const stage = createStage()
+    const firstContext = stage.moduleContexts[0]
+    assert(firstContext)
+
+    expect(() =>
+      ExtractionStage.parse({
+        name: stage.name,
+        configPath: stage.configPath,
+        useTsConfig: stage.useTsConfig,
+        repositoryName: stage.repositoryName,
+        resolvedConfig: stage.resolvedConfig,
+        moduleContexts: [firstContext, firstContext],
+      }),
+    ).toThrow('Module contexts must match resolved configuration exactly')
+  })
+
+  it('rejects a context from a foreign configuration', () => {
+    const stage = createStage()
+    const foreignResult = ValidatedConfiguration.parse({
+      modules: [
+        {
+          name: 'billing',
+          domain: 'billing',
+          path: 'billing',
+          glob: '**/*.ts',
+          api: { notUsed: true },
+          useCase: { notUsed: true },
+          domainOp: { notUsed: true },
+          event: { notUsed: true },
+          eventHandler: { notUsed: true },
+          ui: { notUsed: true },
+        },
+      ],
+    })
+    assert(foreignResult.success)
+    const foreignModule = foreignResult.data.modules[0]
+    assert(foreignModule)
+    const firstContext = stage.moduleContexts[0]
+    assert(firstContext)
+
+    expect(() =>
+      ExtractionStage.parse({
+        name: stage.name,
+        configPath: stage.configPath,
+        useTsConfig: stage.useTsConfig,
+        repositoryName: stage.repositoryName,
+        resolvedConfig: stage.resolvedConfig,
+        moduleContexts: [
+          firstContext,
+          { module: foreignModule, files: [], project: new Project() },
+        ],
       }),
     ).toThrow('Module contexts must match resolved configuration exactly')
   })

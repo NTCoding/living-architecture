@@ -53,7 +53,6 @@ function extractFromFile(
   return extractFromModule(sourceFile, filePath, module)
 }
 
-/** @riviere-role value-object */
 interface ComponentContext {
   domain: string
   module: string

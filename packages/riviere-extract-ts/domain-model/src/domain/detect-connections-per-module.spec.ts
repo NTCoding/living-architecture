@@ -220,6 +220,18 @@ describe('ExtractionProject.extractDraftComponents', () => {
     ])
   })
 
+  it('normalises absent HTTP-link configuration', () => {
+    mockExtractComponents.mockReturnValue([])
+    mockEnrichComponents.mockReturnValue({ components: [], failures: [] })
+    const project = createExtractionProject('orders')
+    project.extractDraftComponents({
+      allowIncomplete: true,
+      includeConnections: true,
+    })
+
+    expect(mockStripResolvedCustomTypes).toHaveBeenCalledWith([], [], expect.any(Array))
+  })
+
   it('returns a field failure when extracted components cannot be enriched', () => {
     mockExtractComponents.mockReturnValue([
       DraftComponent.parse({
