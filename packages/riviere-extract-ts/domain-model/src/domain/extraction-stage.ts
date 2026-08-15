@@ -4,7 +4,6 @@ import type {
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { Project } from 'ts-morph'
 
-/** @riviere-role value-object */
 interface ModuleContext {
   readonly files: readonly string[]
   readonly module: ValidatedModule
@@ -25,6 +24,7 @@ export class ExtractionStage {
     resolvedConfig: ResolvedExtractionConfig
     moduleContexts: readonly ModuleContext[]
   }): ExtractionStage {
+    validateModuleContexts(params.resolvedConfig.modules, params.moduleContexts)
     return new ExtractionStage(params)
   }
 
@@ -50,4 +50,17 @@ export class ExtractionStage {
   readonly repositoryName: string
   readonly resolvedConfig: ResolvedExtractionConfig
   readonly moduleContexts: readonly ModuleContext[]
+}
+
+function validateModuleContexts(
+  modules: readonly ValidatedModule[],
+  contexts: readonly ModuleContext[],
+): void {
+  const contextNames = new Set(contexts.map((context) => context.module.name))
+  const missingModules = modules
+    .map((module) => module.name)
+    .filter((name) => !contextNames.has(name))
+  if (missingModules.length > 0) {
+    throw new TypeError(`Missing context for module(s): [${missingModules.join(', ')}]`)
+  }
 }

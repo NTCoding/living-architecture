@@ -25,7 +25,18 @@ vi.mock('./connection-detection/detect-connections', () => ({
 function createStage(withEventPublishers = false): ExtractionStage {
   const result = ValidatedConfiguration.parse({
     ...(withEventPublishers
-      ? { connections: { eventPublishers: [{ fromType: 'eventSender', metadataKey: 'event' }] } }
+      ? {
+          connections: {
+            eventPublishers: [{ fromType: 'eventSender', metadataKey: 'event' }],
+            httpLinks: [
+              {
+                fromCustomType: 'eventSender',
+                matchDomainBy: 'event',
+                matchApiBy: ['event'],
+              },
+            ],
+          },
+        }
       : {}),
     modules: ['orders', 'shipping'].map((name) => ({
       name,
@@ -62,9 +73,9 @@ function createStage(withEventPublishers = false): ExtractionStage {
   })
 }
 
-function createComponent(module: string, name: string): EnrichedComponent {
+function createComponent(module: string, name: string, domain = module): EnrichedComponent {
   return EnrichedComponent.parse({
-    domain: module,
+    domain,
     location: { file: `${module}/order.ts`, line: 1 },
     metadata: {},
     module,
@@ -100,22 +111,19 @@ describe('DetectExtractionConnections.execute', () => {
       externalLinks: result.externalLinks,
       timingCount: result.timings.length,
       perModuleCallCount: mockDetectPerModuleConnections.mock.calls.length,
-    }).toMatchObject({
-      links: [expect.any(ExtractedLink)],
+    }).toStrictEqual({
+      links: [ExtractedLink.parse({ source: 'orders:useCase:A', target: 'orders:useCase:B' })],
       externalLinks: [],
       timingCount: 2,
       perModuleCallCount: 1,
     })
-    expect(mockDetectPerModuleConnections).toHaveBeenCalledWith(
-      expect.any(Project),
-      components,
-      expect.objectContaining({
-        allComponents: components,
-        allowIncomplete: false,
-        repository: 'shop',
-        sourceFilePaths: ['orders/order.ts'],
-      }),
-    )
+    expect(mockDetectPerModuleConnections.mock.calls[0]?.[1]).toStrictEqual(components)
+    expect(mockDetectPerModuleConnections.mock.calls[0]?.[2]).toMatchObject({
+      allComponents: components,
+      allowIncomplete: false,
+      repository: 'shop',
+      sourceFilePaths: ['orders/order.ts'],
+    })
     expect(mockDetectCrossModuleConnections).toHaveBeenCalledWith(
       components,
       expect.objectContaining({ allowIncomplete: false, repository: 'shop' }),
@@ -143,26 +151,52 @@ describe('DetectExtractionConnections.execute', () => {
         eventPublishers: [{ fromType: 'eventSender', metadataKey: 'event' }],
       }),
     )
+    expect(mockDetectPerModuleConnections.mock.calls[0]?.[2]).toMatchObject({
+      httpLinks: [
+        {
+          fromCustomType: 'eventSender',
+          matchDomainBy: 'event',
+          matchApiBy: ['event'],
+        },
+      ],
+    })
     expect(mockDetectPerModuleConnections).toHaveBeenCalledTimes(1)
+  })
+
+  it('detects connections for components in configured submodules', () => {
+    const component = createComponent('checkout', 'PlaceOrder', 'orders')
+
+    const result = new DetectExtractionConnections().execute(createStage(), [component], {
+      allowIncomplete: false,
+    })
+
+    expect(result.links).toStrictEqual([
+      ExtractedLink.parse({ source: 'orders:useCase:A', target: 'orders:useCase:B' }),
+    ])
+    expect(mockDetectPerModuleConnections.mock.calls[0]?.[1]).toStrictEqual([component])
   })
 
   it('fails when a component has no matching extraction context', () => {
     const stage = createStage()
-    const stageWithoutContexts = ExtractionStage.parse({
-      name: stage.name,
-      configPath: stage.configPath,
-      useTsConfig: stage.useTsConfig,
-      repositoryName: stage.repositoryName,
-      resolvedConfig: stage.resolvedConfig,
-      moduleContexts: [],
-    })
-
     expect(() =>
-      new DetectExtractionConnections().execute(
-        stageWithoutContexts,
-        [createComponent('orders', 'PlaceOrder')],
-        { allowIncomplete: false },
-      ),
-    ).toThrow("Missing context for module 'orders'")
+      ExtractionStage.parse({
+        name: stage.name,
+        configPath: stage.configPath,
+        useTsConfig: stage.useTsConfig,
+        repositoryName: stage.repositoryName,
+        resolvedConfig: stage.resolvedConfig,
+        moduleContexts: [],
+      }),
+    ).toThrow(TypeError)
+    expect(() =>
+      ExtractionStage.parse({
+        name: stage.name,
+        configPath: stage.configPath,
+        useTsConfig: stage.useTsConfig,
+        repositoryName: stage.repositoryName,
+        resolvedConfig: stage.resolvedConfig,
+        moduleContexts: [],
+      }),
+    ).toThrow('Missing context for module(s): [orders, shipping]')
   })
 })

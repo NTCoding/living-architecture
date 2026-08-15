@@ -27,13 +27,11 @@ export class ExtractComponentsForGraph {
     stage: ExtractionStage,
     options: { readonly allowIncomplete: false },
   ): ExtractComponentsForGraphResult {
-    const drafts = stage.moduleContexts.flatMap((context) =>
-      extractComponents(context.project, [...context.files], context.module),
-    )
+    const draftsByModule = extractDraftsByModule(stage)
     const enrichment = enrichDraftComponentValues(
       stage.resolvedConfig.modules,
       stage.moduleContexts,
-      drafts,
+      draftsByModule,
       options.allowIncomplete,
     )
 
@@ -74,31 +72,21 @@ type ModuleContext = ExtractionStage['moduleContexts'][number]
 function enrichDraftComponentValues(
   modules: readonly ValidatedModule[],
   moduleContexts: readonly ModuleContext[],
-  draftComponents: readonly DraftComponent[],
+  draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
   allowIncomplete: boolean,
 ): EnrichmentResult {
-  const moduleNames = new Set(modules.map((module) => module.name))
-  const draftsByModule = groupDraftsByModule(draftComponents)
-  const orphanedModules = [...draftsByModule.keys()].filter((name) => !moduleNames.has(name))
-  if (orphanedModules.length > 0) {
-    throw new OrphanedDraftComponentError(orphanedModules, [...moduleNames])
-  }
-
   const components: EnrichedComponent[] = []
   const failedFieldSet = new Set<string>()
 
   for (const module of modules) {
+    /* v8 ignore start -- extractDraftsByModule materialises every configured module */
     const moduleDrafts = draftsByModule.get(module.name) ?? []
+    /* v8 ignore stop */
     if (moduleDrafts.length === 0) {
       continue
     }
 
-    const context = moduleContexts.find((candidate) => candidate.module.name === module.name)
-    /* v8 ignore start -- stage materialisation supplies one context for every configured module */
-    if (context === undefined) {
-      throw new TypeError(`Missing context for module '${module.name}'`)
-    }
-    /* v8 ignore stop */
+    const context = contextForModule(moduleContexts, module)
     const result = enrichComponents(moduleDrafts, module, context.project)
     components.push(...result.components)
     for (const failure of result.failures) {
@@ -114,15 +102,30 @@ function enrichDraftComponentValues(
   return { kind: 'enriched', components, failedFields }
 }
 
-function groupDraftsByModule(drafts: readonly DraftComponent[]): Map<string, DraftComponent[]> {
+function extractDraftsByModule(stage: ExtractionStage): Map<string, DraftComponent[]> {
   const grouped = new Map<string, DraftComponent[]>()
-  for (const draft of drafts) {
-    const existing = grouped.get(draft.module)
-    if (existing !== undefined) {
-      existing.push(draft)
-      continue
+  for (const context of stage.moduleContexts) {
+    const drafts = extractComponents(context.project, [...context.files], context.module)
+    const orphanedModules = drafts
+      .filter((draft) => draft.domain !== context.module.domain)
+      .map((draft) => draft.module)
+    if (orphanedModules.length > 0) {
+      throw new OrphanedDraftComponentError(orphanedModules, [context.module.name])
     }
-    grouped.set(draft.module, [draft])
+    grouped.set(context.module.name, drafts)
   }
   return grouped
+}
+
+function contextForModule(
+  contexts: readonly ModuleContext[],
+  module: ValidatedModule,
+): ModuleContext {
+  const context = contexts.find((candidate) => candidate.module.name === module.name)
+  /* v8 ignore start -- ExtractionStage.parse rejects missing configured contexts */
+  if (context === undefined) {
+    throw new TypeError(`Missing context for module '${module.name}'`)
+  }
+  /* v8 ignore stop */
+  return context
 }

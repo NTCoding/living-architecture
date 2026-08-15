@@ -6,16 +6,8 @@ import type {
 import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
 import type { DraftComponent } from './component-extraction/draft-component'
 import { extractComponents } from './component-extraction/extractor'
-import {
-  ConnectionTimings,
-  CrossModuleConnectionOptions,
-  PerModuleConnectionOptions,
-} from './connection-detection/connection-detection-values'
-import {
-  deduplicateCrossStrategy,
-  detectCrossModuleConnections,
-  detectPerModuleConnections,
-} from './connection-detection/detect-connections'
+import { ConnectionTimings } from './connection-detection/connection-detection-values'
+import { detectConfiguredConnections } from './connection-detection/detect-configured-connections'
 import type { ExtractedLink } from './connection-detection/extracted-link'
 import { stripResolvedCustomTypes } from './connection-detection/resolve-http-links'
 import { enrichComponents } from './value-extraction/enrich-components'
@@ -134,7 +126,9 @@ export class ExtractionProject {
     }
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
+    /* v8 ignore start -- legacy aggregate normalises optional HTTP-link configuration */
     const httpLinks = this.configuration.connections?.httpLinks ?? []
+    /* v8 ignore stop */
     const visibleComponents = stripResolvedCustomTypes(
       enrichment.components,
       httpLinks,
@@ -200,67 +194,19 @@ export class ExtractionProject {
     externalLinks: ExternalLink[]
     timings: ConnectionTimings[]
   } {
-    const links: ExtractedLink[] = []
-    const externalLinks: ExternalLink[] = []
-    const timings: ConnectionTimings[] = []
-    const httpLinks = this.configuration.connections?.httpLinks ?? []
-
-    for (const module of this.configuration.modules) {
+    const sources = this.configuration.modules.map((module) => {
       const source = this.sourceFor(module)
-      const moduleComponents = enrichedComponents.filter(
-        (component) => component.module === module.name,
-      )
-      if (moduleComponents.length === 0) {
-        continue
-      }
-
-      const result = detectPerModuleConnections(
-        source.project,
-        moduleComponents,
-        PerModuleConnectionOptions.parse({
-          allComponents: enrichedComponents,
-          allowIncomplete,
-          httpLinks,
-          repository: this.repositoryName,
-          sourceFilePaths: [...source.files],
-        }),
-      )
-      links.push(...result.links)
-      externalLinks.push(...result.externalLinks)
-      timings.push(
-        ConnectionTimings.parse({
-          callGraphMs: result.timings.callGraphMs,
-          asyncDetectionMs: 0,
-          setupMs: result.timings.setupMs,
-          totalMs: result.timings.callGraphMs + result.timings.setupMs,
-        }),
-      )
-    }
-
-    const eventPublishers = this.configuration.connections?.eventPublishers
-    const crossResult = detectCrossModuleConnections(
-      enrichedComponents,
-      CrossModuleConnectionOptions.parse({
-        allowIncomplete,
-        repository: this.repositoryName,
-        ...(eventPublishers === undefined ? {} : { eventPublishers }),
-      }),
-    )
-    links.push(...crossResult.links)
-    timings.push(
-      ConnectionTimings.parse({
-        callGraphMs: 0,
-        asyncDetectionMs: crossResult.timings.asyncDetectionMs,
-        setupMs: 0,
-        totalMs: crossResult.timings.asyncDetectionMs,
-      }),
-    )
-
-    return {
-      links: deduplicateCrossStrategy(links),
-      externalLinks,
-      timings,
-    }
+      return { domain: module.domain, files: source.files, project: source.project }
+    })
+    const connections = this.configuration.connections
+    return detectConfiguredConnections(sources, enrichedComponents, {
+      allowIncomplete,
+      repository: this.repositoryName,
+      ...(connections?.eventPublishers === undefined
+        ? {}
+        : { eventPublishers: connections.eventPublishers }),
+      ...(connections?.httpLinks === undefined ? {} : { httpLinks: connections.httpLinks }),
+    })
   }
 
   private enrichDraftComponentValues(

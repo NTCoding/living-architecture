@@ -4,6 +4,7 @@ import { ValidatedConfiguration } from '@living-architecture/riviere-extract-con
 import { DraftComponent } from './component-extraction/draft-component'
 import { ExtractComponentsForGraph } from './extract-components-for-graph'
 import { ExtractionStage } from './extraction-stage'
+import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 
 const { mockExtractComponents, mockEnrichComponents } = vi.hoisted(() => ({
   mockExtractComponents: vi.fn(),
@@ -18,13 +19,17 @@ vi.mock('./value-extraction/enrich-components', () => ({
   enrichComponents: mockEnrichComponents,
 }))
 
-function createStage(moduleNames: string[] = ['orders']): ExtractionStage {
+function createStage(
+  moduleNames: string[] = ['orders'],
+  modulesPattern: string | undefined = undefined,
+): ExtractionStage {
   const result = ValidatedConfiguration.parse({
     modules: moduleNames.map((name) => ({
       name,
       domain: name,
       path: name,
       glob: '**/*.ts',
+      ...(modulesPattern === undefined ? {} : { modules: modulesPattern }),
       api: { notUsed: true },
       useCase: { notUsed: true },
       domainOp: { notUsed: true },
@@ -52,6 +57,16 @@ function createStage(moduleNames: string[] = ['orders']): ExtractionStage {
 function createDraft(module: string, name: string): DraftComponent {
   return DraftComponent.parse({
     domain: module,
+    location: { file: `${module}/order.ts`, line: 1 },
+    module,
+    name,
+    type: 'useCase',
+  })
+}
+
+function createDraftInModule(domain: string, module: string, name: string): DraftComponent {
+  return DraftComponent.parse({
+    domain,
     location: { file: `${module}/order.ts`, line: 1 },
     module,
     name,
@@ -144,6 +159,9 @@ describe('ExtractComponentsForGraph.execute', () => {
 
     expect(() =>
       new ExtractComponentsForGraph().execute(createStage(), { allowIncomplete: false }),
+    ).toThrow(OrphanedDraftComponentError)
+    expect(() =>
+      new ExtractComponentsForGraph().execute(createStage(), { allowIncomplete: false }),
     ).toThrow('Draft components reference unknown modules: [unknown]. Known modules: [orders]')
   })
 
@@ -166,6 +184,40 @@ describe('ExtractComponentsForGraph.execute', () => {
       ok: false,
       failure: { reason: 'Field enrichment failed', failedFields: ['route'] },
     })
-    expect(mockEnrichComponents).toHaveBeenCalledTimes(2)
+    expect(mockEnrichComponents).toHaveBeenNthCalledWith(
+      1,
+      [ordersDraft],
+      expect.objectContaining({ name: 'orders' }),
+      expect.any(Project),
+    )
+    expect(mockEnrichComponents).toHaveBeenNthCalledWith(
+      2,
+      [shippingDraft],
+      expect.objectContaining({ name: 'shipping' }),
+      expect.any(Project),
+    )
+  })
+
+  it('enriches configured submodule drafts with their parent module rules', () => {
+    const draft = createDraftInModule('orders', 'checkout', 'PlaceOrder')
+    mockExtractComponents.mockReturnValue([draft])
+    mockEnrichComponents.mockReturnValue({ components: [{ name: 'PlaceOrder' }], failures: [] })
+
+    const result = new ExtractComponentsForGraph().execute(
+      createStage(['orders'], 'src/{module}/'),
+      { allowIncomplete: false },
+    )
+
+    expect(result).toStrictEqual({
+      ok: true,
+      repository: 'shop',
+      components: [{ name: 'PlaceOrder' }],
+      failedFields: [],
+    })
+    expect(mockEnrichComponents).toHaveBeenCalledWith(
+      [draft],
+      expect.objectContaining({ name: 'orders' }),
+      expect.any(Project),
+    )
   })
 })

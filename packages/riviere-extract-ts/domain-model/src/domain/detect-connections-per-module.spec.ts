@@ -13,6 +13,7 @@ const {
   mockDeduplicateCrossStrategy,
   mockDetectCrossModule,
   mockDetectPerModule,
+  mockStripResolvedCustomTypes,
 } = vi.hoisted(() => ({
   mockExtractComponents: vi.fn().mockReturnValue([]),
   mockEnrichComponents: vi.fn().mockReturnValue({
@@ -38,6 +39,7 @@ const {
     links: [],
     timings: { asyncDetectionMs: 0 },
   }),
+  mockStripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
 }))
 
 vi.mock('./component-extraction/extractor', () => ({
@@ -55,7 +57,7 @@ vi.mock('./connection-detection/detect-connections', () => ({
 }))
 
 vi.mock('./connection-detection/resolve-http-links', () => ({
-  stripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
+  stripResolvedCustomTypes: mockStripResolvedCustomTypes,
 }))
 
 function createExtractionProject(
@@ -150,7 +152,14 @@ describe('ExtractionProject.extractDraftComponents', () => {
     })
 
     const eventPublishers = [{ fromType: 'eventSender', metadataKey: 'publishedEventType' }]
-    const project = createExtractionProject('orders', { eventPublishers })
+    const httpLinks = [
+      {
+        fromCustomType: 'eventSender',
+        matchDomainBy: 'publishedEventType',
+        matchApiBy: ['publishedEventType'],
+      },
+    ]
+    const project = createExtractionProject('orders', { eventPublishers, httpLinks })
     const result = project.extractDraftComponents({
       allowIncomplete: true,
       includeConnections: true,
@@ -160,6 +169,16 @@ describe('ExtractionProject.extractDraftComponents', () => {
     expect(mockDetectCrossModule).toHaveBeenCalledWith(
       expect.any(Array),
       expect.objectContaining({ eventPublishers }),
+    )
+    expect(mockDetectPerModule).toHaveBeenCalledWith(
+      expect.any(Project),
+      expect.any(Array),
+      expect.objectContaining({ httpLinks }),
+    )
+    expect(mockStripResolvedCustomTypes).toHaveBeenCalledWith(
+      expect.any(Array),
+      httpLinks,
+      expect.any(Array),
     )
   })
 
