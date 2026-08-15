@@ -20,6 +20,7 @@ import type { ExtractedLink } from './connection-detection/extracted-link'
 import { stripResolvedCustomTypes } from './connection-detection/resolve-http-links'
 import { enrichComponents } from './value-extraction/enrich-components'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
+import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 
 interface DraftOnlyOutcome {
   kind: 'draftOnly'
@@ -58,15 +59,7 @@ type ExtractionProjectParseResult =
   | { success: true; data: ExtractionProject }
   | { success: false; error: string }
 
-/** @riviere-role domain-error */
-export class OrphanedDraftComponentError extends Error {
-  constructor(orphanedModules: string[], knownModules: string[]) {
-    super(
-      `Draft components reference unknown modules: [${orphanedModules.join(', ')}]. Known modules: [${knownModules.join(', ')}]`,
-    )
-    this.name = 'OrphanedDraftComponentError'
-  }
-}
+export { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 
 interface FieldFailureEnrichment {
   kind: 'fieldFailure'
