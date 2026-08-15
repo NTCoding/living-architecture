@@ -22,6 +22,12 @@ type ExtractComponentsForGraphResult =
       }
     }
 
+type GraphExtractionInput = {
+  readonly stage: ExtractionStage
+  readonly draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>
+  readonly allowIncomplete: false
+}
+
 /** @riviere-role domain-service */
 export class ExtractComponentsForGraph {
   execute(
@@ -29,26 +35,32 @@ export class ExtractComponentsForGraph {
     options: { readonly allowIncomplete: false },
   ): ExtractComponentsForGraphResult {
     const draftsByModule = extractDraftsByModule(stage)
-    return buildGraphExtractionResult(stage, draftsByModule, options.allowIncomplete)
+    return buildGraphExtractionResult({
+      stage,
+      draftsByModule,
+      allowIncomplete: options.allowIncomplete,
+    })
   }
 }
 
-function buildGraphExtractionResult(
-  stage: ExtractionStage,
-  draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
-  allowIncomplete: false,
-): ExtractComponentsForGraphResult {
-  const { resolvedConfig, moduleContexts, repositoryName } = stage
-  const modules = resolvedConfig.modules
-  const enrichment = enrichComponentsForModules(
-    modules,
+function buildGraphExtractionResult(input: GraphExtractionInput): ExtractComponentsForGraphResult {
+  const { stage } = input
+  const repositoryName = stage.repositoryName
+  const enrichment = enrichGraphComponents(input)
+  return enrichment.kind === 'fieldFailure'
+    ? failedGraphExtraction(enrichment.failedFields)
+    : successfulGraphExtraction(repositoryName, enrichment)
+}
+
+function enrichGraphComponents(input: GraphExtractionInput): EnrichmentResult {
+  const { stage, draftsByModule, allowIncomplete } = input
+  const { resolvedConfig, moduleContexts } = stage
+  return enrichComponentsForModules(
+    resolvedConfig.modules,
     moduleContexts,
     draftsByModule,
     allowIncomplete,
   )
-  return enrichment.kind === 'fieldFailure'
-    ? failedGraphExtraction(enrichment.failedFields)
-    : successfulGraphExtraction(repositoryName, enrichment)
 }
 
 function failedGraphExtraction(failedFields: string[]): ExtractComponentsForGraphResult {
@@ -86,6 +98,11 @@ interface SuccessfulEnrichment {
 
 type EnrichmentResult = FieldFailureEnrichment | SuccessfulEnrichment
 
+type EnrichmentInput = {
+  readonly results: readonly ModuleEnrichment[]
+  readonly allowIncomplete: boolean
+}
+
 type EnrichmentModuleContext = {
   readonly module: ValidatedModule
   readonly project: Project
@@ -102,13 +119,11 @@ export function enrichComponentsForModules(
 ): EnrichmentResult {
   assertAllDraftsMatchModules(draftsByModule, modules)
   const results = enrichModules(modules, moduleContexts, draftsByModule)
-  return createEnrichmentResult(results, allowIncomplete)
+  return createEnrichmentResult({ results, allowIncomplete })
 }
 
-function createEnrichmentResult(
-  results: readonly ModuleEnrichment[],
-  allowIncomplete: boolean,
-): EnrichmentResult {
+function createEnrichmentResult(input: EnrichmentInput): EnrichmentResult {
+  const { results, allowIncomplete } = input
   const components = componentsFromResults(results)
   const failedFields = uniqueFailedFields(results)
   if (failedFields.length > 0 && !allowIncomplete) {
@@ -129,7 +144,8 @@ function enrichModules(
 function componentsFromResults(results: readonly ModuleEnrichment[]): EnrichedComponent[] {
   const components: EnrichedComponent[] = []
   for (const result of results) {
-    components.push(...result.components)
+    const resultComponents = result.components
+    components.push(...resultComponents)
   }
   return components
 }
@@ -137,7 +153,8 @@ function componentsFromResults(results: readonly ModuleEnrichment[]): EnrichedCo
 function uniqueFailedFields(results: readonly ModuleEnrichment[]): string[] {
   const fields = new Set<string>()
   for (const result of results) {
-    for (const field of result.failedFields) fields.add(field)
+    const resultFailedFields = result.failedFields
+    for (const field of resultFailedFields) fields.add(field)
   }
   return [...fields]
 }
@@ -155,7 +172,10 @@ function assertAllDraftsMatchModules(
 
 function moduleNames(modules: readonly ValidatedModule[]): string[] {
   const names: string[] = []
-  for (const module of modules) names.push(module.name)
+  for (const module of modules) {
+    const moduleName = module.name
+    names.push(moduleName)
+  }
   return names
 }
 
@@ -181,7 +201,8 @@ function enrichModule(
   draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>,
 ): ModuleEnrichment {
   const context = contextForModule(moduleContexts, module)
-  const moduleDrafts = draftsByModule.get(module.name) ?? []
+  const moduleName = module.name
+  const moduleDrafts = draftsByModule.get(moduleName) ?? []
   if (moduleDrafts.length === 0) return { components: [], failedFields: [] }
   const project = context.project
   return enrichExistingModule(moduleDrafts, module, project)
@@ -201,7 +222,11 @@ function enrichExistingModule(
 
 function failuresFields(result: ReturnType<typeof enrichComponents>): string[] {
   const fields: string[] = []
-  for (const failure of result.failures) fields.push(failure.field)
+  const failures = result.failures
+  for (const failure of failures) {
+    const failureField = failure.field
+    fields.push(failureField)
+  }
   return fields
 }
 
@@ -233,8 +258,13 @@ function orphanedDraftModules(
   module: ValidatedModule,
 ): string[] {
   const orphanedModules: string[] = []
+  const moduleDomain = module.domain
   for (const draft of drafts) {
-    if (draft.domain !== module.domain) orphanedModules.push(draft.module)
+    const draftDomain = draft.domain
+    if (draftDomain !== moduleDomain) {
+      const draftModule = draft.module
+      orphanedModules.push(draftModule)
+    }
   }
   return orphanedModules
 }
@@ -245,7 +275,9 @@ function contextForModule(
 ): EnrichmentModuleContext {
   for (const context of contexts) {
     const contextModule = context.module
-    if (contextModule.name === module.name) return context
+    const contextModuleName = contextModule.name
+    const moduleName = module.name
+    if (contextModuleName === moduleName) return context
   }
   throw new TypeError(`Missing context for module '${module.name}'`)
 }

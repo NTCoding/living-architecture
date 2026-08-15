@@ -34,12 +34,43 @@ type ConfiguredConnectionsOptions = {
   readonly repository: string
 }
 
+type DetectConfiguredConnectionsInput = {
+  readonly sources: readonly ConfiguredConnectionSource[]
+  readonly allComponents: readonly EnrichedComponent[]
+  readonly options: ConfiguredConnectionsOptions
+}
+
+type PerModuleResults = readonly ReturnType<typeof detectPerModuleConnections>[]
+
+type PerModuleDetectionInput = {
+  readonly sources: readonly ConfiguredConnectionSource[]
+  readonly allComponents: readonly EnrichedComponent[]
+  readonly options: ConfiguredConnectionsOptions
+}
+
+type PerModuleOptionsInput = {
+  readonly source: ConfiguredConnectionSource
+  readonly allComponents: readonly EnrichedComponent[]
+  readonly options: ConfiguredConnectionsOptions
+}
+
+type CombinedResultsInput = {
+  readonly perModuleResults: PerModuleResults
+  readonly crossModuleResult: ReturnType<typeof detectCrossModuleConnections>
+}
+
 /** @riviere-role domain-service */
 export function detectConfiguredConnections(
-  sources: readonly ConfiguredConnectionSource[],
-  allComponents: readonly EnrichedComponent[],
-  options: ConfiguredConnectionsOptions,
+  input: DetectConfiguredConnectionsInput,
 ): ConfiguredConnectionsResult {
+  const { sources, allComponents, options } = input
+  const perModuleResults = detectPerModuleResults({ sources, allComponents, options })
+  const crossModuleResult = detectCrossModule(allComponents, options)
+  return combineResults({ perModuleResults, crossModuleResult })
+}
+
+function detectPerModuleResults(input: PerModuleDetectionInput): PerModuleResults {
+  const { sources, allComponents, options } = input
   const perModuleResults = []
   for (const source of sources) {
     const components = source.components
@@ -47,8 +78,7 @@ export function detectConfiguredConnections(
       perModuleResults.push(detectPerModule(source, allComponents, options))
     }
   }
-  const crossModuleResult = detectCrossModule(allComponents, options)
-  return combineResults(perModuleResults, crossModuleResult)
+  return perModuleResults
 }
 
 function detectPerModule(
@@ -59,21 +89,19 @@ function detectPerModule(
   return detectPerModuleConnections(
     source.project,
     source.components,
-    perModuleOptions(source, allComponents, options),
+    perModuleOptions({ source, allComponents, options }),
   )
 }
 
-function perModuleOptions(
-  source: ConfiguredConnectionSource,
-  allComponents: readonly EnrichedComponent[],
-  options: ConfiguredConnectionsOptions,
-) {
+function perModuleOptions(input: PerModuleOptionsInput) {
+  const { source, allComponents, options } = input
+  const httpLinks = options.httpLinks
   return PerModuleConnectionOptions.parse({
     allComponents,
     allowIncomplete: options.allowIncomplete,
     repository: options.repository,
     sourceFilePaths: [...source.files],
-    ...(options.httpLinks === undefined ? {} : { httpLinks: options.httpLinks }),
+    ...(httpLinks === undefined ? {} : { httpLinks }),
   })
 }
 
@@ -85,25 +113,34 @@ function detectCrossModule(
 }
 
 function crossModuleOptions(options: ConfiguredConnectionsOptions) {
+  const eventPublishers = options.eventPublishers
   return CrossModuleConnectionOptions.parse({
     allowIncomplete: options.allowIncomplete,
     repository: options.repository,
-    ...(options.eventPublishers === undefined ? {} : { eventPublishers: options.eventPublishers }),
+    ...(eventPublishers === undefined ? {} : { eventPublishers }),
   })
 }
 
-function combineResults(
-  perModuleResults: readonly ReturnType<typeof detectPerModuleConnections>[],
-  crossModuleResult: ReturnType<typeof detectCrossModuleConnections>,
-): ConfiguredConnectionsResult {
+function combineResults(input: CombinedResultsInput): ConfiguredConnectionsResult {
+  const { perModuleResults, crossModuleResult } = input
+  const { links, externalLinks } = combinePerModuleResults(perModuleResults)
+  return {
+    links: deduplicateCrossStrategy([...links, ...crossModuleResult.links]),
+    externalLinks,
+  }
+}
+
+function combinePerModuleResults(perModuleResults: PerModuleResults): ConfiguredConnectionsResult {
   const moduleLinks: ExtractedLink[] = []
   const externalLinks: ExternalLink[] = []
   for (const result of perModuleResults) {
-    moduleLinks.push(...result.links)
-    externalLinks.push(...result.externalLinks)
+    const links = result.links
+    const resultExternalLinks = result.externalLinks
+    moduleLinks.push(...links)
+    externalLinks.push(...resultExternalLinks)
   }
   return {
-    links: deduplicateCrossStrategy([...moduleLinks, ...crossModuleResult.links]),
+    links: moduleLinks,
     externalLinks,
   }
 }

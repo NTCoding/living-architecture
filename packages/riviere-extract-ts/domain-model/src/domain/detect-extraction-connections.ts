@@ -4,6 +4,25 @@ import { resolveModuleName } from './component-extraction/extractor'
 import { detectConfiguredConnections } from './connection-detection/detect-configured-connections'
 import type { ExtractionStage } from './extraction-stage'
 
+type ConfiguredSourceInput = {
+  readonly stage: ExtractionStage
+  readonly module: ValidatedModule
+  readonly allComponents: readonly EnrichedComponent[]
+}
+
+type ConnectionOptionsInput = {
+  readonly stage: ExtractionStage
+  readonly allowIncomplete: boolean
+}
+
+type OptionalConnectionSettings = ExtractionStage['resolvedConfig']['connections']
+
+type ModuleOwnershipInput = {
+  readonly component: EnrichedComponent
+  readonly module: ValidatedModule
+  readonly files: readonly string[]
+}
+
 /** @riviere-role domain-service */
 export class DetectExtractionConnections {
   execute(
@@ -12,8 +31,15 @@ export class DetectExtractionConnections {
     options: { readonly allowIncomplete: false },
   ) {
     const sources = configuredSources(stage, allComponents)
-    const connectionConfig = connectionOptions(stage, options.allowIncomplete)
-    return detectConfiguredConnections(sources, allComponents, connectionConfig)
+    const connectionConfig = connectionOptions({
+      stage,
+      allowIncomplete: options.allowIncomplete,
+    })
+    return detectConfiguredConnections({
+      sources,
+      allComponents,
+      options: connectionConfig,
+    })
   }
 }
 
@@ -27,19 +53,17 @@ function configuredSources(
 }[] {
   const { resolvedConfig } = stage
   const modules = resolvedConfig.modules
-  return modules.map((module) => configuredSource(stage, module, allComponents))
+  return modules.map((module) => configuredSource({ stage, module, allComponents }))
 }
 
-function configuredSource(
-  stage: ExtractionStage,
-  module: ValidatedModule,
-  allComponents: readonly EnrichedComponent[],
-) {
+function configuredSource(input: ConfiguredSourceInput) {
+  const { stage, module, allComponents } = input
   const context = contextForModule(stage, module)
-  const components = componentsForModule(allComponents, module, context.files)
+  const { files, project } = context
+  const components = componentsForModule(allComponents, module, files)
   return {
-    files: context.files,
-    project: context.project,
+    files,
+    project,
     components,
   }
 }
@@ -49,7 +73,7 @@ function componentsForModule(
   module: ValidatedModule,
   files: readonly string[],
 ): readonly EnrichedComponent[] {
-  return allComponents.filter((component) => moduleOwnsComponent(component, module, files))
+  return allComponents.filter((component) => moduleOwnsComponent({ component, module, files }))
 }
 
 function contextForModule(stage: ExtractionStage, module: ValidatedModule) {
@@ -60,26 +84,32 @@ function contextForModule(stage: ExtractionStage, module: ValidatedModule) {
   throw new TypeError(`Missing context for module '${module.name}'`)
 }
 
-function moduleOwnsComponent(
-  component: EnrichedComponent,
-  module: ValidatedModule,
-  files: readonly string[],
-): boolean {
+function moduleOwnsComponent(input: ModuleOwnershipInput): boolean {
+  const { component, module, files } = input
   const { location, domain, module: componentModule } = component
   const { file } = location
-  if (!files.includes(file) || domain !== module.domain) return false
+  const { domain: moduleDomain } = module
+  const isConfiguredFile = files.includes(file)
+  const isSameDomain = domain === moduleDomain
+  if (!isConfiguredFile || !isSameDomain) return false
   const resolvedModule = resolveModuleName(file, module)
   return resolvedModule === componentModule
 }
 
-function connectionOptions(stage: ExtractionStage, allowIncomplete: boolean) {
+function connectionOptions(input: ConnectionOptionsInput) {
+  const { stage, allowIncomplete } = input
   const { resolvedConfig, repositoryName } = stage
-  const connections = resolvedConfig.connections
-  const eventPublishers = connections?.eventPublishers
-  const httpLinks = connections?.httpLinks
   return {
     allowIncomplete,
     repository: repositoryName,
+    ...optionalConnectionOptions(resolvedConfig.connections),
+  }
+}
+
+function optionalConnectionOptions(connections: OptionalConnectionSettings) {
+  const eventPublishers = connections?.eventPublishers
+  const httpLinks = connections?.httpLinks
+  return {
     ...(eventPublishers === undefined ? {} : { eventPublishers }),
     ...(httpLinks === undefined ? {} : { httpLinks }),
   }

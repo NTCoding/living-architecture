@@ -12,6 +12,11 @@ interface ModuleContext {
 
 type ResolvedExtractionConfig = ValidatedConfiguration
 
+type ModuleContextIndexInput = {
+  readonly modules: readonly ValidatedModule[]
+  readonly contexts: readonly ModuleContext[]
+}
+
 interface ExtractionStageParams {
   readonly name: string
   readonly configPath: string
@@ -47,7 +52,7 @@ function validateModuleContexts(
   modules: readonly ValidatedModule[],
   contexts: readonly ModuleContext[],
 ): void {
-  if (indexesForContexts(modules, contexts) !== indexesForModules(modules)) {
+  if (indexesForContexts({ modules, contexts }) !== indexesForModules(modules)) {
     throw new TypeError('Module contexts must match resolved configuration exactly')
   }
 }
@@ -57,14 +62,13 @@ function indexesForModules(modules: readonly ValidatedModule[]): string {
   return indexes.join(',')
 }
 
-function indexesForContexts(
-  modules: readonly ValidatedModule[],
-  contexts: readonly ModuleContext[],
-): string {
+function indexesForContexts(input: ModuleContextIndexInput): string {
+  const { modules, contexts } = input
   const indexes: number[] = []
   for (const context of contexts) {
     const module = context.module
-    indexes.push(modules.indexOf(module))
+    const moduleIndex = modules.indexOf(module)
+    indexes.push(moduleIndex)
   }
   indexes.sort((left, right) => left - right)
   return indexes.join(',')
