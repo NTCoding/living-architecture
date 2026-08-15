@@ -18,7 +18,15 @@ const args = operationArgs[0] === sessionId ? operationArgs.slice(1) : operation
 const cliPath = join(dirname(fileURLToPath(import.meta.url)), 'codex-cli.ts')
 const require = createRequire(import.meta.url)
 const tsxCliPath = require.resolve('tsx/cli')
-const result = spawnSync(process.execPath, [tsxCliPath, cliPath, operation, sessionId, ...args], {stdio: 'inherit',})
+const sourceCondition = '--conditions=@living-architecture/source'
+const nodeOptions = [process.env.NODE_OPTIONS, sourceCondition].filter(Boolean).join(' ')
+const result = spawnSync(process.execPath, [tsxCliPath, cliPath, operation, sessionId, ...args], {
+  stdio: 'inherit',
+  env: {
+    ...process.env,
+    NODE_OPTIONS: nodeOptions,
+  },
+})
 
 if (result.error !== undefined) {
   throw result.error

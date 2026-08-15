@@ -9,7 +9,7 @@
         "executor": "nx:run-commands",
         "outputs": ["{projectRoot}/test-output/vitest"],
         "options": {
-          "command": "vitest",
+          "command": "vitest run",
           "cwd": "apps/docs"
         }
       },
