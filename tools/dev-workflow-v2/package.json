@@ -11,7 +11,7 @@
     "@living-architecture/dev-workflow-v2-use-cases": "workspace:*",
     "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.4.0",
     "@nt-ai-lab/deterministic-agent-workflow-cli": "0.4.0",
-    "@nt-ai-lab/deterministic-agent-workflow-codex": "0.4.0",
+    "@nt-ai-lab/deterministic-agent-workflow-codex": "0.4.1",
     "@nt-ai-lab/deterministic-agent-workflow-engine": "0.4.0",
     "@nt-ai-lab/deterministic-agent-workflow-event-store": "0.4.0",
     "@nt-ai-lab/deterministic-agent-workflow-opencode": "0.4.0",
