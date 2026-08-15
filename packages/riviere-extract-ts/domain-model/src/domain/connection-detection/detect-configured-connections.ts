@@ -6,6 +6,7 @@ import type { ExternalLink } from '@living-architecture/riviere-schema-published
 import type { Project } from 'ts-morph'
 import type { EnrichedComponent } from '../value-extraction/enriched-component'
 import {
+  ConnectionTimings,
   CrossModuleConnectionOptions,
   PerModuleConnectionOptions,
 } from './connection-detection-values'
@@ -25,6 +26,7 @@ type ConfiguredConnectionSource = {
 type ConfiguredConnectionsResult = {
   readonly links: ExtractedLink[]
   readonly externalLinks: ExternalLink[]
+  readonly timings: ConnectionTimings[]
 }
 
 type ConfiguredConnectionsOptions = {
@@ -41,6 +43,11 @@ type DetectConfiguredConnectionsInput = {
 }
 
 type PerModuleResults = readonly ReturnType<typeof detectPerModuleConnections>[]
+
+type LinkCollections = {
+  readonly links: ExtractedLink[]
+  readonly externalLinks: ExternalLink[]
+}
 
 type PerModuleDetectionInput = {
   readonly sources: readonly ConfiguredConnectionSource[]
@@ -127,10 +134,14 @@ function combineResults(input: CombinedResultsInput): ConfiguredConnectionsResul
   return {
     links: deduplicateCrossStrategy([...links, ...crossModuleResult.links]),
     externalLinks,
+    timings: [
+      ...perModuleResults.map((result) => perModuleTiming(result.timings)),
+      crossModuleTiming(crossModuleResult.timings),
+    ],
   }
 }
 
-function combinePerModuleResults(perModuleResults: PerModuleResults): ConfiguredConnectionsResult {
+function combinePerModuleResults(perModuleResults: PerModuleResults): LinkCollections {
   const moduleLinks: ExtractedLink[] = []
   const externalLinks: ExternalLink[] = []
   for (const result of perModuleResults) {
@@ -142,4 +153,22 @@ function combinePerModuleResults(perModuleResults: PerModuleResults): Configured
     links: moduleLinks,
     externalLinks,
   }
+}
+
+function perModuleTiming(timings: ReturnType<typeof detectPerModuleConnections>['timings']) {
+  return ConnectionTimings.parse({
+    callGraphMs: timings.callGraphMs,
+    asyncDetectionMs: 0,
+    setupMs: timings.setupMs,
+    totalMs: timings.callGraphMs + timings.setupMs,
+  })
+}
+
+function crossModuleTiming(timings: ReturnType<typeof detectCrossModuleConnections>['timings']) {
+  return ConnectionTimings.parse({
+    callGraphMs: 0,
+    asyncDetectionMs: timings.asyncDetectionMs,
+    setupMs: 0,
+    totalMs: timings.asyncDetectionMs,
+  })
 }

@@ -48,7 +48,7 @@ vi.mock('./connection-detection/resolve-http-links', () => ({
 
 const notUsedRule: ComponentRule = { notUsed: true }
 
-function createModule(name: string): ValidatedModuleInput {
+function createModule(name: string, modules?: string): ValidatedModuleInput {
   return {
     api: notUsedRule,
     domain: name,
@@ -57,6 +57,7 @@ function createModule(name: string): ValidatedModuleInput {
     eventHandler: notUsedRule,
     glob: 'src/**',
     name,
+    ...(modules === undefined ? {} : { modules }),
     path: name,
     ui: notUsedRule,
     useCase: notUsedRule,
@@ -71,15 +72,20 @@ function createModuleContext(moduleName: string) {
   }
 }
 
-function createDraft(domain: string, name: string): DraftComponent {
+function createDraft(
+  domain: string,
+  name: string,
+  module = domain,
+  file = 'test.ts',
+): DraftComponent {
   return DraftComponent.parse({
     domain,
     location: {
-      file: 'test.ts',
+      file,
       line: 1,
     },
     name,
-    module: domain,
+    module,
     type: 'api',
   })
 }
@@ -94,12 +100,13 @@ function createExtractionProject(
   moduleContexts: Array<{
     files: string[]
     moduleName: string
+    modules?: string
     project: Project
   }>,
   draftComponents: DraftComponent[] = [],
 ): ExtractionProject {
   const configurationResult = ValidatedConfiguration.parse({
-    modules: moduleContexts.map((context) => createModule(context.moduleName)),
+    modules: moduleContexts.map((context) => createModule(context.moduleName, context.modules)),
   })
   assert(configurationResult.success)
   const moduleSources = new Map<ValidatedModule, { files: string[]; project: Project }>()
@@ -245,7 +252,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
     ).toThrow(OrphanedDraftComponentError)
   })
 
-  it('includes module names in orphan error message', () => {
+  it('includes unexpected domains in orphan error message', () => {
     expect(() =>
       createExtractionProject(
         [createModuleContext('orders')],
@@ -254,7 +261,34 @@ describe('ExtractionProject.enrichDraftComponents', () => {
         allowIncomplete: false,
         includeConnections: true,
       }),
-    ).toThrow('Draft components reference unknown modules: [ghost]. Known modules: [orders]')
+    ).toThrow(
+      'Draft components reference unexpected domains: [ghost]. Configured domains: [orders]',
+    )
+  })
+
+  it('groups configured submodule drafts under their parent module', () => {
+    mockEnrichComponents.mockReturnValue({ components: [], failures: [] })
+
+    createExtractionProject(
+      [
+        {
+          files: ['src/checkout/test.ts'],
+          moduleName: 'orders',
+          modules: 'src/{module}/',
+          project: new Project(),
+        },
+      ],
+      [createDraft('orders', 'CompA', 'checkout', 'src/checkout/test.ts')],
+    ).enrichDraftComponents({
+      allowIncomplete: false,
+      includeConnections: true,
+    })
+
+    expect(mockEnrichComponents).toHaveBeenCalledWith(
+      [createDraft('orders', 'CompA', 'checkout', 'src/checkout/test.ts')],
+      expect.objectContaining({ name: 'orders' }),
+      expect.any(Project),
+    )
   })
 
   it('returns empty result when no drafts provided', () => {

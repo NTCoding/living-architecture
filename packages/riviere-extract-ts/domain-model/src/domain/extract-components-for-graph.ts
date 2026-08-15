@@ -25,14 +25,14 @@ type ExtractComponentsForGraphResult =
 type GraphExtractionInput = {
   readonly stage: ExtractionStage
   readonly draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>
-  readonly allowIncomplete: false
+  readonly allowIncomplete: boolean
 }
 
 /** @riviere-role domain-service */
 export class ExtractComponentsForGraph {
   execute(
     stage: ExtractionStage,
-    options: { readonly allowIncomplete: false },
+    options: { readonly allowIncomplete: boolean },
   ): ExtractComponentsForGraphResult {
     const draftsByModule = extractDraftsByModule(stage)
     return buildGraphExtractionResult({
@@ -273,22 +273,21 @@ function extractModuleDrafts(context: ModuleContext): DraftComponent[] {
   const drafts = extractComponents(project, files, module)
   const orphanedModules = orphanedDraftModules({ drafts, module })
   if (orphanedModules.length > 0) {
-    const moduleName = module.name
-    throw new OrphanedDraftComponentError(orphanedModules, [moduleName])
+    throw new OrphanedDraftComponentError(orphanedModules, [module.domain], 'domains')
   }
   return drafts
 }
 
 function orphanedDraftModules(input: OrphanedDraftModulesInput): string[] {
   const { drafts, module } = input
-  const orphanedModules: string[] = [],
+  const orphanedDomains = new Set<string>(),
     moduleDomain = module.domain
   for (const draft of drafts) {
-    const { domain: draftDomain, module: draftModule } = draft
+    const { domain: draftDomain } = draft
     if (draftDomain === moduleDomain) continue
-    orphanedModules.push(draftModule)
+    orphanedDomains.add(draftDomain)
   }
-  return orphanedModules
+  return [...orphanedDomains]
 }
 
 function contextForModule(input: ModuleContextInput): EnrichmentModuleContext {

@@ -155,6 +155,24 @@ describe('DetectExtractionConnections.execute', () => {
     expect(mockDetectPerModuleConnections).toHaveBeenCalledTimes(1)
   })
 
+  it('passes allowIncomplete to both connection detection strategies', () => {
+    new DetectExtractionConnections().execute(
+      createStage(),
+      [createComponent('orders', 'PlaceOrder')],
+      { allowIncomplete: true },
+    )
+
+    expect(mockDetectPerModuleConnections).toHaveBeenCalledWith(
+      expect.any(Project),
+      expect.any(Array),
+      expect.objectContaining({ allowIncomplete: true }),
+    )
+    expect(mockDetectCrossModuleConnections).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({ allowIncomplete: true }),
+    )
+  })
+
   it('collects external links from per-module detection', () => {
     const externalLink = { source: 'orders:api:Order', target: 'external:api:Shipping' }
     mockDetectPerModuleConnections.mockReturnValue({

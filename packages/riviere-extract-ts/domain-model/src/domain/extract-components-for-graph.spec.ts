@@ -2,7 +2,10 @@ import { assert, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Project } from 'ts-morph'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
-import { ExtractComponentsForGraph } from './extract-components-for-graph'
+import {
+  enrichComponentsForModules,
+  ExtractComponentsForGraph,
+} from './extract-components-for-graph'
 import { ExtractionStage } from './extraction-stage'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 
@@ -160,6 +163,20 @@ describe('ExtractComponentsForGraph.execute', () => {
 
     expect(() =>
       new ExtractComponentsForGraph().execute(createStage(), { allowIncomplete: false }),
+    ).toThrowError(new OrphanedDraftComponentError(['unknown'], ['orders'], 'domains'))
+  })
+
+  it('rejects an unknown drafts-by-module key at the enrichment boundary', () => {
+    const stage = createStage()
+    const draft = createDraft('orders', 'PlaceOrder')
+
+    expect(() =>
+      enrichComponentsForModules(
+        stage.resolvedConfig.modules,
+        stage.moduleContexts.map(({ module, project }) => ({ module, project })),
+        new Map([['unknown', [draft]]]),
+        false,
+      ),
     ).toThrowError(new OrphanedDraftComponentError(['unknown'], ['orders']))
   })
 
