@@ -421,8 +421,8 @@ importers:
         specifier: 0.4.0
         version: 0.4.0
       '@nt-ai-lab/deterministic-agent-workflow-codex':
-        specifier: 0.4.0
-        version: 0.4.0
+        specifier: 0.4.1
+        version: 0.4.1
       '@nt-ai-lab/deterministic-agent-workflow-engine':
         specifier: 0.4.0
         version: 0.4.0
@@ -1885,8 +1885,8 @@ packages:
   '@nt-ai-lab/deterministic-agent-workflow-cli@0.4.0':
     resolution: {integrity: sha512-ugYkeZdFH9/JdnUnyoadtsobLGXTW/kdRYviHap1btKFRF0aQesNsK5IrkBn07/dmrg79BP8TI5Q5jsayuLi0g==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.0':
-    resolution: {integrity: sha512-pZfevU3QjO1IgLQq4/AXBcCK2Pg8CByiQI9xAZ36l7ATHh2nN5d2A0WNQWHLExJkUULYvDM90jIivigC2AOC9w==}
+  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.1':
+    resolution: {integrity: sha512-9J38/jx0zKyl4Yq9evGpzmBzOLFfmxi6NTBYq1RcQ9X36lTG+GYMhtkkDYIAwgY21EApB5pcbgbCbe6IZk3wzQ==}
 
   '@nt-ai-lab/deterministic-agent-workflow-dsl@0.3.6':
     resolution: {integrity: sha512-HluSmsDvoIgYIepnNn8GcGMZs65AtJ3ydoZW0b9H4BlU38Qr6BHz08aEj9+OetDcy4pkFqQj4JfAlxaacl+wnQ==}
@@ -8979,7 +8979,7 @@ snapshots:
       '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.0
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.0':
+  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.1':
     dependencies:
       '@nt-ai-lab/deterministic-agent-workflow-cli': 0.4.0
       '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.0
