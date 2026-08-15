@@ -215,8 +215,7 @@ export class ExtractionProject {
   }
 }
 
-/** @riviere-role domain-service */
-export function moduleOwnsComponent(input: ComponentOwnershipInput): boolean {
+function moduleOwnsComponent(input: ComponentOwnershipInput): boolean {
   const { component, module, files } = input
   const { location, domain, module: componentModule } = component
   const { domain: moduleDomain } = module
@@ -229,6 +228,8 @@ export function moduleOwnsComponent(input: ComponentOwnershipInput): boolean {
   const resolvedModule = files.length === 0 ? module.name : resolveModuleName(file, module)
   return resolvedModule === componentModule
 }
+
+export { moduleOwnsComponent }
 
 interface ProjectConnectionDetectionInput {
   readonly configuration: ValidatedConfiguration
