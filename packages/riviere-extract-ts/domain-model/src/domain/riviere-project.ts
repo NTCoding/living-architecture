@@ -112,7 +112,7 @@ export class RiviereProject {
     const selectedModuleSources = this.selectedModuleSources(sourceFileSelection)
     const draftComponents = this.stage.resolvedConfig.modules.flatMap((module) => {
       const source = this.sourceFor(module)
-      const selectedFiles = selectedModuleSources.get(module)?.files ?? source.files
+      const selectedFiles = selectedModuleSources.get(module)!.files
       return extractComponents(source.project, [...selectedFiles], module)
     })
 

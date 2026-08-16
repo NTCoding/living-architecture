@@ -61,7 +61,7 @@ describe('detectChangedTypeScriptFiles', () => {
       ...attachedHeadResponses('HEAD~1'),
       'diff --name-only HEAD~1...HEAD': 'src/changed.ts\nREADME.md',
     })
-    expect(detectChangedTypeScriptFiles(WORK_DIR, { base: 'HEAD~1' }, executor)).toEqual([
+    expect(detectChangedTypeScriptFiles(WORK_DIR, { base: 'HEAD~1' }, executor)).toStrictEqual([
       'src/changed.ts',
     ])
   })

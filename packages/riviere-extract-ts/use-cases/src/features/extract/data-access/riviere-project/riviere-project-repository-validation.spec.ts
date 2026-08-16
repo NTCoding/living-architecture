@@ -20,15 +20,17 @@ const VALID_CONFIG = `modules:
     ui: { notUsed: true }
 `
 
+const GIT_EXECUTABLE = process.env.GIT_EXECUTABLE ?? '/usr/bin/git'
+
 function withWorkspace(run: (directory: string) => void): void {
   const directory = mkdtempSync(join(tmpdir(), 'extract-validation-test-'))
   writeFileSync(join(directory, 'package.json'), JSON.stringify({ name: 'workspace' }))
   writeFileSync(join(directory, 'component.ts'), 'export class Order {}')
-  execFileSync('git', ['init', '--initial-branch=main'], {
+  execFileSync(GIT_EXECUTABLE, ['init', '--initial-branch=main'], {
     cwd: directory,
     stdio: 'ignore',
   })
-  execFileSync('git', ['remote', 'add', 'origin', 'https://github.com/test/repo.git'], {
+  execFileSync(GIT_EXECUTABLE, ['remote', 'add', 'origin', 'https://github.com/test/repo.git'], {
     cwd: directory,
     stdio: 'ignore',
   })
