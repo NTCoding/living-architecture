@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { formatSuccess } from '../../../../infra/cli/presentation/output'
 import { formatQueryGraphLoadFailure } from '../../../../infra/cli/presentation/query-graph-load-failure-output'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
-import { toComponentOutput } from '../_platform/cli/component-output'
+import { toComponentOutput } from '../../../../infra/cli/presentation/component-output'
 import type { SearchComponents } from '@living-architecture/riviere-builder-use-cases/features/query/queries/search-components'
 
 interface SearchOptions {
@@ -16,6 +16,7 @@ export interface CreateSearchCommandEntrypointDependencies {
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatQueryGraphLoadFailure: typeof formatQueryGraphLoadFailure
   readonly formatSuccess: typeof formatSuccess
+  readonly toComponentOutput: typeof toComponentOutput
 }
 
 /** @riviere-role cli-entrypoint */
@@ -47,7 +48,7 @@ Examples:
         return
       }
 
-      const components = result.components.map(toComponentOutput)
+      const components = result.components.map(dependencies.toComponentOutput)
 
       if (options.json) {
         console.log(JSON.stringify(dependencies.formatSuccess({ components })))

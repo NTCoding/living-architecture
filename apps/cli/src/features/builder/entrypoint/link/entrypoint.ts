@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
-import * as cliOutput from '../../../../infra/cli/presentation/output'
+import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import type { LinkComponents } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/link-components'
 import { parseLinkSourceLocation } from './link-source-location-options'
@@ -27,6 +27,8 @@ export interface CreateLinkCommandEntrypointDependencies {
   readonly linkComponents: LinkComponents
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly parseLinkSourceLocation: typeof parseLinkSourceLocation
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
 }
 
 /** @riviere-role cli-entrypoint */
@@ -71,7 +73,11 @@ Examples:
       if (!sourceLocationResult.success) {
         console.log(
           JSON.stringify(
-            cliOutput.formatError(CliErrorCode.ValidationError, sourceLocationResult.message, []),
+            dependencies.formatError(
+              CliErrorCode.ValidationError,
+              sourceLocationResult.message,
+              [],
+            ),
           ),
         )
         return
@@ -103,13 +109,13 @@ Examples:
         const errorCode = errorCodeByResult[result.code]
 
         console.log(
-          JSON.stringify(cliOutput.formatError(errorCode, result.message, result.suggestions)),
+          JSON.stringify(dependencies.formatError(errorCode, result.message, result.suggestions)),
         )
         return
       }
 
       if (options.json) {
-        console.log(JSON.stringify(cliOutput.formatSuccess({ link: result.link })))
+        console.log(JSON.stringify(dependencies.formatSuccess({ link: result.link })))
       }
     })
 }

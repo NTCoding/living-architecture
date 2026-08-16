@@ -3,7 +3,7 @@ import { formatSuccess, formatError } from '../../../../infra/cli/presentation/o
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import { formatQueryGraphLoadFailure } from '../../../../infra/cli/presentation/query-graph-load-failure-output'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
-import { toComponentOutput } from '../_platform/cli/component-output'
+import { toComponentOutput } from '../../../../infra/cli/presentation/component-output'
 import type { ListComponents } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-components'
 
 interface ComponentsOptions {
@@ -20,6 +20,7 @@ export interface CreateComponentsCommandEntrypointDependencies {
   readonly formatError: typeof formatError
   readonly formatQueryGraphLoadFailure: typeof formatQueryGraphLoadFailure
   readonly formatSuccess: typeof formatSuccess
+  readonly toComponentOutput: typeof toComponentOutput
 }
 
 /** @riviere-role cli-entrypoint */
@@ -65,7 +66,7 @@ Examples:
         return
       }
 
-      const components = result.components.map(toComponentOutput)
+      const components = result.components.map(dependencies.toComponentOutput)
 
       if (options.json) {
         console.log(JSON.stringify(dependencies.formatSuccess({ components })))

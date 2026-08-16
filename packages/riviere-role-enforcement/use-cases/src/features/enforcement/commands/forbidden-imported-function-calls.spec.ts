@@ -133,6 +133,31 @@ export function createCommand(dependencies: ExampleEntrypointDependencies): stri
   })
 })
 
+it('accepts invocation through a CLI entrypoint dependency object', () => {
+  withFixtureWorkspace((workspaceDir) => {
+    writeInputFactory(
+      workspaceDir,
+      `import { execute } from 'external-client'
+
+/** @riviere-role cli-entrypoint-dependencies */
+export interface ExampleEntrypointDependencies {
+  readonly execute: typeof execute
+}
+
+/** @riviere-role cli-entrypoint */
+export function createCommand(dependencies: ExampleEntrypointDependencies): string {
+  return dependencies.execute()
+}
+`,
+    )
+
+    const result = runTestRoleEnforcement(testConfig, workspaceDir)
+
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
+  })
+})
+
 it('accepts an internal helper function', () => {
   withFixtureWorkspace((workspaceDir) => {
     writeInputFactory(

@@ -17,6 +17,7 @@ import {
   presentExtractionResult,
 } from '../features/extract/entrypoint/extract/present-extraction-result'
 import { formatQueryGraphLoadFailure } from '../infra/cli/presentation/query-graph-load-failure-output'
+import { toComponentOutput } from '../infra/cli/presentation/component-output'
 import { createRequire } from 'module'
 import { AddComponent } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-component'
 import { AddDomain } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-domain'
@@ -162,6 +163,8 @@ export function createProgram(): Command {
       linkComponents: new LinkComponents(builderRepository),
       getDefaultGraphPathDescription,
       parseLinkSourceLocation,
+      formatError,
+      formatSuccess,
     }),
   )
   builderCmd.addCommand(
@@ -291,6 +294,7 @@ export function createProgram(): Command {
       formatError,
       formatQueryGraphLoadFailure,
       formatSuccess,
+      toComponentOutput,
     }),
   )
   queryCmd.addCommand(
@@ -299,6 +303,7 @@ export function createProgram(): Command {
       getDefaultGraphPathDescription,
       formatQueryGraphLoadFailure,
       formatSuccess,
+      toComponentOutput,
     }),
   )
 
