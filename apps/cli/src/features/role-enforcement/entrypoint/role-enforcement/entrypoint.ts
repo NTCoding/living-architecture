@@ -1,12 +1,16 @@
 import { RunRoleEnforcement } from '@living-architecture/riviere-role-enforcement-use-cases'
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface MainEntrypointDependencies {
+  readonly application: RunRoleEnforcement
+  readonly configModulePath: string
+  readonly configDir: string
+  readonly packageFilter?: string
+}
+
 /** @riviere-role cli-entrypoint */
-export function main(
-  application: RunRoleEnforcement,
-  configModulePath: string,
-  configDir: string,
-  packageFilter?: string,
-): number {
+export function main(dependencies: MainEntrypointDependencies): number {
+  const { application, configModulePath, configDir, packageFilter } = dependencies
   const result = application.execute({
     configDir,
     configModulePath,

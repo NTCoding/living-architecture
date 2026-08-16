@@ -26,7 +26,12 @@ if (configModulePath === undefined) {
     projectRepository: new RoleEnforcementProjectRepository(),
     runner: createOxlintRoleEnforcementRunner(runOxlint, pluginPath),
   })
-  process.exitCode = main(application, absolutePath, process.cwd(), packageFilter)
+  process.exitCode = main({
+    application,
+    configModulePath: absolutePath,
+    configDir: process.cwd(),
+    ...(packageFilter === undefined ? {} : { packageFilter }),
+  })
 }
 
 function readPackageFilter(argv: readonly string[]): string | undefined {

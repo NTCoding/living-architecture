@@ -8,11 +8,23 @@ import { createExtractDraftComponentsInput } from './create-extract-draft-compon
 import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
 import { dataAccessCliErrorCode, presentExtractionResult } from './present-extraction-result'
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateExtractCommandEntrypointDependencies {
+  readonly extractDraftComponents: Pick<ExtractDraftComponents, 'execute'>
+  readonly enrichDraftComponents: Pick<EnrichDraftComponents, 'execute'>
+  readonly validateFlagCombinations: typeof validateFlagCombinations
+  readonly createExtractDraftComponentsInput: typeof createExtractDraftComponentsInput
+  readonly createEnrichDraftComponentsInput: typeof createEnrichDraftComponentsInput
+  readonly exitWithCliError: typeof exitWithCliError
+  readonly dataAccessCliErrorCode: typeof dataAccessCliErrorCode
+  readonly presentExtractionResult: typeof presentExtractionResult
+}
+
 /** @riviere-role cli-entrypoint */
 export function createExtractCommand(
-  extractDraftComponents: Pick<ExtractDraftComponents, 'execute'>,
-  enrichDraftComponents: Pick<EnrichDraftComponents, 'execute'>,
+  dependencies: CreateExtractCommandEntrypointDependencies,
 ): Command {
+  const { extractDraftComponents, enrichDraftComponents } = dependencies
   return new Command('extract')
     .description('Extract architectural components from source code')
     .requiredOption('--config <path>', 'Path to extraction config file')
@@ -42,17 +54,19 @@ export function createExtractCommand(
         stats?: boolean
         tsConfig?: boolean
       }) => {
-        validateFlagCombinations(options)
+        dependencies.validateFlagCombinations(options)
 
         const result =
           options.enrich === undefined
-            ? extractDraftComponents.execute(createExtractDraftComponentsInput(options))
+            ? extractDraftComponents.execute(
+                dependencies.createExtractDraftComponentsInput(options),
+              )
             : enrichDraftComponents.execute(
-                createEnrichDraftComponentsInput(options, options.enrich),
+                dependencies.createEnrichDraftComponentsInput(options, options.enrich),
               )
 
         if (result.kind === 'fieldFailure') {
-          exitWithCliError(
+          dependencies.exitWithCliError(
             CliErrorCode.ValidationError,
             `Extraction failed for fields: ${result.failedFields.join(', ')}`,
             ExitCode.ExtractionFailure,
@@ -61,7 +75,7 @@ export function createExtractCommand(
         }
 
         if (result.kind === 'configFailure') {
-          exitWithCliError(
+          dependencies.exitWithCliError(
             result.code === 'CONFIG_NOT_FOUND'
               ? CliErrorCode.ConfigNotFound
               : CliErrorCode.ValidationError,
@@ -72,7 +86,7 @@ export function createExtractCommand(
         }
 
         if (result.kind === 'connectionDetectionFailure') {
-          exitWithCliError(
+          dependencies.exitWithCliError(
             CliErrorCode.ConnectionDetectionFailure,
             result.message,
             ExitCode.ExtractionFailure,
@@ -81,15 +95,15 @@ export function createExtractCommand(
         }
 
         if (result.kind === 'dataAccessFailure') {
-          exitWithCliError(
-            dataAccessCliErrorCode(result.code),
+          dependencies.exitWithCliError(
+            dependencies.dataAccessCliErrorCode(result.code),
             result.message,
             ExitCode.RuntimeError,
             [],
           )
         }
 
-        presentExtractionResult(result, options)
+        dependencies.presentExtractionResult(result, options)
       },
     )
 }

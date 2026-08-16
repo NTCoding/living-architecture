@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
-import * as cliOutput from '../../../../infra/cli/presentation/output'
+import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import type { LinkComponents } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/link-components'
 import { parseLinkSourceLocation } from './link-source-location-options'
@@ -22,8 +22,18 @@ interface LinkOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateLinkCommandEntrypointDependencies {
+  readonly linkComponents: LinkComponents
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly parseLinkSourceLocation: typeof parseLinkSourceLocation
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createLinkCommand(linkComponents: LinkComponents): Command {
+export function createLinkCommand(dependencies: CreateLinkCommandEntrypointDependencies): Command {
+  const { linkComponents } = dependencies
   return new Command('link')
     .description('Link two components')
     .addHelpText(
@@ -56,14 +66,18 @@ Examples:
     .option('--file-path <path>', 'Source file path')
     .option('--line-number <n>', 'Source line number')
     .option('--column-number <n>', 'Source column number')
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: LinkOptions) => {
-      const sourceLocationResult = parseLinkSourceLocation(options)
+      const sourceLocationResult = dependencies.parseLinkSourceLocation(options)
       if (!sourceLocationResult.success) {
         console.log(
           JSON.stringify(
-            cliOutput.formatError(CliErrorCode.ValidationError, sourceLocationResult.message, []),
+            dependencies.formatError(
+              CliErrorCode.ValidationError,
+              sourceLocationResult.message,
+              [],
+            ),
           ),
         )
         return
@@ -95,13 +109,13 @@ Examples:
         const errorCode = errorCodeByResult[result.code]
 
         console.log(
-          JSON.stringify(cliOutput.formatError(errorCode, result.message, result.suggestions)),
+          JSON.stringify(dependencies.formatError(errorCode, result.message, result.suggestions)),
         )
         return
       }
 
       if (options.json) {
-        console.log(JSON.stringify(cliOutput.formatSuccess({ link: result.link })))
+        console.log(JSON.stringify(dependencies.formatSuccess({ link: result.link })))
       }
     })
 }

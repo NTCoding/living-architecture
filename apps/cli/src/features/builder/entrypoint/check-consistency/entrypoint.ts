@@ -9,8 +9,19 @@ interface CheckConsistencyOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateCheckConsistencyCommandEntrypointDependencies {
+  readonly checkConsistency: CheckConsistency
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createCheckConsistencyCommand(checkConsistency: CheckConsistency): Command {
+export function createCheckConsistencyCommand(
+  dependencies: CreateCheckConsistencyCommandEntrypointDependencies,
+): Command {
+  const { checkConsistency } = dependencies
   return new Command('check-consistency')
     .description('Check for structural issues in the graph')
     .addHelpText(
@@ -21,14 +32,14 @@ Examples:
   $ riviere builder check-consistency --json
 `,
     )
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CheckConsistencyOptions) => {
       const result = checkConsistency.execute({ graphPathOption: options.graph })
       if (!result.success) {
         console.log(
           JSON.stringify(
-            formatError(
+            dependencies.formatError(
               result.code === 'GRAPH_NOT_FOUND'
                 ? CliErrorCode.GraphNotFound
                 : CliErrorCode.GraphCorrupted,
@@ -43,7 +54,7 @@ Examples:
       if (options.json === true) {
         console.log(
           JSON.stringify(
-            formatSuccess({
+            dependencies.formatSuccess({
               consistent: result.consistent,
               warnings: result.warnings,
             }),

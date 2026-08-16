@@ -18,6 +18,11 @@ import {
 import type { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
 import type { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import { createExtractCommand } from './entrypoint'
+import { validateFlagCombinations } from './extract-validator'
+import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
+import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
+import { dataAccessCliErrorCode, presentExtractionResult } from './present-extraction-result'
+import { exitWithCliError } from '../../../../infra/cli/presentation/exit-with-cli-error'
 
 vi.mock('../../../../infra/external-clients/git/git-repository-info', () => ({
   getRepositoryInfo: vi.fn(() => ({
@@ -59,10 +64,16 @@ describe('riviere extract', () => {
       }
 
       await expect(
-        createExtractCommand(extractDraftComponents, enrichDraftComponents).parseAsync(
-          ['--config', 'extract.yaml'],
-          { from: 'user' },
-        ),
+        createExtractCommand({
+          extractDraftComponents,
+          enrichDraftComponents,
+          validateFlagCombinations,
+          createExtractDraftComponentsInput,
+          createEnrichDraftComponentsInput,
+          exitWithCliError,
+          dataAccessCliErrorCode,
+          presentExtractionResult,
+        }).parseAsync(['--config', 'extract.yaml'], { from: 'user' }),
       ).rejects.toMatchObject({ exitCode: 1 })
 
       const output = parseErrorOutput(ctx.consoleOutput)

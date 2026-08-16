@@ -21,8 +21,21 @@ interface EnrichOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateEnrichCommandEntrypointDependencies {
+  readonly enrichComponent: EnrichComponent
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly parseStateChanges: typeof parseStateChanges
+  readonly formatError: typeof formatError
+  readonly parseSignature: typeof parseSignature
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createEnrichCommand(enrichComponent: EnrichComponent): Command {
+export function createEnrichCommand(
+  dependencies: CreateEnrichCommandEntrypointDependencies,
+): Command {
+  const { enrichComponent } = dependencies
   return new Command('enrich')
     .description(
       'Enrich a DomainOp component with semantic information. ' +
@@ -62,21 +75,23 @@ Examples:
       '--signature <dsl>',
       'Operation signature (e.g., "orderId:string, amount:number -> Order")',
     )
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: EnrichOptions) => {
-      const parseResult = parseStateChanges(options.stateChange)
+      const parseResult = dependencies.parseStateChanges(options.stateChange)
       if (!parseResult.success) {
         const msg = `Invalid state-change format: '${parseResult.invalidInput}'. Expected 'from:to'.`
-        console.log(JSON.stringify(formatError(CliErrorCode.ValidationError, msg, [])))
+        console.log(JSON.stringify(dependencies.formatError(CliErrorCode.ValidationError, msg, [])))
         return
       }
 
       const signatureResult =
-        options.signature === undefined ? undefined : parseSignature(options.signature)
+        options.signature === undefined ? undefined : dependencies.parseSignature(options.signature)
       if (signatureResult !== undefined && !signatureResult.success) {
         console.log(
-          JSON.stringify(formatError(CliErrorCode.ValidationError, signatureResult.error, [])),
+          JSON.stringify(
+            dependencies.formatError(CliErrorCode.ValidationError, signatureResult.error, []),
+          ),
         )
         return
       }
@@ -104,12 +119,14 @@ Examples:
         } as const
         const errorCode = errorCodeByResult[result.code]
 
-        console.log(JSON.stringify(formatError(errorCode, result.message, result.suggestions)))
+        console.log(
+          JSON.stringify(dependencies.formatError(errorCode, result.message, result.suggestions)),
+        )
         return
       }
 
       if (options.json === true) {
-        console.log(JSON.stringify(formatSuccess({ componentId: result.componentId })))
+        console.log(JSON.stringify(dependencies.formatSuccess({ componentId: result.componentId })))
       }
     })
 }

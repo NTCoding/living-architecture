@@ -32,8 +32,21 @@ interface CliOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateAddComponentCommandEntrypointDependencies {
+  readonly addComponent: AddComponent
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly toAddComponentInput: typeof toAddComponentInput
+  readonly formatError: typeof formatError
+  readonly getAddComponentHints: typeof getAddComponentHints
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createAddComponentCommand(addComponent: AddComponent): Command {
+export function createAddComponentCommand(
+  dependencies: CreateAddComponentCommandEntrypointDependencies,
+): Command {
+  const { addComponent } = dependencies
   return new Command('add-component')
     .description('Add a component to the graph')
     .requiredOption(
@@ -64,23 +77,27 @@ export function createAddComponentCommand(addComponent: AddComponent): Command {
     .option('--description <desc>', 'Component description')
     .option('--line-number <n>', 'Source line number')
     .option('--column-number <n>', 'Source column number')
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CliOptions) => {
-      const result = addComponent.execute(toAddComponentInput(options))
+      const result = addComponent.execute(dependencies.toAddComponentInput(options))
 
       if (!result.success) {
         const cliErrorCode = CLI_ERROR_CODES[result.code]
         console.log(
           JSON.stringify(
-            formatError(cliErrorCode, result.message, getAddComponentHints(cliErrorCode)),
+            dependencies.formatError(
+              cliErrorCode,
+              result.message,
+              dependencies.getAddComponentHints(cliErrorCode),
+            ),
           ),
         )
         return
       }
 
       if (options.json) {
-        console.log(JSON.stringify(formatSuccess({ componentId: result.componentId })))
+        console.log(JSON.stringify(dependencies.formatSuccess({ componentId: result.componentId })))
       }
     })
 }

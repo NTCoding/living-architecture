@@ -15,8 +15,20 @@ interface DefineCustomTypeOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateDefineCustomTypeCommandEntrypointDependencies {
+  readonly defineCustomType: DefineCustomType
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly parsePropertySpecs: typeof parsePropertySpecs
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createDefineCustomTypeCommand(defineCustomType: DefineCustomType): Command {
+export function createDefineCustomTypeCommand(
+  dependencies: CreateDefineCustomTypeCommandEntrypointDependencies,
+): Command {
+  const { defineCustomType } = dependencies
   return new Command('define-custom-type')
     .description('Define a custom component type')
     .requiredOption('--name <name>', 'Custom type name')
@@ -33,21 +45,25 @@ export function createDefineCustomTypeCommand(defineCustomType: DefineCustomType
       collectOption,
       [],
     )
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: DefineCustomTypeOptions) => {
-      const requiredResult = parsePropertySpecs(options.requiredProperty)
+      const requiredResult = dependencies.parsePropertySpecs(options.requiredProperty)
       if (!requiredResult.success) {
         console.log(
-          JSON.stringify(formatError(CliErrorCode.ValidationError, requiredResult.error, [])),
+          JSON.stringify(
+            dependencies.formatError(CliErrorCode.ValidationError, requiredResult.error, []),
+          ),
         )
         return
       }
 
-      const optionalResult = parsePropertySpecs(options.optionalProperty)
+      const optionalResult = dependencies.parsePropertySpecs(options.optionalProperty)
       if (!optionalResult.success) {
         console.log(
-          JSON.stringify(formatError(CliErrorCode.ValidationError, optionalResult.error, [])),
+          JSON.stringify(
+            dependencies.formatError(CliErrorCode.ValidationError, optionalResult.error, []),
+          ),
         )
         return
       }
@@ -67,12 +83,12 @@ export function createDefineCustomTypeCommand(defineCustomType: DefineCustomType
         } as const
         const errorCode = errorCodeByResult[result.code]
 
-        console.log(JSON.stringify(formatError(errorCode, result.message, [])))
+        console.log(JSON.stringify(dependencies.formatError(errorCode, result.message, [])))
         return
       }
 
       if (options.json === true) {
-        console.log(JSON.stringify(formatSuccess(result)))
+        console.log(JSON.stringify(dependencies.formatSuccess(result)))
       }
     })
 }
