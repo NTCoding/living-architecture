@@ -6,6 +6,13 @@ import { createEnrichDraftComponentsInput } from './create-enrich-draft-componen
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
 import { createExtractCommand } from './entrypoint'
 
+class UnexpectedExtractError extends Error {
+  constructor() {
+    super('unexpected extract failure')
+    this.name = 'UnexpectedExtractError'
+  }
+}
+
 describe('create command inputs', () => {
   it('creates extract draft input for all source files with output', () => {
     expect(
@@ -52,7 +59,7 @@ describe('create command inputs', () => {
 
   it('rethrows unknown extract execution errors', async () => {
     const command = createExtractCommand(
-      { execute: () => { throw new Error('unexpected extract failure') } },
+      { execute: () => { throw new UnexpectedExtractError() } },
       { execute: () => ({ kind: 'draftOnly', components: [] }) },
     )
 
