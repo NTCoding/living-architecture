@@ -20,7 +20,7 @@ export function assertHTMLInputElement(
   message = 'Expected HTMLInputElement',
 ): HTMLInputElement {
   if (!(element instanceof HTMLInputElement)) {
-    throw new TypeError(message)
+    throw new TestAssertionError(message)
   }
   return element
 }

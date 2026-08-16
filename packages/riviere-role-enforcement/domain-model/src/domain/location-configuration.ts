@@ -1,3 +1,5 @@
+import { InvalidLocationConfigurationError } from './role-configuration-errors'
+
 type AllowedLocation<R extends string> = string | Readonly<Record<string, readonly R[]>>
 
 interface AllowedImportScopes<R extends string> {
@@ -133,7 +135,9 @@ function buildChildLocation<R extends string>(path: string, child: unknown): Loc
     return buildLocation(path, child, undefined)
   }
   if (!isLocationNodeInput<R>(child)) {
-    throw new TypeError(`Sub-location '${path}' must define roles or sub-locations.`)
+    throw new InvalidLocationConfigurationError(
+      `Sub-location '${path}' must define roles or sub-locations.`,
+    )
   }
   return buildLocation(path, child.roles ?? [], child)
 }
@@ -160,7 +164,7 @@ function assertNoExplicitSubLocationsInsideUnrestrictedLocation<R extends string
   definition: FluentLocationDefinition<R>,
 ): void {
   if (definition.allowAnySubLocations && definition.subLocations.length > 0) {
-    throw new TypeError(
+    throw new InvalidLocationConfigurationError(
       `Location '${definition.path}' cannot define both allowAnySubLocations and subLocations`,
     )
   }
@@ -175,7 +179,7 @@ function assertNoExplicitSubLocationsInsideUnrestrictedLocation<R extends string
       ),
   )
   if (unrestrictedLocation !== undefined) {
-    throw new TypeError(
+    throw new InvalidLocationConfigurationError(
       `Location '${unrestrictedLocation.path}' cannot define both allowAnySubLocations and subLocations`,
     )
   }

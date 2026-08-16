@@ -1,3 +1,8 @@
+import {
+  InvalidRoleFilteredImportError,
+  RepeatedInheritedImportError,
+} from './role-configuration-errors'
+
 type AllowedImport = string | Readonly<Record<string, readonly string[]>>
 type ImportScope = 'sibling' | 'root' | 'ownSubdomain' | 'anySubdomain'
 
@@ -64,9 +69,7 @@ function rejectRepeatedImports(location: LocationImportNode, ancestor: LocationI
     for (const ownImport of ownAllow[scope] ?? []) {
       const ownImportName = importName(ownImport)
       if ((inheritedAllow[scope] ?? []).some((candidate) => sameImport(candidate, ownImport))) {
-        throw new TypeError(
-          `Location '${location.name}' repeats inherited ${scope} import '${ownImportName}'.`,
-        )
+        throw new RepeatedInheritedImportError(location.name, scope, ownImportName)
       }
     }
   }
@@ -93,6 +96,6 @@ function roleEntry(
   value: Readonly<Record<string, readonly string[]>>,
 ): [string, readonly string[]] {
   const entry = Object.entries(value)[0]
-  if (entry === undefined) throw new TypeError('A role-filtered import must name a location.')
+  if (entry === undefined) throw new InvalidRoleFilteredImportError()
   return entry
 }

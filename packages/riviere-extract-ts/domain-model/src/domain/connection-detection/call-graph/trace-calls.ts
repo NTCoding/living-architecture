@@ -19,6 +19,7 @@ import {
 import { CallGraphOptions, CallSite, RawLink, UncertainRawLink } from './call-graph-types'
 import { MethodLevelTarget } from './method-level-target'
 import { resolveCallExpressionReceiverType } from './type-resolver'
+import { MissingResolvedTypeNameError } from '../../extraction-errors'
 
 interface TraceContext {
   project: Project
@@ -142,7 +143,7 @@ function traceIntoNonComponent(
 function requireResolvedTypeName(typeResolution: import('./type-resolver').TypeResolution): string {
   const typeName = typeResolution.typeName
   if (typeName === undefined) {
-    throw new TypeError('Expected resolved type name')
+    throw new MissingResolvedTypeNameError()
   }
 
   return typeName

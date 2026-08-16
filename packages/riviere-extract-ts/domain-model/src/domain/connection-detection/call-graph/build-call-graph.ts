@@ -25,6 +25,7 @@ import {
   traceCallsInBody,
 } from './trace-calls'
 import { resolveCallExpressionReceiverType } from './type-resolver'
+import { MissingResolvedTypeNameError } from '../../extraction-errors'
 
 function processCallExpression(
   callExpr: CallExpression,
@@ -132,7 +133,7 @@ function requireResolvedTypeName(
 ): string {
   const typeName = typeResolution.typeName
   if (typeName === undefined) {
-    throw new TypeError('Expected resolved type name')
+    throw new MissingResolvedTypeNameError()
   }
 
   return typeName

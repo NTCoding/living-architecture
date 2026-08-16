@@ -10,6 +10,7 @@ import type { ComponentIndex } from '../component-index'
 import { resolveInterface } from '../interface-resolution/resolve-interface'
 import { InterfaceResolutionOutcome, MethodLookup } from './call-graph-outcomes'
 import type { CallGraphOptions } from './call-graph-types'
+import { MissingInterfaceTypeNameError } from '../../extraction-errors'
 
 /** @riviere-role domain-service */
 export function getCalledMethodName(callExpr: CallExpression): string {
@@ -57,7 +58,7 @@ function requireInterfaceTypeName(
 ): string {
   const typeName = interfaceResolution.typeName
   if (typeName === undefined) {
-    throw new TypeError('Expected interface resolution type name')
+    throw new MissingInterfaceTypeNameError()
   }
 
   return typeName

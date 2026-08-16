@@ -9,6 +9,7 @@ import {
   ValidatedConfiguration,
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
+import { TestFixtureError } from '../domain/value-extraction/literal-detection'
 
 const NOT_USED = { notUsed: true } as const
 
@@ -29,7 +30,7 @@ export function createValidatedModule(
     ...overrides,
   })
   if (!result.success) {
-    throw new TypeError(result.errors.map((error) => error.message).join('\n'))
+    throw new TestFixtureError(result.errors.map((error) => error.message).join('\n'))
   }
   return result.data
 }
@@ -37,7 +38,7 @@ export function createValidatedModule(
 function createConfiguration(modules: ValidatedModuleInput[]): ValidatedConfiguration {
   const result = ValidatedConfiguration.parse({ modules })
   if (!result.success) {
-    throw new TypeError(result.errors.map((error) => error.message).join('\n'))
+    throw new TestFixtureError(result.errors.map((error) => error.message).join('\n'))
   }
   return result.data
 }

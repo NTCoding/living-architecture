@@ -3,6 +3,7 @@ import { assignPackageConfigurations } from './assign-package-configurations'
 import { RoleEnforcementExecutionError } from './role-enforcement-execution-error'
 import { validateRoleConfiguration } from './validate-role-configuration'
 import { validateNoRepeatedInheritedImports } from './validate-location-import-rules'
+import { InvalidRoleDefinitionError } from './role-configuration-errors'
 
 export { location, locationConfiguration } from './location-configuration'
 export type { LocationBuilder, LocationConfiguration } from './location-configuration'
@@ -163,7 +164,7 @@ function inferredTargets(options: RoleOptions): readonly RoleTarget[] {
   if (options.targets !== undefined) {
     return options.targets
   }
-  throw new TypeError('A role must declare a target or semantic rule.')
+  throw new InvalidRoleDefinitionError('A role must declare a target or semantic rule.')
 }
 
 interface RoleEnforcementConfigurationInput<R extends string> {

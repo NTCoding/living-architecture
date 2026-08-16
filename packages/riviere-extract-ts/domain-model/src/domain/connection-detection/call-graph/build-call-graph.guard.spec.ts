@@ -2,6 +2,7 @@ import { Project } from 'ts-morph'
 import { describe, expect, it, vi } from 'vitest'
 import { EnrichedComponent } from '../../value-extraction/enriched-component'
 import { ComponentIndex } from '../component-index'
+import { MissingResolvedTypeNameError } from '../../extraction-errors'
 import { buildCallGraph } from './build-call-graph'
 import { CallGraphOptions } from './call-graph-types'
 
@@ -18,7 +19,7 @@ vi.mock('./type-resolver', async () => {
 })
 
 describe('buildCallGraph guards', () => {
-  it('throws TypeError when receiver type is marked resolved without a type name', () => {
+  it('throws a missing resolved type name error when receiver type has no type name', () => {
     const project = new Project({
       useInMemoryFileSystem: true,
       compilerOptions: {
@@ -58,6 +59,9 @@ describe('buildCallGraph guards', () => {
       repository: 'test-repo',
     })
 
+    expect(() =>
+      buildCallGraph(project, [caller], ComponentIndex.parse([caller]), options),
+    ).toThrow(MissingResolvedTypeNameError)
     expect(() =>
       buildCallGraph(project, [caller], ComponentIndex.parse([caller]), options),
     ).toThrow('Expected resolved type name')

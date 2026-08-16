@@ -16,6 +16,21 @@ import {
   Ignore,
 } from './decorators'
 
+function expectCustomTypeError(type: unknown, message: string): void {
+  try {
+    Custom(type)
+  } catch (error) {
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toMatchObject({
+      name: 'InvalidCustomComponentTypeError',
+      message,
+    })
+    return
+  }
+
+  expect.fail('Expected Custom to throw InvalidCustomComponentTypeError')
+}
+
 describe('Container decorators', () => {
   describe('DomainOpContainer', () => {
     it('preserves class method behavior when decorated', () => {
@@ -218,15 +233,35 @@ describe('Other decorators', () => {
       expect(new OrderQuery().findAll()).toStrictEqual(['item1'])
     })
 
-    it('throws TypeError for empty string type', () => {
-      expect(() => Custom('')).toThrow(TypeError)
-      expect(() => Custom('')).toThrow("Custom component type must be a non-empty string, got: ''")
+    it('throws InvalidCustomComponentTypeError for empty string type', () => {
+      expectCustomTypeError('', "Custom component type must be a non-empty string, got: ''")
     })
 
-    it('throws TypeError for whitespace-only type', () => {
-      expect(() => Custom('   ')).toThrow(TypeError)
-      expect(() => Custom('   ')).toThrow(
-        "Custom component type must be a non-empty string, got: '   '",
+    it('throws InvalidCustomComponentTypeError for whitespace-only type', () => {
+      expectCustomTypeError('   ', "Custom component type must be a non-empty string, got: '   '")
+    })
+
+    it.each([
+      [null, 'null'],
+      [42, '42'],
+      [Symbol('component'), 'Symbol(component)'],
+    ])('rejects non-string type %s with InvalidCustomComponentTypeError', (type, formattedType) => {
+      expectCustomTypeError(
+        type,
+        `Custom component type must be a non-empty string, got: ${formattedType}`,
+      )
+    })
+
+    it('formats unprintable non-string types safely', () => {
+      const unprintable = {
+        toJSON: () => {
+          throw null
+        },
+      }
+
+      expectCustomTypeError(
+        unprintable,
+        'Custom component type must be a non-empty string, got: <unprintable value>',
       )
     })
 

@@ -7,6 +7,22 @@
 
 type Method = (...args: unknown[]) => unknown
 
+class InvalidCustomComponentTypeError extends Error {
+  constructor(type: unknown) {
+    super(`Custom component type must be a non-empty string, got: ${formatCustomType(type)}`)
+    this.name = 'InvalidCustomComponentTypeError'
+  }
+}
+
+function formatCustomType(type: unknown): string {
+  if (typeof type === 'string') return `'${type}'`
+  try {
+    return JSON.stringify(type) ?? String(type)
+  } catch {
+    return '<unprintable value>'
+  }
+}
+
 // ============================================================================
 // Container Decorators (class-level, all public methods inherit type)
 // ============================================================================
@@ -132,15 +148,14 @@ export function HttpCall(
  * Marks a class or method with a custom component type.
  * Use when standard component types don't fit.
  *
- * @throws TypeError if type is empty or whitespace-only
+ * @throws InvalidCustomComponentTypeError if type is not a non-empty string
  */
 /** @riviere-role published-language-annotation */
 export function Custom(
-  type: string,
+  type: unknown,
 ): <T>(target: T, context: ClassDecoratorContext | ClassMethodDecoratorContext) => T {
-  const trimmed = type.trim()
-  if (trimmed.length === 0) {
-    throw new TypeError(`Custom component type must be a non-empty string, got: '${type}'`)
+  if (typeof type !== 'string' || type.trim().length === 0) {
+    throw new InvalidCustomComponentTypeError(type)
   }
   return function <T>(target: T, _: ClassDecoratorContext | ClassMethodDecoratorContext): T {
     return target

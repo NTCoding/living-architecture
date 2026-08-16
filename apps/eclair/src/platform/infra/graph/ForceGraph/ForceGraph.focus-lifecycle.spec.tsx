@@ -9,6 +9,7 @@ import { ForceGraph } from './ForceGraph'
 import {
   parseDomainMetadata, parseNode,
 } from '@/platform/infra/__fixtures__/riviere-test-fixtures'
+import { TestAssertionError } from '@/test-assertions'
 
 const {
   applyFocusModeMock, applyResetModeMock,
@@ -81,7 +82,7 @@ describe('ForceGraph focus lifecycle', () => {
       observe(target: Element): void {
         const svg = target.querySelector('svg')
         if (!(svg instanceof SVGSVGElement)) {
-          throw new TypeError('Expected ForceGraph SVG before observing its container')
+          throw new TestAssertionError('Expected ForceGraph SVG before observing its container')
         }
         Object.defineProperties(svg, {
           width: { value: { baseVal: { value: 800 } } },

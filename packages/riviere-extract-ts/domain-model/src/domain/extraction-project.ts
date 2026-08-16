@@ -1,24 +1,19 @@
 import type { Project } from 'ts-morph'
 import type {
+  HttpLinkConfig,
   ValidatedConfiguration,
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
 import type { DraftComponent } from './component-extraction/draft-component'
-import { extractComponents } from './component-extraction/extractor'
-import {
-  ConnectionTimings,
-  CrossModuleConnectionOptions,
-  PerModuleConnectionOptions,
-} from './connection-detection/connection-detection-values'
-import {
-  deduplicateCrossStrategy,
-  detectCrossModuleConnections,
-  detectPerModuleConnections,
-} from './connection-detection/detect-connections'
+import { extractComponents, resolveModuleName } from './component-extraction/extractor'
+import { ConnectionTimings } from './connection-detection/connection-detection-values'
+import { detectConfiguredConnections } from './connection-detection/detect-configured-connections'
 import type { ExtractedLink } from './connection-detection/extracted-link'
 import { stripResolvedCustomTypes } from './connection-detection/resolve-http-links'
-import { enrichComponents } from './value-extraction/enrich-components'
+import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
+import { enrichComponentsForModules } from './extract-components-for-graph'
+import { MissingModuleSourceError } from './extraction-errors'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
 
 interface DraftOnlyOutcome {
@@ -54,32 +49,21 @@ interface ExtractionProjectInput {
   draftComponents?: readonly DraftComponent[]
 }
 
+interface ComponentOwnershipInput {
+  readonly component: {
+    readonly domain: string
+    readonly location?: { readonly file: string }
+    readonly module: string
+  }
+  readonly module: ValidatedModule
+  readonly files: readonly string[]
+}
+
 type ExtractionProjectParseResult =
   | { success: true; data: ExtractionProject }
   | { success: false; error: string }
 
-/** @riviere-role domain-error */
-export class OrphanedDraftComponentError extends Error {
-  constructor(orphanedModules: string[], knownModules: string[]) {
-    super(
-      `Draft components reference unknown modules: [${orphanedModules.join(', ')}]. Known modules: [${knownModules.join(', ')}]`,
-    )
-    this.name = 'OrphanedDraftComponentError'
-  }
-}
-
-interface FieldFailureEnrichment {
-  kind: 'fieldFailure'
-  failedFields: string[]
-}
-
-interface SuccessfulEnrichment {
-  kind: 'enriched'
-  components: EnrichedComponent[]
-  failedFields: string[]
-}
-
-type EnrichmentResult = FieldFailureEnrichment | SuccessfulEnrichment
+export { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 
 /** @riviere-role aggregate */
 export class ExtractionProject {
@@ -135,7 +119,12 @@ export class ExtractionProject {
       }
     }
 
-    const enrichment = this.enrichDraftComponentValues(draftComponents, options.allowIncomplete)
+    const enrichment = enrichComponentsForModules(
+      this.configuration.modules,
+      this.moduleContexts,
+      groupDraftsByModule(draftComponents, this.configuration.modules, this.moduleSources),
+      options.allowIncomplete,
+    )
     if (enrichment.kind === 'fieldFailure') {
       return enrichment
     }
@@ -169,8 +158,10 @@ export class ExtractionProject {
       }
     }
 
-    const enrichment = this.enrichDraftComponentValues(
-      this.draftComponents,
+    const enrichment = enrichComponentsForModules(
+      this.configuration.modules,
+      this.moduleContexts,
+      groupDraftsByModule(this.draftComponents, this.configuration.modules, this.moduleSources),
       options.allowIncomplete,
     )
     if (enrichment.kind === 'fieldFailure') {
@@ -195,10 +186,6 @@ export class ExtractionProject {
     }
   }
 
-  get moduleContextProjectNames(): string[] {
-    return this.configuration.modules.map((module) => module.name)
-  }
-
   public detectConnections(
     enrichedComponents: EnrichedComponent[],
     allowIncomplete: boolean,
@@ -207,137 +194,146 @@ export class ExtractionProject {
     externalLinks: ExternalLink[]
     timings: ConnectionTimings[]
   } {
-    const links: ExtractedLink[] = []
-    const externalLinks: ExternalLink[] = []
-    const timings: ConnectionTimings[] = []
-    const httpLinks = this.configuration.connections?.httpLinks ?? []
-
-    for (const module of this.configuration.modules) {
-      const source = this.sourceFor(module)
-      const moduleComponents = enrichedComponents.filter(
-        (component) => component.module === module.name,
-      )
-      if (moduleComponents.length === 0) {
-        continue
-      }
-
-      const result = detectPerModuleConnections(
-        source.project,
-        moduleComponents,
-        PerModuleConnectionOptions.parse({
-          allComponents: enrichedComponents,
-          allowIncomplete,
-          httpLinks,
-          repository: this.repositoryName,
-          sourceFilePaths: [...source.files],
-        }),
-      )
-      links.push(...result.links)
-      externalLinks.push(...result.externalLinks)
-      timings.push(
-        ConnectionTimings.parse({
-          callGraphMs: result.timings.callGraphMs,
-          asyncDetectionMs: 0,
-          setupMs: result.timings.setupMs,
-          totalMs: result.timings.callGraphMs + result.timings.setupMs,
-        }),
-      )
-    }
-
-    const eventPublishers = this.configuration.connections?.eventPublishers
-    const crossResult = detectCrossModuleConnections(
+    return detectProjectConnections({
+      configuration: this.configuration,
+      moduleSources: this.moduleSources,
+      repository: this.repositoryName,
       enrichedComponents,
-      CrossModuleConnectionOptions.parse({
-        allowIncomplete,
-        repository: this.repositoryName,
-        ...(eventPublishers === undefined ? {} : { eventPublishers }),
-      }),
-    )
-    links.push(...crossResult.links)
-    timings.push(
-      ConnectionTimings.parse({
-        callGraphMs: 0,
-        asyncDetectionMs: crossResult.timings.asyncDetectionMs,
-        setupMs: 0,
-        totalMs: crossResult.timings.asyncDetectionMs,
-      }),
-    )
-
-    return {
-      links: deduplicateCrossStrategy(links),
-      externalLinks,
-      timings,
-    }
+      allowIncomplete,
+      httpLinks: this.configuration.connections?.httpLinks ?? [],
+    })
   }
 
-  private enrichDraftComponentValues(
-    draftComponents: readonly DraftComponent[],
-    allowIncomplete: boolean,
-  ): EnrichmentResult {
-    const moduleNames = new Set(this.moduleContextProjectNames)
-    const draftsByModule = groupDraftsByModule(draftComponents)
-    assertAllDraftsMatchModules(draftsByModule, moduleNames)
-    const components: EnrichedComponent[] = []
-    const failedFieldSet = new Set<string>()
-
-    for (const module of this.configuration.modules) {
-      const moduleDrafts = draftsByModule.get(module.name) ?? []
-      if (moduleDrafts.length === 0) {
-        continue
-      }
-
-      const result = enrichComponents(moduleDrafts, module, this.sourceFor(module).project)
-      components.push(...result.components)
-      for (const failure of result.failures) {
-        failedFieldSet.add(failure.field)
-      }
-    }
-
-    const failedFields = [...failedFieldSet]
-    if (failedFields.length > 0 && !allowIncomplete) {
-      return {
-        kind: 'fieldFailure',
-        failedFields,
-      }
-    }
-
-    return {
-      kind: 'enriched',
-      components,
-      failedFields,
-    }
+  private get moduleContexts() {
+    return this.configuration.modules.map((module) => ({
+      module,
+      project: this.sourceFor(module).project,
+    }))
   }
 
   private sourceFor(module: ValidatedModule): ModuleSource {
-    const source = this.moduleSources.get(module)
-    /* v8 ignore start -- parse rejects missing module sources */
-    if (source === undefined) throw new TypeError(`Missing source for module '${module.name}'`)
-    /* v8 ignore stop */
-    return source
+    return sourceForModule(this.moduleSources, module)
   }
 }
 
-function assertAllDraftsMatchModules(
-  draftsByModule: Map<string, DraftComponent[]>,
-  moduleNames: Set<string>,
-): void {
-  const orphanedModules = [...draftsByModule.keys()].filter((name) => !moduleNames.has(name))
-  if (orphanedModules.length > 0) {
-    throw new OrphanedDraftComponentError(orphanedModules, [...moduleNames])
+function moduleOwnsComponent(input: ComponentOwnershipInput): boolean {
+  const { component, module, files } = input
+  const { location, domain, module: componentModule } = component
+  const { domain: moduleDomain } = module
+  if (location === undefined) {
+    return domain === moduleDomain && componentModule === module.name
+  }
+  const { file } = location
+  const isConfiguredFile = files.length === 0 || files.includes(file)
+  if (!isConfiguredFile || domain !== moduleDomain) return false
+  const resolvedModule = files.length === 0 ? module.name : resolveModuleName(file, module)
+  return resolvedModule === componentModule
+}
+
+export { moduleOwnsComponent }
+
+interface ProjectConnectionDetectionInput {
+  readonly configuration: ValidatedConfiguration
+  readonly moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>
+  readonly repository: string
+  readonly enrichedComponents: EnrichedComponent[]
+  readonly allowIncomplete: boolean
+  readonly httpLinks: HttpLinkConfig[]
+}
+
+function detectProjectConnections(input: ProjectConnectionDetectionInput): {
+  links: ExtractedLink[]
+  externalLinks: ExternalLink[]
+  timings: ConnectionTimings[]
+} {
+  const sources = input.configuration.modules.map((module) => configuredSource(module, input))
+  const result = detectConfiguredConnections({
+    sources,
+    allComponents: input.enrichedComponents,
+    options: {
+      allowIncomplete: input.allowIncomplete,
+      repository: input.repository,
+      ...(input.configuration.connections?.eventPublishers === undefined
+        ? {}
+        : { eventPublishers: input.configuration.connections.eventPublishers }),
+      ...(input.httpLinks.length === 0 ? {} : { httpLinks: input.httpLinks }),
+    },
+  })
+  return {
+    links: result.links,
+    externalLinks: result.externalLinks,
+    timings: [summarizeConnectionTimings(result.timings)],
   }
 }
 
-function groupDraftsByModule(drafts: readonly DraftComponent[]): Map<string, DraftComponent[]> {
+function configuredSource(
+  module: ValidatedModule,
+  input: ProjectConnectionDetectionInput,
+): {
+  files: readonly string[]
+  project: Project
+  components: readonly EnrichedComponent[]
+} {
+  const source = sourceForModule(input.moduleSources, module)
+  return {
+    files: source.files,
+    project: source.project,
+    components: input.enrichedComponents.filter((component) =>
+      moduleOwnsComponent({ component, module, files: source.files }),
+    ),
+  }
+}
+
+function summarizeConnectionTimings(timings: readonly ConnectionTimings[]): ConnectionTimings {
+  return ConnectionTimings.parse({
+    callGraphMs: timings.reduce((total, timing) => total + timing.callGraphMs, 0),
+    asyncDetectionMs: timings.reduce((total, timing) => total + timing.asyncDetectionMs, 0),
+    setupMs: timings.reduce((total, timing) => total + timing.setupMs, 0),
+    totalMs: timings.reduce((total, timing) => total + timing.totalMs, 0),
+  })
+}
+
+function groupDraftsByModule(
+  drafts: readonly DraftComponent[],
+  modules: readonly ValidatedModule[],
+  moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
+): Map<string, DraftComponent[]> {
   const grouped = new Map<string, DraftComponent[]>()
-  for (const draft of drafts) {
-    const existing = grouped.get(draft.module)
-    if (existing !== undefined) {
-      existing.push(draft)
-      continue
+  for (const module of modules) {
+    const source = moduleSources.get(module)
+    /* v8 ignore start -- ExtractionProject.parse rejects missing module sources */
+    if (source === undefined) {
+      throw new MissingModuleSourceError(module.name)
     }
+    /* v8 ignore stop */
+    const moduleDrafts = drafts.filter((draft) =>
+      moduleOwnsComponent({ component: draft, module, files: source.files }),
+    )
+    if (moduleDrafts.length > 0) grouped.set(module.name, moduleDrafts)
+  }
 
-    grouped.set(draft.module, [draft])
+  const matchedDrafts = new Set([...grouped.values()].flat())
+  const unmatchedDrafts = drafts.filter((draft) => !matchedDrafts.has(draft))
+  if (unmatchedDrafts.length > 0) {
+    throw new OrphanedDraftComponentError(
+      [...new Set(unmatchedDrafts.map((draft) => draft.domain))],
+      modules.map((module) => module.domain),
+      'domains',
+    )
   }
 
   return grouped
+}
+
+function sourceForModule(
+  moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
+  module: ValidatedModule,
+): ModuleSource {
+  const source = moduleSources.get(module)
+  /* v8 ignore start -- ExtractionProject.parse rejects missing module sources */
+  if (source === undefined) {
+    throw new MissingModuleSourceError(module.name)
+  }
+  /* v8 ignore stop */
+  return source
 }

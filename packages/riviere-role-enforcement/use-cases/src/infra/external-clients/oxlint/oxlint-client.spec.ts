@@ -4,6 +4,13 @@ import { runOxlint } from './oxlint-client'
 import type { OxlintConfig } from './oxlint-config'
 import { OxlintExecutionError } from './oxlint-execution-error'
 
+class SpawnFailureTestError extends Error {
+  constructor() {
+    super('spawn failed')
+    this.name = 'SpawnFailureTestError'
+  }
+}
+
 vi.mock('node:fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs')>()
   return {
@@ -41,7 +48,7 @@ it('throws OxlintExecutionError when the process cannot start', () => {
         lintTargets: [],
       },
       dependencies({
-        error: new TypeError('spawn failed'),
+        error: new SpawnFailureTestError(),
         status: null,
         stderr: '',
         stdout: '',

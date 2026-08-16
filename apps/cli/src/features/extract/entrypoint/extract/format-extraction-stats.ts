@@ -47,5 +47,5 @@ export function formatExtractionStats(stats: ExtractionStatsInput): string[] {
 
 /** @riviere-role cli-output-formatter */
 export function formatTimingLine(timings: ConnectionTimings): string {
-  return `Extraction completed in ${formatSeconds(timings.totalMs)} (call graph: ${formatSeconds(timings.callGraphMs)}, detection: ${formatSeconds(timings.asyncDetectionMs)}, setup: ${formatSeconds(timings.setupMs)})`
+  return `Connection detection completed in ${formatSeconds(timings.totalMs)} (call graph: ${formatSeconds(timings.callGraphMs)}, detection: ${formatSeconds(timings.asyncDetectionMs)}, setup: ${formatSeconds(timings.setupMs)})`
 }
