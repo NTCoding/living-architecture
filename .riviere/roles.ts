@@ -28,6 +28,7 @@ export const allRoles = [
   role('command-input-factory', {
     targets: ['function'],
     allowedOutputs: ['command-use-case-input'],
+    forbiddenImportedFunctionCalls: true,
   }),
   role('external-client-service', { targets: ['function'] }),
   role('aggregate-repository', {

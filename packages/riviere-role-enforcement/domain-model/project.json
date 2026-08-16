@@ -1,6 +1,13 @@
 {
   "name": "riviere-role-enforcement-domain-model",
   "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run && vitest run --config vitest.plugin.config.mts",
+        "cwd": "{projectRoot}"
+      }
+    },
     "build": {
       "executor": "nx:run-commands",
       "options": {

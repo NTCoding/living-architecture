@@ -5,29 +5,22 @@ const repoRoot = path.resolve(__dirname, '../../..')
 
 export default defineConfig(() => ({
   root: __dirname,
-  cacheDir: '../../../node_modules/.vite/packages/riviere-role-enforcement',
+  cacheDir: '../../../node_modules/.vite/packages/riviere-role-enforcement-plugin',
   test: {
-    name: '@living-architecture/riviere-role-enforcement-domain-model',
+    name: '@living-architecture/riviere-role-enforcement-plugin',
     watch: false,
     globals: true,
     environment: 'node',
-    include: ['src/**/*.{test,spec}.{ts,mts}'],
-    reporters: ['default'],
+    include: ['src/domain/role-enforcement-plugin.spec.ts'],
     coverage: {
-      exclude: ['role-enforcement-plugin.mjs'],
       enabled: true,
-      reportsDirectory: './test-output/vitest/coverage',
+      include: ['role-enforcement-plugin.mjs'],
+      reportsDirectory: './test-output/vitest/plugin-coverage',
       provider: 'v8' as const,
       reporter: ['text', ['lcov', { projectRoot: repoRoot }]] as [
         'text',
         ['lcov', { projectRoot: string }],
       ],
-      thresholds: {
-        lines: 100,
-        statements: 100,
-        functions: 100,
-        branches: 100,
-      },
     },
   },
 }))
