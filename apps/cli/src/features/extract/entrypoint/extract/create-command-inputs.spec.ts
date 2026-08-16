@@ -1,4 +1,8 @@
+import { mkdtemp, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
 
 describe('create command inputs', () => {
@@ -21,6 +25,26 @@ describe('create command inputs', () => {
       projectRoot: process.cwd(),
       sourceFileSelection: { kind: 'all' },
       sourceMode: 'all',
+      useTsConfig: false,
+    })
+  })
+
+  it('creates enrich draft input from parsed components', async () => {
+    const draftPath = join(await mkdtemp(join(tmpdir(), 'riviere-cli-')), 'draft.json')
+    await writeFile(draftPath, '[]')
+
+    expect(
+      createEnrichDraftComponentsInput(
+        { config: 'config.yml', tsConfig: false },
+        draftPath,
+      ),
+    ).toStrictEqual({
+      allowIncomplete: false,
+      configPath: 'config.yml',
+      draftComponents: [],
+      draftComponentsPath: draftPath,
+      includeConnections: true,
+      projectRoot: process.cwd(),
       useTsConfig: false,
     })
   })

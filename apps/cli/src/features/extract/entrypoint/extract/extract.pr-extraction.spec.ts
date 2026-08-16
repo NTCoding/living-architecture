@@ -261,8 +261,6 @@ describe('riviere extract PR extraction', () => {
         '--config',
         configPath,
         '--pr',
-        '--base',
-        'main',
         '--components-only',
       ])
 
