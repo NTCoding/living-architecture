@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { SourceFileSelection } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components-input'
 
-/** @riviere-role cli-entrypoint */
+/** @riviere-role cli-error */
 class GitError extends Error {
   constructor(message: string) {
     super(message)
@@ -11,7 +11,7 @@ class GitError extends Error {
   }
 }
 
-/** @riviere-role cli-entrypoint */
+/** @riviere-role cli-error */
 class MissingSourceFileError extends Error {
   constructor(message: string) {
     super(message)
@@ -19,7 +19,7 @@ class MissingSourceFileError extends Error {
   }
 }
 
-/** @riviere-role cli-entrypoint */
+/** @riviere-role entrypoint-cli-input-parser */
 export function resolveSourceFileSelection(input: {
   base?: string
   files?: string[]

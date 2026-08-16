@@ -9,7 +9,7 @@ class InvalidDraftComponentsFileError extends Error {
   }
 }
 
-/** @riviere-role cli-entrypoint */
+/** @riviere-role entrypoint-cli-input-parser */
 export function loadDraftComponents(filePath: string): DraftComponentInput[] {
   const parsed = readDraftComponents(filePath)
   if (!Array.isArray(parsed) || !parsed.every(isDraftComponentInput))
