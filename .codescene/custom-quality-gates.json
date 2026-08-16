@@ -1,0 +1,11 @@
+{
+  "usage": "CodeScene PR quality gates for this repository.",
+  "rule_sets": [
+    {
+      "quality_gates": "clean_code_collective",
+      "quality_gates_doc": "Enforce critical and advisory Code Health rules across the repository.",
+      "matching_content_path": "**/*",
+      "matching_content_path_doc": "Apply the profile to all repository paths."
+    }
+  ]
+}
