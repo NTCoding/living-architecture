@@ -1,5 +1,7 @@
-import type { EnrichDraftComponentsInput } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components-input'
-import type { DraftComponentInput } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components-input'
+import type {
+  DraftComponentInput,
+  EnrichDraftComponentsInput,
+} from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components-input'
 
 interface EnrichDraftComponentsFactoryInput {
   allowIncomplete?: boolean
