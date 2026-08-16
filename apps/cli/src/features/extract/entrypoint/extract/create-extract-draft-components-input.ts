@@ -1,5 +1,7 @@
-import type { ExtractDraftComponentsInput } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components-input'
-import type { SourceFileSelection } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components-input'
+import type {
+  ExtractDraftComponentsInput,
+  SourceFileSelection,
+} from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components-input'
 
 interface ExtractDraftComponentsFactoryInput {
   allowIncomplete?: boolean

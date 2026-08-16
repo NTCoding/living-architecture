@@ -1,4 +1,4 @@
-import { mkdtemp, writeFile } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -40,23 +40,28 @@ describe('create command inputs', () => {
   })
 
   it('creates enrich draft input from parsed components', async () => {
-    const draftPath = join(await mkdtemp(join(tmpdir(), 'riviere-cli-')), 'draft.json')
-    await writeFile(draftPath, '[]')
+    const draftDirectory = await mkdtemp(join(tmpdir(), 'riviere-cli-'))
+    try {
+      const draftPath = join(draftDirectory, 'draft.json')
+      await writeFile(draftPath, '[]')
 
-    expect(
-      createEnrichDraftComponentsInput(
-        { config: 'config.yml', tsConfig: false },
-        draftPath,
-      ),
-    ).toStrictEqual({
-      allowIncomplete: false,
-      configPath: 'config.yml',
-      draftComponents: [],
-      draftComponentsPath: draftPath,
-      includeConnections: true,
-      projectRoot: process.cwd(),
-      useTsConfig: false,
-    })
+      expect(
+        createEnrichDraftComponentsInput(
+          { config: 'config.yml', tsConfig: false },
+          draftPath,
+        ),
+      ).toStrictEqual({
+        allowIncomplete: false,
+        configPath: 'config.yml',
+        draftComponents: [],
+        draftComponentsPath: draftPath,
+        includeConnections: true,
+        projectRoot: process.cwd(),
+        useTsConfig: false,
+      })
+    } finally {
+      await rm(draftDirectory, { recursive: true, force: true })
+    }
   })
 
   it('rethrows unknown extract execution errors', async () => {
