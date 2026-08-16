@@ -1,4 +1,4 @@
-import { createDefaultProcessDeps } from '@nt-ai-lab/deterministic-agent-workflow-cli'
+import { createDefaultProcessDeps, defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { createClaudeCodeWorkflowCli } from '@nt-ai-lab/deterministic-agent-workflow-claude-code'
 import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
 import { createWorkflowPullRequestCreator } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-creator'
@@ -9,10 +9,23 @@ import { createGithubPullRequestClient } from '@living-architecture/dev-workflow
 import { createGithubPullRequestFeedbackClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-pr-feedback'
 import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/github-cli'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import {
+  parseNumberArgument,
+  parseOptionalStringArgument,
+  parseStringArgument,
+  parseStringArguments,
+} from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
-const routes = createWorkflowRoutes(workflowDefinition.stateSchema)
+const routes = createWorkflowRoutes({
+  stateNameSchema: workflowDefinition.stateSchema,
+  defineRoutes,
+  parseNumberArgument,
+  parseStringArgument,
+  parseOptionalStringArgument,
+  parseStringArguments,
+})
 const bashForbidden = {
   commands: ['git push', 'gh pr'],
   flags: ['--no-verify', '--force', '--hard'],

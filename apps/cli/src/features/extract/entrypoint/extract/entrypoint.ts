@@ -13,16 +13,25 @@ import { loadDraftComponents } from './load-draft-components'
 type SourceFileSelectionDependencies = NonNullable<Parameters<typeof resolveSourceFileSelection>[1]>
 type DraftComponentsLoaderDependencies = NonNullable<Parameters<typeof loadDraftComponents>[1]>
 
-interface ExtractCommandDependencies {
-  readonly draftComponentsLoader: DraftComponentsLoaderDependencies
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateExtractCommandEntrypointDependencies {
+  readonly extractDraftComponents: Pick<ExtractDraftComponents, 'execute'>
+  readonly enrichDraftComponents: Pick<EnrichDraftComponents, 'execute'>
+  readonly validateFlagCombinations: typeof validateFlagCombinations
+  readonly createExtractDraftComponentsInput: typeof createExtractDraftComponentsInput
+  readonly createEnrichDraftComponentsInput: typeof createEnrichDraftComponentsInput
+  readonly exitWithCliError: typeof exitWithCliError
+  readonly dataAccessCliErrorCode: typeof dataAccessCliErrorCode
+  readonly presentExtractionResult: typeof presentExtractionResult
+  readonly resolveSourceFileSelection: typeof resolveSourceFileSelection
+  readonly loadDraftComponents: typeof loadDraftComponents
   readonly sourceFileSelection: SourceFileSelectionDependencies
+  readonly draftComponentsLoader: DraftComponentsLoaderDependencies
 }
 
 /** @riviere-role cli-entrypoint */
 export function createExtractCommand(
-  extractDraftComponents: Pick<ExtractDraftComponents, 'execute'>,
-  enrichDraftComponents: Pick<EnrichDraftComponents, 'execute'>,
-  dependencies: ExtractCommandDependencies,
+  dependencies: CreateExtractCommandEntrypointDependencies,
 ): Command {
   return new Command('extract')
     .description('Extract architectural components from source code')
@@ -53,28 +62,34 @@ export function createExtractCommand(
         stats?: boolean
         tsConfig?: boolean
       }) => {
-        validateFlagCombinations(options)
+        dependencies.validateFlagCombinations(options)
 
         const result = (() => {
           try {
             return options.enrich === undefined
-              ? extractDraftComponents.execute(
-                  createExtractDraftComponentsInput(
+              ? dependencies.extractDraftComponents.execute(
+                  dependencies.createExtractDraftComponentsInput(
                     options,
-                    resolveSourceFileSelection(options, dependencies.sourceFileSelection),
+                    dependencies.resolveSourceFileSelection(
+                      options,
+                      dependencies.sourceFileSelection,
+                    ),
                   ),
                 )
-              : enrichDraftComponents.execute(
-                  createEnrichDraftComponentsInput(
+              : dependencies.enrichDraftComponents.execute(
+                  dependencies.createEnrichDraftComponentsInput(
                     options,
                     options.enrich,
-                    loadDraftComponents(options.enrich, dependencies.draftComponentsLoader),
+                    dependencies.loadDraftComponents(
+                      options.enrich,
+                      dependencies.draftComponentsLoader,
+                    ),
                   ),
                 )
           } catch (error) {
             if (!(error instanceof Error)) throw error
             if (error.name === 'GitError') {
-              exitWithCliError(
+              dependencies.exitWithCliError(
                 CliErrorCode.GitNotARepository,
                 error.message,
                 ExitCode.RuntimeError,
@@ -85,7 +100,7 @@ export function createExtractCommand(
               error.name === 'InvalidExtractInputError' ||
               error.name === 'InvalidEnrichInputError'
             ) {
-              exitWithCliError(
+              dependencies.exitWithCliError(
                 CliErrorCode.ValidationError,
                 error.message,
                 ExitCode.ConfigValidation,
@@ -97,7 +112,7 @@ export function createExtractCommand(
         })()
 
         if (result.kind === 'fieldFailure') {
-          exitWithCliError(
+          dependencies.exitWithCliError(
             CliErrorCode.ValidationError,
             `Extraction failed for fields: ${result.failedFields.join(', ')}`,
             ExitCode.ExtractionFailure,
@@ -106,7 +121,7 @@ export function createExtractCommand(
         }
 
         if (result.kind === 'configFailure') {
-          exitWithCliError(
+          dependencies.exitWithCliError(
             result.code === 'CONFIG_NOT_FOUND'
               ? CliErrorCode.ConfigNotFound
               : CliErrorCode.ValidationError,
@@ -117,7 +132,7 @@ export function createExtractCommand(
         }
 
         if (result.kind === 'connectionDetectionFailure') {
-          exitWithCliError(
+          dependencies.exitWithCliError(
             CliErrorCode.ConnectionDetectionFailure,
             result.message,
             ExitCode.ExtractionFailure,
@@ -126,15 +141,15 @@ export function createExtractCommand(
         }
 
         if (result.kind === 'dataAccessFailure') {
-          exitWithCliError(
-            dataAccessCliErrorCode(result.code),
+          dependencies.exitWithCliError(
+            dependencies.dataAccessCliErrorCode(result.code),
             result.message,
             ExitCode.RuntimeError,
             [],
           )
         }
 
-        presentExtractionResult(result, options)
+        dependencies.presentExtractionResult(result, options)
       },
     )
 }

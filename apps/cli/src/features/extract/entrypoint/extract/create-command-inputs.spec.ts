@@ -5,8 +5,21 @@ import { describe, expect, it } from 'vitest'
 import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
 import { createExtractCommand } from './entrypoint'
+import { validateFlagCombinations } from './extract-validator'
+import { dataAccessCliErrorCode, presentExtractionResult } from './present-extraction-result'
+import { resolveSourceFileSelection } from './resolve-source-file-selection'
+import { loadDraftComponents } from './load-draft-components'
+import { exitWithCliError } from '../../../../infra/cli/presentation/exit-with-cli-error'
 
 const testDependencies = {
+  validateFlagCombinations,
+  createExtractDraftComponentsInput,
+  createEnrichDraftComponentsInput,
+  exitWithCliError,
+  dataAccessCliErrorCode,
+  presentExtractionResult,
+  resolveSourceFileSelection,
+  loadDraftComponents,
   draftComponentsLoader: { readFile: () => '' },
   sourceFileSelection: {
     fileExists: () => true,
@@ -72,15 +85,15 @@ describe('create command inputs', () => {
   })
 
   it('rethrows unknown extract execution errors', async () => {
-    const command = createExtractCommand(
-      {
+    const command = createExtractCommand({
+      ...testDependencies,
+      extractDraftComponents: {
         execute: () => {
           throw new UnexpectedExtractError()
         },
       },
-      { execute: () => ({ kind: 'draftOnly', components: [] }) },
-      testDependencies,
-    )
+      enrichDraftComponents: { execute: () => ({ kind: 'draftOnly', components: [] }) },
+    })
 
     await expect(command.parseAsync(['node', 'riviere', '--config', 'config.yml'])).rejects.toThrow(
       'unexpected extract failure',
@@ -88,15 +101,15 @@ describe('create command inputs', () => {
   })
 
   it('rethrows non Error extract failures', async () => {
-    const command = createExtractCommand(
-      {
+    const command = createExtractCommand({
+      ...testDependencies,
+      extractDraftComponents: {
         execute: () => {
           throw new UnexpectedExtractValue()
         },
       },
-      { execute: () => ({ kind: 'draftOnly', components: [] }) },
-      testDependencies,
-    )
+      enrichDraftComponents: { execute: () => ({ kind: 'draftOnly', components: [] }) },
+    })
 
     await expect(
       command.parseAsync(['node', 'riviere', '--config', 'config.yml']),

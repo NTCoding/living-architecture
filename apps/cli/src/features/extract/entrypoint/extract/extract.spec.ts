@@ -18,8 +18,25 @@ import {
 import type { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
 import type { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import { createExtractCommand } from './entrypoint'
+import { validateFlagCombinations } from './extract-validator'
+import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
+import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
+import { dataAccessCliErrorCode, presentExtractionResult } from './present-extraction-result'
+import { exitWithCliError } from '../../../../infra/cli/presentation/exit-with-cli-error'
+import { resolveSourceFileSelection } from './resolve-source-file-selection'
+import { loadDraftComponents } from './load-draft-components'
 
 const testDependencies = {
+  extractDraftComponents: { execute: () => ({ kind: 'draftOnly' as const, components: [] }) },
+  enrichDraftComponents: { execute: () => ({ kind: 'draftOnly' as const, components: [] }) },
+  validateFlagCombinations,
+  createExtractDraftComponentsInput,
+  createEnrichDraftComponentsInput,
+  exitWithCliError,
+  dataAccessCliErrorCode,
+  presentExtractionResult,
+  resolveSourceFileSelection,
+  loadDraftComponents,
   draftComponentsLoader: { readFile: () => '' },
   sourceFileSelection: {
     fileExists: () => true,
@@ -69,11 +86,11 @@ describe('riviere extract', () => {
       }
 
       await expect(
-        createExtractCommand(
+        createExtractCommand({
+          ...testDependencies,
           extractDraftComponents,
           enrichDraftComponents,
-          testDependencies,
-        ).parseAsync(['--config', 'extract.yaml'], { from: 'user' }),
+        }).parseAsync(['--config', 'extract.yaml'], { from: 'user' }),
       ).rejects.toMatchObject({ exitCode: 1 })
 
       const output = parseErrorOutput(ctx.consoleOutput)
@@ -102,11 +119,11 @@ describe('riviere extract', () => {
       }
 
       await expect(
-        createExtractCommand(
+        createExtractCommand({
+          ...testDependencies,
           extractDraftComponents,
           enrichDraftComponents,
-          testDependencies,
-        ).parseAsync(['--config', 'extract.yaml'], { from: 'user' }),
+        }).parseAsync(['--config', 'extract.yaml'], { from: 'user' }),
       ).rejects.toMatchObject({ exitCode: 3 })
     })
   })

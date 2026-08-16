@@ -10,8 +10,19 @@ interface ComponentChecklistOptions {
   type?: string
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateComponentChecklistCommandEntrypointDependencies {
+  readonly componentChecklist: ComponentChecklist
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createComponentChecklistCommand(componentChecklist: ComponentChecklist): Command {
+export function createComponentChecklistCommand(
+  dependencies: CreateComponentChecklistCommandEntrypointDependencies,
+): Command {
+  const { componentChecklist } = dependencies
   return new Command('component-checklist')
     .description('List components as a checklist for linking/enrichment')
     .addHelpText(
@@ -23,7 +34,7 @@ Examples:
   $ riviere builder component-checklist --type API --json
 `,
     )
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .option('--type <type>', 'Filter by component type')
     .action(async (options: ComponentChecklistOptions) => {
@@ -34,7 +45,7 @@ Examples:
       if (!result.success) {
         console.log(
           JSON.stringify(
-            formatError(
+            dependencies.formatError(
               {
                 GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
                 GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
@@ -51,7 +62,7 @@ Examples:
       if (options.json === true) {
         console.log(
           JSON.stringify(
-            formatSuccess({
+            dependencies.formatSuccess({
               components: result.components,
               total: result.total,
             }),

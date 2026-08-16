@@ -11,8 +11,20 @@ interface FinalizeOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateFinalizeCommandEntrypointDependencies {
+  readonly finalizeGraph: FinalizeGraph
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatError: typeof formatError
+  readonly writeFile: typeof writeFile
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createFinalizeCommand(finalizeGraph: FinalizeGraph): Command {
+export function createFinalizeCommand(
+  dependencies: CreateFinalizeCommandEntrypointDependencies,
+): Command {
+  const { finalizeGraph } = dependencies
   return new Command('finalize')
     .description('Validate and export the final graph')
     .addHelpText(
@@ -24,7 +36,7 @@ Examples:
   $ riviere builder finalize --json
 `,
     )
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--output <path>', 'Output path for finalized graph (defaults to input path)')
     .option('--json', 'Output result as JSON')
     .action(async (options: FinalizeOptions) => {
@@ -39,15 +51,17 @@ Examples:
         const suggestions =
           result.code === 'VALIDATION_ERROR' ? ['Fix the validation errors and try again'] : []
 
-        console.log(JSON.stringify(formatError(errorCode, result.message, suggestions)))
+        console.log(
+          JSON.stringify(dependencies.formatError(errorCode, result.message, suggestions)),
+        )
         return
       }
 
       const outputPath = options.output ?? options.graph ?? '.riviere/graph.json'
-      await writeFile(outputPath, JSON.stringify(result.finalGraph, null, 2), 'utf-8')
+      await dependencies.writeFile(outputPath, JSON.stringify(result.finalGraph, null, 2), 'utf-8')
 
       if (options.json === true) {
-        console.log(JSON.stringify(formatSuccess({ path: outputPath })))
+        console.log(JSON.stringify(dependencies.formatSuccess({ path: outputPath })))
       }
     })
 }

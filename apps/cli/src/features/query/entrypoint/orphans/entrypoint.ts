@@ -9,8 +9,19 @@ interface OrphansOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateOrphansCommandEntrypointDependencies {
+  readonly detectOrphans: DetectOrphans
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatQueryGraphLoadFailure: typeof formatQueryGraphLoadFailure
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createOrphansCommand(detectOrphans: DetectOrphans): Command {
+export function createOrphansCommand(
+  dependencies: CreateOrphansCommandEntrypointDependencies,
+): Command {
+  const { detectOrphans } = dependencies
   return new Command('orphans')
     .description('Find orphan components with no links')
     .addHelpText(
@@ -21,18 +32,18 @@ Examples:
   $ riviere query orphans --json
 `,
     )
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: OrphansOptions) => {
       const result = detectOrphans.execute({ graphPathOption: options.graph })
 
       if ('kind' in result) {
-        console.log(JSON.stringify(formatQueryGraphLoadFailure(result)))
+        console.log(JSON.stringify(dependencies.formatQueryGraphLoadFailure(result)))
         return
       }
 
       if (options.json) {
-        console.log(JSON.stringify(formatSuccess(result)))
+        console.log(JSON.stringify(dependencies.formatSuccess(result)))
       }
     })
 }

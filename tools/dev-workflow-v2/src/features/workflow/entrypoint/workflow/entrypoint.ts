@@ -7,21 +7,24 @@ import { RecordCiPassed } from '@living-architecture/dev-workflow-v2-use-cases/c
 import { RecordIssue } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-issue'
 import { RecordPullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-pull-request'
 import { VerifyFeedbackAddressed } from '@living-architecture/dev-workflow-v2-use-cases/commands/verify-feedback-addressed'
-import {
-  parseNumberArgument,
-  parseOptionalStringArgument,
-  parseStringArgument,
-  parseStringArguments,
-} from '../_platform/cli/workflow-route-inputs'
 
 type RoutedWorkflow = ConstructorParameters<typeof RecordIssue>[0]
 type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateWorkflowRoutesEntrypointDependencies {
+  readonly stateNameSchema: ZodType<RoutedWorkflowState['currentStateMachineState']>
+  readonly defineRoutes: typeof defineRoutes
+  readonly parseNumberArgument: (value: unknown) => number
+  readonly parseStringArgument: (value: unknown) => string
+  readonly parseOptionalStringArgument: (value: unknown) => string | undefined
+  readonly parseStringArguments: (value: unknown) => readonly string[]
+}
+
 /** @riviere-role cli-entrypoint */
-export function createWorkflowRoutes(
-  stateNameSchema: ZodType<RoutedWorkflowState['currentStateMachineState']>,
-) {
-  return defineRoutes<RoutedWorkflow, RoutedWorkflowState>({
+export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypointDependencies) {
+  const { stateNameSchema } = dependencies
+  return dependencies.defineRoutes<RoutedWorkflow, RoutedWorkflowState>({
     init: { type: 'session-start' },
     transition: {
       type: 'transition',
@@ -31,28 +34,32 @@ export function createWorkflowRoutes(
       type: 'transaction',
       args: [arg.number('number')],
       handler: (workflow, issueNumber) =>
-        new RecordIssue(workflow).execute({ issueNumber: parseNumberArgument(issueNumber) }),
+        new RecordIssue(workflow).execute({
+          issueNumber: dependencies.parseNumberArgument(issueNumber),
+        }),
     },
     'record-branch': {
       type: 'transaction',
       args: [arg.string('branch')],
       handler: (workflow, branch) =>
-        new RecordBranch(workflow).execute({ branch: parseStringArgument(branch) }),
+        new RecordBranch(workflow).execute({ branch: dependencies.parseStringArgument(branch) }),
     },
     'record-pr': {
       type: 'transaction',
       args: [arg.number('number'), arg.string('url').optional()],
       handler: (workflow, number, url) =>
         new RecordPullRequest(workflow).execute({
-          number: parseNumberArgument(number),
-          url: parseOptionalStringArgument(url),
+          number: dependencies.parseNumberArgument(number),
+          url: dependencies.parseOptionalStringArgument(url),
         }),
     },
     'create-pr': {
       type: 'transaction',
       args: [arg.rest()],
       handler: (workflow, args) =>
-        new CreatePullRequest(workflow).execute({ arguments: parseStringArguments(args) }),
+        new CreatePullRequest(workflow).execute({
+          arguments: dependencies.parseStringArguments(args),
+        }),
     },
     'record-ci-passed': {
       type: 'transaction',
@@ -63,7 +70,7 @@ export function createWorkflowRoutes(
       type: 'transaction',
       args: [arg.string('output')],
       handler: (workflow, output) =>
-        new RecordCiFailed(workflow).execute({ output: parseStringArgument(output) }),
+        new RecordCiFailed(workflow).execute({ output: dependencies.parseStringArgument(output) }),
     },
     'verify-feedback-addressed': {
       type: 'transaction',

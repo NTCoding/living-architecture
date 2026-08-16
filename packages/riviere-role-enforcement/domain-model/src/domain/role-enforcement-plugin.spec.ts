@@ -18,6 +18,7 @@ const cliInputParser = role('entrypoint-cli-input-parser', {
 
 const cliEntrypoint = role('cli-entrypoint', {
   forbiddenDependencies: ['cli-entrypoint'],
+  forbiddenImportedFunctionCalls: true,
   targets: ['function'],
 })
 
@@ -98,6 +99,19 @@ export function parseInput() {
   expect(messages[0]?.message).toContain("forbids direct invocation of imported function 'execute'")
 })
 
+it('rejects direct invocation of an imported function from a CLI entrypoint', () => {
+  const messages = enforce(`import { execute } from 'external-client'
+
+/** @riviere-role cli-entrypoint */
+export function createCommand(dependencies) {
+  return execute(dependencies)
+}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("forbids direct invocation of imported function 'execute'")
+})
+
 it('allows internal helper functions and dependencies passed as parameters', () => {
   const messages = enforce(`/** @riviere-role command-input-factory */
 export function createInput(createValue) {
@@ -141,9 +155,13 @@ export function createCommand() {
       { configDir: workspaceDir, filename: entrypointPath },
     )
 
-    expect(messages).toHaveLength(1)
-    expect(messages[0]?.message).toContain("cannot import from a file exporting 'cli-entrypoint'")
-    expect(messages[0]?.message).toContain('Classify the responsibility first')
+    expect(messages).toHaveLength(2)
+    expect(messages.map((message) => message.message).join('\n')).toContain(
+      "cannot import from a file exporting 'cli-entrypoint'",
+    )
+    expect(messages.map((message) => message.message).join('\n')).toContain(
+      'Classify the responsibility first',
+    )
   } finally {
     rmSync(workspaceDir, { force: true, recursive: true })
   }

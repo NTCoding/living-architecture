@@ -10,8 +10,20 @@ interface TraceOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateTraceCommandEntrypointDependencies {
+  readonly traceFlow: TraceFlow
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatQueryGraphLoadFailure: typeof formatQueryGraphLoadFailure
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createTraceCommand(traceFlow: TraceFlow): Command {
+export function createTraceCommand(
+  dependencies: CreateTraceCommandEntrypointDependencies,
+): Command {
+  const { traceFlow } = dependencies
   return new Command('trace')
     .description('Trace flow from a component (bidirectional)')
     .addHelpText(
@@ -23,7 +35,7 @@ Examples:
 `,
     )
     .argument('<componentId>', 'Component ID to trace from')
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (componentIdArg: string, options: TraceOptions) => {
       const result = traceFlow.execute({
@@ -32,21 +44,25 @@ Examples:
       })
 
       if ('kind' in result) {
-        console.log(JSON.stringify(formatQueryGraphLoadFailure(result)))
+        console.log(JSON.stringify(dependencies.formatQueryGraphLoadFailure(result)))
         return
       }
 
       if (!result.success) {
         console.log(
           JSON.stringify(
-            formatError(CliErrorCode.ComponentNotFound, result.message, result.suggestions),
+            dependencies.formatError(
+              CliErrorCode.ComponentNotFound,
+              result.message,
+              result.suggestions,
+            ),
           ),
         )
         return
       }
 
       if (options.json) {
-        console.log(JSON.stringify(formatSuccess(result.flow)))
+        console.log(JSON.stringify(dependencies.formatSuccess(result.flow)))
       }
     })
 }

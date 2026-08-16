@@ -8,8 +8,19 @@ interface ComponentSummaryOptions {
   graph?: string
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateComponentSummaryCommandEntrypointDependencies {
+  readonly componentSummary: ComponentSummary
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createComponentSummaryCommand(componentSummary: ComponentSummary): Command {
+export function createComponentSummaryCommand(
+  dependencies: CreateComponentSummaryCommandEntrypointDependencies,
+): Command {
+  const { componentSummary } = dependencies
   return new Command('component-summary')
     .description('Show component counts by type and domain')
     .addHelpText(
@@ -20,13 +31,13 @@ Examples:
   $ riviere builder component-summary > summary.json
 `,
     )
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .action(async (options: ComponentSummaryOptions) => {
       const result = componentSummary.execute({ graphPathOption: options.graph })
       if (!result.success) {
         console.log(
           JSON.stringify(
-            formatError(
+            dependencies.formatError(
               result.code === 'GRAPH_NOT_FOUND'
                 ? CliErrorCode.GraphNotFound
                 : CliErrorCode.GraphCorrupted,
@@ -38,6 +49,6 @@ Examples:
         return
       }
 
-      console.log(JSON.stringify(formatSuccess(result)))
+      console.log(JSON.stringify(dependencies.formatSuccess(result)))
     })
 }

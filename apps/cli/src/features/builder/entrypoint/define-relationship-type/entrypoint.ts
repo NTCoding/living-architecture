@@ -11,15 +11,24 @@ interface DefineRelationshipTypeOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateDefineRelationshipTypeCommandEntrypointDependencies {
+  readonly defineRelationshipType: DefineRelationshipType
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
 export function createDefineRelationshipTypeCommand(
-  defineRelationshipType: DefineRelationshipType,
+  dependencies: CreateDefineRelationshipTypeCommandEntrypointDependencies,
 ): Command {
+  const { defineRelationshipType } = dependencies
   return new Command('define-relationship-type')
     .description('Define a project relationship type')
     .requiredOption('--name <name>', 'Relationship type name')
     .requiredOption('--description <description>', 'Relationship type description')
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: DefineRelationshipTypeOptions) => {
       const result = defineRelationshipType.execute({
@@ -33,12 +42,16 @@ export function createDefineRelationshipTypeCommand(
           GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
           VALIDATION_ERROR: CliErrorCode.ValidationError,
         } as const
-        console.log(JSON.stringify(formatError(errorCodeByResult[result.code], result.message, [])))
+        console.log(
+          JSON.stringify(
+            dependencies.formatError(errorCodeByResult[result.code], result.message, []),
+          ),
+        )
         return
       }
 
       if (options.json === true) {
-        console.log(JSON.stringify(formatSuccess(result)))
+        console.log(JSON.stringify(dependencies.formatSuccess(result)))
       }
     })
 }

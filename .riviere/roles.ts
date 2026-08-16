@@ -3,7 +3,13 @@ import { role } from '@living-architecture/riviere-role-enforcement-domain-model
 export const allRoles = [
   role('cli-entrypoint', {
     targets: ['function'],
+    allowedInputs: ['cli-entrypoint-dependencies'],
     forbiddenDependencies: ['cli-entrypoint'],
+    forbiddenImportedFunctionCalls: true,
+  }),
+  role('cli-entrypoint-dependencies', {
+    targets: ['interface'],
+    nameMatches: '.*EntrypointDependencies$',
   }),
   role('command-use-case', {
     targets: ['class', 'function'],

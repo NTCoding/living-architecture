@@ -1,5 +1,12 @@
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
+import { defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { createWorkflowRoutes } from './entrypoint'
+import {
+  parseNumberArgument,
+  parseOptionalStringArgument,
+  parseStringArgument,
+  parseStringArguments,
+} from './workflow-route-inputs'
 
 type WorkflowDeps = Parameters<ReturnType<typeof configureWorkflow>['buildWorkflow']>[1]
 
@@ -33,7 +40,14 @@ function buildWorkflow(
 }
 
 function transactionHandler(definition: ReturnType<typeof configureWorkflow>, routeName: string) {
-  const route = createWorkflowRoutes(definition.stateSchema)[routeName]
+  const route = createWorkflowRoutes({
+    stateNameSchema: definition.stateSchema,
+    defineRoutes,
+    parseNumberArgument,
+    parseStringArgument,
+    parseOptionalStringArgument,
+    parseStringArguments,
+  })[routeName]
   if (route?.type !== 'transaction') return expect.fail(`Expected transaction route: ${routeName}`)
   return route.handler
 }
