@@ -327,7 +327,7 @@ function groupDraftsByModule(
 ): Map<string, DraftComponent[]> {
   const grouped = new Map<string, DraftComponent[]>()
   for (const module of modules) {
-    const source = moduleSources.get(module)!
+    const source = moduleSources.get(module) as ModuleSource
     const moduleDrafts = drafts.filter((draft) =>
       moduleOwnsComponent({ component: draft, module, files: source.files }),
     )
@@ -351,5 +351,5 @@ function sourceForModule(
   moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
   module: ValidatedModule,
 ): ModuleSource {
-  return moduleSources.get(module)!
+  return moduleSources.get(module) as ModuleSource
 }
