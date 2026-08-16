@@ -51,7 +51,7 @@ function writeExtendsConfig(dir: string, extendsRef: string): void {
 }
 
 describe('ExtractionProjectRepository', () => {
-  it('loadFromFullProject returns a project with source files loaded', () => {
+  it('loadFromFullProject returns a project with source files loaded.', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
       writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)

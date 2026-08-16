@@ -15,7 +15,7 @@ interface ApiComponentDef {
 
 describe('riviere builder link-http', () => {
   describe('command registration', () => {
-    it('registers link-http command under builder', () => {
+    it('registers link-http command under builder.', () => {
       const program = createProgram()
       const builderCmd = program.commands.find((cmd) => cmd.name() === 'builder')
       expect(builderCmd?.commands.find((cmd) => cmd.name() === 'link-http')?.name()).toBe(

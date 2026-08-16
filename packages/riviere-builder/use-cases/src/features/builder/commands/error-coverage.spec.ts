@@ -59,7 +59,7 @@ describe('builder command coverage', () => {
     vi.restoreAllMocks()
   })
 
-  it('returns graph corrupted for add-source and check-consistency', async () => {
+  it('returns graph corrupted for add-source and check-consistency.', async () => {
     const graphPath = await createInvalidGraphPath(ctx.testDir)
 
     const repo = new RiviereBuilderRepository()

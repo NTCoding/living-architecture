@@ -1,7 +1,7 @@
 import { validateExtractionConfig, createMutableConfig } from './__fixtures__/validation-fixtures'
 
 describe('required extraction rules validation', () => {
-  it('returns error when api detection defined but apiType extraction missing', () => {
+  it('returns error when api detection defined but apiType extraction missing.', () => {
     const { config, module } = createMutableConfig()
     module.api = {
       find: 'classes',
