@@ -59,6 +59,14 @@ function load(directory: string): void {
   })
 }
 
+function writeExtendsConfig(directory: string, extendsRef: string): void {
+  writeFileSync(join(directory, 'component.ts'), 'export class Order {}')
+  writeFileSync(
+    join(directory, 'extract.yml'),
+    VALID_CONFIG.replace('api: { notUsed: true }', `extends: ${extendsRef}\n    api: { notUsed: true }`),
+  )
+}
+
 describe('RiviereProjectRepository validation', () => {
   it('inherits every rule from a modules-array configuration', () => {
     withWorkspace((directory) => {
