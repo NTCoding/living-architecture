@@ -70,6 +70,8 @@ describe('detectChangedTypeScriptFiles', () => {
       execFileSync(GIT_EXECUTABLE, ['add', 'changed.ts'], { cwd: directory })
       execFileSync(GIT_EXECUTABLE, ['commit', '-m', 'initial'], { cwd: directory })
       writeFileSync(join(directory, 'changed.ts'), 'export const changed = false')
+      execFileSync(GIT_EXECUTABLE, ['add', 'changed.ts'], { cwd: directory })
+      execFileSync(GIT_EXECUTABLE, ['commit', '-m', 'changed'], { cwd: directory })
 
       expect(detectChangedTypeScriptFiles(directory, { base: 'HEAD~1' }).files).toStrictEqual([
         join(directory, 'changed.ts'),
