@@ -184,7 +184,11 @@ export class RiviereProjectRepository {
           formatExtractionConfigErrors(extractionConfig.errors),
       )
 
-    const first = this.resolveConfiguration(extractionConfig.configuration, configDir).modules[0]!
+    const first = this.resolveConfiguration(extractionConfig.configuration, configDir).modules[0]
+    if (first === undefined)
+      throw new ExtractionConfigLoadError(
+        `Invalid extended config in '${source}': Config has no resolved modules`,
+      )
     return this.moduleInput(first)
   }
 

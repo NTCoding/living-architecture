@@ -153,6 +153,7 @@ describe('extractDraftComponents', () => {
         allowIncomplete: true,
         configPath: 'config.yml',
         includeConnections: false,
+        sourceFileSelection: { kind: 'all' },
         sourceMode: 'all',
         useTsConfig: false,
       })

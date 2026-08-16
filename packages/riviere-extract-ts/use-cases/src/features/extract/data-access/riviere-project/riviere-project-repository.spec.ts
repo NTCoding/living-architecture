@@ -120,17 +120,18 @@ describe('RiviereProjectRepository', () => {
       writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
       writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
 
-      let caughtError: unknown
-      try {
-        loadProject({
-          configPath: join(dir, 'extract.config.yml'),
-          projectRoot: dir,
-          useTsConfig: false,
-        })
-      } catch (error) {
-        caughtError = error
-      }
-      if (caughtError === undefined) throw new UnexpectedSuccessfulLoadError()
+      const caughtError = (() => {
+        try {
+          loadProject({
+            configPath: join(dir, 'extract.config.yml'),
+            projectRoot: dir,
+            useTsConfig: false,
+          })
+          return new UnexpectedSuccessfulLoadError()
+        } catch (error) {
+          return error
+        }
+      })()
       expect(caughtError).toBeInstanceOf(ExtractionDataAccessError)
       expect(caughtError).toMatchObject({ code: 'NO_REMOTE' })
     })
@@ -385,7 +386,7 @@ describe('RiviereProjectRepository', () => {
         useTsConfig: false,
       })
 
-      expect(project.stage.moduleContexts[0]?.files).toEqual(
+      expect(project.stage.moduleContexts[0]?.files).toStrictEqual(
         expect.arrayContaining([join(dir, 'a.ts'), join(dir, 'b.ts')]),
       )
     })
