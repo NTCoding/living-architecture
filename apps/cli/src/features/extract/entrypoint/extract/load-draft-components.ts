@@ -11,12 +11,13 @@ class InvalidDraftComponentsFileError extends Error {
 
 /** @riviere-role cli-entrypoint */
 export function loadDraftComponents(filePath: string): DraftComponentInput[] {
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(readFileSync(filePath, 'utf8'))
-  } catch {
-    throw new InvalidDraftComponentsFileError(`Unable to read draft components: ${filePath}`)
-  }
+  const parsed: unknown = (() => {
+    try {
+      return JSON.parse(readFileSync(filePath, 'utf8'))
+    } catch {
+      throw new InvalidDraftComponentsFileError(`Unable to read draft components: ${filePath}`)
+    }
+  })()
   if (!Array.isArray(parsed) || !parsed.every(isDraftComponentInput))
     throw new InvalidDraftComponentsFileError(
       `Enrich file does not contain valid draft components: ${filePath}`,
