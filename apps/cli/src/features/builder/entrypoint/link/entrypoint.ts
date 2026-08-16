@@ -22,8 +22,16 @@ interface LinkOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateLinkCommandEntrypointDependencies {
+  readonly linkComponents: LinkComponents
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly parseLinkSourceLocation: typeof parseLinkSourceLocation
+}
+
 /** @riviere-role cli-entrypoint */
-export function createLinkCommand(linkComponents: LinkComponents): Command {
+export function createLinkCommand(dependencies: CreateLinkCommandEntrypointDependencies): Command {
+  const { linkComponents } = dependencies
   return new Command('link')
     .description('Link two components')
     .addHelpText(
@@ -56,10 +64,10 @@ Examples:
     .option('--file-path <path>', 'Source file path')
     .option('--line-number <n>', 'Source line number')
     .option('--column-number <n>', 'Source column number')
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: LinkOptions) => {
-      const sourceLocationResult = parseLinkSourceLocation(options)
+      const sourceLocationResult = dependencies.parseLinkSourceLocation(options)
       if (!sourceLocationResult.success) {
         console.log(
           JSON.stringify(

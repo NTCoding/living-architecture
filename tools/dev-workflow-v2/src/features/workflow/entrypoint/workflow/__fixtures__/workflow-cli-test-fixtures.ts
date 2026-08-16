@@ -8,24 +8,13 @@ import type {
 } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { createStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store'
-import { createWorkflowRunner } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { RunnerResult } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
-import { createWorkflowRoutes } from '../entrypoint'
 import { STATE_STEPS } from './workflow-cli-state-steps-test-fixtures'
+import { runner } from './workflow-cli-test-runner'
 
-const workflowConfiguration = configureWorkflow({})
-type WorkflowDeps = Parameters<typeof workflowConfiguration.buildWorkflow>[1]
-
-const runner = createWorkflowRunner({
-  workflowDefinition: workflowConfiguration,
-  routes: createWorkflowRoutes(workflowConfiguration.stateSchema),
-  bashForbidden: {
-    commands: ['git push', 'gh pr'],
-    flags: ['--no-verify', '--force', '--hard'],
-  },
-  isWriteAllowed: workflowConfiguration.isWriteAllowed,
-})
+type WorkflowDefinition = ReturnType<typeof configureWorkflow>
+type WorkflowDeps = Parameters<WorkflowDefinition['buildWorkflow']>[1]
 
 export type TestContext = {
   readonly engineDeps: WorkflowEngineDeps

@@ -1,4 +1,22 @@
 import { Command } from 'commander'
+import { getDefaultGraphPathDescription } from '../infra/cli/presentation/graph-path-option'
+import { toAddComponentInput } from '../features/builder/entrypoint/add-component/add-component-options'
+import { formatError, formatSuccess } from '../infra/cli/presentation/output'
+import { getAddComponentHints } from '../infra/cli/presentation/add-component-hints'
+import { parsePropertySpecs } from '../features/builder/entrypoint/define-custom-type/custom-type-parser'
+import { parseStateChanges } from '../features/builder/entrypoint/enrich/enrichment-parser'
+import { parseSignature } from '../features/builder/entrypoint/enrich/signature-parser'
+import { writeFile } from 'node:fs/promises'
+import { parseLinkSourceLocation } from '../features/builder/entrypoint/link/link-source-location-options'
+import { validateFlagCombinations } from '../features/extract/entrypoint/extract/extract-validator'
+import { createExtractDraftComponentsInput } from '../features/extract/entrypoint/extract/create-extract-draft-components-input'
+import { createEnrichDraftComponentsInput } from '../features/extract/entrypoint/extract/create-enrich-draft-components-input'
+import { exitWithCliError } from '../infra/cli/presentation/exit-with-cli-error'
+import {
+  dataAccessCliErrorCode,
+  presentExtractionResult,
+} from '../features/extract/entrypoint/extract/present-extraction-result'
+import { formatQueryGraphLoadFailure } from '../infra/cli/presentation/query-graph-load-failure-output'
 import { createRequire } from 'module'
 import { AddComponent } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-component'
 import { AddDomain } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-domain'
@@ -105,38 +123,196 @@ export function createProgram(): Command {
 
   const builderCmd = program.command('builder').description('Commands for building a graph')
 
-  builderCmd.addCommand(createAddComponentCommand(new AddComponent(builderRepository)))
-  builderCmd.addCommand(createAddDomainCommand(new AddDomain(builderRepository)))
-  builderCmd.addCommand(createAddSourceCommand(new AddSource(builderRepository)))
-  builderCmd.addCommand(createInitCommand(new InitGraph(builderRepository)))
-  builderCmd.addCommand(createLinkCommand(new LinkComponents(builderRepository)))
-  builderCmd.addCommand(createLinkExternalCommand(new LinkExternal(builderRepository)))
-  builderCmd.addCommand(createLinkHttpCommand(new LinkHttp(builderRepository)))
-  builderCmd.addCommand(createValidateCommand(new ValidateGraph(builderRepository)))
-  builderCmd.addCommand(createFinalizeCommand(new FinalizeGraph(builderRepository)))
-  builderCmd.addCommand(createEnrichCommand(new EnrichComponent(builderRepository)))
-  builderCmd.addCommand(createComponentSummaryCommand(new ComponentSummary(builderRepository)))
-  builderCmd.addCommand(createComponentChecklistCommand(new ComponentChecklist(builderRepository)))
-  builderCmd.addCommand(createCheckConsistencyCommand(new CheckConsistency(builderRepository)))
-  builderCmd.addCommand(createDefineCustomTypeCommand(new DefineCustomType(builderRepository)))
   builderCmd.addCommand(
-    createDefineRelationshipTypeCommand(new DefineRelationshipType(builderRepository)),
+    createAddComponentCommand({
+      addComponent: new AddComponent(builderRepository),
+      getDefaultGraphPathDescription,
+      toAddComponentInput,
+      formatError,
+      getAddComponentHints,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createAddDomainCommand({
+      addDomain: new AddDomain(builderRepository),
+      getDefaultGraphPathDescription,
+      formatError,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createAddSourceCommand({
+      addSource: new AddSource(builderRepository),
+      getDefaultGraphPathDescription,
+      formatError,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createInitCommand({
+      initGraph: new InitGraph(builderRepository),
+      getDefaultGraphPathDescription,
+      formatError,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createLinkCommand({
+      linkComponents: new LinkComponents(builderRepository),
+      getDefaultGraphPathDescription,
+      parseLinkSourceLocation,
+    }),
+  )
+  builderCmd.addCommand(
+    createLinkExternalCommand({
+      linkExternal: new LinkExternal(builderRepository),
+      getDefaultGraphPathDescription,
+      formatError,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createLinkHttpCommand({
+      linkHttp: new LinkHttp(builderRepository),
+      getDefaultGraphPathDescription,
+      formatError,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createValidateCommand({
+      validateGraph: new ValidateGraph(builderRepository),
+      getDefaultGraphPathDescription,
+      formatError,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createFinalizeCommand({
+      finalizeGraph: new FinalizeGraph(builderRepository),
+      getDefaultGraphPathDescription,
+      formatError,
+      writeFile,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createEnrichCommand({
+      enrichComponent: new EnrichComponent(builderRepository),
+      getDefaultGraphPathDescription,
+      parseStateChanges,
+      formatError,
+      parseSignature,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createComponentSummaryCommand({
+      componentSummary: new ComponentSummary(builderRepository),
+      getDefaultGraphPathDescription,
+      formatError,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createComponentChecklistCommand({
+      componentChecklist: new ComponentChecklist(builderRepository),
+      getDefaultGraphPathDescription,
+      formatError,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createCheckConsistencyCommand({
+      checkConsistency: new CheckConsistency(builderRepository),
+      getDefaultGraphPathDescription,
+      formatError,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createDefineCustomTypeCommand({
+      defineCustomType: new DefineCustomType(builderRepository),
+      getDefaultGraphPathDescription,
+      parsePropertySpecs,
+      formatError,
+      formatSuccess,
+    }),
+  )
+  builderCmd.addCommand(
+    createDefineRelationshipTypeCommand({
+      defineRelationshipType: new DefineRelationshipType(builderRepository),
+      getDefaultGraphPathDescription,
+      formatError,
+      formatSuccess,
+    }),
   )
 
   const queryCmd = program.command('query').description('Commands for querying a graph')
 
-  queryCmd.addCommand(createEntryPointsCommand(new ListEntryPoints(new EntryPointListLoader())))
-  queryCmd.addCommand(createDomainsCommand(new ListDomains(new DomainListLoader())))
-  queryCmd.addCommand(createTraceCommand(new TraceFlow(new FlowTraceLoader())))
-  queryCmd.addCommand(createOrphansCommand(new DetectOrphans(new OrphanListLoader())))
-  queryCmd.addCommand(createComponentsCommand(new ListComponents(new ComponentListLoader())))
-  queryCmd.addCommand(createSearchCommand(new SearchComponents(new ComponentSearchLoader())))
+  queryCmd.addCommand(
+    createEntryPointsCommand({
+      listEntryPoints: new ListEntryPoints(new EntryPointListLoader()),
+      getDefaultGraphPathDescription,
+      formatQueryGraphLoadFailure,
+      formatSuccess,
+    }),
+  )
+  queryCmd.addCommand(
+    createDomainsCommand({
+      listDomains: new ListDomains(new DomainListLoader()),
+      getDefaultGraphPathDescription,
+      formatQueryGraphLoadFailure,
+      formatSuccess,
+    }),
+  )
+  queryCmd.addCommand(
+    createTraceCommand({
+      traceFlow: new TraceFlow(new FlowTraceLoader()),
+      getDefaultGraphPathDescription,
+      formatQueryGraphLoadFailure,
+      formatError,
+      formatSuccess,
+    }),
+  )
+  queryCmd.addCommand(
+    createOrphansCommand({
+      detectOrphans: new DetectOrphans(new OrphanListLoader()),
+      getDefaultGraphPathDescription,
+      formatQueryGraphLoadFailure,
+      formatSuccess,
+    }),
+  )
+  queryCmd.addCommand(
+    createComponentsCommand({
+      listComponents: new ListComponents(new ComponentListLoader()),
+      getDefaultGraphPathDescription,
+      formatError,
+      formatQueryGraphLoadFailure,
+      formatSuccess,
+    }),
+  )
+  queryCmd.addCommand(
+    createSearchCommand({
+      searchComponents: new SearchComponents(new ComponentSearchLoader()),
+      getDefaultGraphPathDescription,
+      formatQueryGraphLoadFailure,
+      formatSuccess,
+    }),
+  )
 
   program.addCommand(
-    createExtractCommand(
-      new ExtractDraftComponents(extractionProjectRepository),
-      new EnrichDraftComponents(extractionProjectRepository),
-    ),
+    createExtractCommand({
+      extractDraftComponents: new ExtractDraftComponents(extractionProjectRepository),
+      enrichDraftComponents: new EnrichDraftComponents(extractionProjectRepository),
+      validateFlagCombinations,
+      createExtractDraftComponentsInput,
+      createEnrichDraftComponentsInput,
+      exitWithCliError,
+      dataAccessCliErrorCode,
+      presentExtractionResult,
+    }),
   )
 
   return program

@@ -13,8 +13,20 @@ interface ComponentsOptions {
   type?: string
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateComponentsCommandEntrypointDependencies {
+  readonly listComponents: ListComponents
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatError: typeof formatError
+  readonly formatQueryGraphLoadFailure: typeof formatQueryGraphLoadFailure
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createComponentsCommand(listComponents: ListComponents): Command {
+export function createComponentsCommand(
+  dependencies: CreateComponentsCommandEntrypointDependencies,
+): Command {
+  const { listComponents } = dependencies
   return new Command('components')
     .description('List components with optional filtering')
     .addHelpText(
@@ -27,7 +39,7 @@ Examples:
   $ riviere query components --domain orders --type UseCase
 `,
     )
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .option('--domain <name>', 'Filter by domain name')
     .option('--type <type>', 'Filter by component type')
@@ -46,8 +58,8 @@ Examples:
         console.log(
           JSON.stringify(
             result.kind === 'invalidComponentType'
-              ? formatError(CliErrorCode.ValidationError, result.message)
-              : formatQueryGraphLoadFailure(result),
+              ? dependencies.formatError(CliErrorCode.ValidationError, result.message)
+              : dependencies.formatQueryGraphLoadFailure(result),
           ),
         )
         return
@@ -56,7 +68,7 @@ Examples:
       const components = result.components.map(toComponentOutput)
 
       if (options.json) {
-        console.log(JSON.stringify(formatSuccess({ components })))
+        console.log(JSON.stringify(dependencies.formatSuccess({ components })))
       }
     })
 }

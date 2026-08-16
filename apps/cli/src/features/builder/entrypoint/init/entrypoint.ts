@@ -20,8 +20,17 @@ interface DomainInputParsed {
   systemType: string
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateInitCommandEntrypointDependencies {
+  readonly initGraph: InitGraph
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createInitCommand(initGraph: InitGraph): Command {
+export function createInitCommand(dependencies: CreateInitCommandEntrypointDependencies): Command {
+  const { initGraph } = dependencies
   return new Command('init')
     .description('Initialize a new graph')
     .addHelpText(
@@ -39,7 +48,7 @@ Examples:
 `,
     )
     .option('--name <name>', 'System name')
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .option('--source <url>', 'Source repository URL (repeatable)', collectOption, [])
     .option('--domain <json>', 'Domain as JSON (repeatable)', parseDomainJson, [])
@@ -48,7 +57,7 @@ Examples:
       if (options.source.length === 0) {
         console.log(
           JSON.stringify(
-            formatError(CliErrorCode.ValidationError, 'At least one source required', [
+            dependencies.formatError(CliErrorCode.ValidationError, 'At least one source required', [
               'Add --source <url> flag',
             ]),
           ),
@@ -59,7 +68,7 @@ Examples:
       if (options.domain.length === 0) {
         console.log(
           JSON.stringify(
-            formatError(CliErrorCode.ValidationError, 'At least one domain required', [
+            dependencies.formatError(CliErrorCode.ValidationError, 'At least one domain required', [
               'Add --domain <json> flag',
             ]),
           ),
@@ -84,8 +93,8 @@ Examples:
         console.log(
           JSON.stringify(
             result.code === 'VALIDATION_ERROR'
-              ? formatError(CliErrorCode.ValidationError, result.message)
-              : formatError(CliErrorCode.GraphExists, result.message, [
+              ? dependencies.formatError(CliErrorCode.ValidationError, result.message)
+              : dependencies.formatError(CliErrorCode.GraphExists, result.message, [
                   'Delete the file to reinitialize',
                 ]),
           ),
@@ -96,7 +105,7 @@ Examples:
       if (options.json === true) {
         console.log(
           JSON.stringify(
-            formatSuccess({
+            dependencies.formatSuccess({
               domains: result.domains,
               path: result.path,
               sources: result.sources,

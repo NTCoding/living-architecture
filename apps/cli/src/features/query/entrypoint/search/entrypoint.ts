@@ -10,8 +10,19 @@ interface SearchOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateSearchCommandEntrypointDependencies {
+  readonly searchComponents: SearchComponents
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatQueryGraphLoadFailure: typeof formatQueryGraphLoadFailure
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createSearchCommand(searchComponents: SearchComponents): Command {
+export function createSearchCommand(
+  dependencies: CreateSearchCommandEntrypointDependencies,
+): Command {
+  const { searchComponents } = dependencies
   return new Command('search')
     .description('Search components by name')
     .addHelpText(
@@ -23,7 +34,7 @@ Examples:
 `,
     )
     .argument('<term>', 'Search term')
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (term: string, options: SearchOptions) => {
       const result = searchComponents.execute({
@@ -32,14 +43,14 @@ Examples:
       })
 
       if ('kind' in result) {
-        console.log(JSON.stringify(formatQueryGraphLoadFailure(result)))
+        console.log(JSON.stringify(dependencies.formatQueryGraphLoadFailure(result)))
         return
       }
 
       const components = result.components.map(toComponentOutput)
 
       if (options.json) {
-        console.log(JSON.stringify(formatSuccess({ components })))
+        console.log(JSON.stringify(dependencies.formatSuccess({ components })))
       }
     })
 }

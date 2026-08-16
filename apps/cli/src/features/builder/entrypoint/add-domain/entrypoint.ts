@@ -12,8 +12,19 @@ interface AddDomainOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateAddDomainCommandEntrypointDependencies {
+  readonly addDomain: AddDomain
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createAddDomainCommand(addDomain: AddDomain): Command {
+export function createAddDomainCommand(
+  dependencies: CreateAddDomainCommandEntrypointDependencies,
+): Command {
+  const { addDomain } = dependencies
   return new Command('add-domain')
     .description('Add a domain to the graph')
     .addHelpText(
@@ -33,7 +44,7 @@ Examples:
       '--system-type <type>',
       'System type (domain, bff, ui, external-service, other)',
     )
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: AddDomainOptions) => {
       const result = addDomain.execute({
@@ -55,12 +66,14 @@ Examples:
           suggestions.push('Use a different domain name')
         }
 
-        console.log(JSON.stringify(formatError(errorCode, result.message, suggestions)))
+        console.log(
+          JSON.stringify(dependencies.formatError(errorCode, result.message, suggestions)),
+        )
         return
       }
 
       if (options.json === true) {
-        console.log(JSON.stringify(formatSuccess(result)))
+        console.log(JSON.stringify(dependencies.formatSuccess(result)))
       }
     })
 }

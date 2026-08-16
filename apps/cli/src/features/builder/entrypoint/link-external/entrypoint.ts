@@ -14,8 +14,19 @@ interface LinkExternalOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateLinkExternalCommandEntrypointDependencies {
+  readonly linkExternal: LinkExternal
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createLinkExternalCommand(linkExternal: LinkExternal): Command {
+export function createLinkExternalCommand(
+  dependencies: CreateLinkExternalCommandEntrypointDependencies,
+): Command {
+  const { linkExternal } = dependencies
   return new Command('link-external')
     .description('Link a component to an external system')
     .addHelpText(
@@ -40,7 +51,7 @@ Examples:
     .option('--target-domain <domain>', 'External target domain')
     .option('--target-url <url>', 'External target URL')
     .option('--link-type <type>', 'Link type (sync, async)')
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: LinkExternalOptions) => {
       const result = linkExternal.execute({
@@ -60,12 +71,16 @@ Examples:
         } as const
         const errorCode = errorCodeByResult[result.code]
 
-        console.log(JSON.stringify(formatError(errorCode, result.message, result.suggestions)))
+        console.log(
+          JSON.stringify(dependencies.formatError(errorCode, result.message, result.suggestions)),
+        )
         return
       }
 
       if (options.json) {
-        console.log(JSON.stringify(formatSuccess({ externalLink: result.externalLink })))
+        console.log(
+          JSON.stringify(dependencies.formatSuccess({ externalLink: result.externalLink })),
+        )
       }
     })
 }

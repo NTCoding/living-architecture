@@ -16,8 +16,19 @@ interface LinkHttpOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateLinkHttpCommandEntrypointDependencies {
+  readonly linkHttp: LinkHttp
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createLinkHttpCommand(linkHttp: LinkHttp): Command {
+export function createLinkHttpCommand(
+  dependencies: CreateLinkHttpCommandEntrypointDependencies,
+): Command {
+  const { linkHttp } = dependencies
   return new Command('link-http')
     .description('Find an API by HTTP path and link to a target component')
     .addHelpText(
@@ -41,7 +52,7 @@ Examples:
     .requiredOption('--to-name <name>', 'Target component name')
     .option('--method <method>', 'Filter by HTTP method (GET, POST, PUT, PATCH, DELETE)')
     .option('--link-type <type>', 'Link type (sync, async)')
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: LinkHttpOptions) => {
       const result = linkHttp.execute({
@@ -64,12 +75,14 @@ Examples:
         } as const
         const errorCode = errorCodeByResult[result.code]
 
-        console.log(JSON.stringify(formatError(errorCode, result.message, result.suggestions)))
+        console.log(
+          JSON.stringify(dependencies.formatError(errorCode, result.message, result.suggestions)),
+        )
         return
       }
 
       if (options.json) {
-        console.log(JSON.stringify(formatSuccess(result)))
+        console.log(JSON.stringify(dependencies.formatSuccess(result)))
       }
     })
 }

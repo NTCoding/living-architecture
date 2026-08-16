@@ -9,8 +9,19 @@ interface ValidateOptions {
   json?: boolean
 }
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface CreateValidateCommandEntrypointDependencies {
+  readonly validateGraph: ValidateGraph
+  readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
+  readonly formatError: typeof formatError
+  readonly formatSuccess: typeof formatSuccess
+}
+
 /** @riviere-role cli-entrypoint */
-export function createValidateCommand(validateGraph: ValidateGraph): Command {
+export function createValidateCommand(
+  dependencies: CreateValidateCommandEntrypointDependencies,
+): Command {
+  const { validateGraph } = dependencies
   return new Command('validate')
     .description('Validate the graph for errors and warnings')
     .addHelpText(
@@ -22,14 +33,14 @@ Examples:
   $ riviere builder validate --graph .riviere/my-graph.json
 `,
     )
-    .option('--graph <path>', getDefaultGraphPathDescription())
+    .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: ValidateOptions) => {
       const result = validateGraph.execute({ graphPathOption: options.graph })
       if (!result.success) {
         console.log(
           JSON.stringify(
-            formatError(
+            dependencies.formatError(
               result.code === 'GRAPH_NOT_FOUND'
                 ? CliErrorCode.GraphNotFound
                 : CliErrorCode.GraphCorrupted,
@@ -44,7 +55,7 @@ Examples:
       if (options.json === true) {
         console.log(
           JSON.stringify(
-            formatSuccess({
+            dependencies.formatSuccess({
               errors: result.errors,
               valid: result.valid,
               warnings: result.warnings,

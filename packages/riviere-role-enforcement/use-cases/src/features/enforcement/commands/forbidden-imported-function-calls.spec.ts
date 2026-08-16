@@ -20,6 +20,15 @@ const testRoles = [
     targets: ['function'],
     forbiddenImportedFunctionCalls: true,
   }),
+  role('cli-entrypoint', {
+    targets: ['function'],
+    allowedInputs: ['cli-entrypoint-dependencies'],
+    forbiddenImportedFunctionCalls: true,
+  }),
+  role('cli-entrypoint-dependencies', {
+    targets: ['interface'],
+    nameMatches: '.*EntrypointDependencies$',
+  }),
 ] as const
 
 type TestRoleName = (typeof testRoles)[number]['name']
@@ -31,6 +40,8 @@ const testConfig = roleEnforcementConfiguration({
         location<TestRoleName>('/entrypoint', [
           'command-input-factory',
           'entrypoint-cli-input-parser',
+          'cli-entrypoint',
+          'cli-entrypoint-dependencies',
         ]),
       ),
     },
@@ -95,6 +106,30 @@ export function parseInput(): string {
     expect(result.exitCode).toBe(1)
     expect(result.stdout).toContain('forbids direct invocation of imported function')
     expect(result.stdout).toContain('entrypoint-cli-input-parser')
+  })
+})
+
+it('rejects direct invocation of a statically imported function from a CLI entrypoint', () => {
+  withFixtureWorkspace((workspaceDir) => {
+    writeInputFactory(
+      workspaceDir,
+      `import { execute } from 'external-client'
+
+/** @riviere-role cli-entrypoint-dependencies */
+interface ExampleEntrypointDependencies {}
+
+/** @riviere-role cli-entrypoint */
+export function createCommand(dependencies: ExampleEntrypointDependencies): string {
+  return execute(dependencies)
+}
+`,
+    )
+
+    const result = runTestRoleEnforcement(testConfig, workspaceDir)
+
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain('forbids direct invocation of imported function')
+    expect(result.stdout).toContain('cli-entrypoint')
   })
 })
 
