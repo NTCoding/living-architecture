@@ -28,7 +28,6 @@
     "noImplicitReturns": true,
     "useUnknownInCatchVariables": true,
 
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }

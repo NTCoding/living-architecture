@@ -21,7 +21,7 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^2.0.0",
-    "typescript": "^5.6.0",
+    "typescript": "npm:typescript@^7.0.2",
     "vitest": "^2.0.0"
   }
 }
