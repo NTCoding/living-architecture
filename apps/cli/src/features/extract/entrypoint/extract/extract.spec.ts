@@ -307,6 +307,89 @@ modules:
     })
   })
 
+  describe('input validation errors', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it('returns validation error when an explicit source file is missing', async () => {
+      await expect(
+        parseCommandWithErrorHandling([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          'extract.yaml',
+          '--files',
+          'missing.ts',
+        ]),
+      ).rejects.toMatchObject({ exitCode: 2 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.code).toBe(CliErrorCode.ValidationError)
+      expect(output.error.message).toContain('missing.ts')
+    })
+
+    it('returns validation error when the enrich file cannot be read', async () => {
+      await expect(
+        parseCommandWithErrorHandling([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          'extract.yaml',
+          '--enrich',
+          'missing.json',
+        ]),
+      ).rejects.toMatchObject({ exitCode: 2 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.code).toBe(CliErrorCode.ValidationError)
+      expect(output.error.message).toContain('missing.json')
+    })
+
+    it('returns validation error when the enrich file contains invalid JSON', async () => {
+      const enrichPath = join(ctx.testDir, 'invalid.json')
+      await writeFile(enrichPath, '{')
+
+      await expect(
+        parseCommandWithErrorHandling([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          'extract.yaml',
+          '--enrich',
+          enrichPath,
+        ]),
+      ).rejects.toMatchObject({ exitCode: 2 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.code).toBe(CliErrorCode.ValidationError)
+      expect(output.error.message).toContain('invalid.json')
+    })
+
+    it('returns validation error when the enrich file root is not an array', async () => {
+      const enrichPath = join(ctx.testDir, 'invalid-root.json')
+      await writeFile(enrichPath, '{}')
+
+      await expect(
+        parseCommandWithErrorHandling([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          'extract.yaml',
+          '--enrich',
+          enrichPath,
+        ]),
+      ).rejects.toMatchObject({ exitCode: 2 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.code).toBe(CliErrorCode.ValidationError)
+      expect(output.error.message).toContain('invalid-root.json')
+    })
+  })
+
   describe('output file flag', () => {
     const ctx: TestContext = createTestContext()
     setupCommandTest(ctx)

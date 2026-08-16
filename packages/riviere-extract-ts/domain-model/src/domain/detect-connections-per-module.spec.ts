@@ -71,6 +71,7 @@ function createRiviereProject(
   moduleName: string,
   connections?: ConnectionsConfig,
   modules?: string,
+  files?: string[],
 ): RiviereProject {
   const configurationResult = ValidatedConfiguration.parse({
     ...(connections === undefined ? {} : { connections }),
@@ -109,7 +110,7 @@ function createRiviereProject(
     moduleContexts: [
       {
         module,
-        files: [modules === undefined ? 'test.ts' : 'src/checkout/test.ts'],
+        files: files ?? [modules === undefined ? 'test.ts' : 'src/checkout/test.ts'],
         project: new Project(),
       },
     ],
@@ -308,7 +309,10 @@ describe('RiviereProject.extractDraftComponents', () => {
 
   it('extracts only the selected source files', () => {
     mockExtractComponents.mockReturnValue([])
-    const project = createRiviereProject('orders')
+    const project = createRiviereProject('orders', undefined, undefined, [
+      'src/orders/selected.ts',
+      'src/orders/ignored.ts',
+    ])
 
     project.extractDraftComponents({
       sourceFileSelection: { kind: 'files', filePaths: ['src/orders/selected.ts'] },
@@ -318,7 +322,7 @@ describe('RiviereProject.extractDraftComponents', () => {
 
     expect(mockExtractComponents).toHaveBeenCalledWith(
       expect.any(Project),
-      [],
+      ['src/orders/selected.ts'],
       expect.objectContaining({ name: 'orders' }),
     )
   })
