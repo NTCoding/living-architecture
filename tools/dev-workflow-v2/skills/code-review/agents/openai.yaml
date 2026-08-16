@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Review"
+  short_description: "Run the required workflow review bundle."
+  default_prompt: "Use $dev-workflow-v2:code-review to run and record the required reviews."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "List Review Threads"
+  short_description: "List unresolved workflow PR review threads."
+  default_prompt: "Use $dev-workflow-v2:list-review-threads to list unresolved review threads."
