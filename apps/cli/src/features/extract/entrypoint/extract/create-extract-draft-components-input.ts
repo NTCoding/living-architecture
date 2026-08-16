@@ -85,7 +85,8 @@ function detectBaseBranch(projectRoot: string): string {
 
 function runGit(projectRoot: string, args: string[]): string {
   try {
-    return execFileSync('git', args, {
+    const gitExecutable = process.env.GIT_EXECUTABLE ?? 'git'
+    return execFileSync(gitExecutable, args, {
       cwd: projectRoot,
       env: Object.fromEntries(
         Object.entries({ ...process.env, PATH: '/usr/bin:/bin' }).filter(

@@ -12,7 +12,7 @@ class InvalidDraftComponentsFileError extends Error {
 function loadDraftComponents(filePath: string): unknown[] {
   const parsed = (() => {
     try {
-      return JSON.parse(readFileSync(filePath, 'utf8')) as unknown
+      return JSON.parse(readFileSync(filePath, 'utf8'))
     } catch {
       throw new InvalidDraftComponentsFileError(`Unable to read draft components: ${filePath}`)
     }

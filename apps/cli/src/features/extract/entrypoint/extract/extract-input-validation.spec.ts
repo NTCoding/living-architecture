@@ -26,13 +26,9 @@ describe('riviere extract input validation', () => {
     expect(output.error.message).toContain('missing.ts')
   })
 
-  it.each([
-    ['missing.json', undefined],
-    ['invalid.json', '{'],
-    ['invalid-root.json', '{}'],
-  ])('returns validation error for enrich input %s', async (fileName, content) => {
+  async function expectInvalidEnrichInput(fileName: string, content: string): Promise<void> {
     const enrichPath = join(ctx.testDir, fileName)
-    if (content !== undefined) await writeFile(enrichPath, content)
+    await writeFile(enrichPath, content)
 
     await expect(
       parseCommandWithErrorHandling([
@@ -43,5 +39,27 @@ describe('riviere extract input validation', () => {
     const output = parseErrorOutput(ctx.consoleOutput)
     expect(output.error.code).toBe(CliErrorCode.ValidationError)
     expect(output.error.message).toContain(fileName)
+  }
+
+  it('returns validation error when the enrich file is missing', async () => {
+    const enrichPath = join(ctx.testDir, 'missing.json')
+
+    await expect(
+      parseCommandWithErrorHandling([
+        'node', 'riviere', 'extract', '--config', 'extract.yaml', '--enrich', enrichPath,
+      ]),
+    ).rejects.toMatchObject({ exitCode: 2 })
+
+    const output = parseErrorOutput(ctx.consoleOutput)
+    expect(output.error.code).toBe(CliErrorCode.ValidationError)
+    expect(output.error.message).toContain('missing.json')
+  })
+
+  it('returns validation error when the enrich file contains invalid JSON', async () => {
+    await expectInvalidEnrichInput('invalid.json', '{')
+  })
+
+  it('returns validation error when the enrich file root is invalid', async () => {
+    await expectInvalidEnrichInput('invalid-root.json', '{}')
   })
 })
