@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest'
+import { execFileSync } from 'node:child_process'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { detectChangedTypeScriptFiles, GitError } from './git-changed-files'
 
@@ -54,8 +57,28 @@ function attachedHeadResponses(
 }
 
 const WORK_DIR = '/fake/project'
+const GIT_EXECUTABLE = process.env['GIT_EXECUTABLE'] ?? '/usr/bin/git'
 
 describe('detectChangedTypeScriptFiles', () => {
+  it('uses the default Git executor with a controlled repository', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'changed-files-test-'))
+    try {
+      execFileSync(GIT_EXECUTABLE, ['init', '--initial-branch=main'], { cwd: directory })
+      execFileSync(GIT_EXECUTABLE, ['config', 'user.email', 'test@example.com'], { cwd: directory })
+      execFileSync(GIT_EXECUTABLE, ['config', 'user.name', 'Test'], { cwd: directory })
+      writeFileSync(join(directory, 'changed.ts'), 'export const changed = true')
+      execFileSync(GIT_EXECUTABLE, ['add', 'changed.ts'], { cwd: directory })
+      execFileSync(GIT_EXECUTABLE, ['commit', '-m', 'initial'], { cwd: directory })
+      writeFileSync(join(directory, 'changed.ts'), 'export const changed = false')
+
+      expect(detectChangedTypeScriptFiles(directory, { base: 'HEAD~1' }).files).toStrictEqual([
+        join(directory, 'changed.ts'),
+      ])
+    } finally {
+      rmSync(directory, { recursive: true })
+    }
+  })
+
   it('handles a base revision through the injected Git executor', () => {
     const executor = createMockExecutor({
       ...attachedHeadResponses('HEAD~1'),

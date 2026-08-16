@@ -238,11 +238,10 @@ export class RiviereProjectRepository {
     useTsConfig: boolean,
     projectRoot: string,
   ): RiviereProject {
-    const moduleSources = this.createModuleSources(
-      parsedConfigState.configDir,
-      parsedConfigState.configuration,
-      sourceFilesByModule,
-      useTsConfig,
+      const moduleSources = this.createModuleSources(
+        parsedConfigState.configDir,
+        sourceFilesByModule,
+        useTsConfig,
     )
     const repositoryName = getRepositoryInfo('git', projectRoot).name
     const stage = ExtractionStage.parse({
@@ -291,7 +290,6 @@ export class RiviereProjectRepository {
 
   private createModuleSources(
     configDir: string,
-    configuration: ValidatedConfiguration,
     sourceFilesByModule: ReadonlyMap<ValidatedModule, string[]>,
     useTsConfig: boolean,
   ) {
@@ -299,8 +297,7 @@ export class RiviereProjectRepository {
       ValidatedModule,
       { files: string[]; project: ReturnType<typeof createConfiguredProject> }
     >()
-    for (const module of configuration.modules) {
-      const moduleFiles = sourceFilesByModule.get(module) ?? []
+    for (const [module, moduleFiles] of sourceFilesByModule) {
       const moduleConfigDir = findModuleTsConfigDir(configDir, module.path)
       const project = createConfiguredProject(moduleConfigDir, !useTsConfig)
       project.addSourceFilesAtPaths(moduleFiles)
