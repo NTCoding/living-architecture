@@ -133,7 +133,7 @@ describe('workflow-cli hooks', () => {
     expect(result.exitCode).toStrictEqual(0)
   })
 
-  it('allows Write with missing file_path (empty string passed to predicate)', () => {
+  it('rejects Write with missing file_path', () => {
     const ctx = setup()
     runCommand(ctx, ['init'])
 
@@ -146,8 +146,7 @@ describe('workflow-cli hooks', () => {
       tool_input: {},
       tool_use_id: 'tu-write-no-path',
     })
-    const result = runHook(ctx, stdinJson)
-    expect(result.exitCode).toStrictEqual(0)
+    expect(() => runHook(ctx, stdinJson)).toThrow('String must contain at least 1 character')
   })
 
   it('throws when Write file_path is non-string type', () => {
@@ -166,7 +165,7 @@ describe('workflow-cli hooks', () => {
     expect(() => runHook(ctx, stdinJson)).toThrow('Expected string or undefined in tool_input')
   })
 
-  it('allows Bash with missing command (empty string passed to check)', () => {
+  it('rejects Bash with missing command', () => {
     const ctx = setup()
     runCommand(ctx, ['init'])
 
@@ -179,8 +178,7 @@ describe('workflow-cli hooks', () => {
       tool_input: {},
       tool_use_id: 'tu-missing-cmd',
     })
-    const result = runHook(ctx, stdinJson)
-    expect(result.exitCode).toStrictEqual(0)
+    expect(() => runHook(ctx, stdinJson)).toThrow('String must contain at least 1 character')
   })
 
   it('throws when Bash command is non-string type', () => {

@@ -15,12 +15,11 @@ import { createWorkflowRoutes } from '../entrypoint'
 import { STATE_STEPS } from './workflow-cli-state-steps-test-fixtures'
 
 const workflowConfiguration = configureWorkflow({})
-const workflowDefinition = workflowConfiguration
-type WorkflowDeps = Parameters<typeof workflowDefinition.buildWorkflow>[1]
+type WorkflowDeps = Parameters<typeof workflowConfiguration.buildWorkflow>[1]
 
 const runner = createWorkflowRunner({
-  workflowDefinition,
-  routes: createWorkflowRoutes(workflowDefinition.stateSchema),
+  workflowDefinition: workflowConfiguration,
+  routes: createWorkflowRoutes(workflowConfiguration.stateSchema),
   bashForbidden: {
     commands: ['git push', 'gh pr'],
     flags: ['--no-verify', '--force', '--hard'],
@@ -33,11 +32,13 @@ export type TestContext = {
   readonly workflowDeps: WorkflowDeps
   readonly dbPath: string
   readonly sessionId: string
+  readonly transcriptPath: string
 }
 
 export function buildTestContext(
   overrides: Partial<{
     readonly sessionId: string
+    readonly transcriptPath: string
     readonly getPrFeedback: WorkflowDeps['getPrFeedback']
     readonly createPullRequest: WorkflowDeps['createPullRequest']
   }> = {},
@@ -45,7 +46,8 @@ export function buildTestContext(
   const tempDir = mkdtempSync(join(tmpdir(), 'wf-cli-'))
   const dbPath = join(tempDir, 'test.db')
   const store = createStore(dbPath)
-  const sessionId = overrides.sessionId ?? 'test-sess'
+  const sessionId = overrides.sessionId ?? 'test-sess',
+    transcriptPath = overrides.transcriptPath ?? '/transcripts/test-session.jsonl'
 
   const engineDeps: WorkflowEngineDeps = {
     store,
@@ -90,11 +92,16 @@ export function buildTestContext(
     workflowDeps,
     dbPath,
     sessionId,
+    transcriptPath,
   }
 }
 
 export function runCommand(ctx: TestContext, args: readonly string[]): RunnerResult {
-  return runner(args, ctx.engineDeps, ctx.workflowDeps, { getSessionId: () => ctx.sessionId })
+  return runner(args, ctx.engineDeps, ctx.workflowDeps, {
+    getSessionId: () => ctx.sessionId,
+    getSessionTranscriptPath: () => ctx.transcriptPath,
+    getSessionRepository: () => '/repository',
+  })
 }
 
 export function runReviewCommandWithJson(
@@ -137,8 +144,8 @@ export function progressToState(ctx: TestContext, targetState: string): void {
           "Expected record-review test step shape ['record-review', <reviewType>].",
         )
       }
-      const reviewType = step[1]
-      const verdict = step[2]
+      const reviewType = step[1],
+        verdict = step[2]
       if (verdict !== 'PASS' && verdict !== 'FAIL') {
         throw new WorkflowStateError(
           "Expected record-review test step shape ['record-review', <reviewType>, <PASS|FAIL>].",
@@ -151,7 +158,6 @@ export function progressToState(ctx: TestContext, targetState: string): void {
       })
       continue
     }
-
     runCommand(ctx, step)
   }
 }

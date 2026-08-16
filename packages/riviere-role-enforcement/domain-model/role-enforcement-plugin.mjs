@@ -124,6 +124,7 @@ export default {
               return
             }
             validateForbiddenDependencies()
+            validateForbiddenImportedFunctionCalls()
             validateForbiddenMethodCalls()
           },
         }
@@ -544,6 +545,70 @@ export default {
           }
         }
 
+        function validateForbiddenImportedFunctionCalls() {
+          if (!fileRoles.some((roleName) => roleMap.get(roleName)?.forbiddenImportedFunctionCalls)) {
+            return
+          }
+
+          const importedFunctionBindings = new Set()
+          for (const statement of sourceCode.ast.body) {
+            if (statement.type !== 'ImportDeclaration' || statement.importKind === 'type') {
+              continue
+            }
+            for (const specifier of statement.specifiers ?? []) {
+              if (
+                specifier.type === 'ImportSpecifier' &&
+                specifier.importKind !== 'type'
+              ) {
+                importedFunctionBindings.add(specifier.local.name)
+              }
+            }
+          }
+
+          if (importedFunctionBindings.size === 0) {
+            return
+          }
+
+          const nonImportBody = sourceCode.ast.body.filter(
+            (node) => node.type !== 'ImportDeclaration',
+          )
+          for (const node of nonImportBody) {
+            walkForImportedFunctionCalls(node, importedFunctionBindings)
+          }
+        }
+
+        function walkForImportedFunctionCalls(node, importedFunctionBindings) {
+          if (node === null || node === undefined || typeof node !== 'object') {
+            return
+          }
+
+          if (
+            node.type === 'CallExpression' &&
+            node.callee.type === 'Identifier' &&
+            importedFunctionBindings.has(node.callee.name)
+          ) {
+            report(
+              node,
+              `Role '${fileRoles.join(', ')}' forbids direct invocation of imported function '${node.callee.name}'. Pass the dependency through a constructor or parameter. Read '${options.roleDefinitionsDir}/index.md' and the relevant role definitions before changing the code. Classify the responsibility first; do not choose a role only to make a dependency pass.`,
+            )
+            return
+          }
+
+          for (const key of Object.keys(node)) {
+            if (key === 'parent') {
+              continue
+            }
+            const child = node[key]
+            if (Array.isArray(child)) {
+              for (const item of child) {
+                walkForImportedFunctionCalls(item, importedFunctionBindings)
+              }
+            } else if (child !== null && typeof child === 'object' && child.type !== undefined) {
+              walkForImportedFunctionCalls(child, importedFunctionBindings)
+            }
+          }
+        }
+
         function walkForNonConstructionUsages(node, restrictedBindings, insideNew) {
           if (node === null || node === undefined || typeof node !== 'object') {
             return
@@ -620,7 +685,7 @@ export default {
               }
               report(
                 statement,
-                `Forbidden dependency: this file (${forbiddenByRoles.join(', ')}) cannot import from a file exporting '${importedRole}'. ${referenceForKnownRole(options, importedRole)}`,
+                `Forbidden dependency: this file (${forbiddenByRoles.join(', ')}) cannot import from a file exporting '${importedRole}'. ${referenceForKnownRole(options, importedRole)} Read '${options.roleDefinitionsDir}/index.md' and the relevant role definitions before changing the code. Classify the responsibility first; do not choose a role only to make a dependency pass.`,
               )
             }
           }

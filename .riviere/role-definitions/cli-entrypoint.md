@@ -37,6 +37,7 @@ export function createExtractCommand(): Command {
 ### Mixed Responsibility Signals
 - If the entrypoint constructs complex objects or does validation beyond basic CLI parsing — factory or command logic leaking in
 - If the entrypoint calls multiple command use cases in sequence — composition should be in a single command or separate CLI commands
+- If the entrypoint imports another cli-entrypoint — the imported declaration is a helper, not an entrypoint. Classify it by its responsibility before implementing it.
 - If the entrypoint directly accesses repositories or datastores — command-use-case responsibility leaking in
 
 ## Decision Guidance

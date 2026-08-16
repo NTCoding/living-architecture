@@ -140,6 +140,19 @@ describe('role', () => {
       forbiddenMethodCalls: ['command-use-case', 'aggregate-repository'],
     })
   })
+
+  it('includes forbiddenImportedFunctionCalls when provided', () => {
+    const result = role('command-input-factory', {
+      targets: ['function'],
+      forbiddenImportedFunctionCalls: true,
+    })
+
+    expectBuiltRole(result, {
+      name: 'command-input-factory',
+      targets: ['function'],
+      forbiddenImportedFunctionCalls: true,
+    })
+  })
 })
 
 describe('roleEnforcementConfiguration', () => {

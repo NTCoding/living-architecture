@@ -1,7 +1,10 @@
 import { role } from '@living-architecture/riviere-role-enforcement-domain-model'
 
 export const allRoles = [
-  role('cli-entrypoint', { targets: ['function'] }),
+  role('cli-entrypoint', {
+    targets: ['function'],
+    forbiddenDependencies: ['cli-entrypoint'],
+  }),
   role('command-use-case', {
     targets: ['class', 'function'],
     allowedInputs: ['command-use-case-input'],
@@ -28,6 +31,7 @@ export const allRoles = [
   role('command-input-factory', {
     targets: ['function'],
     allowedOutputs: ['command-use-case-input'],
+    forbiddenImportedFunctionCalls: true,
   }),
   role('external-client-service', { targets: ['function'] }),
   role('aggregate-repository', {
@@ -97,7 +101,10 @@ export const allRoles = [
   }),
   role('external-client-model', { targets: ['interface', 'type-alias', 'class'] }),
   role('external-client-error', { targets: ['class'] }),
-  role('entrypoint-cli-input-parser', { targets: ['function'] }),
+  role('entrypoint-cli-input-parser', {
+    targets: ['function'],
+    forbiddenImportedFunctionCalls: true,
+  }),
   role('cli-error', { targets: ['class'] }),
   role('main', {
     targets: ['function'],

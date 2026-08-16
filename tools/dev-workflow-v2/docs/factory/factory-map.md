@@ -212,6 +212,7 @@ Mechanism examples:
 
 - A role can limit which declaration kinds may carry that role.
 - A role can constrain public method count on classes that carry that role.
+- A role can forbid direct invocation of statically imported functions so external dependencies must be supplied through constructors or parameters.
 - A role can require structural markers on a class, such as a private brand field, so anonymous adapter objects cannot masquerade as domain concepts. Configure `requiredPrivateMembers` with bare names; a leading `#` is normalized.
 - A location can limit which roles may appear under a folder pattern.
 - A role dependency rule can reject one role importing or calling another role.
