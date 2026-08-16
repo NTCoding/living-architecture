@@ -4,7 +4,6 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
-import * as publishedLanguage from '@living-architecture/riviere-extract-config-published-language'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { RiviereProjectRepository } from './riviere-project-repository'
 
@@ -149,23 +148,17 @@ describe('RiviereProjectRepository validation', () => {
 
   it('rejects an extended configuration that resolves without a module', () => {
     withWorkspace((directory) => {
-      const extendedPath = join(directory, 'extended.yml')
-      writeFileSync(extendedPath, 'modules:\n  - name: base\n')
-      const repository = new RiviereProjectRepository()
-      vi.spyOn(publishedLanguage, 'parseExtractionConfig').mockReturnValueOnce({
+      writeFileSync(join(directory, 'extended.yml'), VALID_CONFIG)
+      writeExtendsConfig(directory, './extended.yml')
+      const emptyConfiguration = Object.create(ValidatedConfiguration.prototype)
+      Object.defineProperty(emptyConfiguration, 'modules', { value: [] })
+      const parse = vi.spyOn(ValidatedConfiguration, 'parse').mockReturnValueOnce({
         success: true,
-        configuration: { modules: [{}] },
-      } as never)
-      vi.spyOn(ValidatedConfiguration, 'parse').mockReturnValueOnce({
-        success: true,
-        data: { modules: [] },
-      } as never)
+        data: emptyConfiguration,
+      })
 
-      expect(() =>
-        (repository as unknown as {
-          loadExtendedModule: (source: string, configDir: string) => unknown
-        }).loadExtendedModule(extendedPath, directory),
-      ).toThrow(/Config has no resolved modules/)
+      expect(() => load(directory)).toThrow(/Config has no resolved modules/)
+      parse.mockRestore()
     })
   })
 })
