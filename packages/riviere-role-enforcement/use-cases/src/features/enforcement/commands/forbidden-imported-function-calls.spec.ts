@@ -16,6 +16,10 @@ const testRoles = [
     targets: ['function'],
     forbiddenImportedFunctionCalls: true,
   }),
+  role('entrypoint-cli-input-parser', {
+    targets: ['function'],
+    forbiddenImportedFunctionCalls: true,
+  }),
 ] as const
 
 type TestRoleName = (typeof testRoles)[number]['name']
@@ -24,7 +28,10 @@ const testConfig = roleEnforcementConfiguration({
   configurations: {
     'packages/pkg-a': {
       locations: locationConfiguration(
-        location<TestRoleName>('/entrypoint', ['command-input-factory']),
+        location<TestRoleName>('/entrypoint', [
+          'command-input-factory',
+          'entrypoint-cli-input-parser',
+        ]),
       ),
     },
   },
@@ -66,6 +73,28 @@ export function createInput(): string {
     expect(result.exitCode).toBe(1)
     expect(result.stdout).toContain('forbids direct invocation of imported function')
     expect(result.stdout).toContain('execute')
+    expect(result.stdout).toContain('Classify the responsibility first')
+  })
+})
+
+it('rejects direct invocation of a statically imported function from a CLI input parser', () => {
+  withFixtureWorkspace((workspaceDir) => {
+    writeInputFactory(
+      workspaceDir,
+      `import { execute } from 'external-client'
+
+/** @riviere-role entrypoint-cli-input-parser */
+export function parseInput(): string {
+  return execute()
+}
+`,
+    )
+
+    const result = runTestRoleEnforcement(testConfig, workspaceDir)
+
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain('forbids direct invocation of imported function')
+    expect(result.stdout).toContain('entrypoint-cli-input-parser')
   })
 })
 
