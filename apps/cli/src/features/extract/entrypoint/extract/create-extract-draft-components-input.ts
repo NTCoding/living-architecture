@@ -89,7 +89,7 @@ function runGit(projectRoot: string, args: string[]): string {
     return execFileSync(gitExecutable, args, {
       cwd: projectRoot,
       env: Object.fromEntries(
-        Object.entries({ ...process.env, PATH: '/usr/bin:/bin' }).filter(
+        Object.entries(process.env).filter(
           ([name]) => !name.startsWith('GIT_'),
         ),
       ),

@@ -56,10 +56,14 @@ function attachedHeadResponses(
 const WORK_DIR = '/fake/project'
 
 describe('detectChangedTypeScriptFiles', () => {
-  it('uses the real Git executor for the current repository', () => {
-    expect(() =>
-      detectChangedTypeScriptFiles(process.cwd(), { base: 'HEAD~1' }),
-    ).not.toThrow()
+  it('handles a base revision through the injected Git executor', () => {
+    const executor = createMockExecutor({
+      ...attachedHeadResponses('HEAD~1'),
+      'diff --name-only HEAD~1...HEAD': 'src/changed.ts\nREADME.md',
+    })
+    expect(detectChangedTypeScriptFiles(WORK_DIR, { base: 'HEAD~1' }, executor)).toEqual([
+      'src/changed.ts',
+    ])
   })
 
   describe('not a git repository', () => {

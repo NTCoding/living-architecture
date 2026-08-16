@@ -24,7 +24,7 @@ export class ExtractDraftComponents {
 
   execute(input: ExtractDraftComponentsInput): ExtractDraftComponentsResult {
     const project = this.repository.load({
-      projectRoot: input.projectRoot,
+      projectRoot: input.projectRoot ?? process.cwd(),
       configPath: input.configPath,
       useTsConfig: input.useTsConfig,
     })

@@ -42,11 +42,11 @@ export class RiviereProjectRepository {
     return this.translateDataAccessErrors(() => {
       const configPath = resolve(params.projectRoot, params.configPath)
       const parsedConfigState = this.loadParsedConfigState(configPath)
-      const sourceFilePaths = this.resolveSourceFilePaths(parsedConfigState)
+      const sourceFilesByModule = this.resolveSourceFilePaths(parsedConfigState)
       return this.createRiviereProject(
         configPath,
         parsedConfigState,
-        sourceFilePaths,
+        sourceFilesByModule,
         params.useTsConfig,
         params.projectRoot,
       )
@@ -234,14 +234,14 @@ export class RiviereProjectRepository {
   private createRiviereProject(
     configPath: string,
     parsedConfigState: ParsedConfigState,
-    sourceFilePaths: string[],
+    sourceFilesByModule: ReadonlyMap<ValidatedModule, string[]>,
     useTsConfig: boolean,
     projectRoot: string,
   ): RiviereProject {
     const moduleSources = this.createModuleSources(
       parsedConfigState.configDir,
       parsedConfigState.configuration,
-      sourceFilePaths,
+      sourceFilesByModule,
       useTsConfig,
     )
     const repositoryName = getRepositoryInfo('git', projectRoot).name
@@ -263,12 +263,18 @@ export class RiviereProjectRepository {
     return projectResult.data
   }
 
-  private resolveSourceFilePaths(parsedConfigState: ParsedConfigState): string[] {
-    const sourceFilePaths = parsedConfigState.configuration.modules
-      .flatMap((module) =>
-        globSync(posix.join(module.path, module.glob), { cwd: parsedConfigState.configDir }),
-      )
-      .map((filePath) => resolve(parsedConfigState.configDir, filePath))
+  private resolveSourceFilePaths(
+    parsedConfigState: ParsedConfigState,
+  ): ReadonlyMap<ValidatedModule, string[]> {
+    const sourceFilesByModule = new Map(
+      parsedConfigState.configuration.modules.map((module) => [
+        module,
+        globSync(posix.join(module.path, module.glob), { cwd: parsedConfigState.configDir }).map(
+          (filePath) => resolve(parsedConfigState.configDir, filePath),
+        ),
+      ]),
+    )
+    const sourceFilePaths = [...sourceFilesByModule.values()].flat()
 
     if (sourceFilePaths.length === 0) {
       const patterns = parsedConfigState.configuration.modules
@@ -280,26 +286,21 @@ export class RiviereProjectRepository {
       )
     }
 
-    return sourceFilePaths
+    return sourceFilesByModule
   }
 
   private createModuleSources(
     configDir: string,
     configuration: ValidatedConfiguration,
-    sourceFilePaths: string[],
+    sourceFilesByModule: ReadonlyMap<ValidatedModule, string[]>,
     useTsConfig: boolean,
   ) {
-    const sourceFileSet = new Set(sourceFilePaths)
-
     const sources = new Map<
       ValidatedModule,
       { files: string[]; project: ReturnType<typeof createConfiguredProject> }
     >()
     for (const module of configuration.modules) {
-      const allModuleFiles = globSync(posix.join(module.path, module.glob), { cwd: configDir }).map(
-        (filePath) => resolve(configDir, filePath),
-      )
-      const moduleFiles = allModuleFiles.filter((filePath) => sourceFileSet.has(filePath))
+      const moduleFiles = sourceFilesByModule.get(module) ?? []
       const moduleConfigDir = findModuleTsConfigDir(configDir, module.path)
       const project = createConfiguredProject(moduleConfigDir, !useTsConfig)
       project.addSourceFilesAtPaths(moduleFiles)
