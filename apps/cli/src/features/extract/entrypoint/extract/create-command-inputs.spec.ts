@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
+import { createExtractCommand } from './entrypoint'
 
 describe('create command inputs', () => {
   it('creates extract draft input for all source files with output', () => {
@@ -47,5 +48,16 @@ describe('create command inputs', () => {
       projectRoot: process.cwd(),
       useTsConfig: false,
     })
+  })
+
+  it('rethrows unknown extract execution errors', async () => {
+    const command = createExtractCommand(
+      { execute: () => { throw new Error('unexpected extract failure') } },
+      { execute: () => ({ kind: 'draftOnly', components: [] }) },
+    )
+
+    await expect(
+      command.parseAsync(['node', 'riviere', '--config', 'config.yml']),
+    ).rejects.toThrow('unexpected extract failure')
   })
 })
