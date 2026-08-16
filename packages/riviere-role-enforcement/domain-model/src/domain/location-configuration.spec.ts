@@ -6,7 +6,7 @@ import {
 } from './role-enforcement-builder'
 
 describe('location configuration', () => {
-  it('keeps location import rules and disabled role enforcement', () => {
+  it('keeps location import rules and disabled role enforcement.', () => {
     const result = roleEnforcementConfiguration({
       configurations: {
         'packages/app': {

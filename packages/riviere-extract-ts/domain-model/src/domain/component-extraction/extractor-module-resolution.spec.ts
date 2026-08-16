@@ -53,7 +53,7 @@ function createModuleResolutionConfig(
 }
 
 describe('extractComponents — module resolution', () => {
-  it('resolves module name from file path using {module} placeholder', () => {
+  it('resolves module name from file path using {module} placeholder.', () => {
     const project = createTestProject()
     project.createSourceFile(
       'src/checkout/use-cases/create-order.ts',

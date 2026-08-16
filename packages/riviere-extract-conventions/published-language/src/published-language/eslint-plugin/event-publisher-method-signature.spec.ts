@@ -68,7 +68,7 @@ const nonPublicMethodError = (methodName: string, className: string, accessibili
 })
 
 describe('event-publisher-method-signature', () => {
-  it('is a valid ESLint rule', () => {
+  it('is a valid ESLint rule.', () => {
     expect(rule).toBeDefined()
   })
 

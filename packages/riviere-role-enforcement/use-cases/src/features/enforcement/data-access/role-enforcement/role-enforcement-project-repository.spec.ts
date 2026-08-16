@@ -44,7 +44,7 @@ function configurationWithPackageAssignments(params: {
 }
 
 describe('RoleEnforcementProjectRepository', () => {
-  it('discovers every package declared by the workspace', () => {
+  it('discovers every package declared by the workspace.', () => {
     const findFilesMatchingPatterns = vi.fn((): string[] => [])
     const repository = new RoleEnforcementProjectRepository({
       findFilesMatchingPatterns,

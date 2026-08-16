@@ -38,7 +38,7 @@ function replaceFirstLinkId(graph: ReturnType<RiviereBuilder['build']>, id: stri
 }
 
 describe('RiviereBuilder Link occurrences', () => {
-  it('rejects duplicate Links with the same source, target, and source location', () => {
+  it('rejects duplicate Links with the same source, target, and source location.', () => {
     const builder = createBuilder()
     const source = addSource(builder)
     const input = {

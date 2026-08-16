@@ -28,7 +28,7 @@ describe('minLength validation: component fields', () => {
   }
 
   describe('apiRestComponent.path', () => {
-    it('rejects empty path', () => {
+    it('rejects empty path.', () => {
       const input = {
         ...baseGraph,
         components: [
