@@ -7,6 +7,7 @@ import type { ExtractDraftComponents } from '@living-architecture/riviere-extrac
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
 import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
 import { dataAccessCliErrorCode, presentExtractionResult } from './present-extraction-result'
+import { resolveSourceFileSelection } from './resolve-source-file-selection'
 
 /** @riviere-role cli-entrypoint */
 export function createExtractCommand(
@@ -47,7 +48,9 @@ export function createExtractCommand(
         const result = (() => {
           try {
             return options.enrich === undefined
-              ? extractDraftComponents.execute(createExtractDraftComponentsInput(options))
+              ? extractDraftComponents.execute(
+                  createExtractDraftComponentsInput(options, resolveSourceFileSelection(options)),
+                )
               : enrichDraftComponents.execute(
                   createEnrichDraftComponentsInput(options, options.enrich),
                 )
