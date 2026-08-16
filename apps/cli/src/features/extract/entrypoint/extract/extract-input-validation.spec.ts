@@ -62,4 +62,8 @@ describe('riviere extract input validation', () => {
   it('returns validation error when the enrich file root is invalid', async () => {
     await expectInvalidEnrichInput('invalid-root.json', '{}')
   })
+
+  it('returns validation error when a draft component is not an object', async () => {
+    await expectInvalidEnrichInput('invalid-component.json', '[null]')
+  })
 })
