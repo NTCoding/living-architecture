@@ -1,5 +1,8 @@
-import { readFileSync } from 'node:fs'
 import type { DraftComponentInput } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components-input'
+
+interface DraftComponentsLoaderDependencies {
+  readonly readFile: (filePath: string) => string
+}
 
 /** @riviere-role cli-error */
 class InvalidDraftComponentsFileError extends Error {
@@ -10,8 +13,11 @@ class InvalidDraftComponentsFileError extends Error {
 }
 
 /** @riviere-role entrypoint-cli-input-parser */
-export function loadDraftComponents(filePath: string): DraftComponentInput[] {
-  const parsed = readDraftComponents(filePath)
+export function loadDraftComponents(
+  filePath: string,
+  dependencies: DraftComponentsLoaderDependencies,
+): DraftComponentInput[] {
+  const parsed = readDraftComponents(filePath, dependencies)
   if (!Array.isArray(parsed) || !parsed.every(isDraftComponentInput))
     throw new InvalidDraftComponentsFileError(
       `Enrich file does not contain valid draft components: ${filePath}`,
@@ -19,9 +25,12 @@ export function loadDraftComponents(filePath: string): DraftComponentInput[] {
   return parsed.filter(isDraftComponentInput)
 }
 
-function readDraftComponents(filePath: string): unknown {
+function readDraftComponents(
+  filePath: string,
+  dependencies: DraftComponentsLoaderDependencies,
+): unknown {
   try {
-    const parsed: unknown = JSON.parse(readFileSync(filePath, 'utf8'))
+    const parsed: unknown = JSON.parse(dependencies.readFile(filePath))
     return parsed
   } catch {
     throw new InvalidDraftComponentsFileError(`Unable to read draft components: ${filePath}`)

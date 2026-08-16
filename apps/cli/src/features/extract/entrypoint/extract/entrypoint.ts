@@ -10,10 +10,19 @@ import { dataAccessCliErrorCode, presentExtractionResult } from './present-extra
 import { resolveSourceFileSelection } from './resolve-source-file-selection'
 import { loadDraftComponents } from './load-draft-components'
 
+type SourceFileSelectionDependencies = NonNullable<Parameters<typeof resolveSourceFileSelection>[1]>
+type DraftComponentsLoaderDependencies = NonNullable<Parameters<typeof loadDraftComponents>[1]>
+
+interface ExtractCommandDependencies {
+  readonly draftComponentsLoader: DraftComponentsLoaderDependencies
+  readonly sourceFileSelection: SourceFileSelectionDependencies
+}
+
 /** @riviere-role cli-entrypoint */
 export function createExtractCommand(
   extractDraftComponents: Pick<ExtractDraftComponents, 'execute'>,
   enrichDraftComponents: Pick<EnrichDraftComponents, 'execute'>,
+  dependencies: ExtractCommandDependencies,
 ): Command {
   return new Command('extract')
     .description('Extract architectural components from source code')
@@ -50,13 +59,16 @@ export function createExtractCommand(
           try {
             return options.enrich === undefined
               ? extractDraftComponents.execute(
-                  createExtractDraftComponentsInput(options, resolveSourceFileSelection(options)),
+                  createExtractDraftComponentsInput(
+                    options,
+                    resolveSourceFileSelection(options, dependencies.sourceFileSelection),
+                  ),
                 )
               : enrichDraftComponents.execute(
                   createEnrichDraftComponentsInput(
                     options,
                     options.enrich,
-                    loadDraftComponents(options.enrich),
+                    loadDraftComponents(options.enrich, dependencies.draftComponentsLoader),
                   ),
                 )
           } catch (error) {

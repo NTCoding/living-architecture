@@ -19,6 +19,16 @@ import type { ExtractDraftComponents } from '@living-architecture/riviere-extrac
 import type { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import { createExtractCommand } from './entrypoint'
 
+const testDependencies = {
+  draftComponentsLoader: { readFile: () => '' },
+  sourceFileSelection: {
+    fileExists: () => true,
+    projectRoot: process.cwd(),
+    resolvePath: (filePath: string) => filePath,
+    runGit: () => '',
+  },
+}
+
 vi.mock('../../../../infra/external-clients/git/git-repository-info', () => ({
   getRepositoryInfo: vi.fn(() => ({
     name: 'test/repo',
@@ -59,10 +69,11 @@ describe('riviere extract', () => {
       }
 
       await expect(
-        createExtractCommand(extractDraftComponents, enrichDraftComponents).parseAsync(
-          ['--config', 'extract.yaml'],
-          { from: 'user' },
-        ),
+        createExtractCommand(
+          extractDraftComponents,
+          enrichDraftComponents,
+          testDependencies,
+        ).parseAsync(['--config', 'extract.yaml'], { from: 'user' }),
       ).rejects.toMatchObject({ exitCode: 1 })
 
       const output = parseErrorOutput(ctx.consoleOutput)
@@ -91,10 +102,11 @@ describe('riviere extract', () => {
       }
 
       await expect(
-        createExtractCommand(extractDraftComponents, enrichDraftComponents).parseAsync(
-          ['--config', 'extract.yaml'],
-          { from: 'user' },
-        ),
+        createExtractCommand(
+          extractDraftComponents,
+          enrichDraftComponents,
+          testDependencies,
+        ).parseAsync(['--config', 'extract.yaml'], { from: 'user' }),
       ).rejects.toMatchObject({ exitCode: 3 })
     })
   })

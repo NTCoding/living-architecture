@@ -1,7 +1,13 @@
-import { execFileSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
-import type { SourceFileSelection } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components-input'
+import type { ExtractDraftComponentsInput } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components-input'
+
+type SourceFileSelection = ExtractDraftComponentsInput['sourceFileSelection']
+
+interface SourceFileSelectionDependencies {
+  readonly fileExists: (filePath: string) => boolean
+  readonly projectRoot: string
+  readonly resolvePath: (filePath: string) => string
+  readonly runGit: (args: string[]) => string
+}
 
 /** @riviere-role cli-error */
 class GitError extends Error {
@@ -20,23 +26,25 @@ class MissingSourceFileError extends Error {
 }
 
 /** @riviere-role entrypoint-cli-input-parser */
-export function resolveSourceFileSelection(input: {
-  base?: string
-  files?: string[]
-  pr?: boolean
-}): SourceFileSelection {
-  const projectRoot = process.cwd()
+export function resolveSourceFileSelection(
+  input: {
+    base?: string
+    files?: string[]
+    pr?: boolean
+  },
+  dependencies: SourceFileSelectionDependencies,
+): SourceFileSelection {
   if (input.pr === true) {
-    ensureGitRepository(projectRoot)
-    const detached = !canResolveGit(projectRoot, ['symbolic-ref', 'HEAD'])
-    const base = detached ? 'HEAD~1' : (input.base ?? detectBaseBranch(projectRoot))
-    const files = runGit(projectRoot, ['diff', '--name-only', `${base}...HEAD`])
+    ensureGitRepository(dependencies)
+    const detached = !canResolveGit(dependencies, ['symbolic-ref', 'HEAD'])
+    const base = detached ? 'HEAD~1' : (input.base ?? detectBaseBranch(dependencies))
+    const files = runGit(dependencies, ['diff', '--name-only', `${base}...HEAD`])
       .split('\n')
       .filter(isTypeScriptFile)
-    const stagedFiles = runGit(projectRoot, ['diff', '--name-only', '--cached', base])
+    const stagedFiles = runGit(dependencies, ['diff', '--name-only', '--cached', base])
       .split('\n')
       .filter(isTypeScriptFile)
-    const untrackedFiles = runGit(projectRoot, ['ls-files', '--others', '--exclude-standard'])
+    const untrackedFiles = runGit(dependencies, ['ls-files', '--others', '--exclude-standard'])
       .split('\n')
       .filter(isTypeScriptFile)
     if (untrackedFiles.length > 0) {
@@ -48,38 +56,33 @@ export function resolveSourceFileSelection(input: {
       kind: 'files',
       filePaths: [...new Set([...files, ...stagedFiles])]
         .filter(Boolean)
-        .map((filePath) => resolve(projectRoot, filePath)),
+        .map((filePath) => dependencies.resolvePath(filePath)),
     }
   }
   if (input.files === undefined) return { kind: 'all' }
-  const filePaths = input.files.map((filePath) => resolve(projectRoot, filePath))
-  const missingFiles = filePaths.filter((filePath) => !existsSync(filePath))
+  const filePaths = input.files.map((filePath) => dependencies.resolvePath(filePath))
+  const missingFiles = filePaths.filter((filePath) => !dependencies.fileExists(filePath))
   if (missingFiles.length > 0)
     throw new MissingSourceFileError(`Files not found: ${missingFiles.join(', ')}`)
   return { kind: 'files', filePaths }
 }
 
-function ensureGitRepository(projectRoot: string): void {
-  try {
-    runGit(projectRoot, ['rev-parse', '--git-dir'])
-  } catch (error) {
-    if (error instanceof GitError) throw error
-    throw new GitError('Run from within a git repository.')
-  }
+function ensureGitRepository(dependencies: SourceFileSelectionDependencies): void {
+  runGit(dependencies, ['rev-parse', '--git-dir'])
 }
 
-function canResolveGit(projectRoot: string, args: string[]): boolean {
+function canResolveGit(dependencies: SourceFileSelectionDependencies, args: string[]): boolean {
   try {
-    runGit(projectRoot, args)
+    runGit(dependencies, args)
     return true
   } catch {
     return false
   }
 }
 
-function detectBaseBranch(projectRoot: string): string {
+function detectBaseBranch(dependencies: SourceFileSelectionDependencies): string {
   try {
-    return runGit(projectRoot, ['symbolic-ref', 'refs/remotes/origin/HEAD']).replace(
+    return runGit(dependencies, ['symbolic-ref', 'refs/remotes/origin/HEAD']).replace(
       'refs/remotes/origin/',
       '',
     )
@@ -88,20 +91,10 @@ function detectBaseBranch(projectRoot: string): string {
   }
 }
 
-function runGit(projectRoot: string, args: string[]): string {
+function runGit(dependencies: SourceFileSelectionDependencies, args: string[]): string {
   try {
-    const gitExecutable = process.env['GIT_EXECUTABLE'] ?? 'git'
-    return execFileSync(gitExecutable, args, {
-      cwd: projectRoot,
-      env: Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_'))),
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim()
+    return dependencies.runGit(args).trim()
   } catch (error) {
-    const stderr = String(Reflect.get(Object(error), 'stderr'))
-    if (stderr.includes('not a git repository')) {
-      throw new GitError('Run from within a git repository.')
-    }
     if (args[0] === 'diff' && args[1] === '--name-only') {
       const base = args.at(-1)?.split('...')[0]
       throw new GitError(`Base branch '${base}' not found.`)

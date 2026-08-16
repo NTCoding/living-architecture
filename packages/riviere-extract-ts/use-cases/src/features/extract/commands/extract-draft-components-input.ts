@@ -1,8 +1,4 @@
 /** @riviere-role command-use-case-input */
-export type SourceFileSelection =
-  | { readonly kind: 'all' }
-  | { readonly kind: 'files'; readonly filePaths: readonly string[] }
-
 export interface ExtractDraftComponentsInput {
   allowIncomplete: boolean
   baseBranch?: string
@@ -10,7 +6,9 @@ export interface ExtractDraftComponentsInput {
   files?: string[]
   includeConnections: boolean
   projectRoot?: string
-  sourceFileSelection: SourceFileSelection
+  sourceFileSelection:
+    | { readonly kind: 'all' }
+    | { readonly kind: 'files'; readonly filePaths: readonly string[] }
   output?: string
   sourceMode: 'all' | 'files' | 'pull-request'
   useTsConfig: boolean

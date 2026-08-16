@@ -1,5 +1,8 @@
+import { execFileSync } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
 import { Command } from 'commander'
 import { createRequire } from 'module'
+import { resolve } from 'node:path'
 import { AddComponent } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-component'
 import { AddDomain } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-domain'
 import { AddSource } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-source'
@@ -35,6 +38,7 @@ import { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-u
 import { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
 import { RiviereProjectRepository } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/data-access/riviere-project/riviere-project-repository'
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
+import { GitError } from '../infra/cli/presentation/git-error'
 import { DetectOrphans } from '@living-architecture/riviere-builder-use-cases/features/query/queries/detect-orphans'
 import { ListComponents } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-components'
 import { ListDomains } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-domains'
@@ -98,6 +102,7 @@ const packageJson = loadPackageJson()
 export function createProgram(): Command {
   const builderRepository = new RiviereBuilderRepository()
   const riviereProjectRepository = new RiviereProjectRepository()
+  const projectRoot = process.cwd()
 
   const program = new Command()
 
@@ -136,6 +141,35 @@ export function createProgram(): Command {
     createExtractCommand(
       new ExtractDraftComponents(riviereProjectRepository),
       new EnrichDraftComponents(riviereProjectRepository),
+      {
+        draftComponentsLoader: {
+          readFile: (filePath) => readFileSync(filePath, 'utf8'),
+        },
+        sourceFileSelection: {
+          fileExists: existsSync,
+          projectRoot,
+          resolvePath: (filePath) => resolve(projectRoot, filePath),
+          runGit: (args) => {
+            try {
+              const gitExecutable = process.env['GIT_EXECUTABLE'] ?? 'git'
+              return execFileSync(gitExecutable, args, {
+                cwd: projectRoot,
+                env: Object.fromEntries(
+                  Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')),
+                ),
+                encoding: 'utf8',
+                stdio: ['pipe', 'pipe', 'pipe'],
+              })
+            } catch (error) {
+              const stderr = String(Reflect.get(Object(error), 'stderr'))
+              if (args[0] === 'rev-parse' || stderr.includes('not a git repository')) {
+                throw new GitError('Run from within a git repository.')
+              }
+              throw error
+            }
+          },
+        },
+      },
     ),
   )
 
