@@ -17,14 +17,7 @@ export class ExtractDraftComponents {
       )
 
       return riviereProject.extractDraftComponents({
-        sourceFileSelection:
-          extractDraftComponentsInput.sourceFileSelection ??
-          (extractDraftComponentsInput.sourceMode === 'all'
-            ? { kind: 'all' as const }
-            : {
-                kind: 'files' as const,
-                filePaths: extractDraftComponentsInput.files ?? [],
-              }),
+        sourceFileSelection: extractDraftComponentsInput.sourceFileSelection,
         allowIncomplete: extractDraftComponentsInput.allowIncomplete,
         includeConnections: extractDraftComponentsInput.includeConnections,
       })

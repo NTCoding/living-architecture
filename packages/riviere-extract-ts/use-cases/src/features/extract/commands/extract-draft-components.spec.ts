@@ -44,6 +44,7 @@ describe('extractDraftComponents', () => {
         baseBranch: 'main',
         configPath: 'config.yml',
         includeConnections: true,
+        sourceFileSelection: { kind: 'files', filePaths: [] },
         sourceMode: 'pull-request',
         useTsConfig: false,
       })
@@ -60,6 +61,7 @@ describe('extractDraftComponents', () => {
         allowIncomplete: false,
         configPath: 'config.yml',
         includeConnections: true,
+        sourceFileSelection: { kind: 'files', filePaths: [] },
         sourceMode: 'pull-request',
         useTsConfig: false,
       })
@@ -79,6 +81,7 @@ describe('extractDraftComponents', () => {
         configPath: 'config.yml',
         files: ['src/foo.ts', 'src/bar.ts'],
         includeConnections: false,
+        sourceFileSelection: { kind: 'files', filePaths: ['src/foo.ts', 'src/bar.ts'] },
         sourceMode: 'files',
         useTsConfig: true,
       })
@@ -95,6 +98,7 @@ describe('extractDraftComponents', () => {
         allowIncomplete: false,
         configPath: 'config.yml',
         includeConnections: false,
+        sourceFileSelection: { kind: 'files', filePaths: [] },
         sourceMode: 'files',
         useTsConfig: true,
       })
@@ -113,6 +117,7 @@ describe('extractDraftComponents', () => {
         allowIncomplete: false,
         configPath: 'config.yml',
         includeConnections: true,
+        sourceFileSelection: { kind: 'all' },
         sourceMode: 'all',
         useTsConfig: true,
       })
@@ -169,6 +174,7 @@ describe('extractDraftComponents', () => {
         allowIncomplete: true,
         configPath: 'missing.yml',
         includeConnections: false,
+        sourceFileSelection: { kind: 'all' },
         sourceMode: 'all',
         useTsConfig: false,
       })
@@ -194,6 +200,7 @@ describe('extractDraftComponents', () => {
         allowIncomplete: false,
         configPath: 'config.yml',
         includeConnections: true,
+        sourceFileSelection: { kind: 'all' },
         sourceMode: 'all',
         useTsConfig: true,
       })
@@ -214,6 +221,7 @@ describe('extractDraftComponents', () => {
           allowIncomplete: true,
           configPath: 'config.yml',
           includeConnections: false,
+          sourceFileSelection: { kind: 'all' },
           sourceMode: 'all',
           useTsConfig: false,
         }),
@@ -230,6 +238,7 @@ describe('extractDraftComponents', () => {
       allowIncomplete: true,
       configPath: 'config.yml',
       includeConnections: false,
+      sourceFileSelection: { kind: 'all' },
       sourceMode: 'all',
       useTsConfig: false,
     })

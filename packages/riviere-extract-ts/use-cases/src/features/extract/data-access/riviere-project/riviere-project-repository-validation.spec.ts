@@ -30,16 +30,24 @@ function withWorkspace(run: (directory: string) => void): void {
   }
 }
 
-function loadProject(params: { configPath: string; useTsConfig: boolean }): void {
+function loadProject(params: {
+  configPath: string
+  projectRoot?: string
+  useTsConfig: boolean
+}): void {
   new RiviereProjectRepository().load({
-    projectRoot: process.cwd(),
+    projectRoot: params.projectRoot ?? process.cwd(),
     configPath: params.configPath,
     useTsConfig: params.useTsConfig,
   })
 }
 
 function load(directory: string): void {
-  loadProject({ configPath: join(directory, 'extract.yml'), useTsConfig: false })
+  loadProject({
+    configPath: 'extract.yml',
+    projectRoot: directory,
+    useTsConfig: false,
+  })
 }
 
 describe('RiviereProjectRepository validation', () => {

@@ -6,7 +6,7 @@ export interface ExtractDraftComponentsInput {
   files?: string[]
   includeConnections: boolean
   projectRoot?: string
-  sourceFileSelection?:
+  sourceFileSelection:
     | { readonly kind: 'all' }
     | { readonly kind: 'files'; readonly filePaths: readonly string[] }
   output?: string

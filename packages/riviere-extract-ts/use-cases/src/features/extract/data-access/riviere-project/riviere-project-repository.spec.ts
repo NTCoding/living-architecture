@@ -379,12 +379,15 @@ describe('RiviereProjectRepository', () => {
       writeFileSync(join(dir, 'b.ts'), 'export class B {}')
       writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
 
-      expect(
-        loadProject({
-          configPath: join(dir, 'extract.config.yml'),
-          useTsConfig: false,
-        }),
-      ).toBeDefined()
+      const project = loadProject({
+        configPath: join(dir, 'extract.config.yml'),
+        projectRoot: dir,
+        useTsConfig: false,
+      })
+
+      expect(project.stage.moduleContexts[0]?.files).toEqual(
+        expect.arrayContaining([join(dir, 'a.ts'), join(dir, 'b.ts')]),
+      )
     })
   })
 
