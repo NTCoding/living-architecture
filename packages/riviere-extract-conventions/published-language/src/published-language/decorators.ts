@@ -7,8 +7,7 @@
 
 type Method = (...args: unknown[]) => unknown
 
-/** @riviere-role domain-error */
-export class InvalidCustomComponentTypeError extends Error {
+class InvalidCustomComponentTypeError extends Error {
   constructor(type: unknown) {
     super(`Custom component type must be a non-empty string, got: ${formatCustomType(type)}`)
     this.name = 'InvalidCustomComponentTypeError'

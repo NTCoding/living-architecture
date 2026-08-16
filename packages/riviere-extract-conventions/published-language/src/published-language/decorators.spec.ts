@@ -14,8 +14,22 @@ import {
   HttpCall,
   Custom,
   Ignore,
-  InvalidCustomComponentTypeError,
 } from './decorators'
+
+function expectCustomTypeError(type: unknown, message: string): void {
+  try {
+    Custom(type)
+  } catch (error) {
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toMatchObject({
+      name: 'InvalidCustomComponentTypeError',
+      message,
+    })
+    return
+  }
+
+  expect.fail('Expected Custom to throw InvalidCustomComponentTypeError')
+}
 
 describe('Container decorators', () => {
   describe('DomainOpContainer', () => {
@@ -220,15 +234,11 @@ describe('Other decorators', () => {
     })
 
     it('throws InvalidCustomComponentTypeError for empty string type', () => {
-      expect(() => Custom('')).toThrow(InvalidCustomComponentTypeError)
-      expect(() => Custom('')).toThrow("Custom component type must be a non-empty string, got: ''")
+      expectCustomTypeError('', "Custom component type must be a non-empty string, got: ''")
     })
 
     it('throws InvalidCustomComponentTypeError for whitespace-only type', () => {
-      expect(() => Custom('   ')).toThrow(InvalidCustomComponentTypeError)
-      expect(() => Custom('   ')).toThrow(
-        "Custom component type must be a non-empty string, got: '   '",
-      )
+      expectCustomTypeError('   ', "Custom component type must be a non-empty string, got: '   '")
     })
 
     it.each([
@@ -236,8 +246,8 @@ describe('Other decorators', () => {
       [42, '42'],
       [Symbol('component'), 'Symbol(component)'],
     ])('rejects non-string type %s with InvalidCustomComponentTypeError', (type, formattedType) => {
-      expect(() => Custom(type)).toThrow(InvalidCustomComponentTypeError)
-      expect(() => Custom(type)).toThrow(
+      expectCustomTypeError(
+        type,
         `Custom component type must be a non-empty string, got: ${formattedType}`,
       )
     })
@@ -249,8 +259,8 @@ describe('Other decorators', () => {
         },
       }
 
-      expect(() => Custom(unprintable)).toThrow(InvalidCustomComponentTypeError)
-      expect(() => Custom(unprintable)).toThrow(
+      expectCustomTypeError(
+        unprintable,
         'Custom component type must be a non-empty string, got: <unprintable value>',
       )
     })
