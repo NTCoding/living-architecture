@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create PR"
+  short_description: "Push and create the workflow pull request."
+  default_prompt: "Use $dev-workflow-v2:create-pr to create the workflow pull request."

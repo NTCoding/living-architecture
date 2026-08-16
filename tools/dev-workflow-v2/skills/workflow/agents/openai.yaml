@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workflow"
+  short_description: "Run a workflow state operation."
+  default_prompt: "Run $dev-workflow-v2:workflow with the requested operation."

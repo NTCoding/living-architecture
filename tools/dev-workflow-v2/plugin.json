@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "dev-workflow-v2",
-  "version": "0.0.146",
+  "version": "0.0.147",
   "description": "Event-sourced workflow state machine for a structured task lifecycle.",
   "author": {
     "name": "NTCoding"

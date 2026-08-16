@@ -27,9 +27,14 @@ $dev-workflow-continue-planning
 $dev-workflow-choose-next-task
 $dev-workflow-start-implementation <issue-number>
 $dev-workflow-optimize-factory
+$dev-workflow-v2:code-review
+$dev-workflow-v2:list-review-threads
+$dev-workflow-v2:create-pr
 ```
 
-The skills reference the same command and state Markdown used by Claude Code. Codex's shared workflow runner reads `CODEX_THREAD_ID`, so workflow operations use the active task session without copying an ID from hook output.
+Agent Skills are the canonical procedures. Provider-specific commands adapt those procedures for their harness. Codex's shared workflow runner reads `CODEX_THREAD_ID`, so workflow operations use the active task session without copying an ID from hook output.
+
+The internal Codex workflow operation is `$dev-workflow-v2:workflow <operation> [args]`.
 
 ### Planning lifecycle
 

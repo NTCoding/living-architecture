@@ -5,6 +5,23 @@ model: opus
 color: green
 ---
 
+## Workflow Preflight
+
+Before reading task details, changed files, conventions, or any project file, get the workflow state using the invocation registered by the current harness:
+
+- Codex: `$dev-workflow-v2:workflow get-state`
+- Claude Code or OpenCode: `/dev-workflow-v2:workflow get-state`
+
+Parse `currentStateMachineState` from the result.
+
+If that operation fails or `currentStateMachineState` is not `REVIEWING`, return only:
+
+```json
+{"refused":true,"reason":"Workflow is not in REVIEWING."}
+```
+
+Then stop. Do not inspect any project files.
+
 You will return structured JSON output with these fields:
 - `verdict`: Either `PASS` or `FAIL`
 - `summary`: One sentence summarizing the verification outcome
