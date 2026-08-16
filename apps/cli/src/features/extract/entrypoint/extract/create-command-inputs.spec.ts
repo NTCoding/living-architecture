@@ -13,6 +13,8 @@ class UnexpectedExtractError extends Error {
   }
 }
 
+class UnexpectedExtractValue {}
+
 describe('create command inputs', () => {
   it('creates extract draft input for all source files with output', () => {
     expect(
@@ -66,5 +68,16 @@ describe('create command inputs', () => {
     await expect(
       command.parseAsync(['node', 'riviere', '--config', 'config.yml']),
     ).rejects.toThrow('unexpected extract failure')
+  })
+
+  it('rethrows non Error extract failures', async () => {
+    const command = createExtractCommand(
+      { execute: () => { throw new UnexpectedExtractValue() } },
+      { execute: () => ({ kind: 'draftOnly', components: [] }) },
+    )
+
+    await expect(
+      command.parseAsync(['node', 'riviere', '--config', 'config.yml']),
+    ).rejects.toBeInstanceOf(UnexpectedExtractValue)
   })
 })
