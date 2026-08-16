@@ -84,6 +84,38 @@ describe('plugin Agent Skills', () => {
       rejectsUnquotedInterpolation: true,
     })
   })
+
+  it.each(['code-review', 'create-pr', 'list-review-threads'])(
+    'does not translate Codex skill syntax in the %s command adapter',
+    (commandName) => {
+      const command = readPluginFile(`commands/${commandName}.md`)
+
+      expect(command.trim().split('\n')).toStrictEqual([
+        `# ${commandName}`,
+        '',
+        'Read `${CLAUDE_PLUGIN_ROOT}/skills/' +
+          `${commandName}/SKILL.md\` completely and follow it.`,
+      ])
+      expect(command).not.toContain('$dev-workflow-v2:workflow')
+    },
+  )
+
+  it.each(['create-pr', 'list-review-threads'])(
+    'selects workflow execution for Codex or slash-command harnesses in %s',
+    (skillName) => {
+      const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
+
+      expect({
+        detectsCodex: skill.includes('If `CODEX_THREAD_ID` is present'),
+        usesCodexRunner: skill.includes('codex-workflow-command.ts <operation> [args]'),
+        usesSlashCommand: skill.includes('/dev-workflow-v2:workflow <operation> [args]'),
+      }).toStrictEqual({
+        detectsCodex: true,
+        usesCodexRunner: true,
+        usesSlashCommand: true,
+      })
+    },
+  )
 })
 
 describe('reviewer workflow preflight', () => {
