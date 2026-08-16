@@ -52,6 +52,38 @@ describe('plugin Agent Skills', () => {
       commandDoesNotOverrideHarness: true,
     })
   })
+
+  it('validates reviewer result types before recording them', () => {
+    const skill = readPluginFile('skills/code-review/SKILL.md')
+    const validationPosition = skill.indexOf('`verdict` equal to `PASS` or `FAIL`')
+    const recordingPosition = skill.indexOf('`record-review` workflow operation')
+
+    expect({
+      validatesSummary: skill.includes('`summary` as a string'),
+      validatesFindings: skill.includes('`findings` as an array'),
+      blocksInvalidResults: skill.includes('stop before recording any invalid result'),
+      validatesBeforeRecording: validationPosition > -1 && validationPosition < recordingPosition,
+    }).toStrictEqual({
+      validatesSummary: true,
+      validatesFindings: true,
+      blocksInvalidResults: true,
+      validatesBeforeRecording: true,
+    })
+  })
+
+  it('validates and quotes the recorded branch before pushing', () => {
+    const skill = readPluginFile('skills/create-pr/SKILL.md')
+    const validationPosition = skill.indexOf('git check-ref-format --branch "$featureBranch"')
+    const pushPosition = skill.indexOf('git push -u origin "$featureBranch"')
+
+    expect({
+      validatesBeforePush: validationPosition > -1 && validationPosition < pushPosition,
+      rejectsUnquotedInterpolation: skill.includes('never interpolate it into unquoted shell text'),
+    }).toStrictEqual({
+      validatesBeforePush: true,
+      rejectsUnquotedInterpolation: true,
+    })
+  })
 })
 
 describe('reviewer workflow preflight', () => {
