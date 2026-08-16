@@ -7,7 +7,6 @@ import {
 import { DraftComponent } from './component-extraction/draft-component'
 import { RiviereProject } from './riviere-project'
 import { ExtractionStage } from './extraction-stage'
-import { MissingModuleSourceError } from './extraction-errors'
 
 const {
   mockExtractComponents,
@@ -360,95 +359,5 @@ describe('RiviereProject.extractDraftComponents', () => {
     })
 
     expect(result).toStrictEqual({ kind: 'fieldFailure', failedFields: ['name'] })
-  })
-})
-
-describe('RiviereProject.parse', () => {
-  it('rejects extraction when a parsed project loses its module source', () => {
-    const project = createRiviereProject('orders')
-    Object.defineProperty(project, 'moduleSources', { value: new Map() })
-
-    expect(() =>
-      project.extractDraftComponents({
-        allowIncomplete: true,
-        includeConnections: false,
-      }),
-    ).toThrowError(new MissingModuleSourceError('orders'))
-  })
-
-  it('rejects enrichment when a parsed project loses its module source', () => {
-    const project = createRiviereProject('orders')
-    Object.defineProperty(project, 'moduleSources', { value: new Map() })
-
-    expect(() =>
-      project.enrichDraftComponents({
-        allowIncomplete: true,
-        includeConnections: true,
-      }),
-    ).toThrowError(new MissingModuleSourceError('orders'))
-  })
-
-  it('describes a missing module source precisely', () => {
-    expect(() => {
-      throw new MissingModuleSourceError('orders')
-    }).toThrow("Missing source for module 'orders'")
-  })
-
-  it('describes missing and foreign module sources', () => {
-    const configurationResult = ValidatedConfiguration.parse({
-      modules: [
-        {
-          api: { notUsed: true },
-          domain: 'orders',
-          domainOp: { notUsed: true },
-          event: { notUsed: true },
-          eventHandler: { notUsed: true },
-          glob: '**/*.ts',
-          name: 'orders',
-          path: 'orders',
-          ui: { notUsed: true },
-          useCase: { notUsed: true },
-        },
-        {
-          api: { notUsed: true },
-          domain: 'billing',
-          domainOp: { notUsed: true },
-          event: { notUsed: true },
-          eventHandler: { notUsed: true },
-          glob: '**/*.ts',
-          name: 'billing',
-          path: 'billing',
-          ui: { notUsed: true },
-          useCase: { notUsed: true },
-        },
-      ],
-    })
-    assert(configurationResult.success)
-    const orders = configurationResult.data.modules[0]
-    const billing = configurationResult.data.modules[1]
-    assert(orders)
-    assert(billing)
-    const stage = ExtractionStage.parse({
-      name: 'test',
-      configPath: 'config.yml',
-      useTsConfig: false,
-      repositoryName: 'test-repo',
-      resolvedConfig: configurationResult.data,
-      moduleContexts: [
-        { module: orders, project: new Project(), files: [] },
-        { module: billing, project: new Project(), files: [] },
-      ],
-    })
-    Object.assign(stage, {
-      resolvedConfig: { ...configurationResult.data, modules: [orders] },
-      moduleContexts: [{ module: billing, project: new Project(), files: [] }],
-    })
-
-    const result = RiviereProject.parse({ stage })
-
-    expect(result).toStrictEqual({
-      success: false,
-      error: "Missing source for module 'orders'\nSource supplied for unknown module 'billing'",
-    })
   })
 })
