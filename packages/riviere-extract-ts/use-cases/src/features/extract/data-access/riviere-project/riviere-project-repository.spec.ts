@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
@@ -24,6 +25,11 @@ class UnexpectedSuccessfulLoadError extends Error {}
 function withWorkspace(fn: (dir: string) => void): void {
   const dir = mkdtempSync(join(tmpdir(), 'extract-project-test-'))
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'workspace' }), 'utf-8')
+  execFileSync('/usr/bin/git', ['init', '--initial-branch=main'], { cwd: dir, stdio: 'ignore' })
+  execFileSync('/usr/bin/git', ['remote', 'add', 'origin', 'https://github.com/test/repo.git'], {
+    cwd: dir,
+    stdio: 'ignore',
+  })
   try {
     fn(dir)
   } finally {
@@ -117,6 +123,7 @@ describe('RiviereProjectRepository', () => {
 
   it('translates a missing Git remote into a data access error', () => {
     withWorkspace((dir) => {
+      execFileSync('/usr/bin/git', ['remote', 'remove', 'origin'], { cwd: dir, stdio: 'ignore' })
       writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
       writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
 

@@ -10,12 +10,13 @@ class InvalidDraftComponentsFileError extends Error {
 }
 
 function loadDraftComponents(filePath: string): unknown[] {
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(readFileSync(filePath, 'utf8'))
-  } catch {
-    throw new InvalidDraftComponentsFileError(`Unable to read draft components: ${filePath}`)
-  }
+  const parsed = (() => {
+    try {
+      return JSON.parse(readFileSync(filePath, 'utf8')) as unknown
+    } catch {
+      throw new InvalidDraftComponentsFileError(`Unable to read draft components: ${filePath}`)
+    }
+  })()
   if (!Array.isArray(parsed))
     throw new InvalidDraftComponentsFileError(
       `Enrich file does not contain valid draft components: ${filePath}`,

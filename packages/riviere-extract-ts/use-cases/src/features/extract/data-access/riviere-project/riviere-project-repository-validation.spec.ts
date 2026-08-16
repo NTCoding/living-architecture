@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -23,6 +24,14 @@ function withWorkspace(run: (directory: string) => void): void {
   const directory = mkdtempSync(join(tmpdir(), 'extract-validation-test-'))
   writeFileSync(join(directory, 'package.json'), JSON.stringify({ name: 'workspace' }))
   writeFileSync(join(directory, 'component.ts'), 'export class Order {}')
+  execFileSync('/usr/bin/git', ['init', '--initial-branch=main'], {
+    cwd: directory,
+    stdio: 'ignore',
+  })
+  execFileSync('/usr/bin/git', ['remote', 'add', 'origin', 'https://github.com/test/repo.git'], {
+    cwd: directory,
+    stdio: 'ignore',
+  })
   try {
     run(directory)
   } finally {
