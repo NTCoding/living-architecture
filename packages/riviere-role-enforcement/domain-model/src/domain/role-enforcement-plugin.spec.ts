@@ -1,3 +1,6 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { Linter } from 'eslint'
 import { expect, it } from 'vitest'
 import plugin from '@living-architecture/riviere-role-enforcement-domain-model/plugin'
@@ -8,18 +11,26 @@ const commandInputFactory = role('command-input-factory', {
   targets: ['function'],
 })
 
+const cliEntrypoint = role('cli-entrypoint', {
+  forbiddenDependencies: ['cli-entrypoint'],
+  targets: ['function'],
+})
+
 const config = roleEnforcementConfiguration({
   configurations: {
     'packages/example': {
-      locations: locationConfiguration(location('/entrypoint', ['command-input-factory'])),
+      locations: locationConfiguration(
+        location('/entrypoint', ['command-input-factory', 'cli-entrypoint']),
+      ),
     },
   },
   ignorePatterns: [],
   roleDefinitionsDir: '.riviere/role-definitions',
-  roles: [commandInputFactory],
+  roles: [commandInputFactory, cliEntrypoint],
 })
 
-function enforce(source: string) {
+function enforce(source: string, options: { configDir?: string; filename?: string } = {}) {
+  const configDir = options.configDir ?? '/workspace'
   const linter = new Linter({ configType: 'eslintrc' })
   const enforceRolesRule = plugin.rules['enforce-roles']
   if (enforceRolesRule === undefined) {
@@ -38,7 +49,7 @@ function enforce(source: string) {
         'enforce-roles': [
           'error',
           {
-            configDir: '/workspace',
+            configDir,
             configDisplayPath: '.riviere/roles.ts',
             locationHierarchy: config.locationHierarchy,
             roleDefinitionsDir: config.roleDefinitionsDir,
@@ -47,7 +58,7 @@ function enforce(source: string) {
         ],
       },
     },
-    { filename: '/workspace/packages/example/src/entrypoint/input.ts' },
+    { filename: options.filename ?? '/workspace/packages/example/src/entrypoint/input.ts' },
   )
 }
 
@@ -76,4 +87,41 @@ function readDefaultValue() {
 `)
 
   expect(messages).toStrictEqual([])
+})
+
+it('explains how to correct a forbidden entrypoint dependency', () => {
+  const workspaceDir = mkdtempSync(join(tmpdir(), 'role-enforcement-plugin-'))
+  const entrypointDir = join(workspaceDir, 'packages/example/src/entrypoint')
+  const helperPath = join(entrypointDir, 'helper.ts')
+  const entrypointPath = join(entrypointDir, 'entrypoint.ts')
+
+  try {
+    mkdirSync(entrypointDir, { recursive: true })
+    writeFileSync(
+      helperPath,
+      `/** @riviere-role cli-entrypoint */
+export function createHelper(): string {
+  return 'helper'
+}
+`,
+      { encoding: 'utf8', flag: 'w' },
+    )
+
+    const messages = enforce(
+      `import { createHelper } from './helper'
+
+/** @riviere-role cli-entrypoint */
+export function createCommand() {
+  return createHelper()
+}
+`,
+      { configDir: workspaceDir, filename: entrypointPath },
+    )
+
+    expect(messages).toHaveLength(1)
+    expect(messages[0]?.message).toContain("cannot import from a file exporting 'cli-entrypoint'")
+    expect(messages[0]?.message).toContain('Classify the responsibility first')
+  } finally {
+    rmSync(workspaceDir, { force: true, recursive: true })
+  }
 })
