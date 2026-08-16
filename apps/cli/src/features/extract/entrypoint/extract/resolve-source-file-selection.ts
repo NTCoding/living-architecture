@@ -98,7 +98,7 @@ function runGit(projectRoot: string, args: string[]): string {
       stdio: ['pipe', 'pipe', 'pipe'],
     }).trim()
   } catch (error) {
-    const stderr = String(Reflect.get(Object(error), 'stderr') ?? '')
+    const stderr = String(Reflect.get(Object(error), 'stderr'))
     if (stderr.includes('not a git repository')) {
       throw new GitError('Run from within a git repository.')
     }
