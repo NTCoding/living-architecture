@@ -111,10 +111,8 @@ export class RiviereProject {
     const sourceFileSelection = options.sourceFileSelection ?? { kind: 'all' as const }
     const selectedModuleSources = this.selectedModuleSources(sourceFileSelection)
     const draftComponents = this.stage.resolvedConfig.modules.flatMap((module) => {
-      const selectedSource = selectedModuleSources.get(module)
-      if (selectedSource === undefined) throw new MissingModuleSourceError(module.name)
       const source = this.sourceFor(module)
-      const selectedFiles = selectedSource.files
+      const selectedFiles = sourceForModule(selectedModuleSources, module).files
       return extractComponents(source.project, [...selectedFiles], module)
     })
 
