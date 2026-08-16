@@ -61,9 +61,10 @@ describe('detectChangedTypeScriptFiles', () => {
       ...attachedHeadResponses('HEAD~1'),
       'diff --name-only HEAD~1...HEAD': 'src/changed.ts\nREADME.md',
     })
-    expect(detectChangedTypeScriptFiles(WORK_DIR, { base: 'HEAD~1' }, executor)).toStrictEqual([
-      'src/changed.ts',
-    ])
+    expect(detectChangedTypeScriptFiles(WORK_DIR, { base: 'HEAD~1' }, executor)).toStrictEqual({
+      files: [join(WORK_DIR, 'src/changed.ts')],
+      warnings: [],
+    })
   })
 
   describe('not a git repository', () => {

@@ -20,7 +20,7 @@ const VALID_CONFIG = `modules:
     ui: { notUsed: true }
 `
 
-const GIT_EXECUTABLE = process.env.GIT_EXECUTABLE ?? '/usr/bin/git'
+const GIT_EXECUTABLE = process.env['GIT_EXECUTABLE'] ?? '/usr/bin/git'
 
 function withWorkspace(fn: (dir: string) => void): void {
   const dir = mkdtempSync(join(tmpdir(), 'extract-project-test-'))
