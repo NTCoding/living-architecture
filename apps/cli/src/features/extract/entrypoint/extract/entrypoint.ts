@@ -8,6 +8,7 @@ import { createExtractDraftComponentsInput } from './create-extract-draft-compon
 import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
 import { dataAccessCliErrorCode, presentExtractionResult } from './present-extraction-result'
 import { resolveSourceFileSelection } from './resolve-source-file-selection'
+import { loadDraftComponents } from './load-draft-components'
 
 /** @riviere-role cli-entrypoint */
 export function createExtractCommand(
@@ -52,7 +53,11 @@ export function createExtractCommand(
                   createExtractDraftComponentsInput(options, resolveSourceFileSelection(options)),
                 )
               : enrichDraftComponents.execute(
-                  createEnrichDraftComponentsInput(options, options.enrich),
+                  createEnrichDraftComponentsInput(
+                    options,
+                    options.enrich,
+                    loadDraftComponents(options.enrich),
+                  ),
                 )
           } catch (error) {
             if (!(error instanceof Error)) throw error

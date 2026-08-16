@@ -1,28 +1,5 @@
 import type { EnrichDraftComponentsInput } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components-input'
-import { readFileSync } from 'node:fs'
-
-/** @riviere-role cli-error */
-class InvalidDraftComponentsFileError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'InvalidEnrichInputError'
-  }
-}
-
-function loadDraftComponents(filePath: string): unknown[] {
-  const parsed: unknown = ((): unknown => {
-    try {
-      return JSON.parse(readFileSync(filePath, 'utf8'))
-    } catch {
-      throw new InvalidDraftComponentsFileError(`Unable to read draft components: ${filePath}`)
-    }
-  })()
-  if (!Array.isArray(parsed))
-    throw new InvalidDraftComponentsFileError(
-      `Enrich file does not contain valid draft components: ${filePath}`,
-    )
-  return parsed
-}
+import type { DraftComponentInput } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components-input'
 
 interface EnrichDraftComponentsFactoryInput {
   allowIncomplete?: boolean
@@ -38,11 +15,12 @@ interface EnrichDraftComponentsFactoryInput {
 export function createEnrichDraftComponentsInput(
   options: EnrichDraftComponentsFactoryInput,
   enrichPath: string,
+  draftComponents: readonly DraftComponentInput[] = [],
 ): EnrichDraftComponentsInput {
   return {
     allowIncomplete: options.allowIncomplete === true,
     configPath: options.config,
-    draftComponents: loadDraftComponents(enrichPath),
+    draftComponents,
     draftComponentsPath: enrichPath,
     includeConnections: !shouldStopAtDraftComponents(options),
     projectRoot: process.cwd(),

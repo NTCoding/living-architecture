@@ -19,6 +19,7 @@ class MissingSourceFileError extends Error {
   }
 }
 
+/** @riviere-role cli-entrypoint */
 export function resolveSourceFileSelection(input: {
   base?: string
   files?: string[]
