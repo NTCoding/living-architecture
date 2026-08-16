@@ -31,6 +31,27 @@ describe('plugin Agent Skills', () => {
       expect(skill).not.toContain('TODO')
     },
   )
+
+  it('selects the code-review execution mechanism for all supported harnesses', () => {
+    const skill = readPluginFile('skills/code-review/SKILL.md')
+    const command = readPluginFile('commands/code-review.md')
+
+    expect({
+      detectsCodex: skill.includes('If `CODEX_THREAD_ID` is present'),
+      usesCodexSubagents: skill.includes('Codex `spawn_agent`'),
+      detectsOpenCode: skill.includes('if `OPENCODE=1` is present'),
+      usesOpenCodeSubagents: skill.includes('OpenCode `Task`'),
+      usesClaudeSubagents: skill.includes('Claude Code `Agent`'),
+      commandDoesNotOverrideHarness: !command.includes("Use Claude's Agent tool"),
+    }).toStrictEqual({
+      detectsCodex: true,
+      usesCodexSubagents: true,
+      detectsOpenCode: true,
+      usesOpenCodeSubagents: true,
+      usesClaudeSubagents: true,
+      commandDoesNotOverrideHarness: true,
+    })
+  })
 })
 
 describe('reviewer workflow preflight', () => {
