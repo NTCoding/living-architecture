@@ -2,6 +2,7 @@ import { Project } from 'ts-morph'
 import { describe, expect, it, vi } from 'vitest'
 import { EnrichedComponent } from '../../value-extraction/enriched-component'
 import { ComponentIndex } from '../component-index'
+import { MissingResolvedTypeNameError } from '../../extraction-errors'
 import { buildCallGraph } from './build-call-graph'
 import { CallGraphOptions } from './call-graph-types'
 
@@ -58,6 +59,9 @@ describe('buildCallGraph guards', () => {
       repository: 'test-repo',
     })
 
+    expect(() =>
+      buildCallGraph(project, [caller], ComponentIndex.parse([caller]), options),
+    ).toThrow(MissingResolvedTypeNameError)
     expect(() =>
       buildCallGraph(project, [caller], ComponentIndex.parse([caller]), options),
     ).toThrow('Expected resolved type name')

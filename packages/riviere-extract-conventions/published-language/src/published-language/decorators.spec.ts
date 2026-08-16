@@ -14,6 +14,7 @@ import {
   HttpCall,
   Custom,
   Ignore,
+  InvalidCustomComponentTypeError,
 } from './decorators'
 
 describe('Container decorators', () => {
@@ -219,12 +220,38 @@ describe('Other decorators', () => {
     })
 
     it('throws InvalidCustomComponentTypeError for empty string type', () => {
+      expect(() => Custom('')).toThrow(InvalidCustomComponentTypeError)
       expect(() => Custom('')).toThrow("Custom component type must be a non-empty string, got: ''")
     })
 
     it('throws InvalidCustomComponentTypeError for whitespace-only type', () => {
+      expect(() => Custom('   ')).toThrow(InvalidCustomComponentTypeError)
       expect(() => Custom('   ')).toThrow(
         "Custom component type must be a non-empty string, got: '   '",
+      )
+    })
+
+    it.each([
+      [null, 'null'],
+      [42, '42'],
+      [Symbol('component'), 'Symbol(component)'],
+    ])('rejects non-string type %s with InvalidCustomComponentTypeError', (type, formattedType) => {
+      expect(() => Custom(type)).toThrow(InvalidCustomComponentTypeError)
+      expect(() => Custom(type)).toThrow(
+        `Custom component type must be a non-empty string, got: ${formattedType}`,
+      )
+    })
+
+    it('formats unprintable non-string types safely', () => {
+      const unprintable = {
+        toJSON: () => {
+          throw null
+        },
+      }
+
+      expect(() => Custom(unprintable)).toThrow(InvalidCustomComponentTypeError)
+      expect(() => Custom(unprintable)).toThrow(
+        'Custom component type must be a non-empty string, got: <unprintable value>',
       )
     })
 

@@ -11,6 +11,7 @@ const publishedLanguageRoles: RoleName[] = [
   'published-language-union',
   'published-language-parser',
   'published-language-field-name',
+  'domain-error',
   'value-object',
 ]
 

@@ -1,6 +1,7 @@
 import { Project } from 'ts-morph'
 import { describe, expect, it, vi } from 'vitest'
 import { ComponentIndex } from '../component-index'
+import { MissingInterfaceTypeNameError } from '../../extraction-errors'
 import { resolveTypeThroughInterface } from './call-graph-shared'
 import { CallGraphOptions } from './call-graph-types'
 
@@ -27,6 +28,14 @@ describe('resolveTypeThroughInterface guards', () => {
       repository: 'test-repo',
     })
 
+    expect(() =>
+      resolveTypeThroughInterface(
+        'OrderGateway',
+        new Project({ useInMemoryFileSystem: true }),
+        ComponentIndex.parse([]),
+        options,
+      ),
+    ).toThrow(MissingInterfaceTypeNameError)
     expect(() =>
       resolveTypeThroughInterface(
         'OrderGateway',

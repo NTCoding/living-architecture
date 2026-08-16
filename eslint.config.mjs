@@ -96,7 +96,8 @@ export default tseslint.config(
           message: 'Use custom precise error classes instead of generic Error or fail assertions in tests.',
         },
         {
-          selector: 'NewExpression[callee.name="TypeError"]',
+          selector:
+            'Identifier[name="TypeError"], ImportSpecifier[imported.name="TypeError"], MemberExpression[property.name="TypeError"], MemberExpression[property.value="TypeError"]',
           message: 'Use custom precise error classes instead of TypeError.',
         },
         {

@@ -154,7 +154,7 @@ src/
     └── eslint-plugin/     ← optional; role enforcement disabled inside this integration
 ```
 
-A published language is a minimal, stable contract intended for consumers across a boundary. It may contain published-language schemas, data structures, unions, parsers, field names, annotations, and value objects.
+A published language is a minimal, stable contract intended for consumers across a boundary. It may contain published-language schemas, data structures, unions, parsers, field names, annotations, value objects, and domain errors for invalid published-language inputs.
 
 A published-language parser parses the published language and returns either its declared successful schema shape or its declared failure shape. Application behaviour does not belong in the published language.
 

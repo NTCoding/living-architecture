@@ -2,6 +2,7 @@ import { Project } from 'ts-morph'
 import { describe, expect, it, vi } from 'vitest'
 import { EnrichedComponent } from '../../value-extraction/enriched-component'
 import { ComponentIndex } from '../component-index'
+import { MissingResolvedTypeNameError } from '../../extraction-errors'
 import { CallGraphOptions, CallSite } from './call-graph-types'
 import { traceCallsInBody } from './trace-calls'
 
@@ -65,6 +66,19 @@ describe('traceCallsInBody guards', () => {
       repository: 'test-repo',
     })
 
+    expect(() =>
+      traceCallsInBody(
+        method,
+        project,
+        ComponentIndex.parse([component]),
+        component,
+        originCallSite,
+        new Set<string>(),
+        [],
+        [],
+        options,
+      ),
+    ).toThrow(MissingResolvedTypeNameError)
     expect(() =>
       traceCallsInBody(
         method,
