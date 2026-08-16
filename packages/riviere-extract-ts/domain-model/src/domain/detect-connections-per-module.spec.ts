@@ -360,6 +360,30 @@ describe('RiviereProject.extractDraftComponents', () => {
 })
 
 describe('RiviereProject.parse', () => {
+  it('rejects extraction when a parsed project loses its module source', () => {
+    const project = createRiviereProject('orders')
+    Object.defineProperty(project, 'moduleSources', { value: new Map() })
+
+    expect(() =>
+      project.extractDraftComponents({
+        allowIncomplete: true,
+        includeConnections: false,
+      }),
+    ).toThrowError(new MissingModuleSourceError('orders'))
+  })
+
+  it('rejects enrichment when a parsed project loses its module source', () => {
+    const project = createRiviereProject('orders')
+    Object.defineProperty(project, 'moduleSources', { value: new Map() })
+
+    expect(() =>
+      project.enrichDraftComponents({
+        allowIncomplete: true,
+        includeConnections: true,
+      }),
+    ).toThrowError(new MissingModuleSourceError('orders'))
+  })
+
   it('describes a missing module source precisely', () => {
     expect(() => {
       throw new MissingModuleSourceError('orders')

@@ -13,6 +13,7 @@ import type { ExtractedLink } from './connection-detection/extracted-link'
 import { stripResolvedCustomTypes } from './connection-detection/resolve-http-links'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import { enrichComponentsForModules } from './extract-components-for-graph'
+import { MissingModuleSourceError } from './extraction-errors'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
 import type { ExtractionStage } from './extraction-stage'
 
@@ -327,7 +328,10 @@ function groupDraftsByModule(
 ): Map<string, DraftComponent[]> {
   const grouped = new Map<string, DraftComponent[]>()
   for (const module of modules) {
-    const source = moduleSources.get(module) as ModuleSource
+    const source = moduleSources.get(module)
+    if (source === undefined) {
+      throw new MissingModuleSourceError(module.name)
+    }
     const moduleDrafts = drafts.filter((draft) =>
       moduleOwnsComponent({ component: draft, module, files: source.files }),
     )
@@ -351,5 +355,9 @@ function sourceForModule(
   moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
   module: ValidatedModule,
 ): ModuleSource {
-  return moduleSources.get(module) as ModuleSource
+  const source = moduleSources.get(module)
+  if (source === undefined) {
+    throw new MissingModuleSourceError(module.name)
+  }
+  return source
 }
