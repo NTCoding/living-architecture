@@ -103,7 +103,8 @@ function runGit(projectRoot: string, args: string[]): string {
       throw new GitError('Run from within a git repository.')
     }
     if (args[0] === 'diff' && args[1] === '--name-only') {
-      throw new GitError(`Base branch '${args.at(-1)}' not found.`)
+      const base = args.at(-1)?.split('...')[0]
+      throw new GitError(`Base branch '${base}' not found.`)
     }
     throw error
   }
