@@ -39,6 +39,12 @@ describe('workflow-cli commands', () => {
       const result = runCommand(ctx, ['init'])
       expect(result.exitCode).toStrictEqual(0)
     })
+
+    it('rejects an empty transcript path', () => {
+      const ctx = setup({ transcriptPath: '' })
+
+      expect(() => runCommand(ctx, ['init'])).toThrow('transcriptPath must be a non-empty string.')
+    })
   })
 
   describe('transition', () => {
