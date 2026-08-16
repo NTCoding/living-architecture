@@ -685,7 +685,7 @@ export default {
               }
               report(
                 statement,
-                `Forbidden dependency: this file (${forbiddenByRoles.join(', ')}) cannot import from a file exporting '${importedRole}'. ${referenceForKnownRole(options, importedRole)}`,
+                `Forbidden dependency: this file (${forbiddenByRoles.join(', ')}) cannot import from a file exporting '${importedRole}'. ${referenceForKnownRole(options, importedRole)} Read '${options.roleDefinitionsDir}/index.md' and the relevant role definitions before changing the code. Classify the responsibility first; do not choose a role only to make a dependency pass.`,
               )
             }
           }
