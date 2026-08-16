@@ -18,7 +18,7 @@ vi.mock('./type-resolver', async () => {
 })
 
 describe('buildCallGraph guards', () => {
-  it('throws TypeError when receiver type is marked resolved without a type name', () => {
+  it('throws a missing resolved type name error when receiver type has no type name', () => {
     const project = new Project({
       useInMemoryFileSystem: true,
       compilerOptions: {

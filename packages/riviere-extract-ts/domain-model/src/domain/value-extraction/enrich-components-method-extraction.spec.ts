@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
 import { enrichComponents } from './enrich-components'
 import { createValidatedModule } from '../../__fixtures__/test-fixtures'
+import { TestFixtureError } from './literal-detection'
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
 const counter = { value: 0 }
@@ -24,7 +25,7 @@ const notUsed = { notUsed: true } as const
 function enrich(drafts: DraftComponent[], modules: ValidatedModule[]) {
   const [module] = modules
   if (module === undefined) {
-    throw new TypeError('Expected one module in test config')
+    throw new TestFixtureError('Expected one module in test config')
   }
   return enrichComponents(drafts, module, sharedProject)
 }

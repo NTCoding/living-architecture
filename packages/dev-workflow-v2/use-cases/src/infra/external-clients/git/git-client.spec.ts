@@ -1,4 +1,18 @@
 import { describe, expect, it, vi } from 'vitest'
+
+class UnexpectedGitCommandError extends Error {
+  constructor(command: string) {
+    super(`Unexpected git command: ${command}`)
+    this.name = 'UnexpectedGitCommandError'
+  }
+}
+
+class MissingRemoteHeadError extends Error {
+  constructor() {
+    super('missing remote HEAD')
+    this.name = 'MissingRemoteHeadError'
+  }
+}
 import { readGitRepositoryStatus } from './git-client'
 
 describe('readGitRepositoryStatus', () => {
@@ -14,7 +28,7 @@ describe('readGitRepositoryStatus', () => {
         'rev-list HEAD ^trunk': 'abc123',
       }
       const output = outputs[command]
-      if (output === undefined) throw new TypeError(`Unexpected git command: ${command}`)
+      if (output === undefined) throw new UnexpectedGitCommandError(command)
       return output
     })
 
@@ -35,7 +49,9 @@ describe('readGitRepositoryStatus', () => {
   it('falls back to main and reports a dirty branch with no commits', () => {
     const executeGit = vi.fn((_binary: string, args: readonly string[]) => {
       const command = args.join(' ')
-      if (command.startsWith('symbolic-ref')) throw new TypeError('missing remote HEAD')
+      if (command.startsWith('symbolic-ref')) {
+        throw new MissingRemoteHeadError()
+      }
       if (command === 'status --porcelain') return ' M src/a.ts'
       if (
         command === 'rev-parse --abbrev-ref HEAD' ||
@@ -44,7 +60,7 @@ describe('readGitRepositoryStatus', () => {
         command === 'rev-list HEAD ^main'
       )
         return ''
-      throw new TypeError(`Unexpected git command: ${command}`)
+      throw new UnexpectedGitCommandError(command)
     })
 
     expect(readGitRepositoryStatus('git', executeGit)).toMatchObject({

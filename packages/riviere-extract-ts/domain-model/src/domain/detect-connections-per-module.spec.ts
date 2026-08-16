@@ -6,6 +6,7 @@ import {
 } from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
 import { ExtractionProject } from './extraction-project'
+import { MissingModuleSourceError } from './extraction-errors'
 
 const {
   mockExtractComponents,
@@ -339,6 +340,12 @@ describe('ExtractionProject.extractDraftComponents', () => {
 })
 
 describe('ExtractionProject.parse', () => {
+  it('describes a missing module source precisely', () => {
+    expect(() => {
+      throw new MissingModuleSourceError('orders')
+    }).toThrow("Missing source for module 'orders'")
+  })
+
   it('rejects missing and foreign module sources', () => {
     const orders = ValidatedConfiguration.parse({
       modules: [

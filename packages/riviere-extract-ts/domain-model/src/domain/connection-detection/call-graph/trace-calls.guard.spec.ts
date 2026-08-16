@@ -18,7 +18,7 @@ vi.mock('./type-resolver', async () => {
 })
 
 describe('traceCallsInBody guards', () => {
-  it('throws TypeError when traced receiver type is marked resolved without a type name', () => {
+  it('throws a missing resolved type name error when traced receiver type has no type name', () => {
     const project = new Project({
       useInMemoryFileSystem: true,
       compilerOptions: {

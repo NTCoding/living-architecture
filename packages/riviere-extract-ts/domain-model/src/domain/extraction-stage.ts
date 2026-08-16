@@ -3,6 +3,7 @@ import type {
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { Project } from 'ts-morph'
+import { ModuleContextsMismatchError } from './extraction-errors'
 
 interface ModuleContext {
   readonly files: readonly string[]
@@ -52,12 +53,12 @@ function validateModuleContexts(
   contexts: readonly ModuleContext[],
 ): void {
   if (modules.length !== contexts.length) {
-    throw new TypeError('Module contexts must match resolved configuration exactly')
+    throw new ModuleContextsMismatchError()
   }
   const contextModules = new Set(contexts.map((context) => context.module))
   const matchesExactly =
     contextModules.size === modules.length && modules.every((module) => contextModules.has(module))
   if (!matchesExactly) {
-    throw new TypeError('Module contexts must match resolved configuration exactly')
+    throw new ModuleContextsMismatchError()
   }
 }

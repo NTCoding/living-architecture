@@ -9,6 +9,7 @@ import {
 import { DraftComponent } from './component-extraction/draft-component'
 import type { ExtractedLink } from './connection-detection/extracted-link'
 import { ExtractionProject, OrphanedDraftComponentError } from './extraction-project'
+import { TestFixtureError } from './value-extraction/literal-detection'
 
 const {
   mockEnrichComponents,
@@ -92,7 +93,7 @@ function createDraft(
 
 function calledModuleName(callIndex: number): string {
   const value: unknown = mockEnrichComponents.mock.calls[callIndex]?.[1]
-  if (!(value instanceof ValidatedModule)) throw new TypeError('Expected validated module')
+  if (!(value instanceof ValidatedModule)) throw new TestFixtureError('Expected validated module')
   return value.name
 }
 

@@ -1,8 +1,6 @@
 import { expect } from 'vitest'
 import * as matchers from '@testing-library/jest-dom/matchers'
-import {
-  fireEvent, screen 
-} from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import { TestAssertionError } from '@/test-assertions'
 
 expect.extend(matchers)
@@ -53,7 +51,7 @@ export function getDropZone(): HTMLElement {
     throw new TestAssertionError('Drop zone not found')
   }
   if (!(dropZone instanceof HTMLElement)) {
-    throw new TypeError('Drop zone is not an HTMLElement')
+    throw new TestAssertionError('Drop zone is not an HTMLElement')
   }
   return dropZone
 }

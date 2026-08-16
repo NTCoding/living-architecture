@@ -4,6 +4,13 @@ import type { RoleEnforcementRunnerInput } from '@living-architecture/riviere-ro
 import { RoleEnforcementConfiguration } from '@living-architecture/riviere-role-enforcement-domain-model'
 import { createOxlintRoleEnforcementRunner } from './oxlint-role-enforcement-runner'
 
+class UnexpectedRunnerFailureError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'UnexpectedRunnerFailureError'
+  }
+}
+
 function parseConfiguration(value: unknown): RoleEnforcementConfiguration {
   const parsed = RoleEnforcementConfiguration.parse(value)
   if (!parsed.success) {
@@ -135,7 +142,7 @@ it('preserves optional enforcement configuration', () => {
 })
 
 it('rethrows unexpected client failures', () => {
-  const unexpected = new TypeError('unexpected')
+  const unexpected = new UnexpectedRunnerFailureError('unexpected')
   const runner = createOxlintRoleEnforcementRunner(() => {
     throw unexpected
   }, '/repo/role-enforcement-plugin.mjs')

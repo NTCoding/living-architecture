@@ -8,6 +8,7 @@ import {
 } from './extract-components-for-graph'
 import { ExtractionStage } from './extraction-stage'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
+import { MissingModuleContextError } from './extraction-errors'
 
 const { mockExtractComponents, mockEnrichComponents } = vi.hoisted(() => ({
   mockExtractComponents: vi.fn(),
@@ -189,7 +190,7 @@ describe('ExtractComponentsForGraph.execute', () => {
 
     expect(() =>
       new ExtractComponentsForGraph().execute(invalidStage, { allowIncomplete: false }),
-    ).toThrowError(new TypeError("Missing context for module 'orders'"))
+    ).toThrowError(new MissingModuleContextError('orders'))
   })
 
   it('enriches drafts against their configured modules', () => {

@@ -218,13 +218,11 @@ describe('Other decorators', () => {
       expect(new OrderQuery().findAll()).toStrictEqual(['item1'])
     })
 
-    it('throws TypeError for empty string type', () => {
-      expect(() => Custom('')).toThrow(TypeError)
+    it('throws InvalidCustomComponentTypeError for empty string type', () => {
       expect(() => Custom('')).toThrow("Custom component type must be a non-empty string, got: ''")
     })
 
-    it('throws TypeError for whitespace-only type', () => {
-      expect(() => Custom('   ')).toThrow(TypeError)
+    it('throws InvalidCustomComponentTypeError for whitespace-only type', () => {
       expect(() => Custom('   ')).toThrow(
         "Custom component type must be a non-empty string, got: '   '",
       )

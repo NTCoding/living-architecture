@@ -21,6 +21,13 @@ import {
   writeRepositoryFile,
 } from './__fixtures__/test-fixture-workspace'
 
+class UnexpectedRunnerFailureError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'UnexpectedRunnerFailureError'
+  }
+}
+
 function runWith(config: typeof genericTestConfig, workspaceDir: string) {
   return runTestRoleEnforcement(config, workspaceDir)
 }
@@ -341,7 +348,7 @@ it('wraps RoleEnforcementExecutionError from the oxlint adapter into a failure r
 
 it('rethrows non-domain errors from the oxlint adapter', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
-    const unexpected = new TypeError('unexpected crash')
+    const unexpected = new UnexpectedRunnerFailureError('unexpected crash')
     const runner = new RunRoleEnforcement({
       now: () => 0,
       projectRepository: createEmptyProjectRepository(),

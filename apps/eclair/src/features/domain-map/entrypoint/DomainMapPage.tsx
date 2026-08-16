@@ -7,7 +7,7 @@ import {
 import {
   ReactFlow, Background, Controls, useNodesState, useEdgesState
 } from '@xyflow/react'
-import { GraphError } from '@/platform/infra/errors/errors'
+import { DOMError, GraphError } from '@/platform/infra/errors/errors'
 import type {
   Node, Edge, NodeMouseHandler, EdgeMouseHandler 
 } from '@xyflow/react'
@@ -211,7 +211,7 @@ export function DomainMapPage({ graph }: DomainMapPageProps): React.ReactElement
     const handleExportSvg = (): void => {
       const svg = exportContainerRef.current?.querySelector('svg')
       if (!(svg instanceof SVGSVGElement)) {
-        throw new TypeError('Export container must contain an SVG element')
+        throw new DOMError('Export container must contain an SVG element')
       }
       const filename = generateExportFilename(graphName, 'svg')
       exportSvgAsFile(svg, filename)

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { parse } from 'yaml'
+import { WorkspacePackagePatternsError } from './workspace-package-patterns-error'
 
 type WorkspacePackagePatterns = {
   readonly ignore: readonly string[]
@@ -23,7 +24,7 @@ export function readWorkspacePackagePatterns(
     !Array.isArray(document.packages) ||
     !document.packages.every((pattern) => typeof pattern === 'string')
   ) {
-    throw new TypeError("pnpm-workspace.yaml must contain a 'packages' array of paths.")
+    throw new WorkspacePackagePatternsError()
   }
   return {
     ignore: document.packages

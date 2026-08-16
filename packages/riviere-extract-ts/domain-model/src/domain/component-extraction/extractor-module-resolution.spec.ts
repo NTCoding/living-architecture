@@ -2,6 +2,7 @@ import { ValidatedConfiguration } from '@living-architecture/riviere-extract-con
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { extractComponents } from './extractor'
+import { TestFixtureError } from '../value-extraction/literal-detection'
 
 function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })
@@ -10,7 +11,7 @@ function createTestProject() {
 function extract(project: Project, paths: string[], config: ValidatedConfiguration) {
   const [module] = config.modules
   if (module === undefined) {
-    throw new TypeError('Expected one module in test config')
+    throw new TestFixtureError('Expected one module in test config')
   }
   return extractComponents(project, paths, module)
 }
@@ -46,7 +47,7 @@ function createModuleResolutionConfig(
     ],
   })
   if (!result.success) {
-    throw new TypeError(result.errors.map((error) => error.message).join('\n'))
+    throw new TestFixtureError(result.errors.map((error) => error.message).join('\n'))
   }
   return result.data
 }

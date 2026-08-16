@@ -4,6 +4,7 @@ import {
   eventsToAwaitingPrFeedback,
   unresolvedThread,
 } from './__fixtures__/workflow-test-fixtures'
+import { GitHubUnavailableTestError } from './__fixtures__/workflow-test-errors'
 import { Workflow } from './workflow'
 import { applyEvents } from './fold'
 
@@ -183,7 +184,7 @@ describe('Workflow', () => {
         applyEvents([...eventsToAwaitingPrFeedback().slice(0, -1)]),
         makeDeps({
           getPrFeedback: () => {
-            throw new TypeError('GitHub unavailable')
+            throw new GitHubUnavailableTestError()
           },
         }),
       )
@@ -199,7 +200,7 @@ describe('Workflow', () => {
       expect(withPr.getPendingEvents().slice(-2)).toStrictEqual([
         expect.objectContaining({
           type: 'pr-feedback-verification-failed',
-          reason: 'Unable to fetch PR feedback: TypeError: GitHub unavailable',
+          reason: 'Unable to fetch PR feedback: GitHubUnavailableTestError: GitHub unavailable',
         }),
         expect.objectContaining({
           type: 'transitioned',

@@ -96,6 +96,10 @@ export default tseslint.config(
           message: 'Use custom precise error classes instead of generic Error or fail assertions in tests.',
         },
         {
+          selector: 'NewExpression[callee.name="TypeError"]',
+          message: 'Use custom precise error classes instead of TypeError.',
+        },
+        {
           selector: 'LogicalExpression[operator="??"][right.type="Literal"][right.value=""]',
           message: 'Banned: `?? \'\'` violates fail-fast principle. Never use empty string fallback. Options: (1) Fail fast if value should exist (throw descriptive error), (2) Handle undefined explicitly without empty string, (3) Create a type that represents emptiness (not string literal).',
         }

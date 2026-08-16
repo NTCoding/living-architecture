@@ -2,6 +2,7 @@ import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { createConfigWithRule } from '../../__fixtures__/test-fixtures'
 import { extractComponents } from './extractor'
+import { TestFixtureError } from '../value-extraction/literal-detection'
 
 function createTestProject() {
   return new Project({ useInMemoryFileSystem: true })
@@ -14,7 +15,7 @@ function extract(
 ) {
   const [module] = config.modules
   if (module === undefined) {
-    throw new TypeError('Expected one module in test config')
+    throw new TestFixtureError('Expected one module in test config')
   }
   return extractComponents(project, paths, module)
 }

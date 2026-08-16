@@ -3,6 +3,7 @@ import type { ValidatedModule } from '@living-architecture/riviere-extract-confi
 import { detectConfiguredConnections } from './connection-detection/detect-configured-connections'
 import type { ExtractionStage } from './extraction-stage'
 import { moduleOwnsComponent } from './extraction-project'
+import { MissingModuleContextError } from './extraction-errors'
 
 type ConfiguredSourceInput = {
   readonly stage: ExtractionStage
@@ -80,7 +81,7 @@ function contextForModule(stage: ExtractionStage, module: ValidatedModule) {
   for (const context of contexts) {
     if (context.module === module) return context
   }
-  throw new TypeError(`Missing context for module '${module.name}'`)
+  throw new MissingModuleContextError(module.name)
 }
 
 function connectionOptions(input: ConnectionOptionsInput) {

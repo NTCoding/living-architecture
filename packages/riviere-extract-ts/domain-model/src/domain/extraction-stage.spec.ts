@@ -2,6 +2,7 @@ import { assert, describe, expect, it } from 'vitest'
 import { Project } from 'ts-morph'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { ExtractionStage } from './extraction-stage'
+import { ModuleContextsMismatchError } from './extraction-errors'
 
 type ModuleContext = {
   module: ValidatedConfiguration['modules'][number]
@@ -113,6 +114,6 @@ describe('ExtractionStage', () => {
         resolvedConfig,
         moduleContexts: invalidContexts,
       }),
-    ).toThrowError(new TypeError('Module contexts must match resolved configuration exactly'))
+    ).toThrowError(new ModuleContextsMismatchError())
   })
 })

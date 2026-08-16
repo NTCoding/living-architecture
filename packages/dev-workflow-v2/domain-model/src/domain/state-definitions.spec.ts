@@ -6,6 +6,7 @@ import { defineImplementingState } from './states/implementing'
 import { defineReviewingState } from './states/reviewing'
 import { defineSubmittingPrState } from './states/submitting-pr'
 import { getInitialWorkflowState } from './workflow-types'
+import { WorkflowTestInvariantError } from './__fixtures__/workflow-test-errors'
 
 const cleanGit: GitInfo = {
   currentBranch: 'issue-42',
@@ -41,7 +42,9 @@ if (
   addressingFeedbackOnEntry === undefined ||
   implementingOnEntry === undefined
 ) {
-  throw new TypeError('Expected guarded workflow states to define their domain behaviour.')
+  throw new WorkflowTestInvariantError(
+    'Expected guarded workflow states to define their domain behaviour.',
+  )
 }
 
 describe('workflow state definitions', () => {

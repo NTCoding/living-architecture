@@ -13,6 +13,7 @@ import type { ExtractedLink } from './connection-detection/extracted-link'
 import { stripResolvedCustomTypes } from './connection-detection/resolve-http-links'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import { enrichComponentsForModules } from './extract-components-for-graph'
+import { MissingModuleSourceError } from './extraction-errors'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
 
 interface DraftOnlyOutcome {
@@ -302,7 +303,7 @@ function groupDraftsByModule(
     const source = moduleSources.get(module)
     /* v8 ignore start -- ExtractionProject.parse rejects missing module sources */
     if (source === undefined) {
-      throw new TypeError(`Missing source for module '${module.name}'`)
+      throw new MissingModuleSourceError(module.name)
     }
     /* v8 ignore stop */
     const moduleDrafts = drafts.filter((draft) =>
@@ -331,7 +332,7 @@ function sourceForModule(
   const source = moduleSources.get(module)
   /* v8 ignore start -- ExtractionProject.parse rejects missing module sources */
   if (source === undefined) {
-    throw new TypeError(`Missing source for module '${module.name}'`)
+    throw new MissingModuleSourceError(module.name)
   }
   /* v8 ignore stop */
   return source

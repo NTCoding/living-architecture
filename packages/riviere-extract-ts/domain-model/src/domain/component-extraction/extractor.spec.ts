@@ -6,6 +6,7 @@ import {
   createOrdersUseCaseConfig,
   createResolvedConfig,
 } from '../../__fixtures__/test-fixtures'
+import { TestFixtureError } from '../value-extraction/literal-detection'
 import { DraftComponent } from './draft-component'
 import { extractComponents } from './extractor'
 
@@ -20,7 +21,7 @@ function extract(
 ) {
   const [module] = config.modules
   if (module === undefined) {
-    throw new TypeError('Expected one module in test config')
+    throw new TestFixtureError('Expected one module in test config')
   }
   return extractComponents(project, paths, module)
 }

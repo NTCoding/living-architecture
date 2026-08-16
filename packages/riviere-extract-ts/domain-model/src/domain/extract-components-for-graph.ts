@@ -3,6 +3,7 @@ import type { Project } from 'ts-morph'
 import type { DraftComponent } from './component-extraction/draft-component'
 import { extractComponents } from './component-extraction/extractor'
 import type { ExtractionStage } from './extraction-stage'
+import { MissingModuleContextError } from './extraction-errors'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import { enrichComponents } from './value-extraction/enrich-components'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
@@ -298,5 +299,5 @@ function contextForModule(input: ModuleContextInput): EnrichmentModuleContext {
     const contextModuleName = contextModule.name
     if (contextModuleName === moduleName) return context
   }
-  throw new TypeError(`Missing context for module '${moduleName}'`)
+  throw new MissingModuleContextError(moduleName)
 }

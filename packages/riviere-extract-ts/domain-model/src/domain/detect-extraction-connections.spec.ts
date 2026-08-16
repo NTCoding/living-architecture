@@ -3,6 +3,7 @@ import { Project } from 'ts-morph'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { ExtractedLink } from './connection-detection/extracted-link'
 import { DetectExtractionConnections } from './detect-extraction-connections'
+import { MissingModuleContextError, ModuleContextsMismatchError } from './extraction-errors'
 import { ExtractionStage } from './extraction-stage'
 import { EnrichedComponent } from './value-extraction/enriched-component'
 
@@ -234,7 +235,7 @@ describe('DetectExtractionConnections.execute', () => {
         resolvedConfig: stage.resolvedConfig,
         moduleContexts: [],
       }),
-    ).toThrowError(new TypeError('Module contexts must match resolved configuration exactly'))
+    ).toThrowError(new ModuleContextsMismatchError())
   })
 
   it('rejects duplicate stage contexts', () => {
@@ -251,7 +252,7 @@ describe('DetectExtractionConnections.execute', () => {
         resolvedConfig: stage.resolvedConfig,
         moduleContexts: [firstContext, firstContext],
       }),
-    ).toThrowError(new TypeError('Module contexts must match resolved configuration exactly'))
+    ).toThrowError(new ModuleContextsMismatchError())
   })
 
   it('rejects a context from a foreign configuration', () => {
@@ -290,7 +291,7 @@ describe('DetectExtractionConnections.execute', () => {
           { module: foreignModule, files: [], project: new Project() },
         ],
       }),
-    ).toThrowError(new TypeError('Module contexts must match resolved configuration exactly'))
+    ).toThrowError(new ModuleContextsMismatchError())
   })
 
   it('reports a missing context at the service boundary', () => {
@@ -302,6 +303,6 @@ describe('DetectExtractionConnections.execute', () => {
 
     expect(() =>
       new DetectExtractionConnections().execute(invalidStage, [], { allowIncomplete: false }),
-    ).toThrowError(new TypeError("Missing context for module 'orders'"))
+    ).toThrowError(new MissingModuleContextError('orders'))
   })
 })
