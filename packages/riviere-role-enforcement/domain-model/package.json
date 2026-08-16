@@ -21,12 +21,16 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./plugin": "./role-enforcement-plugin.mjs"
+    "./plugin": {
+      "types": "./role-enforcement-plugin.d.ts",
+      "default": "./role-enforcement-plugin.mjs"
+    }
   },
   "files": [
     "dist",
     "!dist/**/__fixtures__/**",
     "role-enforcement-plugin.mjs",
+    "role-enforcement-plugin.d.ts",
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
