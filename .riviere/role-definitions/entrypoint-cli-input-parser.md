@@ -10,6 +10,7 @@ Parses or validates raw CLI input using the meaning of a specific entrypoint.
 2. May coordinate multiple CLI options.
 3. May produce entrypoint or application input types.
 4. Does not own reusable domain validation rules.
+5. Invokes only private helper functions or dependencies supplied as parameters. It does not directly invoke statically imported functions.
 
 ## Canonical Example
 
@@ -112,9 +113,11 @@ Do not extract a one-use primitive function merely to make the entrypoint file s
 - Reusable domain validation belongs to the domain that owns the rule.
 - Reuse within one feature changes the `_platform` scope, not the role or location.
 - Similar code in separate features does not by itself justify a shared abstraction. Domain-aware validation belongs in the subdomain use case and domain model.
+- If the parser obtains information that an operation needs, such as the source files to extract, define a domain port in the domain and implement it with an adapter and external client. The domain calls the port as part of the operation.
 
 ## Anti-Patterns
 
 - Placing this role in an infrastructure layer.
 - Duplicating a parser in several entrypoints instead of moving it to their narrowest common entrypoint `_platform`.
 - Moving a parser to infra solely because several entrypoints use it.
+- Calling Git, the filesystem, or another imported service directly from a parser.

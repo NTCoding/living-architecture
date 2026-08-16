@@ -11,6 +11,11 @@ const commandInputFactory = role('command-input-factory', {
   targets: ['function'],
 })
 
+const cliInputParser = role('entrypoint-cli-input-parser', {
+  forbiddenImportedFunctionCalls: true,
+  targets: ['function'],
+})
+
 const cliEntrypoint = role('cli-entrypoint', {
   forbiddenDependencies: ['cli-entrypoint'],
   targets: ['function'],
@@ -20,13 +25,17 @@ const config = roleEnforcementConfiguration({
   configurations: {
     'packages/example': {
       locations: locationConfiguration(
-        location('/entrypoint', ['command-input-factory', 'cli-entrypoint']),
+        location('/entrypoint', [
+          'command-input-factory',
+          'entrypoint-cli-input-parser',
+          'cli-entrypoint',
+        ]),
       ),
     },
   },
   ignorePatterns: [],
   roleDefinitionsDir: '.riviere/role-definitions',
-  roles: [commandInputFactory, cliEntrypoint],
+  roles: [commandInputFactory, cliInputParser, cliEntrypoint],
 })
 
 function enforce(source: string, options: { configDir?: string; filename?: string } = {}) {
@@ -67,6 +76,20 @@ it('rejects direct invocation of an imported function', () => {
 
 /** @riviere-role command-input-factory */
 export function createInput() {
+  return execute()
+}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("forbids direct invocation of imported function 'execute'")
+  expect(messages[0]?.message).toContain('Classify the responsibility first')
+})
+
+it('rejects direct invocation of an imported function from a CLI input parser', () => {
+  const messages = enforce(`import { execute } from 'external-client'
+
+/** @riviere-role entrypoint-cli-input-parser */
+export function parseInput() {
   return execute()
 }
 `)

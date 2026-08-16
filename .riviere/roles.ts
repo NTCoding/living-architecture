@@ -101,7 +101,10 @@ export const allRoles = [
   }),
   role('external-client-model', { targets: ['interface', 'type-alias', 'class'] }),
   role('external-client-error', { targets: ['class'] }),
-  role('entrypoint-cli-input-parser', { targets: ['function'] }),
+  role('entrypoint-cli-input-parser', {
+    targets: ['function'],
+    forbiddenImportedFunctionCalls: true,
+  }),
   role('cli-error', { targets: ['class'] }),
   role('main', {
     targets: ['function'],

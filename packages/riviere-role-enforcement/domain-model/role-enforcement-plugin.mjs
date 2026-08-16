@@ -589,7 +589,7 @@ export default {
           ) {
             report(
               node,
-              `Role '${fileRoles.join(', ')}' forbids direct invocation of imported function '${node.callee.name}'. Pass the dependency through a constructor or parameter.`,
+              `Role '${fileRoles.join(', ')}' forbids direct invocation of imported function '${node.callee.name}'. Pass the dependency through a constructor or parameter. Read '${options.roleDefinitionsDir}/index.md' and the relevant role definitions before changing the code. Classify the responsibility first; do not choose a role only to make a dependency pass.`,
             )
             return
           }
