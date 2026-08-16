@@ -8,7 +8,8 @@ import {
 } from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
 import type { ExtractedLink } from './connection-detection/extracted-link'
-import { ExtractionProject, OrphanedDraftComponentError } from './extraction-project'
+import { RiviereProject, OrphanedDraftComponentError } from './riviere-project'
+import { ExtractionStage } from './extraction-stage'
 import { TestFixtureError } from './value-extraction/literal-detection'
 
 const {
@@ -97,7 +98,7 @@ function calledModuleName(callIndex: number): string {
   return value.name
 }
 
-function createExtractionProject(
+function createRiviereProject(
   moduleContexts: Array<{
     files: string[]
     moduleName: string
@@ -105,28 +106,35 @@ function createExtractionProject(
     project: Project
   }>,
   draftComponents: DraftComponent[] = [],
-): ExtractionProject {
+): RiviereProject {
   const configurationResult = ValidatedConfiguration.parse({
     modules: moduleContexts.map((context) => createModule(context.moduleName, context.modules)),
   })
   assert(configurationResult.success)
-  const moduleSources = new Map<ValidatedModule, { files: string[]; project: Project }>()
+  const stageContexts: Array<{
+    files: string[]
+    module: ValidatedModule
+    project: Project
+  }> = []
   configurationResult.data.modules.forEach((module, index) => {
     const context = moduleContexts[index]
     assert(context)
-    moduleSources.set(module, { files: context.files, project: context.project })
+    stageContexts.push({ module, files: context.files, project: context.project })
   })
-  const projectResult = ExtractionProject.parse({
-    configuration: configurationResult.data,
-    moduleSources,
+  const stage = ExtractionStage.parse({
+    name: 'test',
+    configPath: 'config.yml',
+    useTsConfig: false,
     repositoryName: 'test-repo',
-    draftComponents,
+    resolvedConfig: configurationResult.data,
+    moduleContexts: stageContexts,
   })
+  const projectResult = RiviereProject.parse({ stage, draftComponents })
   assert(projectResult.success)
   return projectResult.data
 }
 
-describe('ExtractionProject.enrichDraftComponents', () => {
+describe('RiviereProject.enrichDraftComponents', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -152,7 +160,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
         failures: [],
       })
 
-    const result = createExtractionProject(
+    const result = createRiviereProject(
       [createModuleContext('orders'), createModuleContext('shipping')],
       [
         createDraft('orders', 'CompA'),
@@ -175,7 +183,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       failures: [],
     })
 
-    createExtractionProject(
+    createRiviereProject(
       [createModuleContext('orders'), createModuleContext('shipping')],
       [createDraft('orders', 'CompA'), createDraft('shipping', 'CompB')],
     ).enrichDraftComponents({
@@ -209,7 +217,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
         failures: [{ field: 'name' }, { field: 'type' }],
       })
 
-    const result = createExtractionProject(
+    const result = createRiviereProject(
       [createModuleContext('orders'), createModuleContext('shipping')],
       [createDraft('orders', 'A'), createDraft('shipping', 'B')],
     ).enrichDraftComponents({
@@ -228,7 +236,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       failures: [],
     })
 
-    const result = createExtractionProject(
+    const result = createRiviereProject(
       [createModuleContext('orders'), createModuleContext('empty')],
       [createDraft('orders', 'A')],
     ).enrichDraftComponents({
@@ -243,7 +251,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
 
   it('throws OrphanedDraftComponentError when drafts reference unknown modules', () => {
     expect(() =>
-      createExtractionProject(
+      createRiviereProject(
         [createModuleContext('orders')],
         [createDraft('orders', 'A'), createDraft('unknown-module', 'B')],
       ).enrichDraftComponents({
@@ -255,7 +263,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
 
   it('includes unexpected domains in orphan error message', () => {
     expect(() =>
-      createExtractionProject(
+      createRiviereProject(
         [createModuleContext('orders')],
         [createDraft('ghost', 'X')],
       ).enrichDraftComponents({
@@ -270,7 +278,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
   it('groups configured submodule drafts under their parent module', () => {
     mockEnrichComponents.mockReturnValue({ components: [], failures: [] })
 
-    createExtractionProject(
+    createRiviereProject(
       [
         {
           files: ['src/checkout/test.ts'],
@@ -293,10 +301,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
   })
 
   it('returns empty result when no drafts provided', () => {
-    const result = createExtractionProject(
-      [createModuleContext('orders')],
-      [],
-    ).enrichDraftComponents({
+    const result = createRiviereProject([createModuleContext('orders')], []).enrichDraftComponents({
       allowIncomplete: false,
       includeConnections: true,
     })
@@ -312,7 +317,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
       failures: [{ field: 'name' }],
     })
 
-    const result = createExtractionProject(
+    const result = createRiviereProject(
       [createModuleContext('orders')],
       [createDraft('orders', 'A')],
     ).enrichDraftComponents({
@@ -327,7 +332,7 @@ describe('ExtractionProject.enrichDraftComponents', () => {
   })
 
   it('returns draftOnly when includeConnections is false', () => {
-    const result = createExtractionProject(
+    const result = createRiviereProject(
       [createModuleContext('orders')],
       [createDraft('orders', 'CompA')],
     ).enrichDraftComponents({

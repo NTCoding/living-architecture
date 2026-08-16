@@ -2,19 +2,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   enrichDraftComponentsMethodMock: vi.fn(),
-  loadFromDraftEnrichmentMock: vi.fn(),
+  loadMock: vi.fn(),
 }))
 
-vi.mock('../data-access/extraction-project/extraction-project-repository', () => ({
-  ExtractionProjectRepository: class {
-    loadFromDraftEnrichment = mocks.loadFromDraftEnrichmentMock
+vi.mock('../data-access/riviere-project/riviere-project-repository', () => ({
+  RiviereProjectRepository: class {
+    load = mocks.loadMock
   },
 }))
 
 import { EnrichDraftComponents } from './enrich-draft-components'
-import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
-import { ExtractionConfigError } from '../data-access/extraction-project/extraction-config-error'
-import { ExtractionDataAccessError } from '../data-access/extraction-project/extraction-project-error'
+import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
+import { ExtractionConfigError } from '../data-access/riviere-project/riviere-config-error'
+import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-error'
 
 class UnexpectedLoadingError extends Error {}
@@ -22,7 +22,7 @@ class UnexpectedLoadingError extends Error {}
 describe('enrichDraftComponents', () => {
   beforeEach(() => {
     vi.resetAllMocks()
-    mocks.loadFromDraftEnrichmentMock.mockReturnValue({
+    mocks.loadMock.mockReturnValue({
       enrichDraftComponents: mocks.enrichDraftComponentsMethodMock,
     })
     mocks.enrichDraftComponentsMethodMock.mockReturnValue({
@@ -32,9 +32,10 @@ describe('enrichDraftComponents', () => {
   })
 
   it('returns draft-only results when connections are disabled', () => {
-    const result = new EnrichDraftComponents(new ExtractionProjectRepository()).execute({
+    const result = new EnrichDraftComponents(new RiviereProjectRepository()).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
+      draftComponents: [],
       draftComponentsPath: 'draft.json',
       includeConnections: false,
       useTsConfig: true,
@@ -46,8 +47,48 @@ describe('enrichDraftComponents', () => {
     })
     expect(mocks.enrichDraftComponentsMethodMock).toHaveBeenCalledWith({
       allowIncomplete: false,
+      draftComponents: [],
       includeConnections: false,
     })
+  })
+
+  it('parses draft component input before invoking the aggregate', () => {
+    new EnrichDraftComponents(new RiviereProjectRepository()).execute({
+      allowIncomplete: false,
+      configPath: 'config.yml',
+      draftComponents: [
+        {
+          type: 'useCase',
+          name: 'PlaceOrder',
+          location: { file: 'src/order.ts', line: 1 },
+          domain: 'orders',
+          module: 'orders',
+        },
+      ],
+      draftComponentsPath: 'draft.json',
+      includeConnections: false,
+      useTsConfig: true,
+    })
+
+    expect(mocks.enrichDraftComponentsMethodMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        draftComponents: [expect.objectContaining({ name: 'PlaceOrder' })],
+      }),
+    )
+  })
+
+  it('uses an empty draft list when the input has no draft components', () => {
+    new EnrichDraftComponents(new RiviereProjectRepository()).execute({
+      allowIncomplete: false,
+      configPath: 'config.yml',
+      draftComponentsPath: 'draft.json',
+      includeConnections: false,
+      useTsConfig: true,
+    })
+
+    expect(mocks.enrichDraftComponentsMethodMock).toHaveBeenCalledWith(
+      expect.objectContaining({ draftComponents: [] }),
+    )
   })
 
   it('returns field failure when enrichment fails and incomplete output is disabled', () => {
@@ -56,9 +97,10 @@ describe('enrichDraftComponents', () => {
       failedFields: ['fieldA'],
     })
 
-    const result = new EnrichDraftComponents(new ExtractionProjectRepository()).execute({
+    const result = new EnrichDraftComponents(new RiviereProjectRepository()).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
+      draftComponents: [],
       draftComponentsPath: 'draft.json',
       includeConnections: true,
       useTsConfig: true,
@@ -71,13 +113,14 @@ describe('enrichDraftComponents', () => {
   })
 
   it('returns config failure when loading the extraction config fails', () => {
-    mocks.loadFromDraftEnrichmentMock.mockImplementation(() => {
+    mocks.loadMock.mockImplementation(() => {
       throw new ExtractionConfigError('VALIDATION_ERROR', 'Invalid extraction config')
     })
 
-    const result = new EnrichDraftComponents(new ExtractionProjectRepository()).execute({
+    const result = new EnrichDraftComponents(new RiviereProjectRepository()).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
+      draftComponents: [],
       draftComponentsPath: 'draft.json',
       includeConnections: true,
       useTsConfig: true,
@@ -100,9 +143,10 @@ describe('enrichDraftComponents', () => {
       })
     })
 
-    const result = new EnrichDraftComponents(new ExtractionProjectRepository()).execute({
+    const result = new EnrichDraftComponents(new RiviereProjectRepository()).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
+      draftComponents: [],
       draftComponentsPath: 'draft.json',
       includeConnections: true,
       useTsConfig: true,
@@ -115,13 +159,14 @@ describe('enrichDraftComponents', () => {
   })
 
   it('returns data access failure when loading the extraction project fails', () => {
-    mocks.loadFromDraftEnrichmentMock.mockImplementation(() => {
+    mocks.loadMock.mockImplementation(() => {
       throw new ExtractionDataAccessError('FILE_READ_ERROR', 'Could not read draft components')
     })
 
-    const result = new EnrichDraftComponents(new ExtractionProjectRepository()).execute({
+    const result = new EnrichDraftComponents(new RiviereProjectRepository()).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
+      draftComponents: [],
       draftComponentsPath: 'draft.json',
       includeConnections: true,
       useTsConfig: true,
@@ -135,14 +180,15 @@ describe('enrichDraftComponents', () => {
   })
 
   it('rethrows unexpected loading errors', () => {
-    mocks.loadFromDraftEnrichmentMock.mockImplementation(() => {
+    mocks.loadMock.mockImplementation(() => {
       throw new UnexpectedLoadingError('Unexpected failure')
     })
 
     expect(() =>
-      new EnrichDraftComponents(new ExtractionProjectRepository()).execute({
+      new EnrichDraftComponents(new RiviereProjectRepository()).execute({
         allowIncomplete: false,
         configPath: 'config.yml',
+        draftComponents: [],
         draftComponentsPath: 'draft.json',
         includeConnections: true,
         useTsConfig: true,

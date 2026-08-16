@@ -5,7 +5,8 @@ import {
   ValidatedConfiguration,
 } from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
-import { ExtractionProject } from './extraction-project'
+import { RiviereProject } from './riviere-project'
+import { ExtractionStage } from './extraction-stage'
 import { MissingModuleSourceError } from './extraction-errors'
 
 const {
@@ -66,11 +67,11 @@ vi.mock('./connection-detection/resolve-http-links', () => ({
   stripResolvedCustomTypes: mockStripResolvedCustomTypes,
 }))
 
-function createExtractionProject(
+function createRiviereProject(
   moduleName: string,
   connections?: ConnectionsConfig,
   modules?: string,
-): ExtractionProject {
+): RiviereProject {
   const configurationResult = ValidatedConfiguration.parse({
     ...(connections === undefined ? {} : { connections }),
     modules: [
@@ -99,24 +100,26 @@ function createExtractionProject(
   assert(configurationResult.success)
   const module = configurationResult.data.modules[0]
   assert(module)
-  const projectResult = ExtractionProject.parse({
-    configuration: configurationResult.data,
-    moduleSources: new Map([
-      [
-        module,
-        {
-          files: [modules === undefined ? 'test.ts' : 'src/checkout/test.ts'],
-          project: new Project(),
-        },
-      ],
-    ]),
+  const stage = ExtractionStage.parse({
+    name: moduleName,
+    configPath: 'config.yml',
+    useTsConfig: false,
     repositoryName: 'test-repo',
+    resolvedConfig: configurationResult.data,
+    moduleContexts: [
+      {
+        module,
+        files: [modules === undefined ? 'test.ts' : 'src/checkout/test.ts'],
+        project: new Project(),
+      },
+    ],
   })
+  const projectResult = RiviereProject.parse({ stage })
   assert(projectResult.success)
   return projectResult.data
 }
 
-describe('ExtractionProject.extractDraftComponents', () => {
+describe('RiviereProject.extractDraftComponents', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -173,7 +176,7 @@ describe('ExtractionProject.extractDraftComponents', () => {
         matchApiBy: ['publishedEventType'],
       },
     ]
-    const project = createExtractionProject('orders', { eventPublishers, httpLinks })
+    const project = createRiviereProject('orders', { eventPublishers, httpLinks })
     const result = project.extractDraftComponents({
       allowIncomplete: true,
       includeConnections: true,
@@ -235,7 +238,7 @@ describe('ExtractionProject.extractDraftComponents', () => {
     })
     mockDetectCrossModule.mockReturnValue({ links: [], timings: { asyncDetectionMs: 4 } })
 
-    const result = createExtractionProject('orders').extractDraftComponents({
+    const result = createRiviereProject('orders').extractDraftComponents({
       allowIncomplete: true,
       includeConnections: true,
     })
@@ -257,7 +260,7 @@ describe('ExtractionProject.extractDraftComponents', () => {
     ])
     mockEnrichComponents.mockReturnValue({ components: [], failures: [] })
 
-    createExtractionProject('orders', undefined, 'src/{module}/').extractDraftComponents({
+    createRiviereProject('orders', undefined, 'src/{module}/').extractDraftComponents({
       allowIncomplete: true,
       includeConnections: true,
     })
@@ -288,7 +291,7 @@ describe('ExtractionProject.extractDraftComponents', () => {
       }),
     ])
 
-    const project = createExtractionProject('orders')
+    const project = createRiviereProject('orders')
     const result = project.extractDraftComponents({
       allowIncomplete: true,
       includeConnections: false,
@@ -303,10 +306,27 @@ describe('ExtractionProject.extractDraftComponents', () => {
     ])
   })
 
+  it('extracts only the selected source files', () => {
+    mockExtractComponents.mockReturnValue([])
+    const project = createRiviereProject('orders')
+
+    project.extractDraftComponents({
+      sourceFileSelection: { kind: 'files', filePaths: ['src/orders/selected.ts'] },
+      allowIncomplete: true,
+      includeConnections: false,
+    })
+
+    expect(mockExtractComponents).toHaveBeenCalledWith(
+      expect.any(Project),
+      [],
+      expect.objectContaining({ name: 'orders' }),
+    )
+  })
+
   it('normalises absent HTTP-link configuration', () => {
     mockExtractComponents.mockReturnValue([])
     mockEnrichComponents.mockReturnValue({ components: [], failures: [] })
-    const project = createExtractionProject('orders')
+    const project = createRiviereProject('orders')
     project.extractDraftComponents({
       allowIncomplete: true,
       includeConnections: true,
@@ -330,7 +350,7 @@ describe('ExtractionProject.extractDraftComponents', () => {
       failures: [{ field: 'name' }],
     })
 
-    const result = createExtractionProject('orders').extractDraftComponents({
+    const result = createRiviereProject('orders').extractDraftComponents({
       allowIncomplete: false,
       includeConnections: true,
     })
@@ -339,58 +359,66 @@ describe('ExtractionProject.extractDraftComponents', () => {
   })
 })
 
-describe('ExtractionProject.parse', () => {
+describe('RiviereProject.parse', () => {
   it('describes a missing module source precisely', () => {
     expect(() => {
       throw new MissingModuleSourceError('orders')
     }).toThrow("Missing source for module 'orders'")
   })
 
-  it('rejects missing and foreign module sources', () => {
-    const orders = ValidatedConfiguration.parse({
+  it('describes missing and foreign module sources', () => {
+    const configurationResult = ValidatedConfiguration.parse({
       modules: [
         {
-          name: 'orders',
+          api: { notUsed: true },
           domain: 'orders',
-          path: '.',
-          glob: '**',
-          api: { notUsed: true },
-          useCase: { notUsed: true },
           domainOp: { notUsed: true },
           event: { notUsed: true },
           eventHandler: { notUsed: true },
+          glob: '**/*.ts',
+          name: 'orders',
+          path: 'orders',
           ui: { notUsed: true },
+          useCase: { notUsed: true },
         },
-      ],
-    })
-    const billing = ValidatedConfiguration.parse({
-      modules: [
         {
-          name: 'billing',
-          domain: 'billing',
-          path: '.',
-          glob: '**',
           api: { notUsed: true },
-          useCase: { notUsed: true },
+          domain: 'billing',
           domainOp: { notUsed: true },
           event: { notUsed: true },
           eventHandler: { notUsed: true },
+          glob: '**/*.ts',
+          name: 'billing',
+          path: 'billing',
           ui: { notUsed: true },
+          useCase: { notUsed: true },
         },
       ],
     })
-    assert(orders.success)
-    assert(billing.success)
-    const foreignModule = billing.data.modules[0]
-    assert(foreignModule)
-
-    const result = ExtractionProject.parse({
-      configuration: orders.data,
-      moduleSources: new Map([[foreignModule, { files: [], project: new Project() }]]),
+    assert(configurationResult.success)
+    const orders = configurationResult.data.modules[0]
+    const billing = configurationResult.data.modules[1]
+    assert(orders)
+    assert(billing)
+    const stage = ExtractionStage.parse({
+      name: 'test',
+      configPath: 'config.yml',
+      useTsConfig: false,
       repositoryName: 'test-repo',
+      resolvedConfig: configurationResult.data,
+      moduleContexts: [
+        { module: orders, project: new Project(), files: [] },
+        { module: billing, project: new Project(), files: [] },
+      ],
+    })
+    Object.assign(stage, {
+      resolvedConfig: { ...configurationResult.data, modules: [orders] },
+      moduleContexts: [{ module: billing, project: new Project(), files: [] }],
     })
 
-    expect(result).toMatchObject({
+    const result = RiviereProject.parse({ stage })
+
+    expect(result).toStrictEqual({
       success: false,
       error: "Missing source for module 'orders'\nSource supplied for unknown module 'billing'",
     })

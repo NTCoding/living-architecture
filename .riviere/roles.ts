@@ -41,7 +41,7 @@ export const allRoles = [
     minPublicMethods: 1,
     approvedInstances: [
       {
-        name: 'ExtractionProject',
+        name: 'RiviereProject',
         userHasApproved: true,
       },
       {

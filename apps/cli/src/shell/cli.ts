@@ -33,7 +33,7 @@ import { createLinkHttpCommand } from '../features/builder/entrypoint/link-http/
 import { createValidateCommand } from '../features/builder/entrypoint/validate/entrypoint'
 import { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
-import { ExtractionProjectRepository } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/data-access/extraction-project/extraction-project-repository'
+import { RiviereProjectRepository } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/data-access/riviere-project/riviere-project-repository'
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
 import { DetectOrphans } from '@living-architecture/riviere-builder-use-cases/features/query/queries/detect-orphans'
 import { ListComponents } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-components'
@@ -97,7 +97,7 @@ const packageJson = loadPackageJson()
  */
 export function createProgram(): Command {
   const builderRepository = new RiviereBuilderRepository()
-  const extractionProjectRepository = new ExtractionProjectRepository()
+  const riviereProjectRepository = new RiviereProjectRepository()
 
   const program = new Command()
 
@@ -134,8 +134,8 @@ export function createProgram(): Command {
 
   program.addCommand(
     createExtractCommand(
-      new ExtractDraftComponents(extractionProjectRepository),
-      new EnrichDraftComponents(extractionProjectRepository),
+      new ExtractDraftComponents(riviereProjectRepository),
+      new EnrichDraftComponents(riviereProjectRepository),
     ),
   )
 

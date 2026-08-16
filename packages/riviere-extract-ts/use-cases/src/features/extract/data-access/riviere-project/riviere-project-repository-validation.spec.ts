@@ -2,9 +2,9 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { ExtractionProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-project'
+import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
-import { ExtractionProjectRepository } from './extraction-project-repository'
+import { RiviereProjectRepository } from './riviere-project-repository'
 
 const VALID_CONFIG = `modules:
   - name: orders
@@ -30,14 +30,19 @@ function withWorkspace(run: (directory: string) => void): void {
   }
 }
 
-function load(directory: string): void {
-  new ExtractionProjectRepository().loadFromFullProject({
-    configPath: join(directory, 'extract.yml'),
-    useTsConfig: false,
+function loadProject(params: { configPath: string; useTsConfig: boolean }): void {
+  new RiviereProjectRepository().load({
+    projectRoot: process.cwd(),
+    configPath: params.configPath,
+    useTsConfig: params.useTsConfig,
   })
 }
 
-describe('ExtractionProjectRepository validation', () => {
+function load(directory: string): void {
+  loadProject({ configPath: join(directory, 'extract.yml'), useTsConfig: false })
+}
+
+describe('RiviereProjectRepository validation', () => {
   it('inherits every rule from a modules-array configuration', () => {
     withWorkspace((directory) => {
       writeFileSync(
@@ -91,7 +96,7 @@ describe('ExtractionProjectRepository validation', () => {
   it('maps an invalid aggregate result to a configuration error', () => {
     withWorkspace((directory) => {
       writeFileSync(join(directory, 'extract.yml'), VALID_CONFIG)
-      const parse = vi.spyOn(ExtractionProject, 'parse').mockReturnValueOnce({
+      const parse = vi.spyOn(RiviereProject, 'parse').mockReturnValueOnce({
         success: false,
         error: 'Invalid module sources',
       })

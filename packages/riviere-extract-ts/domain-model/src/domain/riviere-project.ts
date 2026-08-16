@@ -15,6 +15,7 @@ import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import { enrichComponentsForModules } from './extract-components-for-graph'
 import { MissingModuleSourceError } from './extraction-errors'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
+import type { ExtractionStage } from './extraction-stage'
 
 interface DraftOnlyOutcome {
   kind: 'draftOnly'
@@ -42,10 +43,8 @@ interface ModuleSource {
   project: Project
 }
 
-interface ExtractionProjectInput {
-  configuration: ValidatedConfiguration
-  moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>
-  repositoryName: string
+interface RiviereProjectInput {
+  stage: ExtractionStage
   draftComponents?: readonly DraftComponent[]
 }
 
@@ -59,27 +58,33 @@ interface ComponentOwnershipInput {
   readonly files: readonly string[]
 }
 
-type ExtractionProjectParseResult =
-  | { success: true; data: ExtractionProject }
+type RiviereProjectParseResult =
+  | { success: true; data: RiviereProject }
   | { success: false; error: string }
 
 export { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 
 /** @riviere-role aggregate */
-export class ExtractionProject {
-  private constructor(
-    private readonly configuration: ValidatedConfiguration,
-    private readonly moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
-    private readonly repositoryName: string,
-    private readonly draftComponents: readonly DraftComponent[] = [],
-  ) {}
+export class RiviereProject {
+  readonly stage: ExtractionStage
 
-  static parse(input: ExtractionProjectInput): ExtractionProjectParseResult {
-    const configuredModules = new Set(input.configuration.modules)
-    const missingSources = input.configuration.modules.filter(
-      (module) => !input.moduleSources.has(module),
+  private constructor(
+    stage: ExtractionStage,
+    private readonly moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
+    private readonly initialDraftComponents: readonly DraftComponent[] = [],
+  ) {
+    this.stage = stage
+  }
+
+  static parse(input: RiviereProjectInput): RiviereProjectParseResult {
+    const configuredModules = new Set(input.stage.resolvedConfig.modules)
+    const moduleSources = new Map(
+      input.stage.moduleContexts.map((context) => [context.module, context] as const),
     )
-    const foreignSources = [...input.moduleSources.keys()].filter(
+    const missingSources = input.stage.resolvedConfig.modules.filter(
+      (module) => !moduleSources.has(module),
+    )
+    const foreignSources = [...moduleSources.keys()].filter(
       (module) => !configuredModules.has(module),
     )
     if (missingSources.length > 0 || foreignSources.length > 0) {
@@ -94,22 +99,24 @@ export class ExtractionProject {
 
     return {
       success: true,
-      data: new ExtractionProject(
-        input.configuration,
-        input.moduleSources,
-        input.repositoryName,
-        input.draftComponents,
-      ),
+      data: new RiviereProject(input.stage, moduleSources, input.draftComponents),
     }
   }
 
   extractDraftComponents(options: {
+    sourceFileSelection?: SourceFileSelection
     allowIncomplete: boolean
     includeConnections: boolean
   }): ExtractionOutcome {
-    const draftComponents = this.configuration.modules.flatMap((module) => {
+    const sourceFileSelection = options.sourceFileSelection ?? { kind: 'all' as const }
+    const selectedModuleSources = this.selectedModuleSources(sourceFileSelection)
+    const draftComponents = this.stage.resolvedConfig.modules.flatMap((module) => {
       const source = this.sourceFor(module)
-      return extractComponents(source.project, [...source.files], module)
+      const selectedFiles =
+        sourceFileSelection.kind === 'all'
+          ? source.files
+          : source.files.filter((file) => sourceFileSelection.filePaths.includes(file))
+      return extractComponents(source.project, [...selectedFiles], module)
     })
 
     if (!options.includeConnections) {
@@ -120,9 +127,13 @@ export class ExtractionProject {
     }
 
     const enrichment = enrichComponentsForModules(
-      this.configuration.modules,
+      this.stage.resolvedConfig.modules,
       this.moduleContexts,
-      groupDraftsByModule(draftComponents, this.configuration.modules, this.moduleSources),
+      groupDraftsByModule(
+        draftComponents,
+        this.stage.resolvedConfig.modules,
+        selectedModuleSources,
+      ),
       options.allowIncomplete,
     )
     if (enrichment.kind === 'fieldFailure') {
@@ -130,7 +141,7 @@ export class ExtractionProject {
     }
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
-    const httpLinks = this.configuration.connections?.httpLinks ?? []
+    const httpLinks = this.stage.resolvedConfig.connections?.httpLinks ?? []
     const visibleComponents = stripResolvedCustomTypes(
       enrichment.components,
       httpLinks,
@@ -148,20 +159,22 @@ export class ExtractionProject {
   }
 
   enrichDraftComponents(options: {
+    draftComponents?: readonly DraftComponent[]
     allowIncomplete: boolean
     includeConnections: boolean
   }): ExtractionOutcome {
+    const draftComponents = options.draftComponents ?? this.initialDraftComponents
     if (!options.includeConnections) {
       return {
         kind: 'draftOnly',
-        components: this.draftComponents,
+        components: draftComponents,
       }
     }
 
     const enrichment = enrichComponentsForModules(
-      this.configuration.modules,
+      this.stage.resolvedConfig.modules,
       this.moduleContexts,
-      groupDraftsByModule(this.draftComponents, this.configuration.modules, this.moduleSources),
+      groupDraftsByModule(draftComponents, this.stage.resolvedConfig.modules, this.moduleSources),
       options.allowIncomplete,
     )
     if (enrichment.kind === 'fieldFailure') {
@@ -169,7 +182,7 @@ export class ExtractionProject {
     }
 
     const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
-    const httpLinks = this.configuration.connections?.httpLinks ?? []
+    const httpLinks = this.stage.resolvedConfig.connections?.httpLinks ?? []
     const visibleComponents = stripResolvedCustomTypes(
       enrichment.components,
       httpLinks,
@@ -195,26 +208,41 @@ export class ExtractionProject {
     timings: ConnectionTimings[]
   } {
     return detectProjectConnections({
-      configuration: this.configuration,
+      configuration: this.stage.resolvedConfig,
       moduleSources: this.moduleSources,
-      repository: this.repositoryName,
+      repository: this.stage.repositoryName,
       enrichedComponents,
       allowIncomplete,
-      httpLinks: this.configuration.connections?.httpLinks ?? [],
+      httpLinks: this.stage.resolvedConfig.connections?.httpLinks ?? [],
     })
   }
 
   private get moduleContexts() {
-    return this.configuration.modules.map((module) => ({
-      module,
-      project: this.sourceFor(module).project,
-    }))
+    return this.stage.moduleContexts.map(({ module, project }) => ({ module, project }))
   }
 
   private sourceFor(module: ValidatedModule): ModuleSource {
     return sourceForModule(this.moduleSources, module)
   }
+
+  private selectedModuleSources(selection: SourceFileSelection) {
+    if (selection.kind === 'all') return this.moduleSources
+    const selectedFiles = new Set(selection.filePaths)
+    return new Map(
+      [...this.moduleSources.entries()].map(
+        ([module, source]) =>
+          [
+            module,
+            { ...source, files: source.files.filter((file) => selectedFiles.has(file)) },
+          ] as const,
+      ),
+    )
+  }
 }
+
+type SourceFileSelection =
+  | { readonly kind: 'all' }
+  | { readonly kind: 'files'; readonly filePaths: readonly string[] }
 
 function moduleOwnsComponent(input: ComponentOwnershipInput): boolean {
   const { component, module, files } = input
@@ -301,11 +329,9 @@ function groupDraftsByModule(
   const grouped = new Map<string, DraftComponent[]>()
   for (const module of modules) {
     const source = moduleSources.get(module)
-    /* v8 ignore start -- ExtractionProject.parse rejects missing module sources */
     if (source === undefined) {
       throw new MissingModuleSourceError(module.name)
     }
-    /* v8 ignore stop */
     const moduleDrafts = drafts.filter((draft) =>
       moduleOwnsComponent({ component: draft, module, files: source.files }),
     )
@@ -330,10 +356,8 @@ function sourceForModule(
   module: ValidatedModule,
 ): ModuleSource {
   const source = moduleSources.get(module)
-  /* v8 ignore start -- ExtractionProject.parse rejects missing module sources */
   if (source === undefined) {
     throw new MissingModuleSourceError(module.name)
   }
-  /* v8 ignore stop */
   return source
 }

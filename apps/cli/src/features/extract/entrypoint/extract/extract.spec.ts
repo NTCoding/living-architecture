@@ -74,6 +74,31 @@ describe('riviere extract', () => {
     })
   })
 
+  describe('data access errors', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it('returns a runtime error for data access failures', async () => {
+      const extractDraftComponents: Pick<ExtractDraftComponents, 'execute'> = {
+        execute: () => ({
+          kind: 'dataAccessFailure',
+          code: 'FILE_READ_ERROR',
+          message: 'Could not read draft data',
+        }),
+      }
+      const enrichDraftComponents: Pick<EnrichDraftComponents, 'execute'> = {
+        execute: () => ({ kind: 'draftOnly', components: [] }),
+      }
+
+      await expect(
+        createExtractCommand(extractDraftComponents, enrichDraftComponents).parseAsync(
+          ['--config', 'extract.yaml'],
+          { from: 'user' },
+        ),
+      ).rejects.toMatchObject({ exitCode: 3 })
+    })
+  })
+
   describe('config file errors', () => {
     const ctx: TestContext = createTestContext()
     setupCommandTest(ctx)

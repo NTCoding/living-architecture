@@ -44,12 +44,37 @@ export function createExtractCommand(
       }) => {
         validateFlagCombinations(options)
 
-        const result =
-          options.enrich === undefined
-            ? extractDraftComponents.execute(createExtractDraftComponentsInput(options))
-            : enrichDraftComponents.execute(
-                createEnrichDraftComponentsInput(options, options.enrich),
+        const result = (() => {
+          try {
+            return options.enrich === undefined
+              ? extractDraftComponents.execute(createExtractDraftComponentsInput(options))
+              : enrichDraftComponents.execute(
+                  createEnrichDraftComponentsInput(options, options.enrich),
+                )
+          } catch (error) {
+            if (!(error instanceof Error)) throw error
+            if (error.name === 'GitError') {
+              exitWithCliError(
+                CliErrorCode.GitNotARepository,
+                error.message,
+                ExitCode.RuntimeError,
+                [],
               )
+            }
+            if (
+              error.name === 'InvalidExtractInputError' ||
+              error.name === 'InvalidEnrichInputError'
+            ) {
+              exitWithCliError(
+                CliErrorCode.ValidationError,
+                error.message,
+                ExitCode.ConfigValidation,
+                [],
+              )
+            }
+            throw error
+          }
+        })()
 
         if (result.kind === 'fieldFailure') {
           exitWithCliError(

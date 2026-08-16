@@ -56,6 +56,12 @@ function attachedHeadResponses(
 const WORK_DIR = '/fake/project'
 
 describe('detectChangedTypeScriptFiles', () => {
+  it('uses the real Git executor for the current repository', () => {
+    expect(() =>
+      detectChangedTypeScriptFiles(process.cwd(), { base: 'HEAD~1' }),
+    ).not.toThrow()
+  })
+
   describe('not a git repository', () => {
     it('throws GitError with NOT_A_REPOSITORY code', () => {
       const executor: GitExecutor = () => {
