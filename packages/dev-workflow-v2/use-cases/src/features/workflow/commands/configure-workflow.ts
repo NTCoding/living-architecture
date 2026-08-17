@@ -1,4 +1,4 @@
-import type { BaseEvent, WorkflowDefinition } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import type { BaseEvent, WorkflowRegistry } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { TransitionContext } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { applyEvent } from '@living-architecture/dev-workflow-v2-domain-model/domain/fold'
@@ -18,19 +18,34 @@ import {
   getWorkflowStateNameSchema,
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
 import { isWriteAllowed } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-predicates'
+import type { ZodType } from 'zod'
 
 type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
 type StateName = WorkflowState['currentStateMachineState']
 type WorkflowOperation = Parameters<Workflow['executeRecording']>[0]
 /** @riviere-role command-use-case-result */
-export type ConfigureWorkflowResult = WorkflowDefinition<
-  Workflow,
-  WorkflowState,
-  WorkflowDeps,
-  StateName,
-  WorkflowOperation
-> & {
-  readonly isWriteAllowed: typeof isWriteAllowed
+export type ConfigureWorkflowResult = {
+  fold(state: WorkflowState, event: BaseEvent): WorkflowState
+  buildWorkflow(state: WorkflowState, deps: WorkflowDeps): Workflow
+  stateSchema: ZodType<StateName>
+  initialState(): WorkflowState
+  getRegistry(): WorkflowRegistry<WorkflowState, StateName, WorkflowOperation>
+  buildTransitionContext(
+    state: WorkflowState,
+    from: StateName,
+    to: StateName,
+    deps: WorkflowDeps,
+  ): TransitionContext<WorkflowState, StateName>
+  buildTransitionEvent(
+    from: StateName,
+    to: StateName,
+    stateBefore: WorkflowState,
+    stateAfter: WorkflowState,
+    now: string,
+  ): BaseEvent
+  getOperationBody(op: string, state: WorkflowState): string
+  getTransitionTitle(to: StateName, state: WorkflowState): string
+  isWriteAllowed: typeof isWriteAllowed
 }
 const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(getKnownWorkflowEventTypes())
 

@@ -42,7 +42,7 @@ function buildTransitionEvent(
   now: string,
 ): BaseEvent {
   const fn = WORKFLOW_DEFINITION.buildTransitionEvent
-  if (fn === undefined) throw new WorkflowStateError('buildTransitionEvent not defined')
+  if (!fn) throw new WorkflowStateError('buildTransitionEvent not defined')
   return fn(from, to, stateBefore, stateAfter, now)
 }
 

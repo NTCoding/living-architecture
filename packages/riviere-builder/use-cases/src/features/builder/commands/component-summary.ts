@@ -12,7 +12,7 @@ export class ComponentSummary {
     try {
       const builder = this.repository.load(input.graphPathOption)
       return {
-        ...builder.stats(),
+        stats: builder.stats(),
         success: true,
       }
     } catch (error) {

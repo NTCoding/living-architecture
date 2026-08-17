@@ -17,6 +17,7 @@ import type {
 import type { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { RiviereBuilder as DomainBuilder } from './riviere-builder'
 import type { RiviereQuery } from './query/RiviereQuery'
+import type { ComponentSummaryStats } from './inspection/component-summary-stats'
 
 type BuilderOptions = Readonly<{
   name?: string
@@ -462,7 +463,7 @@ export class RiviereBuilder {
    *
    * @returns Counts of components by type, domains, and links
    */
-  stats() {
+  stats(): ComponentSummaryStats {
     return this.delegate.inspection.stats()
   }
 

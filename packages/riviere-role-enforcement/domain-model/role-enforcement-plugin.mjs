@@ -444,11 +444,22 @@ export default {
         }
 
         function validateForbiddenSupertypes(node, role, name) {
-          if (!Array.isArray(role.forbiddenSupertypes) || role.forbiddenSupertypes.length === 0) {
+          if (role.forbiddenSupertypes === undefined || role.forbiddenSupertypes === false) {
             return
           }
 
           const declarationSupertypes = readDeclaredSupertypes(node)
+
+          if (role.forbiddenSupertypes === true) {
+            if (declarationSupertypes.length > 0) {
+              report(
+                node,
+                `Role '${role.name}' forbids supertypes on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+              )
+            }
+            return
+          }
+
           for (const supertype of declarationSupertypes) {
             if (role.forbiddenSupertypes.includes(supertype)) {
               report(
@@ -460,32 +471,57 @@ export default {
         }
 
         function readDeclaredSupertypes(node) {
-          const supertypes = []
-
           if (node.type === 'ClassDeclaration') {
-            const superClassName = readNamedTypeReference(node.superClass)
-            if (superClassName !== null) {
-              supertypes.push(superClassName)
-            }
-
-            for (const implementedType of node.implements ?? []) {
-              const implementedName = readNamedTypeReference(implementedType.expression)
-              if (implementedName !== null) {
-                supertypes.push(implementedName)
-              }
-            }
+            return readClassSupertypes(node)
           }
-
           if (node.type === 'TSInterfaceDeclaration') {
-            for (const extendedType of node.extends ?? []) {
-              const extendedName = readNamedTypeReference(extendedType.expression)
-              if (extendedName !== null) {
-                supertypes.push(extendedName)
-              }
+            return readInterfaceSupertypes(node)
+          }
+          if (node.type === 'TSTypeAliasDeclaration') {
+            return readIntersectionTypeReferences(node.typeAnnotation)
+          }
+          return []
+        }
+
+        function readClassSupertypes(node) {
+          const supertypes = []
+          const superClassName = readNamedTypeReference(node.superClass)
+          if (superClassName !== null) {
+            supertypes.push(superClassName)
+          }
+          for (const implementedType of node.implements ?? []) {
+            const implementedName = readNamedTypeReference(implementedType.expression)
+            if (implementedName !== null) {
+              supertypes.push(implementedName)
             }
           }
-
           return supertypes
+        }
+
+        function readInterfaceSupertypes(node) {
+          const supertypes = []
+          for (const extendedType of node.extends ?? []) {
+            const extendedName = readNamedTypeReference(extendedType.expression)
+            if (extendedName !== null) {
+              supertypes.push(extendedName)
+            }
+          }
+          return supertypes
+        }
+
+        function readIntersectionTypeReferences(typeNode) {
+          if (typeNode.type === 'TSIntersectionType') {
+            return typeNode.types.flatMap((member) => {
+              if (member.type === 'TSTypeReference' && member.typeName?.type === 'Identifier') {
+                return [member.typeName.name]
+              }
+              return []
+            })
+          }
+          if (typeNode.type === 'TSUnionType') {
+            return typeNode.types.flatMap(readIntersectionTypeReferences)
+          }
+          return []
         }
 
         function readNamedTypeReference(node) {

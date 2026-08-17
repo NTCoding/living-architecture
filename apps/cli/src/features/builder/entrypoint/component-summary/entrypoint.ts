@@ -49,6 +49,6 @@ Examples:
         return
       }
 
-      console.log(JSON.stringify(dependencies.formatSuccess(result)))
+      console.log(JSON.stringify(dependencies.formatSuccess(result.stats)))
     })
 }

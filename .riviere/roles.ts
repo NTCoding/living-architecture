@@ -24,10 +24,12 @@ export const allRoles = [
   role('command-use-case-input', {
     targets: ['interface', 'type-alias'],
     nameMatches: '.*Input$',
+    forbiddenSupertypes: true,
   }),
   role('command-use-case-result', {
     targets: ['interface', 'type-alias'],
     nameMatches: '.*Result$',
+    forbiddenSupertypes: true,
   }),
   role('command-use-case-result-value', {
     targets: ['interface', 'type-alias'],
