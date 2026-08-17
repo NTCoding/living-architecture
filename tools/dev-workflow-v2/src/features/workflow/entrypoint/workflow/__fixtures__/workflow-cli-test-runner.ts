@@ -1,6 +1,7 @@
 import { createWorkflowRunner, defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
 import { createWorkflowRoutes } from '../entrypoint'
+import { ZodWorkflowStateSchemaProvider } from '../workflow-state-schema-provider'
 import {
   parseNumberArgument,
   parseOptionalStringArgument,
@@ -13,7 +14,7 @@ const workflowConfiguration = configureWorkflow({})
 export const runner = createWorkflowRunner({
   workflowDefinition: workflowConfiguration,
   routes: createWorkflowRoutes({
-    stateNameSchema: workflowConfiguration.stateSchema,
+    schemaProvider: new ZodWorkflowStateSchemaProvider(workflowConfiguration.stateSchema),
     defineRoutes,
     parseNumberArgument,
     parseStringArgument,

@@ -1,5 +1,5 @@
 import { createOpenCodeWorkflowPlugin } from '@nt-ai-lab/deterministic-agent-workflow-opencode'
-import { defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
+import { defineWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
 import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
 import { createWorkflowPullRequestCreator } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-creator'
 import { createWorkflowPullRequestFeedbackReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-feedback-reader'
@@ -12,6 +12,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { ZodWorkflowStateSchemaProvider } from '../features/workflow/entrypoint/workflow/workflow-state-schema-provider'
 import {
   parseNumberArgument,
   parseOptionalStringArgument,
@@ -22,8 +23,8 @@ import {
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
-  stateNameSchema: workflowDefinition.stateSchema,
-  defineRoutes,
+  schemaProvider: new ZodWorkflowStateSchemaProvider(workflowDefinition.stateSchema),
+  defineRoutes: defineWorkflowRoutes,
   parseNumberArgument,
   parseStringArgument,
   parseOptionalStringArgument,

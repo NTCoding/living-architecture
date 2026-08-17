@@ -289,6 +289,9 @@ importers:
       '@living-architecture/dev-workflow-v2-domain-model':
         specifier: workspace:*
         version: link:../domain-model
+      '@nt-ai-lab/deterministic-agent-workflow-cli':
+        specifier: 0.4.1
+        version: 0.4.1
       '@nt-ai-lab/deterministic-agent-workflow-dsl':
         specifier: 0.3.6
         version: 0.3.6
