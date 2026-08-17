@@ -2,12 +2,14 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/builder-facade'
+import { ComponentSummaryStats } from '@living-architecture/riviere-builder-domain-model/domain/inspection/component-summary-stats'
 import {
   type TestContext,
   createTestContext,
   setupCommandTest,
 } from '../../../__fixtures__/command-test-fixtures'
 import { ComponentChecklist } from './component-checklist'
+import { ComponentSummary } from './component-summary'
 import { DefineCustomType } from './define-custom-type'
 import { EnrichComponent } from './enrich-component'
 import { FinalizeGraph } from './finalize-graph'
@@ -314,5 +316,39 @@ describe('additional builder command coverage', () => {
         sources: ['https://github.com/org/repo'],
       }),
     ).toThrow('unexpected')
+  })
+
+  it('returns success with ComponentSummaryStats for component-summary', () => {
+    const builder = createBuilder(ctx.testDir)
+    builder.addUseCase({
+      name: 'Place Order',
+      domain: 'orders',
+      module: 'checkout',
+      sourceLocation: {
+        repository: 'https://github.com/org/repo',
+        filePath: 'src/usecase.ts',
+      },
+    })
+    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
+
+    const result = new ComponentSummary(new RiviereBuilderRepository()).execute({
+      graphPathOption: undefined,
+    })
+
+    expect(result).toStrictEqual({ success: true, stats: expect.any(ComponentSummaryStats) })
+    expect(result.stats).toHaveProperty('componentCount', 1)
+  })
+
+  it('returns graph not found for component-summary', () => {
+    const missingGraphPath = join(ctx.testDir, 'missing.json')
+
+    expect(
+      new ComponentSummary(new RiviereBuilderRepository()).execute({
+        graphPathOption: missingGraphPath,
+      }),
+    ).toMatchObject({
+      code: 'GRAPH_NOT_FOUND',
+      success: false,
+    })
   })
 })
