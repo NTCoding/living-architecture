@@ -111,6 +111,11 @@ export const allRoles = [
     targets: ['function'],
     forbiddenImportedFunctionCalls: true,
   }),
+  role('entrypoint-cli-input-parser-dependencies', {
+    forbiddenInlineCallableMembers: true,
+    targets: ['interface'],
+    nameMatches: '.*CliInputParserDependencies$',
+  }),
   role('cli-error', { targets: ['class'] }),
   role('main', {
     targets: ['function'],
