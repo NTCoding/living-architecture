@@ -9,8 +9,13 @@ export const allRoles = [
   }),
   role('cli-entrypoint-dependencies', {
     forbiddenInlineFunctionImplementations: true,
+    requiresRoleDependencies: true,
     targets: ['interface'],
     nameMatches: '.*EntrypointDependencies$',
+  }),
+  role('entrypoint-schema-provider', {
+    targets: ['interface', 'class'],
+    nameMatches: '.*SchemaProvider$',
   }),
   role('command-use-case', {
     targets: ['class', 'function'],

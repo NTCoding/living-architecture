@@ -1,5 +1,4 @@
 import { arg, defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
-import type { ZodType } from 'zod'
 import { CreatePullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-pull-request'
 import { RecordBranch } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-branch'
 import { RecordCiFailed } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-ci-failed'
@@ -7,13 +6,14 @@ import { RecordCiPassed } from '@living-architecture/dev-workflow-v2-use-cases/c
 import { RecordIssue } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-issue'
 import { RecordPullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-pull-request'
 import { VerifyFeedbackAddressed } from '@living-architecture/dev-workflow-v2-use-cases/commands/verify-feedback-addressed'
+import type { WorkflowStateSchemaProvider } from './workflow-state-schema-provider'
 
 type RoutedWorkflow = ConstructorParameters<typeof RecordIssue>[0]
 type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
 
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateWorkflowRoutesEntrypointDependencies {
-  readonly stateNameSchema: ZodType<RoutedWorkflowState['currentStateMachineState']>
+  readonly schemaProvider: WorkflowStateSchemaProvider
   readonly defineRoutes: typeof defineRoutes
   readonly parseNumberArgument: (value: unknown) => number
   readonly parseStringArgument: (value: unknown) => string
@@ -23,7 +23,7 @@ export interface CreateWorkflowRoutesEntrypointDependencies {
 
 /** @riviere-role cli-entrypoint */
 export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypointDependencies) {
-  const { stateNameSchema } = dependencies
+  const stateNameSchema = dependencies.schemaProvider.stateNameSchema()
   return dependencies.defineRoutes<RoutedWorkflow, RoutedWorkflowState>({
     init: { type: 'session-start' },
     transition: {

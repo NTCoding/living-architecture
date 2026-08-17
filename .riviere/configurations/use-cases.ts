@@ -22,7 +22,6 @@ const externalClientRoles: RoleName[] = [
   'external-client-model',
   'external-client-error',
 ]
-
 export const useCases = {
   locations: locationConfiguration<RoleName>(
     location('/features/{feature}', {
