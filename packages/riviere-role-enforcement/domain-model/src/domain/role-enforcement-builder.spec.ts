@@ -153,6 +153,15 @@ describe('role', () => {
       forbiddenImportedFunctionCalls: true,
     })
   })
+
+  it('includes forbiddenInlineFunctionImplementations when provided', () => {
+    const result = role('cli-entrypoint-dependencies', {
+      forbiddenInlineFunctionImplementations: true,
+      targets: ['interface'],
+    })
+
+    expect(result.forbiddenInlineFunctionImplementations).toBe(true)
+  })
 })
 
 describe('roleEnforcementConfiguration', () => {
