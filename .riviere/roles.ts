@@ -9,6 +9,7 @@ export const allRoles = [
   }),
   role('cli-entrypoint-dependencies', {
     forbiddenInlineFunctionImplementations: true,
+    requiresRoleDependencies: true,
     targets: ['interface'],
     nameMatches: '.*EntrypointDependencies$',
   }),

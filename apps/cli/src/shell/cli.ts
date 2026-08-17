@@ -1,3 +1,6 @@
+// DO NOT PUT DEPENDENCY IMPLEMENTATIONS IN THIS FILE.
+// The shell only composes named collaborators for CLI entrypoints. If you are tempted to
+// implement one here, read .riviere/role-definitions/cli-entrypoint-dependencies.md first.
 import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../infra/cli/presentation/graph-path-option'
 import { toAddComponentInput } from '../features/builder/entrypoint/add-component/add-component-options'
@@ -6,7 +9,7 @@ import { getAddComponentHints } from '../infra/cli/presentation/add-component-hi
 import { parsePropertySpecs } from '../features/builder/entrypoint/define-custom-type/custom-type-parser'
 import { parseStateChanges } from '../features/builder/entrypoint/enrich/enrichment-parser'
 import { parseSignature } from '../features/builder/entrypoint/enrich/signature-parser'
-import { writeFile } from 'node:fs/promises'
+import { writeUtf8File } from '../infra/external-clients/filesystem/write-utf8-file'
 import { parseLinkSourceLocation } from '../features/builder/entrypoint/link/link-source-location-options'
 import { validateFlagCombinations } from '../features/extract/entrypoint/extract/extract-validator'
 import { createExtractDraftComponentsInput } from '../features/extract/entrypoint/extract/create-extract-draft-components-input'
@@ -196,7 +199,7 @@ export function createProgram(): Command {
       finalizeGraph: new FinalizeGraph(builderRepository),
       getDefaultGraphPathDescription,
       formatError,
-      writeFile,
+      writeUtf8File,
       formatSuccess,
     }),
   )

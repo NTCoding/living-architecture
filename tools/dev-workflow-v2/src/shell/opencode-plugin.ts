@@ -1,5 +1,5 @@
 import { createOpenCodeWorkflowPlugin } from '@nt-ai-lab/deterministic-agent-workflow-opencode'
-import { defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
+import { defineWorkflowRoutes } from '../infra/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
 import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
 import { createWorkflowPullRequestCreator } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-creator'
 import { createWorkflowPullRequestFeedbackReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-feedback-reader'
@@ -23,7 +23,7 @@ const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
   stateNameSchema: workflowDefinition.stateSchema,
-  defineRoutes,
+  defineRoutes: defineWorkflowRoutes,
   parseNumberArgument,
   parseStringArgument,
   parseOptionalStringArgument,

@@ -1,6 +1,7 @@
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createDefaultProcessDeps, defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
+import { createDefaultProcessDeps } from '@nt-ai-lab/deterministic-agent-workflow-cli'
+import { defineWorkflowRoutes } from '../infra/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
 import { createCodexWorkflowCli } from '@nt-ai-lab/deterministic-agent-workflow-codex'
 import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
 import { createWorkflowPullRequestCreator } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-creator'
@@ -22,7 +23,7 @@ const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
   stateNameSchema: workflowDefinition.stateSchema,
-  defineRoutes,
+  defineRoutes: defineWorkflowRoutes,
   parseNumberArgument,
   parseStringArgument,
   parseOptionalStringArgument,

@@ -125,6 +125,7 @@ export default {
           }
           validateForbiddenDependencies()
           validateForbiddenInlineDependencyImplementations()
+          validateRequiredRoleDependencies()
           validateForbiddenImportedFunctionCalls()
             validateForbiddenMethodCalls()
           },
@@ -589,6 +590,150 @@ export default {
           }
 
           walkForInlineDependencyImplementations(sourceCode.ast, dependencyRoles)
+        }
+
+        function validateRequiredRoleDependencies() {
+          const dependencyRoles = new Set(
+            [...roleMap.values()]
+              .filter((role) => role.requiresRoleDependencies === true)
+              .map((role) => role.name),
+          )
+          if (dependencyRoles.size === 0) {
+            return
+          }
+
+          walkForRequiredRoleDependencies(sourceCode.ast, dependencyRoles)
+        }
+
+        function walkForRequiredRoleDependencies(node, dependencyRoles) {
+          if (node === null || node === undefined || typeof node !== 'object') {
+            return
+          }
+
+          if (reportsNonRoleDependency(node, dependencyRoles)) {
+            return
+          }
+
+          for (const key of Object.keys(node)) {
+            if (key === 'parent') {
+              continue
+            }
+            const child = node[key]
+            if (Array.isArray(child)) {
+              for (const item of child) {
+                walkForRequiredRoleDependencies(item, dependencyRoles)
+              }
+            } else if (isAstNode(child)) {
+              walkForRequiredRoleDependencies(child, dependencyRoles)
+            }
+          }
+        }
+
+        function reportsNonRoleDependency(node, dependencyRoles) {
+          if (node.type !== 'CallExpression' || node.callee.type !== 'Identifier') {
+            return false
+          }
+          const dependencyRole = readDependencyRole(node.callee.name, dependencyRoles)
+          const dependencyArgument = node.arguments[0]
+          if (
+            dependencyRole === undefined ||
+            dependencyArgument?.type !== 'ObjectExpression' ||
+            hasInlineFunctionImplementation(dependencyArgument)
+          ) {
+            return false
+          }
+
+          const invalidValues = dependencyArgument.properties
+            .filter((property) => property.type === 'Property')
+            .map((property) => property.value)
+            .filter((value) => !isRoleDependencyValue(value, new Set()))
+          if (invalidValues.length === 0) {
+            return false
+          }
+
+          for (const invalidValue of invalidValues) {
+            report(
+              invalidValue,
+              `Role '${dependencyRole}' requires each collaborator to be an imported, exported declaration with a Rivière role. Move the implementation into the appropriate role and import it here. ${referenceForKnownRole(options, dependencyRole)}`,
+            )
+          }
+          return true
+        }
+
+        function isRoleDependencyValue(value, visitedNames) {
+          if (value.type === 'Literal' || value.type === 'TemplateLiteral') {
+            return true
+          }
+          if (value.type === 'ObjectExpression' || value.type === 'ArrowFunctionExpression' || value.type === 'FunctionExpression') {
+            return false
+          }
+          if (value.type === 'NewExpression') {
+            return value.callee.type === 'Identifier' && isImportedRole(value.callee.name)
+          }
+          if (value.type !== 'Identifier') {
+            return true
+          }
+          if (isImportedBinding(value.name)) {
+            return isImportedRole(value.name)
+          }
+          if (visitedNames.has(value.name)) {
+            return false
+          }
+          visitedNames.add(value.name)
+          const declaration = readTopLevelDeclaration(value.name)
+          if (declaration === undefined) {
+            return true
+          }
+          if (declaration.type === 'FunctionDeclaration' || declaration.type === 'ClassDeclaration') {
+            return false
+          }
+          if (declaration.type !== 'VariableDeclarator' || declaration.init === null) {
+            return true
+          }
+          return isRoleDependencyValue(declaration.init, visitedNames)
+        }
+
+        function isImportedRole(localName) {
+          for (const statement of sourceCode.ast.body) {
+            const importedReference = readImportDeclarationReference(
+              statement,
+              localName,
+              filename,
+              options.configDir,
+              options.importAliases,
+            )
+            if (importedReference !== undefined && importedReference !== null) {
+              return readExportedRole(importedReference.filePath, importedReference.exportedName) !== null
+            }
+          }
+          return false
+        }
+
+        function isImportedBinding(localName) {
+          return sourceCode.ast.body.some(
+            (statement) =>
+              statement.type === 'ImportDeclaration' &&
+              statement.specifiers.some((specifier) => specifier.local.name === localName),
+          )
+        }
+
+        function readTopLevelDeclaration(name) {
+          for (const statement of sourceCode.ast.body) {
+            const declaration = statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement
+            if (declaration?.type === 'FunctionDeclaration' && declaration.id?.name === name) {
+              return declaration
+            }
+            if (declaration?.type === 'ClassDeclaration' && declaration.id?.name === name) {
+              return declaration
+            }
+            if (declaration?.type === 'VariableDeclaration') {
+              const variable = declaration.declarations.find((item) => item.id.type === 'Identifier' && item.id.name === name)
+              if (variable !== undefined) {
+                return variable
+              }
+            }
+          }
+          return undefined
         }
 
         function walkForInlineDependencyImplementations(node, dependencyRoles) {

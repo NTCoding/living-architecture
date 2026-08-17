@@ -33,6 +33,7 @@ const cliEntrypoint = role('cli-entrypoint', {
 const cliEntrypointDependencies = role('cli-entrypoint-dependencies', {
   forbiddenInlineFunctionImplementations: true,
   nameMatches: '.*EntrypointDependencies$',
+  requiresRoleDependencies: true,
   targets: ['interface'],
 })
 
@@ -256,6 +257,56 @@ function readDefaultValue() {
 `)
 
   expect(messages).toStrictEqual([])
+})
+
+it('rejects local and unclassified callable collaborators in CLI entrypoint dependencies', () => {
+  const workspaceDir = mkdtempSync(join(tmpdir(), 'role-enforcement-plugin-'))
+  const entrypointDir = join(workspaceDir, 'packages/example/src/entrypoint')
+  const commandPath = join(entrypointDir, 'command.ts')
+  const compositionRootPath = join(entrypointDir, 'composition-root.ts')
+
+  try {
+    mkdirSync(entrypointDir, { recursive: true })
+    writeFileSync(
+      commandPath,
+      `/** @riviere-role cli-entrypoint-dependencies */
+export interface ExampleEntrypointDependencies {}
+
+/** @riviere-role cli-entrypoint */
+export function createCommand(dependencies: ExampleEntrypointDependencies) {}
+`,
+      { encoding: 'utf8', flag: 'w' },
+    )
+
+    const messages = enforce(
+      `import { readFileSync } from 'node:fs'
+import { createCommand } from './command'
+
+/** @riviere-role command-input-factory */
+function resolveProjectPath(filePath: string): string {
+  return filePath
+}
+
+createCommand({
+  resolveProjectPath,
+  readFile: readFileSync,
+})
+`,
+      { configDir: workspaceDir, filename: compositionRootPath },
+    )
+
+    expect(messages).toHaveLength(2)
+    expect(messages.map((message) => message.message)).toStrictEqual([
+      expect.stringContaining(
+        "Role 'cli-entrypoint-dependencies' requires each collaborator to be an imported, exported declaration with a Rivière role",
+      ),
+      expect.stringContaining(
+        "Role 'cli-entrypoint-dependencies' requires each collaborator to be an imported, exported declaration with a Rivière role",
+      ),
+    ])
+  } finally {
+    rmSync(workspaceDir, { force: true, recursive: true })
+  }
 })
 
 it('explains how to correct a forbidden entrypoint dependency', () => {

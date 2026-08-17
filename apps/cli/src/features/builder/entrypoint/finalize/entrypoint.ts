@@ -1,5 +1,4 @@
 import { Command } from 'commander'
-import { writeFile } from 'node:fs/promises'
 import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
@@ -11,12 +10,14 @@ interface FinalizeOptions {
   json?: boolean
 }
 
+type WriteUtf8File = (filePath: string, contents: string) => Promise<void>
+
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateFinalizeCommandEntrypointDependencies {
   readonly finalizeGraph: FinalizeGraph
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
-  readonly writeFile: typeof writeFile
+  readonly writeUtf8File: WriteUtf8File
   readonly formatSuccess: typeof formatSuccess
 }
 
@@ -58,7 +59,7 @@ Examples:
       }
 
       const outputPath = options.output ?? options.graph ?? '.riviere/graph.json'
-      await dependencies.writeFile(outputPath, JSON.stringify(result.finalGraph, null, 2), 'utf-8')
+      await dependencies.writeUtf8File(outputPath, JSON.stringify(result.finalGraph, null, 2))
 
       if (options.json === true) {
         console.log(JSON.stringify(dependencies.formatSuccess({ path: outputPath })))
