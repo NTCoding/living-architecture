@@ -61,9 +61,9 @@ describe('additional builder command coverage', () => {
         graphPathOption: graphPath,
         type: undefined,
       }),
-    ).toMatchObject({ code: 'GRAPH_CORRUPTED' })
+    ).toMatchObject({ result: { code: 'GRAPH_CORRUPTED' } })
     expect(new FinalizeGraph(repo).execute({ graphPathOption: graphPath })).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
+      result: { code: 'GRAPH_CORRUPTED' },
     })
     expect(
       new LinkComponents(repo).execute({
@@ -75,7 +75,7 @@ describe('additional builder command coverage', () => {
         targetType: 'UseCase',
         type: undefined,
       }),
-    ).toMatchObject({ code: 'GRAPH_CORRUPTED' })
+    ).toMatchObject({ result: { code: 'GRAPH_CORRUPTED' } })
     expect(
       new LinkExternal(repo).execute({
         from: 'orders:core:api:source',
@@ -85,7 +85,7 @@ describe('additional builder command coverage', () => {
         targetUrl: undefined,
         type: undefined,
       }),
-    ).toMatchObject({ code: 'GRAPH_CORRUPTED' })
+    ).toMatchObject({ result: { code: 'GRAPH_CORRUPTED' } })
   })
 
   it('returns duplicate custom type validation error', () => {
@@ -102,8 +102,10 @@ describe('additional builder command coverage', () => {
         requiredProperties: {},
       }),
     ).toMatchObject({
-      code: 'VALIDATION_ERROR',
-      success: false,
+      result: {
+        code: 'VALIDATION_ERROR',
+        success: false,
+      },
     })
   })
 
@@ -117,8 +119,10 @@ describe('additional builder command coverage', () => {
         requiredProperties: {},
       }),
     ).toMatchObject({
-      code: 'VALIDATION_ERROR',
-      success: false,
+      result: {
+        code: 'VALIDATION_ERROR',
+        success: false,
+      },
     })
   })
 
@@ -145,10 +149,12 @@ describe('additional builder command coverage', () => {
       type: undefined,
     } satisfies import('./link-components-input').LinkComponentsInput
 
-    expect(command.execute(input)).toMatchObject({ success: true })
+    expect(command.execute(input)).toMatchObject({ result: { success: true } })
     expect(command.execute(input)).toMatchObject({
-      code: 'VALIDATION_ERROR',
-      success: false,
+      result: {
+        code: 'VALIDATION_ERROR',
+        success: false,
+      },
     })
     expect(
       command.execute({
@@ -162,8 +168,10 @@ describe('additional builder command coverage', () => {
         },
       }),
     ).toMatchObject({
-      code: 'VALIDATION_ERROR',
-      success: false,
+      result: {
+        code: 'VALIDATION_ERROR',
+        success: false,
+      },
     })
   })
 
@@ -180,8 +188,10 @@ describe('additional builder command coverage', () => {
         requiredProperties: {},
       }),
     ).toMatchObject({
-      code: 'GRAPH_NOT_FOUND',
-      success: false,
+      result: {
+        code: 'GRAPH_NOT_FOUND',
+        success: false,
+      },
     })
 
     expect(
@@ -198,8 +208,10 @@ describe('additional builder command coverage', () => {
         validates: [],
       }),
     ).toMatchObject({
-      code: 'GRAPH_NOT_FOUND',
-      success: false,
+      result: {
+        code: 'GRAPH_NOT_FOUND',
+        success: false,
+      },
     })
   })
 
@@ -262,8 +274,10 @@ describe('additional builder command coverage', () => {
         requiredProperties: {},
       }),
     ).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
-      success: false,
+      result: {
+        code: 'GRAPH_CORRUPTED',
+        success: false,
+      },
     })
 
     expect(
@@ -280,8 +294,10 @@ describe('additional builder command coverage', () => {
         validates: [],
       }),
     ).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
-      success: false,
+      result: {
+        code: 'GRAPH_CORRUPTED',
+        success: false,
+      },
     })
   })
 
@@ -335,8 +351,10 @@ describe('additional builder command coverage', () => {
       graphPathOption: undefined,
     })
 
-    expect(result).toStrictEqual({ success: true, stats: expect.any(ComponentSummaryStats) })
-    expect(result.stats).toHaveProperty('componentCount', 1)
+    expect(result).toStrictEqual({
+      result: { success: true, stats: expect.any(ComponentSummaryStats) },
+    })
+    expect(result.result).toHaveProperty('stats.componentCount', 1)
   })
 
   it('returns graph not found for component-summary', () => {
@@ -347,8 +365,10 @@ describe('additional builder command coverage', () => {
         graphPathOption: missingGraphPath,
       }),
     ).toMatchObject({
-      code: 'GRAPH_NOT_FOUND',
-      success: false,
+      result: {
+        code: 'GRAPH_NOT_FOUND',
+        success: false,
+      },
     })
   })
 })

@@ -42,7 +42,7 @@ Examples:
         graphPathOption: options.graph,
         type: options.type,
       })
-      if (!result.success) {
+      if (!result.result.success) {
         console.log(
           JSON.stringify(
             dependencies.formatError(
@@ -50,8 +50,8 @@ Examples:
                 GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
                 GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
                 VALIDATION_ERROR: CliErrorCode.InvalidComponentType,
-              }[result.code],
-              result.message,
+              }[result.result.code],
+              result.result.message,
               [],
             ),
           ),
@@ -63,8 +63,8 @@ Examples:
         console.log(
           JSON.stringify(
             dependencies.formatSuccess({
-              components: result.components,
-              total: result.total,
+              components: result.result.components,
+              total: result.result.total,
             }),
           ),
         )

@@ -19,8 +19,10 @@ export class FinalizeGraph {
         )
       }
       return {
-        finalGraph: builder.build(),
-        success: true,
+        result: {
+          finalGraph: builder.build(),
+          success: true,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -36,8 +38,10 @@ export class FinalizeGraph {
 
 function failure(code: FinalizeGraphErrorCode, message: string): FinalizeGraphResult {
   return {
-    code,
-    message,
-    success: false,
+    result: {
+      code,
+      message,
+      success: false,
+    },
   }
 }

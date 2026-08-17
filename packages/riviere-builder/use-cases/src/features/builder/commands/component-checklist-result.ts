@@ -10,14 +10,16 @@ export interface ChecklistComponent {
 export type ComponentChecklistErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND' | 'VALIDATION_ERROR'
 
 /** @riviere-role command-use-case-result */
-export type ComponentChecklistResult =
-  | {
-      components: ChecklistComponent[]
-      success: true
-      total: number
-    }
-  | {
-      code: ComponentChecklistErrorCode
-      message: string
-      success: false
-    }
+export interface ComponentChecklistResult {
+  readonly result:
+    | {
+        readonly components: ChecklistComponent[]
+        readonly success: true
+        readonly total: number
+      }
+    | {
+        readonly code: ComponentChecklistErrorCode
+        readonly message: string
+        readonly success: false
+      }
+}

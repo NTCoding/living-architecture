@@ -89,12 +89,12 @@ Examples:
         sources: options.source,
       })
 
-      if (!result.success) {
+      if (!result.result.success) {
         console.log(
           JSON.stringify(
-            result.code === 'VALIDATION_ERROR'
-              ? dependencies.formatError(CliErrorCode.ValidationError, result.message)
-              : dependencies.formatError(CliErrorCode.GraphExists, result.message, [
+            result.result.code === 'VALIDATION_ERROR'
+              ? dependencies.formatError(CliErrorCode.ValidationError, result.result.message)
+              : dependencies.formatError(CliErrorCode.GraphExists, result.result.message, [
                   'Delete the file to reinitialize',
                 ]),
           ),
@@ -106,9 +106,9 @@ Examples:
         console.log(
           JSON.stringify(
             dependencies.formatSuccess({
-              domains: result.domains,
-              path: result.path,
-              sources: result.sources,
+              domains: result.result.domains,
+              path: result.result.path,
+              sources: result.result.sources,
             }),
           ),
         )

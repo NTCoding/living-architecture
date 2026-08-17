@@ -110,23 +110,27 @@ Examples:
         stateChanges: parseResult.stateChanges,
         validates: options.validates,
       })
-      if (!result.success) {
+      if (!result.result.success) {
         const errorCodeByResult = {
           COMPONENT_NOT_FOUND: CliErrorCode.ComponentNotFound,
           GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
           GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
           INVALID_COMPONENT_TYPE: CliErrorCode.InvalidComponentType,
         } as const
-        const errorCode = errorCodeByResult[result.code]
+        const errorCode = errorCodeByResult[result.result.code]
 
         console.log(
-          JSON.stringify(dependencies.formatError(errorCode, result.message, result.suggestions)),
+          JSON.stringify(
+            dependencies.formatError(errorCode, result.result.message, result.result.suggestions),
+          ),
         )
         return
       }
 
       if (options.json === true) {
-        console.log(JSON.stringify(dependencies.formatSuccess({ componentId: result.componentId })))
+        console.log(
+          JSON.stringify(dependencies.formatSuccess({ componentId: result.result.componentId })),
+        )
       }
     })
 }

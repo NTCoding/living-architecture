@@ -39,23 +39,25 @@ function workflow(): Workflow {
 
 describe('workflow commands', () => {
   it('creates a pull request', () => {
-    expect(new CreatePullRequest(workflow()).execute({ arguments: [] })).toHaveProperty('pass')
+    expect(new CreatePullRequest(workflow()).execute({ arguments: [] })).toHaveProperty('result')
   })
 
   it('records a branch', () => {
-    expect(new RecordBranch(workflow()).execute({ branch: 'feature/test' })).toHaveProperty('pass')
+    expect(new RecordBranch(workflow()).execute({ branch: 'feature/test' })).toHaveProperty(
+      'result',
+    )
   })
 
   it('records failed CI', () => {
-    expect(new RecordCiFailed(workflow()).execute({ output: 'failed' })).toHaveProperty('pass')
+    expect(new RecordCiFailed(workflow()).execute({ output: 'failed' })).toHaveProperty('result')
   })
 
   it('records passed CI', () => {
-    expect(new RecordCiPassed(workflow()).execute({})).toHaveProperty('pass')
+    expect(new RecordCiPassed(workflow()).execute({})).toHaveProperty('result')
   })
 
   it('records an issue', () => {
-    expect(new RecordIssue(workflow()).execute({ issueNumber: 42 })).toHaveProperty('pass')
+    expect(new RecordIssue(workflow()).execute({ issueNumber: 42 })).toHaveProperty('result')
   })
 
   it('records a pull request', () => {
@@ -64,10 +66,10 @@ describe('workflow commands', () => {
         number: 42,
         url: 'https://github.com/example/repo/pull/42',
       }),
-    ).toHaveProperty('pass')
+    ).toHaveProperty('result')
   })
 
   it('verifies addressed feedback', () => {
-    expect(new VerifyFeedbackAddressed(workflow()).execute({})).toHaveProperty('pass')
+    expect(new VerifyFeedbackAddressed(workflow()).execute({})).toHaveProperty('result')
   })
 })

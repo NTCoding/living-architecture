@@ -27,12 +27,13 @@ export const allRoles = [
     forbiddenSupertypes: true,
   }),
   role('command-use-case-result', {
-    targets: ['interface', 'type-alias'],
+    targets: ['interface'],
     nameMatches: '.*Result$',
     forbiddenSupertypes: true,
   }),
   role('command-use-case-result-value', {
     targets: ['interface', 'type-alias'],
+    forbiddenSupertypes: true,
   }),
   role('cli-output-formatter', { targets: ['function'] }),
   role('cli-response-formatter', { targets: ['function'] }),
@@ -92,7 +93,7 @@ export const allRoles = [
   role('query-model-use-case', {
     targets: ['class'],
     allowedInputs: ['query-model-use-case-input'],
-    allowedOutputs: ['query-model'],
+    allowedOutputs: ['query-model', 'query-model-value'],
     forbiddenDependencies: ['query-model-use-case'],
     minPublicMethods: 1,
     maxPublicMethods: 1,
@@ -102,11 +103,16 @@ export const allRoles = [
     nameMatches: '.*(Input|Options)$',
   }),
   role('query-model', {
-    targets: ['class', 'function', 'interface', 'type-alias'],
+    targets: ['class', 'function', 'interface'],
+    forbiddenSupertypes: true,
+  }),
+  role('query-model-value', {
+    targets: ['interface', 'type-alias'],
+    forbiddenSupertypes: true,
   }),
   role('query-model-loader', {
     targets: ['class'],
-    allowedOutputs: ['query-model'],
+    allowedOutputs: ['query-model', 'query-model-value'],
     forbiddenDependencies: ['query-model-loader'],
   }),
   role('external-client-model', { targets: ['interface', 'type-alias', 'class'] }),

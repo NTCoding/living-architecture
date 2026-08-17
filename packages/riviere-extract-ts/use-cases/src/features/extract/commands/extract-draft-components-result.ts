@@ -46,10 +46,12 @@ interface ExtractDraftComponentsDataAccessFailureResult {
 }
 
 /** @riviere-role command-use-case-result */
-export type ExtractDraftComponentsResult =
-  | ExtractDraftComponentsDraftOnlyResult
-  | ExtractDraftComponentsFullResult
-  | ExtractDraftComponentsFieldFailureResult
-  | ExtractDraftComponentsConfigFailureResult
-  | ExtractDraftComponentsConnectionFailureResult
-  | ExtractDraftComponentsDataAccessFailureResult
+export interface ExtractDraftComponentsResult {
+  readonly result:
+    | ExtractDraftComponentsDraftOnlyResult
+    | ExtractDraftComponentsFullResult
+    | ExtractDraftComponentsFieldFailureResult
+    | ExtractDraftComponentsConfigFailureResult
+    | ExtractDraftComponentsConnectionFailureResult
+    | ExtractDraftComponentsDataAccessFailureResult
+}

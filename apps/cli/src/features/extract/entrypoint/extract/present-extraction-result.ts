@@ -12,7 +12,9 @@ import type { EnrichDraftComponentsResult } from '@living-architecture/riviere-e
 import type { ExtractDraftComponentsResult } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components-result'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 
-type ExtractionResult = ExtractDraftComponentsResult | EnrichDraftComponentsResult
+type ExtractionResult =
+  | ExtractDraftComponentsResult['result']
+  | EnrichDraftComponentsResult['result']
 type ExtractionPresentationOptions = {
   dryRun?: boolean
   format?: string
@@ -22,7 +24,7 @@ type ExtractionPresentationOptions = {
 
 /** @riviere-role cli-output-formatter */
 export function dataAccessCliErrorCode(
-  code: Extract<ExtractDraftComponentsResult, { kind: 'dataAccessFailure' }>['code'],
+  code: Extract<ExtractDraftComponentsResult['result'], { kind: 'dataAccessFailure' }>['code'],
 ): CliErrorCode {
   switch (code) {
     case 'GIT_NOT_FOUND':

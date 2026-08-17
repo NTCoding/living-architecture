@@ -7,7 +7,7 @@ import {
 } from '@living-architecture/riviere-builder-domain-model/query'
 import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 
-/** @riviere-role query-model */
+/** @riviere-role query-model-value */
 export type TraceFlowGraph = ReturnType<RiviereQuery['traceFlow']>
 
 /** @riviere-role query-model */
@@ -53,8 +53,8 @@ class MissingFlowTrace {
   }
 }
 
-/** @riviere-role query-model */
+/** @riviere-role query-model-value */
 export type FlowTrace = FoundFlowTrace | MissingFlowTrace
 
-/** @riviere-role query-model */
+/** @riviere-role query-model-value */
 export type TraceFlowResult = FlowTrace | QueryGraphLoadFailure

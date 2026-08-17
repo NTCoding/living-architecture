@@ -24,7 +24,7 @@ type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
 type StateName = WorkflowState['currentStateMachineState']
 type WorkflowOperation = Parameters<Workflow['executeRecording']>[0]
 /** @riviere-role command-use-case-result */
-export type ConfigureWorkflowResult = {
+export interface ConfigureWorkflowResult {
   fold(state: WorkflowState, event: BaseEvent): WorkflowState
   buildWorkflow(state: WorkflowState, deps: WorkflowDeps): Workflow
   stateSchema: ZodType<StateName>

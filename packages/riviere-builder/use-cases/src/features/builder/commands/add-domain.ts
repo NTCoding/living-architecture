@@ -25,10 +25,12 @@ export class AddDomain {
       })
       this.repository.save(builder)
       return {
-        description: input.description,
-        name: input.name,
-        success: true,
-        systemType: systemType.data.value,
+        result: {
+          description: input.description,
+          name: input.name,
+          success: true,
+          systemType: systemType.data.value,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -47,8 +49,10 @@ export class AddDomain {
 
 function failure(code: AddDomainErrorCode, message: string): AddDomainResult {
   return {
-    code,
-    message,
-    success: false,
+    result: {
+      code,
+      message,
+      success: false,
+    },
   }
 }

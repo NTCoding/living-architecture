@@ -138,7 +138,7 @@ describe('extractDraftComponents', () => {
         useTsConfig: false,
       })
 
-      expect(result).toStrictEqual(DRAFT_ONLY_RESULT)
+      expect(result).toStrictEqual({ result: DRAFT_ONLY_RESULT })
       expect(mocks.extractDraftComponentsMethodMock).toHaveBeenCalledWith({
         allowIncomplete: true,
         includeConnections: false,
@@ -159,9 +159,11 @@ describe('extractDraftComponents', () => {
       })
 
       expect(result).toStrictEqual({
-        code: 'CONFIG_NOT_FOUND',
-        kind: 'configFailure',
-        message: 'Config file not found',
+        result: {
+          code: 'CONFIG_NOT_FOUND',
+          kind: 'configFailure',
+          message: 'Config file not found',
+        },
       })
     })
 
@@ -184,8 +186,10 @@ describe('extractDraftComponents', () => {
       })
 
       expect(result).toStrictEqual({
-        kind: 'connectionDetectionFailure',
-        message: 'src/handler.ts:42: Could not resolve type — OrderService',
+        result: {
+          kind: 'connectionDetectionFailure',
+          message: 'src/handler.ts:42: Could not resolve type — OrderService',
+        },
       })
     })
 

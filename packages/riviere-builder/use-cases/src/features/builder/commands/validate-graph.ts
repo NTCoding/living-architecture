@@ -13,10 +13,12 @@ export class ValidateGraph {
       const builder = this.repository.load(input.graphPathOption)
       const validationResult = builder.validate()
       return {
-        errors: validationResult.errors,
-        success: true,
-        valid: validationResult.valid,
-        warnings: builder.warnings(),
+        result: {
+          errors: validationResult.errors,
+          success: true,
+          valid: validationResult.valid,
+          warnings: builder.warnings(),
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -32,8 +34,10 @@ export class ValidateGraph {
 
 function failure(code: ValidateGraphErrorCode, message: string): ValidateGraphResult {
   return {
-    code,
-    message,
-    success: false,
+    result: {
+      code,
+      message,
+      success: false,
+    },
   }
 }

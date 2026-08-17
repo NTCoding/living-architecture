@@ -4,10 +4,12 @@ import type { ComponentSummaryStats } from '@living-architecture/riviere-builder
 export type ComponentSummaryErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND'
 
 /** @riviere-role command-use-case-result */
-export type ComponentSummaryResult =
-  | { readonly success: true; readonly stats: ComponentSummaryStats }
-  | {
-      code: ComponentSummaryErrorCode
-      message: string
-      success: false
-    }
+export interface ComponentSummaryResult {
+  readonly result:
+    | { readonly success: true; readonly stats: ComponentSummaryStats }
+    | {
+        readonly code: ComponentSummaryErrorCode
+        readonly message: string
+        readonly success: false
+      }
+}

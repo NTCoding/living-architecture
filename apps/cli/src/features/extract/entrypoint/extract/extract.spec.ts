@@ -52,14 +52,18 @@ describe('riviere extract', () => {
     it('returns the connection failure with the incomplete-link suggestion', async () => {
       const extractDraftComponents: Pick<ExtractDraftComponents, 'execute'> = {
         execute: () => ({
-          kind: 'connectionDetectionFailure',
-          message: 'Could not resolve OrderId',
+          result: {
+            kind: 'connectionDetectionFailure',
+            message: 'Could not resolve OrderId',
+          },
         }),
       }
       const enrichDraftComponents: Pick<EnrichDraftComponents, 'execute'> = {
         execute: () => ({
-          kind: 'connectionDetectionFailure',
-          message: 'Could not resolve OrderId',
+          result: {
+            kind: 'connectionDetectionFailure',
+            message: 'Could not resolve OrderId',
+          },
         }),
       }
 

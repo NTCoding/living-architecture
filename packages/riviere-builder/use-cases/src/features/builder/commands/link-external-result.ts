@@ -8,14 +8,16 @@ export type LinkExternalErrorCode =
   | 'VALIDATION_ERROR'
 
 /** @riviere-role command-use-case-result */
-export type LinkExternalResult =
-  | {
-      externalLink: ExternalLink
-      success: true
-    }
-  | {
-      code: LinkExternalErrorCode
-      message: string
-      suggestions: string[]
-      success: false
-    }
+export interface LinkExternalResult {
+  readonly result:
+    | {
+        readonly externalLink: ExternalLink
+        readonly success: true
+      }
+    | {
+        readonly code: LinkExternalErrorCode
+        readonly message: string
+        readonly suggestions: string[]
+        readonly success: false
+      }
+}

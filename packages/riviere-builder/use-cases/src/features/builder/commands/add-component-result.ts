@@ -7,13 +7,15 @@ export type AddComponentErrorCode =
   | 'DUPLICATE_COMPONENT'
 
 /** @riviere-role command-use-case-result */
-export type AddComponentResult =
-  | {
-      success: true
-      componentId: string
-    }
-  | {
-      success: false
-      code: AddComponentErrorCode
-      message: string
-    }
+export interface AddComponentResult {
+  readonly result:
+    | {
+        readonly success: true
+        readonly componentId: string
+      }
+    | {
+        readonly success: false
+        readonly code: AddComponentErrorCode
+        readonly message: string
+      }
+}

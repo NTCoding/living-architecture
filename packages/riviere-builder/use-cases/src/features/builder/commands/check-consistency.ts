@@ -13,9 +13,11 @@ export class CheckConsistency {
       const builder = this.repository.load(input.graphPathOption)
       const warnings = builder.warnings()
       return {
-        consistent: warnings.length === 0,
-        success: true,
-        warnings,
+        result: {
+          consistent: warnings.length === 0,
+          success: true,
+          warnings,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -31,8 +33,10 @@ export class CheckConsistency {
 
 function failure(code: CheckConsistencyErrorCode, message: string): CheckConsistencyResult {
   return {
-    code,
-    message,
-    success: false,
+    result: {
+      code,
+      message,
+      success: false,
+    },
   }
 }

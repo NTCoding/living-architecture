@@ -1,7 +1,7 @@
 import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
 import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 
-/** @riviere-role query-model */
+/** @riviere-role query-model-value */
 export type OrphanComponent = ReturnType<RiviereQuery['detectOrphans']>[number]
 
 /** @riviere-role query-model */
@@ -13,5 +13,5 @@ export class OrphanList {
   }
 }
 
-/** @riviere-role query-model */
+/** @riviere-role query-model-value */
 export type DetectOrphansResult = OrphanList | QueryGraphLoadFailure

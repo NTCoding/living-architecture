@@ -46,10 +46,12 @@ interface EnrichDraftComponentsDataAccessFailureResult {
 }
 
 /** @riviere-role command-use-case-result */
-export type EnrichDraftComponentsResult =
-  | EnrichDraftComponentsDraftOnlyResult
-  | EnrichDraftComponentsFullResult
-  | EnrichDraftComponentsFieldFailureResult
-  | EnrichDraftComponentsConfigFailureResult
-  | EnrichDraftComponentsConnectionFailureResult
-  | EnrichDraftComponentsDataAccessFailureResult
+export interface EnrichDraftComponentsResult {
+  readonly result:
+    | EnrichDraftComponentsDraftOnlyResult
+    | EnrichDraftComponentsFullResult
+    | EnrichDraftComponentsFieldFailureResult
+    | EnrichDraftComponentsConfigFailureResult
+    | EnrichDraftComponentsConnectionFailureResult
+    | EnrichDraftComponentsDataAccessFailureResult
+}

@@ -10,6 +10,6 @@ export class RecordCiPassed {
 
   execute(input: RecordCiPassedInput): WorkflowCommandResult {
     void input
-    return this.workflow.executeRecording('record-ci-passed')
+    return { result: this.workflow.executeRecording('record-ci-passed') }
   }
 }

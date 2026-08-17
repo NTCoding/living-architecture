@@ -69,12 +69,16 @@ describe('builder command coverage', () => {
         repository: 'https://github.com/org/repo',
       }),
     ).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
-      success: false,
+      result: {
+        code: 'GRAPH_CORRUPTED',
+        success: false,
+      },
     })
     expect(new CheckConsistency(repo).execute({ graphPathOption: graphPath })).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
-      success: false,
+      result: {
+        code: 'GRAPH_CORRUPTED',
+        success: false,
+      },
     })
   })
 
@@ -83,12 +87,16 @@ describe('builder command coverage', () => {
 
     const repo = new RiviereBuilderRepository()
     expect(new ComponentSummary(repo).execute({ graphPathOption: graphPath })).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
-      success: false,
+      result: {
+        code: 'GRAPH_CORRUPTED',
+        success: false,
+      },
     })
     expect(new ValidateGraph(repo).execute({ graphPathOption: graphPath })).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
-      success: false,
+      result: {
+        code: 'GRAPH_CORRUPTED',
+        success: false,
+      },
     })
   })
 
@@ -103,8 +111,10 @@ describe('builder command coverage', () => {
         systemType: 'domain',
       }),
     ).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
-      success: false,
+      result: {
+        code: 'GRAPH_CORRUPTED',
+        success: false,
+      },
     })
   })
 
@@ -135,8 +145,10 @@ describe('builder command coverage', () => {
         name: 'reads',
       }),
     ).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
-      success: false,
+      result: {
+        code: 'GRAPH_CORRUPTED',
+        success: false,
+      },
     })
   })
 
@@ -245,8 +257,10 @@ describe('builder command coverage', () => {
         targetType: 'UseCase',
       }),
     ).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
-      success: false,
+      result: {
+        code: 'GRAPH_CORRUPTED',
+        success: false,
+      },
     })
   })
 
@@ -290,9 +304,11 @@ describe('builder command coverage', () => {
         targetType: 'UseCase',
       }),
     ).toMatchObject({
-      code: 'AMBIGUOUS_API_MATCH',
-      success: false,
-      suggestions: ['POST /orders', 'GET /orders'],
+      result: {
+        code: 'AMBIGUOUS_API_MATCH',
+        success: false,
+        suggestions: ['POST /orders', 'GET /orders'],
+      },
     })
   })
 
@@ -314,9 +330,11 @@ describe('builder command coverage', () => {
         route: '/checkout',
       }),
     ).toMatchObject({
-      code: 'VALIDATION_ERROR',
-      message: 'builder exploded',
-      success: false,
+      result: {
+        code: 'VALIDATION_ERROR',
+        message: 'builder exploded',
+        success: false,
+      },
     })
   })
 

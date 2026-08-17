@@ -7,14 +7,16 @@ export type CheckConsistencyErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND'
 export type BuilderWarnings = ReturnType<RiviereBuilder['warnings']>
 
 /** @riviere-role command-use-case-result */
-export type CheckConsistencyResult =
-  | {
-      consistent: boolean
-      success: true
-      warnings: BuilderWarnings
-    }
-  | {
-      code: CheckConsistencyErrorCode
-      message: string
-      success: false
-    }
+export interface CheckConsistencyResult {
+  readonly result:
+    | {
+        readonly consistent: boolean
+        readonly success: true
+        readonly warnings: BuilderWarnings
+      }
+    | {
+        readonly code: CheckConsistencyErrorCode
+        readonly message: string
+        readonly success: false
+      }
+}

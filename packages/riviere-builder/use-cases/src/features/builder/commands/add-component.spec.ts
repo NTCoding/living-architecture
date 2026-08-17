@@ -33,10 +33,13 @@ describe('addComponent command', () => {
     }
   }
 
-  function failureShape(code: AddComponentErrorCode) {
+  function failureShape(code: AddComponentErrorCode, message?: string) {
     return {
-      success: false as const,
-      code,
+      result: {
+        success: false as const,
+        code,
+        ...(message !== undefined && { message }),
+      },
     }
   }
 
@@ -53,10 +56,9 @@ describe('addComponent command', () => {
         componentType: value,
       })
 
-      expect(result).toMatchObject({
-        ...failureShape('VALIDATION_ERROR'),
-        message: expect.stringContaining('Invalid component type'),
-      })
+      expect(result).toMatchObject(
+        failureShape('VALIDATION_ERROR', expect.stringContaining('Invalid component type')),
+      )
     })
   })
 
@@ -75,10 +77,9 @@ describe('addComponent command', () => {
         lineNumber: value,
       })
 
-      expect(result).toMatchObject({
-        ...failureShape('VALIDATION_ERROR'),
-        message: expect.stringContaining('Invalid line number'),
-      })
+      expect(result).toMatchObject(
+        failureShape('VALIDATION_ERROR', expect.stringContaining('Invalid line number')),
+      )
     })
 
     it.each([
@@ -110,10 +111,9 @@ describe('addComponent command', () => {
         columnNumber: value,
       })
 
-      expect(result).toMatchObject({
-        ...failureShape('VALIDATION_ERROR'),
-        message: expect.stringContaining('Invalid column number'),
-      })
+      expect(result).toMatchObject(
+        failureShape('VALIDATION_ERROR', expect.stringContaining('Invalid column number')),
+      )
     })
 
     it.each([
@@ -138,10 +138,9 @@ describe('addComponent command', () => {
 
       const result = new AddComponent(new RiviereBuilderRepository()).execute(inputWithGraphPath())
 
-      expect(result).toMatchObject({
-        ...failureShape('VALIDATION_ERROR'),
-        message: expect.stringContaining('invalid JSON'),
-      })
+      expect(result).toMatchObject(
+        failureShape('VALIDATION_ERROR', expect.stringContaining('invalid JSON')),
+      )
     })
   })
 
@@ -152,8 +151,10 @@ describe('addComponent command', () => {
       const result = new AddComponent(new RiviereBuilderRepository()).execute(inputWithGraphPath())
 
       expect(result).toMatchObject({
-        success: true,
-        componentId: expect.any(String),
+        result: {
+          success: true,
+          componentId: expect.any(String),
+        },
       })
     })
   })

@@ -65,7 +65,7 @@ Examples:
         targetName: options.toName,
         targetType: options.toType,
       })
-      if (!result.success) {
+      if (!result.result.success) {
         const errorCodeByResult = {
           AMBIGUOUS_API_MATCH: CliErrorCode.AmbiguousApiMatch,
           COMPONENT_NOT_FOUND: CliErrorCode.ComponentNotFound,
@@ -73,16 +73,18 @@ Examples:
           GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
           VALIDATION_ERROR: CliErrorCode.ValidationError,
         } as const
-        const errorCode = errorCodeByResult[result.code]
+        const errorCode = errorCodeByResult[result.result.code]
 
         console.log(
-          JSON.stringify(dependencies.formatError(errorCode, result.message, result.suggestions)),
+          JSON.stringify(
+            dependencies.formatError(errorCode, result.result.message, result.result.suggestions),
+          ),
         )
         return
       }
 
       if (options.json) {
-        console.log(JSON.stringify(dependencies.formatSuccess(result)))
+        console.log(JSON.stringify(dependencies.formatSuccess(result.result)))
       }
     })
 }

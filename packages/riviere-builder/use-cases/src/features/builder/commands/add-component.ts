@@ -37,8 +37,10 @@ export class AddComponent {
       const componentId = addDefinition(builder, definition.data.value)
       this.repository.save(builder)
       return {
-        success: true,
-        componentId,
+        result: {
+          success: true,
+          componentId,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) return failure('GRAPH_NOT_FOUND', error.message)
@@ -86,8 +88,10 @@ function mapError(error: unknown): AddComponentResult {
 
 function failure(code: AddComponentErrorCode, message: string): AddComponentResult {
   return {
-    success: false,
-    code,
-    message,
+    result: {
+      success: false,
+      code,
+      message,
+    },
   }
 }
