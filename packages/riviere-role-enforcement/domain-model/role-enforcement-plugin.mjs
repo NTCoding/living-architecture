@@ -946,14 +946,17 @@ export default {
         }
 
         function validateInterfaceContract(node, role, name) {
-          if (role.mustBeDataStructure !== true) {
-            return
-          }
-          const hasCallableMember = hasCallableTypeMembers(node.body.body)
-          if (hasCallableMember) {
+          if (role.mustBeDataStructure === true && hasCallableTypeMembers(node.body.body)) {
             report(
               node,
               `Role '${role.name}' does not allow methods on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+            )
+          }
+
+          if (role.forbiddenInlineCallableMembers === true && hasInlineCallableMembers(node.body.body)) {
+            report(
+              node,
+              `Role '${role.name}' forbids inline callable members on '${name}'. Define the collaborator with its actual role, then reference it by name. ${referenceForKnownRole(options, role.name)}`,
             )
           }
         }
@@ -1029,6 +1032,19 @@ export default {
               member.type === 'TSPropertySignature' &&
               isCallableTypeAnnotation(member.typeAnnotation)
             )
+          })
+        }
+
+        function hasInlineCallableMembers(members) {
+          return members.some((member) => {
+            if (
+              member.type === 'TSMethodSignature' ||
+              member.type === 'TSCallSignatureDeclaration' ||
+              member.type === 'TSConstructSignatureDeclaration'
+            ) {
+              return true
+            }
+            return member.type === 'TSPropertySignature' && isCallableTypeAnnotation(member.typeAnnotation)
           })
         }
 
