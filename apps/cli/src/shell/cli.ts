@@ -115,6 +115,50 @@ function loadPackageJson(): PackageJson {
 const packageJson = loadPackageJson()
 
 /**
+ * @riviere-role external-client-service
+ * @param filePath - The path to resolve from the project root.
+ * @returns The absolute project path.
+ */
+function resolveProjectPath(filePath: string): string {
+  return resolve(process.cwd(), filePath)
+}
+
+/**
+ * @riviere-role external-client-service
+ * @param args - The Git arguments to execute.
+ * @returns The Git command output.
+ */
+function runGit(args: string[]): string {
+  const projectRoot = process.cwd()
+  try {
+    const gitExecutable = process.env['GIT_EXECUTABLE'] ?? 'git'
+    return execFileSync(gitExecutable, args, {
+      cwd: projectRoot,
+      env: Object.fromEntries(
+        Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')),
+      ),
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+  } catch (error) {
+    const stderr = String(Reflect.get(Object(error), 'stderr'))
+    if (args[0] === 'rev-parse' || stderr.includes('not a git repository')) {
+      throw new GitError('Run from within a git repository.')
+    }
+    throw error
+  }
+}
+
+/**
+ * @riviere-role external-client-service
+ * @param filePath - The draft components file to read.
+ * @returns The file contents.
+ */
+function readDraftComponentsFile(filePath: string): string {
+  return readFileSync(filePath, 'utf8')
+}
+
+/**
  * Wires the CLI entrypoints to their use cases and adapters.
  *
  * @riviere-role main
@@ -123,8 +167,6 @@ const packageJson = loadPackageJson()
 export function createProgram(): Command {
   const builderRepository = new RiviereBuilderRepository()
   const riviereProjectRepository = new RiviereProjectRepository()
-  const projectRoot = process.cwd()
-
   const program = new Command()
 
   program.name('riviere').version(packageJson.version)
@@ -328,30 +370,12 @@ export function createProgram(): Command {
       loadDraftComponents,
       sourceFileSelection: {
         fileExists: existsSync,
-        projectRoot,
-        resolvePath: (filePath) => resolve(projectRoot, filePath),
-        runGit: (args) => {
-          try {
-            const gitExecutable = process.env['GIT_EXECUTABLE'] ?? 'git'
-            return execFileSync(gitExecutable, args, {
-              cwd: projectRoot,
-              env: Object.fromEntries(
-                Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')),
-              ),
-              encoding: 'utf8',
-              stdio: ['pipe', 'pipe', 'pipe'],
-            })
-          } catch (error) {
-            const stderr = String(Reflect.get(Object(error), 'stderr'))
-            if (args[0] === 'rev-parse' || stderr.includes('not a git repository')) {
-              throw new GitError('Run from within a git repository.')
-            }
-            throw error
-          }
-        },
+        projectRoot: process.cwd(),
+        resolvePath: resolveProjectPath,
+        runGit,
       },
       draftComponentsLoader: {
-        readFile: (filePath) => readFileSync(filePath, 'utf8'),
+        readFile: readDraftComponentsFile,
       },
     }),
   )
