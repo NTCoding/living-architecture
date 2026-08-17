@@ -7,7 +7,6 @@ import type { RoleName } from '../roles'
 const entrypointRoles: RoleName[] = [
   'cli-entrypoint',
   'cli-entrypoint-dependencies',
-  'entrypoint-schema-provider',
   'cli-output-formatter',
   'command-input-factory',
   'entrypoint-cli-input-parser',
@@ -40,7 +39,7 @@ export const app = {
       importRules: {
         allow: {
           root: ['infra'],
-          anySubdomain: ['commands', 'queries'],
+          anySubdomain: ['commands', 'queries', 'external-clients'],
         },
       },
     }),
