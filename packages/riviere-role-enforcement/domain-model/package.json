@@ -1,6 +1,6 @@
 {
   "name": "@living-architecture/riviere-role-enforcement-domain-model",
-  "version": "0.5.5",
+  "version": "0.6.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
