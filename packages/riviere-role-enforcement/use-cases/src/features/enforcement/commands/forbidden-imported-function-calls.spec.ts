@@ -31,6 +31,7 @@ const testRoles = [
     forbiddenImportedFunctionCalls: true,
   }),
   role('cli-entrypoint-dependencies', {
+    forbiddenInlineFunctionImplementations: true,
     targets: ['interface'],
     nameMatches: '.*EntrypointDependencies$',
   }),
@@ -273,6 +274,35 @@ export function createCommand(dependencies: ExampleEntrypointDependencies): stri
 
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
+  })
+})
+
+it('rejects inline function implementations in a CLI entrypoint dependency object', () => {
+  withFixtureWorkspace((workspaceDir) => {
+    writeInputFactory(
+      workspaceDir,
+      `/** @riviere-role cli-entrypoint-dependencies */
+export interface ExampleEntrypointDependencies {}
+
+/** @riviere-role cli-entrypoint */
+export function createCommand(dependencies: ExampleEntrypointDependencies): string {
+  return 'command'
+}
+
+createCommand({
+  sourceFileSelection: {
+    runGit: (args: string[]) => args.join(' '),
+  },
+})
+`,
+    )
+
+    const result = runTestRoleEnforcement(testConfig, workspaceDir)
+
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain(
+      "Role 'cli-entrypoint-dependencies' forbids inline function implementations",
+    )
   })
 })
 

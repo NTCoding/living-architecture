@@ -120,11 +120,12 @@ export default {
             }
           },
           'Program:exit'() {
-            if (isTestFile) {
-              return
-            }
-            validateForbiddenDependencies()
-            validateForbiddenImportedFunctionCalls()
+          if (isTestFile) {
+            return
+          }
+          validateForbiddenDependencies()
+          validateForbiddenInlineDependencyImplementations()
+          validateForbiddenImportedFunctionCalls()
             validateForbiddenMethodCalls()
           },
         }
@@ -575,6 +576,121 @@ export default {
           for (const node of nonImportBody) {
             walkForImportedFunctionCalls(node, importedFunctionBindings)
           }
+        }
+
+        function validateForbiddenInlineDependencyImplementations() {
+          const dependencyRoles = new Set(
+            [...roleMap.values()]
+              .filter((role) => role.forbiddenInlineFunctionImplementations === true)
+              .map((role) => role.name),
+          )
+          if (dependencyRoles.size === 0) {
+            return
+          }
+
+          walkForInlineDependencyImplementations(sourceCode.ast, dependencyRoles)
+        }
+
+        function walkForInlineDependencyImplementations(node, dependencyRoles) {
+          if (node === null || node === undefined || typeof node !== 'object') {
+            return
+          }
+
+          if (reportsInlineDependencyImplementation(node, dependencyRoles)) {
+            return
+          }
+
+          walkInlineDependencyImplementationChildren(node, dependencyRoles)
+        }
+
+        function reportsInlineDependencyImplementation(node, dependencyRoles) {
+          if (node.type !== 'CallExpression' || node.callee.type !== 'Identifier') {
+            return false
+          }
+          const dependencyRole = readDependencyRole(node.callee.name, dependencyRoles)
+          const dependencyArgument = node.arguments[0]
+          if (
+            dependencyRole === undefined ||
+            dependencyArgument?.type !== 'ObjectExpression' ||
+            !hasInlineFunctionImplementation(dependencyArgument)
+          ) {
+            return false
+          }
+          report(
+            dependencyArgument,
+            `Role '${dependencyRole}' forbids inline function implementations in dependency objects. Define the collaborator with its actual role, then pass that named collaborator. ${referenceForKnownRole(options, dependencyRole)}`,
+          )
+          return true
+        }
+
+        function readDependencyRole(calleeName, dependencyRoles) {
+          const calleeRole = readCallableRole(calleeName)
+          return calleeRole === null
+            ? undefined
+            : roleMap.get(calleeRole)?.allowedInputs?.find((inputRole) => dependencyRoles.has(inputRole))
+        }
+
+        function walkInlineDependencyImplementationChildren(node, dependencyRoles) {
+          for (const key of Object.keys(node)) {
+            if (key === 'parent') {
+              continue
+            }
+            const child = node[key]
+            if (Array.isArray(child)) {
+              for (const item of child) {
+                walkForInlineDependencyImplementations(item, dependencyRoles)
+              }
+            } else if (isAstNode(child)) {
+              walkForInlineDependencyImplementations(child, dependencyRoles)
+            }
+          }
+        }
+
+        function readCallableRole(localName) {
+          const localDeclaration = roleDeclarations.find(
+            ({ node }) => readDeclarationName(node) === localName,
+          )
+          if (localDeclaration !== undefined) {
+            return localDeclaration.roleName
+          }
+
+          for (const statement of sourceCode.ast.body) {
+            const importedReference = readImportDeclarationReference(
+              statement,
+              localName,
+              filename,
+              options.configDir,
+              options.importAliases,
+            )
+            if (importedReference !== undefined && importedReference !== null) {
+              return readExportedRole(importedReference.filePath, importedReference.exportedName)
+            }
+          }
+
+          return readExportedRole(filename, localName)
+        }
+
+        function hasInlineFunctionImplementation(node) {
+          if (node === null || node === undefined || typeof node !== 'object') {
+            return false
+          }
+          if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression') {
+            return true
+          }
+          return Object.keys(node)
+            .filter((key) => key !== 'parent')
+            .some((key) => hasInlineFunctionInChild(node[key]))
+        }
+
+        function hasInlineFunctionInChild(child) {
+          if (Array.isArray(child)) {
+            return child.some((item) => hasInlineFunctionImplementation(item))
+          }
+          return isAstNode(child) && hasInlineFunctionImplementation(child)
+        }
+
+        function isAstNode(value) {
+          return value !== null && typeof value === 'object' && value.type !== undefined
         }
 
         function walkForImportedFunctionCalls(node, importedFunctionBindings) {
