@@ -20,6 +20,11 @@ const testRoles = [
     targets: ['function'],
     forbiddenImportedFunctionCalls: true,
   }),
+  role('entrypoint-cli-input-parser-dependencies', {
+    forbiddenInlineCallableMembers: true,
+    nameMatches: '.*CliInputParserDependencies$',
+    targets: ['interface'],
+  }),
   role('cli-entrypoint', {
     targets: ['function'],
     allowedInputs: ['cli-entrypoint-dependencies'],
@@ -40,6 +45,7 @@ const testConfig = roleEnforcementConfiguration({
         location<TestRoleName>('/entrypoint', [
           'command-input-factory',
           'entrypoint-cli-input-parser',
+          'entrypoint-cli-input-parser-dependencies',
           'cli-entrypoint',
           'cli-entrypoint-dependencies',
         ]),
@@ -106,6 +112,66 @@ export function parseInput(): string {
     expect(result.exitCode).toBe(1)
     expect(result.stdout).toContain('forbids direct invocation of imported function')
     expect(result.stdout).toContain('entrypoint-cli-input-parser')
+  })
+})
+
+it('rejects inline callable members in CLI input parser dependencies', () => {
+  withFixtureWorkspace((workspaceDir) => {
+    writeInputFactory(
+      workspaceDir,
+      `/** @riviere-role entrypoint-cli-input-parser-dependencies */
+export interface ExampleCliInputParserDependencies {
+  readonly readFile: (filePath: string) => string
+}
+`,
+    )
+
+    const result = runTestRoleEnforcement(testConfig, workspaceDir)
+
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain(
+      "forbids inline callable members on 'ExampleCliInputParserDependencies'",
+    )
+  })
+})
+
+it('rejects inline method members in CLI input parser dependencies', () => {
+  withFixtureWorkspace((workspaceDir) => {
+    writeInputFactory(
+      workspaceDir,
+      `/** @riviere-role entrypoint-cli-input-parser-dependencies */
+export interface ExampleCliInputParserDependencies {
+  readFile(filePath: string): string
+}
+`,
+    )
+
+    const result = runTestRoleEnforcement(testConfig, workspaceDir)
+
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain(
+      "forbids inline callable members on 'ExampleCliInputParserDependencies'",
+    )
+  })
+})
+
+it('allows a CLI input parser dependency to reference a named collaborator', () => {
+  withFixtureWorkspace((workspaceDir) => {
+    writeInputFactory(
+      workspaceDir,
+      `import { readFile } from 'external-client'
+
+/** @riviere-role entrypoint-cli-input-parser-dependencies */
+export interface ExampleCliInputParserDependencies {
+  readonly readFile: typeof readFile
+}
+`,
+    )
+
+    const result = runTestRoleEnforcement(testConfig, workspaceDir)
+
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
   })
 })
 
