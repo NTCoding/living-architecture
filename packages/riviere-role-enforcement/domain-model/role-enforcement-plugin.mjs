@@ -546,7 +546,29 @@ export default {
           if (node.type !== 'TSTypeAliasDeclaration') {
             return false
           }
-          return node.typeAnnotation.type === 'TSIntersectionType'
+          return containsIntersectionType(node.typeAnnotation)
+        }
+
+        function containsIntersectionType(astNode) {
+          if (!astNode || typeof astNode.type !== 'string') {
+            return false
+          }
+          if (astNode.type === 'TSIntersectionType') {
+            return true
+          }
+          for (const [key, value] of Object.entries(astNode)) {
+            if (key === 'parent') continue
+            if (Array.isArray(value)) {
+              if (value.some((child) => containsIntersectionType(child))) {
+                return true
+              }
+            } else if (value && typeof value === 'object' && typeof value.type === 'string') {
+              if (containsIntersectionType(value)) {
+                return true
+              }
+            }
+          }
+          return false
         }
 
         function isRoleAllowedInFile(roleName, filePath) {

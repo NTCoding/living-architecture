@@ -128,3 +128,12 @@ export type MyType = { a: string } | { b: number }
 
   expect(messages).toStrictEqual([])
 })
+
+it('rejects anonymous intersection members nested inside a union', () => {
+  const messages = enforceWithData(`/** @riviere-role data-role */
+export type MyType = A | ({ ok: true } & { value: string })
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("forbids supertypes on 'MyType'")
+})
