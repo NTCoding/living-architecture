@@ -52,6 +52,10 @@
       "entry": ["src/index.ts", "src/domain/component-definition.ts"],
       "project": ["src/**/*.ts"]
     },
+    "packages/dev-workflow-v2/use-cases": {
+      "entry": ["src/infra/external-clients/zod/zod-schema-provider.ts"],
+      "project": ["src/**/*.ts"]
+    },
     "packages/*/*": {
       "project": ["src/**/*.ts"]
     },

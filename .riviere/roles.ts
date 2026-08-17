@@ -13,10 +13,6 @@ export const allRoles = [
     targets: ['interface'],
     nameMatches: '.*EntrypointDependencies$',
   }),
-  role('entrypoint-schema-provider', {
-    targets: ['interface', 'class'],
-    nameMatches: '.*SchemaProvider$',
-  }),
   role('command-use-case', {
     targets: ['class', 'function'],
     allowedInputs: ['command-use-case-input'],
@@ -45,7 +41,7 @@ export const allRoles = [
     allowedOutputs: ['command-use-case-input'],
     forbiddenImportedFunctionCalls: true,
   }),
-  role('external-client-service', { targets: ['function'] }),
+  role('external-client-service', { targets: ['interface', 'class', 'function'] }),
   role('aggregate-repository', {
     targets: ['class'],
     allowedOutputs: ['aggregate'],
