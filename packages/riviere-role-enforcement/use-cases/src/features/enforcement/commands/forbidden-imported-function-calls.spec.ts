@@ -62,7 +62,19 @@ function withFixtureWorkspace(fn: (workspaceDir: string) => void) {
     {
       prefix: 'forbidden-imported-function-calls-',
       roles: testRoles,
-      files: {},
+      files: {
+        'node_modules/external-client/package.json': `{
+  "name": "external-client",
+  "exports": {
+    ".": { "@living-architecture/source": "./src/index.ts" }
+  }
+}
+`,
+        'node_modules/external-client/src/index.ts': `export function readFile(filePath: string): string {
+  return filePath
+}
+`,
+      },
     },
     fn,
   )
@@ -142,6 +154,46 @@ it('rejects inline method members in CLI input parser dependencies', () => {
       `/** @riviere-role entrypoint-cli-input-parser-dependencies */
 export interface ExampleCliInputParserDependencies {
   readFile(filePath: string): string
+}
+`,
+    )
+
+    const result = runTestRoleEnforcement(testConfig, workspaceDir)
+
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain(
+      "forbids inline callable members on 'ExampleCliInputParserDependencies'",
+    )
+  })
+})
+
+it('rejects inline call signatures in CLI input parser dependencies', () => {
+  withFixtureWorkspace((workspaceDir) => {
+    writeInputFactory(
+      workspaceDir,
+      `/** @riviere-role entrypoint-cli-input-parser-dependencies */
+export interface ExampleCliInputParserDependencies {
+  (filePath: string): string
+}
+`,
+    )
+
+    const result = runTestRoleEnforcement(testConfig, workspaceDir)
+
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain(
+      "forbids inline callable members on 'ExampleCliInputParserDependencies'",
+    )
+  })
+})
+
+it('rejects inline construct signatures in CLI input parser dependencies', () => {
+  withFixtureWorkspace((workspaceDir) => {
+    writeInputFactory(
+      workspaceDir,
+      `/** @riviere-role entrypoint-cli-input-parser-dependencies */
+export interface ExampleCliInputParserDependencies {
+  new (filePath: string): object
 }
 `,
     )

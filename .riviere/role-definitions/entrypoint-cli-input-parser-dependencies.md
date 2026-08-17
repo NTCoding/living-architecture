@@ -24,6 +24,12 @@ export interface ExtractCliInputParserDependencies {
 }
 ```
 
+## Common Misclassifications
+
+A dependency interface is not CLI input data. Its members name the collaborators that a parser receives.
+
+Do not recreate a collaborator API in a local type alias or interface. Define the collaborator in its own location with its actual role, then reference that named function or class here.
+
 ## Anti-Patterns
 
 ```typescript
