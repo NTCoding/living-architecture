@@ -6,14 +6,14 @@ import { RecordCiPassed } from '@living-architecture/dev-workflow-v2-use-cases/c
 import { RecordIssue } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-issue'
 import { RecordPullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-pull-request'
 import { VerifyFeedbackAddressed } from '@living-architecture/dev-workflow-v2-use-cases/commands/verify-feedback-addressed'
-import type { WorkflowStateSchemaProvider } from './workflow-state-schema-provider'
+import type { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 
 type RoutedWorkflow = ConstructorParameters<typeof RecordIssue>[0]
 type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
 
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateWorkflowRoutesEntrypointDependencies {
-  readonly schemaProvider: WorkflowStateSchemaProvider
+  readonly stateNameSchemaProvider: ZodSchemaProvider<string>
   readonly defineRoutes: typeof defineRoutes
   readonly parseNumberArgument: (value: unknown) => number
   readonly parseStringArgument: (value: unknown) => string
@@ -23,7 +23,7 @@ export interface CreateWorkflowRoutesEntrypointDependencies {
 
 /** @riviere-role cli-entrypoint */
 export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypointDependencies) {
-  const stateNameSchema = dependencies.schemaProvider.stateNameSchema()
+  const stateNameSchema = dependencies.stateNameSchemaProvider.getSchema()
   return dependencies.defineRoutes<RoutedWorkflow, RoutedWorkflowState>({
     init: { type: 'session-start' },
     transition: {

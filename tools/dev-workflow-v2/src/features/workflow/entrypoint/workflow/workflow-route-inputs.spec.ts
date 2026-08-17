@@ -1,13 +1,13 @@
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
 import { defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { createWorkflowRoutes } from './entrypoint'
-import { ZodWorkflowStateSchemaProvider } from './workflow-state-schema-provider'
 import {
   parseNumberArgument,
   parseOptionalStringArgument,
   parseStringArgument,
   parseStringArguments,
 } from './workflow-route-inputs'
+import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 
 type WorkflowDeps = Parameters<ReturnType<typeof configureWorkflow>['buildWorkflow']>[1]
 
@@ -42,7 +42,7 @@ function buildWorkflow(
 
 function transactionHandler(definition: ReturnType<typeof configureWorkflow>, routeName: string) {
   const route = createWorkflowRoutes({
-    schemaProvider: new ZodWorkflowStateSchemaProvider(definition.stateSchema),
+    stateNameSchemaProvider: new ZodSchemaProvider(definition.stateSchema),
     defineRoutes,
     parseNumberArgument,
     parseStringArgument,

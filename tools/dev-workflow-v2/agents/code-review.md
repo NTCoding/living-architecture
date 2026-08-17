@@ -1,8 +1,6 @@
 ---
 name: code-review
 description: Semantic code review against coding standards, testing, and anti-patterns
-model: opus
-color: purple
 skills:
   - development-skills:tactical-ddd
   - development-skills:software-design-principles
