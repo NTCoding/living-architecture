@@ -458,10 +458,8 @@ export default {
             }
           }
 
-          const declarationSupertypes = readDeclaredSupertypes(node)
-
           if (role.forbiddenSupertypes === true) {
-            if (declarationSupertypes.length > 0) {
+            if (hasAnyDeclaredSupertypes(node)) {
               report(
                 node,
                 `Role '${role.name}' forbids supertypes on '${name}'. ${referenceForKnownRole(options, role.name)}`,
@@ -469,6 +467,8 @@ export default {
             }
             return
           }
+
+          const declarationSupertypes = readDeclaredSupertypes(node)
 
           for (const supertype of declarationSupertypes) {
             if (role.forbiddenSupertypes.includes(supertype)) {
@@ -478,6 +478,19 @@ export default {
               )
             }
           }
+        }
+
+        function hasAnyDeclaredSupertypes(node) {
+          if (node.type === 'ClassDeclaration') {
+            return node.superClass !== null || (node.implements ?? []).length > 0
+          }
+          if (node.type === 'TSInterfaceDeclaration') {
+            return (node.extends ?? []).length > 0
+          }
+          if (node.type === 'TSTypeAliasDeclaration') {
+            return containsIntersectionType(node.typeAnnotation)
+          }
+          return false
         }
 
         function readDeclaredSupertypes(node) {

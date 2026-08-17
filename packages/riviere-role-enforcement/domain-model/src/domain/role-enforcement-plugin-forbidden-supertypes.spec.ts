@@ -96,6 +96,33 @@ export class MyType implements BaseInterface {}
   expect(messages[0]?.message).toContain("forbids supertypes on 'MyType'")
 })
 
+it('rejects a class implementing a qualified interface', () => {
+  const messages = enforceWithData(`/** @riviere-role data-role */
+export class MyType implements Namespace.BaseInterface {}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("forbids supertypes on 'MyType'")
+})
+
+it('rejects a class extending a call expression', () => {
+  const messages = enforceWithData(`/** @riviere-role data-role */
+export class MyType extends mixin(Base) {}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("forbids supertypes on 'MyType'")
+})
+
+it('rejects an interface extending a qualified type', () => {
+  const messages = enforceWithData(`/** @riviere-role data-role */
+export interface MyType extends Namespace.BaseInterface {}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("forbids supertypes on 'MyType'")
+})
+
 it('rejects a type alias with only anonymous intersection members', () => {
   const messages = enforceWithData(`/** @riviere-role data-role */
 export type MyType = { ok: true } & { value: string }
