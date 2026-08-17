@@ -67,4 +67,27 @@ describe('ComponentSummaryStats', () => {
     expect(stats.externalLinkCount).toBe(0)
     expect(stats.domainCount).toBe(0)
   })
+
+  it('is not affected by mutations to the source object', () => {
+    const source = {
+      componentCount: 5,
+      componentsByType: {
+        UI: 1,
+        API: 2,
+        UseCase: 1,
+        DomainOp: 0,
+        Event: 0,
+        EventHandler: 1,
+        Custom: 0,
+      },
+      linkCount: 3,
+      externalLinkCount: 2,
+      domainCount: 2,
+    }
+
+    const stats = ComponentSummaryStats.parse(source)
+    source.componentsByType.API = 999
+
+    expect(stats.componentsByType.API).toBe(2)
+  })
 })

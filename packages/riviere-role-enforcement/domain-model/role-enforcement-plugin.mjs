@@ -448,6 +448,16 @@ export default {
             return
           }
 
+          if (role.forbiddenSupertypes === true) {
+            if (hasTypeAliasIntersection(node)) {
+              report(
+                node,
+                `Role '${role.name}' forbids supertypes on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+              )
+              return
+            }
+          }
+
           const declarationSupertypes = readDeclaredSupertypes(node)
 
           if (role.forbiddenSupertypes === true) {
@@ -530,6 +540,13 @@ export default {
           }
 
           return null
+        }
+
+        function hasTypeAliasIntersection(node) {
+          if (node.type !== 'TSTypeAliasDeclaration') {
+            return false
+          }
+          return node.typeAnnotation.type === 'TSIntersectionType'
         }
 
         function isRoleAllowedInFile(roleName, filePath) {

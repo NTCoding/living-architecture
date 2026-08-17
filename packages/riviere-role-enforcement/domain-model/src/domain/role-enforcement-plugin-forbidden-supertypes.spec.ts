@@ -87,6 +87,24 @@ export interface MyType extends BaseInterface {}
   expect(messages[0]?.message).toContain("forbids supertypes on 'MyType'")
 })
 
+it('rejects a class implementing an interface', () => {
+  const messages = enforceWithData(`/** @riviere-role data-role */
+export class MyType implements BaseInterface {}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("forbids supertypes on 'MyType'")
+})
+
+it('rejects a type alias with only anonymous intersection members', () => {
+  const messages = enforceWithData(`/** @riviere-role data-role */
+export type MyType = { ok: true } & { value: string }
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("forbids supertypes on 'MyType'")
+})
+
 it('allows a plain type alias without supertypes', () => {
   const messages = enforceWithData(`/** @riviere-role data-role */
 export type MyType = { foo: string; bar: number }

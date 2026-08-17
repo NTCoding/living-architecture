@@ -39,37 +39,47 @@ function workflow(): Workflow {
 
 describe('workflow commands', () => {
   it('creates a pull request', () => {
-    expect(new CreatePullRequest(workflow()).execute({ arguments: [] })).toHaveProperty('result')
+    const result = new CreatePullRequest(workflow()).execute({ arguments: [] })
+    expect(result).toHaveProperty('result')
+    expect(typeof result.result.pass).toBe('boolean')
   })
 
   it('records a branch', () => {
-    expect(new RecordBranch(workflow()).execute({ branch: 'feature/test' })).toHaveProperty(
-      'result',
-    )
+    const result = new RecordBranch(workflow()).execute({ branch: 'feature/test' })
+    expect(result).toHaveProperty('result')
+    expect(typeof result.result.pass).toBe('boolean')
   })
 
   it('records failed CI', () => {
-    expect(new RecordCiFailed(workflow()).execute({ output: 'failed' })).toHaveProperty('result')
+    const result = new RecordCiFailed(workflow()).execute({ output: 'failed' })
+    expect(result).toHaveProperty('result')
+    expect(typeof result.result.pass).toBe('boolean')
   })
 
   it('records passed CI', () => {
-    expect(new RecordCiPassed(workflow()).execute({})).toHaveProperty('result')
+    const result = new RecordCiPassed(workflow()).execute({})
+    expect(result).toHaveProperty('result')
+    expect(typeof result.result.pass).toBe('boolean')
   })
 
   it('records an issue', () => {
-    expect(new RecordIssue(workflow()).execute({ issueNumber: 42 })).toHaveProperty('result')
+    const result = new RecordIssue(workflow()).execute({ issueNumber: 42 })
+    expect(result).toHaveProperty('result')
+    expect(typeof result.result.pass).toBe('boolean')
   })
 
   it('records a pull request', () => {
-    expect(
-      new RecordPullRequest(workflow()).execute({
-        number: 42,
-        url: 'https://github.com/example/repo/pull/42',
-      }),
-    ).toHaveProperty('result')
+    const result = new RecordPullRequest(workflow()).execute({
+      number: 42,
+      url: 'https://github.com/example/repo/pull/42',
+    })
+    expect(result).toHaveProperty('result')
+    expect(typeof result.result.pass).toBe('boolean')
   })
 
   it('verifies addressed feedback', () => {
-    expect(new VerifyFeedbackAddressed(workflow()).execute({})).toHaveProperty('result')
+    const result = new VerifyFeedbackAddressed(workflow()).execute({})
+    expect(result).toHaveProperty('result')
+    expect(typeof result.result.pass).toBe('boolean')
   })
 })

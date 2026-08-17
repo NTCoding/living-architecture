@@ -31,7 +31,7 @@ export class ComponentSummaryStats {
     readonly domainCount: number
   }) {
     this.componentCount = input.componentCount
-    this.componentsByType = input.componentsByType
+    this.componentsByType = Object.freeze({ ...input.componentsByType })
     this.linkCount = input.linkCount
     this.externalLinkCount = input.externalLinkCount
     this.domainCount = input.domainCount
