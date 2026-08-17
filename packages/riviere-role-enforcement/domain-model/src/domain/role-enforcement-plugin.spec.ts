@@ -2,6 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Linter } from 'eslint'
+import { parser } from 'typescript-eslint'
 import { expect, it } from 'vitest'
 import plugin from '@living-architecture/riviere-role-enforcement-domain-model/plugin'
 import { location, locationConfiguration, role, roleEnforcementConfiguration } from '../index'
@@ -14,6 +15,12 @@ const commandInputFactory = role('command-input-factory', {
 const cliInputParser = role('entrypoint-cli-input-parser', {
   forbiddenImportedFunctionCalls: true,
   targets: ['function'],
+})
+
+const cliInputParserDependencies = role('entrypoint-cli-input-parser-dependencies', {
+  forbiddenInlineCallableMembers: true,
+  nameMatches: '.*CliInputParserDependencies$',
+  targets: ['interface'],
 })
 
 const cliEntrypoint = role('cli-entrypoint', {
@@ -29,6 +36,7 @@ const config = roleEnforcementConfiguration({
         location('/entrypoint', [
           'command-input-factory',
           'entrypoint-cli-input-parser',
+          'entrypoint-cli-input-parser-dependencies',
           'cli-entrypoint',
         ]),
       ),
@@ -36,7 +44,7 @@ const config = roleEnforcementConfiguration({
   },
   ignorePatterns: [],
   roleDefinitionsDir: '.riviere/role-definitions',
-  roles: [commandInputFactory, cliInputParser, cliEntrypoint],
+  roles: [commandInputFactory, cliInputParser, cliInputParserDependencies, cliEntrypoint],
 })
 
 function enforce(source: string, options: { configDir?: string; filename?: string } = {}) {
@@ -47,10 +55,12 @@ function enforce(source: string, options: { configDir?: string; filename?: strin
     return []
   }
   linter.defineRule('enforce-roles', enforceRolesRule)
+  linter.defineParser('typescript', parser)
 
   return linter.verify(
     source,
     {
+      parser: 'typescript',
       parserOptions: {
         ecmaVersion: 2022,
         sourceType: 'module',
@@ -97,6 +107,70 @@ export function parseInput() {
 
   expect(messages).toHaveLength(1)
   expect(messages[0]?.message).toContain("forbids direct invocation of imported function 'execute'")
+})
+
+it('rejects an inline callable property in CLI input parser dependencies', () => {
+  const messages = enforce(`/** @riviere-role entrypoint-cli-input-parser-dependencies */
+export interface ExampleCliInputParserDependencies {
+  readonly readFile: (filePath: string) => string
+}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain(
+    "forbids inline callable members on 'ExampleCliInputParserDependencies'",
+  )
+})
+
+it('rejects an inline callable method in CLI input parser dependencies', () => {
+  const messages = enforce(`/** @riviere-role entrypoint-cli-input-parser-dependencies */
+export interface ExampleCliInputParserDependencies {
+  readFile(filePath: string): string
+}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain(
+    "forbids inline callable members on 'ExampleCliInputParserDependencies'",
+  )
+})
+
+it('rejects an inline callable signature in CLI input parser dependencies', () => {
+  const messages = enforce(`/** @riviere-role entrypoint-cli-input-parser-dependencies */
+export interface ExampleCliInputParserDependencies {
+  (filePath: string): string
+}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain(
+    "forbids inline callable members on 'ExampleCliInputParserDependencies'",
+  )
+})
+
+it('rejects an inline construct signature in CLI input parser dependencies', () => {
+  const messages = enforce(`/** @riviere-role entrypoint-cli-input-parser-dependencies */
+export interface ExampleCliInputParserDependencies {
+  new (filePath: string): object
+}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain(
+    "forbids inline callable members on 'ExampleCliInputParserDependencies'",
+  )
+})
+
+it('allows CLI input parser dependencies to reference a named collaborator', () => {
+  const messages = enforce(`import { readFile } from 'external-client'
+
+/** @riviere-role entrypoint-cli-input-parser-dependencies */
+export interface ExampleCliInputParserDependencies {
+  readonly readFile: typeof readFile
+}
+`)
+
+  expect(messages).toStrictEqual([])
 })
 
 it('rejects direct invocation of an imported function from a CLI entrypoint', () => {
