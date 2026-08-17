@@ -24,9 +24,16 @@ const cliInputParserDependencies = role('entrypoint-cli-input-parser-dependencie
 })
 
 const cliEntrypoint = role('cli-entrypoint', {
+  allowedInputs: ['cli-entrypoint-dependencies'],
   forbiddenDependencies: ['cli-entrypoint'],
   forbiddenImportedFunctionCalls: true,
   targets: ['function'],
+})
+
+const cliEntrypointDependencies = role('cli-entrypoint-dependencies', {
+  forbiddenInlineFunctionImplementations: true,
+  nameMatches: '.*EntrypointDependencies$',
+  targets: ['interface'],
 })
 
 const config = roleEnforcementConfiguration({
@@ -38,13 +45,20 @@ const config = roleEnforcementConfiguration({
           'entrypoint-cli-input-parser',
           'entrypoint-cli-input-parser-dependencies',
           'cli-entrypoint',
+          'cli-entrypoint-dependencies',
         ]),
       ),
     },
   },
   ignorePatterns: [],
   roleDefinitionsDir: '.riviere/role-definitions',
-  roles: [commandInputFactory, cliInputParser, cliInputParserDependencies, cliEntrypoint],
+  roles: [
+    commandInputFactory,
+    cliInputParser,
+    cliInputParserDependencies,
+    cliEntrypoint,
+    cliEntrypointDependencies,
+  ],
 })
 
 function enforce(source: string, options: { configDir?: string; filename?: string } = {}) {
@@ -176,14 +190,58 @@ export interface ExampleCliInputParserDependencies {
 it('rejects direct invocation of an imported function from a CLI entrypoint', () => {
   const messages = enforce(`import { execute } from 'external-client'
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface ExampleEntrypointDependencies {}
+
 /** @riviere-role cli-entrypoint */
-export function createCommand(dependencies) {
+export function createCommand(dependencies: ExampleEntrypointDependencies) {
   return execute(dependencies)
 }
 `)
 
-  expect(messages).toHaveLength(1)
-  expect(messages[0]?.message).toContain("forbids direct invocation of imported function 'execute'")
+  expect(messages.map((message) => message.message).join('\n')).toContain(
+    "forbids direct invocation of imported function 'execute'",
+  )
+})
+
+it('rejects inline function implementations in CLI entrypoint dependencies', () => {
+  const workspaceDir = mkdtempSync(join(tmpdir(), 'role-enforcement-plugin-'))
+  const entrypointDir = join(workspaceDir, 'packages/example/src/entrypoint')
+  const commandPath = join(entrypointDir, 'command.ts')
+  const compositionRootPath = join(entrypointDir, 'composition-root.ts')
+
+  try {
+    mkdirSync(entrypointDir, { recursive: true })
+    writeFileSync(
+      commandPath,
+      `/** @riviere-role cli-entrypoint-dependencies */
+export interface ExampleEntrypointDependencies {}
+
+/** @riviere-role cli-entrypoint */
+export function createCommand(dependencies: ExampleEntrypointDependencies) {}
+`,
+      { encoding: 'utf8', flag: 'w' },
+    )
+
+    const messages = enforce(
+      `import { createCommand } from './command'
+
+createCommand({
+  sourceFileSelection: {
+    runGit: (args: string[]) => args.join(' '),
+  },
+})
+`,
+      { configDir: workspaceDir, filename: compositionRootPath },
+    )
+
+    expect(messages).toHaveLength(1)
+    expect(messages[0]?.message).toContain(
+      "Role 'cli-entrypoint-dependencies' forbids inline function implementations",
+    )
+  } finally {
+    rmSync(workspaceDir, { force: true, recursive: true })
+  }
 })
 
 it('allows internal helper functions and dependencies passed as parameters', () => {
@@ -221,15 +279,17 @@ export function createHelper(): string {
     const messages = enforce(
       `import { createHelper } from './helper'
 
+/** @riviere-role cli-entrypoint-dependencies */
+export interface ExampleEntrypointDependencies {}
+
 /** @riviere-role cli-entrypoint */
-export function createCommand() {
+export function createCommand(dependencies: ExampleEntrypointDependencies) {
   return createHelper()
 }
 `,
       { configDir: workspaceDir, filename: entrypointPath },
     )
 
-    expect(messages).toHaveLength(2)
     expect(messages.map((message) => message.message).join('\n')).toContain(
       "cannot import from a file exporting 'cli-entrypoint'",
     )
