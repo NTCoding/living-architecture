@@ -11,7 +11,7 @@ export default defineConfig(() => ({
     watch: false,
     globals: true,
     environment: 'node',
-    include: ['src/domain/role-enforcement-plugin.spec.ts'],
+    include: ['src/domain/role-enforcement-plugin.spec.ts', 'src/domain/role-enforcement-plugin-forbidden-supertypes.spec.ts'],
     coverage: {
       enabled: true,
       include: ['role-enforcement-plugin.mjs'],
