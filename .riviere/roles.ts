@@ -13,6 +13,10 @@ export const allRoles = [
     targets: ['interface'],
     nameMatches: '.*EntrypointDependencies$',
   }),
+  role('entrypoint-schema-provider', {
+    targets: ['interface', 'class'],
+    nameMatches: '.*SchemaProvider$',
+  }),
   role('command-use-case', {
     targets: ['class', 'function'],
     allowedInputs: ['command-use-case-input'],

@@ -12,6 +12,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { ZodWorkflowStateSchemaProvider } from '../features/workflow/entrypoint/workflow/workflow-state-schema-provider'
 import {
   parseNumberArgument,
   parseOptionalStringArgument,
@@ -22,7 +23,7 @@ import {
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
-  stateNameSchema: workflowDefinition.stateSchema,
+  schemaProvider: new ZodWorkflowStateSchemaProvider(workflowDefinition.stateSchema),
   defineRoutes: defineWorkflowRoutes,
   parseNumberArgument,
   parseStringArgument,

@@ -7,6 +7,7 @@ import type { RoleName } from '../roles'
 const entrypointRoles: RoleName[] = [
   'cli-entrypoint',
   'cli-entrypoint-dependencies',
+  'entrypoint-schema-provider',
   'cli-output-formatter',
   'command-input-factory',
   'entrypoint-cli-input-parser',

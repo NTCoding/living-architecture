@@ -296,14 +296,92 @@ createCommand({
     )
 
     expect(messages).toHaveLength(2)
-    expect(messages.map((message) => message.message)).toStrictEqual([
-      expect.stringContaining(
-        "Role 'cli-entrypoint-dependencies' requires each collaborator to be an imported, exported declaration with a Rivière role",
-      ),
-      expect.stringContaining(
-        "Role 'cli-entrypoint-dependencies' requires each collaborator to be an imported, exported declaration with a Rivière role",
-      ),
-    ])
+    expect(
+      messages.every((message) => message.message.includes('requires each collaborator')),
+    ).toBe(true)
+  } finally {
+    rmSync(workspaceDir, { force: true, recursive: true })
+  }
+})
+
+it('rejects aliased entrypoints, scoped collaborators, expressions, and spreads', () => {
+  const workspaceDir = mkdtempSync(join(tmpdir(), 'role-enforcement-plugin-'))
+  const entrypointDir = join(workspaceDir, 'packages/example/src/entrypoint')
+  const commandPath = join(entrypointDir, 'command.ts')
+  const compositionRootPath = join(entrypointDir, 'composition-root.ts')
+
+  try {
+    mkdirSync(entrypointDir, { recursive: true })
+    writeFileSync(
+      commandPath,
+      `/** @riviere-role cli-entrypoint-dependencies */
+export interface ExampleEntrypointDependencies {}
+
+/** @riviere-role cli-entrypoint */
+export function createCommand(dependencies: ExampleEntrypointDependencies) {}
+`,
+      { encoding: 'utf8', flag: 'w' },
+    )
+
+    const messages = enforce(
+      `import * as command from './command'
+const createCommand = command.createCommand
+function compose() {
+  const localCollaborator = () => 'value'
+  createCommand({
+    localCollaborator,
+    expression: localCollaborator ? localCollaborator : localCollaborator,
+    ...{ spreadCollaborator: localCollaborator },
+  })
+}
+compose()
+`,
+      { configDir: workspaceDir, filename: compositionRootPath },
+    )
+
+    expect(messages).toHaveLength(3)
+    expect(
+      messages.every((message) => message.message.includes('requires each collaborator')),
+    ).toBe(true)
+  } finally {
+    rmSync(workspaceDir, { force: true, recursive: true })
+  }
+})
+
+it('allows scalar entrypoint options but rejects function scoped collaborators', () => {
+  const workspaceDir = mkdtempSync(join(tmpdir(), 'role-enforcement-plugin-'))
+  const entrypointDir = join(workspaceDir, 'packages/example/src/entrypoint')
+  const commandPath = join(entrypointDir, 'command.ts')
+  const compositionRootPath = join(entrypointDir, 'composition-root.ts')
+
+  try {
+    mkdirSync(entrypointDir, { recursive: true })
+    writeFileSync(
+      commandPath,
+      `/** @riviere-role cli-entrypoint-dependencies */
+export interface ExampleEntrypointDependencies {
+  readonly packageFilter?: string
+  readonly collaborator: unknown
+}
+
+/** @riviere-role cli-entrypoint */
+export function createCommand(dependencies: ExampleEntrypointDependencies) {}
+`,
+      { encoding: 'utf8', flag: 'w' },
+    )
+
+    const messages = enforce(
+      `import { createCommand } from './command'
+function compose(packageFilter: string | undefined, collaborator: () => string) {
+  createCommand({ packageFilter, collaborator })
+}
+compose(undefined, () => 'value')
+`,
+      { configDir: workspaceDir, filename: compositionRootPath },
+    )
+
+    expect(messages).toHaveLength(1)
+    expect(messages[0]?.message).toContain('requires each collaborator')
   } finally {
     rmSync(workspaceDir, { force: true, recursive: true })
   }

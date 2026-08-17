@@ -630,10 +630,10 @@ export default {
         }
 
         function reportsNonRoleDependency(node, dependencyRoles) {
-          if (node.type !== 'CallExpression' || node.callee.type !== 'Identifier') {
+          if (node.type !== 'CallExpression') {
             return false
           }
-          const dependencyRole = readDependencyRole(node.callee.name, dependencyRoles)
+          const dependencyRole = readDependencyRoleForCallee(node.callee, dependencyRoles, new Set())
           const dependencyArgument = node.arguments[0]
           if (
             dependencyRole === undefined ||
@@ -643,35 +643,78 @@ export default {
             return false
           }
 
-          const invalidValues = dependencyArgument.properties
-            .filter((property) => property.type === 'Property')
-            .map((property) => property.value)
-            .filter((value) => !isRoleDependencyValue(value, new Set()))
+          const invalidValues = dependencyArgument.properties.filter(
+            (property) => !isValidDependencyProperty(property, node.callee, new Set()),
+          )
           if (invalidValues.length === 0) {
             return false
           }
 
           for (const invalidValue of invalidValues) {
             report(
-              invalidValue,
+              invalidValue.type === 'Property' || invalidValue.type === 'SpreadElement'
+                ? invalidValue.value ?? invalidValue.argument
+                : invalidValue,
               `Role '${dependencyRole}' requires each collaborator to be an imported, exported declaration with a Rivière role. Move the implementation into the appropriate role and import it here. ${referenceForKnownRole(options, dependencyRole)}`,
             )
           }
           return true
         }
 
+        function readDependencyRoleForCallee(callee, dependencyRoles, visitedNames) {
+          if (callee.type === 'Identifier') {
+            const directRole = readDependencyRole(callee.name, dependencyRoles)
+            if (directRole !== undefined || visitedNames.has(callee.name)) {
+              return directRole
+            }
+            visitedNames.add(callee.name)
+            const declaration = readDeclarationForIdentifier(callee)
+            if (declaration?.type !== 'VariableDeclarator' || declaration.init === null) {
+              return undefined
+            }
+            return readDependencyRoleForCallee(declaration.init, dependencyRoles, visitedNames)
+          }
+          if (
+            callee.type !== 'MemberExpression' ||
+            callee.computed ||
+            callee.object.type !== 'Identifier' ||
+            callee.property.type !== 'Identifier'
+          ) {
+            return undefined
+          }
+          const namespaceImport = sourceCode.ast.body
+            .filter((statement) => statement.type === 'ImportDeclaration')
+            .find((statement) =>
+              statement.specifiers.some(
+                (specifier) =>
+                  specifier.type === 'ImportNamespaceSpecifier' && specifier.local.name === callee.object.name,
+              ),
+            )
+          if (namespaceImport === undefined || typeof namespaceImport.source.value !== 'string') {
+            return undefined
+          }
+          const filePath = resolveImportFile(filename, namespaceImport.source.value, options.configDir, options.importAliases)
+          if (filePath === null) {
+            return undefined
+          }
+          const calleeRole = readExportedRole(filePath, callee.property.name)
+          return calleeRole === null
+            ? undefined
+            : roleMap.get(calleeRole)?.allowedInputs?.find((inputRole) => dependencyRoles.has(inputRole))
+        }
+
         function isRoleDependencyValue(value, visitedNames) {
           if (value.type === 'Literal' || value.type === 'TemplateLiteral') {
             return true
           }
-          if (value.type === 'ObjectExpression' || value.type === 'ArrowFunctionExpression' || value.type === 'FunctionExpression') {
+          if (value.type === 'ArrowFunctionExpression' || value.type === 'FunctionExpression') {
             return false
           }
           if (value.type === 'NewExpression') {
             return value.callee.type === 'Identifier' && isImportedRole(value.callee.name)
           }
           if (value.type !== 'Identifier') {
-            return true
+            return false
           }
           if (isImportedBinding(value.name)) {
             return isImportedRole(value.name)
@@ -680,17 +723,152 @@ export default {
             return false
           }
           visitedNames.add(value.name)
-          const declaration = readTopLevelDeclaration(value.name)
+          const declaration = readDeclarationForIdentifier(value)
           if (declaration === undefined) {
-            return true
+            return false
           }
           if (declaration.type === 'FunctionDeclaration' || declaration.type === 'ClassDeclaration') {
             return false
           }
           if (declaration.type !== 'VariableDeclarator' || declaration.init === null) {
-            return true
+            return false
           }
           return isRoleDependencyValue(declaration.init, visitedNames)
+        }
+
+        function isValidDependencyProperty(property, callee, visitedNames) {
+          if (property.type === 'Property') {
+            const propertyName = readPropertyName(property)
+            if (propertyName !== null && readScalarDependencyNames(callee).has(propertyName)) {
+              return true
+            }
+            return isValidDependencyValue(property.value, callee, visitedNames)
+          }
+          return property.type === 'SpreadElement' && isValidDependencyValue(property.argument, callee, visitedNames)
+        }
+
+        function isValidDependencyValue(value, callee, visitedNames) {
+          if (value.type === 'ObjectExpression') {
+            return value.properties.every((property) => isValidDependencyProperty(property, callee, visitedNames))
+          }
+          if (value.type === 'ConditionalExpression') {
+            return (
+              isValidDependencyValue(value.consequent, callee, visitedNames) &&
+              isValidDependencyValue(value.alternate, callee, visitedNames)
+            )
+          }
+          return isRoleDependencyValue(value, visitedNames)
+        }
+
+        function readPropertyName(property) {
+          if (property.computed) {
+            return null
+          }
+          if (property.key.type === 'Identifier') {
+            return property.key.name
+          }
+          return property.key.type === 'Literal' && typeof property.key.value === 'string'
+            ? property.key.value
+            : null
+        }
+
+        function readScalarDependencyNames(callee) {
+          const callableReference = readCallableReference(callee, new Set())
+          if (callableReference === null) {
+            return new Set()
+          }
+          const callableFile = resolveExportedFile(callableReference.filePath, callableReference.exportedName)
+          const callableText = callableFile === null ? null : readFileText(callableFile)
+          if (callableText === null) {
+            return new Set()
+          }
+          const functionPattern = new RegExp(
+            String.raw`export\s+function\s+${escapeRegExp(callableReference.exportedName)}\s*\(\s*\w+\s*:\s*(\w+)`,
+          )
+          const dependencyTypeName = functionPattern.exec(callableText)?.[1]
+          if (dependencyTypeName === undefined) {
+            return new Set()
+          }
+          const interfacePattern = new RegExp(
+            String.raw`export\s+interface\s+${escapeRegExp(dependencyTypeName)}\s*\{([\s\S]*?)\n\}`,
+          )
+          const interfaceBody = interfacePattern.exec(callableText)?.[1]
+          if (interfaceBody === undefined) {
+            return new Set()
+          }
+          return new Set(
+            [...interfaceBody.matchAll(/readonly\s+(\w+)\??:\s*(?:string|number|boolean|undefined|null)(?:\s*\|\s*(?:undefined|null))?\s*$/gm)].map(
+              (match) => match[1],
+            ),
+          )
+        }
+
+        function readCallableReference(callee, visitedNames) {
+          if (callee.type === 'Identifier') {
+            for (const statement of sourceCode.ast.body) {
+              const importedReference = readImportDeclarationReference(
+                statement,
+                callee.name,
+                filename,
+                options.configDir,
+                options.importAliases,
+              )
+              if (importedReference !== undefined && importedReference !== null) {
+                return importedReference
+              }
+            }
+            if (visitedNames.has(callee.name)) {
+              return null
+            }
+            visitedNames.add(callee.name)
+            const declaration = readDeclarationForIdentifier(callee)
+            return declaration?.type === 'VariableDeclarator' && declaration.init !== null
+              ? readCallableReference(declaration.init, visitedNames)
+              : null
+          }
+          if (
+            callee.type !== 'MemberExpression' ||
+            callee.computed ||
+            callee.object.type !== 'Identifier' ||
+            callee.property.type !== 'Identifier'
+          ) {
+            return null
+          }
+          const namespaceImport = sourceCode.ast.body
+            .filter((statement) => statement.type === 'ImportDeclaration')
+            .find((statement) =>
+              statement.specifiers.some(
+                (specifier) =>
+                  specifier.type === 'ImportNamespaceSpecifier' && specifier.local.name === callee.object.name,
+              ),
+            )
+          if (namespaceImport === undefined || typeof namespaceImport.source.value !== 'string') {
+            return null
+          }
+          const filePath = resolveImportFile(filename, namespaceImport.source.value, options.configDir, options.importAliases)
+          return filePath === null ? null : { filePath, exportedName: callee.property.name }
+        }
+
+        function readDeclarationForIdentifier(identifier) {
+          const topLevelDeclaration = readTopLevelDeclaration(identifier.name)
+          if (topLevelDeclaration !== undefined) {
+            return topLevelDeclaration
+          }
+          for (const scope of sourceCode.scopeManager?.scopes ?? []) {
+            for (const variable of scope.variables ?? []) {
+              if (!variable.references?.some((reference) => reference.identifier === identifier)) {
+                continue
+              }
+              const definition = variable.defs?.find((item) => item.type !== 'ImportBinding')
+              if (definition?.node?.type === 'VariableDeclarator') {
+                return definition.node
+              }
+              if (definition?.node?.type === 'FunctionDeclaration' || definition?.node?.type === 'ClassDeclaration') {
+                return definition.node
+              }
+            }
+          }
+          return undefined
         }
 
         function isImportedRole(localName) {

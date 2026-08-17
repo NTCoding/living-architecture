@@ -12,6 +12,7 @@ import { createGithubPullRequestClient } from '@living-architecture/dev-workflow
 import { createGithubPullRequestFeedbackClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-pr-feedback'
 import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/github-cli'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { ZodWorkflowStateSchemaProvider } from '../features/workflow/entrypoint/workflow/workflow-state-schema-provider'
 import {
   parseNumberArgument,
   parseOptionalStringArgument,
@@ -22,7 +23,7 @@ import {
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
-  stateNameSchema: workflowDefinition.stateSchema,
+  schemaProvider: new ZodWorkflowStateSchemaProvider(workflowDefinition.stateSchema),
   defineRoutes: defineWorkflowRoutes,
   parseNumberArgument,
   parseStringArgument,
