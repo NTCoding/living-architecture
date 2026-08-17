@@ -62,10 +62,8 @@ src/
 │           └── _platform/
 │               └── cli/
 ├── infra/
-│   ├── cli/
-│   │   └── presentation/
-│   └── external-clients/
-│       └── {client}/
+│   └── cli/
+│       └── presentation/
 └── shell/
 ```
 
@@ -96,7 +94,7 @@ Do not duplicate the domain's allowed values in an entrypoint union or validator
 
 `entrypoint/_platform` contains entrypoint code shared only within that feature's entrypoint location. The `_platform` location is importable anywhere within its parent location and nowhere outside it.
 
-Root `infra` contains generic technical code. It cannot import application or domain code. CLI presentation formats or writes generic responses. External clients wrap a third party tool or system. CLI input parsing remains in the entrypoint layer, including shared parsers under a feature's private `entrypoint/_platform/cli` location.
+Root `infra` contains generic technical code. It cannot import application or domain code. CLI presentation formats or writes generic responses. CLI input parsing remains in the entrypoint layer, including shared parsers under a feature's private `entrypoint/_platform/cli` location.
 
 `shell` wires the application. It may construct external clients and adapters, then pass them into app entrypoints or subdomain use cases. It contains no business decisions.
 
