@@ -42,24 +42,29 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (options: FinalizeOptions) => {
       const result = finalizeGraph.execute({ graphPathOption: options.graph })
-      if (!result.success) {
+      if (!result.result.success) {
         const errorCodeByResult = {
           GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
           GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
           VALIDATION_ERROR: CliErrorCode.ValidationError,
         } as const
-        const errorCode = errorCodeByResult[result.code]
+        const errorCode = errorCodeByResult[result.result.code]
         const suggestions =
-          result.code === 'VALIDATION_ERROR' ? ['Fix the validation errors and try again'] : []
+          result.result.code === 'VALIDATION_ERROR'
+            ? ['Fix the validation errors and try again']
+            : []
 
         console.log(
-          JSON.stringify(dependencies.formatError(errorCode, result.message, suggestions)),
+          JSON.stringify(dependencies.formatError(errorCode, result.result.message, suggestions)),
         )
         return
       }
 
       const outputPath = options.output ?? options.graph ?? '.riviere/graph.json'
-      await dependencies.writeUtf8File(outputPath, JSON.stringify(result.finalGraph, null, 2))
+      await dependencies.writeUtf8File(
+        outputPath,
+        JSON.stringify(result.result.finalGraph, null, 2),
+      )
 
       if (options.json === true) {
         console.log(JSON.stringify(dependencies.formatSuccess({ path: outputPath })))

@@ -31,11 +31,13 @@ export class DefineCustomType {
       })
       this.repository.save(builder)
       return {
-        description: input.description,
-        name: input.name,
-        optionalProperties: optionalProperties.properties,
-        requiredProperties: requiredProperties.properties,
-        success: true,
+        result: {
+          description: input.description,
+          name: input.name,
+          optionalProperties: optionalProperties.properties,
+          requiredProperties: requiredProperties.properties,
+          success: true,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -79,8 +81,10 @@ function parseProperties(
 
 function failure(code: DefineCustomTypeErrorCode, message: string): DefineCustomTypeResult {
   return {
-    code,
-    message,
-    success: false,
+    result: {
+      code,
+      message,
+      success: false,
+    },
   }
 }

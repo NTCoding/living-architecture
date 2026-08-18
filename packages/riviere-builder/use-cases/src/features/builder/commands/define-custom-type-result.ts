@@ -4,16 +4,18 @@ import type { CustomPropertyDefinition } from '@living-architecture/riviere-sche
 export type DefineCustomTypeErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND' | 'VALIDATION_ERROR'
 
 /** @riviere-role command-use-case-result */
-export type DefineCustomTypeResult =
-  | {
-      description: string | undefined
-      name: string
-      optionalProperties: Record<string, CustomPropertyDefinition>
-      requiredProperties: Record<string, CustomPropertyDefinition>
-      success: true
-    }
-  | {
-      code: DefineCustomTypeErrorCode
-      message: string
-      success: false
-    }
+export interface DefineCustomTypeResult {
+  readonly result:
+    | {
+        readonly description: string | undefined
+        readonly name: string
+        readonly optionalProperties: Record<string, CustomPropertyDefinition>
+        readonly requiredProperties: Record<string, CustomPropertyDefinition>
+        readonly success: true
+      }
+    | {
+        readonly code: DefineCustomTypeErrorCode
+        readonly message: string
+        readonly success: false
+      }
+}

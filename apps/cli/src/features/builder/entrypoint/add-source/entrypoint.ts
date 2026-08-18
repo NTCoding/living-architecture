@@ -41,14 +41,14 @@ Examples:
         graphPathOption: options.graph,
         repository: options.repository,
       })
-      if (!result.success) {
+      if (!result.result.success) {
         console.log(
           JSON.stringify(
             dependencies.formatError(
-              result.code === 'GRAPH_NOT_FOUND'
+              result.result.code === 'GRAPH_NOT_FOUND'
                 ? CliErrorCode.GraphNotFound
                 : CliErrorCode.GraphCorrupted,
-              result.message,
+              result.result.message,
               [],
             ),
           ),
@@ -57,7 +57,9 @@ Examples:
       }
 
       if (options.json === true) {
-        console.log(JSON.stringify(dependencies.formatSuccess({ repository: result.repository })))
+        console.log(
+          JSON.stringify(dependencies.formatSuccess({ repository: result.result.repository })),
+        )
       }
     })
 }

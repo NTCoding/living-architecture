@@ -11,6 +11,6 @@ export class CreatePullRequest {
   constructor(private readonly workflow: Workflow) {}
 
   execute(input: CreatePullRequestInput): WorkflowCommandResult {
-    return this.workflow.createPr(input.arguments)
+    return { result: this.workflow.createPr(input.arguments) }
   }
 }

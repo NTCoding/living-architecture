@@ -10,6 +10,6 @@ export class VerifyFeedbackAddressed {
 
   execute(input: VerifyFeedbackAddressedInput): WorkflowCommandResult {
     void input
-    return this.workflow.verifyFeedbackAddressed()
+    return { result: this.workflow.verifyFeedbackAddressed() }
   }
 }

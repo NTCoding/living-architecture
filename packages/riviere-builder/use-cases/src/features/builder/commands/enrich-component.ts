@@ -23,8 +23,10 @@ export class EnrichComponent {
       builder.enrichComponent(input.id, enrichmentInput)
       this.repository.save(builder)
       return {
-        componentId: input.id,
-        success: true,
+        result: {
+          componentId: input.id,
+          success: true,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -50,10 +52,12 @@ function failure(
   suggestions: string[] = [],
 ): EnrichComponentResult {
   return {
-    code,
-    message,
-    suggestions,
-    success: false,
+    result: {
+      code,
+      message,
+      suggestions,
+      success: false,
+    },
   }
 }
 

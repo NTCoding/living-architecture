@@ -2,13 +2,15 @@
 export type AddSourceErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND'
 
 /** @riviere-role command-use-case-result */
-export type AddSourceResult =
-  | {
-      repository: string
-      success: true
-    }
-  | {
-      code: AddSourceErrorCode
-      message: string
-      success: false
-    }
+export interface AddSourceResult {
+  readonly result:
+    | {
+        readonly repository: string
+        readonly success: true
+      }
+    | {
+        readonly code: AddSourceErrorCode
+        readonly message: string
+        readonly success: false
+      }
+}

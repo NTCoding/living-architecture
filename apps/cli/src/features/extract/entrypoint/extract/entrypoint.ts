@@ -65,45 +65,45 @@ export function createExtractCommand(
                 dependencies.createEnrichDraftComponentsInput(options, options.enrich),
               )
 
-        if (result.kind === 'fieldFailure') {
+        if (result.result.kind === 'fieldFailure') {
           dependencies.exitWithCliError(
             CliErrorCode.ValidationError,
-            `Extraction failed for fields: ${result.failedFields.join(', ')}`,
+            `Extraction failed for fields: ${result.result.failedFields.join(', ')}`,
             ExitCode.ExtractionFailure,
             [],
           )
         }
 
-        if (result.kind === 'configFailure') {
+        if (result.result.kind === 'configFailure') {
           dependencies.exitWithCliError(
-            result.code === 'CONFIG_NOT_FOUND'
+            result.result.code === 'CONFIG_NOT_FOUND'
               ? CliErrorCode.ConfigNotFound
               : CliErrorCode.ValidationError,
-            result.message,
+            result.result.message,
             ExitCode.ConfigValidation,
             [],
           )
         }
 
-        if (result.kind === 'connectionDetectionFailure') {
+        if (result.result.kind === 'connectionDetectionFailure') {
           dependencies.exitWithCliError(
             CliErrorCode.ConnectionDetectionFailure,
-            result.message,
+            result.result.message,
             ExitCode.ExtractionFailure,
             ['Use --allow-incomplete to emit uncertain links instead of failing'],
           )
         }
 
-        if (result.kind === 'dataAccessFailure') {
+        if (result.result.kind === 'dataAccessFailure') {
           dependencies.exitWithCliError(
-            dependencies.dataAccessCliErrorCode(result.code),
-            result.message,
+            dependencies.dataAccessCliErrorCode(result.result.code),
+            result.result.message,
             ExitCode.RuntimeError,
             [],
           )
         }
 
-        dependencies.presentExtractionResult(result, options)
+        dependencies.presentExtractionResult(result.result, options)
       },
     )
 }

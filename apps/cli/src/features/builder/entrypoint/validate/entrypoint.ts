@@ -37,14 +37,14 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (options: ValidateOptions) => {
       const result = validateGraph.execute({ graphPathOption: options.graph })
-      if (!result.success) {
+      if (!result.result.success) {
         console.log(
           JSON.stringify(
             dependencies.formatError(
-              result.code === 'GRAPH_NOT_FOUND'
+              result.result.code === 'GRAPH_NOT_FOUND'
                 ? CliErrorCode.GraphNotFound
                 : CliErrorCode.GraphCorrupted,
-              result.message,
+              result.result.message,
               [],
             ),
           ),
@@ -56,9 +56,9 @@ Examples:
         console.log(
           JSON.stringify(
             dependencies.formatSuccess({
-              errors: result.errors,
-              valid: result.valid,
-              warnings: result.warnings,
+              errors: result.result.errors,
+              valid: result.result.valid,
+              warnings: result.result.warnings,
             }),
           ),
         )

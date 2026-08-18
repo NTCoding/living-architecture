@@ -1,7 +1,7 @@
 import { GraphCorruptedError } from '../data-access/graph/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/graph/graph-not-found-error'
 
-/** @riviere-role query-model */
+/** @riviere-role query-model-value */
 export type QueryGraphLoadFailure =
   | {
       readonly kind: 'graphCorrupted'

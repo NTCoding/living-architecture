@@ -99,23 +99,25 @@ Examples:
           ? {}
           : { sourceLocation: sourceLocationResult.sourceLocation }),
       })
-      if (!result.success) {
+      if (!result.result.success) {
         const errorCodeByResult = {
           COMPONENT_NOT_FOUND: CliErrorCode.ComponentNotFound,
           GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
           GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
           VALIDATION_ERROR: CliErrorCode.ValidationError,
         } as const
-        const errorCode = errorCodeByResult[result.code]
+        const errorCode = errorCodeByResult[result.result.code]
 
         console.log(
-          JSON.stringify(dependencies.formatError(errorCode, result.message, result.suggestions)),
+          JSON.stringify(
+            dependencies.formatError(errorCode, result.result.message, result.result.suggestions),
+          ),
         )
         return
       }
 
       if (options.json) {
-        console.log(JSON.stringify(dependencies.formatSuccess({ link: result.link })))
+        console.log(JSON.stringify(dependencies.formatSuccess({ link: result.result.link })))
       }
     })
 }

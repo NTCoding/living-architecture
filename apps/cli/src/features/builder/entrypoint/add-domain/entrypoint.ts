@@ -53,27 +53,27 @@ Examples:
         name: options.name,
         systemType: options.systemType,
       })
-      if (!result.success) {
+      if (!result.result.success) {
         const errorCodeByResult = {
           DUPLICATE_DOMAIN: CliErrorCode.DuplicateDomain,
           GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
           GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
           VALIDATION_ERROR: CliErrorCode.ValidationError,
         } as const
-        const errorCode = errorCodeByResult[result.code]
+        const errorCode = errorCodeByResult[result.result.code]
         const suggestions: string[] = []
-        if (result.code === 'DUPLICATE_DOMAIN') {
+        if (result.result.code === 'DUPLICATE_DOMAIN') {
           suggestions.push('Use a different domain name')
         }
 
         console.log(
-          JSON.stringify(dependencies.formatError(errorCode, result.message, suggestions)),
+          JSON.stringify(dependencies.formatError(errorCode, result.result.message, suggestions)),
         )
         return
       }
 
       if (options.json === true) {
-        console.log(JSON.stringify(dependencies.formatSuccess(result)))
+        console.log(JSON.stringify(dependencies.formatSuccess(result.result)))
       }
     })
 }

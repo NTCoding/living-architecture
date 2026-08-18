@@ -11,6 +11,6 @@ export class RecordCiFailed {
   constructor(private readonly workflow: Workflow) {}
 
   execute(input: RecordCiFailedInput): WorkflowCommandResult {
-    return this.workflow.executeRecording('record-ci-failed', input.output)
+    return { result: this.workflow.executeRecording('record-ci-failed', input.output) }
   }
 }

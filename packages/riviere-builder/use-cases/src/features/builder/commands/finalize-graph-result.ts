@@ -7,13 +7,15 @@ export type FinalizeGraphErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND' | 'VA
 export type FinalizedGraph = RiviereGraph
 
 /** @riviere-role command-use-case-result */
-export type FinalizeGraphResult =
-  | {
-      finalGraph: FinalizedGraph
-      success: true
-    }
-  | {
-      code: FinalizeGraphErrorCode
-      message: string
-      success: false
-    }
+export interface FinalizeGraphResult {
+  readonly result:
+    | {
+        readonly finalGraph: FinalizedGraph
+        readonly success: true
+      }
+    | {
+        readonly code: FinalizeGraphErrorCode
+        readonly message: string
+        readonly success: false
+      }
+}

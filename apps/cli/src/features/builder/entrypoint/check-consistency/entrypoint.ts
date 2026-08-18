@@ -36,14 +36,14 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (options: CheckConsistencyOptions) => {
       const result = checkConsistency.execute({ graphPathOption: options.graph })
-      if (!result.success) {
+      if (!result.result.success) {
         console.log(
           JSON.stringify(
             dependencies.formatError(
-              result.code === 'GRAPH_NOT_FOUND'
+              result.result.code === 'GRAPH_NOT_FOUND'
                 ? CliErrorCode.GraphNotFound
                 : CliErrorCode.GraphCorrupted,
-              result.message,
+              result.result.message,
               [],
             ),
           ),
@@ -55,8 +55,8 @@ Examples:
         console.log(
           JSON.stringify(
             dependencies.formatSuccess({
-              consistent: result.consistent,
-              warnings: result.warnings,
+              consistent: result.result.consistent,
+              warnings: result.result.warnings,
             }),
           ),
         )

@@ -2,12 +2,14 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/builder-facade'
+import { ComponentSummaryStats } from '@living-architecture/riviere-builder-domain-model/domain/inspection/component-summary-stats'
 import {
   type TestContext,
   createTestContext,
   setupCommandTest,
 } from '../../../__fixtures__/command-test-fixtures'
 import { ComponentChecklist } from './component-checklist'
+import { ComponentSummary } from './component-summary'
 import { DefineCustomType } from './define-custom-type'
 import { EnrichComponent } from './enrich-component'
 import { FinalizeGraph } from './finalize-graph'
@@ -59,9 +61,9 @@ describe('additional builder command coverage', () => {
         graphPathOption: graphPath,
         type: undefined,
       }),
-    ).toMatchObject({ code: 'GRAPH_CORRUPTED' })
+    ).toMatchObject({ result: { code: 'GRAPH_CORRUPTED' } })
     expect(new FinalizeGraph(repo).execute({ graphPathOption: graphPath })).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
+      result: { code: 'GRAPH_CORRUPTED' },
     })
     expect(
       new LinkComponents(repo).execute({
@@ -73,7 +75,7 @@ describe('additional builder command coverage', () => {
         targetType: 'UseCase',
         type: undefined,
       }),
-    ).toMatchObject({ code: 'GRAPH_CORRUPTED' })
+    ).toMatchObject({ result: { code: 'GRAPH_CORRUPTED' } })
     expect(
       new LinkExternal(repo).execute({
         from: 'orders:core:api:source',
@@ -83,7 +85,7 @@ describe('additional builder command coverage', () => {
         targetUrl: undefined,
         type: undefined,
       }),
-    ).toMatchObject({ code: 'GRAPH_CORRUPTED' })
+    ).toMatchObject({ result: { code: 'GRAPH_CORRUPTED' } })
   })
 
   it('returns duplicate custom type validation error', () => {
@@ -100,8 +102,10 @@ describe('additional builder command coverage', () => {
         requiredProperties: {},
       }),
     ).toMatchObject({
-      code: 'VALIDATION_ERROR',
-      success: false,
+      result: {
+        code: 'VALIDATION_ERROR',
+        success: false,
+      },
     })
   })
 
@@ -115,8 +119,10 @@ describe('additional builder command coverage', () => {
         requiredProperties: {},
       }),
     ).toMatchObject({
-      code: 'VALIDATION_ERROR',
-      success: false,
+      result: {
+        code: 'VALIDATION_ERROR',
+        success: false,
+      },
     })
   })
 
@@ -143,10 +149,12 @@ describe('additional builder command coverage', () => {
       type: undefined,
     } satisfies import('./link-components-input').LinkComponentsInput
 
-    expect(command.execute(input)).toMatchObject({ success: true })
+    expect(command.execute(input)).toMatchObject({ result: { success: true } })
     expect(command.execute(input)).toMatchObject({
-      code: 'VALIDATION_ERROR',
-      success: false,
+      result: {
+        code: 'VALIDATION_ERROR',
+        success: false,
+      },
     })
     expect(
       command.execute({
@@ -160,8 +168,10 @@ describe('additional builder command coverage', () => {
         },
       }),
     ).toMatchObject({
-      code: 'VALIDATION_ERROR',
-      success: false,
+      result: {
+        code: 'VALIDATION_ERROR',
+        success: false,
+      },
     })
   })
 
@@ -178,8 +188,10 @@ describe('additional builder command coverage', () => {
         requiredProperties: {},
       }),
     ).toMatchObject({
-      code: 'GRAPH_NOT_FOUND',
-      success: false,
+      result: {
+        code: 'GRAPH_NOT_FOUND',
+        success: false,
+      },
     })
 
     expect(
@@ -196,8 +208,10 @@ describe('additional builder command coverage', () => {
         validates: [],
       }),
     ).toMatchObject({
-      code: 'GRAPH_NOT_FOUND',
-      success: false,
+      result: {
+        code: 'GRAPH_NOT_FOUND',
+        success: false,
+      },
     })
   })
 
@@ -260,8 +274,10 @@ describe('additional builder command coverage', () => {
         requiredProperties: {},
       }),
     ).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
-      success: false,
+      result: {
+        code: 'GRAPH_CORRUPTED',
+        success: false,
+      },
     })
 
     expect(
@@ -278,8 +294,10 @@ describe('additional builder command coverage', () => {
         validates: [],
       }),
     ).toMatchObject({
-      code: 'GRAPH_CORRUPTED',
-      success: false,
+      result: {
+        code: 'GRAPH_CORRUPTED',
+        success: false,
+      },
     })
   })
 
@@ -314,5 +332,43 @@ describe('additional builder command coverage', () => {
         sources: ['https://github.com/org/repo'],
       }),
     ).toThrow('unexpected')
+  })
+
+  it('returns success with ComponentSummaryStats for component-summary', () => {
+    const builder = createBuilder(ctx.testDir)
+    builder.addUseCase({
+      name: 'Place Order',
+      domain: 'orders',
+      module: 'checkout',
+      sourceLocation: {
+        repository: 'https://github.com/org/repo',
+        filePath: 'src/usecase.ts',
+      },
+    })
+    vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
+
+    const result = new ComponentSummary(new RiviereBuilderRepository()).execute({
+      graphPathOption: undefined,
+    })
+
+    expect(result).toStrictEqual({
+      result: { success: true, stats: expect.any(ComponentSummaryStats) },
+    })
+    expect(result.result).toHaveProperty('stats.componentCount', 1)
+  })
+
+  it('returns graph not found for component-summary', () => {
+    const missingGraphPath = join(ctx.testDir, 'missing.json')
+
+    expect(
+      new ComponentSummary(new RiviereBuilderRepository()).execute({
+        graphPathOption: missingGraphPath,
+      }),
+    ).toMatchObject({
+      result: {
+        code: 'GRAPH_NOT_FOUND',
+        success: false,
+      },
+    })
   })
 })

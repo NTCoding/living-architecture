@@ -82,13 +82,13 @@ export function createAddComponentCommand(
     .action(async (options: CliOptions) => {
       const result = addComponent.execute(dependencies.toAddComponentInput(options))
 
-      if (!result.success) {
-        const cliErrorCode = CLI_ERROR_CODES[result.code]
+      if (!result.result.success) {
+        const cliErrorCode = CLI_ERROR_CODES[result.result.code]
         console.log(
           JSON.stringify(
             dependencies.formatError(
               cliErrorCode,
-              result.message,
+              result.result.message,
               dependencies.getAddComponentHints(cliErrorCode),
             ),
           ),
@@ -97,7 +97,9 @@ export function createAddComponentCommand(
       }
 
       if (options.json) {
-        console.log(JSON.stringify(dependencies.formatSuccess({ componentId: result.componentId })))
+        console.log(
+          JSON.stringify(dependencies.formatSuccess({ componentId: result.result.componentId })),
+        )
       }
     })
 }

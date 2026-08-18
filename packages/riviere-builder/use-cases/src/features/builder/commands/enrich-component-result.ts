@@ -6,14 +6,16 @@ export type EnrichComponentErrorCode =
   | 'INVALID_COMPONENT_TYPE'
 
 /** @riviere-role command-use-case-result */
-export type EnrichComponentResult =
-  | {
-      componentId: string
-      success: true
-    }
-  | {
-      code: EnrichComponentErrorCode
-      message: string
-      suggestions: string[]
-      success: false
-    }
+export interface EnrichComponentResult {
+  readonly result:
+    | {
+        readonly componentId: string
+        readonly success: true
+      }
+    | {
+        readonly code: EnrichComponentErrorCode
+        readonly message: string
+        readonly suggestions: string[]
+        readonly success: false
+      }
+}

@@ -16,26 +16,32 @@ export class ExtractDraftComponents {
         extractDraftComponentsInput,
       )
 
-      return extractionProject.extractDraftComponents({
-        allowIncomplete: extractDraftComponentsInput.allowIncomplete,
-        includeConnections: extractDraftComponentsInput.includeConnections,
-      })
+      return {
+        result: extractionProject.extractDraftComponents({
+          allowIncomplete: extractDraftComponentsInput.allowIncomplete,
+          includeConnections: extractDraftComponentsInput.includeConnections,
+        }),
+      }
     } catch (error) {
       if (error instanceof ConnectionDetectionError) {
         return {
-          kind: 'connectionDetectionFailure',
-          message: `${error.file}:${error.line}: ${error.reason} — ${error.typeName}`,
+          result: {
+            kind: 'connectionDetectionFailure',
+            message: `${error.file}:${error.line}: ${error.reason} — ${error.typeName}`,
+          },
         }
       }
       if (error instanceof ExtractionConfigError) {
         return {
-          code: error.code,
-          kind: 'configFailure',
-          message: error.message,
+          result: {
+            code: error.code,
+            kind: 'configFailure',
+            message: error.message,
+          },
         }
       }
       if (error instanceof ExtractionDataAccessError) {
-        return { code: error.code, kind: 'dataAccessFailure', message: error.message }
+        return { result: { code: error.code, kind: 'dataAccessFailure', message: error.message } }
       }
       throw error
     }

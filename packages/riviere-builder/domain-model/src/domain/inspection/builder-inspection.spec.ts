@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { RiviereBuilder } from '../builder-facade'
+import { ComponentSummaryStats } from './component-summary-stats'
 import { createValidOptions, createSourceLocation } from '../../__fixtures__/builder-fixtures'
 
 describe('RiviereBuilder', () => {
@@ -18,6 +19,12 @@ describe('RiviereBuilder', () => {
   })
 
   describe('stats', () => {
+    it('returns an instance of ComponentSummaryStats', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+
+      expect(builder.stats()).toBeInstanceOf(ComponentSummaryStats)
+    })
+
     it('returns zero counts when graph has no components', () => {
       const builder = RiviereBuilder.new(createValidOptions())
 
@@ -34,7 +41,6 @@ describe('RiviereBuilder', () => {
         Custom: 0,
       })
       expect(stats.linkCount).toBe(0)
-      expect(stats.externalLinkCount).toBe(0)
     })
 
     it('counts components by type correctly', () => {

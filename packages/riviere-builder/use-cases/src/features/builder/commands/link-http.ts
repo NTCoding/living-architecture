@@ -66,13 +66,15 @@ export class LinkHttp {
       this.repository.save(builder)
 
       return {
-        link,
-        matchedApi: {
-          id: matchedApi.id,
-          method: matchedApi.httpMethod,
-          path: matchedApi.path,
+        result: {
+          link,
+          matchedApi: {
+            id: matchedApi.id,
+            method: matchedApi.httpMethod,
+            path: matchedApi.path,
+          },
+          success: true,
         },
-        success: true,
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -154,9 +156,11 @@ function failure(
   suggestions: string[] = [],
 ): LinkHttpResult {
   return {
-    code,
-    message,
-    suggestions,
-    success: false,
+    result: {
+      code,
+      message,
+      suggestions,
+      success: false,
+    },
   }
 }
