@@ -21,9 +21,11 @@ export class DefineRelationshipType {
       })
       this.repository.save(builder)
       return {
-        description: input.description,
-        name: input.name,
-        success: true,
+        result: {
+          description: input.description,
+          name: input.name,
+          success: true,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -45,8 +47,10 @@ function failure(
   message: string,
 ): DefineRelationshipTypeResult {
   return {
-    code,
-    message,
-    success: false,
+    result: {
+      code,
+      message,
+      success: false,
+    },
   }
 }

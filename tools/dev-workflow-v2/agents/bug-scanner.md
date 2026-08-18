@@ -1,8 +1,6 @@
 ---
 name: bug-scanner
 description: Scan for bugs, dangerous config changes, security issues, and framework misuse
-model: opus
-color: teal
 ---
 
 ## Workflow Preflight

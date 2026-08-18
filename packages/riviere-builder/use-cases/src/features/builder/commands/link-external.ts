@@ -29,8 +29,10 @@ export class LinkExternal {
       const externalLink = builder.linkExternal(externalLinkInput)
       this.repository.save(builder)
       return {
-        externalLink,
-        success: true,
+        result: {
+          externalLink,
+          success: true,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -78,9 +80,11 @@ function failure(
   suggestions: string[] = [],
 ): LinkExternalResult {
   return {
-    code,
-    message,
-    suggestions,
-    success: false,
+    result: {
+      code,
+      message,
+      suggestions,
+      success: false,
+    },
   }
 }

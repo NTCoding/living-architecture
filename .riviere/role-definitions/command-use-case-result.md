@@ -26,6 +26,16 @@ export interface ExtractDraftComponentsResult {
 
 ## Anti-Patterns
 
+### Forbidden Supertypes
+Command-use-case-results **must not** extend, implement, or intersect with other types. Use named fields to compose domain types:
+```typescript
+// WRONG: Intersection with domain type
+export type MyResult = { success: true } & DomainStats
+
+// CORRECT: Named field
+export type MyResult = { success: true; stats: DomainStats }
+```
+
 ### Common Misclassifications
 - **Not an external-client-model**: client models represent external data shapes, not command outcomes
 - **Not a value-object**: value objects are reusable domain concepts; results are specific to one command

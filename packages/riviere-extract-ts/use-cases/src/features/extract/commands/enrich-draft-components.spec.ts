@@ -42,8 +42,10 @@ describe('enrichDraftComponents', () => {
     })
 
     expect(result).toStrictEqual({
-      kind: 'draftOnly',
-      components: [{ name: 'Draft' }],
+      result: {
+        kind: 'draftOnly',
+        components: [{ name: 'Draft' }],
+      },
     })
     expect(mocks.enrichDraftComponentsMethodMock).toHaveBeenCalledWith({
       allowIncomplete: false,
@@ -107,8 +109,10 @@ describe('enrichDraftComponents', () => {
     })
 
     expect(result).toStrictEqual({
-      kind: 'fieldFailure',
-      failedFields: ['fieldA'],
+      result: {
+        kind: 'fieldFailure',
+        failedFields: ['fieldA'],
+      },
     })
   })
 
@@ -127,9 +131,11 @@ describe('enrichDraftComponents', () => {
     })
 
     expect(result).toStrictEqual({
-      code: 'VALIDATION_ERROR',
-      kind: 'configFailure',
-      message: 'Invalid extraction config',
+      result: {
+        code: 'VALIDATION_ERROR',
+        kind: 'configFailure',
+        message: 'Invalid extraction config',
+      },
     })
   })
 
@@ -153,8 +159,10 @@ describe('enrichDraftComponents', () => {
     })
 
     expect(result).toStrictEqual({
-      kind: 'connectionDetectionFailure',
-      message: 'src/handler.ts:42: Could not resolve type — OrderService',
+      result: {
+        kind: 'connectionDetectionFailure',
+        message: 'src/handler.ts:42: Could not resolve type — OrderService',
+      },
     })
   })
 
@@ -173,9 +181,11 @@ describe('enrichDraftComponents', () => {
     })
 
     expect(result).toStrictEqual({
-      code: 'FILE_READ_ERROR',
-      kind: 'dataAccessFailure',
-      message: 'Could not read draft components',
+      result: {
+        code: 'FILE_READ_ERROR',
+        kind: 'dataAccessFailure',
+        message: 'Could not read draft components',
+      },
     })
   })
 

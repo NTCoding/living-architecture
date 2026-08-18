@@ -6,14 +6,14 @@ import { RecordCiPassed } from '@living-architecture/dev-workflow-v2-use-cases/c
 import { RecordIssue } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-issue'
 import { RecordPullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-pull-request'
 import { VerifyFeedbackAddressed } from '@living-architecture/dev-workflow-v2-use-cases/commands/verify-feedback-addressed'
-import type { WorkflowStateSchemaProvider } from './workflow-state-schema-provider'
+import type { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 
 type RoutedWorkflow = ConstructorParameters<typeof RecordIssue>[0]
 type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
 
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateWorkflowRoutesEntrypointDependencies {
-  readonly schemaProvider: WorkflowStateSchemaProvider
+  readonly stateNameSchemaProvider: ZodSchemaProvider<string>
   readonly defineRoutes: typeof defineRoutes
   readonly parseNumberArgument: (value: unknown) => number
   readonly parseStringArgument: (value: unknown) => string
@@ -23,7 +23,7 @@ export interface CreateWorkflowRoutesEntrypointDependencies {
 
 /** @riviere-role cli-entrypoint */
 export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypointDependencies) {
-  const stateNameSchema = dependencies.schemaProvider.stateNameSchema()
+  const stateNameSchema = dependencies.stateNameSchemaProvider.getSchema()
   return dependencies.defineRoutes<RoutedWorkflow, RoutedWorkflowState>({
     init: { type: 'session-start' },
     transition: {
@@ -36,13 +36,14 @@ export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypoin
       handler: (workflow, issueNumber) =>
         new RecordIssue(workflow).execute({
           issueNumber: dependencies.parseNumberArgument(issueNumber),
-        }),
+        }).result,
     },
     'record-branch': {
       type: 'transaction',
       args: [arg.string('branch')],
       handler: (workflow, branch) =>
-        new RecordBranch(workflow).execute({ branch: dependencies.parseStringArgument(branch) }),
+        new RecordBranch(workflow).execute({ branch: dependencies.parseStringArgument(branch) })
+          .result,
     },
     'record-pr': {
       type: 'transaction',
@@ -51,7 +52,7 @@ export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypoin
         new RecordPullRequest(workflow).execute({
           number: dependencies.parseNumberArgument(number),
           url: dependencies.parseOptionalStringArgument(url),
-        }),
+        }).result,
     },
     'create-pr': {
       type: 'transaction',
@@ -59,23 +60,24 @@ export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypoin
       handler: (workflow, args) =>
         new CreatePullRequest(workflow).execute({
           arguments: dependencies.parseStringArguments(args),
-        }),
+        }).result,
     },
     'record-ci-passed': {
       type: 'transaction',
       args: [],
-      handler: (workflow) => new RecordCiPassed(workflow).execute({}),
+      handler: (workflow) => new RecordCiPassed(workflow).execute({}).result,
     },
     'record-ci-failed': {
       type: 'transaction',
       args: [arg.string('output')],
       handler: (workflow, output) =>
-        new RecordCiFailed(workflow).execute({ output: dependencies.parseStringArgument(output) }),
+        new RecordCiFailed(workflow).execute({ output: dependencies.parseStringArgument(output) })
+          .result,
     },
     'verify-feedback-addressed': {
       type: 'transaction',
       args: [],
-      handler: (workflow) => new VerifyFeedbackAddressed(workflow).execute({}),
+      handler: (workflow) => new VerifyFeedbackAddressed(workflow).execute({}).result,
     },
   })
 }

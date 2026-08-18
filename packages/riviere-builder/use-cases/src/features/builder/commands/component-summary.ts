@@ -12,8 +12,10 @@ export class ComponentSummary {
     try {
       const builder = this.repository.load(input.graphPathOption)
       return {
-        ...builder.stats(),
-        success: true,
+        result: {
+          stats: builder.stats(),
+          success: true,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -29,8 +31,10 @@ export class ComponentSummary {
 
 function failure(code: ComponentSummaryErrorCode, message: string): ComponentSummaryResult {
   return {
-    code,
-    message,
-    success: false,
+    result: {
+      code,
+      message,
+      success: false,
+    },
   }
 }

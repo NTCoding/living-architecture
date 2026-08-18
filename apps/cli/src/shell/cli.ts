@@ -1,5 +1,3 @@
-import { execFileSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
 import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../infra/cli/presentation/graph-path-option'
 import { toAddComponentInput } from '../features/builder/entrypoint/add-component/add-component-options'
@@ -21,7 +19,6 @@ import {
 import { formatQueryGraphLoadFailure } from '../infra/cli/presentation/query-graph-load-failure-output'
 import { toComponentOutput } from '../infra/cli/presentation/component-output'
 import { createRequire } from 'module'
-import { resolve } from 'node:path'
 import { AddComponent } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-component'
 import { AddDomain } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-domain'
 import { AddSource } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-source'
@@ -59,7 +56,10 @@ import { RiviereProjectRepository } from '@living-architecture/riviere-extract-t
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
 import { resolveSourceFileSelection } from '../features/extract/entrypoint/extract/resolve-source-file-selection'
 import { loadDraftComponents } from '../features/extract/entrypoint/extract/load-draft-components'
-import { GitError } from '../infra/cli/presentation/git-error'
+import { fileExists } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/file-existence'
+import { readTextFile } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/file-reader'
+import { runGit } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/run-git'
+import { resolveProjectPath } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/path/resolve-path'
 import { DetectOrphans } from '@living-architecture/riviere-builder-use-cases/features/query/queries/detect-orphans'
 import { ListComponents } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-components'
 import { ListDomains } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-domains'
@@ -117,50 +117,6 @@ function loadPackageJson(): PackageJson {
 }
 
 const packageJson = loadPackageJson()
-
-/**
- * @riviere-role external-client-service
- * @param filePath - The path to resolve from the project root.
- * @returns The absolute project path.
- */
-function resolveProjectPath(filePath: string): string {
-  return resolve(process.cwd(), filePath)
-}
-
-/**
- * @riviere-role external-client-service
- * @param args - The Git arguments to execute.
- * @returns The Git command output.
- */
-function runGit(args: string[]): string {
-  const projectRoot = process.cwd()
-  try {
-    const gitExecutable = process.env['GIT_EXECUTABLE'] ?? 'git'
-    return execFileSync(gitExecutable, args, {
-      cwd: projectRoot,
-      env: Object.fromEntries(
-        Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')),
-      ),
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    })
-  } catch (error) {
-    const stderr = String(Reflect.get(Object(error), 'stderr'))
-    if (args[0] === 'rev-parse' || stderr.includes('not a git repository')) {
-      throw new GitError('Run from within a git repository.')
-    }
-    throw error
-  }
-}
-
-/**
- * @riviere-role external-client-service
- * @param filePath - The draft components file to read.
- * @returns The file contents.
- */
-function readDraftComponentsFile(filePath: string): string {
-  return readFileSync(filePath, 'utf8')
-}
 
 /**
  * Wires the CLI entrypoints to their use cases and adapters.
@@ -372,15 +328,11 @@ export function createProgram(): Command {
       presentExtractionResult,
       resolveSourceFileSelection,
       loadDraftComponents,
-      sourceFileSelection: {
-        fileExists: existsSync,
-        projectRoot: process.cwd(),
-        resolvePath: resolveProjectPath,
-        runGit,
-      },
-      draftComponentsLoader: {
-        readFile: readDraftComponentsFile,
-      },
+      fileExists,
+      projectRoot: process.cwd(),
+      resolvePath: resolveProjectPath,
+      runGit,
+      readFile: readTextFile,
     }),
   )
 

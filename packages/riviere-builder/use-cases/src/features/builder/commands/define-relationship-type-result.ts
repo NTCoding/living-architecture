@@ -5,14 +5,16 @@ export type DefineRelationshipTypeErrorCode =
   | 'VALIDATION_ERROR'
 
 /** @riviere-role command-use-case-result */
-export type DefineRelationshipTypeResult =
-  | {
-      description: string
-      name: string
-      success: true
-    }
-  | {
-      code: DefineRelationshipTypeErrorCode
-      message: string
-      success: false
-    }
+export interface DefineRelationshipTypeResult {
+  readonly result:
+    | {
+        readonly description: string
+        readonly name: string
+        readonly success: true
+      }
+    | {
+        readonly code: DefineRelationshipTypeErrorCode
+        readonly message: string
+        readonly success: false
+      }
+}

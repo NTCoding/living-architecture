@@ -9,9 +9,10 @@ import { createEnrichDraftComponentsInput } from './create-enrich-draft-componen
 import { dataAccessCliErrorCode, presentExtractionResult } from './present-extraction-result'
 import { resolveSourceFileSelection } from './resolve-source-file-selection'
 import { loadDraftComponents } from './load-draft-components'
-
-type SourceFileSelectionDependencies = NonNullable<Parameters<typeof resolveSourceFileSelection>[1]>
-type DraftComponentsLoaderDependencies = NonNullable<Parameters<typeof loadDraftComponents>[1]>
+import type { fileExists } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/file-existence'
+import type { readTextFile } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/file-reader'
+import type { runGit } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/run-git'
+import type { resolveProjectPath } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/path/resolve-path'
 
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateExtractCommandEntrypointDependencies {
@@ -25,8 +26,11 @@ export interface CreateExtractCommandEntrypointDependencies {
   readonly presentExtractionResult: typeof presentExtractionResult
   readonly resolveSourceFileSelection: typeof resolveSourceFileSelection
   readonly loadDraftComponents: typeof loadDraftComponents
-  readonly sourceFileSelection: SourceFileSelectionDependencies
-  readonly draftComponentsLoader: DraftComponentsLoaderDependencies
+  readonly fileExists: typeof fileExists
+  readonly projectRoot: string
+  readonly resolvePath: typeof resolveProjectPath
+  readonly runGit: typeof runGit
+  readonly readFile: typeof readTextFile
 }
 
 /** @riviere-role cli-entrypoint */
@@ -70,20 +74,21 @@ export function createExtractCommand(
               ? dependencies.extractDraftComponents.execute(
                   dependencies.createExtractDraftComponentsInput(
                     options,
-                    dependencies.resolveSourceFileSelection(
-                      options,
-                      dependencies.sourceFileSelection,
-                    ),
+                    dependencies.resolveSourceFileSelection(options, {
+                      fileExists: dependencies.fileExists,
+                      projectRoot: dependencies.projectRoot,
+                      resolvePath: dependencies.resolvePath,
+                      runGit: dependencies.runGit,
+                    }),
                   ),
                 )
               : dependencies.enrichDraftComponents.execute(
                   dependencies.createEnrichDraftComponentsInput(
                     options,
                     options.enrich,
-                    dependencies.loadDraftComponents(
-                      options.enrich,
-                      dependencies.draftComponentsLoader,
-                    ),
+                    dependencies.loadDraftComponents(options.enrich, {
+                      readFile: dependencies.readFile,
+                    }),
                   ),
                 )
           } catch (error) {
@@ -111,45 +116,45 @@ export function createExtractCommand(
           }
         })()
 
-        if (result.kind === 'fieldFailure') {
+        if (result.result.kind === 'fieldFailure') {
           dependencies.exitWithCliError(
             CliErrorCode.ValidationError,
-            `Extraction failed for fields: ${result.failedFields.join(', ')}`,
+            `Extraction failed for fields: ${result.result.failedFields.join(', ')}`,
             ExitCode.ExtractionFailure,
             [],
           )
         }
 
-        if (result.kind === 'configFailure') {
+        if (result.result.kind === 'configFailure') {
           dependencies.exitWithCliError(
-            result.code === 'CONFIG_NOT_FOUND'
+            result.result.code === 'CONFIG_NOT_FOUND'
               ? CliErrorCode.ConfigNotFound
               : CliErrorCode.ValidationError,
-            result.message,
+            result.result.message,
             ExitCode.ConfigValidation,
             [],
           )
         }
 
-        if (result.kind === 'connectionDetectionFailure') {
+        if (result.result.kind === 'connectionDetectionFailure') {
           dependencies.exitWithCliError(
             CliErrorCode.ConnectionDetectionFailure,
-            result.message,
+            result.result.message,
             ExitCode.ExtractionFailure,
             ['Use --allow-incomplete to emit uncertain links instead of failing'],
           )
         }
 
-        if (result.kind === 'dataAccessFailure') {
+        if (result.result.kind === 'dataAccessFailure') {
           dependencies.exitWithCliError(
-            dependencies.dataAccessCliErrorCode(result.code),
-            result.message,
+            dependencies.dataAccessCliErrorCode(result.result.code),
+            result.result.message,
             ExitCode.RuntimeError,
             [],
           )
         }
 
-        dependencies.presentExtractionResult(result, options)
+        dependencies.presentExtractionResult(result.result, options)
       },
     )
 }

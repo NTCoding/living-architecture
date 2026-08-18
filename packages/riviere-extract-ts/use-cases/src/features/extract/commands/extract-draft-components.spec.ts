@@ -22,8 +22,10 @@ import { ExtractionDataAccessError } from '../data-access/riviere-project/rivier
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-error'
 
 const DRAFT_ONLY_RESULT = {
-  kind: 'draftOnly' as const,
-  components: [],
+  result: {
+    kind: 'draftOnly' as const,
+    components: [],
+  },
 }
 
 class UnexpectedLoadingError extends Error {}
@@ -34,7 +36,7 @@ describe('extractDraftComponents', () => {
     mocks.loadMock.mockReturnValue({
       extractDraftComponents: mocks.extractDraftComponentsMethodMock,
     })
-    mocks.extractDraftComponentsMethodMock.mockReturnValue(DRAFT_ONLY_RESULT)
+    mocks.extractDraftComponentsMethodMock.mockReturnValue(DRAFT_ONLY_RESULT.result)
   })
 
   describe('pull-request source mode', () => {
@@ -181,9 +183,11 @@ describe('extractDraftComponents', () => {
       })
 
       expect(result).toStrictEqual({
-        code: 'CONFIG_NOT_FOUND',
-        kind: 'configFailure',
-        message: 'Config file not found',
+        result: {
+          code: 'CONFIG_NOT_FOUND',
+          kind: 'configFailure',
+          message: 'Config file not found',
+        },
       })
     })
 
@@ -207,8 +211,10 @@ describe('extractDraftComponents', () => {
       })
 
       expect(result).toStrictEqual({
-        kind: 'connectionDetectionFailure',
-        message: 'src/handler.ts:42: Could not resolve type — OrderService',
+        result: {
+          kind: 'connectionDetectionFailure',
+          message: 'src/handler.ts:42: Could not resolve type — OrderService',
+        },
       })
     })
 
@@ -245,9 +251,11 @@ describe('extractDraftComponents', () => {
     })
 
     expect(result).toStrictEqual({
-      code: 'FILE_READ_ERROR',
-      kind: 'dataAccessFailure',
-      message: 'Could not read project',
+      result: {
+        code: 'FILE_READ_ERROR',
+        kind: 'dataAccessFailure',
+        message: 'Could not read project',
+      },
     })
   })
 })

@@ -11,6 +11,6 @@ export class RecordIssue {
   constructor(private readonly workflow: Workflow) {}
 
   execute(input: RecordIssueInput): WorkflowCommandResult {
-    return this.workflow.executeRecording('record-issue', input.issueNumber)
+    return { result: this.workflow.executeRecording('record-issue', input.issueNumber) }
   }
 }

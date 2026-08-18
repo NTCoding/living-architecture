@@ -10,7 +10,12 @@ const commandRoles: RoleName[] = [
   'command-use-case-result',
   'command-use-case-result-value',
 ]
-const queryRoles: RoleName[] = ['query-model-use-case', 'query-model-use-case-input', 'query-model']
+const queryRoles: RoleName[] = [
+  'query-model-use-case',
+  'query-model-use-case-input',
+  'query-model',
+  'query-model-value',
+]
 const dataAccessRoles: RoleName[] = [
   'aggregate-repository',
   'query-model-loader',
@@ -49,7 +54,7 @@ export const useCases = {
         roles: dataAccessRoles,
         importRules: {
           allow: {
-            sibling: [{ queries: ['query-model'] }],
+            sibling: [{ queries: ['query-model', 'query-model-value'] }],
             root: ['infra'],
             ownSubdomain: [{ domain: ['aggregate', 'value-object'] }],
             anySubdomain: ['published-language'],

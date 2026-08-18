@@ -16,15 +16,17 @@ export type LinkHttpErrorCode =
   | 'VALIDATION_ERROR'
 
 /** @riviere-role command-use-case-result */
-export type LinkHttpResult =
-  | {
-      link: Link
-      matchedApi: MatchedApi
-      success: true
-    }
-  | {
-      code: LinkHttpErrorCode
-      message: string
-      suggestions: string[]
-      success: false
-    }
+export interface LinkHttpResult {
+  readonly result:
+    | {
+        readonly link: Link
+        readonly matchedApi: MatchedApi
+        readonly success: true
+      }
+    | {
+        readonly code: LinkHttpErrorCode
+        readonly message: string
+        readonly suggestions: string[]
+        readonly success: false
+      }
+}

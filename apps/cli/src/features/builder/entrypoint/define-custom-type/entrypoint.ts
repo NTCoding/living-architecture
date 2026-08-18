@@ -75,20 +75,20 @@ export function createDefineCustomTypeCommand(
         optionalProperties: optionalResult.properties,
         requiredProperties: requiredResult.properties,
       })
-      if (!result.success) {
+      if (!result.result.success) {
         const errorCodeByResult = {
           GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
           GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
           VALIDATION_ERROR: CliErrorCode.ValidationError,
         } as const
-        const errorCode = errorCodeByResult[result.code]
+        const errorCode = errorCodeByResult[result.result.code]
 
-        console.log(JSON.stringify(dependencies.formatError(errorCode, result.message, [])))
+        console.log(JSON.stringify(dependencies.formatError(errorCode, result.result.message, [])))
         return
       }
 
       if (options.json === true) {
-        console.log(JSON.stringify(dependencies.formatSuccess(result)))
+        console.log(JSON.stringify(dependencies.formatSuccess(result.result)))
       }
     })
 }

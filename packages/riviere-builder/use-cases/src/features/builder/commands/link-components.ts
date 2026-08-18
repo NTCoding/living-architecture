@@ -53,8 +53,10 @@ export class LinkComponents {
       const link = builder.link(linkInput)
       this.repository.save(builder)
       return {
-        link,
-        success: true,
+        result: {
+          link,
+          success: true,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -120,9 +122,11 @@ function failure(
   suggestions: string[] = [],
 ): LinkComponentsResult {
   return {
-    code,
-    message,
-    suggestions,
-    success: false,
+    result: {
+      code,
+      message,
+      suggestions,
+      success: false,
+    },
   }
 }

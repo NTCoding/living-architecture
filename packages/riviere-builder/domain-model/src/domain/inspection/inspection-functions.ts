@@ -9,6 +9,7 @@ import type {
   RelationshipTypeDefinition,
 } from '@living-architecture/riviere-schema-published-language/schema'
 import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
+import { ComponentSummaryStats } from './component-summary-stats'
 
 type InspectionWarning =
   | Readonly<{
@@ -83,7 +84,7 @@ export function findOrphans(graph: InspectionGraph): string[] {
  */
 export function calculateStats(graph: InspectionGraph) {
   const components = graph.components
-  return {
+  return ComponentSummaryStats.parse({
     componentCount: components.length,
     componentsByType: {
       UI: components.filter((c) => c.type === 'UI').length,
@@ -97,7 +98,7 @@ export function calculateStats(graph: InspectionGraph) {
     linkCount: graph.links.length,
     externalLinkCount: graph.externalLinks.length,
     domainCount: Object.keys(graph.metadata.domains).length,
-  }
+  })
 }
 
 /**

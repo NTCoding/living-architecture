@@ -32,9 +32,11 @@ export class ComponentChecklist {
         type: component.type,
       }))
       return {
-        components,
-        success: true,
-        total: components.length,
+        result: {
+          components,
+          success: true,
+          total: components.length,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -50,8 +52,10 @@ export class ComponentChecklist {
 
 function failure(code: ComponentChecklistErrorCode, message: string): ComponentChecklistResult {
   return {
-    code,
-    message,
-    success: false,
+    result: {
+      code,
+      message,
+      success: false,
+    },
   }
 }

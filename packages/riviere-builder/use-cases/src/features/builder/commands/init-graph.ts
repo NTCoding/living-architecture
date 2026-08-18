@@ -19,9 +19,11 @@ export class InitGraph {
       const systemType = SystemType.parse(domain.systemType)
       if (!systemType.success) {
         return {
-          code: 'VALIDATION_ERROR',
-          message: `Invalid system type: ${domain.systemType}`,
-          success: false,
+          result: {
+            code: 'VALIDATION_ERROR',
+            message: `Invalid system type: ${domain.systemType}`,
+            success: false,
+          },
         }
       }
       parsedDomains.push({
@@ -47,28 +49,34 @@ export class InitGraph {
     try {
       const builder = this.repository.load(input.graphPathOption)
       return {
-        code: 'GRAPH_EXISTS',
-        message: `Graph already exists at ${builder.graphPath}`,
-        path: builder.graphPath,
-        success: false,
+        result: {
+          code: 'GRAPH_EXISTS',
+          message: `Graph already exists at ${builder.graphPath}`,
+          path: builder.graphPath,
+          success: false,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
         const newBuilder = RiviereBuilder.new(builderOptions, error.graphPath)
         this.repository.save(newBuilder)
         return {
-          domains: input.domains.map((domain) => domain.name),
-          path: newBuilder.graphPath,
-          sources: input.sources.length,
-          success: true,
+          result: {
+            domains: input.domains.map((domain) => domain.name),
+            path: newBuilder.graphPath,
+            sources: input.sources.length,
+            success: true,
+          },
         }
       }
       if (error instanceof GraphCorruptedError) {
         return {
-          code: 'GRAPH_EXISTS',
-          message: `Graph already exists at ${error.graphPath}`,
-          path: error.graphPath,
-          success: false,
+          result: {
+            code: 'GRAPH_EXISTS',
+            message: `Graph already exists at ${error.graphPath}`,
+            path: error.graphPath,
+            success: false,
+          },
         }
       }
       throw error

@@ -14,8 +14,10 @@ export class AddSource {
       builder.addSource({ repository: input.repository })
       this.repository.save(builder)
       return {
-        repository: input.repository,
-        success: true,
+        result: {
+          repository: input.repository,
+          success: true,
+        },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
@@ -31,8 +33,10 @@ export class AddSource {
 
 function failure(code: AddSourceErrorCode, message: string): AddSourceResult {
   return {
-    code,
-    message,
-    success: false,
+    result: {
+      code,
+      message,
+      success: false,
+    },
   }
 }

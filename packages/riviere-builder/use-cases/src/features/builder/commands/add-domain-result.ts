@@ -6,15 +6,17 @@ export type AddDomainErrorCode =
   | 'VALIDATION_ERROR'
 
 /** @riviere-role command-use-case-result */
-export type AddDomainResult =
-  | {
-      description: string
-      name: string
-      success: true
-      systemType: string
-    }
-  | {
-      code: AddDomainErrorCode
-      message: string
-      success: false
-    }
+export interface AddDomainResult {
+  readonly result:
+    | {
+        readonly description: string
+        readonly name: string
+        readonly success: true
+        readonly systemType: string
+      }
+    | {
+        readonly code: AddDomainErrorCode
+        readonly message: string
+        readonly success: false
+      }
+}

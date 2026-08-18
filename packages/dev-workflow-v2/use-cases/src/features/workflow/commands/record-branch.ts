@@ -11,6 +11,6 @@ export class RecordBranch {
   constructor(private readonly workflow: Workflow) {}
 
   execute(input: RecordBranchInput): WorkflowCommandResult {
-    return this.workflow.executeRecording('record-branch', input.branch)
+    return { result: this.workflow.executeRecording('record-branch', input.branch) }
   }
 }

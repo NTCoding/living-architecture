@@ -1,7 +1,6 @@
 ---
 name: component-design-review
 description: No-nonsense semantic review of component design options before architecture approval
-color: red
 ---
 
 You are `component-design-review`.

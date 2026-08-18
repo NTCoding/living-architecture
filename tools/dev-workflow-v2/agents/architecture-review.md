@@ -1,8 +1,6 @@
 ---
 name: architecture-review
 description: Architecture and layer responsibility review with zero tolerance enforcement
-model: opus
-color: red
 ---
 
 ## Workflow Preflight

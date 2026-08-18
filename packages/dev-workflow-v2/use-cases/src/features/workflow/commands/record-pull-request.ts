@@ -12,6 +12,6 @@ export class RecordPullRequest {
   constructor(private readonly workflow: Workflow) {}
 
   execute(input: RecordPullRequestInput): WorkflowCommandResult {
-    return this.workflow.executeRecording('record-pr', input.number, input.url)
+    return { result: this.workflow.executeRecording('record-pr', input.number, input.url) }
   }
 }

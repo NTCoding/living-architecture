@@ -27,8 +27,12 @@ import { resolveSourceFileSelection } from './resolve-source-file-selection'
 import { loadDraftComponents } from './load-draft-components'
 
 const testDependencies = {
-  extractDraftComponents: { execute: () => ({ kind: 'draftOnly' as const, components: [] }) },
-  enrichDraftComponents: { execute: () => ({ kind: 'draftOnly' as const, components: [] }) },
+  extractDraftComponents: {
+    execute: () => ({ result: { kind: 'draftOnly' as const, components: [] } }),
+  },
+  enrichDraftComponents: {
+    execute: () => ({ result: { kind: 'draftOnly' as const, components: [] } }),
+  },
   validateFlagCombinations,
   createExtractDraftComponentsInput,
   createEnrichDraftComponentsInput,
@@ -37,13 +41,11 @@ const testDependencies = {
   presentExtractionResult,
   resolveSourceFileSelection,
   loadDraftComponents,
-  draftComponentsLoader: { readFile: () => '' },
-  sourceFileSelection: {
-    fileExists: () => true,
-    projectRoot: process.cwd(),
-    resolvePath: (filePath: string) => filePath,
-    runGit: () => '',
-  },
+  fileExists: () => true,
+  projectRoot: process.cwd(),
+  resolvePath: (filePath: string) => filePath,
+  runGit: () => '',
+  readFile: () => '',
 }
 
 vi.mock('../../../../infra/external-clients/git/git-repository-info', () => ({
@@ -74,14 +76,18 @@ describe('riviere extract', () => {
     it('returns the connection failure with the incomplete-link suggestion', async () => {
       const extractDraftComponents: Pick<ExtractDraftComponents, 'execute'> = {
         execute: () => ({
-          kind: 'connectionDetectionFailure',
-          message: 'Could not resolve OrderId',
+          result: {
+            kind: 'connectionDetectionFailure',
+            message: 'Could not resolve OrderId',
+          },
         }),
       }
       const enrichDraftComponents: Pick<EnrichDraftComponents, 'execute'> = {
         execute: () => ({
-          kind: 'connectionDetectionFailure',
-          message: 'Could not resolve OrderId',
+          result: {
+            kind: 'connectionDetectionFailure',
+            message: 'Could not resolve OrderId',
+          },
         }),
       }
 
@@ -109,13 +115,15 @@ describe('riviere extract', () => {
     it('returns a runtime error for data access failures', async () => {
       const extractDraftComponents: Pick<ExtractDraftComponents, 'execute'> = {
         execute: () => ({
-          kind: 'dataAccessFailure',
-          code: 'FILE_READ_ERROR',
-          message: 'Could not read draft data',
+          result: {
+            kind: 'dataAccessFailure',
+            code: 'FILE_READ_ERROR',
+            message: 'Could not read draft data',
+          },
         }),
       }
       const enrichDraftComponents: Pick<EnrichDraftComponents, 'execute'> = {
-        execute: () => ({ kind: 'draftOnly', components: [] }),
+        execute: () => ({ result: { kind: 'draftOnly', components: [] } }),
       }
 
       await expect(

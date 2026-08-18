@@ -1,8 +1,6 @@
 ---
 name: task-check
 description: Verify task completion against acceptance criteria
-model: opus
-color: green
 ---
 
 ## Workflow Preflight

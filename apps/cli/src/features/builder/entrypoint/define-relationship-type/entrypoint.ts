@@ -36,7 +36,7 @@ export function createDefineRelationshipTypeCommand(
         graphPathOption: options.graph,
         name: options.name,
       })
-      if (!result.success) {
+      if (!result.result.success) {
         const errorCodeByResult = {
           GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
           GRAPH_NOT_FOUND: CliErrorCode.GraphNotFound,
@@ -44,14 +44,18 @@ export function createDefineRelationshipTypeCommand(
         } as const
         console.log(
           JSON.stringify(
-            dependencies.formatError(errorCodeByResult[result.code], result.message, []),
+            dependencies.formatError(
+              errorCodeByResult[result.result.code],
+              result.result.message,
+              [],
+            ),
           ),
         )
         return
       }
 
       if (options.json === true) {
-        console.log(JSON.stringify(dependencies.formatSuccess(result)))
+        console.log(JSON.stringify(dependencies.formatSuccess(result.result)))
       }
     })
 }

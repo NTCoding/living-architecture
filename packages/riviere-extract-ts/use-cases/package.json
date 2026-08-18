@@ -1,6 +1,6 @@
 {
   "name": "@living-architecture/riviere-extract-ts-use-cases",
-  "version": "0.2.2",
+  "version": "0.4.0",
   "publishConfig": {
     "access": "public"
   },
@@ -26,6 +26,12 @@
       "types": "./dist/features/*.d.ts",
       "import": "./dist/features/*.js",
       "default": "./dist/features/*.js"
+    },
+    "./infra/external-clients/*": {
+      "@living-architecture/source": "./src/infra/external-clients/*.ts",
+      "types": "./dist/infra/external-clients/*.d.ts",
+      "import": "./dist/infra/external-clients/*.js",
+      "default": "./dist/infra/external-clients/*.js"
     }
   },
   "files": [

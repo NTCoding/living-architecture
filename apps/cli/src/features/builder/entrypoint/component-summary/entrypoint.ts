@@ -34,14 +34,14 @@ Examples:
     .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .action(async (options: ComponentSummaryOptions) => {
       const result = componentSummary.execute({ graphPathOption: options.graph })
-      if (!result.success) {
+      if (!result.result.success) {
         console.log(
           JSON.stringify(
             dependencies.formatError(
-              result.code === 'GRAPH_NOT_FOUND'
+              result.result.code === 'GRAPH_NOT_FOUND'
                 ? CliErrorCode.GraphNotFound
                 : CliErrorCode.GraphCorrupted,
-              result.message,
+              result.result.message,
               [],
             ),
           ),
@@ -49,6 +49,6 @@ Examples:
         return
       }
 
-      console.log(JSON.stringify(dependencies.formatSuccess(result)))
+      console.log(JSON.stringify(dependencies.formatSuccess(result.result.stats)))
     })
 }

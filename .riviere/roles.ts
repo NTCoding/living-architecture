@@ -13,10 +13,6 @@ export const allRoles = [
     targets: ['interface'],
     nameMatches: '.*EntrypointDependencies$',
   }),
-  role('entrypoint-schema-provider', {
-    targets: ['interface', 'class'],
-    nameMatches: '.*SchemaProvider$',
-  }),
   role('command-use-case', {
     targets: ['class', 'function'],
     allowedInputs: ['command-use-case-input'],
@@ -28,13 +24,16 @@ export const allRoles = [
   role('command-use-case-input', {
     targets: ['interface', 'type-alias'],
     nameMatches: '.*Input$',
+    forbiddenSupertypes: true,
   }),
   role('command-use-case-result', {
-    targets: ['interface', 'type-alias'],
+    targets: ['interface'],
     nameMatches: '.*Result$',
+    forbiddenSupertypes: true,
   }),
   role('command-use-case-result-value', {
     targets: ['interface', 'type-alias'],
+    forbiddenSupertypes: true,
   }),
   role('cli-output-formatter', { targets: ['function'] }),
   role('cli-response-formatter', { targets: ['function'] }),
@@ -45,7 +44,7 @@ export const allRoles = [
     allowedOutputs: ['command-use-case-input'],
     forbiddenImportedFunctionCalls: true,
   }),
-  role('external-client-service', { targets: ['function'] }),
+  role('external-client-service', { targets: ['function', 'class'] }),
   role('aggregate-repository', {
     targets: ['class'],
     allowedOutputs: ['aggregate'],
@@ -94,7 +93,7 @@ export const allRoles = [
   role('query-model-use-case', {
     targets: ['class'],
     allowedInputs: ['query-model-use-case-input'],
-    allowedOutputs: ['query-model'],
+    allowedOutputs: ['query-model', 'query-model-value'],
     forbiddenDependencies: ['query-model-use-case'],
     minPublicMethods: 1,
     maxPublicMethods: 1,
@@ -104,11 +103,16 @@ export const allRoles = [
     nameMatches: '.*(Input|Options)$',
   }),
   role('query-model', {
-    targets: ['class', 'function', 'interface', 'type-alias'],
+    targets: ['class', 'function', 'interface'],
+    forbiddenSupertypes: true,
+  }),
+  role('query-model-value', {
+    targets: ['interface', 'type-alias'],
+    forbiddenSupertypes: true,
   }),
   role('query-model-loader', {
     targets: ['class'],
-    allowedOutputs: ['query-model'],
+    allowedOutputs: ['query-model', 'query-model-value'],
     forbiddenDependencies: ['query-model-loader'],
   }),
   role('external-client-model', { targets: ['interface', 'type-alias', 'class'] }),
