@@ -21,11 +21,11 @@ export class GraphEnrichment {
   }
 
   enrichComponent(id: string, enrichment: EnrichmentInput): void {
-    const componentIndex = this.graph.components.findIndex((component) => component.id === id)
-    const component = this.graph.components[componentIndex]
-    if (!component) {
+    const component = this.graph.getComponent(id)
+    if (component === undefined) {
       throw createComponentNotFoundError(this.graph.components, id)
     }
+    const componentIndex = this.graph.getComponentIndex(id)
     if (component.type !== 'DomainOp') {
       throw new InvalidEnrichmentTargetError(id, component.type)
     }
