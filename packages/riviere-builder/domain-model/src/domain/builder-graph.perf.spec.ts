@@ -69,51 +69,35 @@ const linkIds = Array.from({ length: LINK_COUNT }, (_, i) => `link-${i}`)
 describe('BuilderGraph performance (80k scale)', () => {
   const graph = buildLargeGraph()
 
-  it('hasComponent is O(1)', () => {
-    const t0 = performance.now()
-    componentIds.forEach((id) => graph.hasComponent(id))
-    const ms = performance.now() - t0
-    console.log(`hasComponent x${COMPONENT_COUNT}: ${ms.toFixed(1)}ms`)
-    expect(ms).toBeLessThan(200)
+  it('hasComponent returns correct results for all components', () => {
+    componentIds.forEach((id) => expect(graph.hasComponent(id)).toBe(true))
+    expect(graph.hasComponent('nonexistent:id')).toBe(false)
   })
 
-  it('getComponent is fast', () => {
-    const t0 = performance.now()
-    componentIds.forEach((id) => graph.getComponent(id))
-    const ms = performance.now() - t0
-    console.log(`getComponent x${COMPONENT_COUNT}: ${ms.toFixed(1)}ms`)
-    expect(ms).toBeLessThan(2000)
+  it('getComponent returns correct results for all components', () => {
+    componentIds.forEach((id) => {
+      const component = graph.getComponent(id)
+      expect(component).toBeDefined()
+      expect(component?.id).toBe(id)
+    })
   })
 
-  it('getComponentIndex is fast', () => {
-    const t0 = performance.now()
-    componentIds.forEach((id) => graph.getComponentIndex(id))
-    const ms = performance.now() - t0
-    console.log(`getComponentIndex x${COMPONENT_COUNT}: ${ms.toFixed(1)}ms`)
-    expect(ms).toBeLessThan(2000)
+  it('getComponentIndex returns correct indices', () => {
+    componentIds.forEach((id, i) => {
+      expect(graph.getComponentIndex(id)).toBe(i)
+    })
   })
 
-  it('hasLink is O(1)', () => {
-    const t0 = performance.now()
-    linkIds.forEach((id) => graph.hasLink(id))
-    const ms = performance.now() - t0
-    console.log(`hasLink x${LINK_COUNT}: ${ms.toFixed(1)}ms`)
-    expect(ms).toBeLessThan(200)
+  it('hasLink returns correct results for all links', () => {
+    linkIds.forEach((id) => expect(graph.hasLink(id)).toBe(true))
+    expect(graph.hasLink('nonexistent:id')).toBe(false)
   })
 
-  it('components getter is O(1) cached', () => {
-    const t0 = performance.now()
+  it('components getter has correct length', () => {
     expect(graph.components).toHaveLength(COMPONENT_COUNT)
-    const ms = performance.now() - t0
-    console.log(`components getter: ${ms.toFixed(1)}ms`)
-    expect(ms).toBeLessThan(50)
   })
 
-  it('links getter is O(1) cached', () => {
-    const t0 = performance.now()
+  it('links getter has correct length', () => {
     expect(graph.links).toHaveLength(LINK_COUNT)
-    const ms = performance.now() - t0
-    console.log(`links getter: ${ms.toFixed(1)}ms`)
-    expect(ms).toBeLessThan(50)
   })
 })

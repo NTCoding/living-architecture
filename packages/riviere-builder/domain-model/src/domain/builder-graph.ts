@@ -50,6 +50,7 @@ export class BuilderGraph {
   private readonly componentObjects: Component[] = []
 
   private readonly linksById = new Map<string, Link>()
+  private readonly linksByParsedId = new Map<string, Link>()
   private readonly linkObjects: Link[] = []
 
   private readonly externalLinksByKey = new Map<string, ExternalLink>()
@@ -75,6 +76,7 @@ export class BuilderGraph {
       if (link.id !== undefined) {
         this.linksById.set(link.id, link)
       }
+      this.linksByParsedId.set(LinkId.parseFromLink(link).toString(), link)
       this.linkObjects.push(link)
     }
 
@@ -131,34 +133,29 @@ export class BuilderGraph {
   }
 
   hasLinkByParsedId(parsedId: string): boolean {
-    for (const link of this.linkObjects) {
-      if (LinkId.parseFromLink(link).toString() === parsedId) {
-        return true
-      }
-    }
-    return false
+    return this.linksByParsedId.has(parsedId)
   }
 
   findExternalLink(link: ExternalLink): ExternalLink | undefined {
     return this.externalLinksByKey.get(externalLinkKey(link))
   }
 
-  withSource(source: SourceInfo): BuilderGraph {
+  withSource(source: SourceInfo): this {
     this._sources.push(source)
     return this
   }
 
-  withDomain(name: string, domain: DomainMetadata): BuilderGraph {
+  withDomain(name: string, domain: DomainMetadata): this {
     this._domains[name] = domain
     return this
   }
 
-  withCustomType(name: string, definition: CustomTypeDefinition): BuilderGraph {
+  withCustomType(name: string, definition: CustomTypeDefinition): this {
     this._customTypes[name] = definition
     return this
   }
 
-  withRelationshipType(name: string, definition: RelationshipTypeDefinition): BuilderGraph {
+  withRelationshipType(name: string, definition: RelationshipTypeDefinition): this {
     Object.defineProperty(this._relationshipTypes, name, {
       value: definition,
       enumerable: true,
@@ -168,14 +165,19 @@ export class BuilderGraph {
     return this
   }
 
-  withComponent(component: Component): BuilderGraph {
+  withComponent(component: Component): this {
     this.componentsById.set(component.id, component)
     this.componentIndexById.set(component.id, this.componentObjects.length)
     this.componentObjects.push(component)
     return this
   }
 
-  withComponentAt(index: number, component: Component): BuilderGraph {
+  withComponentAt(index: number, component: Component): this {
+    if (index < 0 || index > this.componentObjects.length) {
+      throw new RangeError(
+        `Component index ${index} is out of range (0..${this.componentObjects.length})`,
+      )
+    }
     const existing = this.componentObjects[index]
     if (existing !== undefined) {
       this.componentsById.delete(existing.id)
@@ -187,15 +189,16 @@ export class BuilderGraph {
     return this
   }
 
-  withLink(link: Link): BuilderGraph {
+  withLink(link: Link): this {
     if (link.id !== undefined) {
       this.linksById.set(link.id, link)
     }
+    this.linksByParsedId.set(LinkId.parseFromLink(link).toString(), link)
     this.linkObjects.push(link)
     return this
   }
 
-  withExternalLink(link: ExternalLink): BuilderGraph {
+  withExternalLink(link: ExternalLink): this {
     const key = externalLinkKey(link)
     this.externalLinksByKey.set(key, link)
     this.externalLinkObjects.push(link)

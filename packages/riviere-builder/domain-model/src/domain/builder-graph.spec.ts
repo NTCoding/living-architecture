@@ -159,6 +159,16 @@ describe('BuilderGraph', () => {
     })
 
     expect(found).toBe(link)
+
+    const duplicate: ExternalLink = {
+      source: 'comp-a',
+      target: { repository: 'ext-repo', name: 'ext-service' },
+      type: 'sync',
+    }
+
+    graph.withExternalLink(duplicate)
+
+    expect(graph.findExternalLink(link)).toBe(duplicate)
   })
 
   it('restores external links from initial definition', () => {
@@ -301,5 +311,51 @@ describe('BuilderGraph', () => {
     graph.withLink({ source: 'a', target: 'b' })
 
     expect(graph.links).toHaveLength(1)
+  })
+
+  it('withComponentAt throws for out-of-range index', () => {
+    const graph = BuilderGraph.parse({
+      version: '1.0',
+      metadata: {
+        sources: [],
+        domains: {},
+        customTypes: {},
+        relationshipTypes: {},
+      },
+      components: [
+        {
+          id: 'a:b:c:d',
+          type: 'UseCase',
+          name: 'A',
+          domain: 'a',
+          module: 'b',
+          sourceLocation: { repository: 'example/repository', filePath: 'a.ts' },
+        },
+      ],
+      links: [],
+      externalLinks: [],
+    })
+
+    expect(() =>
+      graph.withComponentAt(-1, {
+        id: 'x:y:z:w',
+        type: 'UseCase',
+        name: 'X',
+        domain: 'x',
+        module: 'y',
+        sourceLocation: { repository: 'example/repository', filePath: 'x.ts' },
+      }),
+    ).toThrow(RangeError)
+
+    expect(() =>
+      graph.withComponentAt(5, {
+        id: 'x:y:z:w',
+        type: 'UseCase',
+        name: 'X',
+        domain: 'x',
+        module: 'y',
+        sourceLocation: { repository: 'example/repository', filePath: 'x.ts' },
+      }),
+    ).toThrow(RangeError)
   })
 })
