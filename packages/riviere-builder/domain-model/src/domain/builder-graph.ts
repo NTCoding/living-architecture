@@ -35,9 +35,9 @@ export class BuilderGraph {
 
   readonly version: string
 
-  private _name: string | undefined
-  private _description: string | undefined
-  private _generated: string | undefined
+  private readonly _name: string | undefined
+  private readonly _description: string | undefined
+  private readonly _generated: string | undefined
   private readonly _sources: SourceInfo[] = []
   private readonly _domains: Record<string, DomainMetadata>
   private readonly _customTypes: Record<string, CustomTypeDefinition>
