@@ -22,12 +22,14 @@ export function registerComponent<T extends Component>(
   graph: BuilderGraph
   component: T
 }> {
-  if (graph.components.some((existing) => existing.id === component.id)) {
+  if (graph.hasComponent(component.id)) {
     throw new DuplicateComponentError(component.id)
   }
 
+  graph.withComponent(component)
+
   return {
-    graph: graph.withComponent(component),
+    graph,
     component,
   }
 }
@@ -43,24 +45,27 @@ export function upsertComponent<T extends Component>(
   component: T
   created: boolean
 }> {
-  const existingIndex = graph.components.findIndex((component) => component.id === incoming.id)
-  if (existingIndex === -1) {
+  if (!graph.hasComponent(incoming.id)) {
+    graph.withComponent(incoming)
     return {
-      graph: graph.withComponent(incoming),
+      graph,
       component: incoming,
       created: true,
     }
   }
 
-  const existing = graph.components[existingIndex]
+  const existingIndex = graph.getComponentIndex(incoming.id)
+  const existing = graph.getComponent(incoming.id)
   if (!isSameTypeComponent(existing, incoming)) {
     throw new ComponentTypeMismatchError(incoming.id, existing?.type ?? 'unknown', incoming.type)
   }
 
   const component = mergeComponentForUpsert(existing, incoming, options, addWarning)
 
+  graph.withComponentAt(existingIndex, component)
+
   return {
-    graph: graph.withComponentAt(existingIndex, component),
+    graph,
     component,
     created: false,
   }

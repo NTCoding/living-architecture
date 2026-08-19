@@ -25,7 +25,6 @@ type ExternalLinkInput = Readonly<{
   type?: ExternalLink['type']
   description?: ExternalLink['description']
   sourceLocation?: ExternalLink['sourceLocation']
-  metadata?: Readonly<Record<string, unknown>>
 }>
 
 type AddDuplicateLinkWarning = (
@@ -57,8 +56,7 @@ export class GraphLinking {
   }
 
   link(input: LinkInput): Link {
-    const sourceExists = this.graph.components.some((c) => c.id === input.from)
-    if (!sourceExists) {
+    if (!this.graph.hasComponent(input.from)) {
       throw createComponentNotFoundError(this.graph.components, input.from)
     }
 
@@ -77,11 +75,7 @@ export class GraphLinking {
       target: input.to,
       ...(input.sourceLocation !== undefined && { sourceLocation: input.sourceLocation }),
     }).toString()
-    if (
-      this.graph.links.some(
-        (link) => link.id === id || LinkId.parseFromLink(link).toString() === id,
-      )
-    ) {
+    if (this.graph.hasLink(id) || this.graph.hasLinkByParsedId(id)) {
       throw new DuplicateLinkError(id)
     }
 
@@ -94,24 +88,25 @@ export class GraphLinking {
       ...(input.condition !== undefined && { condition: input.condition }),
       ...(input.sourceLocation !== undefined && { sourceLocation: input.sourceLocation }),
     }
-    this.graph = this.graph.withLink(link)
+    this.graph.withLink(link)
     this.updateGraph(this.graph)
     return link
   }
 
   linkExternal(input: ExternalLinkInput): ExternalLink {
-    const sourceExists = this.graph.components.some((c) => c.id === input.from)
-    if (!sourceExists) {
+    if (!this.graph.hasComponent(input.from)) {
       throw createComponentNotFoundError(this.graph.components, input.from)
     }
 
-    const duplicate = this.graph.externalLinks.find(
-      (link) =>
-        link.source === input.from &&
-        link.target.repository === input.target.repository &&
-        link.target.name === input.target.name &&
-        link.type === input.type,
-    )
+    const externalLink: ExternalLink = {
+      source: input.from,
+      target: input.target,
+      ...(input.type !== undefined && { type: input.type }),
+      ...(input.description !== undefined && { description: input.description }),
+      ...(input.sourceLocation !== undefined && { sourceLocation: input.sourceLocation }),
+    }
+
+    const duplicate = this.graph.findExternalLink(externalLink)
 
     if (duplicate) {
       this.addWarning({
@@ -127,14 +122,7 @@ export class GraphLinking {
       return duplicate
     }
 
-    const externalLink: ExternalLink = {
-      source: input.from,
-      target: input.target,
-      ...(input.type !== undefined && { type: input.type }),
-      ...(input.description !== undefined && { description: input.description }),
-      ...(input.sourceLocation !== undefined && { sourceLocation: input.sourceLocation }),
-    }
-    this.graph = this.graph.withExternalLink(externalLink)
+    this.graph.withExternalLink(externalLink)
     this.updateGraph(this.graph)
     return externalLink
   }

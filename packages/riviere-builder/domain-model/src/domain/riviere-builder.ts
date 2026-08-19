@@ -141,7 +141,18 @@ export class RiviereBuilder {
   }
 
   serialize(): string {
-    return JSON.stringify(this.graph, null, 2)
+    const graph = this.graph
+    return JSON.stringify(
+      {
+        version: graph.version,
+        metadata: graph.metadata,
+        components: [...graph.components],
+        links: [...graph.links],
+        externalLinks: [...graph.externalLinks],
+      },
+      null,
+      2,
+    )
   }
 
   build(): RiviereGraph {
