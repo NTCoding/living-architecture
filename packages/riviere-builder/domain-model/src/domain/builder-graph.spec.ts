@@ -1,6 +1,32 @@
 import { describe, expect, it } from 'vitest'
-import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
+import type {
+  Component,
+  DomainMetadata,
+  ExternalLink,
+  Link,
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { BuilderGraph } from './builder-graph'
+
+function emptyGraph(overrides?: {
+  sources?: Array<{ repository: string }>
+  domains?: Record<string, DomainMetadata>
+  components?: Component[]
+  links?: Link[]
+  externalLinks?: ExternalLink[]
+}) {
+  return BuilderGraph.parse({
+    version: '1.0',
+    metadata: {
+      sources: overrides?.sources ?? [],
+      domains: overrides?.domains ?? {},
+      customTypes: {},
+      relationshipTypes: {},
+    },
+    components: overrides?.components ?? [],
+    links: overrides?.links ?? [],
+    externalLinks: overrides?.externalLinks ?? [],
+  })
+}
 
 describe('BuilderGraph', () => {
   it('mutates in place and returns the same instance', () => {
@@ -37,22 +63,14 @@ describe('BuilderGraph', () => {
   })
 
   it('chains updates into successive graph values', () => {
-    const graph = BuilderGraph.parse({
-      version: '1.0',
-      metadata: {
-        sources: [{ repository: 'example/repository' }],
-        domains: {
-          orders: {
-            description: 'Orders',
-            systemType: 'domain',
-          },
+    const graph = emptyGraph({
+      sources: [{ repository: 'example/repository' }],
+      domains: {
+        orders: {
+          description: 'Orders',
+          systemType: 'domain',
         },
-        customTypes: {},
-        relationshipTypes: {},
       },
-      components: [],
-      links: [],
-      externalLinks: [],
     })
 
     graph
@@ -78,14 +96,9 @@ describe('BuilderGraph', () => {
   })
 
   it('O(1) component lookup via hasComponent', () => {
-    const graph = BuilderGraph.parse({
-      version: '1.0',
-      metadata: {
-        sources: [{ repository: 'example/repository' }],
-        domains: { orders: { description: 'Orders', systemType: 'domain' } },
-        customTypes: {},
-        relationshipTypes: {},
-      },
+    const graph = emptyGraph({
+      sources: [{ repository: 'example/repository' }],
+      domains: { orders: { description: 'Orders', systemType: 'domain' } },
       components: [
         {
           id: 'orders:checkout:ui:page',
@@ -96,8 +109,6 @@ describe('BuilderGraph', () => {
           sourceLocation: { repository: 'example/repository', filePath: 'checkout.ts' },
         },
       ],
-      links: [],
-      externalLinks: [],
     })
 
     expect(graph.hasComponent('orders:checkout:ui:page')).toBe(true)
@@ -107,15 +118,9 @@ describe('BuilderGraph', () => {
   })
 
   it('O(1) link lookup via hasLink', () => {
-    const graph = BuilderGraph.parse({
-      version: '1.0',
-      metadata: {
-        sources: [{ repository: 'example/repository' }],
-        domains: { orders: { description: 'Orders', systemType: 'domain' } },
-        customTypes: {},
-        relationshipTypes: {},
-      },
-      components: [],
+    const graph = emptyGraph({
+      sources: [{ repository: 'example/repository' }],
+      domains: { orders: { description: 'Orders', systemType: 'domain' } },
       links: [
         {
           id: 'link-1',
@@ -123,7 +128,6 @@ describe('BuilderGraph', () => {
           target: 'b',
         },
       ],
-      externalLinks: [],
     })
 
     expect(graph.hasLink('link-1')).toBe(true)
@@ -131,17 +135,9 @@ describe('BuilderGraph', () => {
   })
 
   it('deduplicates external links by composite key', () => {
-    const graph = BuilderGraph.parse({
-      version: '1.0',
-      metadata: {
-        sources: [{ repository: 'example/repository' }],
-        domains: { orders: { description: 'Orders', systemType: 'domain' } },
-        customTypes: {},
-        relationshipTypes: {},
-      },
-      components: [],
-      links: [],
-      externalLinks: [],
+    const graph = emptyGraph({
+      sources: [{ repository: 'example/repository' }],
+      domains: { orders: { description: 'Orders', systemType: 'domain' } },
     })
 
     const link: ExternalLink = {
@@ -178,16 +174,9 @@ describe('BuilderGraph', () => {
       type: 'sync',
     }
 
-    const graph = BuilderGraph.parse({
-      version: '1.0',
-      metadata: {
-        sources: [{ repository: 'example/repository' }],
-        domains: { orders: { description: 'Orders', systemType: 'domain' } },
-        customTypes: {},
-        relationshipTypes: {},
-      },
-      components: [],
-      links: [],
+    const graph = emptyGraph({
+      sources: [{ repository: 'example/repository' }],
+      domains: { orders: { description: 'Orders', systemType: 'domain' } },
       externalLinks: [link],
     })
 
@@ -195,33 +184,35 @@ describe('BuilderGraph', () => {
     expect(graph.findExternalLink(link)).toBe(link)
   })
 
+  it('distinguishes external links that differ only in which field contains a separator character', () => {
+    const graph = emptyGraph()
+
+    const linkA: ExternalLink = {
+      source: 'a|b',
+      target: { name: 'c' },
+    }
+    const linkB: ExternalLink = {
+      source: 'a',
+      target: { name: 'b|c' },
+    }
+
+    graph.withExternalLink(linkA)
+    graph.withExternalLink(linkB)
+
+    expect(graph.findExternalLink(linkA)).toBe(linkA)
+    expect(graph.findExternalLink(linkB)).toBe(linkB)
+    expect(graph.externalLinks).toHaveLength(2)
+  })
+
   it('getComponent returns undefined for nonexistent id', () => {
-    const graph = BuilderGraph.parse({
-      version: '1.0',
-      metadata: {
-        sources: [],
-        domains: {},
-        customTypes: {},
-        relationshipTypes: {},
-      },
-      components: [],
-      links: [],
-      externalLinks: [],
-    })
+    const graph = emptyGraph()
 
     expect(graph.getComponent('nonexistent')).toBeUndefined()
     expect(graph.getComponentIndex('nonexistent')).toBe(-1)
   })
 
   it('withComponentAt replaces at a valid index and inserts at an empty slot', () => {
-    const graph = BuilderGraph.parse({
-      version: '1.0',
-      metadata: {
-        sources: [],
-        domains: {},
-        customTypes: {},
-        relationshipTypes: {},
-      },
+    const graph = emptyGraph({
       components: [
         {
           id: 'a:b:c:d',
@@ -232,8 +223,6 @@ describe('BuilderGraph', () => {
           sourceLocation: { repository: 'example/repository', filePath: 'a.ts' },
         },
       ],
-      links: [],
-      externalLinks: [],
     })
 
     graph.withComponentAt(0, {
@@ -251,18 +240,7 @@ describe('BuilderGraph', () => {
   })
 
   it('withComponentAt inserts into an empty graph at index 0', () => {
-    const graph = BuilderGraph.parse({
-      version: '1.0',
-      metadata: {
-        sources: [],
-        domains: {},
-        customTypes: {},
-        relationshipTypes: {},
-      },
-      components: [],
-      links: [],
-      externalLinks: [],
-    })
+    const graph = emptyGraph()
 
     graph.withComponentAt(0, {
       id: 'p:q:r:s',
@@ -278,35 +256,35 @@ describe('BuilderGraph', () => {
   })
 
   it('handles links without id in parse', () => {
-    const graph = BuilderGraph.parse({
-      version: '1.0',
-      metadata: {
-        sources: [],
-        domains: {},
-        customTypes: {},
-        relationshipTypes: {},
-      },
-      components: [],
-      links: [{ source: 'a', target: 'b' }],
-      externalLinks: [],
-    })
+    const graph = emptyGraph({ links: [{ source: 'a', target: 'b' }] })
 
     expect(graph.links).toHaveLength(1)
   })
 
-  it('handles links without id via withLink', () => {
-    const graph = BuilderGraph.parse({
-      version: '1.0',
-      metadata: {
-        sources: [],
-        domains: {},
-        customTypes: {},
-        relationshipTypes: {},
-      },
-      components: [],
-      links: [],
-      externalLinks: [],
+  it('withDomain stores __proto__ as its own key', () => {
+    const graph = emptyGraph()
+
+    graph.withDomain('__proto__', {
+      description: 'Proto domain',
+      systemType: 'domain',
     })
+
+    expect(Object.hasOwn(graph.metadata.domains, '__proto__')).toBe(true)
+    expect(graph.metadata.domains['__proto__']?.description).toBe('Proto domain')
+  })
+
+  it('withCustomType stores __proto__ as its own key', () => {
+    const graph = emptyGraph()
+
+    graph.withCustomType('__proto__', {
+      description: '__proto__ custom type',
+    })
+
+    expect(Object.hasOwn(graph.metadata.customTypes, '__proto__')).toBe(true)
+  })
+
+  it('handles links without id via withLink', () => {
+    const graph = emptyGraph()
 
     graph.withLink({ source: 'a', target: 'b' })
 
@@ -314,14 +292,7 @@ describe('BuilderGraph', () => {
   })
 
   it('withComponentAt throws for out-of-range index', () => {
-    const graph = BuilderGraph.parse({
-      version: '1.0',
-      metadata: {
-        sources: [],
-        domains: {},
-        customTypes: {},
-        relationshipTypes: {},
-      },
+    const graph = emptyGraph({
       components: [
         {
           id: 'a:b:c:d',
@@ -332,30 +303,20 @@ describe('BuilderGraph', () => {
           sourceLocation: { repository: 'example/repository', filePath: 'a.ts' },
         },
       ],
-      links: [],
-      externalLinks: [],
     })
 
-    expect(() =>
-      graph.withComponentAt(-1, {
-        id: 'x:y:z:w',
-        type: 'UseCase',
-        name: 'X',
-        domain: 'x',
-        module: 'y',
-        sourceLocation: { repository: 'example/repository', filePath: 'x.ts' },
-      }),
-    ).toThrow(RangeError)
+    const badComponent = () => ({
+      id: 'x:y:z:w',
+      type: 'UseCase' as const,
+      name: 'X',
+      domain: 'x',
+      module: 'y',
+      sourceLocation: { repository: 'example/repository', filePath: 'x.ts' },
+    })
 
-    expect(() =>
-      graph.withComponentAt(5, {
-        id: 'x:y:z:w',
-        type: 'UseCase',
-        name: 'X',
-        domain: 'x',
-        module: 'y',
-        sourceLocation: { repository: 'example/repository', filePath: 'x.ts' },
-      }),
-    ).toThrow(RangeError)
+    expect(() => graph.withComponentAt(-1, badComponent())).toThrow(RangeError)
+    expect(() => graph.withComponentAt(5, badComponent())).toThrow(RangeError)
+    expect(() => graph.withComponentAt(NaN, badComponent())).toThrow(RangeError)
+    expect(() => graph.withComponentAt(1.5, badComponent())).toThrow(RangeError)
   })
 })

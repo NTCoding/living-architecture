@@ -26,9 +26,7 @@ type BuilderGraphDefinition = Readonly<{
 }>
 
 function externalLinkKey(link: ExternalLink): string {
-  const repo = link.target.repository === undefined ? '' : `|${link.target.repository}`
-  const type = link.type === undefined ? '' : `|${link.type}`
-  return `${link.source}|${link.target.name}${repo}${type}`
+  return JSON.stringify([link.source, link.target.name, link.target.repository, link.type])
 }
 
 /** @riviere-role value-object */
@@ -146,12 +144,22 @@ export class BuilderGraph {
   }
 
   withDomain(name: string, domain: DomainMetadata): this {
-    this._domains[name] = domain
+    Object.defineProperty(this._domains, name, {
+      value: domain,
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    })
     return this
   }
 
   withCustomType(name: string, definition: CustomTypeDefinition): this {
-    this._customTypes[name] = definition
+    Object.defineProperty(this._customTypes, name, {
+      value: definition,
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    })
     return this
   }
 
@@ -173,7 +181,7 @@ export class BuilderGraph {
   }
 
   withComponentAt(index: number, component: Component): this {
-    if (index < 0 || index > this.componentObjects.length) {
+    if (!Number.isInteger(index) || index < 0 || index > this.componentObjects.length) {
       throw new RangeError(
         `Component index ${index} is out of range (0..${this.componentObjects.length})`,
       )
