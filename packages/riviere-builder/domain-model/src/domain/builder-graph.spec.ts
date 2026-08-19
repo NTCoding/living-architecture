@@ -155,6 +155,7 @@ describe('BuilderGraph', () => {
     })
 
     expect(found).toBe(link)
+    expect(graph.externalLinks).toHaveLength(1)
 
     const duplicate: ExternalLink = {
       source: 'comp-a',
@@ -165,6 +166,7 @@ describe('BuilderGraph', () => {
     graph.withExternalLink(duplicate)
 
     expect(graph.findExternalLink(link)).toBe(duplicate)
+    expect(graph.externalLinks).toHaveLength(1)
   })
 
   it('restores external links from initial definition', () => {

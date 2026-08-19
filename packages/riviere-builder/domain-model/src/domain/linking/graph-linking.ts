@@ -25,7 +25,6 @@ type ExternalLinkInput = Readonly<{
   type?: ExternalLink['type']
   description?: ExternalLink['description']
   sourceLocation?: ExternalLink['sourceLocation']
-  metadata?: Readonly<Record<string, unknown>>
 }>
 
 type AddDuplicateLinkWarning = (

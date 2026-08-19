@@ -208,8 +208,11 @@ export class BuilderGraph {
 
   withExternalLink(link: ExternalLink): this {
     const key = externalLinkKey(link)
+    const isNew = !this.externalLinksByKey.has(key)
     this.externalLinksByKey.set(key, link)
-    this.externalLinkObjects.push(link)
+    if (isNew) {
+      this.externalLinkObjects.push(link)
+    }
     return this
   }
 }
