@@ -2,32 +2,70 @@ import { defineWorkflowRoutes } from '../../../infra/external-clients/determinis
 import { ZodSchemaProvider } from '../../../infra/external-clients/zod/zod-schema-provider'
 import { configureWorkflow } from './configure-workflow'
 import type { Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
-import { z } from 'zod'
-import { describe, expect, it } from 'vitest'
-import { CreateWorkflowRoutes, type CreateWorkflowRoutesInput } from './create-workflow-routes'
+import { describe, expect, it, vi } from 'vitest'
+import {
+  CreateWorkflowRoutes,
+  type CreateWorkflowRoutesInput,
+  type CreateWorkflowRoutesResult,
+} from './create-workflow-routes'
 
 const workflowResult: ReturnType<Workflow['executeRecording']> = { pass: true }
 
 class UnexpectedRouteError extends Error {}
 
-function createInput(): CreateWorkflowRoutesInput {
+function createInput(): {
+  input: CreateWorkflowRoutesInput
+  calls: Record<string, unknown[][]>
+} {
+  const calls: Record<string, unknown[][]> = {
+    recordIssue: [],
+    recordBranch: [],
+    recordPullRequest: [],
+    createPullRequest: [],
+    recordCiPassed: [],
+    recordCiFailed: [],
+    verifyFeedbackAddressed: [],
+  }
   return {
-    parseNumberArgument: () => 1,
-    parseStringArgument: () => 'value',
-    parseOptionalStringArgument: () => undefined,
-    parseStringArguments: () => [],
-    recordIssue: () => workflowResult,
-    recordBranch: () => workflowResult,
-    recordPullRequest: () => workflowResult,
-    createPullRequest: () => workflowResult,
-    recordCiPassed: () => workflowResult,
-    recordCiFailed: () => workflowResult,
-    verifyFeedbackAddressed: () => workflowResult,
+    input: {
+      parseNumberArgument: vi.fn(() => 1),
+      parseStringArgument: vi.fn(() => 'value'),
+      parseOptionalStringArgument: vi.fn(() => undefined),
+      parseStringArguments: vi.fn(() => []),
+      recordIssue: (workflow, issueNumber) => {
+        calls.recordIssue.push([workflow, issueNumber])
+        return workflowResult
+      },
+      recordBranch: (workflow, branch) => {
+        calls.recordBranch.push([workflow, branch])
+        return workflowResult
+      },
+      recordPullRequest: (workflow, number, url) => {
+        calls.recordPullRequest.push([workflow, number, url])
+        return workflowResult
+      },
+      createPullRequest: (workflow, args) => {
+        calls.createPullRequest.push([workflow, args])
+        return workflowResult
+      },
+      recordCiPassed: (workflow) => {
+        calls.recordCiPassed.push([workflow])
+        return workflowResult
+      },
+      recordCiFailed: (workflow, output) => {
+        calls.recordCiFailed.push([workflow, output])
+        return workflowResult
+      },
+      verifyFeedbackAddressed: (workflow) => {
+        calls.verifyFeedbackAddressed.push([workflow])
+        return workflowResult
+      },
+    },
+    calls,
   }
 }
 
-function createWorkflow() {
-  const definition = configureWorkflow({})
+function createWorkflow(definition: ReturnType<typeof configureWorkflow>) {
   return definition.buildWorkflow(definition.initialState(), {
     getGitInfo: () => ({
       currentBranch: 'main',
@@ -53,15 +91,34 @@ function createWorkflow() {
   })
 }
 
+function transactionHandler(routes: CreateWorkflowRoutesResult['routes'], name: string) {
+  const route = routes[name]
+  if (route?.type !== 'transaction') {
+    throw new UnexpectedRouteError(`Expected transaction route: ${name}`)
+  }
+  return route.handler
+}
+
+function stateArgument(routes: CreateWorkflowRoutesResult['routes']) {
+  const transition = routes.transition
+  if (transition?.type !== 'transition') {
+    throw new UnexpectedRouteError('Expected transition route')
+  }
+  const argument = transition.args[0]
+  if (!argument) throw new UnexpectedRouteError('Expected state argument')
+  return argument
+}
+
 describe('CreateWorkflowRoutes', () => {
   it('creates the complete workflow route map', () => {
-    const stateSchema = z.enum(['IMPLEMENTING', 'REVIEWING', 'COMPLETE', 'BLOCKED'])
+    const workflowDefinition = configureWorkflow({})
     const createWorkflowRoutes = new CreateWorkflowRoutes(
-      new ZodSchemaProvider(stateSchema),
+      new ZodSchemaProvider(workflowDefinition.stateSchema),
       defineWorkflowRoutes,
     )
 
-    const { routes } = createWorkflowRoutes.execute(createInput())
+    const { input } = createInput()
+    const { routes } = createWorkflowRoutes.execute(input)
 
     expect(Object.keys(routes)).toStrictEqual([
       'init',
@@ -75,21 +132,60 @@ describe('CreateWorkflowRoutes', () => {
       'verify-feedback-addressed',
     ])
 
-    const workflow = createWorkflow()
-    const transaction = (name: string) => {
-      const route = routes[name]
-      if (route?.type !== 'transaction') {
-        throw new UnexpectedRouteError(`Expected transaction route: ${name}`)
-      }
-      return route.handler
-    }
+    expect(routes.init).toStrictEqual({ type: 'session-start' })
+    expect(routes.transition?.type).toBe('transition')
+  })
 
-    transaction('record-issue')(workflow, 1)
-    transaction('record-branch')(workflow, 'branch')
-    transaction('record-pr')(workflow, 1, undefined)
-    transaction('create-pr')(workflow, [])
-    transaction('record-ci-passed')(workflow)
-    transaction('record-ci-failed')(workflow, 'output')
-    transaction('verify-feedback-addressed')(workflow)
+  it('binds the authoritative workflow state schema to the transition argument', () => {
+    const workflowDefinition = configureWorkflow({})
+    const createWorkflowRoutes = new CreateWorkflowRoutes(
+      new ZodSchemaProvider(workflowDefinition.stateSchema),
+      defineWorkflowRoutes,
+    )
+
+    const { input } = createInput()
+    const { routes } = createWorkflowRoutes.execute(input)
+    const argument = stateArgument(routes)
+
+    expect(argument.parse('IMPLEMENTING')).toBe('IMPLEMENTING')
+    expect(() => argument.parse('NOT_A_STATE')).toThrow('Invalid')
+  })
+
+  it('delegates every transaction route to its corresponding callback', () => {
+    const workflowDefinition = configureWorkflow({})
+    const createWorkflowRoutes = new CreateWorkflowRoutes(
+      new ZodSchemaProvider(workflowDefinition.stateSchema),
+      defineWorkflowRoutes,
+    )
+    const { input, calls } = createInput()
+    const { routes } = createWorkflowRoutes.execute(input)
+
+    const workflow = createWorkflow(workflowDefinition)
+
+    transactionHandler(routes, 'record-issue')(workflow, 1)
+    transactionHandler(routes, 'record-branch')(workflow, 'branch')
+    transactionHandler(routes, 'record-pr')(workflow, 1, undefined)
+    transactionHandler(routes, 'create-pr')(workflow, [])
+    transactionHandler(routes, 'record-ci-passed')(workflow)
+    transactionHandler(routes, 'record-ci-failed')(workflow, 'output')
+    transactionHandler(routes, 'verify-feedback-addressed')(workflow)
+
+    expect({
+      recordIssue: calls.recordIssue,
+      recordBranch: calls.recordBranch,
+      recordPullRequest: calls.recordPullRequest,
+      createPullRequest: calls.createPullRequest,
+      recordCiPassed: calls.recordCiPassed,
+      recordCiFailed: calls.recordCiFailed,
+      verifyFeedbackAddressed: calls.verifyFeedbackAddressed,
+    }).toStrictEqual({
+      recordIssue: [[workflow, 1]],
+      recordBranch: [[workflow, 'value']],
+      recordPullRequest: [[workflow, 1, undefined]],
+      createPullRequest: [[workflow, []]],
+      recordCiPassed: [[workflow]],
+      recordCiFailed: [[workflow, 'value']],
+      verifyFeedbackAddressed: [[workflow]],
+    })
   })
 })
