@@ -17,40 +17,116 @@ import { GitError } from '../../../../infra/external-clients/git/git-errors'
 import { getRepositoryInfo } from '../../../../infra/external-clients/git/git-repository-info'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { ExtractionStage } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-stage'
+import { WorkflowDefinition } from '@living-architecture/riviere-extract-ts-domain-model/domain/workflow-definition'
+import { WorkflowStage } from '@living-architecture/riviere-extract-ts-domain-model/domain/workflow-state'
 import { createConfiguredProject } from '../../../../infra/external-clients/ts-morph/create-configured-project'
 import { findModuleTsConfigDir } from '../../../../infra/external-clients/ts-morph/find-module-tsconfig-dir'
 import { ExtractionConfigError } from './riviere-config-error'
 import { ExtractionDataAccessError } from './riviere-project-error'
-
 class ExtractionConfigLoadError extends Error {}
 type ParsedConfigState = Readonly<{ configDir: string; configuration: ValidatedConfiguration }>
 type ResolvedModuleDefaults = Pick<
   ValidatedModuleInput,
   'api' | 'useCase' | 'domainOp' | 'event' | 'eventHandler' | 'ui' | 'customTypes'
 >
-
 const NOT_USED = { notUsed: true } as const
-
+const WORKFLOW_NAME = /^[a-z0-9][a-z0-9-]*$/
 function formatExtractionConfigErrors(errors: readonly ValidationError[]): string {
   if (errors.length === 0) return 'validation failed without specific errors'
   return errors.map((error) => `${error.path}: ${error.message}`).join('\n')
 }
-
 /** @riviere-role aggregate-repository */
 export class RiviereProjectRepository {
-  load(params: { projectRoot: string; configPath: string; useTsConfig: boolean }): RiviereProject {
+  load(
+    params:
+      | { projectRoot: string; configPath: string; useTsConfig: boolean }
+      | { projectRoot: string; workflowName: string },
+  ): RiviereProject {
+    if ('workflowName' in params) return this.loadWorkflow(params)
     return this.translateDataAccessErrors(() => {
       const configPath = resolve(params.projectRoot, params.configPath)
       const parsedConfigState = this.loadParsedConfigState(configPath)
       const sourceFilesByModule = this.resolveSourceFilePaths(parsedConfigState)
-      return this.createRiviereProject(
+      const stage = this.createExtractionStage(
         configPath,
         parsedConfigState,
         sourceFilesByModule,
         params.useTsConfig,
         params.projectRoot,
+        configPath,
       )
+      const projectResult = RiviereProject.parse({ stage })
+      if (!projectResult.success)
+        throw new ExtractionConfigError('VALIDATION_ERROR', projectResult.error)
+      return projectResult.data
     })
+  }
+
+  private loadWorkflow(params: { projectRoot: string; workflowName: string }): RiviereProject {
+    return this.translateDataAccessErrors(() => {
+      if (!WORKFLOW_NAME.test(params.workflowName)) {
+        throw new ExtractionConfigError(
+          'VALIDATION_ERROR',
+          `Invalid workflow name '${params.workflowName}'`,
+        )
+      }
+      const workflowPath = resolve(
+        params.projectRoot,
+        '.riviere',
+        'workflows',
+        `${params.workflowName}.yaml`,
+      )
+      if (!fileExists(workflowPath)) {
+        throw new ExtractionConfigError(
+          'CONFIG_NOT_FOUND',
+          `Workflow file not found: ${workflowPath}`,
+        )
+      }
+      const workflowResult = WorkflowDefinition.parse(
+        this.parseConfigFile(readTextFile(workflowPath)),
+      )
+      if (!workflowResult.success) {
+        throw new ExtractionConfigError(
+          'VALIDATION_ERROR',
+          `Invalid workflow: ${workflowResult.error}`,
+        )
+      }
+      const workflow = workflowResult.data
+      const stages = workflow.stages.map((stage) =>
+        this.materializeWorkflowStage(stage, params.projectRoot),
+      )
+      const projectResult = RiviereProject.parseWorkflow({
+        graph: {
+          ...workflow.graph,
+          outputPath: resolve(params.projectRoot, workflow.graph.outputPath),
+        },
+        runLogDirectory: resolve(params.projectRoot, workflow.runLogDirectory),
+        stages,
+      })
+      if (!projectResult.success) {
+        throw new ExtractionConfigError('VALIDATION_ERROR', projectResult.error)
+      }
+      return projectResult.data
+    })
+  }
+
+  private materializeWorkflowStage(
+    stage: WorkflowDefinition['stages'][number],
+    projectRoot: string,
+  ) {
+    if (stage.kind === 'validate') return WorkflowStage.parse({ kind: stage.kind })
+    const configPath = resolve(projectRoot, stage.configPath)
+    const parsedConfigState = this.loadParsedConfigState(configPath)
+    const sourceFilesByModule = this.resolveSourceFilePaths(parsedConfigState)
+    const extractionStage = this.createExtractionStage(
+      configPath,
+      parsedConfigState,
+      sourceFilesByModule,
+      true,
+      projectRoot,
+      stage.kind === 'extract' ? stage.name : 'link',
+    )
+    return WorkflowStage.parse({ kind: stage.kind, stage: extractionStage })
   }
 
   private translateDataAccessErrors<T>(load: () => T): T {
@@ -67,19 +143,16 @@ export class RiviereProjectRepository {
   private loadParsedConfigState(configPath: string): ParsedConfigState {
     if (!fileExists(configPath))
       throw new ExtractionConfigError('CONFIG_NOT_FOUND', `Config file not found: ${configPath}`)
-
     const content = readTextFile(configPath)
     const parsed = this.parseConfigFile(content)
     const configDir = dirname(resolve(configPath))
     const expanded = this.expandModuleRefs(parsed, configDir)
-
     const extractionConfig = parseExtractionConfig(expanded)
     if (!extractionConfig.success)
       throw new ExtractionConfigError(
         'VALIDATION_ERROR',
         `Invalid extraction config:\n${formatExtractionConfigErrors(extractionConfig.errors)}`,
       )
-
     return {
       configDir,
       configuration: this.resolveConfiguration(extractionConfig.configuration, configDir),
@@ -96,11 +169,10 @@ export class RiviereProjectRepository {
 
   private expandModuleRefs(config: unknown, configDir: string): unknown {
     try {
-      if (!this.hasModulesArray(config)) return config
-
+      if (!this.isRecord(config) || !Array.isArray(config['modules'])) return config
       return {
         ...config,
-        modules: config.modules.map((item) => this.expandModuleRefItem(item, configDir)),
+        modules: config['modules'].map((item) => this.expandModuleRefItem(item, configDir)),
       }
     } catch (error) {
       throw new ExtractionConfigError(
@@ -111,14 +183,11 @@ export class RiviereProjectRepository {
   }
 
   private expandModuleRefItem(item: unknown, configDir: string): unknown {
-    if (!this.isModuleRef(item)) {
-      return item
-    }
-
-    const refPath = resolve(configDir, item.$ref)
+    if (!this.isRecord(item) || typeof item['$ref'] !== 'string') return item
+    const refPath = resolve(configDir, item['$ref'])
     if (!fileExists(refPath))
       throw new ExtractionConfigLoadError(
-        `Cannot resolve module reference '${item.$ref}'. File not found: ${refPath}`,
+        `Cannot resolve module reference '${item['$ref']}'. File not found: ${refPath}`,
       )
 
     const content = readTextFile(refPath)
@@ -154,10 +223,14 @@ export class RiviereProjectRepository {
       )
 
     const parsed: unknown = parseYaml(readTextFile(filePath))
-    if (this.hasModulesArray(parsed)) {
-      return this.resolveFirstModuleFromConfig(parsed, source, dirname(filePath))
+    if (this.isRecord(parsed) && Array.isArray(parsed['modules'])) {
+      return this.resolveFirstModuleFromConfig(
+        { modules: parsed['modules'] },
+        source,
+        dirname(filePath),
+      )
     }
-    if (this.isTopLevelRulesConfig(parsed)) {
+    if (this.isRecord(parsed) && !('modules' in parsed)) {
       return this.topLevelRulesToModule(parsed)
     }
     const preview = JSON.stringify(parsed, null, 2).slice(0, 200)
@@ -192,17 +265,6 @@ export class RiviereProjectRepository {
     return this.moduleInput(first)
   }
 
-  private topLevelRulesToModule(parsed: Partial<ValidatedModuleInput>): ResolvedModuleDefaults {
-    return {
-      api: parsed.api ?? NOT_USED,
-      useCase: parsed.useCase ?? NOT_USED,
-      domainOp: parsed.domainOp ?? NOT_USED,
-      event: parsed.event ?? NOT_USED,
-      eventHandler: parsed.eventHandler ?? NOT_USED,
-      ui: parsed.ui ?? NOT_USED,
-    }
-  }
-
   private resolveModule(module: DraftModule, configDir: string): ValidatedModuleInput {
     const extendsSource = module.extends
     if (extendsSource === undefined) {
@@ -231,21 +293,22 @@ export class RiviereProjectRepository {
     }
   }
 
-  private createRiviereProject(
+  private createExtractionStage(
     configPath: string,
     parsedConfigState: ParsedConfigState,
     sourceFilesByModule: ReadonlyMap<ValidatedModule, string[]>,
     useTsConfig: boolean,
     projectRoot: string,
-  ): RiviereProject {
-      const moduleSources = this.createModuleSources(
-        parsedConfigState.configDir,
-        sourceFilesByModule,
-        useTsConfig,
+    name: string,
+  ): ExtractionStage {
+    const moduleSources = this.createModuleSources(
+      parsedConfigState.configDir,
+      sourceFilesByModule,
+      useTsConfig,
     )
     const repositoryName = getRepositoryInfo('git', projectRoot).name
-    const stage = ExtractionStage.parse({
-      name: configPath,
+    return ExtractionStage.parse({
+      name,
       configPath,
       useTsConfig,
       repositoryName,
@@ -256,10 +319,6 @@ export class RiviereProjectRepository {
         project: source.project,
       })),
     })
-    const projectResult = RiviereProject.parse({ stage })
-    if (!projectResult.success)
-      throw new ExtractionConfigError('VALIDATION_ERROR', projectResult.error)
-    return projectResult.data
   }
 
   private resolveSourceFilePaths(
@@ -273,9 +332,7 @@ export class RiviereProjectRepository {
         ),
       ]),
     )
-    const sourceFilePaths = [...sourceFilesByModule.values()].flat()
-
-    if (sourceFilePaths.length === 0) {
+    if ([...sourceFilesByModule.values()].flat().length === 0) {
       const patterns = parsedConfigState.configuration.modules
         .map((module) => posix.join(module.path, module.glob))
         .join(', ')
@@ -298,37 +355,29 @@ export class RiviereProjectRepository {
       { files: string[]; project: ReturnType<typeof createConfiguredProject> }
     >()
     for (const [module, moduleFiles] of sourceFilesByModule) {
-      const moduleConfigDir = findModuleTsConfigDir(configDir, module.path)
-      const project = createConfiguredProject(moduleConfigDir, !useTsConfig)
+      const project = createConfiguredProject(
+        findModuleTsConfigDir(configDir, module.path),
+        !useTsConfig,
+      )
       project.addSourceFilesAtPaths(moduleFiles)
 
       sources.set(module, { files: moduleFiles, project })
     }
     return sources
   }
-
-  private hasModulesArray(value: unknown): value is { modules: unknown[] } {
-    return (
-      typeof value === 'object' &&
-      value !== null &&
-      'modules' in value &&
-      Array.isArray(value.modules)
-    )
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
   }
 
-  private isModuleRef(value: unknown): value is { $ref: string } {
-    return (
-      typeof value === 'object' &&
-      value !== null &&
-      '$ref' in value &&
-      typeof value.$ref === 'string'
-    )
-  }
-
-  private isTopLevelRulesConfig(value: unknown): value is Partial<ValidatedModuleInput> {
-    return (
-      typeof value === 'object' && value !== null && !Array.isArray(value) && !('modules' in value)
-    )
+  private topLevelRulesToModule(parsed: Partial<ValidatedModuleInput>): ResolvedModuleDefaults {
+    return {
+      api: parsed.api ?? NOT_USED,
+      useCase: parsed.useCase ?? NOT_USED,
+      domainOp: parsed.domainOp ?? NOT_USED,
+      event: parsed.event ?? NOT_USED,
+      eventHandler: parsed.eventHandler ?? NOT_USED,
+      ui: parsed.ui ?? NOT_USED,
+    }
   }
 
   private moduleInput(module: ValidatedModule): ValidatedModuleInput {

@@ -37,3 +37,11 @@ export class MissingInterfaceTypeNameError extends Error {
     this.name = 'MissingInterfaceTypeNameError'
   }
 }
+
+/** @riviere-role domain-error */
+export class InvalidWorkflowStageError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'InvalidWorkflowStageError'
+  }
+}

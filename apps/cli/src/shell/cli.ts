@@ -54,10 +54,13 @@ import { createLinkHttpCommand } from '../features/builder/entrypoint/link-http/
 import { createValidateCommand } from '../features/builder/entrypoint/validate/entrypoint'
 import { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
+import { RunWorkflow } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/run-workflow'
 import { RiviereProjectRepository } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/data-access/riviere-project/riviere-project-repository'
 import { createGitChangedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/git/create-git-changed-source-file-finder'
 import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-specified-source-file-finder'
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
+import { createRiviereBuilderGraph } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/riviere-builder-graph/riviere-builder-graph'
+import { createRunWorkflowCommand } from '../features/workflow/entrypoint/run-workflow/entrypoint'
 import { parseSourceFileSelection } from '../features/extract/entrypoint/extract/parse-source-file-selection'
 import { createDraftComponentsLoader } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-draft-components-loader'
 import { detectChangedTypeScriptFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/git-changed-files'
@@ -129,6 +132,10 @@ const packageJson = loadPackageJson()
 export function createProgram(): Command {
   const builderRepository = new RiviereBuilderRepository()
   const riviereProjectRepository = new RiviereProjectRepository()
+  const runWorkflow = new RunWorkflow(
+    riviereProjectRepository,
+    createRiviereBuilderGraph(builderRepository),
+  )
   const program = new Command()
 
   program.name('riviere').version(packageJson.version)
@@ -265,6 +272,13 @@ export function createProgram(): Command {
   )
 
   const queryCmd = program.command('query').description('Commands for querying a graph')
+  const workflowCmd = program.command('workflow').description('Commands for running workflows')
+
+  workflowCmd.addCommand(
+    createRunWorkflowCommand({
+      runWorkflow,
+    }),
+  )
 
   queryCmd.addCommand(
     createEntryPointsCommand({

@@ -2,7 +2,7 @@ import type { EnrichedComponent } from './value-extraction/enriched-component'
 import type { ValidatedModule } from '@living-architecture/riviere-extract-config-published-language'
 import { detectConfiguredConnections } from './connection-detection/detect-configured-connections'
 import type { ExtractionStage } from './extraction-stage'
-import { moduleOwnsComponent } from './riviere-project'
+import { moduleOwnsComponent } from './module-owns-component'
 import { MissingModuleContextError } from './extraction-errors'
 
 type ConfiguredSourceInput = {

@@ -9,6 +9,10 @@ const DEFAULT_GRAPH_PATH = '.riviere/graph.json'
 
 /** @riviere-role aggregate-repository */
 export class RiviereBuilderRepository {
+  create(input: Parameters<typeof RiviereBuilder.new>[0]): RiviereBuilder {
+    return RiviereBuilder.new(input)
+  }
+
   load(graphPathOption?: string): RiviereBuilder {
     const graphPath = this.resolveGraphPath(graphPathOption)
 

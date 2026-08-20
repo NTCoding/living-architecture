@@ -4,25 +4,25 @@ import type {
   ValidatedConfiguration,
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
-import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
+import type { ExternalLink, RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { DraftComponent } from './component-extraction/draft-component'
-import { extractComponents, resolveModuleName } from './component-extraction/extractor'
+import { extractComponents } from './component-extraction/extractor'
 import { ConnectionTimings } from './connection-detection/connection-detection-values'
 import { detectConfiguredConnections } from './connection-detection/detect-configured-connections'
 import type { ExtractedLink } from './connection-detection/extracted-link'
 import { stripResolvedCustomTypes } from './connection-detection/resolve-http-links'
-import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
-import { enrichComponentsForModules } from './extract-components-for-graph'
+import { ExtractComponentsForGraph, enrichComponentsForModules } from './extract-components-for-graph'
 import { MissingModuleSourceError } from './extraction-errors'
+import { groupDraftsByModule } from './group-drafts-by-module'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
 import type { ExtractionStage } from './extraction-stage'
 import type { LoadDraftComponents } from './ports/load-draft-components'
+import type { GraphBuilder } from './ports/graph-builder'
+import { DetectExtractionConnections } from './detect-extraction-connections'
+import { moduleOwnsComponent } from './module-owns-component'
+import { WorkflowStage, WorkflowState } from './workflow-state'
 
-interface DraftOnlyOutcome {
-  kind: 'draftOnly'
-  components: readonly DraftComponent[]
-}
-
+interface DraftOnlyOutcome { kind: 'draftOnly'; components: readonly DraftComponent[] }
 interface FullExtractionOutcome {
   kind: 'full'
   components: EnrichedComponent[]
@@ -32,15 +32,8 @@ interface FullExtractionOutcome {
   timings: ConnectionTimings[]
 }
 
-interface FieldFailureOutcome {
-  kind: 'fieldFailure'
-  failedFields: string[]
-}
-
-interface DraftComponentsFailureOutcome {
-  kind: 'draftComponentsFailure'
-  message: string
-}
+interface FieldFailureOutcome { kind: 'fieldFailure'; failedFields: string[] }
+interface DraftComponentsFailureOutcome { kind: 'draftComponentsFailure'; message: string }
 
 type ExtractionOutcome =
   | DraftOnlyOutcome
@@ -57,31 +50,34 @@ interface RiviereProjectInput {
   stage: ExtractionStage
 }
 
-interface ComponentOwnershipInput {
-  readonly component: {
-    readonly domain: string
-    readonly location?: { readonly file: string }
-    readonly module: string
-  }
-  readonly module: ValidatedModule
-  readonly files: readonly string[]
+interface WorkflowProjectInput {
+  readonly graph: Parameters<typeof WorkflowState.parse>[0]['graph']
+  readonly runLogDirectory: string
+  readonly stages: readonly WorkflowStage[]
 }
 
 type RiviereProjectParseResult =
   | { success: true; data: RiviereProject }
   | { success: false; error: string }
 
+type RebuildGraphResult =
+  | { readonly ok: true; readonly graph: RiviereGraph }
+  | { readonly ok: false; readonly failure: { readonly reason: string; readonly failedFields: string[] } }
+
 export { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 
 /** @riviere-role aggregate */
 export class RiviereProject {
   readonly stage: ExtractionStage
+  readonly workflowState: WorkflowState | undefined
 
   private constructor(
     stage: ExtractionStage,
     private readonly moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
+    workflowState?: WorkflowState,
   ) {
     this.stage = stage
+    this.workflowState = workflowState
   }
 
   static parse(input: RiviereProjectInput): RiviereProjectParseResult {
@@ -108,6 +104,23 @@ export class RiviereProject {
     return {
       success: true,
       data: new RiviereProject(input.stage, moduleSources),
+    }
+  }
+
+  static parseWorkflow(input: WorkflowProjectInput): RiviereProjectParseResult {
+    const firstExtractionStage = input.stages.find((stage) => stage.kind === 'extract')
+    if (firstExtractionStage === undefined) {
+      return { success: false, error: 'Workflow must contain an extract stage' }
+    }
+    const parsedProject = this.parse({ stage: firstExtractionStage.stage })
+    if (!parsedProject.success) return parsedProject
+    return {
+      success: true,
+      data: new RiviereProject(
+        parsedProject.data.stage,
+        parsedProject.data.moduleSources,
+        WorkflowState.parse(input),
+      ),
     }
   }
 
@@ -162,6 +175,41 @@ export class RiviereProject {
       externalLinks: connectionResult.externalLinks,
       timings: connectionResult.timings,
     }
+  }
+
+  rebuildGraph(graphBuilder: GraphBuilder): RebuildGraphResult {
+    const components: EnrichedComponent[] = []
+    for (const stage of this.rebuildStages()) {
+      if (stage.kind === 'extract') {
+        const extraction = new ExtractComponentsForGraph().execute(stage.stage, {
+          allowIncomplete: false,
+        })
+        if (!extraction.ok) return { ok: false, failure: extraction.failure }
+        graphBuilder.addComponents(extraction.repository, extraction.components)
+        components.push(...extraction.components)
+        continue
+      }
+      if (stage.kind === 'link') {
+        const connections = new DetectExtractionConnections().execute(stage.stage, components, {
+          allowIncomplete: false,
+        })
+        graphBuilder.addLinks(connections.links, connections.externalLinks)
+        continue
+      }
+      graphBuilder.validate()
+    }
+    return { ok: true, graph: graphBuilder.build() }
+  }
+
+  private rebuildStages(): readonly WorkflowStage[] {
+    return (
+      this.workflowState?.stages ??
+      [
+        WorkflowStage.parse({ kind: 'extract', stage: this.stage }),
+        WorkflowStage.parse({ kind: 'link', stage: this.stage }),
+        WorkflowStage.parse({ kind: 'validate' }),
+      ]
+    )
   }
 
   enrichDraftComponents(options: {
@@ -270,22 +318,6 @@ type SourceFileSelection =
   | { readonly kind: 'all' }
   | { readonly kind: 'files'; readonly filePaths: readonly string[] }
 
-function moduleOwnsComponent(input: ComponentOwnershipInput): boolean {
-  const { component, module, files } = input
-  const { location, domain, module: componentModule } = component
-  const { domain: moduleDomain } = module
-  if (location === undefined) {
-    return domain === moduleDomain && componentModule === module.name
-  }
-  const { file } = location
-  const isConfiguredFile = files.length === 0 || files.includes(file)
-  if (!isConfiguredFile || domain !== moduleDomain) return false
-  const resolvedModule = files.length === 0 ? module.name : resolveModuleName(file, module)
-  return resolvedModule === componentModule
-}
-
-export { moduleOwnsComponent }
-
 interface ProjectConnectionDetectionInput {
   readonly configuration: ValidatedConfiguration
   readonly moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>
@@ -345,36 +377,6 @@ function summarizeConnectionTimings(timings: readonly ConnectionTimings[]): Conn
     setupMs: timings.reduce((total, timing) => total + timing.setupMs, 0),
     totalMs: timings.reduce((total, timing) => total + timing.totalMs, 0),
   })
-}
-
-function groupDraftsByModule(
-  drafts: readonly DraftComponent[],
-  modules: readonly ValidatedModule[],
-  moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
-): Map<string, DraftComponent[]> {
-  const grouped = new Map<string, DraftComponent[]>()
-  for (const module of modules) {
-    const source = moduleSources.get(module)
-    if (source === undefined) {
-      throw new MissingModuleSourceError(module.name)
-    }
-    const moduleDrafts = drafts.filter((draft) =>
-      moduleOwnsComponent({ component: draft, module, files: source.files }),
-    )
-    if (moduleDrafts.length > 0) grouped.set(module.name, moduleDrafts)
-  }
-
-  const matchedDrafts = new Set([...grouped.values()].flat())
-  const unmatchedDrafts = drafts.filter((draft) => !matchedDrafts.has(draft))
-  if (unmatchedDrafts.length > 0) {
-    throw new OrphanedDraftComponentError(
-      [...new Set(unmatchedDrafts.map((draft) => draft.domain))],
-      modules.map((module) => module.domain),
-      'domains',
-    )
-  }
-
-  return grouped
 }
 
 function sourceForModule(

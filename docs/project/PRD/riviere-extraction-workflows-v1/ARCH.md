@@ -1089,3 +1089,46 @@ Delivery planning and task creation must carry forward these architecture conseq
 - Implement CLI-boundary graph and run-log writing through entrypoint-local workflow presentation/output handling under `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/`, including temp-file plus rename for graph writes so failed runs leave the previous graph unchanged.
 - Add `.riviere` role/config changes for `RiviereProject` and the retirement or role change of `ExtractionProject` as part of implementation.
 - Add `ecommerce-demo-app` workflow definition using `.riviere/config/extraction.config.json`, and wire it into CI as a normal CLI command.
+
+## 7. Amendment: extraction project graph rebuild
+
+**Decision status:** Accepted
+
+This amendment supersedes conflicting workflow ownership, direct `RiviereBuilder` dependency, graph-application service, source-location, and role-configuration statements in sections 2, 3, 4, and 6. It does not change the workflow-file product design.
+
+`RiviereProject` owns the ordered extract, link, and validate loop. Extraction is a reusable process, so the loop must not move into the CLI application. `RunWorkflow` loads the aggregate and invokes its rebuild behaviour. The repository reconstructs aggregate state only. The CLI shell constructs dependencies and presents the result.
+
+`RiviereProject` must not import `RiviereBuilder`. The extraction domain instead owns this narrow port:
+
+```typescript
+/** @riviere-role domain-port */
+export interface GraphBuilder {
+  addComponents(repository: string, components: readonly EnrichedComponent[]): void
+  addLinks(links: readonly ExtractedLink[], externalLinks: readonly ExternalLink[]): void
+  validate(): void
+  build(): RiviereGraph
+}
+```
+
+`addComponents` and `addLinks` transfer already graph-ready extraction output into the graph being built. They do not perform extraction, stage ordering, retries, or policy decisions.
+
+The CLI shell supplies `RiviereBuilderRepository` to an extraction use-case adapter. After `RunWorkflow` loads the aggregate, the adapter creates a fresh `GraphBuilder` from the loaded graph sources and domains. The adapter maps the port operations directly onto builder operations. It does not import the builder domain model, own the stage loop, or add policy to make the two models fit.
+
+```text
+CLI shell instantiates the Riviere builder adapter
+  -> RunWorkflow
+  -> RiviereProjectRepository.load(...)
+  -> RiviereProject.rebuildGraph(graphBuilder)
+       -> extract stages
+       -> graphBuilder.addComponents(...)
+       -> link stages
+       -> graphBuilder.addLinks(...)
+       -> graphBuilder.validate()
+       -> graphBuilder.build()
+```
+
+`RiviereProject.rebuildGraph(graphBuilder)` returns a typed result for expected extraction failures. The adapter mirrors existing Riviere builder behaviour: it does not catch or translate builder exceptions.
+
+`RiviereProject` owns the loaded `graph.outputPath` and `runLog.directory` configuration. `RunWorkflow` returns those values with the rebuilt graph. Graph and run-log writing remain CLI-boundary responsibilities.
+
+ADR-003 records the decision and its consequences.
