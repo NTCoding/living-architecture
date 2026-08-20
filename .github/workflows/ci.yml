@@ -42,9 +42,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Check roles
-        run: pnpm role-check
-
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: pnpm exec nx-cloud record -- echo Hello World
       # PRs: test affected only (faster feedback)
@@ -64,6 +61,29 @@ jobs:
         with:
           args: >
             -Dsonar.qualitygate.wait=true
+
+  role-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        name: Install pnpm
+        with:
+          version: 11.21.0
+          run_install: false
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Check roles
+        run: pnpm role-check
 
   browser-tests:
     runs-on: ubuntu-latest
