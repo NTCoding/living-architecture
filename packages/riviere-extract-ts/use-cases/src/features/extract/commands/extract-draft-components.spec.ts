@@ -2,6 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   extractDraftComponentsMethodMock: vi.fn(),
+  findChangedSourceFilesMock: vi.fn(() => ({ filePaths: [], warnings: [] })),
+  findSpecifiedSourceFilesMock: vi.fn((filePaths: readonly string[]) => ({
+    filePaths,
+    missingFilePaths: [],
+  })),
   loadMock: vi.fn(),
 }))
 
@@ -9,10 +14,6 @@ vi.mock('../data-access/riviere-project/riviere-project-repository', () => ({
   RiviereProjectRepository: class {
     load = mocks.loadMock
   },
-}))
-
-vi.mock('../../../infra/external-clients/git/git-changed-files', () => ({
-  detectChangedTypeScriptFiles: vi.fn(() => ({ files: [], warnings: [] })),
 }))
 
 import { ExtractDraftComponents } from './extract-draft-components'
@@ -30,9 +31,18 @@ const DRAFT_ONLY_RESULT = {
 
 class UnexpectedLoadingError extends Error {}
 
+function createExtractDraftComponents(): ExtractDraftComponents {
+  return new ExtractDraftComponents(
+    new RiviereProjectRepository(),
+    mocks.findChangedSourceFilesMock,
+    mocks.findSpecifiedSourceFilesMock,
+  )
+}
+
 describe('extractDraftComponents', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    mocks.findChangedSourceFilesMock.mockReturnValue({ filePaths: [], warnings: [] })
     mocks.loadMock.mockReturnValue({
       extractDraftComponents: mocks.extractDraftComponentsMethodMock,
     })
@@ -41,13 +51,11 @@ describe('extractDraftComponents', () => {
 
   describe('pull-request source mode', () => {
     it('loads from changed project with base branch when provided', () => {
-      new ExtractDraftComponents(new RiviereProjectRepository()).execute({
+      createExtractDraftComponents().execute({
         allowIncomplete: false,
-        baseBranch: 'main',
         configPath: 'config.yml',
         includeConnections: true,
-        sourceFileSelection: { kind: 'files', filePaths: [] },
-        sourceMode: 'pull-request',
+        sourceFileSelectionRequest: { kind: 'changed', baseBranch: 'main' },
         useTsConfig: false,
       })
 
@@ -59,12 +67,11 @@ describe('extractDraftComponents', () => {
     })
 
     it('loads from changed project without base branch when not provided', () => {
-      new ExtractDraftComponents(new RiviereProjectRepository()).execute({
+      createExtractDraftComponents().execute({
         allowIncomplete: false,
         configPath: 'config.yml',
         includeConnections: true,
-        sourceFileSelection: { kind: 'files', filePaths: [] },
-        sourceMode: 'pull-request',
+        sourceFileSelectionRequest: { kind: 'changed' },
         useTsConfig: false,
       })
 
@@ -78,13 +85,11 @@ describe('extractDraftComponents', () => {
 
   describe('files source mode', () => {
     it('loads from selected files when files are provided', () => {
-      new ExtractDraftComponents(new RiviereProjectRepository()).execute({
+      createExtractDraftComponents().execute({
         allowIncomplete: false,
         configPath: 'config.yml',
-        files: ['src/foo.ts', 'src/bar.ts'],
         includeConnections: false,
-        sourceFileSelection: { kind: 'files', filePaths: ['src/foo.ts', 'src/bar.ts'] },
-        sourceMode: 'files',
+        sourceFileSelectionRequest: { kind: 'files', filePaths: ['src/foo.ts', 'src/bar.ts'] },
         useTsConfig: true,
       })
 
@@ -96,12 +101,11 @@ describe('extractDraftComponents', () => {
     })
 
     it('defaults filePaths to empty array when files is undefined', () => {
-      new ExtractDraftComponents(new RiviereProjectRepository()).execute({
+      createExtractDraftComponents().execute({
         allowIncomplete: false,
         configPath: 'config.yml',
         includeConnections: false,
-        sourceFileSelection: { kind: 'files', filePaths: [] },
-        sourceMode: 'files',
+        sourceFileSelectionRequest: { kind: 'files', filePaths: [] },
         useTsConfig: true,
       })
 
@@ -115,12 +119,11 @@ describe('extractDraftComponents', () => {
 
   describe('all source mode', () => {
     it('loads from full project', () => {
-      new ExtractDraftComponents(new RiviereProjectRepository()).execute({
+      createExtractDraftComponents().execute({
         allowIncomplete: false,
         configPath: 'config.yml',
         includeConnections: true,
-        sourceFileSelection: { kind: 'all' },
-        sourceMode: 'all',
+        sourceFileSelectionRequest: { kind: 'all' },
         useTsConfig: true,
       })
 
@@ -132,13 +135,12 @@ describe('extractDraftComponents', () => {
     })
   })
 
-  it('forwards an already translated source file selection', () => {
-    new ExtractDraftComponents(new RiviereProjectRepository()).execute({
+  it('passes the domain-resolved selection to the aggregate', () => {
+    createExtractDraftComponents().execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       includeConnections: false,
-      sourceFileSelection: { kind: 'files', filePaths: [`${process.cwd()}/selected.ts`] },
-      sourceMode: 'all',
+      sourceFileSelectionRequest: { kind: 'files', filePaths: [`${process.cwd()}/selected.ts`] },
       useTsConfig: false,
     })
 
@@ -151,16 +153,15 @@ describe('extractDraftComponents', () => {
 
   describe('result forwarding', () => {
     it('returns the extraction result', () => {
-      const result = new ExtractDraftComponents(new RiviereProjectRepository()).execute({
+      const result = createExtractDraftComponents().execute({
         allowIncomplete: true,
         configPath: 'config.yml',
         includeConnections: false,
-        sourceFileSelection: { kind: 'all' },
-        sourceMode: 'all',
+        sourceFileSelectionRequest: { kind: 'all' },
         useTsConfig: false,
       })
 
-      expect(result).toStrictEqual(DRAFT_ONLY_RESULT)
+      expect(result).toStrictEqual({ ...DRAFT_ONLY_RESULT, warnings: [] })
       expect(mocks.extractDraftComponentsMethodMock).toHaveBeenCalledWith({
         allowIncomplete: true,
         includeConnections: false,
@@ -173,16 +174,16 @@ describe('extractDraftComponents', () => {
         throw new ExtractionConfigError('CONFIG_NOT_FOUND', 'Config file not found')
       })
 
-      const result = new ExtractDraftComponents(new RiviereProjectRepository()).execute({
+      const result = createExtractDraftComponents().execute({
         allowIncomplete: true,
         configPath: 'missing.yml',
         includeConnections: false,
-        sourceFileSelection: { kind: 'all' },
-        sourceMode: 'all',
+        sourceFileSelectionRequest: { kind: 'all' },
         useTsConfig: false,
       })
 
       expect(result).toStrictEqual({
+        warnings: [],
         result: {
           code: 'CONFIG_NOT_FOUND',
           kind: 'configFailure',
@@ -201,16 +202,16 @@ describe('extractDraftComponents', () => {
         })
       })
 
-      const result = new ExtractDraftComponents(new RiviereProjectRepository()).execute({
+      const result = createExtractDraftComponents().execute({
         allowIncomplete: false,
         configPath: 'config.yml',
         includeConnections: true,
-        sourceFileSelection: { kind: 'all' },
-        sourceMode: 'all',
+        sourceFileSelectionRequest: { kind: 'all' },
         useTsConfig: true,
       })
 
       expect(result).toStrictEqual({
+        warnings: [],
         result: {
           kind: 'connectionDetectionFailure',
           message: 'src/handler.ts:42: Could not resolve type — OrderService',
@@ -224,12 +225,11 @@ describe('extractDraftComponents', () => {
       })
 
       expect(() =>
-        new ExtractDraftComponents(new RiviereProjectRepository()).execute({
+        createExtractDraftComponents().execute({
           allowIncomplete: true,
           configPath: 'config.yml',
           includeConnections: false,
-          sourceFileSelection: { kind: 'all' },
-          sourceMode: 'all',
+          sourceFileSelectionRequest: { kind: 'all' },
           useTsConfig: false,
         }),
       ).toThrow('Unexpected failure')
@@ -241,16 +241,16 @@ describe('extractDraftComponents', () => {
       throw new ExtractionDataAccessError('FILE_READ_ERROR', 'Could not read project')
     })
 
-    const result = new ExtractDraftComponents(new RiviereProjectRepository()).execute({
+    const result = createExtractDraftComponents().execute({
       allowIncomplete: true,
       configPath: 'config.yml',
       includeConnections: false,
-      sourceFileSelection: { kind: 'all' },
-      sourceMode: 'all',
+      sourceFileSelectionRequest: { kind: 'all' },
       useTsConfig: false,
     })
 
     expect(result).toStrictEqual({
+      warnings: [],
       result: {
         code: 'FILE_READ_ERROR',
         kind: 'dataAccessFailure',

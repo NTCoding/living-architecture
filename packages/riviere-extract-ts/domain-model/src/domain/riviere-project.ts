@@ -108,8 +108,9 @@ export class RiviereProject {
     allowIncomplete: boolean
     includeConnections: boolean
   }): ExtractionOutcome {
-    const sourceFileSelection = options.sourceFileSelection ?? { kind: 'all' as const }
-    const selectedModuleSources = this.selectedModuleSources(sourceFileSelection)
+    const selectedModuleSources = this.selectedModuleSources(
+      options.sourceFileSelection ?? { kind: 'all' },
+    )
     const draftComponents = this.stage.resolvedConfig.modules.flatMap((module) => {
       const source = this.sourceFor(module)
       const selectedFiles = sourceForModule(selectedModuleSources, module).files

@@ -103,7 +103,7 @@ export function createInput(): string {
     expect(result.exitCode).toBe(1)
     expect(result.stdout).toContain('forbids direct invocation of imported function')
     expect(result.stdout).toContain('execute')
-    expect(result.stdout).toContain('Classify the responsibility first')
+    expect(result.stdout).toContain('**IMPORTANT: Role check has failed.')
   })
 })
 

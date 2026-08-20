@@ -41,8 +41,20 @@ export const allRoles = [
   role('cli-error-handler', { targets: ['function'] }),
   role('command-input-factory', {
     targets: ['function'],
+    allowedInputs: ['command-input-factory-input', 'command-input-factory-dependencies'],
+    allowsUnclassifiedInputs: true,
     allowedOutputs: ['command-use-case-input'],
     forbiddenImportedFunctionCalls: true,
+    allowedDependencyRoles: ['cli-error', 'command-use-case-input'],
+  }),
+  role('command-input-factory-input', {
+    targets: ['interface'],
+    mustBeDataStructure: true,
+  }),
+  role('command-input-factory-dependencies', {
+    targets: ['interface'],
+    forbiddenInlineCallableMembers: true,
+    allowedDependencyRoles: [],
   }),
   role('external-client-service', { targets: ['function', 'class'] }),
   role('aggregate-repository', {
@@ -119,12 +131,22 @@ export const allRoles = [
   role('external-client-error', { targets: ['class'] }),
   role('entrypoint-cli-input-parser', {
     targets: ['function'],
+    allowedInputs: [
+      'entrypoint-cli-input-parser-input',
+      'entrypoint-cli-input-parser-dependencies',
+    ],
+    allowsUnclassifiedInputs: true,
     forbiddenImportedFunctionCalls: true,
+    allowedDependencyRoles: ['cli-error', 'command-use-case-input'],
+  }),
+  role('entrypoint-cli-input-parser-input', {
+    targets: ['interface'],
+    mustBeDataStructure: true,
   }),
   role('entrypoint-cli-input-parser-dependencies', {
     forbiddenInlineCallableMembers: true,
     targets: ['interface'],
-    nameMatches: '.*CliInputParserDependencies$',
+    allowedDependencyRoles: [],
   }),
   role('cli-error', { targets: ['class'] }),
   role('main', {

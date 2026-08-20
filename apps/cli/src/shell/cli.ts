@@ -8,13 +8,14 @@ import { parseStateChanges } from '../features/builder/entrypoint/enrich/enrichm
 import { parseSignature } from '../features/builder/entrypoint/enrich/signature-parser'
 import { writeUtf8File } from '@living-architecture/riviere-builder-use-cases/infra/external-clients/filesystem/write-utf8-file'
 import { parseLinkSourceLocation } from '../features/builder/entrypoint/link/link-source-location-options'
-import { validateFlagCombinations } from '../features/extract/entrypoint/extract/extract-validator'
+import { parseFlagCombinations } from '../features/extract/entrypoint/extract/extract-validator'
 import { createExtractDraftComponentsInput } from '../features/extract/entrypoint/extract/create-extract-draft-components-input'
 import { createEnrichDraftComponentsInput } from '../features/extract/entrypoint/extract/create-enrich-draft-components-input'
 import { exitWithCliError } from '../infra/cli/presentation/exit-with-cli-error'
 import {
   dataAccessCliErrorCode,
   presentExtractionResult,
+  presentExtractionWarnings,
 } from '../features/extract/entrypoint/extract/present-extraction-result'
 import { formatQueryGraphLoadFailure } from '../infra/cli/presentation/query-graph-load-failure-output'
 import { toComponentOutput } from '../infra/cli/presentation/component-output'
@@ -53,13 +54,14 @@ import { createValidateCommand } from '../features/builder/entrypoint/validate/e
 import { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
 import { RiviereProjectRepository } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/data-access/riviere-project/riviere-project-repository'
+import { createGitChangedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/git/create-git-changed-source-file-finder'
+import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-specified-source-file-finder'
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
-import { resolveSourceFileSelection } from '../features/extract/entrypoint/extract/resolve-source-file-selection'
+import { parseSourceFileSelection } from '../features/extract/entrypoint/extract/resolve-source-file-selection'
 import { loadDraftComponents } from '../features/extract/entrypoint/extract/load-draft-components'
-import { fileExists } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/file-existence'
 import { readTextFile } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/file-reader'
-import { runGit } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/run-git'
-import { resolveProjectPath } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/path/resolve-path'
+import { detectChangedTypeScriptFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/git-changed-files'
+import { findSpecifiedSourceFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/find-specified-source-files'
 import { DetectOrphans } from '@living-architecture/riviere-builder-use-cases/features/query/queries/detect-orphans'
 import { ListComponents } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-components'
 import { ListDomains } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-domains'
@@ -318,20 +320,21 @@ export function createProgram(): Command {
 
   program.addCommand(
     createExtractCommand({
-      extractDraftComponents: new ExtractDraftComponents(riviereProjectRepository),
+      extractDraftComponents: new ExtractDraftComponents(
+        riviereProjectRepository,
+        createGitChangedSourceFileFinder(process.cwd(), detectChangedTypeScriptFiles),
+        createSpecifiedSourceFileFinder(process.cwd(), findSpecifiedSourceFiles),
+      ),
       enrichDraftComponents: new EnrichDraftComponents(riviereProjectRepository),
-      validateFlagCombinations,
+      parseFlagCombinations,
       createExtractDraftComponentsInput,
       createEnrichDraftComponentsInput,
       exitWithCliError,
       dataAccessCliErrorCode,
       presentExtractionResult,
-      resolveSourceFileSelection,
+      presentExtractionWarnings,
+      parseSourceFileSelection,
       loadDraftComponents,
-      fileExists,
-      projectRoot: process.cwd(),
-      resolvePath: resolveProjectPath,
-      runGit,
       readFile: readTextFile,
     }),
   )

@@ -93,6 +93,13 @@ describe('runGit', () => {
     expect(() => runGit(['status'])).toThrow('unexpected failure')
   })
 
+  it('rethrows an error whose stderr is not a repository error', () => {
+    mockExec.mockImplementation(() => {
+      throw new MockExecError('unexpected failure', { stderr: 'fatal: invalid option' })
+    })
+    expect(() => runGit(['status'])).toThrow('unexpected failure')
+  })
+
   it('rethrows non-Error throws', () => {
     mockExec.mockImplementation(() => {
       throw 'string error'

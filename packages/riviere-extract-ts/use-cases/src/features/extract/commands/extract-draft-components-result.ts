@@ -47,6 +47,7 @@ interface ExtractDraftComponentsDataAccessFailureResult {
 
 /** @riviere-role command-use-case-result */
 export interface ExtractDraftComponentsResult {
+  readonly warnings: readonly string[]
   readonly result:
     | ExtractDraftComponentsDraftOnlyResult
     | ExtractDraftComponentsFullResult

@@ -37,6 +37,11 @@ export function dataAccessCliErrorCode(
 }
 
 /** @riviere-role cli-output-formatter */
+export function presentExtractionWarnings(warnings: readonly string[]): void {
+  for (const warning of warnings) console.error(warning)
+}
+
+/** @riviere-role cli-output-formatter */
 export function presentExtractionResult(
   result: ExtractionResult,
   options: ExtractionPresentationOptions,

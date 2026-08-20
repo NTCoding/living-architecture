@@ -1,38 +1,38 @@
 import { Command } from 'commander'
 import { CliErrorCode, ExitCode } from '../../../../infra/cli/presentation/error-codes'
 import { exitWithCliError } from '../../../../infra/cli/presentation/exit-with-cli-error'
-import { validateFlagCombinations } from './extract-validator'
+import { parseFlagCombinations } from './extract-validator'
 import type { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import type { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
 import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
-import { dataAccessCliErrorCode, presentExtractionResult } from './present-extraction-result'
-import { resolveSourceFileSelection } from './resolve-source-file-selection'
+import {
+  dataAccessCliErrorCode,
+  presentExtractionResult,
+  presentExtractionWarnings,
+} from './present-extraction-result'
+import { parseSourceFileSelection } from './resolve-source-file-selection'
 import { loadDraftComponents } from './load-draft-components'
-import type { fileExists } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/file-existence'
+import { InvalidDraftComponentsFileError } from '../../../../infra/cli/presentation/extract-errors'
 import type { readTextFile } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/file-reader'
-import type { runGit } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/run-git'
-import type { resolveProjectPath } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/path/resolve-path'
+
+type ExtractCommandOptions = Parameters<typeof parseFlagCombinations>[0]
 
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateExtractCommandEntrypointDependencies {
   readonly extractDraftComponents: Pick<ExtractDraftComponents, 'execute'>
   readonly enrichDraftComponents: Pick<EnrichDraftComponents, 'execute'>
-  readonly validateFlagCombinations: typeof validateFlagCombinations
+  readonly parseFlagCombinations: typeof parseFlagCombinations
   readonly createExtractDraftComponentsInput: typeof createExtractDraftComponentsInput
   readonly createEnrichDraftComponentsInput: typeof createEnrichDraftComponentsInput
   readonly exitWithCliError: typeof exitWithCliError
   readonly dataAccessCliErrorCode: typeof dataAccessCliErrorCode
   readonly presentExtractionResult: typeof presentExtractionResult
-  readonly resolveSourceFileSelection: typeof resolveSourceFileSelection
+  readonly presentExtractionWarnings: typeof presentExtractionWarnings
+  readonly parseSourceFileSelection: typeof parseSourceFileSelection
   readonly loadDraftComponents: typeof loadDraftComponents
-  readonly fileExists: typeof fileExists
-  readonly projectRoot: string
-  readonly resolvePath: typeof resolveProjectPath
-  readonly runGit: typeof runGit
   readonly readFile: typeof readTextFile
 }
-
 /** @riviere-role cli-entrypoint */
 export function createExtractCommand(
   dependencies: CreateExtractCommandEntrypointDependencies,
@@ -51,110 +51,95 @@ export function createExtractCommand(
     .option('--format <type>', 'Output format: json (default) or markdown')
     .option('--stats', 'Show extraction statistics on stderr')
     .option('--no-ts-config', 'Skip tsconfig.json auto-discovery (disables full type resolution)')
-    .action(
-      (options: {
-        allowIncomplete?: boolean
-        base?: string
-        componentsOnly?: boolean
-        config: string
-        dryRun?: boolean
-        enrich?: string
-        files?: string[]
-        format?: string
-        output?: string
-        pr?: boolean
-        stats?: boolean
-        tsConfig?: boolean
-      }) => {
-        dependencies.validateFlagCombinations(options)
-
-        const result = (() => {
-          try {
-            return options.enrich === undefined
-              ? dependencies.extractDraftComponents.execute(
-                  dependencies.createExtractDraftComponentsInput(
-                    options,
-                    dependencies.resolveSourceFileSelection(options, {
-                      fileExists: dependencies.fileExists,
-                      projectRoot: dependencies.projectRoot,
-                      resolvePath: dependencies.resolvePath,
-                      runGit: dependencies.runGit,
-                    }),
-                  ),
-                )
-              : dependencies.enrichDraftComponents.execute(
-                  dependencies.createEnrichDraftComponentsInput(
-                    options,
+    .action((options: ExtractCommandOptions) => {
+      dependencies.parseFlagCombinations(options)
+      const result = (() => {
+        try {
+          return options.enrich === undefined
+            ? dependencies.extractDraftComponents.execute(
+                dependencies.createExtractDraftComponentsInput(
+                  options,
+                  dependencies.parseSourceFileSelection(options),
+                ),
+              )
+            : dependencies.enrichDraftComponents.execute(
+                dependencies.createEnrichDraftComponentsInput(
+                  options,
+                  options.enrich,
+                  dependencies.loadDraftComponents(
                     options.enrich,
-                    dependencies.loadDraftComponents(options.enrich, {
-                      readFile: dependencies.readFile,
-                    }),
+                    (() => {
+                      try {
+                        return dependencies.readFile(options.enrich)
+                      } catch {
+                        throw new InvalidDraftComponentsFileError(
+                          `Unable to read draft components: ${options.enrich}`,
+                        )
+                      }
+                    })(),
                   ),
-                )
-          } catch (error) {
-            if (!(error instanceof Error)) throw error
-            if (error.name === 'GitError') {
-              dependencies.exitWithCliError(
-                CliErrorCode.GitNotARepository,
-                error.message,
-                ExitCode.RuntimeError,
-                [],
+                ),
               )
-            }
-            if (
-              error.name === 'InvalidExtractInputError' ||
-              error.name === 'InvalidEnrichInputError'
-            ) {
-              dependencies.exitWithCliError(
-                CliErrorCode.ValidationError,
-                error.message,
-                ExitCode.ConfigValidation,
-                [],
-              )
-            }
-            throw error
+        } catch (error) {
+          if (!(error instanceof Error)) throw error
+          if (error.name === 'GitError') {
+            dependencies.exitWithCliError(
+              CliErrorCode.GitNotARepository,
+              error.message,
+              ExitCode.RuntimeError,
+              [],
+            )
           }
-        })()
-
-        if (result.result.kind === 'fieldFailure') {
-          dependencies.exitWithCliError(
-            CliErrorCode.ValidationError,
-            `Extraction failed for fields: ${result.result.failedFields.join(', ')}`,
-            ExitCode.ExtractionFailure,
-            [],
-          )
+          if (
+            error.name === 'InvalidExtractInputError' ||
+            error.name === 'InvalidEnrichInputError'
+          ) {
+            dependencies.exitWithCliError(
+              CliErrorCode.ValidationError,
+              error.message,
+              ExitCode.ConfigValidation,
+              [],
+            )
+          }
+          throw error
         }
+      })()
+      if (result.result.kind === 'fieldFailure') {
+        dependencies.exitWithCliError(
+          CliErrorCode.ValidationError,
+          `Extraction failed for fields: ${result.result.failedFields.join(', ')}`,
+          ExitCode.ExtractionFailure,
+          [],
+        )
+      }
+      if (result.result.kind === 'configFailure') {
+        dependencies.exitWithCliError(
+          result.result.code === 'CONFIG_NOT_FOUND'
+            ? CliErrorCode.ConfigNotFound
+            : CliErrorCode.ValidationError,
+          result.result.message,
+          ExitCode.ConfigValidation,
+          [],
+        )
+      }
+      if (result.result.kind === 'connectionDetectionFailure') {
+        dependencies.exitWithCliError(
+          CliErrorCode.ConnectionDetectionFailure,
+          result.result.message,
+          ExitCode.ExtractionFailure,
+          ['Use --allow-incomplete to emit uncertain links instead of failing'],
+        )
+      }
+      if (result.result.kind === 'dataAccessFailure') {
+        dependencies.exitWithCliError(
+          dependencies.dataAccessCliErrorCode(result.result.code),
+          result.result.message,
+          ExitCode.RuntimeError,
+          [],
+        )
+      }
 
-        if (result.result.kind === 'configFailure') {
-          dependencies.exitWithCliError(
-            result.result.code === 'CONFIG_NOT_FOUND'
-              ? CliErrorCode.ConfigNotFound
-              : CliErrorCode.ValidationError,
-            result.result.message,
-            ExitCode.ConfigValidation,
-            [],
-          )
-        }
-
-        if (result.result.kind === 'connectionDetectionFailure') {
-          dependencies.exitWithCliError(
-            CliErrorCode.ConnectionDetectionFailure,
-            result.result.message,
-            ExitCode.ExtractionFailure,
-            ['Use --allow-incomplete to emit uncertain links instead of failing'],
-          )
-        }
-
-        if (result.result.kind === 'dataAccessFailure') {
-          dependencies.exitWithCliError(
-            dependencies.dataAccessCliErrorCode(result.result.code),
-            result.result.message,
-            ExitCode.RuntimeError,
-            [],
-          )
-        }
-
-        dependencies.presentExtractionResult(result.result, options)
-      },
-    )
+      if (options.enrich === undefined) dependencies.presentExtractionWarnings(result.warnings)
+      dependencies.presentExtractionResult(result.result, options)
+    })
 }

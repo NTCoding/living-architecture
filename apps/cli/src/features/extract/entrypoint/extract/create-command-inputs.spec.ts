@@ -5,28 +5,27 @@ import { describe, expect, it } from 'vitest'
 import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
 import { createExtractCommand } from './entrypoint'
-import { validateFlagCombinations } from './extract-validator'
-import { dataAccessCliErrorCode, presentExtractionResult } from './present-extraction-result'
-import { resolveSourceFileSelection } from './resolve-source-file-selection'
+import { parseFlagCombinations } from './extract-validator'
+import {
+  dataAccessCliErrorCode,
+  presentExtractionResult,
+  presentExtractionWarnings,
+} from './present-extraction-result'
+import { parseSourceFileSelection } from './resolve-source-file-selection'
 import { loadDraftComponents } from './load-draft-components'
 import { exitWithCliError } from '../../../../infra/cli/presentation/exit-with-cli-error'
 
 const testDependencies = {
-  validateFlagCombinations,
+  parseFlagCombinations,
   createExtractDraftComponentsInput,
   createEnrichDraftComponentsInput,
   exitWithCliError,
   dataAccessCliErrorCode,
   presentExtractionResult,
-  resolveSourceFileSelection,
+  presentExtractionWarnings,
+  parseSourceFileSelection,
   loadDraftComponents,
-  draftComponentsLoader: { readFile: () => '' },
-  sourceFileSelection: {
-    fileExists: () => true,
-    projectRoot: process.cwd(),
-    resolvePath: (filePath: string) => filePath,
-    runGit: () => '',
-  },
+  readFile: () => '',
 }
 
 class UnexpectedExtractError extends Error {
@@ -51,13 +50,11 @@ describe('create command inputs', () => {
       }),
     ).toStrictEqual({
       allowIncomplete: true,
-      baseBranch: 'main',
       configPath: 'config.yml',
       includeConnections: true,
       output: 'out.json',
       projectRoot: process.cwd(),
-      sourceFileSelection: { kind: 'all' },
-      sourceMode: 'all',
+      sourceFileSelectionRequest: { kind: 'all' },
       useTsConfig: false,
     })
   })
