@@ -114,7 +114,7 @@ function stateArgument(routes: CreateWorkflowRoutesResult['routes']) {
   if (transition?.type !== 'transition') {
     throw new UnexpectedRouteError('Expected transition route')
   }
-  const argument = transition.args[0]
+  const argument = transition.args?.[0]
   if (!argument) throw new UnexpectedRouteError('Expected state argument')
   return argument
 }
