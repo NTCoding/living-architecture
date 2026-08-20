@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { createIsolatedGitEnvironment } from '../../../__fixtures__/isolated-git-environment'
 import { detectChangedTypeScriptFiles, GitError } from './git-changed-files'
 
 type GitExecutor = (binary: string, args: readonly string[], cwd: string) => string
@@ -62,16 +63,32 @@ const GIT_EXECUTABLE = process.env['GIT_EXECUTABLE'] ?? '/usr/bin/git'
 describe('detectChangedTypeScriptFiles', () => {
   it('uses the default Git executor with a controlled repository', () => {
     const directory = mkdtempSync(join(tmpdir(), 'changed-files-test-'))
+    const environment = createIsolatedGitEnvironment()
     try {
-      execFileSync(GIT_EXECUTABLE, ['init', '--initial-branch=main'], { cwd: directory })
-      execFileSync(GIT_EXECUTABLE, ['config', 'user.email', 'test@example.com'], { cwd: directory })
-      execFileSync(GIT_EXECUTABLE, ['config', 'user.name', 'Test'], { cwd: directory })
+      execFileSync(GIT_EXECUTABLE, ['init', '--initial-branch=main'], {
+        cwd: directory,
+        env: environment,
+      })
+      execFileSync(GIT_EXECUTABLE, ['config', 'user.email', 'test@example.com'], {
+        cwd: directory,
+        env: environment,
+      })
+      execFileSync(GIT_EXECUTABLE, ['config', 'user.name', 'Test'], {
+        cwd: directory,
+        env: environment,
+      })
       writeFileSync(join(directory, 'changed.ts'), 'export const changed = true')
-      execFileSync(GIT_EXECUTABLE, ['add', 'changed.ts'], { cwd: directory })
-      execFileSync(GIT_EXECUTABLE, ['commit', '-m', 'initial'], { cwd: directory })
+      execFileSync(GIT_EXECUTABLE, ['add', 'changed.ts'], { cwd: directory, env: environment })
+      execFileSync(GIT_EXECUTABLE, ['commit', '-m', 'initial'], {
+        cwd: directory,
+        env: environment,
+      })
       writeFileSync(join(directory, 'changed.ts'), 'export const changed = false')
-      execFileSync(GIT_EXECUTABLE, ['add', 'changed.ts'], { cwd: directory })
-      execFileSync(GIT_EXECUTABLE, ['commit', '-m', 'changed'], { cwd: directory })
+      execFileSync(GIT_EXECUTABLE, ['add', 'changed.ts'], { cwd: directory, env: environment })
+      execFileSync(GIT_EXECUTABLE, ['commit', '-m', 'changed'], {
+        cwd: directory,
+        env: environment,
+      })
 
       expect(detectChangedTypeScriptFiles(directory, { base: 'HEAD~1' }).files).toStrictEqual([
         join(directory, 'changed.ts'),

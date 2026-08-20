@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
+import { runIsolatedGitCommand } from '../../../../__fixtures__/isolated-git-environment'
 import { ExtractionConfigError } from './riviere-config-error'
 import { ExtractionDataAccessError } from './riviere-project-error'
 import { RiviereProjectRepository } from './riviere-project-repository'
@@ -20,16 +20,11 @@ const VALID_CONFIG = `modules:
     ui: { notUsed: true }
 `
 
-const GIT_EXECUTABLE = process.env['GIT_EXECUTABLE'] ?? '/usr/bin/git'
-
 function withWorkspace(fn: (dir: string) => void): void {
   const dir = mkdtempSync(join(tmpdir(), 'extract-project-test-'))
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'workspace' }), 'utf-8')
-  execFileSync(GIT_EXECUTABLE, ['init', '--initial-branch=main'], { cwd: dir, stdio: 'ignore' })
-  execFileSync(GIT_EXECUTABLE, ['remote', 'add', 'origin', 'https://github.com/test/repo.git'], {
-    cwd: dir,
-    stdio: 'ignore',
-  })
+  runIsolatedGitCommand(['init', '--initial-branch=main'], dir)
+  runIsolatedGitCommand(['remote', 'add', 'origin', 'https://github.com/test/repo.git'], dir)
   try {
     fn(dir)
   } finally {
@@ -122,11 +117,16 @@ describe('RiviereProjectRepository', () => {
 
   it('translates a missing Git remote into a data access error', () => {
     withWorkspace((dir) => {
-      execFileSync(GIT_EXECUTABLE, ['remote', 'remove', 'origin'], { cwd: dir, stdio: 'ignore' })
+      runIsolatedGitCommand(['remote', 'remove', 'origin'], dir)
       writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
       writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
 
-      const load = () => loadProject({ configPath: join(dir, 'extract.config.yml'), projectRoot: dir, useTsConfig: false })
+      const load = () =>
+        loadProject({
+          configPath: join(dir, 'extract.config.yml'),
+          projectRoot: dir,
+          useTsConfig: false,
+        })
       expect(load).toThrow(ExtractionDataAccessError)
       expect(load).toThrow(expect.objectContaining({ code: 'NO_REMOTE' }))
     })

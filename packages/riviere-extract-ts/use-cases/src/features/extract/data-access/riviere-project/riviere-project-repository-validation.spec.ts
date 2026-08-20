@@ -1,8 +1,8 @@
-import { execFileSync } from 'node:child_process'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
+import { runIsolatedGitCommand } from '../../../../__fixtures__/isolated-git-environment'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { RiviereProjectRepository } from './riviere-project-repository'
@@ -20,20 +20,12 @@ const VALID_CONFIG = `modules:
     ui: { notUsed: true }
 `
 
-const GIT_EXECUTABLE = process.env['GIT_EXECUTABLE'] ?? '/usr/bin/git'
-
 function withWorkspace(run: (directory: string) => void): void {
   const directory = mkdtempSync(join(tmpdir(), 'extract-validation-test-'))
   writeFileSync(join(directory, 'package.json'), JSON.stringify({ name: 'workspace' }))
   writeFileSync(join(directory, 'component.ts'), 'export class Order {}')
-  execFileSync(GIT_EXECUTABLE, ['init', '--initial-branch=main'], {
-    cwd: directory,
-    stdio: 'ignore',
-  })
-  execFileSync(GIT_EXECUTABLE, ['remote', 'add', 'origin', 'https://github.com/test/repo.git'], {
-    cwd: directory,
-    stdio: 'ignore',
-  })
+  runIsolatedGitCommand(['init', '--initial-branch=main'], directory)
+  runIsolatedGitCommand(['remote', 'add', 'origin', 'https://github.com/test/repo.git'], directory)
   try {
     run(directory)
   } finally {
@@ -65,7 +57,10 @@ function writeExtendsConfig(directory: string, extendsRef: string): void {
   writeFileSync(join(directory, 'component.ts'), 'export class Order {}')
   writeFileSync(
     join(directory, 'extract.yml'),
-    VALID_CONFIG.replace('api: { notUsed: true }', `extends: ${extendsRef}\n    api: { notUsed: true }`),
+    VALID_CONFIG.replace(
+      'api: { notUsed: true }',
+      `extends: ${extendsRef}\n    api: { notUsed: true }`,
+    ),
   )
 }
 

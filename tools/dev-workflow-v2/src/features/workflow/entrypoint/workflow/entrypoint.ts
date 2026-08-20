@@ -1,4 +1,4 @@
-import { arg, defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
+import { arg } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { CreatePullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-pull-request'
 import { RecordBranch } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-branch'
 import { RecordCiFailed } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-ci-failed'
@@ -6,7 +6,14 @@ import { RecordCiPassed } from '@living-architecture/dev-workflow-v2-use-cases/c
 import { RecordIssue } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-issue'
 import { RecordPullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-pull-request'
 import { VerifyFeedbackAddressed } from '@living-architecture/dev-workflow-v2-use-cases/commands/verify-feedback-addressed'
+import type { defineWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
 import type { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
+import type {
+  parseNumberArgument,
+  parseOptionalStringArgument,
+  parseStringArgument,
+  parseStringArguments,
+} from './workflow-route-inputs'
 
 type RoutedWorkflow = ConstructorParameters<typeof RecordIssue>[0]
 type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
@@ -14,11 +21,11 @@ type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateWorkflowRoutesEntrypointDependencies {
   readonly stateNameSchemaProvider: ZodSchemaProvider<string>
-  readonly defineRoutes: typeof defineRoutes
-  readonly parseNumberArgument: (value: unknown) => number
-  readonly parseStringArgument: (value: unknown) => string
-  readonly parseOptionalStringArgument: (value: unknown) => string | undefined
-  readonly parseStringArguments: (value: unknown) => readonly string[]
+  readonly defineRoutes: typeof defineWorkflowRoutes
+  readonly parseNumberArgument: typeof parseNumberArgument
+  readonly parseStringArgument: typeof parseStringArgument
+  readonly parseOptionalStringArgument: typeof parseOptionalStringArgument
+  readonly parseStringArguments: typeof parseStringArguments
 }
 
 /** @riviere-role cli-entrypoint */
