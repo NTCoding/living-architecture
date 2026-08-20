@@ -16,7 +16,6 @@ export const allRoles = [
       'command-input-factory',
       'command-use-case',
       'entrypoint-cli-input-parser',
-      'external-client-service',
       'query-model-use-case',
     ],
     forbiddenInlineFunctionImplementations: true,
