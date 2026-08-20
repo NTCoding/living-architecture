@@ -99,7 +99,7 @@ function enrich(drafts: DraftComponent[], modules: ValidatedModule[]) {
 }
 
 function draft(type: string, name: string, file: string, line: number): DraftComponent {
-  return DraftComponent.parse({
+  return DraftComponent.parseOrThrow({
     type,
     name,
     location: {

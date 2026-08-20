@@ -126,7 +126,7 @@ describe('RiviereProject.extractDraftComponents', () => {
 
   it('returns links when includeConnections is true', () => {
     mockExtractComponents.mockReturnValue([
-      DraftComponent.parse({
+      DraftComponent.parseOrThrow({
         name: 'OrderService',
         domain: 'orders',
         module: 'orders',
@@ -210,7 +210,7 @@ describe('RiviereProject.extractDraftComponents', () => {
 
   it('aggregates connection timings into one project summary', () => {
     mockExtractComponents.mockReturnValue([
-      DraftComponent.parse({
+      DraftComponent.parseOrThrow({
         name: 'OrderService',
         domain: 'orders',
         module: 'orders',
@@ -250,7 +250,7 @@ describe('RiviereProject.extractDraftComponents', () => {
 
   it('retains components from configured submodules', () => {
     mockExtractComponents.mockReturnValue([
-      DraftComponent.parse({
+      DraftComponent.parseOrThrow({
         name: 'OrderService',
         domain: 'orders',
         module: 'checkout',
@@ -279,7 +279,7 @@ describe('RiviereProject.extractDraftComponents', () => {
 
   it('returns no links when includeConnections is false', () => {
     mockExtractComponents.mockReturnValue([
-      DraftComponent.parse({
+      DraftComponent.parseOrThrow({
         name: 'OrderService',
         domain: 'orders',
         module: 'orders',
@@ -340,7 +340,7 @@ describe('RiviereProject.extractDraftComponents', () => {
 
   it('returns a field failure when extracted components cannot be enriched', () => {
     mockExtractComponents.mockReturnValue([
-      DraftComponent.parse({
+      DraftComponent.parseOrThrow({
         name: 'OrderService',
         domain: 'orders',
         module: 'orders',

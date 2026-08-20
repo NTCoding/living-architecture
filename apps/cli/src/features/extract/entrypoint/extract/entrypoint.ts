@@ -11,10 +11,7 @@ import {
   presentExtractionResult,
   presentExtractionWarnings,
 } from './present-extraction-result'
-import { parseSourceFileSelection } from './resolve-source-file-selection'
-import { loadDraftComponents } from './load-draft-components'
-import { InvalidDraftComponentsFileError } from '../../../../infra/cli/presentation/extract-errors'
-import type { readTextFile } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/file-reader'
+import { parseSourceFileSelection } from './parse-source-file-selection'
 
 type ExtractCommandOptions = Parameters<typeof parseFlagCombinations>[0]
 
@@ -30,8 +27,6 @@ export interface CreateExtractCommandEntrypointDependencies {
   readonly presentExtractionResult: typeof presentExtractionResult
   readonly presentExtractionWarnings: typeof presentExtractionWarnings
   readonly parseSourceFileSelection: typeof parseSourceFileSelection
-  readonly loadDraftComponents: typeof loadDraftComponents
-  readonly readFile: typeof readTextFile
 }
 /** @riviere-role cli-entrypoint */
 export function createExtractCommand(
@@ -66,18 +61,6 @@ export function createExtractCommand(
                 dependencies.createEnrichDraftComponentsInput(
                   options,
                   options.enrich,
-                  dependencies.loadDraftComponents(
-                    options.enrich,
-                    (() => {
-                      try {
-                        return dependencies.readFile(options.enrich)
-                      } catch {
-                        throw new InvalidDraftComponentsFileError(
-                          `Unable to read draft components: ${options.enrich}`,
-                        )
-                      }
-                    })(),
-                  ),
                 ),
               )
         } catch (error) {
@@ -109,6 +92,14 @@ export function createExtractCommand(
           CliErrorCode.ValidationError,
           `Extraction failed for fields: ${result.result.failedFields.join(', ')}`,
           ExitCode.ExtractionFailure,
+          [],
+        )
+      }
+      if (result.result.kind === 'draftComponentsFailure') {
+        dependencies.exitWithCliError(
+          CliErrorCode.ValidationError,
+          result.result.message,
+          ExitCode.ConfigValidation,
           [],
         )
       }

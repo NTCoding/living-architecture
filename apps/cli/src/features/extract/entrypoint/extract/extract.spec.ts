@@ -27,8 +27,8 @@ import {
   presentExtractionWarnings,
 } from './present-extraction-result'
 import { exitWithCliError } from '../../../../infra/cli/presentation/exit-with-cli-error'
-import { parseSourceFileSelection } from './resolve-source-file-selection'
-import { loadDraftComponents } from './load-draft-components'
+import { parseSourceFileSelection } from './parse-source-file-selection'
+import { parseDraftComponents } from './parse-draft-components'
 
 const testDependencies = {
   extractDraftComponents: {
@@ -45,7 +45,7 @@ const testDependencies = {
   presentExtractionResult,
   presentExtractionWarnings,
   parseSourceFileSelection,
-  loadDraftComponents,
+  parseDraftComponents,
   readFile: () => '',
 }
 

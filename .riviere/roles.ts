@@ -8,6 +8,16 @@ export const allRoles = [
     forbiddenImportedFunctionCalls: true,
   }),
   role('cli-entrypoint-dependencies', {
+    allowedCollaboratorRoles: [
+      'cli-error-handler',
+      'cli-output-formatter',
+      'cli-response-formatter',
+      'cli-response-writer',
+      'command-input-factory',
+      'command-use-case',
+      'entrypoint-cli-input-parser',
+      'query-model-use-case',
+    ],
     forbiddenInlineFunctionImplementations: true,
     requiresRoleDependencies: true,
     targets: ['interface'],
@@ -37,7 +47,10 @@ export const allRoles = [
   }),
   role('cli-output-formatter', { targets: ['function'] }),
   role('cli-response-formatter', { targets: ['function'] }),
-  role('cli-response-writer', { targets: ['function'] }),
+  role('cli-response-writer', {
+    targets: ['function'],
+    allowedInputs: ['command-use-case-result', 'query-model'],
+  }),
   role('cli-error-handler', { targets: ['function'] }),
   role('command-input-factory', {
     targets: ['function'],
@@ -131,6 +144,7 @@ export const allRoles = [
   role('external-client-error', { targets: ['class'] }),
   role('entrypoint-cli-input-parser', {
     targets: ['function'],
+    nameMatches: '^parse',
     allowedInputs: [
       'entrypoint-cli-input-parser-input',
       'entrypoint-cli-input-parser-dependencies',

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   enrichDraftComponentsMethodMock: vi.fn(),
   loadMock: vi.fn(),
+  loadDraftComponentsMock: vi.fn(),
 }))
 
 vi.mock('../data-access/riviere-project/riviere-project-repository', () => ({
@@ -29,13 +30,13 @@ describe('enrichDraftComponents', () => {
       kind: 'draftOnly',
       components: [{ name: 'Draft' }],
     })
+    mocks.loadDraftComponentsMock.mockReturnValue({ success: true, draftComponents: [] })
   })
 
   it('returns draft-only results when connections are disabled', () => {
-    const result = new EnrichDraftComponents(new RiviereProjectRepository()).execute({
+    const result = new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
-      draftComponents: [],
       draftComponentsPath: 'draft.json',
       includeConnections: false,
       useTsConfig: true,
@@ -49,24 +50,16 @@ describe('enrichDraftComponents', () => {
     })
     expect(mocks.enrichDraftComponentsMethodMock).toHaveBeenCalledWith({
       allowIncomplete: false,
-      draftComponents: [],
+      draftComponentsPath: 'draft.json',
+      loadDraftComponents: mocks.loadDraftComponentsMock,
       includeConnections: false,
     })
   })
 
-  it('parses draft component input before invoking the aggregate', () => {
-    new EnrichDraftComponents(new RiviereProjectRepository()).execute({
+  it('passes the path and domain port to the aggregate', () => {
+    new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
-      draftComponents: [
-        {
-          type: 'useCase',
-          name: 'PlaceOrder',
-          location: { file: 'src/order.ts', line: 1 },
-          domain: 'orders',
-          module: 'orders',
-        },
-      ],
       draftComponentsPath: 'draft.json',
       includeConnections: false,
       useTsConfig: true,
@@ -74,13 +67,14 @@ describe('enrichDraftComponents', () => {
 
     expect(mocks.enrichDraftComponentsMethodMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        draftComponents: [expect.objectContaining({ name: 'PlaceOrder' })],
+        draftComponentsPath: 'draft.json',
+        loadDraftComponents: mocks.loadDraftComponentsMock,
       }),
     )
   })
 
-  it('uses an empty draft list when the input has no draft components', () => {
-    new EnrichDraftComponents(new RiviereProjectRepository()).execute({
+  it('does not put draft components in command input', () => {
+    new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -89,7 +83,7 @@ describe('enrichDraftComponents', () => {
     })
 
     expect(mocks.enrichDraftComponentsMethodMock).toHaveBeenCalledWith(
-      expect.objectContaining({ draftComponents: [] }),
+      expect.objectContaining({ draftComponentsPath: 'draft.json' }),
     )
   })
 
@@ -99,7 +93,7 @@ describe('enrichDraftComponents', () => {
       failedFields: ['fieldA'],
     })
 
-    const result = new EnrichDraftComponents(new RiviereProjectRepository()).execute({
+    const result = new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponents: [],
@@ -121,7 +115,7 @@ describe('enrichDraftComponents', () => {
       throw new ExtractionConfigError('VALIDATION_ERROR', 'Invalid extraction config')
     })
 
-    const result = new EnrichDraftComponents(new RiviereProjectRepository()).execute({
+    const result = new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponents: [],
@@ -149,7 +143,7 @@ describe('enrichDraftComponents', () => {
       })
     })
 
-    const result = new EnrichDraftComponents(new RiviereProjectRepository()).execute({
+    const result = new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponents: [],
@@ -171,7 +165,7 @@ describe('enrichDraftComponents', () => {
       throw new ExtractionDataAccessError('FILE_READ_ERROR', 'Could not read draft components')
     })
 
-    const result = new EnrichDraftComponents(new RiviereProjectRepository()).execute({
+    const result = new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponents: [],
@@ -195,7 +189,7 @@ describe('enrichDraftComponents', () => {
     })
 
     expect(() =>
-      new EnrichDraftComponents(new RiviereProjectRepository()).execute({
+      new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
         allowIncomplete: false,
         configPath: 'config.yml',
         draftComponents: [],

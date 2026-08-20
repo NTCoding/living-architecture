@@ -16,6 +16,7 @@ import { enrichComponentsForModules } from './extract-components-for-graph'
 import { MissingModuleSourceError } from './extraction-errors'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
 import type { ExtractionStage } from './extraction-stage'
+import type { LoadDraftComponents } from './ports/load-draft-components'
 
 interface DraftOnlyOutcome {
   kind: 'draftOnly'
@@ -36,7 +37,12 @@ interface FieldFailureOutcome {
   failedFields: string[]
 }
 
-type ExtractionOutcome = DraftOnlyOutcome | FullExtractionOutcome | FieldFailureOutcome
+interface DraftComponentsFailureOutcome {
+  kind: 'draftComponentsFailure'
+  message: string
+}
+
+type ExtractionOutcome = DraftOnlyOutcome | FullExtractionOutcome | FieldFailureOutcome | DraftComponentsFailureOutcome
 
 interface ModuleSource {
   files: readonly string[]
@@ -45,7 +51,6 @@ interface ModuleSource {
 
 interface RiviereProjectInput {
   stage: ExtractionStage
-  draftComponents?: readonly DraftComponent[]
 }
 
 interface ComponentOwnershipInput {
@@ -71,7 +76,6 @@ export class RiviereProject {
   private constructor(
     stage: ExtractionStage,
     private readonly moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
-    private readonly initialDraftComponents: readonly DraftComponent[] = [],
   ) {
     this.stage = stage
   }
@@ -99,7 +103,7 @@ export class RiviereProject {
 
     return {
       success: true,
-      data: new RiviereProject(input.stage, moduleSources, input.draftComponents),
+      data: new RiviereProject(input.stage, moduleSources),
     }
   }
 
@@ -157,11 +161,14 @@ export class RiviereProject {
   }
 
   enrichDraftComponents(options: {
-    draftComponents?: readonly DraftComponent[]
+    draftComponentsPath: string
+    loadDraftComponents: LoadDraftComponents
     allowIncomplete: boolean
     includeConnections: boolean
   }): ExtractionOutcome {
-    const draftComponents = options.draftComponents ?? this.initialDraftComponents
+    const loadedDraftComponents = options.loadDraftComponents(options.draftComponentsPath)
+    if (!loadedDraftComponents.success) return { kind: 'draftComponentsFailure', message: loadedDraftComponents.error }
+    const draftComponents = loadedDraftComponents.draftComponents
     if (!options.includeConnections) {
       return {
         kind: 'draftOnly',

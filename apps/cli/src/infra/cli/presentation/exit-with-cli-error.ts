@@ -1,7 +1,7 @@
 import { type CliErrorCode, ExitCode } from './error-codes'
 import { formatError } from './output'
 
-/** @riviere-role cli-response-writer */
+/** @riviere-role cli-error-handler */
 export function exitWithCliError(
   code: CliErrorCode,
   message: string,

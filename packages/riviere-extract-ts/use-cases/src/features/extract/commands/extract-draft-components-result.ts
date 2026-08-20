@@ -23,6 +23,11 @@ interface ExtractDraftComponentsFieldFailureResult {
   failedFields: readonly string[]
 }
 
+interface ExtractDraftComponentsDraftComponentsFailureResult {
+  kind: 'draftComponentsFailure'
+  message: string
+}
+
 interface ExtractDraftComponentsConfigFailureResult {
   kind: 'configFailure'
   code: 'CONFIG_NOT_FOUND' | 'VALIDATION_ERROR'
@@ -52,6 +57,7 @@ export interface ExtractDraftComponentsResult {
     | ExtractDraftComponentsDraftOnlyResult
     | ExtractDraftComponentsFullResult
     | ExtractDraftComponentsFieldFailureResult
+    | ExtractDraftComponentsDraftComponentsFailureResult
     | ExtractDraftComponentsConfigFailureResult
     | ExtractDraftComponentsConnectionFailureResult
     | ExtractDraftComponentsDataAccessFailureResult

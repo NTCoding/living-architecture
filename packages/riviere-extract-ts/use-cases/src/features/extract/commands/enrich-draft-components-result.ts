@@ -23,6 +23,11 @@ interface EnrichDraftComponentsFieldFailureResult {
   failedFields: readonly string[]
 }
 
+interface EnrichDraftComponentsDraftComponentsFailureResult {
+  kind: 'draftComponentsFailure'
+  message: string
+}
+
 interface EnrichDraftComponentsConfigFailureResult {
   kind: 'configFailure'
   code: 'CONFIG_NOT_FOUND' | 'VALIDATION_ERROR'
@@ -51,6 +56,7 @@ export interface EnrichDraftComponentsResult {
     | EnrichDraftComponentsDraftOnlyResult
     | EnrichDraftComponentsFullResult
     | EnrichDraftComponentsFieldFailureResult
+    | EnrichDraftComponentsDraftComponentsFailureResult
     | EnrichDraftComponentsConfigFailureResult
     | EnrichDraftComponentsConnectionFailureResult
     | EnrichDraftComponentsDataAccessFailureResult

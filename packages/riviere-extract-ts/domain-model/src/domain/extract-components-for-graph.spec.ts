@@ -59,7 +59,7 @@ function createStage(
 }
 
 function createDraft(module: string, name: string): DraftComponent {
-  return DraftComponent.parse({
+  return DraftComponent.parseOrThrow({
     domain: module,
     location: { file: `${module}/order.ts`, line: 1 },
     module,
@@ -69,7 +69,7 @@ function createDraft(module: string, name: string): DraftComponent {
 }
 
 function createDraftInModule(domain: string, module: string, name: string): DraftComponent {
-  return DraftComponent.parse({
+  return DraftComponent.parseOrThrow({
     domain,
     location: { file: `${module}/order.ts`, line: 1 },
     module,

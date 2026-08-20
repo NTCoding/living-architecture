@@ -16,6 +16,7 @@ const cliInputParser = role('entrypoint-cli-input-parser', {
   allowedInputs: ['entrypoint-cli-input-parser-input'],
   allowsUnclassifiedInputs: true,
   forbiddenImportedFunctionCalls: true,
+  nameMatches: '^parse',
   targets: ['function'],
 })
 
@@ -142,6 +143,17 @@ export function parseInput(value: string): string {
 `)
 
   expect(messages).toHaveLength(0)
+})
+
+it('rejects a CLI input parser whose name does not begin with parse', () => {
+  const messages = enforce(`/** @riviere-role entrypoint-cli-input-parser */
+export function loadInput(value: string): string {
+  return value
+}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("Role 'entrypoint-cli-input-parser' does not allow name 'loadInput'")
 })
 
 it('rejects an inline callable property in CLI input parser dependencies', () => {

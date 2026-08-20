@@ -27,6 +27,7 @@ interface RoleConstraints<R extends string = string> {
   readonly forbiddenSupertypes?: readonly string[] | true
   readonly forbiddenDependencies?: readonly R[]
   readonly allowedDependencyRoles?: readonly R[]
+  readonly allowedCollaboratorRoles?: readonly R[]
   readonly allowsUnclassifiedInputs?: true
   readonly forbiddenImportedFunctionCalls?: true
   readonly forbiddenMethodCalls?: readonly R[]
@@ -123,6 +124,7 @@ export class BuiltRole<N extends string = string> {
   declare readonly forbiddenSupertypes?: readonly string[] | true
   declare readonly forbiddenDependencies?: readonly string[]
   declare readonly allowedDependencyRoles?: readonly string[]
+  declare readonly allowedCollaboratorRoles?: readonly string[]
   declare readonly allowsUnclassifiedInputs?: true
   declare readonly forbiddenImportedFunctionCalls?: true
   declare readonly forbiddenMethodCalls?: readonly string[]

@@ -1,7 +1,4 @@
-import type {
-  DraftComponentInput,
-  EnrichDraftComponentsInput,
-} from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components-input'
+import type { EnrichDraftComponentsInput } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components-input'
 
 /** @riviere-role command-input-factory-input */
 interface EnrichDraftComponentsFactoryInput {
@@ -18,12 +15,10 @@ interface EnrichDraftComponentsFactoryInput {
 export function createEnrichDraftComponentsInput(
   options: EnrichDraftComponentsFactoryInput,
   enrichPath: string,
-  draftComponents: readonly DraftComponentInput[] = [],
 ): EnrichDraftComponentsInput {
   return {
     allowIncomplete: options.allowIncomplete === true,
     configPath: options.config,
-    draftComponents,
     draftComponentsPath: enrichPath,
     includeConnections: !shouldStopAtDraftComponents(options),
     projectRoot: process.cwd(),

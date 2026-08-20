@@ -4,11 +4,14 @@ import { ConnectionDetectionError } from '@living-architecture/riviere-extract-t
 import type { EnrichDraftComponentsInput } from './enrich-draft-components-input'
 import type { EnrichDraftComponentsResult } from './enrich-draft-components-result'
 import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
-import { DraftComponent } from '@living-architecture/riviere-extract-ts-domain-model/domain/component-extraction/draft-component'
+import type { LoadDraftComponents } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-draft-components'
 
 /** @riviere-role command-use-case */
 export class EnrichDraftComponents {
-  constructor(private readonly riviereProjectRepository: RiviereProjectRepository) {}
+  constructor(
+    private readonly riviereProjectRepository: RiviereProjectRepository,
+    private readonly loadDraftComponents: LoadDraftComponents,
+  ) {}
 
   execute(enrichDraftComponentsInput: EnrichDraftComponentsInput): EnrichDraftComponentsResult {
     try {
@@ -20,9 +23,8 @@ export class EnrichDraftComponents {
 
       return {
         result: riviereProject.enrichDraftComponents({
-          draftComponents: (enrichDraftComponentsInput.draftComponents ?? []).map((component) =>
-            DraftComponent.parse(component),
-          ),
+          draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,
+          loadDraftComponents: this.loadDraftComponents,
           allowIncomplete: enrichDraftComponentsInput.allowIncomplete,
           includeConnections: enrichDraftComponentsInput.includeConnections,
         }),

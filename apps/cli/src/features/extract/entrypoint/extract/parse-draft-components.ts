@@ -2,7 +2,7 @@ import type { DraftComponentInput } from '@living-architecture/riviere-extract-t
 import { InvalidDraftComponentsFileError } from '../../../../infra/cli/presentation/extract-errors'
 
 /** @riviere-role entrypoint-cli-input-parser */
-export function loadDraftComponents(filePath: string, fileContents: string): DraftComponentInput[] {
+export function parseDraftComponents(filePath: string, fileContents: string): DraftComponentInput[] {
   const parsed = readDraftComponents(filePath, fileContents)
   if (!Array.isArray(parsed) || !parsed.every(isDraftComponentInput))
     throw new InvalidDraftComponentsFileError(

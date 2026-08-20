@@ -125,6 +125,7 @@ export default {
           }
           validateForbiddenDependencies()
           validateAllowedDependencyRoles()
+          validateAllowedCollaboratorRoles()
           validateForbiddenInlineDependencyImplementations()
           validateRequiredRoleDependencies()
           validateForbiddenImportedFunctionCalls()
@@ -608,6 +609,71 @@ export default {
           for (const statement of readAllImportStatements()) {
             reportDisallowedDependencyRoles(statement)
           }
+        }
+
+        function validateAllowedCollaboratorRoles() {
+          for (const statement of sourceCode.ast.body) {
+            const declaration = statement.type === 'ExportNamedDeclaration'
+              ? statement.declaration
+              : statement
+            if (declaration?.type === 'TSInterfaceDeclaration') {
+              validateInterfaceCollaboratorRoles(declaration, readRoleNames(sourceCode, statement))
+            }
+          }
+        }
+
+        function validateInterfaceCollaboratorRoles(statement, roleNames) {
+          for (const roleName of roleNames) {
+            const allowedRoles = roleMap.get(roleName)?.allowedCollaboratorRoles
+            if (Array.isArray(allowedRoles)) validateCollaboratorRoles(statement, roleName, allowedRoles)
+          }
+        }
+
+        function validateCollaboratorRoles(statement, roleName, allowedRoles) {
+          for (const member of statement.body.body) {
+            if (member.type === 'TSPropertySignature' && member.typeAnnotation !== undefined) {
+              validateCollaboratorRole(member, roleName, allowedRoles)
+            }
+          }
+        }
+
+        function validateCollaboratorRole(member, roleName, allowedRoles) {
+          if (!isCollaboratorType(member.typeAnnotation.typeAnnotation)) return
+          const collaboratorRole = readCollaboratorRole(member.typeAnnotation)
+          if (collaboratorRole !== null && allowedRoles.includes(collaboratorRole)) return
+          const memberName = readMemberName(member.key) ?? 'unknown'
+          const actualRole = collaboratorRole === null ? 'unclassified' : collaboratorRole
+          report(
+            member,
+            `Role '${roleName}' does not allow collaborator '${memberName}' with role '${actualRole}'. Allowed collaborator roles: [${allowedRoles.join(', ')}]. ${referenceForKnownRole(options, roleName)}`,
+          )
+        }
+
+        function isCollaboratorType(typeNode) {
+          if (typeNode.type === 'TSTypeQuery' || typeNode.type === 'TSFunctionType') return true
+          if (typeNode.type !== 'TSTypeReference' || typeNode.typeName.type !== 'Identifier') return false
+          return !['Array', 'ReadonlyArray', 'Record'].includes(typeNode.typeName.name)
+        }
+
+        function readCollaboratorRole(typeAnnotation) {
+          const typeNode = typeAnnotation.typeAnnotation
+          if (typeNode.type === 'TSTypeQuery' && typeNode.exprName.type === 'Identifier') {
+            const importedReference = readImportedReference(typeNode.exprName.name, filename)
+            return importedReference === null
+              ? readExportedRole(filename, typeNode.exprName.name)
+              : readExportedRole(importedReference.filePath, importedReference.exportedName)
+          }
+          if (typeNode.type !== 'TSTypeReference' || typeNode.typeName.type !== 'Identifier') {
+            return null
+          }
+          const typeArguments = typeNode.typeArguments?.params ?? typeNode.typeParameters?.params
+          if (typeNode.typeName.name === 'Pick' && Array.isArray(typeArguments) && typeArguments.length > 0) {
+            return readCollaboratorRole({ type: 'TSTypeAnnotation', typeAnnotation: typeArguments[0] })
+          }
+          const importedReference = readImportedReference(typeNode.typeName.name, filename)
+          return importedReference === null
+            ? readExportedRole(filename, typeNode.typeName.name)
+            : readExportedRole(importedReference.filePath, importedReference.exportedName)
         }
 
         function reportDisallowedDependencyRoles(statement) {
@@ -2124,7 +2190,7 @@ export default {
           }
           const escapedName = escapeRegExp(exportedName)
           const exportPattern = new RegExp(
-            String.raw`export\s+(?:interface|type|function|class)\s+${escapedName}\b`,
+            String.raw`export\s+(?:async\s+)?(?:interface|type|function|class)\s+${escapedName}\b`,
             'm',
           )
           const exportMatch = exportPattern.exec(sourceText)
@@ -2153,7 +2219,7 @@ export default {
 
           const escapedName = escapeRegExp(exportedName)
           const exportPattern = new RegExp(
-            String.raw`export\s+(?:interface|type|function|class)\s+${escapedName}\b`,
+            String.raw`export\s+(?:async\s+)?(?:interface|type|function|class)\s+${escapedName}\b`,
             'm',
           )
           const exportMatch = exportPattern.exec(sourceText)

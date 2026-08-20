@@ -80,7 +80,7 @@ function createDraft(
   module = domain,
   file = 'test.ts',
 ): DraftComponent {
-  return DraftComponent.parse({
+  return DraftComponent.parseOrThrow({
     domain,
     location: {
       file,

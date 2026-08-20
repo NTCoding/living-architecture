@@ -21,6 +21,7 @@ export class FinalizeGraph {
       return {
         result: {
           finalGraph: builder.build(),
+          outputPath: input.outputPath,
           success: true,
         },
       }

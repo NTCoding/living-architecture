@@ -56,7 +56,7 @@ describe('extractComponents', () => {
         createOrdersUseCaseConfig(),
       )
       expect(result).toStrictEqual([
-        DraftComponent.parse({
+        DraftComponent.parseOrThrow({
           type: 'useCase',
           name: 'CreateOrder',
           location: {
@@ -82,7 +82,7 @@ describe('extractComponents', () => {
       )
       const result = extract(project, [absolutePath], createOrdersUseCaseConfig())
       expect(result).toStrictEqual([
-        DraftComponent.parse({
+        DraftComponent.parseOrThrow({
           type: 'useCase',
           name: 'CreateOrder',
           location: {
@@ -108,7 +108,7 @@ describe('extractComponents', () => {
       )
       const result = extract(project, [absolutePath], createOrdersUseCaseConfig())
       expect(result).toStrictEqual([
-        DraftComponent.parse({
+        DraftComponent.parseOrThrow({
           type: 'useCase',
           name: 'CreateOrder',
           location: {
@@ -134,7 +134,7 @@ describe('extractComponents', () => {
       )
       const result = extract(project, [absolutePath], createOrdersUseCaseConfig())
       expect(result).toStrictEqual([
-        DraftComponent.parse({
+        DraftComponent.parseOrThrow({
           type: 'useCase',
           name: 'CreateOrder',
           location: {
@@ -178,7 +178,7 @@ describe('extractComponents', () => {
       })
       const result = extract(project, ['orders/domain/process-order.ts'], config)
       expect(result).toStrictEqual([
-        DraftComponent.parse({
+        DraftComponent.parseOrThrow({
           type: 'domainOp',
           name: 'processOrder',
           location: {
@@ -226,7 +226,7 @@ describe('extractComponents', () => {
         createOrdersUseCaseConfig(),
       )
       expect(result).toStrictEqual([
-        DraftComponent.parse({
+        DraftComponent.parseOrThrow({
           type: 'useCase',
           name: 'CreateOrder',
           location: {
@@ -255,7 +255,7 @@ describe('extractComponents', () => {
       })
       const result = extract(project, ['shipping/handlers/ship-order.ts'], config)
       expect(result).toStrictEqual([
-        DraftComponent.parse({
+        DraftComponent.parseOrThrow({
           type: 'eventHandler',
           name: 'ShipOrder',
           location: {
@@ -287,7 +287,7 @@ describe('extractComponents', () => {
       })
       const result = extract(project, ['shipping/jobs/tracking-update.ts'], config)
       expect(result).toStrictEqual([
-        DraftComponent.parse({
+        DraftComponent.parseOrThrow({
           type: 'backgroundJob',
           name: 'runTrackingUpdate',
           location: {
@@ -311,7 +311,7 @@ describe('extractComponents', () => {
       })
       const result = extract(project, ['orders/sagas/order-saga.ts'], config)
       expect(result).toStrictEqual([
-        DraftComponent.parse({
+        DraftComponent.parseOrThrow({
           type: 'saga',
           name: 'OrderSaga',
           location: {
@@ -344,7 +344,7 @@ describe('extractComponents', () => {
       })
       const result = extract(project, ['orders/policies/policy.ts'], config)
       expect(result).toStrictEqual([
-        DraftComponent.parse({
+        DraftComponent.parseOrThrow({
           type: 'policy',
           name: 'validateOrder',
           location: {

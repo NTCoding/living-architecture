@@ -42,7 +42,7 @@ function httpCallModule(extract: Record<string, ExtractionRule>): ValidatedModul
 }
 
 function httpCallDraft(file: string, line: number): DraftComponent {
-  return DraftComponent.parse({
+  return DraftComponent.parseOrThrow({
     type: 'httpCall',
     name: 'check',
     location: {
