@@ -7,7 +7,7 @@ import { parsePropertySpecs } from '../features/builder/entrypoint/define-custom
 import { parseStateChanges } from '../features/builder/entrypoint/enrich/enrichment-parser'
 import { parseSignature } from '../features/builder/entrypoint/enrich/signature-parser'
 import { parseLinkSourceLocation } from '../features/builder/entrypoint/link/link-source-location-options'
-import { parseFlagCombinations } from '../features/extract/entrypoint/extract/extract-validator'
+import { parseFlagCombinations } from '../features/extract/entrypoint/extract/parse-flag-combinations'
 import { createExtractDraftComponentsInput } from '../features/extract/entrypoint/extract/create-extract-draft-components-input'
 import { createEnrichDraftComponentsInput } from '../features/extract/entrypoint/extract/create-enrich-draft-components-input'
 import { exitWithCliError } from '../infra/cli/presentation/exit-with-cli-error'

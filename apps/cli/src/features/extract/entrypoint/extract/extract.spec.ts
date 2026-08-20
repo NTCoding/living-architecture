@@ -18,7 +18,7 @@ import {
 import type { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
 import type { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import { createExtractCommand } from './entrypoint'
-import { parseFlagCombinations } from './extract-validator'
+import { parseFlagCombinations } from './parse-flag-combinations'
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
 import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
 import {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
 import { createExtractCommand } from './entrypoint'
-import { parseFlagCombinations } from './extract-validator'
+import { parseFlagCombinations } from './parse-flag-combinations'
 import {
   dataAccessCliErrorCode,
   presentExtractionResult,

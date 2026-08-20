@@ -1,7 +1,7 @@
 import { Command } from 'commander'
 import { CliErrorCode, ExitCode } from '../../../../infra/cli/presentation/error-codes'
 import { exitWithCliError } from '../../../../infra/cli/presentation/exit-with-cli-error'
-import { parseFlagCombinations } from './extract-validator'
+import { parseFlagCombinations } from './parse-flag-combinations'
 import type { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import type { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
