@@ -9,6 +9,7 @@ import {
   setupCommandTest,
   type TestContext,
 } from '../../../../__fixtures__/command-test-fixtures'
+import { createValidExtractFixture } from '../../__fixtures__/extraction-test-fixtures'
 
 describe('riviere extract input validation', () => {
   const ctx: TestContext = createTestContext()
@@ -17,7 +18,13 @@ describe('riviere extract input validation', () => {
   it('returns validation error when an explicit source file is missing', async () => {
     await expect(
       parseCommandWithErrorHandling([
-        'node', 'riviere', 'extract', '--config', 'extract.yaml', '--files', 'missing.ts',
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        'extract.yaml',
+        '--files',
+        'missing.ts',
       ]),
     ).rejects.toMatchObject({ exitCode: 2 })
 
@@ -26,15 +33,26 @@ describe('riviere extract input validation', () => {
     expect(output.error.message).toContain('missing.ts')
   })
 
-  async function expectInvalidEnrichInput(fileName: string, content: string): Promise<void> {
+  async function expectInvalidEnrichInput(
+    fileName: string,
+    content: string,
+    exitCode = 2,
+  ): Promise<void> {
+    const configPath = await createValidExtractFixture(ctx.testDir)
     const enrichPath = join(ctx.testDir, fileName)
     await writeFile(enrichPath, content)
 
     await expect(
       parseCommandWithErrorHandling([
-        'node', 'riviere', 'extract', '--config', 'extract.yaml', '--enrich', enrichPath,
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        configPath,
+        '--enrich',
+        enrichPath,
       ]),
-    ).rejects.toMatchObject({ exitCode: 2 })
+    ).rejects.toMatchObject({ exitCode })
 
     const output = parseErrorOutput(ctx.consoleOutput)
     expect(output.error.code).toBe(CliErrorCode.ValidationError)
@@ -42,11 +60,18 @@ describe('riviere extract input validation', () => {
   }
 
   it('returns validation error when the enrich file is missing', async () => {
+    const configPath = await createValidExtractFixture(ctx.testDir)
     const enrichPath = join(ctx.testDir, 'missing.json')
 
     await expect(
       parseCommandWithErrorHandling([
-        'node', 'riviere', 'extract', '--config', 'extract.yaml', '--enrich', enrichPath,
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        configPath,
+        '--enrich',
+        enrichPath,
       ]),
     ).rejects.toMatchObject({ exitCode: 2 })
 

@@ -19,12 +19,15 @@ export class DraftComponent {
   readonly domain: string
   readonly module: string
 
-  static parse(params: unknown): { success: true; data: DraftComponent } | { success: false; error: string } {
-    if (!isDraftComponentParameters(params)) return { success: false, error: 'Invalid draft component' }
+  static parse(
+    params: unknown,
+  ): { success: true; data: DraftComponent } | { success: false; error: string } {
+    if (!isDraftComponentParameters(params))
+      return { success: false, error: 'Invalid draft component' }
     return { success: true, data: new DraftComponent(params) }
   }
 
-  static parseOrThrow(params: DraftComponentParameters): DraftComponent {
+  static parseOrThrow(params: unknown): DraftComponent {
     const result = DraftComponent.parse(params)
     if (!result.success) throw new InvalidDraftComponentError(result.error)
     return result.data
@@ -43,9 +46,15 @@ function isDraftComponentParameters(value: unknown): value is DraftComponentPara
   if (!isRecord(value)) return false
   const component = value
   const location = component['location']
-  return typeof component['type'] === 'string' && typeof component['name'] === 'string' &&
-    typeof component['domain'] === 'string' && typeof component['module'] === 'string' &&
-    isRecord(location) && typeof location['file'] === 'string' && typeof location['line'] === 'number'
+  return (
+    typeof component['type'] === 'string' &&
+    typeof component['name'] === 'string' &&
+    typeof component['domain'] === 'string' &&
+    typeof component['module'] === 'string' &&
+    isRecord(location) &&
+    typeof location['file'] === 'string' &&
+    typeof location['line'] === 'number'
+  )
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

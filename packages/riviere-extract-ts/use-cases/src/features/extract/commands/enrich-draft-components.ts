@@ -28,6 +28,9 @@ export class EnrichDraftComponents {
           allowIncomplete: enrichDraftComponentsInput.allowIncomplete,
           includeConnections: enrichDraftComponentsInput.includeConnections,
         }),
+        ...(enrichDraftComponentsInput.output === undefined
+          ? {}
+          : { outputPath: enrichDraftComponentsInput.output }),
       }
     } catch (error) {
       if (error instanceof ConnectionDetectionError) {

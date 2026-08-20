@@ -5,7 +5,7 @@ import type {
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
-import type { DraftComponent } from './component-extraction/draft-component'
+import { DraftComponent } from './component-extraction/draft-component'
 import { extractComponents, resolveModuleName } from './component-extraction/extractor'
 import { ConnectionTimings } from './connection-detection/connection-detection-values'
 import { detectConfiguredConnections } from './connection-detection/detect-configured-connections'
@@ -42,7 +42,11 @@ interface DraftComponentsFailureOutcome {
   message: string
 }
 
-type ExtractionOutcome = DraftOnlyOutcome | FullExtractionOutcome | FieldFailureOutcome | DraftComponentsFailureOutcome
+type ExtractionOutcome =
+  | DraftOnlyOutcome
+  | FullExtractionOutcome
+  | FieldFailureOutcome
+  | DraftComponentsFailureOutcome
 
 interface ModuleSource {
   files: readonly string[]
@@ -167,8 +171,25 @@ export class RiviereProject {
     includeConnections: boolean
   }): ExtractionOutcome {
     const loadedDraftComponents = options.loadDraftComponents(options.draftComponentsPath)
-    if (!loadedDraftComponents.success) return { kind: 'draftComponentsFailure', message: loadedDraftComponents.error }
-    const draftComponents = loadedDraftComponents.draftComponents
+    if (!loadedDraftComponents.success)
+      return { kind: 'draftComponentsFailure', message: loadedDraftComponents.error }
+    if (!Array.isArray(loadedDraftComponents.draftComponents)) {
+      return {
+        kind: 'draftComponentsFailure',
+        message: `Draft components file must contain an array: ${options.draftComponentsPath}`,
+      }
+    }
+    const draftComponents = []
+    for (const draftComponent of loadedDraftComponents.draftComponents) {
+      const parsedDraftComponent = DraftComponent.parse(draftComponent)
+      if (!parsedDraftComponent.success) {
+        return {
+          kind: 'draftComponentsFailure',
+          message: `${parsedDraftComponent.error}: ${options.draftComponentsPath}`,
+        }
+      }
+      draftComponents.push(parsedDraftComponent.data)
+    }
     if (!options.includeConnections) {
       return {
         kind: 'draftOnly',

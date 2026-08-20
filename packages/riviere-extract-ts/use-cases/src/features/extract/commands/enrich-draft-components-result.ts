@@ -52,6 +52,7 @@ interface EnrichDraftComponentsDataAccessFailureResult {
 
 /** @riviere-role command-use-case-result */
 export interface EnrichDraftComponentsResult {
+  readonly outputPath?: string
   readonly result:
     | EnrichDraftComponentsDraftOnlyResult
     | EnrichDraftComponentsFullResult

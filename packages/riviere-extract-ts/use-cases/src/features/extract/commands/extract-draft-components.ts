@@ -33,7 +33,13 @@ export class ExtractDraftComponents {
         allowIncomplete: extractDraftComponentsInput.allowIncomplete,
         includeConnections: extractDraftComponentsInput.includeConnections,
       })
-      return { result, warnings: selection.warnings }
+      return {
+        result,
+        warnings: selection.warnings,
+        ...(extractDraftComponentsInput.output === undefined
+          ? {}
+          : { outputPath: extractDraftComponentsInput.output }),
+      }
     } catch (error) {
       if (error instanceof ConnectionDetectionError) {
         return {

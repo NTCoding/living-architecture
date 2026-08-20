@@ -105,7 +105,6 @@ function createRiviereProject(
     modules?: string
     project: Project
   }>,
-  draftComponents: DraftComponent[] = [],
 ): RiviereProject {
   const configurationResult = ValidatedConfiguration.parse({
     modules: moduleContexts.map((context) => createModule(context.moduleName, context.modules)),
@@ -129,9 +128,21 @@ function createRiviereProject(
     resolvedConfig: configurationResult.data,
     moduleContexts: stageContexts,
   })
-  const projectResult = RiviereProject.parse({ stage, draftComponents })
+  const projectResult = RiviereProject.parse({ stage })
   assert(projectResult.success)
   return projectResult.data
+}
+
+function enrichDraftComponents(
+  project: RiviereProject,
+  draftComponents: readonly DraftComponent[],
+  options: { allowIncomplete: boolean; includeConnections: boolean },
+) {
+  return project.enrichDraftComponents({
+    ...options,
+    draftComponentsPath: 'draft-components.json',
+    loadDraftComponents: () => ({ success: true, draftComponents }),
+  })
 }
 
 describe('RiviereProject.enrichDraftComponents', () => {
@@ -160,17 +171,18 @@ describe('RiviereProject.enrichDraftComponents', () => {
         failures: [],
       })
 
-    const result = createRiviereProject(
-      [createModuleContext('orders'), createModuleContext('shipping')],
+    const result = enrichDraftComponents(
+      createRiviereProject([createModuleContext('orders'), createModuleContext('shipping')]),
       [
         createDraft('orders', 'CompA'),
         createDraft('orders', 'CompA2'),
         createDraft('shipping', 'CompB'),
       ],
-    ).enrichDraftComponents({
-      allowIncomplete: false,
-      includeConnections: true,
-    })
+      {
+        allowIncomplete: false,
+        includeConnections: true,
+      },
+    )
 
     assert(result.kind === 'full')
     expect(result.components).toHaveLength(2)
@@ -183,13 +195,14 @@ describe('RiviereProject.enrichDraftComponents', () => {
       failures: [],
     })
 
-    createRiviereProject(
-      [createModuleContext('orders'), createModuleContext('shipping')],
+    enrichDraftComponents(
+      createRiviereProject([createModuleContext('orders'), createModuleContext('shipping')]),
       [createDraft('orders', 'CompA'), createDraft('shipping', 'CompB')],
-    ).enrichDraftComponents({
-      allowIncomplete: false,
-      includeConnections: true,
-    })
+      {
+        allowIncomplete: false,
+        includeConnections: true,
+      },
+    )
 
     expect([
       {
@@ -217,13 +230,14 @@ describe('RiviereProject.enrichDraftComponents', () => {
         failures: [{ field: 'name' }, { field: 'type' }],
       })
 
-    const result = createRiviereProject(
-      [createModuleContext('orders'), createModuleContext('shipping')],
+    const result = enrichDraftComponents(
+      createRiviereProject([createModuleContext('orders'), createModuleContext('shipping')]),
       [createDraft('orders', 'A'), createDraft('shipping', 'B')],
-    ).enrichDraftComponents({
-      allowIncomplete: true,
-      includeConnections: true,
-    })
+      {
+        allowIncomplete: true,
+        includeConnections: true,
+      },
+    )
 
     assert(result.kind === 'full')
     expect(result.components).toHaveLength(0)
@@ -236,13 +250,14 @@ describe('RiviereProject.enrichDraftComponents', () => {
       failures: [],
     })
 
-    const result = createRiviereProject(
-      [createModuleContext('orders'), createModuleContext('empty')],
+    const result = enrichDraftComponents(
+      createRiviereProject([createModuleContext('orders'), createModuleContext('empty')]),
       [createDraft('orders', 'A')],
-    ).enrichDraftComponents({
-      allowIncomplete: false,
-      includeConnections: true,
-    })
+      {
+        allowIncomplete: false,
+        includeConnections: true,
+      },
+    )
 
     expect(mockEnrichComponents).toHaveBeenCalledTimes(1)
     assert(result.kind === 'full')
@@ -251,25 +266,27 @@ describe('RiviereProject.enrichDraftComponents', () => {
 
   it('throws OrphanedDraftComponentError when drafts reference unknown modules', () => {
     expect(() =>
-      createRiviereProject(
-        [createModuleContext('orders')],
+      enrichDraftComponents(
+        createRiviereProject([createModuleContext('orders')]),
         [createDraft('orders', 'A'), createDraft('unknown-module', 'B')],
-      ).enrichDraftComponents({
-        allowIncomplete: false,
-        includeConnections: true,
-      }),
+        {
+          allowIncomplete: false,
+          includeConnections: true,
+        },
+      ),
     ).toThrow(OrphanedDraftComponentError)
   })
 
   it('includes unexpected domains in orphan error message', () => {
     expect(() =>
-      createRiviereProject(
-        [createModuleContext('orders')],
+      enrichDraftComponents(
+        createRiviereProject([createModuleContext('orders')]),
         [createDraft('ghost', 'X')],
-      ).enrichDraftComponents({
-        allowIncomplete: false,
-        includeConnections: true,
-      }),
+        {
+          allowIncomplete: false,
+          includeConnections: true,
+        },
+      ),
     ).toThrow(
       'Draft components reference unexpected domains: [ghost]. Configured domains: [orders]',
     )
@@ -278,20 +295,21 @@ describe('RiviereProject.enrichDraftComponents', () => {
   it('groups configured submodule drafts under their parent module', () => {
     mockEnrichComponents.mockReturnValue({ components: [], failures: [] })
 
-    createRiviereProject(
-      [
+    enrichDraftComponents(
+      createRiviereProject([
         {
           files: ['src/checkout/test.ts'],
           moduleName: 'orders',
           modules: 'src/{module}/',
           project: new Project(),
         },
-      ],
+      ]),
       [createDraft('orders', 'CompA', 'checkout', 'src/checkout/test.ts')],
-    ).enrichDraftComponents({
-      allowIncomplete: false,
-      includeConnections: true,
-    })
+      {
+        allowIncomplete: false,
+        includeConnections: true,
+      },
+    )
 
     expect(mockEnrichComponents).toHaveBeenCalledWith(
       [createDraft('orders', 'CompA', 'checkout', 'src/checkout/test.ts')],
@@ -301,14 +319,60 @@ describe('RiviereProject.enrichDraftComponents', () => {
   })
 
   it('returns empty result when no drafts provided', () => {
-    const result = createRiviereProject([createModuleContext('orders')], []).enrichDraftComponents({
-      allowIncomplete: false,
-      includeConnections: true,
-    })
+    const result = enrichDraftComponents(
+      createRiviereProject([createModuleContext('orders')]),
+      [],
+      {
+        allowIncomplete: false,
+        includeConnections: true,
+      },
+    )
 
     assert(result.kind === 'full')
     expect(result.components).toStrictEqual([])
     expect(mockEnrichComponents).not.toHaveBeenCalled()
+  })
+
+  it('returns the port failure when draft components cannot be loaded', () => {
+    const result = createRiviereProject([createModuleContext('orders')]).enrichDraftComponents({
+      allowIncomplete: false,
+      draftComponentsPath: 'draft-components.json',
+      includeConnections: true,
+      loadDraftComponents: () => ({ success: false, error: 'Invalid draft components' }),
+    })
+
+    expect(result).toStrictEqual({
+      kind: 'draftComponentsFailure',
+      message: 'Invalid draft components',
+    })
+  })
+
+  it('rejects a draft components file whose root is not an array', () => {
+    const result = createRiviereProject([createModuleContext('orders')]).enrichDraftComponents({
+      allowIncomplete: false,
+      draftComponentsPath: 'draft-components.json',
+      includeConnections: true,
+      loadDraftComponents: () => ({ success: true, draftComponents: {} }),
+    })
+
+    expect(result).toStrictEqual({
+      kind: 'draftComponentsFailure',
+      message: 'Draft components file must contain an array: draft-components.json',
+    })
+  })
+
+  it('rejects an invalid draft component from the file', () => {
+    const result = createRiviereProject([createModuleContext('orders')]).enrichDraftComponents({
+      allowIncomplete: false,
+      draftComponentsPath: 'draft-components.json',
+      includeConnections: true,
+      loadDraftComponents: () => ({ success: true, draftComponents: [{}] }),
+    })
+
+    expect(result).toStrictEqual({
+      kind: 'draftComponentsFailure',
+      message: 'Invalid draft component: draft-components.json',
+    })
   })
 
   it('returns field failure when enrichment fails and incomplete is disabled', () => {
@@ -317,13 +381,14 @@ describe('RiviereProject.enrichDraftComponents', () => {
       failures: [{ field: 'name' }],
     })
 
-    const result = createRiviereProject(
-      [createModuleContext('orders')],
+    const result = enrichDraftComponents(
+      createRiviereProject([createModuleContext('orders')]),
       [createDraft('orders', 'A')],
-    ).enrichDraftComponents({
-      allowIncomplete: false,
-      includeConnections: true,
-    })
+      {
+        allowIncomplete: false,
+        includeConnections: true,
+      },
+    )
 
     expect(result).toStrictEqual({
       kind: 'fieldFailure',
@@ -332,13 +397,14 @@ describe('RiviereProject.enrichDraftComponents', () => {
   })
 
   it('returns draftOnly when includeConnections is false', () => {
-    const result = createRiviereProject(
-      [createModuleContext('orders')],
+    const result = enrichDraftComponents(
+      createRiviereProject([createModuleContext('orders')]),
       [createDraft('orders', 'CompA')],
-    ).enrichDraftComponents({
-      allowIncomplete: false,
-      includeConnections: false,
-    })
+      {
+        allowIncomplete: false,
+        includeConnections: false,
+      },
+    )
 
     assert(result.kind === 'draftOnly')
     expect(result.components).toHaveLength(1)

@@ -28,7 +28,6 @@ import {
 } from './present-extraction-result'
 import { exitWithCliError } from '../../../../infra/cli/presentation/exit-with-cli-error'
 import { parseSourceFileSelection } from './parse-source-file-selection'
-import { parseDraftComponents } from './parse-draft-components'
 
 const testDependencies = {
   extractDraftComponents: {
@@ -45,8 +44,6 @@ const testDependencies = {
   presentExtractionResult,
   presentExtractionWarnings,
   parseSourceFileSelection,
-  parseDraftComponents,
-  readFile: () => '',
 }
 
 vi.mock('../../../../infra/external-clients/git/git-repository-info', () => ({

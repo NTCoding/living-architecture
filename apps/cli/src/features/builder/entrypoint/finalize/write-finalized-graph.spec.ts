@@ -7,7 +7,9 @@ import { writeFinalizedGraph } from './write-finalized-graph'
 const directories: string[] = []
 
 afterEach(async () => {
-  await Promise.all(directories.splice(0).map((directory) => rm(directory, { force: true, recursive: true })))
+  await Promise.all(
+    directories.splice(0).map((directory) => rm(directory, { force: true, recursive: true })),
+  )
 })
 
 it('writes the successful command result to its output path', async () => {
@@ -24,4 +26,16 @@ it('writes the successful command result to its output path', async () => {
   })
 
   await expect(readFile(outputPath, 'utf8')).resolves.toContain('"components": []')
+})
+
+it('does nothing when the command result failed', async () => {
+  await expect(
+    writeFinalizedGraph({
+      result: {
+        code: 'GRAPH_NOT_FOUND',
+        message: 'No graph exists',
+        success: false,
+      },
+    }),
+  ).resolves.toBeUndefined()
 })

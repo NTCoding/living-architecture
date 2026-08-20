@@ -2,11 +2,9 @@ import { Command } from 'commander'
 import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
-import { collectOption } from '../_platform/cli/option-collectors'
 import { parseStateChanges } from './enrichment-parser'
 import { parseSignature } from './signature-parser'
 import type { EnrichComponent } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/enrich-component'
-
 interface EnrichOptions {
   id: string
   entity?: string
@@ -37,10 +35,7 @@ export function createEnrichCommand(
 ): Command {
   const { enrichComponent } = dependencies
   return new Command('enrich')
-    .description(
-      'Enrich a DomainOp component with semantic information. ' +
-        'Note: Enrichment is additive — running multiple times accumulates values.',
-    )
+    .description('Enrich a DomainOp component with semantic information.')
     .addHelpText(
       'after',
       `
@@ -54,23 +49,46 @@ Examples:
       --validates "items.length > 0" \\
       --modifies "this.state <- Placed" \\
       --emits "OrderPlaced event"
-
-  $ riviere builder enrich \\
-      --id "payments:gateway:domainop:paymentprocess" \\
-      --state-change "Pending:Processing" \\
-      --reads "amount parameter" \\
-      --validates "amount > 0" \\
-      --modifies "this.status <- Processing"
 `,
     )
     .requiredOption('--id <component-id>', 'Component ID to enrich')
     .option('--entity <name>', 'Entity name')
-    .option('--state-change <from:to>', 'State transition (repeatable)', collectOption, [])
-    .option('--business-rule <rule>', 'Business rule (repeatable)', collectOption, [])
-    .option('--reads <value>', 'What the operation reads (repeatable)', collectOption, [])
-    .option('--validates <value>', 'What the operation validates (repeatable)', collectOption, [])
-    .option('--modifies <value>', 'What the operation modifies (repeatable)', collectOption, [])
-    .option('--emits <value>', 'What the operation emits (repeatable)', collectOption, [])
+    .option(
+      '--state-change <from:to>',
+      'State transition (repeatable)',
+      (value, previous: string[]) => [...previous, value],
+      [],
+    )
+    .option(
+      '--business-rule <rule>',
+      'Business rule (repeatable)',
+      (value, previous: string[]) => [...previous, value],
+      [],
+    )
+    .option(
+      '--reads <value>',
+      'What the operation reads (repeatable)',
+      (value, previous: string[]) => [...previous, value],
+      [],
+    )
+    .option(
+      '--validates <value>',
+      'What the operation validates (repeatable)',
+      (value, previous: string[]) => [...previous, value],
+      [],
+    )
+    .option(
+      '--modifies <value>',
+      'What the operation modifies (repeatable)',
+      (value, previous: string[]) => [...previous, value],
+      [],
+    )
+    .option(
+      '--emits <value>',
+      'What the operation emits (repeatable)',
+      (value, previous: string[]) => [...previous, value],
+      [],
+    )
     .option(
       '--signature <dsl>',
       'Operation signature (e.g., "orderId:string, amount:number -> Order")',
@@ -84,7 +102,6 @@ Examples:
         console.log(JSON.stringify(dependencies.formatError(CliErrorCode.ValidationError, msg, [])))
         return
       }
-
       const signatureResult =
         options.signature === undefined ? undefined : dependencies.parseSignature(options.signature)
       if (signatureResult !== undefined && !signatureResult.success) {
@@ -97,7 +114,6 @@ Examples:
       }
       const parsedSignature =
         signatureResult?.success === true ? signatureResult.signature : undefined
-
       const result = enrichComponent.execute({
         businessRules: options.businessRule,
         entity: options.entity,
@@ -118,7 +134,6 @@ Examples:
           INVALID_COMPONENT_TYPE: CliErrorCode.InvalidComponentType,
         } as const
         const errorCode = errorCodeByResult[result.result.code]
-
         console.log(
           JSON.stringify(
             dependencies.formatError(errorCode, result.result.message, result.result.suggestions),
@@ -126,7 +141,6 @@ Examples:
         )
         return
       }
-
       if (options.json === true) {
         console.log(
           JSON.stringify(dependencies.formatSuccess({ componentId: result.result.componentId })),

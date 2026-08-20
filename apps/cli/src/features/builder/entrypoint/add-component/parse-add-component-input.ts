@@ -47,7 +47,7 @@ interface AddComponentCommandInput {
 }
 
 /** @riviere-role entrypoint-cli-input-parser */
-export function toAddComponentInput(options: AddComponentOptions): AddComponentCommandInput {
+export function parseAddComponentInput(options: AddComponentOptions): AddComponentCommandInput {
   return {
     ...withOptional('apiType', options.apiType),
     componentType: options.type,

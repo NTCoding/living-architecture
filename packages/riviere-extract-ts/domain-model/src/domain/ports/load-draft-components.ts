@@ -1,9 +1,6 @@
-import type { DraftComponent } from '../component-extraction/draft-component'
-
 /** @riviere-role domain-port */
-export type LoadDraftComponents = (path: string) => DraftComponentsLoadResult
-
-/** @riviere-role domain-port */
-export type DraftComponentsLoadResult =
-  | { readonly success: true; readonly draftComponents: readonly DraftComponent[] }
+export type LoadDraftComponents = (
+  path: string,
+) =>
+  | { readonly success: true; readonly draftComponents: unknown }
   | { readonly success: false; readonly error: string }

@@ -34,7 +34,10 @@ describe('enrichDraftComponents', () => {
   })
 
   it('returns draft-only results when connections are disabled', () => {
-    const result = new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
+    const result = new EnrichDraftComponents(
+      new RiviereProjectRepository(),
+      mocks.loadDraftComponentsMock,
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -57,7 +60,10 @@ describe('enrichDraftComponents', () => {
   })
 
   it('passes the path and domain port to the aggregate', () => {
-    new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
+    new EnrichDraftComponents(
+      new RiviereProjectRepository(),
+      mocks.loadDraftComponentsMock,
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -73,8 +79,30 @@ describe('enrichDraftComponents', () => {
     )
   })
 
+  it('returns the requested output path with a successful result', () => {
+    const result = new EnrichDraftComponents(
+      new RiviereProjectRepository(),
+      mocks.loadDraftComponentsMock,
+    ).execute({
+      allowIncomplete: false,
+      configPath: 'config.yml',
+      draftComponentsPath: 'draft.json',
+      includeConnections: false,
+      output: 'enriched.json',
+      useTsConfig: true,
+    })
+
+    expect(result).toStrictEqual({
+      outputPath: 'enriched.json',
+      result: { components: [{ name: 'Draft' }], kind: 'draftOnly' },
+    })
+  })
+
   it('does not put draft components in command input', () => {
-    new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
+    new EnrichDraftComponents(
+      new RiviereProjectRepository(),
+      mocks.loadDraftComponentsMock,
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -93,10 +121,12 @@ describe('enrichDraftComponents', () => {
       failedFields: ['fieldA'],
     })
 
-    const result = new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
+    const result = new EnrichDraftComponents(
+      new RiviereProjectRepository(),
+      mocks.loadDraftComponentsMock,
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
-      draftComponents: [],
       draftComponentsPath: 'draft.json',
       includeConnections: true,
       useTsConfig: true,
@@ -115,10 +145,12 @@ describe('enrichDraftComponents', () => {
       throw new ExtractionConfigError('VALIDATION_ERROR', 'Invalid extraction config')
     })
 
-    const result = new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
+    const result = new EnrichDraftComponents(
+      new RiviereProjectRepository(),
+      mocks.loadDraftComponentsMock,
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
-      draftComponents: [],
       draftComponentsPath: 'draft.json',
       includeConnections: true,
       useTsConfig: true,
@@ -143,10 +175,12 @@ describe('enrichDraftComponents', () => {
       })
     })
 
-    const result = new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
+    const result = new EnrichDraftComponents(
+      new RiviereProjectRepository(),
+      mocks.loadDraftComponentsMock,
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
-      draftComponents: [],
       draftComponentsPath: 'draft.json',
       includeConnections: true,
       useTsConfig: true,
@@ -165,10 +199,12 @@ describe('enrichDraftComponents', () => {
       throw new ExtractionDataAccessError('FILE_READ_ERROR', 'Could not read draft components')
     })
 
-    const result = new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
+    const result = new EnrichDraftComponents(
+      new RiviereProjectRepository(),
+      mocks.loadDraftComponentsMock,
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
-      draftComponents: [],
       draftComponentsPath: 'draft.json',
       includeConnections: true,
       useTsConfig: true,
@@ -189,10 +225,12 @@ describe('enrichDraftComponents', () => {
     })
 
     expect(() =>
-      new EnrichDraftComponents(new RiviereProjectRepository(), mocks.loadDraftComponentsMock).execute({
+      new EnrichDraftComponents(
+        new RiviereProjectRepository(),
+        mocks.loadDraftComponentsMock,
+      ).execute({
         allowIncomplete: false,
         configPath: 'config.yml',
-        draftComponents: [],
         draftComponentsPath: 'draft.json',
         includeConnections: true,
         useTsConfig: true,

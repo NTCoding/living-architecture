@@ -1,6 +1,3 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
@@ -12,7 +9,6 @@ import {
   presentExtractionWarnings,
 } from './present-extraction-result'
 import { parseSourceFileSelection } from './parse-source-file-selection'
-import { parseDraftComponents } from './parse-draft-components'
 import { exitWithCliError } from '../../../../infra/cli/presentation/exit-with-cli-error'
 
 const testDependencies = {
@@ -24,8 +20,6 @@ const testDependencies = {
   presentExtractionResult,
   presentExtractionWarnings,
   parseSourceFileSelection,
-  parseDraftComponents,
-  readFile: () => '',
 }
 
 class UnexpectedExtractError extends Error {
@@ -59,26 +53,17 @@ describe('create command inputs', () => {
     })
   })
 
-  it('creates enrich draft input from parsed components', async () => {
-    const draftDirectory = await mkdtemp(join(tmpdir(), 'riviere-cli-'))
-    try {
-      const draftPath = join(draftDirectory, 'draft.json')
-      await writeFile(draftPath, '[]')
-
-      expect(
-        createEnrichDraftComponentsInput({ config: 'config.yml', tsConfig: false }, draftPath),
-      ).toStrictEqual({
-        allowIncomplete: false,
-        configPath: 'config.yml',
-        draftComponents: [],
-        draftComponentsPath: draftPath,
-        includeConnections: true,
-        projectRoot: process.cwd(),
-        useTsConfig: false,
-      })
-    } finally {
-      await rm(draftDirectory, { recursive: true, force: true })
-    }
+  it('creates enrich draft input with the draft components path', () => {
+    expect(
+      createEnrichDraftComponentsInput({ config: 'config.yml', tsConfig: false }, 'draft.json'),
+    ).toStrictEqual({
+      allowIncomplete: false,
+      configPath: 'config.yml',
+      draftComponentsPath: 'draft.json',
+      includeConnections: true,
+      projectRoot: process.cwd(),
+      useTsConfig: false,
+    })
   })
 
   it('rethrows unknown extract execution errors', async () => {

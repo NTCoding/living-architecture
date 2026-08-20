@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../infra/cli/presentation/graph-path-option'
-import { toAddComponentInput } from '../features/builder/entrypoint/add-component/add-component-options'
+import { parseAddComponentInput } from '../features/builder/entrypoint/add-component/parse-add-component-input'
 import { formatError, formatSuccess } from '../infra/cli/presentation/output'
 import { getAddComponentHints } from '../infra/cli/presentation/add-component-hints'
 import { parsePropertySpecs } from '../features/builder/entrypoint/define-custom-type/custom-type-parser'
@@ -139,7 +139,7 @@ export function createProgram(): Command {
     createAddComponentCommand({
       addComponent: new AddComponent(builderRepository),
       getDefaultGraphPathDescription,
-      toAddComponentInput,
+      parseAddComponentInput,
       formatError,
       getAddComponentHints,
       formatSuccess,

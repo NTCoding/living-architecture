@@ -53,7 +53,12 @@ describe('RiviereProject source invariants', () => {
 
   it('rejects enrichment when a parsed project loses its module source', () => {
     expectMissingSource((project) =>
-      project.enrichDraftComponents({ allowIncomplete: true, includeConnections: true }),
+      project.enrichDraftComponents({
+        allowIncomplete: true,
+        draftComponentsPath: 'draft-components.json',
+        loadDraftComponents: () => ({ success: true, draftComponents: [] }),
+        includeConnections: true,
+      }),
     )
   })
 })
@@ -63,14 +68,28 @@ describe('RiviereProject.parse', () => {
     const configurationResult = ValidatedConfiguration.parse({
       modules: [
         {
-          api: { notUsed: true }, domain: 'orders', domainOp: { notUsed: true },
-          event: { notUsed: true }, eventHandler: { notUsed: true }, glob: '**/*.ts',
-          name: 'orders', path: 'orders', ui: { notUsed: true }, useCase: { notUsed: true },
+          api: { notUsed: true },
+          domain: 'orders',
+          domainOp: { notUsed: true },
+          event: { notUsed: true },
+          eventHandler: { notUsed: true },
+          glob: '**/*.ts',
+          name: 'orders',
+          path: 'orders',
+          ui: { notUsed: true },
+          useCase: { notUsed: true },
         },
         {
-          api: { notUsed: true }, domain: 'billing', domainOp: { notUsed: true },
-          event: { notUsed: true }, eventHandler: { notUsed: true }, glob: '**/*.ts',
-          name: 'billing', path: 'billing', ui: { notUsed: true }, useCase: { notUsed: true },
+          api: { notUsed: true },
+          domain: 'billing',
+          domainOp: { notUsed: true },
+          event: { notUsed: true },
+          eventHandler: { notUsed: true },
+          glob: '**/*.ts',
+          name: 'billing',
+          path: 'billing',
+          ui: { notUsed: true },
+          useCase: { notUsed: true },
         },
       ],
     })
@@ -80,7 +99,10 @@ describe('RiviereProject.parse', () => {
     assert(orders)
     assert(billing)
     const stage = ExtractionStage.parse({
-      name: 'test', configPath: 'config.yml', useTsConfig: false, repositoryName: 'test-repo',
+      name: 'test',
+      configPath: 'config.yml',
+      useTsConfig: false,
+      repositoryName: 'test-repo',
       resolvedConfig: configurationResult.data,
       moduleContexts: [
         { module: orders, project: new Project(), files: [] },

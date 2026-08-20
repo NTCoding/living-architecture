@@ -58,10 +58,7 @@ export function createExtractCommand(
                 ),
               )
             : dependencies.enrichDraftComponents.execute(
-                dependencies.createEnrichDraftComponentsInput(
-                  options,
-                  options.enrich,
-                ),
+                dependencies.createEnrichDraftComponentsInput(options, options.enrich),
               )
         } catch (error) {
           if (!(error instanceof Error)) throw error
@@ -130,7 +127,7 @@ export function createExtractCommand(
         )
       }
 
-      if (options.enrich === undefined) dependencies.presentExtractionWarnings(result.warnings)
-      dependencies.presentExtractionResult(result.result, options)
+      if ('warnings' in result) dependencies.presentExtractionWarnings(result.warnings)
+      dependencies.presentExtractionResult(result, options)
     })
 }
