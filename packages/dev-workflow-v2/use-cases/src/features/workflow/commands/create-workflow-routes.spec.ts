@@ -158,8 +158,8 @@ describe('CreateWorkflowRoutes', () => {
     const argument = stateArgument(routes)
 
     expect({
-      valid: argument.parse('IMPLEMENTING'),
-      invalid: argument.parse('NOT_A_STATE').ok,
+      valid: argument.parse(['IMPLEMENTING'], 0, 'transition'),
+      invalid: argument.parse(['NOT_A_STATE'], 0, 'transition').ok,
     }).toStrictEqual({
       valid: { ok: true, value: 'IMPLEMENTING' },
       invalid: false,
