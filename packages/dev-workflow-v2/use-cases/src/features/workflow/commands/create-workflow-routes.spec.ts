@@ -13,11 +13,21 @@ const workflowResult: ReturnType<Workflow['executeRecording']> = { pass: true }
 
 class UnexpectedRouteError extends Error {}
 
+interface RouteCalls {
+  recordIssue: unknown[][]
+  recordBranch: unknown[][]
+  recordPullRequest: unknown[][]
+  createPullRequest: unknown[][]
+  recordCiPassed: unknown[][]
+  recordCiFailed: unknown[][]
+  verifyFeedbackAddressed: unknown[][]
+}
+
 function createInput(): {
   input: CreateWorkflowRoutesInput
-  calls: Record<string, unknown[][]>
+  calls: RouteCalls
 } {
-  const calls: Record<string, unknown[][]> = {
+  const calls: RouteCalls = {
     recordIssue: [],
     recordBranch: [],
     recordPullRequest: [],
@@ -100,7 +110,7 @@ function transactionHandler(routes: CreateWorkflowRoutesResult['routes'], name: 
 }
 
 function stateArgument(routes: CreateWorkflowRoutesResult['routes']) {
-  const transition = routes.transition
+  const transition = routes['transition']
   if (transition?.type !== 'transition') {
     throw new UnexpectedRouteError('Expected transition route')
   }
@@ -132,8 +142,8 @@ describe('CreateWorkflowRoutes', () => {
       'verify-feedback-addressed',
     ])
 
-    expect(routes.init).toStrictEqual({ type: 'session-start' })
-    expect(routes.transition?.type).toBe('transition')
+    expect(routes['init']).toStrictEqual({ type: 'session-start' })
+    expect(routes['transition']?.type).toBe('transition')
   })
 
   it('binds the authoritative workflow state schema to the transition argument', () => {
@@ -147,8 +157,13 @@ describe('CreateWorkflowRoutes', () => {
     const { routes } = createWorkflowRoutes.execute(input)
     const argument = stateArgument(routes)
 
-    expect(argument.parse('IMPLEMENTING')).toBe('IMPLEMENTING')
-    expect(() => argument.parse('NOT_A_STATE')).toThrow('Invalid')
+    expect({
+      valid: argument.parse('IMPLEMENTING'),
+      invalid: argument.parse('NOT_A_STATE').ok,
+    }).toStrictEqual({
+      valid: { ok: true, value: 'IMPLEMENTING' },
+      invalid: false,
+    })
   })
 
   it('delegates every transaction route to its corresponding callback', () => {
@@ -166,9 +181,9 @@ describe('CreateWorkflowRoutes', () => {
     transactionHandler(routes, 'record-branch')(workflow, 'branch')
     transactionHandler(routes, 'record-pr')(workflow, 1, undefined)
     transactionHandler(routes, 'create-pr')(workflow, [])
-    transactionHandler(routes, 'record-ci-passed')(workflow)
+    transactionHandler(routes, 'record-ci-passed')(workflow, undefined, undefined)
     transactionHandler(routes, 'record-ci-failed')(workflow, 'output')
-    transactionHandler(routes, 'verify-feedback-addressed')(workflow)
+    transactionHandler(routes, 'verify-feedback-addressed')(workflow, undefined, undefined)
 
     expect({
       recordIssue: calls.recordIssue,
