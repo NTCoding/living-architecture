@@ -1,4 +1,4 @@
-import { arg, defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
+import type { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
 import { CreatePullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-pull-request'
 import { RecordBranch } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-branch'
 import { RecordCiFailed } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-ci-failed'
@@ -6,78 +6,38 @@ import { RecordCiPassed } from '@living-architecture/dev-workflow-v2-use-cases/c
 import { RecordIssue } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-issue'
 import { RecordPullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-pull-request'
 import { VerifyFeedbackAddressed } from '@living-architecture/dev-workflow-v2-use-cases/commands/verify-feedback-addressed'
-import type { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
-
-type RoutedWorkflow = ConstructorParameters<typeof RecordIssue>[0]
-type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
+import {
+  parseNumberArgument,
+  parseOptionalStringArgument,
+  parseStringArgument,
+  parseStringArguments,
+} from './workflow-route-inputs'
 
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateWorkflowRoutesEntrypointDependencies {
-  readonly stateNameSchemaProvider: ZodSchemaProvider<string>
-  readonly defineRoutes: typeof defineRoutes
-  readonly parseNumberArgument: (value: unknown) => number
-  readonly parseStringArgument: (value: unknown) => string
-  readonly parseOptionalStringArgument: (value: unknown) => string | undefined
-  readonly parseStringArguments: (value: unknown) => readonly string[]
+  readonly createWorkflowRoutes: CreateWorkflowRoutes
+  readonly parseNumberArgument: typeof parseNumberArgument
+  readonly parseStringArgument: typeof parseStringArgument
+  readonly parseOptionalStringArgument: typeof parseOptionalStringArgument
+  readonly parseStringArguments: typeof parseStringArguments
 }
 
 /** @riviere-role cli-entrypoint */
 export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypointDependencies) {
-  const stateNameSchema = dependencies.stateNameSchemaProvider.getSchema()
-  return dependencies.defineRoutes<RoutedWorkflow, RoutedWorkflowState>({
-    init: { type: 'session-start' },
-    transition: {
-      type: 'transition',
-      args: [arg.state('STATE', stateNameSchema)],
-    },
-    'record-issue': {
-      type: 'transaction',
-      args: [arg.number('number')],
-      handler: (workflow, issueNumber) =>
-        new RecordIssue(workflow).execute({
-          issueNumber: dependencies.parseNumberArgument(issueNumber),
-        }).result,
-    },
-    'record-branch': {
-      type: 'transaction',
-      args: [arg.string('branch')],
-      handler: (workflow, branch) =>
-        new RecordBranch(workflow).execute({ branch: dependencies.parseStringArgument(branch) })
-          .result,
-    },
-    'record-pr': {
-      type: 'transaction',
-      args: [arg.number('number'), arg.string('url').optional()],
-      handler: (workflow, number, url) =>
-        new RecordPullRequest(workflow).execute({
-          number: dependencies.parseNumberArgument(number),
-          url: dependencies.parseOptionalStringArgument(url),
-        }).result,
-    },
-    'create-pr': {
-      type: 'transaction',
-      args: [arg.rest()],
-      handler: (workflow, args) =>
-        new CreatePullRequest(workflow).execute({
-          arguments: dependencies.parseStringArguments(args),
-        }).result,
-    },
-    'record-ci-passed': {
-      type: 'transaction',
-      args: [],
-      handler: (workflow) => new RecordCiPassed(workflow).execute({}).result,
-    },
-    'record-ci-failed': {
-      type: 'transaction',
-      args: [arg.string('output')],
-      handler: (workflow, output) =>
-        new RecordCiFailed(workflow).execute({ output: dependencies.parseStringArgument(output) })
-          .result,
-    },
-    'verify-feedback-addressed': {
-      type: 'transaction',
-      args: [],
-      handler: (workflow) => new VerifyFeedbackAddressed(workflow).execute({}).result,
-    },
-  })
+  return dependencies.createWorkflowRoutes.execute({
+    parseNumberArgument: dependencies.parseNumberArgument,
+    parseStringArgument: dependencies.parseStringArgument,
+    parseOptionalStringArgument: dependencies.parseOptionalStringArgument,
+    parseStringArguments: dependencies.parseStringArguments,
+    recordIssue: (workflow, issueNumber) =>
+      new RecordIssue(workflow).execute({ issueNumber }).result,
+    recordBranch: (workflow, branch) => new RecordBranch(workflow).execute({ branch }).result,
+    recordPullRequest: (workflow, number, url) =>
+      new RecordPullRequest(workflow).execute({ number, url }).result,
+    createPullRequest: (workflow, args) =>
+      new CreatePullRequest(workflow).execute({ arguments: args }).result,
+    recordCiPassed: (workflow) => new RecordCiPassed(workflow).execute({}).result,
+    recordCiFailed: (workflow, output) => new RecordCiFailed(workflow).execute({ output }).result,
+    verifyFeedbackAddressed: (workflow) => new VerifyFeedbackAddressed(workflow).execute({}).result,
+  }).routes
 }
