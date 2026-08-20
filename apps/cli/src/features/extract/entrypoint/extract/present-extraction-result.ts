@@ -6,19 +6,19 @@ import {
 } from './format-extraction-stats'
 import { formatDryRunOutput } from './extract-output-formatter'
 import { formatPrMarkdown } from '../../../../infra/cli/presentation/format-pr-markdown'
-import { formatSuccess } from '../../../../infra/cli/presentation/output'
-import { outputResult } from '../../../../infra/cli/presentation/output-writer'
+import {
+  outputEnrichDraftComponentsResult,
+  outputExtractDraftComponentsResult,
+} from './output-writer'
 import type { EnrichDraftComponentsResult } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components-result'
 import type { ExtractDraftComponentsResult } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components-result'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 
-type ExtractionResult =
-  | ExtractDraftComponentsResult['result']
-  | EnrichDraftComponentsResult['result']
+type ExtractionCommandResult = ExtractDraftComponentsResult | EnrichDraftComponentsResult
+type ExtractionResult = ExtractionCommandResult['result']
 type ExtractionPresentationOptions = {
   dryRun?: boolean
   format?: string
-  output?: string
   stats?: boolean
 }
 
@@ -37,12 +37,18 @@ export function dataAccessCliErrorCode(
 }
 
 /** @riviere-role cli-output-formatter */
+export function presentExtractionWarnings(warnings: readonly string[]): void {
+  for (const warning of warnings) console.error(warning)
+}
+
+/** @riviere-role cli-output-formatter */
 export function presentExtractionResult(
-  result: ExtractionResult,
+  commandResult: ExtractionCommandResult,
   options: ExtractionPresentationOptions,
 ): void {
+  const result = commandResult.result
   if (result.kind === 'draftOnly') {
-    presentDraftResult(result.components, options)
+    presentDraftResult(result, commandResult, options)
     return
   }
 
@@ -55,13 +61,15 @@ export function presentExtractionResult(
     return
   }
 
-  presentFullResult(result, options)
+  presentFullResult(result, commandResult, options)
 }
 
 function presentDraftResult(
-  components: Extract<ExtractionResult, { kind: 'draftOnly' }>['components'],
+  result: Extract<ExtractionResult, { kind: 'draftOnly' }>,
+  commandResult: ExtractionCommandResult,
   options: ExtractionPresentationOptions,
 ): void {
+  const { components } = result
   /* v8 ignore start -- @preserve: dry-run tested via CLI integration */
   if (options.dryRun) {
     for (const line of formatDryRunOutput(components)) {
@@ -77,11 +85,12 @@ function presentDraftResult(
     return
   }
 
-  outputResult(formatSuccess(components), createOutputOptions(options.output))
+  outputExtractionResult(commandResult)
 }
 
 function presentFullResult(
   result: Extract<ExtractionResult, { kind: 'full' }>,
+  commandResult: ExtractionCommandResult,
   options: ExtractionPresentationOptions,
 ): void {
   if (result.failedFields.length > 0) {
@@ -100,16 +109,13 @@ function presentFullResult(
     }
   }
 
-  outputResult(
-    formatSuccess({
-      components: result.components,
-      links: result.links,
-      externalLinks: result.externalLinks,
-    }),
-    createOutputOptions(options.output),
-  )
+  outputExtractionResult(commandResult)
 }
 
-function createOutputOptions(outputPath: string | undefined): { output?: string } {
-  return outputPath === undefined ? {} : { output: outputPath }
+function outputExtractionResult(commandResult: ExtractionCommandResult): void {
+  if ('warnings' in commandResult) {
+    outputExtractDraftComponentsResult(commandResult)
+    return
+  }
+  outputEnrichDraftComponentsResult(commandResult)
 }

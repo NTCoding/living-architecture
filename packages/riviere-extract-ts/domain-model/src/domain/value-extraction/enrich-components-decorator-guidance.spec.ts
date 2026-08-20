@@ -36,7 +36,7 @@ function createBaseModule(extract: Record<string, ExtractionRule>): ValidatedMod
 }
 
 function createDraft(file: string): DraftComponent {
-  return DraftComponent.parse({
+  return DraftComponent.parseOrThrow({
     type: 'api',
     name: 'FraudClient',
     location: {
@@ -89,7 +89,7 @@ export class FraudClient {}`,
   })
 
   it('preserves source-file-not-found error for fromDecoratorArg', () => {
-    const missingDraft = DraftComponent.parse({
+    const missingDraft = DraftComponent.parseOrThrow({
       type: 'api',
       name: 'MissingFileComponent',
       location: {

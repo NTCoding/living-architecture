@@ -1,30 +1,49 @@
-import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
-import { ExtractionConfigError } from '../data-access/extraction-project/extraction-config-error'
+import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
+import { ExtractionConfigError } from '../data-access/riviere-project/riviere-config-error'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-error'
 import type { ExtractDraftComponentsInput } from './extract-draft-components-input'
 import type { ExtractDraftComponentsResult } from './extract-draft-components-result'
-import { ExtractionDataAccessError } from '../data-access/extraction-project/extraction-project-error'
+import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
+import type { FindChangedSourceFiles } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/find-changed-source-files'
+import type { FindSpecifiedSourceFiles } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/find-specified-source-files'
+import { resolveSourceFileSelection } from '@living-architecture/riviere-extract-ts-domain-model/domain/resolve-source-file-selection'
 
 /** @riviere-role command-use-case */
 export class ExtractDraftComponents {
-  constructor(private readonly extractionProjectRepository: ExtractionProjectRepository) {}
+  constructor(
+    private readonly riviereProjectRepository: RiviereProjectRepository,
+    private readonly findChangedSourceFiles: FindChangedSourceFiles,
+    private readonly findSpecifiedSourceFiles: FindSpecifiedSourceFiles,
+  ) {}
 
   execute(extractDraftComponentsInput: ExtractDraftComponentsInput): ExtractDraftComponentsResult {
     try {
-      const extractionProject = loadProjectFromInput(
-        this.extractionProjectRepository,
+      const selection = resolveSourceFileSelection(
+        extractDraftComponentsInput.sourceFileSelectionRequest,
+        this.findChangedSourceFiles,
+        this.findSpecifiedSourceFiles,
+      )
+      const riviereProject = loadProjectFromInput(
+        this.riviereProjectRepository,
         extractDraftComponentsInput,
       )
 
+      const result = riviereProject.extractDraftComponents({
+        sourceFileSelection: selection.sourceFileSelection,
+        allowIncomplete: extractDraftComponentsInput.allowIncomplete,
+        includeConnections: extractDraftComponentsInput.includeConnections,
+      })
       return {
-        result: extractionProject.extractDraftComponents({
-          allowIncomplete: extractDraftComponentsInput.allowIncomplete,
-          includeConnections: extractDraftComponentsInput.includeConnections,
-        }),
+        result,
+        warnings: selection.warnings,
+        ...(extractDraftComponentsInput.output === undefined
+          ? {}
+          : { outputPath: extractDraftComponentsInput.output }),
       }
     } catch (error) {
       if (error instanceof ConnectionDetectionError) {
         return {
+          warnings: [],
           result: {
             kind: 'connectionDetectionFailure',
             message: `${error.file}:${error.line}: ${error.reason} — ${error.typeName}`,
@@ -33,6 +52,7 @@ export class ExtractDraftComponents {
       }
       if (error instanceof ExtractionConfigError) {
         return {
+          warnings: [],
           result: {
             code: error.code,
             kind: 'configFailure',
@@ -41,7 +61,10 @@ export class ExtractDraftComponents {
         }
       }
       if (error instanceof ExtractionDataAccessError) {
-        return { result: { code: error.code, kind: 'dataAccessFailure', message: error.message } }
+        return {
+          warnings: [],
+          result: { code: error.code, kind: 'dataAccessFailure', message: error.message },
+        }
       }
       throw error
     }
@@ -49,28 +72,11 @@ export class ExtractDraftComponents {
 }
 
 function loadProjectFromInput(
-  extractionProjectRepository: ExtractionProjectRepository,
+  riviereProjectRepository: RiviereProjectRepository,
   extractDraftComponentsInput: ExtractDraftComponentsInput,
 ) {
-  if (extractDraftComponentsInput.sourceMode === 'pull-request') {
-    return extractionProjectRepository.loadFromChangedProject({
-      configPath: extractDraftComponentsInput.configPath,
-      ...(extractDraftComponentsInput.baseBranch === undefined
-        ? {}
-        : { baseBranch: extractDraftComponentsInput.baseBranch }),
-      useTsConfig: extractDraftComponentsInput.useTsConfig,
-    })
-  }
-
-  if (extractDraftComponentsInput.sourceMode === 'files') {
-    return extractionProjectRepository.loadFromSelectedFiles({
-      configPath: extractDraftComponentsInput.configPath,
-      filePaths: extractDraftComponentsInput.files ?? [],
-      useTsConfig: extractDraftComponentsInput.useTsConfig,
-    })
-  }
-
-  return extractionProjectRepository.loadFromFullProject({
+  return riviereProjectRepository.load({
+    projectRoot: extractDraftComponentsInput.projectRoot ?? process.cwd(),
     configPath: extractDraftComponentsInput.configPath,
     useTsConfig: extractDraftComponentsInput.useTsConfig,
   })

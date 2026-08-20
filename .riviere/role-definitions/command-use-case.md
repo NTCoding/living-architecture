@@ -20,10 +20,14 @@ The `execute` method accepts exactly one parameter typed as a `command-use-case-
 ```typescript
 /** @riviere-role command-use-case */
 export class ExtractDraftComponents {
-  constructor(private readonly repository: ExtractionProjectRepository) {}
+  constructor(private readonly repository: RiviereProjectRepository) {}
 
   execute(input: ExtractDraftComponentsInput): ExtractDraftComponentsResult {
-    const project = this.repository.load(input)
+    const project = this.repository.load({
+      projectRoot: input.projectRoot ?? process.cwd(),
+      configPath: input.configPath,
+      useTsConfig: input.useTsConfig,
+    })
     return project.extractDraftComponents(input.options)
   }
 }

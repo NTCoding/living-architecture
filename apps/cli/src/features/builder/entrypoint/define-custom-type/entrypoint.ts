@@ -3,7 +3,6 @@ import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentati
 import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import { parsePropertySpecs } from './custom-type-parser'
-import { collectOption } from '../_platform/cli/option-collectors'
 import type { DefineCustomType } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/define-custom-type'
 
 interface DefineCustomTypeOptions {
@@ -36,13 +35,13 @@ export function createDefineCustomTypeCommand(
     .option(
       '--required-property <spec>',
       'Required property (format: name:type[:description])',
-      collectOption,
+      (value, previous: string[]) => [...previous, value],
       [],
     )
     .option(
       '--optional-property <spec>',
       'Optional property (format: name:type[:description])',
-      collectOption,
+      (value, previous: string[]) => [...previous, value],
       [],
     )
     .option('--graph <path>', dependencies.getDefaultGraphPathDescription())

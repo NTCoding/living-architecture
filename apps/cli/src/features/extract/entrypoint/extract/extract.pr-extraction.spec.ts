@@ -249,6 +249,29 @@ describe('riviere extract PR extraction', () => {
       expect(output.error.code).toBe(CliErrorCode.GitNotARepository)
     })
 
+    it('handles an unavailable git executable', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+      vi.stubEnv('GIT_EXECUTABLE', '/missing/git')
+
+      try {
+        await expect(
+          parseCommandWithErrorHandling([
+            'node',
+            'riviere',
+            'extract',
+            '--config',
+            configPath,
+            '--pr',
+          ]),
+        ).rejects.toMatchObject({ exitCode: 3 })
+      } finally {
+        vi.unstubAllEnvs()
+      }
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.code).toBe(CliErrorCode.GitNotARepository)
+    })
+
     it('extracts components from changed files on feature branch', async () => {
       const configPath = await createValidExtractFixture(ctx.testDir)
       const sourceFile = join(ctx.testDir, 'src', 'order-service.ts')
@@ -261,8 +284,6 @@ describe('riviere extract PR extraction', () => {
         '--config',
         configPath,
         '--pr',
-        '--base',
-        'main',
         '--components-only',
       ])
 
@@ -274,6 +295,49 @@ describe('riviere extract PR extraction', () => {
         name: 'PlaceOrder',
         domain: 'orders',
       })
+    })
+
+    it('extracts components from a detached feature commit', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+      const sourceFile = join(ctx.testDir, 'src', 'order-service.ts')
+      await createFeatureBranchChange(ctx.testDir, sourceFile)
+      runIsolatedGit(ctx.testDir, ['checkout', '--detach', 'HEAD'])
+
+      await parseCommandWithErrorHandling([
+        'node',
+        'riviere',
+        'extract',
+        '--config',
+        configPath,
+        '--pr',
+        '--components-only',
+      ])
+
+      const output = parseExtractionOutput(ctx.consoleOutput)
+      expect(output.success).toBe(true)
+      expect(output.data).toHaveLength(1)
+    })
+
+    it('reports an unknown PR base branch', async () => {
+      const configPath = await createValidExtractFixture(ctx.testDir)
+      const sourceFile = join(ctx.testDir, 'src', 'order-service.ts')
+      await createFeatureBranchChange(ctx.testDir, sourceFile)
+
+      await expect(
+        parseCommandWithErrorHandling([
+          'node',
+          'riviere',
+          'extract',
+          '--config',
+          configPath,
+          '--pr',
+          '--base',
+          'missing',
+        ]),
+      ).rejects.toMatchObject({ exitCode: 3 })
+
+      const output = parseErrorOutput(ctx.consoleOutput)
+      expect(output.error.message).toContain("Base branch 'missing' not found")
     })
 
     it('warns about untracked TypeScript files', async () => {

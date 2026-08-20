@@ -62,7 +62,7 @@ describe('additional builder command coverage', () => {
         type: undefined,
       }),
     ).toMatchObject({ result: { code: 'GRAPH_CORRUPTED' } })
-    expect(new FinalizeGraph(repo).execute({ graphPathOption: graphPath })).toMatchObject({
+    expect(new FinalizeGraph(repo).execute({ graphPathOption: graphPath, outputPath: 'graph.json' })).toMatchObject({
       result: { code: 'GRAPH_CORRUPTED' },
     })
     expect(
@@ -314,7 +314,7 @@ describe('additional builder command coverage', () => {
       }),
     ).toThrow('unexpected')
 
-    expect(() => new FinalizeGraph(repo).execute({ graphPathOption: undefined })).toThrow(
+    expect(() => new FinalizeGraph(repo).execute({ graphPathOption: undefined, outputPath: 'graph.json' })).toThrow(
       'unexpected',
     )
 

@@ -4,6 +4,7 @@ export interface EnrichDraftComponentsInput {
   configPath: string
   draftComponentsPath: string
   includeConnections: boolean
+  projectRoot?: string
   output?: string
   useTsConfig: boolean
 }

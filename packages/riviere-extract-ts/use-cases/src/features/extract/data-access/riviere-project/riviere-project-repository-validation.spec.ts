@@ -1,10 +1,11 @@
+import { execFileSync } from 'node:child_process'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { ExtractionProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-project'
+import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
-import { ExtractionProjectRepository } from './extraction-project-repository'
+import { RiviereProjectRepository } from './riviere-project-repository'
 
 const VALID_CONFIG = `modules:
   - name: orders
@@ -19,10 +20,20 @@ const VALID_CONFIG = `modules:
     ui: { notUsed: true }
 `
 
+const GIT_EXECUTABLE = process.env['GIT_EXECUTABLE'] ?? '/usr/bin/git'
+
 function withWorkspace(run: (directory: string) => void): void {
   const directory = mkdtempSync(join(tmpdir(), 'extract-validation-test-'))
   writeFileSync(join(directory, 'package.json'), JSON.stringify({ name: 'workspace' }))
   writeFileSync(join(directory, 'component.ts'), 'export class Order {}')
+  execFileSync(GIT_EXECUTABLE, ['init', '--initial-branch=main'], {
+    cwd: directory,
+    stdio: 'ignore',
+  })
+  execFileSync(GIT_EXECUTABLE, ['remote', 'add', 'origin', 'https://github.com/test/repo.git'], {
+    cwd: directory,
+    stdio: 'ignore',
+  })
   try {
     run(directory)
   } finally {
@@ -30,14 +41,35 @@ function withWorkspace(run: (directory: string) => void): void {
   }
 }
 
+function loadProject(params: {
+  configPath: string
+  projectRoot?: string
+  useTsConfig: boolean
+}): void {
+  new RiviereProjectRepository().load({
+    projectRoot: params.projectRoot ?? process.cwd(),
+    configPath: params.configPath,
+    useTsConfig: params.useTsConfig,
+  })
+}
+
 function load(directory: string): void {
-  new ExtractionProjectRepository().loadFromFullProject({
-    configPath: join(directory, 'extract.yml'),
+  loadProject({
+    configPath: 'extract.yml',
+    projectRoot: directory,
     useTsConfig: false,
   })
 }
 
-describe('ExtractionProjectRepository validation', () => {
+function writeExtendsConfig(directory: string, extendsRef: string): void {
+  writeFileSync(join(directory, 'component.ts'), 'export class Order {}')
+  writeFileSync(
+    join(directory, 'extract.yml'),
+    VALID_CONFIG.replace('api: { notUsed: true }', `extends: ${extendsRef}\n    api: { notUsed: true }`),
+  )
+}
+
+describe('RiviereProjectRepository validation', () => {
   it('inherits every rule from a modules-array configuration', () => {
     withWorkspace((directory) => {
       writeFileSync(
@@ -91,7 +123,7 @@ describe('ExtractionProjectRepository validation', () => {
   it('maps an invalid aggregate result to a configuration error', () => {
     withWorkspace((directory) => {
       writeFileSync(join(directory, 'extract.yml'), VALID_CONFIG)
-      const parse = vi.spyOn(ExtractionProject, 'parse').mockReturnValueOnce({
+      const parse = vi.spyOn(RiviereProject, 'parse').mockReturnValueOnce({
         success: false,
         error: 'Invalid module sources',
       })
@@ -120,6 +152,22 @@ describe('ExtractionProjectRepository validation', () => {
         errors: [],
       })
       expect(() => load(directory)).toThrow(/validation failed without specific errors/)
+      parse.mockRestore()
+    })
+  })
+
+  it('rejects an extended configuration that resolves without a module', () => {
+    withWorkspace((directory) => {
+      writeFileSync(join(directory, 'extended.yml'), VALID_CONFIG)
+      writeExtendsConfig(directory, './extended.yml')
+      const emptyConfiguration = Object.create(ValidatedConfiguration.prototype)
+      Object.defineProperty(emptyConfiguration, 'modules', { value: [] })
+      const parse = vi.spyOn(ValidatedConfiguration, 'parse').mockReturnValueOnce({
+        success: true,
+        data: emptyConfiguration,
+      })
+
+      expect(() => load(directory)).toThrow(/Config has no resolved modules/)
       parse.mockRestore()
     })
   })

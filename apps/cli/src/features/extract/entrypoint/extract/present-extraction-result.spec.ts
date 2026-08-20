@@ -19,8 +19,11 @@ describe('presentExtractionResult', () => {
 
     presentExtractionResult(
       {
-        failedFields: ['name'],
-        kind: 'fieldFailure',
+        result: {
+          failedFields: ['name'],
+          kind: 'fieldFailure',
+        },
+        warnings: [],
       },
       {},
     )
@@ -38,9 +41,12 @@ describe('presentExtractionResult', () => {
 
     presentExtractionResult(
       {
-        code: 'VALIDATION_ERROR',
-        kind: 'configFailure',
-        message: 'Invalid config',
+        result: {
+          code: 'VALIDATION_ERROR',
+          kind: 'configFailure',
+          message: 'Invalid config',
+        },
+        warnings: [],
       },
       {},
     )
@@ -58,8 +64,11 @@ describe('presentExtractionResult', () => {
 
     presentExtractionResult(
       {
-        kind: 'connectionDetectionFailure',
-        message: 'Could not resolve type',
+        result: {
+          kind: 'connectionDetectionFailure',
+          message: 'Could not resolve type',
+        },
+        warnings: [],
       },
       {},
     )

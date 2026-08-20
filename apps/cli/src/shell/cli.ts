@@ -1,20 +1,20 @@
 import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../infra/cli/presentation/graph-path-option'
-import { toAddComponentInput } from '../features/builder/entrypoint/add-component/add-component-options'
+import { parseAddComponentInput } from '../features/builder/entrypoint/add-component/parse-add-component-input'
 import { formatError, formatSuccess } from '../infra/cli/presentation/output'
 import { getAddComponentHints } from '../infra/cli/presentation/add-component-hints'
 import { parsePropertySpecs } from '../features/builder/entrypoint/define-custom-type/custom-type-parser'
 import { parseStateChanges } from '../features/builder/entrypoint/enrich/enrichment-parser'
 import { parseSignature } from '../features/builder/entrypoint/enrich/signature-parser'
-import { writeUtf8File } from '@living-architecture/riviere-builder-use-cases/infra/external-clients/filesystem/write-utf8-file'
 import { parseLinkSourceLocation } from '../features/builder/entrypoint/link/link-source-location-options'
-import { validateFlagCombinations } from '../features/extract/entrypoint/extract/extract-validator'
+import { parseFlagCombinations } from '../features/extract/entrypoint/extract/parse-flag-combinations'
 import { createExtractDraftComponentsInput } from '../features/extract/entrypoint/extract/create-extract-draft-components-input'
 import { createEnrichDraftComponentsInput } from '../features/extract/entrypoint/extract/create-enrich-draft-components-input'
 import { exitWithCliError } from '../infra/cli/presentation/exit-with-cli-error'
 import {
   dataAccessCliErrorCode,
   presentExtractionResult,
+  presentExtractionWarnings,
 } from '../features/extract/entrypoint/extract/present-extraction-result'
 import { formatQueryGraphLoadFailure } from '../infra/cli/presentation/query-graph-load-failure-output'
 import { toComponentOutput } from '../infra/cli/presentation/component-output'
@@ -45,6 +45,8 @@ import { createDefineCustomTypeCommand } from '../features/builder/entrypoint/de
 import { createDefineRelationshipTypeCommand } from '../features/builder/entrypoint/define-relationship-type/entrypoint'
 import { createEnrichCommand } from '../features/builder/entrypoint/enrich/entrypoint'
 import { createFinalizeCommand } from '../features/builder/entrypoint/finalize/entrypoint'
+import { createFinalizeGraphInput } from '../features/builder/entrypoint/finalize/create-finalize-graph-input'
+import { writeFinalizedGraph } from '../features/builder/entrypoint/finalize/write-finalized-graph'
 import { createInitCommand } from '../features/builder/entrypoint/init/entrypoint'
 import { createLinkCommand } from '../features/builder/entrypoint/link/entrypoint'
 import { createLinkExternalCommand } from '../features/builder/entrypoint/link-external/entrypoint'
@@ -52,8 +54,14 @@ import { createLinkHttpCommand } from '../features/builder/entrypoint/link-http/
 import { createValidateCommand } from '../features/builder/entrypoint/validate/entrypoint'
 import { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
-import { ExtractionProjectRepository } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/data-access/extraction-project/extraction-project-repository'
+import { RiviereProjectRepository } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/data-access/riviere-project/riviere-project-repository'
+import { createGitChangedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/git/create-git-changed-source-file-finder'
+import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-specified-source-file-finder'
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
+import { parseSourceFileSelection } from '../features/extract/entrypoint/extract/parse-source-file-selection'
+import { createDraftComponentsLoader } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-draft-components-loader'
+import { detectChangedTypeScriptFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/git-changed-files'
+import { findSpecifiedSourceFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/find-specified-source-files'
 import { DetectOrphans } from '@living-architecture/riviere-builder-use-cases/features/query/queries/detect-orphans'
 import { ListComponents } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-components'
 import { ListDomains } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-domains'
@@ -120,8 +128,7 @@ const packageJson = loadPackageJson()
  */
 export function createProgram(): Command {
   const builderRepository = new RiviereBuilderRepository()
-  const extractionProjectRepository = new ExtractionProjectRepository()
-
+  const riviereProjectRepository = new RiviereProjectRepository()
   const program = new Command()
 
   program.name('riviere').version(packageJson.version)
@@ -132,7 +139,7 @@ export function createProgram(): Command {
     createAddComponentCommand({
       addComponent: new AddComponent(builderRepository),
       getDefaultGraphPathDescription,
-      toAddComponentInput,
+      parseAddComponentInput,
       formatError,
       getAddComponentHints,
       formatSuccess,
@@ -197,11 +204,12 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createFinalizeCommand({
+      createFinalizeGraphInput,
       finalizeGraph: new FinalizeGraph(builderRepository),
       getDefaultGraphPathDescription,
       formatError,
-      writeUtf8File,
       formatSuccess,
+      writeFinalizedGraph,
     }),
   )
   builderCmd.addCommand(
@@ -313,14 +321,23 @@ export function createProgram(): Command {
 
   program.addCommand(
     createExtractCommand({
-      extractDraftComponents: new ExtractDraftComponents(extractionProjectRepository),
-      enrichDraftComponents: new EnrichDraftComponents(extractionProjectRepository),
-      validateFlagCombinations,
+      extractDraftComponents: new ExtractDraftComponents(
+        riviereProjectRepository,
+        createGitChangedSourceFileFinder(process.cwd(), detectChangedTypeScriptFiles),
+        createSpecifiedSourceFileFinder(process.cwd(), findSpecifiedSourceFiles),
+      ),
+      enrichDraftComponents: new EnrichDraftComponents(
+        riviereProjectRepository,
+        createDraftComponentsLoader(),
+      ),
+      parseFlagCombinations,
       createExtractDraftComponentsInput,
       createEnrichDraftComponentsInput,
       exitWithCliError,
       dataAccessCliErrorCode,
       presentExtractionResult,
+      presentExtractionWarnings,
+      parseSourceFileSelection,
     }),
   )
 

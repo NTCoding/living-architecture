@@ -63,7 +63,7 @@ function validateFormatOption(options: ExtractOptions): void {
 }
 
 /** @riviere-role entrypoint-cli-input-parser */
-export function validateFlagCombinations(options: ExtractOptions): void {
+export function parseFlagCombinations(options: ExtractOptions): void {
   validateMutualExclusions(options)
   if (options.base !== undefined && !options.pr) {
     throw new ConfigValidationError(

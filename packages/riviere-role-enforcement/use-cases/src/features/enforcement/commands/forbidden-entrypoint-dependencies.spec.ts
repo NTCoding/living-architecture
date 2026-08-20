@@ -63,7 +63,7 @@ export function createCommand(): string {
       expect(result.stdout).toContain(
         "Forbidden dependency: this file (cli-entrypoint) cannot import from a file exporting 'cli-entrypoint'",
       )
-      expect(result.stdout).toContain('Classify the responsibility first')
+      expect(result.stdout).toContain('**IMPORTANT: Role check has failed.')
     },
   )
 })

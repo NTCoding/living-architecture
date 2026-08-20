@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { ExtractionConfigError } from './extraction-config-error'
-import { ExtractionProjectRepository } from './extraction-project-repository'
+import { ExtractionConfigError } from './riviere-config-error'
+import { ExtractionDataAccessError } from './riviere-project-error'
+import { RiviereProjectRepository } from './riviere-project-repository'
 
 const VALID_CONFIG = `modules:
   - name: orders
@@ -18,14 +20,33 @@ const VALID_CONFIG = `modules:
     ui: { notUsed: true }
 `
 
+const GIT_EXECUTABLE = process.env['GIT_EXECUTABLE'] ?? '/usr/bin/git'
+
 function withWorkspace(fn: (dir: string) => void): void {
   const dir = mkdtempSync(join(tmpdir(), 'extract-project-test-'))
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'workspace' }), 'utf-8')
+  execFileSync(GIT_EXECUTABLE, ['init', '--initial-branch=main'], { cwd: dir, stdio: 'ignore' })
+  execFileSync(GIT_EXECUTABLE, ['remote', 'add', 'origin', 'https://github.com/test/repo.git'], {
+    cwd: dir,
+    stdio: 'ignore',
+  })
   try {
     fn(dir)
   } finally {
     rmSync(dir, { recursive: true })
   }
+}
+
+function loadProject(params: {
+  configPath: string
+  projectRoot?: string
+  useTsConfig: boolean
+}): ReturnType<RiviereProjectRepository['load']> {
+  return new RiviereProjectRepository().load({
+    projectRoot: params.projectRoot ?? process.cwd(),
+    configPath: params.configPath,
+    useTsConfig: params.useTsConfig,
+  })
 }
 
 function writeExtendsConfig(dir: string, extendsRef: string): void {
@@ -50,13 +71,13 @@ function writeExtendsConfig(dir: string, extendsRef: string): void {
   )
 }
 
-describe('ExtractionProjectRepository', () => {
-  it('loadFromFullProject returns a project with source files loaded.', () => {
+describe('RiviereProjectRepository', () => {
+  it('load returns a project with source files loaded.', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
       writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
 
-      const project = new ExtractionProjectRepository().loadFromFullProject({
+      const project = loadProject({
         configPath: join(dir, 'extract.config.yml'),
         useTsConfig: true,
       })
@@ -65,7 +86,7 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject respects useTsConfig flag', () => {
+  it('load respects useTsConfig flag', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
       writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
@@ -75,14 +96,14 @@ describe('ExtractionProjectRepository', () => {
       )
 
       expect(() =>
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.config.yml'),
           useTsConfig: true,
         }),
       ).not.toThrow()
 
       expect(() =>
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.config.yml'),
           useTsConfig: false,
         }),
@@ -90,20 +111,32 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject throws ExtractionConfigError when config file does not exist', () => {
+  it('load throws ExtractionConfigError when config file does not exist', () => {
     expect(() =>
-      new ExtractionProjectRepository().loadFromFullProject({
+      loadProject({
         configPath: '/nonexistent/path/extract.yml',
         useTsConfig: false,
       }),
     ).toThrow(ExtractionConfigError)
   })
 
-  it('loadFromFullProject throws ExtractionConfigError for invalid YAML', () => {
+  it('translates a missing Git remote into a data access error', () => {
+    withWorkspace((dir) => {
+      execFileSync(GIT_EXECUTABLE, ['remote', 'remove', 'origin'], { cwd: dir, stdio: 'ignore' })
+      writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
+      writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
+
+      const load = () => loadProject({ configPath: join(dir, 'extract.config.yml'), projectRoot: dir, useTsConfig: false })
+      expect(load).toThrow(ExtractionDataAccessError)
+      expect(load).toThrow(expect.objectContaining({ code: 'NO_REMOTE' }))
+    })
+  })
+
+  it('load throws ExtractionConfigError for invalid YAML', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extract.yml'), '}{invalid yaml', 'utf-8')
       expect(() =>
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -111,11 +144,11 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject throws ExtractionConfigError for non-object root config', () => {
+  it('load throws ExtractionConfigError for non-object root config', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extract.yml'), 'hello\n', 'utf-8')
       expect(() =>
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -123,11 +156,11 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject throws ExtractionConfigError for invalid modules array shape', () => {
+  it('load throws ExtractionConfigError for invalid modules array shape', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'bad-modules.yml'), 'modules: hello\n', 'utf-8')
       expect(() =>
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'bad-modules.yml'),
           useTsConfig: false,
         }),
@@ -135,11 +168,11 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject throws ExtractionConfigError for missing $ref module file', () => {
+  it('load throws ExtractionConfigError for missing $ref module file', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extract.yml'), 'modules:\n  - $ref: ./missing.yml\n', 'utf-8')
       expect(() =>
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -147,7 +180,7 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject loads config with valid modules array', () => {
+  it('load loads config with valid modules array', () => {
     withWorkspace((dir) => {
       mkdirSync(join(dir, 'src'), { recursive: true })
       writeFileSync(join(dir, 'src', 'component.ts'), 'export const x = 1', 'utf-8')
@@ -170,7 +203,7 @@ describe('ExtractionProjectRepository', () => {
         'utf-8',
       )
       expect(
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -178,12 +211,12 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject loads config with relative top-level extends reference', () => {
+  it('load loads config with relative top-level extends reference', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extended.yml'), 'api: { notUsed: true }\n', 'utf-8')
       writeExtendsConfig(dir, './extended.yml')
       expect(
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -191,11 +224,11 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject throws when extends references a missing file', () => {
+  it('load throws when extends references a missing file', () => {
     withWorkspace((dir) => {
       writeExtendsConfig(dir, './missing-extended.yml')
       expect(() =>
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -203,12 +236,12 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject loads config with top-level extends using all defaults', () => {
+  it('load loads config with top-level extends using all defaults', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extended.yml'), 'useCase: { notUsed: true }\n', 'utf-8')
       writeExtendsConfig(dir, './extended.yml')
       expect(
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -216,12 +249,12 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject throws when extends references an invalid config format', () => {
+  it('load throws when extends references an invalid config format', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extended.yml'), '- nope\n', 'utf-8')
       writeExtendsConfig(dir, './extended.yml')
       expect(() =>
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -229,7 +262,7 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject merges customTypes from base and local extends config', () => {
+  it('load merges customTypes from base and local extends config', () => {
     withWorkspace((dir) => {
       writeFileSync(
         join(dir, 'extended.yml'),
@@ -277,7 +310,7 @@ describe('ExtractionProjectRepository', () => {
       )
 
       expect(
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -285,7 +318,7 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject loads package-based extends from node_modules', () => {
+  it('load loads package-based extends from node_modules', () => {
     withWorkspace((dir) => {
       const pkgDir = join(dir, 'node_modules', 'my-config')
       mkdirSync(join(pkgDir, 'src', 'published-language'), { recursive: true })
@@ -297,7 +330,7 @@ describe('ExtractionProjectRepository', () => {
       )
       writeExtendsConfig(dir, 'my-config')
       expect(
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -305,11 +338,11 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject throws when package extends cannot be resolved from node_modules', () => {
+  it('load throws when package extends cannot be resolved from node_modules', () => {
     withWorkspace((dir) => {
       writeExtendsConfig(dir, 'missing-package')
       expect(() =>
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -317,7 +350,7 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject throws when package exists without default extraction config', () => {
+  it('load throws when package exists without default extraction config', () => {
     withWorkspace((dir) => {
       const pkgDir = join(dir, 'node_modules', 'config-without-default')
       mkdirSync(pkgDir, { recursive: true })
@@ -328,7 +361,7 @@ describe('ExtractionProjectRepository', () => {
       )
       writeExtendsConfig(dir, 'config-without-default')
       expect(() =>
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -336,23 +369,25 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromSelectedFiles returns a project containing only the selected files', () => {
+  it('load returns a project containing all configured files', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'a.ts'), 'export class A {}')
       writeFileSync(join(dir, 'b.ts'), 'export class B {}')
       writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
 
-      expect(
-        new ExtractionProjectRepository().loadFromSelectedFiles({
-          configPath: join(dir, 'extract.config.yml'),
-          filePaths: [join(dir, 'a.ts')],
-          useTsConfig: false,
-        }),
-      ).toBeDefined()
+      const project = loadProject({
+        configPath: join(dir, 'extract.config.yml'),
+        projectRoot: dir,
+        useTsConfig: false,
+      })
+
+      expect(project.stage.moduleContexts[0]?.files).toStrictEqual(
+        expect.arrayContaining([join(dir, 'a.ts'), join(dir, 'b.ts')]),
+      )
     })
   })
 
-  it('loadFromFullProject throws when extends modules-array config fails schema validation', () => {
+  it('load throws when extends modules-array config fails schema validation', () => {
     withWorkspace((dir) => {
       writeFileSync(
         join(dir, 'extended.yml'),
@@ -361,7 +396,7 @@ describe('ExtractionProjectRepository', () => {
       )
       writeExtendsConfig(dir, './extended.yml')
       expect(() =>
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
@@ -369,31 +404,16 @@ describe('ExtractionProjectRepository', () => {
     })
   })
 
-  it('loadFromFullProject throws when extends modules-array config has empty modules', () => {
+  it('load throws when extends modules-array config has empty modules', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extended.yml'), 'modules: []\n', 'utf-8')
       writeExtendsConfig(dir, './extended.yml')
       expect(() =>
-        new ExtractionProjectRepository().loadFromFullProject({
+        loadProject({
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
       ).toThrow(/Config has empty modules array/)
-    })
-  })
-
-  it('loadFromSelectedFiles throws ExtractionConfigError when a selected file does not exist', () => {
-    withWorkspace((dir) => {
-      writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
-      writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
-
-      expect(() =>
-        new ExtractionProjectRepository().loadFromSelectedFiles({
-          configPath: join(dir, 'extract.config.yml'),
-          filePaths: [join(dir, 'nonexistent.ts')],
-          useTsConfig: false,
-        }),
-      ).toThrow(ExtractionConfigError)
     })
   })
 })

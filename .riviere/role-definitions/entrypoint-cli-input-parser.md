@@ -7,10 +7,11 @@ Parses or validates raw CLI input using the meaning of a specific entrypoint.
 ## Behavioural Contract
 
 1. Belongs to the entrypoint layer.
-2. May coordinate multiple CLI options.
-3. May produce entrypoint or application input types.
-4. Does not own reusable domain validation rules.
-5. Invokes only private helper functions or dependencies supplied as parameters. It does not directly invoke statically imported functions.
+2. Has a name beginning with `parse`.
+3. May coordinate multiple CLI options.
+4. May produce entrypoint or application input types.
+5. Does not own reusable domain validation rules.
+6. Invokes only private helper functions or dependencies supplied as parameters. It does not directly invoke statically imported functions.
 
 ## Canonical Example
 

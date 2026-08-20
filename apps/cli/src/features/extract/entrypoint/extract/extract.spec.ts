@@ -18,11 +18,33 @@ import {
 import type { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
 import type { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import { createExtractCommand } from './entrypoint'
-import { validateFlagCombinations } from './extract-validator'
+import { parseFlagCombinations } from './parse-flag-combinations'
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
 import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
-import { dataAccessCliErrorCode, presentExtractionResult } from './present-extraction-result'
+import {
+  dataAccessCliErrorCode,
+  presentExtractionResult,
+  presentExtractionWarnings,
+} from './present-extraction-result'
 import { exitWithCliError } from '../../../../infra/cli/presentation/exit-with-cli-error'
+import { parseSourceFileSelection } from './parse-source-file-selection'
+
+const testDependencies = {
+  extractDraftComponents: {
+    execute: () => ({ result: { kind: 'draftOnly' as const, components: [] } }),
+  },
+  enrichDraftComponents: {
+    execute: () => ({ result: { kind: 'draftOnly' as const, components: [] } }),
+  },
+  parseFlagCombinations,
+  createExtractDraftComponentsInput,
+  createEnrichDraftComponentsInput,
+  exitWithCliError,
+  dataAccessCliErrorCode,
+  presentExtractionResult,
+  presentExtractionWarnings,
+  parseSourceFileSelection,
+}
 
 vi.mock('../../../../infra/external-clients/git/git-repository-info', () => ({
   getRepositoryInfo: vi.fn(() => ({
@@ -69,14 +91,9 @@ describe('riviere extract', () => {
 
       await expect(
         createExtractCommand({
+          ...testDependencies,
           extractDraftComponents,
           enrichDraftComponents,
-          validateFlagCombinations,
-          createExtractDraftComponentsInput,
-          createEnrichDraftComponentsInput,
-          exitWithCliError,
-          dataAccessCliErrorCode,
-          presentExtractionResult,
         }).parseAsync(['--config', 'extract.yaml'], { from: 'user' }),
       ).rejects.toMatchObject({ exitCode: 1 })
 
@@ -86,6 +103,34 @@ describe('riviere extract', () => {
       expect(output.error.suggestions).toStrictEqual([
         'Use --allow-incomplete to emit uncertain links instead of failing',
       ])
+    })
+  })
+
+  describe('data access errors', () => {
+    const ctx: TestContext = createTestContext()
+    setupCommandTest(ctx)
+
+    it('returns a runtime error for data access failures', async () => {
+      const extractDraftComponents: Pick<ExtractDraftComponents, 'execute'> = {
+        execute: () => ({
+          result: {
+            kind: 'dataAccessFailure',
+            code: 'FILE_READ_ERROR',
+            message: 'Could not read draft data',
+          },
+        }),
+      }
+      const enrichDraftComponents: Pick<EnrichDraftComponents, 'execute'> = {
+        execute: () => ({ result: { kind: 'draftOnly', components: [] } }),
+      }
+
+      await expect(
+        createExtractCommand({
+          ...testDependencies,
+          extractDraftComponents,
+          enrichDraftComponents,
+        }).parseAsync(['--config', 'extract.yaml'], { from: 'user' }),
+      ).rejects.toMatchObject({ exitCode: 3 })
     })
   })
 

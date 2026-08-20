@@ -8,9 +8,13 @@ const entrypointRoles: RoleName[] = [
   'cli-entrypoint',
   'cli-entrypoint-dependencies',
   'cli-output-formatter',
+  'cli-response-writer',
   'command-input-factory',
+  'command-input-factory-dependencies',
+  'command-input-factory-input',
   'entrypoint-cli-input-parser',
   'entrypoint-cli-input-parser-dependencies',
+  'entrypoint-cli-input-parser-input',
 ]
 const entrypointPlatformCliRoles: RoleName[] = [
   'entrypoint-cli-input-parser',
@@ -22,6 +26,7 @@ const cliPresentationRoles: RoleName[] = [
   'cli-output-formatter',
   'cli-response-formatter',
   'cli-response-writer',
+  'cli-error-handler',
 ]
 const shellRoles: RoleName[] = ['main', 'cli-error-handler']
 

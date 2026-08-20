@@ -23,6 +23,11 @@ interface ExtractDraftComponentsFieldFailureResult {
   failedFields: readonly string[]
 }
 
+interface ExtractDraftComponentsDraftComponentsFailureResult {
+  kind: 'draftComponentsFailure'
+  message: string
+}
+
 interface ExtractDraftComponentsConfigFailureResult {
   kind: 'configFailure'
   code: 'CONFIG_NOT_FOUND' | 'VALIDATION_ERROR'
@@ -47,10 +52,13 @@ interface ExtractDraftComponentsDataAccessFailureResult {
 
 /** @riviere-role command-use-case-result */
 export interface ExtractDraftComponentsResult {
+  readonly outputPath?: string
+  readonly warnings: readonly string[]
   readonly result:
     | ExtractDraftComponentsDraftOnlyResult
     | ExtractDraftComponentsFullResult
     | ExtractDraftComponentsFieldFailureResult
+    | ExtractDraftComponentsDraftComponentsFailureResult
     | ExtractDraftComponentsConfigFailureResult
     | ExtractDraftComponentsConnectionFailureResult
     | ExtractDraftComponentsDataAccessFailureResult

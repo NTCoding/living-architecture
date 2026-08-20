@@ -23,6 +23,11 @@ interface EnrichDraftComponentsFieldFailureResult {
   failedFields: readonly string[]
 }
 
+interface EnrichDraftComponentsDraftComponentsFailureResult {
+  kind: 'draftComponentsFailure'
+  message: string
+}
+
 interface EnrichDraftComponentsConfigFailureResult {
   kind: 'configFailure'
   code: 'CONFIG_NOT_FOUND' | 'VALIDATION_ERROR'
@@ -47,10 +52,12 @@ interface EnrichDraftComponentsDataAccessFailureResult {
 
 /** @riviere-role command-use-case-result */
 export interface EnrichDraftComponentsResult {
+  readonly outputPath?: string
   readonly result:
     | EnrichDraftComponentsDraftOnlyResult
     | EnrichDraftComponentsFullResult
     | EnrichDraftComponentsFieldFailureResult
+    | EnrichDraftComponentsDraftComponentsFailureResult
     | EnrichDraftComponentsConfigFailureResult
     | EnrichDraftComponentsConnectionFailureResult
     | EnrichDraftComponentsDataAccessFailureResult

@@ -1,27 +1,36 @@
-import { ExtractionProjectRepository } from '../data-access/extraction-project/extraction-project-repository'
-import { ExtractionConfigError } from '../data-access/extraction-project/extraction-config-error'
+import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
+import { ExtractionConfigError } from '../data-access/riviere-project/riviere-config-error'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-error'
 import type { EnrichDraftComponentsInput } from './enrich-draft-components-input'
 import type { EnrichDraftComponentsResult } from './enrich-draft-components-result'
-import { ExtractionDataAccessError } from '../data-access/extraction-project/extraction-project-error'
+import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
+import type { LoadDraftComponents } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-draft-components'
 
 /** @riviere-role command-use-case */
 export class EnrichDraftComponents {
-  constructor(private readonly extractionProjectRepository: ExtractionProjectRepository) {}
+  constructor(
+    private readonly riviereProjectRepository: RiviereProjectRepository,
+    private readonly loadDraftComponents: LoadDraftComponents,
+  ) {}
 
   execute(enrichDraftComponentsInput: EnrichDraftComponentsInput): EnrichDraftComponentsResult {
     try {
-      const extractionProject = this.extractionProjectRepository.loadFromDraftEnrichment({
+      const riviereProject = this.riviereProjectRepository.load({
+        projectRoot: enrichDraftComponentsInput.projectRoot ?? process.cwd(),
         configPath: enrichDraftComponentsInput.configPath,
-        draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,
         useTsConfig: enrichDraftComponentsInput.useTsConfig,
       })
 
       return {
-        result: extractionProject.enrichDraftComponents({
+        result: riviereProject.enrichDraftComponents({
+          draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,
+          loadDraftComponents: this.loadDraftComponents,
           allowIncomplete: enrichDraftComponentsInput.allowIncomplete,
           includeConnections: enrichDraftComponentsInput.includeConnections,
         }),
+        ...(enrichDraftComponentsInput.output === undefined
+          ? {}
+          : { outputPath: enrichDraftComponentsInput.output }),
       }
     } catch (error) {
       if (error instanceof ConnectionDetectionError) {

@@ -3,7 +3,7 @@ import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
 import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
 import { getAddComponentHints } from '../../../../infra/cli/presentation/add-component-hints'
-import { toAddComponentInput } from './add-component-options'
+import { parseAddComponentInput } from './parse-add-component-input'
 import type { AddComponent } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-component'
 import type { AddComponentErrorCode } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-component-result'
 
@@ -36,7 +36,7 @@ interface CliOptions {
 export interface CreateAddComponentCommandEntrypointDependencies {
   readonly addComponent: AddComponent
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
-  readonly toAddComponentInput: typeof toAddComponentInput
+  readonly parseAddComponentInput: typeof parseAddComponentInput
   readonly formatError: typeof formatError
   readonly getAddComponentHints: typeof getAddComponentHints
   readonly formatSuccess: typeof formatSuccess
@@ -80,7 +80,7 @@ export function createAddComponentCommand(
     .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CliOptions) => {
-      const result = addComponent.execute(dependencies.toAddComponentInput(options))
+      const result = addComponent.execute(dependencies.parseAddComponentInput(options))
 
       if (!result.result.success) {
         const cliErrorCode = CLI_ERROR_CODES[result.result.code]

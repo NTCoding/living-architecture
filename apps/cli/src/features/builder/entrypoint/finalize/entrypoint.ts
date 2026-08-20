@@ -3,6 +3,8 @@ import { formatError, formatSuccess } from '../../../../infra/cli/presentation/o
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
 import type { FinalizeGraph } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/finalize-graph'
+import { createFinalizeGraphInput } from './create-finalize-graph-input'
+import { writeFinalizedGraph } from './write-finalized-graph'
 
 interface FinalizeOptions {
   graph?: string
@@ -10,15 +12,14 @@ interface FinalizeOptions {
   json?: boolean
 }
 
-type WriteUtf8File = (filePath: string, contents: string) => Promise<void>
-
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateFinalizeCommandEntrypointDependencies {
+  readonly createFinalizeGraphInput: typeof createFinalizeGraphInput
   readonly finalizeGraph: FinalizeGraph
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
-  readonly writeUtf8File: WriteUtf8File
   readonly formatSuccess: typeof formatSuccess
+  readonly writeFinalizedGraph: typeof writeFinalizedGraph
 }
 
 /** @riviere-role cli-entrypoint */
@@ -41,7 +42,7 @@ Examples:
     .option('--output <path>', 'Output path for finalized graph (defaults to input path)')
     .option('--json', 'Output result as JSON')
     .action(async (options: FinalizeOptions) => {
-      const result = finalizeGraph.execute({ graphPathOption: options.graph })
+      const result = finalizeGraph.execute(dependencies.createFinalizeGraphInput(options))
       if (!result.result.success) {
         const errorCodeByResult = {
           GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,
@@ -60,14 +61,10 @@ Examples:
         return
       }
 
-      const outputPath = options.output ?? options.graph ?? '.riviere/graph.json'
-      await dependencies.writeUtf8File(
-        outputPath,
-        JSON.stringify(result.result.finalGraph, null, 2),
-      )
+      await dependencies.writeFinalizedGraph(result)
 
       if (options.json === true) {
-        console.log(JSON.stringify(dependencies.formatSuccess({ path: outputPath })))
+        console.log(JSON.stringify(dependencies.formatSuccess({ path: result.result.outputPath })))
       }
     })
 }

@@ -31,11 +31,11 @@ function parseSingleRoleName(text, errorContext) {
 }
 
 function referenceForUnknownRole(options) {
-  return `Browse ${options.roleDefinitionsDir}/ — each <role-name>.md file has a Purpose, Canonical Example, Common Misclassifications, and Anti-Patterns section. Read the canonical example + anti-patterns of EVERY candidate role before picking one. See ${options.configDisplayPath}.`
+  return `STOP. Before changing any code read: ${options.roleDefinitionsDir}/ — each <role-name>.md file describes the role's purpose and patterns. Read EVERY candidate role before picking one. See ${options.configDisplayPath}.`
 }
 
 function referenceForKnownRole(options, roleName) {
-  return `Re-read ${options.roleDefinitionsDir}/${roleName}.md — check Purpose, Canonical Example, Anti-Patterns, and (if present) the Critical Naming Rule. See ${options.configDisplayPath}.`
+  return `STOP. Before changing any code read: ${options.roleDefinitionsDir}/${roleName}.md. Follow the guidelines in this file to choose a valid pattern. DO NOT try to force the existing code into any pattern that will fit. Follow the guidelines or ask for help if unsure. See ${options.configDisplayPath}.`
 }
 
 export default {
@@ -124,6 +124,8 @@ export default {
             return
           }
           validateForbiddenDependencies()
+          validateAllowedDependencyRoles()
+          validateAllowedCollaboratorRoles()
           validateForbiddenInlineDependencyImplementations()
           validateRequiredRoleDependencies()
           validateForbiddenImportedFunctionCalls()
@@ -597,6 +599,121 @@ export default {
           for (const statement of readRelativeImportStatements()) {
             reportForbiddenImports(statement)
           }
+        }
+
+        function validateAllowedDependencyRoles() {
+          if (fileRoles.length === 0) {
+            return
+          }
+
+          for (const statement of readAllImportStatements()) {
+            reportDisallowedDependencyRoles(statement)
+          }
+        }
+
+        function validateAllowedCollaboratorRoles() {
+          for (const statement of sourceCode.ast.body) {
+            const declaration = statement.type === 'ExportNamedDeclaration'
+              ? statement.declaration
+              : statement
+            if (declaration?.type === 'TSInterfaceDeclaration') {
+              validateInterfaceCollaboratorRoles(declaration, readRoleNames(sourceCode, statement))
+            }
+          }
+        }
+
+        function validateInterfaceCollaboratorRoles(statement, roleNames) {
+          for (const roleName of roleNames) {
+            const allowedRoles = roleMap.get(roleName)?.allowedCollaboratorRoles
+            if (Array.isArray(allowedRoles)) validateCollaboratorRoles(statement, roleName, allowedRoles)
+          }
+        }
+
+        function validateCollaboratorRoles(statement, roleName, allowedRoles) {
+          for (const member of statement.body.body) {
+            if (member.type === 'TSPropertySignature' && member.typeAnnotation !== undefined) {
+              validateCollaboratorRole(member, roleName, allowedRoles)
+            }
+          }
+        }
+
+        function validateCollaboratorRole(member, roleName, allowedRoles) {
+          if (!isCollaboratorType(member.typeAnnotation.typeAnnotation)) return
+          const collaboratorRole = readCollaboratorRole(member.typeAnnotation)
+          if (collaboratorRole !== null && allowedRoles.includes(collaboratorRole)) return
+          const memberName = readMemberName(member.key) ?? 'unknown'
+          const actualRole = collaboratorRole === null ? 'unclassified' : collaboratorRole
+          report(
+            member,
+            `Role '${roleName}' does not allow collaborator '${memberName}' with role '${actualRole}'. Allowed collaborator roles: [${allowedRoles.join(', ')}]. ${referenceForKnownRole(options, roleName)}`,
+          )
+        }
+
+        function isCollaboratorType(typeNode) {
+          if (typeNode.type === 'TSTypeQuery' || typeNode.type === 'TSFunctionType') return true
+          if (typeNode.type !== 'TSTypeReference' || typeNode.typeName.type !== 'Identifier') return false
+          return !['Array', 'ReadonlyArray', 'Record'].includes(typeNode.typeName.name)
+        }
+
+        function readCollaboratorRole(typeAnnotation) {
+          const typeNode = typeAnnotation.typeAnnotation
+          if (typeNode.type === 'TSTypeQuery' && typeNode.exprName.type === 'Identifier') {
+            const importedReference = readImportedReference(typeNode.exprName.name, filename)
+            return importedReference === null
+              ? readExportedRole(filename, typeNode.exprName.name)
+              : readExportedRole(importedReference.filePath, importedReference.exportedName)
+          }
+          if (typeNode.type !== 'TSTypeReference' || typeNode.typeName.type !== 'Identifier') {
+            return null
+          }
+          const typeArguments = typeNode.typeArguments?.params ?? typeNode.typeParameters?.params
+          if (typeNode.typeName.name === 'Pick' && Array.isArray(typeArguments) && typeArguments.length > 0) {
+            return readCollaboratorRole({ type: 'TSTypeAnnotation', typeAnnotation: typeArguments[0] })
+          }
+          const importedReference = readImportedReference(typeNode.typeName.name, filename)
+          return importedReference === null
+            ? readExportedRole(filename, typeNode.typeName.name)
+            : readExportedRole(importedReference.filePath, importedReference.exportedName)
+        }
+
+        function reportDisallowedDependencyRoles(statement) {
+          const importSource = typeof statement.source.value === 'string' ? statement.source.value : null
+          if (importSource === null) {
+            return
+          }
+
+          const resolvedFile = resolveImportFile(filename, importSource, options.configDir, options.importAliases)
+          if (resolvedFile === null) {
+            return
+          }
+
+          for (const binding of readImportedRoleBindings(statement, resolvedFile)) {
+            const referencingRoles = readReferencingRoles(binding.localName)
+            for (const importedRole of binding.roles) {
+              const restrictedByRoles = referencingRoles.filter((roleName) => {
+                const role = roleMap.get(roleName)
+                if (role === undefined || !Array.isArray(role.allowedDependencyRoles)) {
+                  return false
+                }
+                return !role.allowedDependencyRoles.includes(importedRole)
+              })
+              if (restrictedByRoles.length === 0) {
+                continue
+              }
+              report(
+                statement,
+                `Dependency '${importedRole}' is not allowed for role(s) ${restrictedByRoles.join(', ')}. Allowed roles: [${roleMap.get(restrictedByRoles[0])?.allowedDependencyRoles?.join(', ')}]. ${referenceForKnownRole(options, restrictedByRoles[0])}`,
+              )
+            }
+          }
+        }
+
+        function readAllImportStatements() {
+          return sourceCode.ast.body.filter(
+            (statement) =>
+              statement.type === 'ImportDeclaration' &&
+              typeof statement.source.value === 'string',
+          )
         }
 
         function validateForbiddenMethodCalls() {
@@ -1116,7 +1233,7 @@ export default {
           ) {
             report(
               node,
-              `Role '${fileRoles.join(', ')}' forbids direct invocation of imported function '${node.callee.name}'. Pass the dependency through a constructor or parameter. Read '${options.roleDefinitionsDir}/index.md' and the relevant role definitions before changing the code. Classify the responsibility first; do not choose a role only to make a dependency pass.`,
+              `Role '${fileRoles.join(', ')}' forbids direct invocation of imported function '${node.callee.name}'. Pass the dependency through a constructor or parameter. ${referenceForKnownRole(options, fileRoles[0])}`,
             )
             return
           }
@@ -1212,7 +1329,7 @@ export default {
               }
               report(
                 statement,
-                `Forbidden dependency: this file (${forbiddenByRoles.join(', ')}) cannot import from a file exporting '${importedRole}'. ${referenceForKnownRole(options, importedRole)} Read '${options.roleDefinitionsDir}/index.md' and the relevant role definitions before changing the code. Classify the responsibility first; do not choose a role only to make a dependency pass.`,
+                `Forbidden dependency: this file (${forbiddenByRoles.join(', ')}) cannot import from a file exporting '${importedRole}'. ${referenceForKnownRole(options, importedRole)}`,
               )
             }
           }
@@ -1356,23 +1473,8 @@ export default {
             validateReturnShapes(node, role, name)
           }
 
-          if (Array.isArray(role.allowedInputs)) {
-            if (node.params.length !== 1) {
-              report(
-                node,
-                `Role '${role.name}' must accept exactly one parameter on '${name}'. ${referenceForKnownRole(options, role.name)}`,
-              )
-              return
-            }
-
-            const inputRole = readTypeRole(node.params[0].typeAnnotation, filename)
-            if (inputRole === null || !role.allowedInputs.includes(inputRole)) {
-              report(
-                node,
-                `Role '${role.name}' only allows inputs [${role.allowedInputs.join(', ')}] on '${name}'. ${referenceForKnownRole(options, role.name)}`,
-              )
-              return
-            }
+          if (!validateAllowedInputs(node, role, name)) {
+            return
           }
 
           if (Array.isArray(role.allowedOutputs)) {
@@ -1384,6 +1486,43 @@ export default {
               )
             }
           }
+        }
+
+        function validateAllowedInputs(node, role, name) {
+          if (!Array.isArray(role.allowedInputs)) {
+            return true
+          }
+          if (role.allowsUnclassifiedInputs === true) {
+            const hasDisallowedInput = node.params.some((param) => {
+              const inputRole = readTypeRole(param.typeAnnotation, filename)
+              return inputRole !== null && !role.allowedInputs.includes(inputRole)
+            })
+            if (!hasDisallowedInput) {
+              return true
+            }
+            reportDisallowedInput(node, role, name)
+            return false
+          }
+          if (node.params.length !== 1) {
+            report(
+              node,
+              `Role '${role.name}' must accept exactly one parameter on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+            )
+            return false
+          }
+          const inputRole = readTypeRole(node.params[0].typeAnnotation, filename)
+          if (inputRole !== null && role.allowedInputs.includes(inputRole)) {
+            return true
+          }
+          reportDisallowedInput(node, role, name)
+          return false
+        }
+
+        function reportDisallowedInput(node, role, name) {
+          report(
+            node,
+            `Role '${role.name}' only allows inputs [${role.allowedInputs.join(', ')}] on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+          )
         }
 
         function validateReturnShapes(node, role, name) {
@@ -1483,7 +1622,7 @@ export default {
           if (role.forbiddenInlineCallableMembers === true && hasInlineCallableMembers(node.body.body)) {
             report(
               node,
-              `Role '${role.name}' forbids inline callable members on '${name}'. Define the collaborator with its actual role, then reference it by name. ${referenceForKnownRole(options, role.name)}`,
+              `Role '${role.name}' forbids inline callable members on '${name}'. ${referenceForKnownRole(options, role.name)}`,
             )
           }
         }
@@ -2051,7 +2190,7 @@ export default {
           }
           const escapedName = escapeRegExp(exportedName)
           const exportPattern = new RegExp(
-            String.raw`export\s+(?:interface|type|function|class)\s+${escapedName}\b`,
+            String.raw`export\s+(?:async\s+)?(?:interface|type|function|class)\s+${escapedName}\b`,
             'm',
           )
           const exportMatch = exportPattern.exec(sourceText)
@@ -2080,7 +2219,7 @@ export default {
 
           const escapedName = escapeRegExp(exportedName)
           const exportPattern = new RegExp(
-            String.raw`export\s+(?:interface|type|function|class)\s+${escapedName}\b`,
+            String.raw`export\s+(?:async\s+)?(?:interface|type|function|class)\s+${escapedName}\b`,
             'm',
           )
           const exportMatch = exportPattern.exec(sourceText)

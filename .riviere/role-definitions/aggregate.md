@@ -18,7 +18,7 @@ An aggregate:
 ### Canonical Example
 ```typescript
 /** @riviere-role aggregate */
-export class ExtractionProject {
+export class RiviereProject {
   constructor(
     private readonly project: Project,
     private readonly moduleContexts: ModuleContext[],

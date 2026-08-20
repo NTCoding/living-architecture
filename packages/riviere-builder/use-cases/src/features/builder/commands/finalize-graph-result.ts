@@ -11,6 +11,7 @@ export interface FinalizeGraphResult {
   readonly result:
     | {
         readonly finalGraph: FinalizedGraph
+        readonly outputPath: string
         readonly success: true
       }
     | {

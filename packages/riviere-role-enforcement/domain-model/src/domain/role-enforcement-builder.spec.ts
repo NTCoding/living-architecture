@@ -77,7 +77,7 @@ describe('role', () => {
       minPublicMethods: 1,
       approvedInstances: [
         {
-          name: 'ExtractionProject',
+          name: 'RiviereProject',
           userHasApproved: true,
         },
       ],
@@ -89,7 +89,7 @@ describe('role', () => {
       minPublicMethods: 1,
       approvedInstances: [
         {
-          name: 'ExtractionProject',
+          name: 'RiviereProject',
           userHasApproved: true,
         },
       ],
@@ -284,7 +284,7 @@ describe('roleEnforcementConfiguration', () => {
       location<(typeof testRoles)[number]['name']>('/features/{feature}', {
         'data-access': {
           roles: ['aggregate'],
-          'extraction-project': [],
+          'riviere-project': [],
         },
       }),
     )
@@ -321,9 +321,9 @@ describe('roleEnforcementConfiguration', () => {
         pathTemplate: 'packages/app/src/features/{feature}/data-access',
       },
       {
-        name: '/data-access/extraction-project',
+        name: '/data-access/riviere-project',
         parentId: 'packages/app:packages/app/src/features/{feature}/data-access',
-        pathTemplate: 'packages/app/src/features/{feature}/data-access/extraction-project',
+        pathTemplate: 'packages/app/src/features/{feature}/data-access/riviere-project',
       },
     ])
   })

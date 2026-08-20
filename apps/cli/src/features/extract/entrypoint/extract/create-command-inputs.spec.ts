@@ -1,48 +1,100 @@
 import { describe, expect, it } from 'vitest'
 import { createEnrichDraftComponentsInput } from './create-enrich-draft-components-input'
 import { createExtractDraftComponentsInput } from './create-extract-draft-components-input'
+import { createExtractCommand } from './entrypoint'
+import { parseFlagCombinations } from './parse-flag-combinations'
+import {
+  dataAccessCliErrorCode,
+  presentExtractionResult,
+  presentExtractionWarnings,
+} from './present-extraction-result'
+import { parseSourceFileSelection } from './parse-source-file-selection'
+import { exitWithCliError } from '../../../../infra/cli/presentation/exit-with-cli-error'
+
+const testDependencies = {
+  parseFlagCombinations,
+  createExtractDraftComponentsInput,
+  createEnrichDraftComponentsInput,
+  exitWithCliError,
+  dataAccessCliErrorCode,
+  presentExtractionResult,
+  presentExtractionWarnings,
+  parseSourceFileSelection,
+}
+
+class UnexpectedExtractError extends Error {
+  constructor() {
+    super('unexpected extract failure')
+    this.name = 'UnexpectedExtractError'
+  }
+}
+
+class UnexpectedExtractValue {}
 
 describe('create command inputs', () => {
-  it('creates extract draft input for pull request mode with output', () => {
+  it('creates extract draft input for all source files with output', () => {
     expect(
       createExtractDraftComponentsInput({
         allowIncomplete: true,
         base: 'main',
         config: 'config.yml',
         output: 'out.json',
-        pr: true,
+        pr: false,
         tsConfig: false,
       }),
     ).toStrictEqual({
       allowIncomplete: true,
-      baseBranch: 'main',
       configPath: 'config.yml',
       includeConnections: true,
       output: 'out.json',
-      sourceMode: 'pull-request',
+      projectRoot: process.cwd(),
+      sourceFileSelectionRequest: { kind: 'all' },
       useTsConfig: false,
     })
   })
 
-  it('creates enrich input and stops at draft components when requested', () => {
+  it('creates enrich draft input with the draft components path', () => {
     expect(
-      createEnrichDraftComponentsInput(
-        {
-          allowIncomplete: false,
-          componentsOnly: true,
-          config: 'config.yml',
-          output: 'enriched.json',
-          tsConfig: true,
-        },
-        'draft.json',
-      ),
+      createEnrichDraftComponentsInput({ config: 'config.yml', tsConfig: false }, 'draft.json'),
     ).toStrictEqual({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
-      includeConnections: false,
-      output: 'enriched.json',
-      useTsConfig: true,
+      includeConnections: true,
+      projectRoot: process.cwd(),
+      useTsConfig: false,
     })
+  })
+
+  it('rethrows unknown extract execution errors', async () => {
+    const command = createExtractCommand({
+      ...testDependencies,
+      extractDraftComponents: {
+        execute: () => {
+          throw new UnexpectedExtractError()
+        },
+      },
+      enrichDraftComponents: { execute: () => ({ kind: 'draftOnly', components: [] }) },
+    })
+
+    await expect(command.parseAsync(['node', 'riviere', '--config', 'config.yml'])).rejects.toThrow(
+      'unexpected extract failure',
+    )
+  })
+
+  it('rethrows non Error extract failures', async () => {
+    const command = createExtractCommand({
+      ...testDependencies,
+      extractDraftComponents: {
+        execute: () => {
+          throw new UnexpectedExtractValue()
+        },
+      },
+      enrichDraftComponents: { execute: () => ({ kind: 'draftOnly', components: [] }) },
+    })
+
+    await expect(
+      command.parseAsync(['node', 'riviere', '--config', 'config.yml']),
+    ).rejects.toBeInstanceOf(UnexpectedExtractValue)
   })
 })

@@ -1,5 +1,8 @@
 import type { ExtractDraftComponentsInput } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components-input'
 
+type SourceFileSelectionRequest = ExtractDraftComponentsInput['sourceFileSelectionRequest']
+
+/** @riviere-role command-input-factory-input */
 interface ExtractDraftComponentsFactoryInput {
   allowIncomplete?: boolean
   base?: string
@@ -16,29 +19,19 @@ interface ExtractDraftComponentsFactoryInput {
 /** @riviere-role command-input-factory */
 export function createExtractDraftComponentsInput(
   options: ExtractDraftComponentsFactoryInput,
+  sourceFileSelectionRequest: SourceFileSelectionRequest = { kind: 'all' },
 ): ExtractDraftComponentsInput {
   return {
     allowIncomplete: options.allowIncomplete === true,
-    ...(options.base === undefined ? {} : { baseBranch: options.base }),
     configPath: options.config,
-    ...(options.files === undefined ? {} : { files: options.files }),
     includeConnections: !shouldStopAtDraftComponents(options),
+    projectRoot: process.cwd(),
     ...(options.output === undefined ? {} : { output: options.output }),
-    sourceMode: readSourceMode(options),
+    sourceFileSelectionRequest,
     useTsConfig: options.tsConfig !== false,
   }
 }
 
 function shouldStopAtDraftComponents(options: ExtractDraftComponentsFactoryInput): boolean {
   return options.dryRun === true || options.format === 'markdown' || options.componentsOnly === true
-}
-
-function readSourceMode(
-  options: ExtractDraftComponentsFactoryInput,
-): 'all' | 'files' | 'pull-request' {
-  if (options.pr === true) {
-    return 'pull-request'
-  }
-
-  return options.files === undefined ? 'all' : 'files'
 }

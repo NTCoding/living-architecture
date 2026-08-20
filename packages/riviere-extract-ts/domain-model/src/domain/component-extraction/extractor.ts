@@ -218,7 +218,7 @@ function createClassComponent(
   }
 
   return [
-    DraftComponent.parse({
+    DraftComponent.parseOrThrow({
       type: componentType,
       name,
       location: {
@@ -240,7 +240,7 @@ function createMethodComponent(
   const name = method.getName()
 
   return [
-    DraftComponent.parse({
+    DraftComponent.parseOrThrow({
       type: componentType,
       name,
       location: {
@@ -265,7 +265,7 @@ function createFunctionComponent(
   }
 
   return [
-    DraftComponent.parse({
+    DraftComponent.parseOrThrow({
       type: componentType,
       name,
       location: {

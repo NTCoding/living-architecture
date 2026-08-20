@@ -14,11 +14,11 @@ A class that handles loading and saving an aggregate — the boundary between do
 ### Canonical Example
 ```typescript
 /** @riviere-role aggregate-repository */
-export class ExtractionProjectRepository {
-  load(input: LoadInput): ExtractionProject {
+export class RiviereProjectRepository {
+  load(input: LoadInput): RiviereProject {
     const project = createConfiguredProject(input.configPath)
     const contexts = this.buildModuleContexts(project)
-    return new ExtractionProject(project, contexts)
+    return new RiviereProject(project, contexts)
   }
 
   private buildModuleContexts(project: Project): ModuleContext[] {
