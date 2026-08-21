@@ -447,6 +447,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^2.0.0
         version: 2.1.9(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(supports-color@7.2.0)(vitest@2.1.9(@types/node@22.19.7)(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(jsdom@27.4.0(supports-color@7.2.0))(lightningcss@1.30.2)(supports-color@7.2.0))
+      esbuild:
+        specifier: ^0.27.0
+        version: 0.27.7
       typescript:
         specifier: npm:typescript@^7.0.2
         version: 7.0.2

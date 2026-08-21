@@ -39,8 +39,7 @@ const bashForbidden = {
 }
 
 const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const workflowCommand =
-  'pnpm --dir "$PLUGIN_ROOT" exec tsx "$PLUGIN_ROOT/src/shell/codex-workflow-command.ts"'
+const workflowCommand = 'node "$PLUGIN_ROOT/com.openai.codex/dist/codex-workflow-command.mjs"'
 const defaultProcessDeps = createDefaultProcessDeps()
 const processDeps = {
   ...defaultProcessDeps,

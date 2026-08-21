@@ -38,20 +38,20 @@ const args =
     : operationArgs
 const cliPath = join(dirname(fileURLToPath(import.meta.url)), 'codex-cli.ts')
 const require = createRequire(import.meta.url)
-const tsxCliPath = require.resolve('tsx/cli')
+const runningBundledRuntime = process.argv[1]?.endsWith('.mjs') ?? false
+const bundledCliPath = join(dirname(fileURLToPath(import.meta.url)), 'codex-cli.mjs')
+const cliArguments = runningBundledRuntime
+  ? [bundledCliPath, operation, workflowSessionId, ...args]
+  : [require.resolve('tsx/cli'), cliPath, operation, workflowSessionId, ...args]
 const sourceCondition = '--conditions=@living-architecture/source'
 const nodeOptions = [process.env.NODE_OPTIONS, sourceCondition].filter(Boolean).join(' ')
-const result = spawnSync(
-  process.execPath,
-  [tsxCliPath, cliPath, operation, workflowSessionId, ...args],
-  {
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      NODE_OPTIONS: nodeOptions,
-    },
+const result = spawnSync(process.execPath, cliArguments, {
+  stdio: 'inherit',
+  env: {
+    ...process.env,
+    NODE_OPTIONS: nodeOptions,
   },
-)
+})
 
 if (result.error !== undefined) {
   throw result.error

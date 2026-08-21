@@ -9,6 +9,15 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 
 describe('plugin Agent Skills', () => {
+  it('ships a standalone Codex runtime for hooks', () => {
+    const hooks = readPluginFile('com.openai.codex/hooks/hooks.json')
+
+    expect(hooks).toContain(String.raw`node \"$PLUGIN_ROOT/com.openai.codex/dist/codex-cli.mjs\"`)
+    expect(readPluginFile('com.openai.codex/dist/codex-cli.mjs')).not.toContain(
+      '@living-architecture/dev-workflow-v2-use-cases',
+    )
+  })
+
   it('provides an Agent Skill for every plugin command', () => {
     const commandNames = readdirSync(join(pluginRoot, 'commands'))
       .filter((filename) => filename.endsWith('.md'))

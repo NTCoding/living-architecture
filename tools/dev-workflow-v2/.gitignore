@@ -1,4 +1,6 @@
 node_modules/
 dist/
+!com.openai.codex/dist/
+!com.openai.codex/dist/**
 coverage/
 test-output/
