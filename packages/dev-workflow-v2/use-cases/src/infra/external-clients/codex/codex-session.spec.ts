@@ -75,6 +75,13 @@ describe('readCodexParentThreadId', () => {
     expect(readCodexParentThreadId('parent-session', codexHome)).toBeUndefined()
   })
 
+  it('returns undefined when subagent metadata has no thread spawn', () => {
+    const codexHome = withCodexHome()
+    writeSessionMetadata(codexHome, 'parent-session', { source: { subagent: {} } })
+
+    expect(readCodexParentThreadId('parent-session', codexHome)).toBeUndefined()
+  })
+
   it('uses parent_thread_id from a spawned subagent session', () => {
     const codexHome = withCodexHome()
     writeSessionMetadata(codexHome, 'child-session', {
@@ -89,6 +96,7 @@ describe('readCodexParentThreadId', () => {
     const codexHome = withCodexHome()
     writeSessionMetadata(codexHome, 'child-session', {
       thread_source: 'subagent',
+      source: { subagent: { thread_spawn: {} } },
       forked_from_id: 'parent-session',
     })
 

@@ -12,15 +12,21 @@ function readString(record: JsonRecord, key: string): string | undefined {
   return typeof value === 'string' && value !== '' ? value : undefined
 }
 
+function readSpawnParentThreadId(source: unknown): string | undefined {
+  if (!isRecord(source)) return undefined
+
+  const subagent = source['subagent']
+  if (!isRecord(subagent)) return undefined
+
+  const threadSpawn = subagent['thread_spawn']
+  if (!isRecord(threadSpawn)) return undefined
+
+  return readString(threadSpawn, 'parent_thread_id')
+}
+
 function readParentThreadId(payload: JsonRecord): string | undefined {
-  const source = payload['source']
-  if (isRecord(source)) {
-    const subagent = source['subagent']
-    if (isRecord(subagent)) {
-      const threadSpawn = subagent['thread_spawn']
-      if (isRecord(threadSpawn)) return readString(threadSpawn, 'parent_thread_id')
-    }
-  }
+  const spawnParentThreadId = readSpawnParentThreadId(payload['source'])
+  if (spawnParentThreadId !== undefined) return spawnParentThreadId
 
   return readString(payload, 'parent_thread_id') ?? readString(payload, 'forked_from_id')
 }
