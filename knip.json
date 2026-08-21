@@ -60,7 +60,8 @@
     },
     "tools/dev-workflow-v2": {
       "entry": ["src/shell/cli.ts", "src/shell/codex-cli.ts", "src/shell/codex-workflow-command.ts", "src/shell/opencode-plugin.ts"],
-      "project": ["src/**/*.ts"]
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["tsx"]
     }
   },
   "ignore": [
