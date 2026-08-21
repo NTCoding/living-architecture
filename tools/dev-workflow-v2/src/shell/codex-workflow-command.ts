@@ -1,9 +1,7 @@
 import { spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
-import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readCodexParentThreadId } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/codex/codex-session'
 
 class InvalidWorkflowCommandError extends Error {
   constructor() {
@@ -30,8 +28,7 @@ if (sessionId === undefined || sessionId === '') {
   throw new MissingCodexThreadIdError()
 }
 
-const codexHome = process.env.CODEX_HOME ?? join(homedir(), '.codex')
-const workflowSessionId = readCodexParentThreadId(sessionId, codexHome) ?? sessionId
+const workflowSessionId = process.env.DEV_WORKFLOW_SESSION_ID ?? sessionId
 const args =
   operationArgs[0] === sessionId || operationArgs[0] === workflowSessionId
     ? operationArgs.slice(1)

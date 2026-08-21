@@ -30,6 +30,9 @@ describe('plugin Agent Skills', () => {
       },
     })
     expect(readPluginFile('src/shell/codex-cli.ts')).toContain(workflowCommand)
+    expect(readPluginFile('src/shell/codex-workflow-command.ts')).toContain(
+      'process.env.DEV_WORKFLOW_SESSION_ID ?? sessionId',
+    )
   })
 
   it('provides an Agent Skill for every plugin command', () => {
@@ -139,6 +142,12 @@ describe('plugin Agent Skills', () => {
       })
     },
   )
+
+  it('passes the active workflow session to Codex reviewers', () => {
+    const skill = readPluginFile('skills/code-review/SKILL.md')
+
+    expect(skill).toContain('DEV_WORKFLOW_SESSION_ID')
+  })
 })
 
 describe('reviewer workflow preflight', () => {
