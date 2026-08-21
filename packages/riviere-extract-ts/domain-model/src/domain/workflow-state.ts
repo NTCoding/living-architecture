@@ -66,7 +66,7 @@ export class WorkflowState {
       outputPath: input.graph.outputPath,
       sources,
     })
-    const stages = Object.freeze(input.stages.map((stage) => Object.freeze(stage)))
+    const stages = Object.freeze([...input.stages])
     return new WorkflowState(graph, input.runLogDirectory, stages)
   }
 }
