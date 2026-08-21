@@ -31,6 +31,14 @@ function readParentThreadId(payload: JsonRecord): string | undefined {
   return readString(payload, 'parent_thread_id') ?? readString(payload, 'forked_from_id')
 }
 
+function parseJson(value: string): unknown {
+  try {
+    return JSON.parse(value)
+  } catch {
+    return undefined
+  }
+}
+
 function isSubagentSession(payload: JsonRecord): boolean {
   if (payload['thread_source'] === 'subagent') return true
 
@@ -63,7 +71,7 @@ function readSessionMetadata(transcriptPath: string): JsonRecord | undefined {
   const firstLine = readFileSync(transcriptPath, 'utf8').split('\n')[0]
   if (firstLine === undefined || firstLine === '') return undefined
 
-  const entry: unknown = JSON.parse(firstLine)
+  const entry = parseJson(firstLine)
   if (!isRecord(entry) || entry['type'] !== 'session_meta' || !isRecord(entry['payload'])) {
     return undefined
   }

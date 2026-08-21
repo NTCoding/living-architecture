@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { ExtractionStage } from './extraction-stage'
 import { WorkflowStage, WorkflowState } from './workflow-state'
 
 describe('WorkflowStage', () => {
@@ -12,6 +13,13 @@ describe('WorkflowStage', () => {
     const stage = WorkflowStage.parse({ kind: 'validate' })
 
     expect(() => stage.stage).toThrow('Validate stage has no extraction state')
+  })
+
+  it('rejects extraction state on a validation stage', () => {
+    const extractionStage = Object.create(ExtractionStage.prototype)
+    expect(() => WorkflowStage.parse({ kind: 'validate', stage: extractionStage })).toThrow(
+      'Validate stage cannot have extraction state',
+    )
   })
 
   it('stores immutable workflow graph state', () => {

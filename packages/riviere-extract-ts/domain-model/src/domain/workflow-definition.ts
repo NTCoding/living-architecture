@@ -78,7 +78,7 @@ function parseDomains(input: Record<string, unknown>) {
   const domains = requiredArray(input, 'domains')
   if (!domains.success) return domains
   if (domains.data.length === 0) return failure('graph.domains must not be empty')
-  const parsedDomains: Record<string, { description: string; systemType: DomainSystemType }> = {}
+  const parsedDomains: [string, { description: string; systemType: DomainSystemType }][] = []
   for (const [index, domain] of domains.data.entries()) {
     const domainRecord = asRecord(domain)
     if (domainRecord === undefined) return failure(`graph.domains[${index}] must be an object`)
@@ -88,12 +88,12 @@ function parseDomains(input: Record<string, unknown>) {
     if (!description.success) return description
     const systemType = optionalSystemType(domainRecord)
     if (!systemType.success) return systemType
-    parsedDomains[name.data] = {
+    parsedDomains.push([name.data, {
       description: description.data ?? name.data,
       systemType: systemType.data ?? 'domain',
-    }
+    }])
   }
-  return { success: true as const, data: parsedDomains }
+  return { success: true as const, data: Object.fromEntries(parsedDomains) }
 }
 
 function parseStages(input: readonly unknown[]) {

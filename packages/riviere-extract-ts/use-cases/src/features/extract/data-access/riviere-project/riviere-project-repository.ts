@@ -83,7 +83,7 @@ export class RiviereProjectRepository {
         )
       }
       const workflowResult = WorkflowDefinition.parse(
-        this.parseConfigFile(readTextFile(workflowPath)),
+        this.parseConfigFile(this.readConfigText(workflowPath)),
       )
       if (!workflowResult.success) {
         throw new ExtractionConfigError(
@@ -143,7 +143,7 @@ export class RiviereProjectRepository {
   private loadParsedConfigState(configPath: string): ParsedConfigState {
     if (!fileExists(configPath))
       throw new ExtractionConfigError('CONFIG_NOT_FOUND', `Config file not found: ${configPath}`)
-    const content = readTextFile(configPath)
+    const content = this.readConfigText(configPath)
     const parsed = this.parseConfigFile(content)
     const configDir = dirname(resolve(configPath))
     const expanded = this.expandModuleRefs(parsed, configDir)
@@ -164,6 +164,17 @@ export class RiviereProjectRepository {
       return parseYaml(content)
     } catch (error) {
       throw new ExtractionConfigError('VALIDATION_ERROR', `Invalid config file: ${String(error)}`)
+    }
+  }
+
+  private readConfigText(filePath: string): string {
+    try {
+      return readTextFile(filePath)
+    } catch (error) {
+      throw new ExtractionDataAccessError(
+        'FILE_READ_ERROR',
+        `Could not read extraction configuration file '${filePath}': ${String(error)}`,
+      )
     }
   }
 
@@ -190,7 +201,7 @@ export class RiviereProjectRepository {
         `Cannot resolve module reference '${item['$ref']}'. File not found: ${refPath}`,
       )
 
-    const content = readTextFile(refPath)
+    const content = this.readConfigText(refPath)
     const parsed: unknown = parseYaml(content)
     return parsed
   }
@@ -222,7 +233,7 @@ export class RiviereProjectRepository {
         `Cannot resolve extends reference '${source}'. File not found: ${filePath}`,
       )
 
-    const parsed: unknown = parseYaml(readTextFile(filePath))
+    const parsed: unknown = parseYaml(this.readConfigText(filePath))
     if (this.isRecord(parsed) && Array.isArray(parsed['modules'])) {
       return this.resolveFirstModuleFromConfig(
         { modules: parsed['modules'] },

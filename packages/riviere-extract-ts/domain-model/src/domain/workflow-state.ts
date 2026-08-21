@@ -15,6 +15,9 @@ export class WorkflowStage {
     readonly kind: 'extract' | 'link' | 'validate'
     readonly stage?: ExtractionStage
   }): WorkflowStage {
+    if (input.kind === 'validate' && input.stage !== undefined) {
+      throw new InvalidWorkflowStageError('Validate stage cannot have extraction state')
+    }
     if (input.kind !== 'validate' && input.stage === undefined) {
       throw new InvalidWorkflowStageError(`Workflow ${input.kind} stage requires extraction state`)
     }

@@ -3,6 +3,11 @@ import { WorkflowDefinition } from './workflow-definition'
 
 class WorkflowDefinitionTestError extends Error {}
 
+function parsedWorkflowData(result: ReturnType<typeof WorkflowDefinition.parse>): WorkflowDefinition {
+  if (!result.success) throw new WorkflowDefinitionTestError(result.error)
+  return result.data
+}
+
 function validWorkflow(): Record<string, unknown> {
   return {
     version: 1,
@@ -46,6 +51,24 @@ describe('WorkflowDefinition', () => {
         ],
       },
     })
+  })
+
+  it('preserves a domain named __proto__ as an own entry', () => {
+    const workflow = validWorkflow()
+    const result = WorkflowDefinition.parse({
+      ...workflow,
+      graph: {
+        ...workflow.graph,
+        domains: [{ name: '__proto__', description: 'Prototype', systemType: 'domain' }],
+      },
+    })
+
+    const data = parsedWorkflowData(result)
+    expect(data.graph.domains['__proto__']).toStrictEqual({
+      description: 'Prototype',
+      systemType: 'domain',
+    })
+    expect(Object.hasOwn(data.graph.domains, '__proto__')).toBe(true)
   })
 
   it.each([

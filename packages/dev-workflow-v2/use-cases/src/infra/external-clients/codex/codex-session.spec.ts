@@ -68,6 +68,18 @@ describe('readCodexParentThreadId', () => {
     expect(readCodexParentThreadId('parent-session', codexHome)).toBeUndefined()
   })
 
+  it('returns undefined when session metadata is malformed JSON', () => {
+    const codexHome = withCodexHome()
+    const sessionsDirectory = join(codexHome, 'sessions', '2026', '08', '21')
+    mkdirSync(sessionsDirectory, { recursive: true })
+    writeFileSync(
+      join(sessionsDirectory, 'rollout-2026-08-21T08-00-00-parent-session.jsonl'),
+      '{"type":"session_meta"\n',
+    )
+
+    expect(readCodexParentThreadId('parent-session', codexHome)).toBeUndefined()
+  })
+
   it('returns undefined when session metadata has no subagent source', () => {
     const codexHome = withCodexHome()
     writeSessionMetadata(codexHome, 'parent-session', { source: {} })

@@ -83,7 +83,6 @@ describe('RiviereProjectRepository', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
       writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
-
       const project = loadProject({
         configPath: join(dir, 'extract.config.yml'),
         useTsConfig: true,
@@ -92,7 +91,6 @@ describe('RiviereProjectRepository', () => {
       expect(project).toBeDefined()
     })
   })
-
   it('load respects useTsConfig flag', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
@@ -101,14 +99,12 @@ describe('RiviereProjectRepository', () => {
         join(dir, 'tsconfig.json'),
         JSON.stringify({ compilerOptions: { strict: true } }),
       )
-
       expect(() =>
         loadProject({
           configPath: join(dir, 'extract.config.yml'),
           useTsConfig: true,
         }),
       ).not.toThrow()
-
       expect(() =>
         loadProject({
           configPath: join(dir, 'extract.config.yml'),
@@ -117,7 +113,6 @@ describe('RiviereProjectRepository', () => {
       ).not.toThrow()
     })
   })
-
   it('load throws ExtractionConfigError when config file does not exist', () => {
     expect(() =>
       loadProject({
@@ -126,13 +121,11 @@ describe('RiviereProjectRepository', () => {
       }),
     ).toThrow(ExtractionConfigError)
   })
-
   it('translates a missing Git remote into a data access error', () => {
     withWorkspace((dir) => {
       runGit(['remote', 'remove', 'origin'], dir)
       writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
       writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
-
       const load = () =>
         loadProject({
           configPath: join(dir, 'extract.config.yml'),
@@ -143,7 +136,6 @@ describe('RiviereProjectRepository', () => {
       expect(load).toThrow(expect.objectContaining({ code: 'NO_REMOTE' }))
     })
   })
-
   it('load throws ExtractionConfigError for invalid YAML', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extract.yml'), '}{invalid yaml', 'utf-8')
@@ -155,7 +147,6 @@ describe('RiviereProjectRepository', () => {
       ).toThrow(ExtractionConfigError)
     })
   })
-
   it('load throws ExtractionConfigError for non-object root config', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extract.yml'), 'hello\n', 'utf-8')
@@ -167,7 +158,6 @@ describe('RiviereProjectRepository', () => {
       ).toThrow(ExtractionConfigError)
     })
   })
-
   it('load throws ExtractionConfigError for invalid modules array shape', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'bad-modules.yml'), 'modules: hello\n', 'utf-8')
@@ -179,7 +169,6 @@ describe('RiviereProjectRepository', () => {
       ).toThrow(ExtractionConfigError)
     })
   })
-
   it('load throws ExtractionConfigError for missing $ref module file', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extract.yml'), 'modules:\n  - $ref: ./missing.yml\n', 'utf-8')
@@ -191,7 +180,6 @@ describe('RiviereProjectRepository', () => {
       ).toThrow(ExtractionConfigError)
     })
   })
-
   it('load loads config with valid modules array', () => {
     withWorkspace((dir) => {
       mkdirSync(join(dir, 'src'), { recursive: true })
@@ -222,7 +210,6 @@ describe('RiviereProjectRepository', () => {
       ).toBeDefined()
     })
   })
-
   it('load loads config with relative top-level extends reference', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extended.yml'), 'api: { notUsed: true }\n', 'utf-8')
