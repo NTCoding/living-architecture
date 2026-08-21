@@ -22,14 +22,21 @@ const VALID_CONFIG = `modules:
 
 const GIT_EXECUTABLE = process.env['GIT_EXECUTABLE'] ?? '/usr/bin/git'
 
+function runGit(args: string[], cwd: string): void {
+  execFileSync(GIT_EXECUTABLE, args, {
+    cwd,
+    env: Object.fromEntries(
+      Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')),
+    ),
+    stdio: 'ignore',
+  })
+}
+
 function withWorkspace(fn: (dir: string) => void): void {
   const dir = mkdtempSync(join(tmpdir(), 'extract-project-test-'))
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'workspace' }), 'utf-8')
-  execFileSync(GIT_EXECUTABLE, ['init', '--initial-branch=main'], { cwd: dir, stdio: 'ignore' })
-  execFileSync(GIT_EXECUTABLE, ['remote', 'add', 'origin', 'https://github.com/test/repo.git'], {
-    cwd: dir,
-    stdio: 'ignore',
-  })
+  runGit(['init', '--initial-branch=main'], dir)
+  runGit(['remote', 'add', 'origin', 'https://github.com/test/repo.git'], dir)
   try {
     fn(dir)
   } finally {
@@ -122,11 +129,16 @@ describe('RiviereProjectRepository', () => {
 
   it('translates a missing Git remote into a data access error', () => {
     withWorkspace((dir) => {
-      execFileSync(GIT_EXECUTABLE, ['remote', 'remove', 'origin'], { cwd: dir, stdio: 'ignore' })
+      runGit(['remote', 'remove', 'origin'], dir)
       writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
       writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
 
-      const load = () => loadProject({ configPath: join(dir, 'extract.config.yml'), projectRoot: dir, useTsConfig: false })
+      const load = () =>
+        loadProject({
+          configPath: join(dir, 'extract.config.yml'),
+          projectRoot: dir,
+          useTsConfig: false,
+        })
       expect(load).toThrow(ExtractionDataAccessError)
       expect(load).toThrow(expect.objectContaining({ code: 'NO_REMOTE' }))
     })
