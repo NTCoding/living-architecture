@@ -6,7 +6,7 @@ description: Push the current workflow branch and create its pull request. Use o
 # Create Pull Request
 
 1. Detect the current harness before doing any pull-request work:
-   - If `CODEX_THREAD_ID` is present, run workflow operations from the repository root with `pnpm exec tsx tools/dev-workflow-v2/src/shell/codex-workflow-command.ts <operation> [args]`.
+   - If `CODEX_THREAD_ID` is present, run workflow operations from the repository root with `node --conditions=@living-architecture/source --import tsx tools/dev-workflow-v2/src/shell/codex-workflow-command.ts <operation> [args]`.
    - Otherwise, run workflow operations with `/dev-workflow-v2:workflow <operation> [args]`.
 1. Run the selected harness's `get-state` workflow operation. Extract `currentStateMachineState`, `githubIssue`, `featureBranch`, and `prNumber`. Stop unless `currentStateMachineState` is `SUBMITTING_PR`.
 1. Stop if `githubIssue` or `featureBranch` is missing. Do not infer either value from the branch name.

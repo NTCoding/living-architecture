@@ -6,7 +6,7 @@ description: List unresolved review threads for the pull request recorded in wor
 # List Review Threads
 
 1. Detect the current harness before reading review threads:
-   - If `CODEX_THREAD_ID` is present, run workflow operations from the repository root with `pnpm exec tsx tools/dev-workflow-v2/src/shell/codex-workflow-command.ts <operation> [args]`.
+   - If `CODEX_THREAD_ID` is present, run workflow operations from the repository root with `node --conditions=@living-architecture/source --import tsx tools/dev-workflow-v2/src/shell/codex-workflow-command.ts <operation> [args]`.
    - Otherwise, run workflow operations with `/dev-workflow-v2:workflow <operation> [args]`.
 1. Run the selected harness's `get-state` workflow operation and extract `prNumber`.
 1. Stop if `prNumber` is missing. Do not infer a PR from the current branch.

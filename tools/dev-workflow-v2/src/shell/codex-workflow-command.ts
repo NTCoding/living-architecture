@@ -1,7 +1,6 @@
-import { spawnSync } from 'node:child_process'
-import { createRequire } from 'node:module'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import 'tsx'
+
+export {}
 
 class InvalidWorkflowCommandError extends Error {
   constructor() {
@@ -33,25 +32,6 @@ const args =
   operationArgs[0] === sessionId || operationArgs[0] === workflowSessionId
     ? operationArgs.slice(1)
     : operationArgs
-const cliPath = join(dirname(fileURLToPath(import.meta.url)), 'codex-cli.ts')
-const require = createRequire(import.meta.url)
-const tsxCliPath = require.resolve('tsx/cli')
-const sourceCondition = '--conditions=@living-architecture/source'
-const nodeOptions = [process.env.NODE_OPTIONS, sourceCondition].filter(Boolean).join(' ')
-const result = spawnSync(
-  process.execPath,
-  [tsxCliPath, cliPath, operation, workflowSessionId, ...args],
-  {
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      NODE_OPTIONS: nodeOptions,
-    },
-  },
-)
+process.argv = [process.execPath, 'codex-cli.ts', operation, workflowSessionId, ...args]
 
-if (result.error !== undefined) {
-  throw result.error
-}
-
-process.exit(result.status ?? 1)
+await import('./codex-cli')

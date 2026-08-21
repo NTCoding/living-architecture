@@ -8,9 +8,9 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 const workspaceRootCommand =
-  'workspaceRoot="$(git rev-parse --show-toplevel)" && pnpm --dir "$workspaceRoot" exec tsx "$workspaceRoot/tools/dev-workflow-v2/src/shell/codex-cli.ts"'
+  'workspaceRoot="$(git rev-parse --show-toplevel)" && node --conditions=@living-architecture/source --import tsx "$workspaceRoot/tools/dev-workflow-v2/src/shell/codex-cli.ts"'
 const workflowCommand =
-  'workspaceRoot="$(git rev-parse --show-toplevel)" && pnpm --dir "$workspaceRoot" exec tsx "$workspaceRoot/tools/dev-workflow-v2/src/shell/codex-workflow-command.ts"'
+  'workspaceRoot="$(git rev-parse --show-toplevel)" && node --conditions=@living-architecture/source --import tsx "$workspaceRoot/tools/dev-workflow-v2/src/shell/codex-workflow-command.ts"'
 
 describe('plugin Agent Skills', () => {
   it('runs Codex hooks and workflow operations from the workspace', () => {
@@ -33,6 +33,7 @@ describe('plugin Agent Skills', () => {
     expect(readPluginFile('src/shell/codex-workflow-command.ts')).toContain(
       'process.env.DEV_WORKFLOW_SESSION_ID ?? sessionId',
     )
+    expect(readPluginFile('src/shell/codex-workflow-command.ts')).not.toContain('tsx/cli')
   })
 
   it('provides an Agent Skill for every plugin command', () => {
@@ -79,21 +80,19 @@ describe('plugin Agent Skills', () => {
     })
   })
 
-  it('validates reviewer result types before recording them', () => {
+  it('validates reviewer result types without recording on their behalf', () => {
     const skill = readPluginFile('skills/code-review/SKILL.md')
-    const validationPosition = skill.indexOf('`verdict` equal to `PASS` or `FAIL`')
-    const recordingPosition = skill.indexOf('`record-review` workflow operation')
 
     expect({
       validatesSummary: skill.includes('`summary` as a string'),
       validatesFindings: skill.includes('`findings` as an array'),
-      blocksInvalidResults: skill.includes('stop before recording any invalid result'),
-      validatesBeforeRecording: validationPosition > -1 && validationPosition < recordingPosition,
+      blocksInvalidResults: skill.includes('report the affected reviewer, and stop'),
+      doesNotRecordOnBehalf: skill.includes('Do not record valid results on behalf of a reviewer'),
     }).toStrictEqual({
       validatesSummary: true,
       validatesFindings: true,
       blocksInvalidResults: true,
-      validatesBeforeRecording: true,
+      doesNotRecordOnBehalf: true,
     })
   })
 
@@ -143,10 +142,20 @@ describe('plugin Agent Skills', () => {
     },
   )
 
-  it('passes the active workflow session to Codex reviewers', () => {
+  it('makes Codex reviewers record their own result in the active workflow session', () => {
     const skill = readPluginFile('skills/code-review/SKILL.md')
 
-    expect(skill).toContain('DEV_WORKFLOW_SESSION_ID')
+    expect({
+      passesSession: skill.includes('DEV_WORKFLOW_SESSION_ID'),
+      reviewerRecordsResult: skill.includes('Every reviewer owns its result'),
+      prohibitsCoordinatorRecording: skill.includes(
+        'Do not record valid results on behalf of a reviewer',
+      ),
+    }).toStrictEqual({
+      passesSession: true,
+      reviewerRecordsResult: true,
+      prohibitsCoordinatorRecording: true,
+    })
   })
 })
 

@@ -10,7 +10,7 @@ Use the arguments supplied after `$dev-workflow-v2:workflow` as `<operation> [ar
 From the repository root, run:
 
 ```bash
-pnpm exec tsx tools/dev-workflow-v2/src/shell/codex-workflow-command.ts <operation> [args]
+node --conditions=@living-architecture/source --import tsx tools/dev-workflow-v2/src/shell/codex-workflow-command.ts <operation> [args]
 ```
 
 The command reads the active Codex task identifier from `CODEX_THREAD_ID`. Never supply, infer, or copy a session identifier.
