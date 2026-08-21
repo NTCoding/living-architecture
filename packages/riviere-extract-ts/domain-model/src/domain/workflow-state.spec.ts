@@ -48,10 +48,10 @@ describe('WorkflowStage', () => {
     const state = WorkflowState.parse({ graph, runLogDirectory: 'logs', stages })
 
     graph.domains.orders.description = 'Changed'
-    graph.sources[0].repository = 'changed'
+    graph.sources[0]!.repository = 'changed'
     stages.push(validate)
 
-    expect(state.graph.domains.orders.description).toBe('Orders')
+    expect(state.graph.domains['orders']!.description).toBe('Orders')
     expect(state.graph.sources).toStrictEqual([{ repository: 'shop' }])
     expect(state.stages).toHaveLength(1)
   })
