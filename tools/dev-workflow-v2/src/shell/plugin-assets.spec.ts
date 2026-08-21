@@ -31,7 +31,7 @@ describe('plugin Agent Skills', () => {
     })
     expect(readPluginFile('src/shell/codex-cli.ts')).toContain(workflowCommand)
     expect(readPluginFile('src/shell/codex-workflow-command.ts')).toContain(
-      'process.env.DEV_WORKFLOW_SESSION_ID ?? sessionId',
+      'process.env.DEV_WORKFLOW_SESSION_ID ?? readCodexParentThreadId(sessionId, codexHome) ?? sessionId',
     )
     expect(readPluginFile('src/shell/codex-workflow-command.ts')).not.toContain('tsx/cli')
   })
