@@ -72,6 +72,17 @@ describe('WorkflowDefinition', () => {
     expect(Object.hasOwn(data.graph.domains, '__proto__')).toBe(true)
   })
 
+  it('rejects duplicate domain names', () => {
+    expect(parseError({
+      ...validWorkflow(),
+      graph: {
+        sources: [{ repository: 'repo' }],
+        domains: [{ name: 'orders' }, { name: 'orders' }],
+        outputPath: 'graph.json',
+      },
+    })).toBe('graph.domains[1] has a duplicate name')
+  })
+
   it.each([
     ['workflow must be an object', undefined],
     ['version must be 1', { ...validWorkflow(), version: 2 }],

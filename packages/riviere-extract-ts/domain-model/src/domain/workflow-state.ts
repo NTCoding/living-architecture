@@ -55,6 +55,18 @@ export class WorkflowState {
     readonly runLogDirectory: string
     readonly stages: readonly WorkflowStage[]
   }): WorkflowState {
-    return new WorkflowState(input.graph, input.runLogDirectory, input.stages)
+    const domains = Object.freeze(
+      Object.fromEntries(
+        Object.entries(input.graph.domains).map(([name, metadata]) => [name, Object.freeze({ ...metadata })]),
+      ),
+    )
+    const sources = Object.freeze(input.graph.sources.map((source) => Object.freeze({ ...source })))
+    const graph = Object.freeze({
+      domains,
+      outputPath: input.graph.outputPath,
+      sources,
+    })
+    const stages = Object.freeze(input.stages.map((stage) => Object.freeze(stage)))
+    return new WorkflowState(graph, input.runLogDirectory, stages)
   }
 }

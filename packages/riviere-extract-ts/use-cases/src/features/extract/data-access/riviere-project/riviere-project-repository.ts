@@ -186,6 +186,7 @@ export class RiviereProjectRepository {
         modules: config['modules'].map((item) => this.expandModuleRefItem(item, configDir)),
       }
     } catch (error) {
+      if (error instanceof ExtractionDataAccessError) throw error
       throw new ExtractionConfigError(
         'VALIDATION_ERROR',
         `Error expanding module references: ${String(error)}`,

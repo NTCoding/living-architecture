@@ -79,11 +79,14 @@ function parseDomains(input: Record<string, unknown>) {
   if (!domains.success) return domains
   if (domains.data.length === 0) return failure('graph.domains must not be empty')
   const parsedDomains: [string, { description: string; systemType: DomainSystemType }][] = []
+  const domainNames = new Set<string>()
   for (const [index, domain] of domains.data.entries()) {
     const domainRecord = asRecord(domain)
     if (domainRecord === undefined) return failure(`graph.domains[${index}] must be an object`)
     const name = requiredString(domainRecord, 'name')
     if (!name.success) return name
+    if (domainNames.has(name.data)) return failure(`graph.domains[${index}] has a duplicate name`)
+    domainNames.add(name.data)
     const description = optionalString(domainRecord, 'description')
     if (!description.success) return description
     const systemType = optionalSystemType(domainRecord)
