@@ -58,8 +58,9 @@ describe('WorkflowDefinition', () => {
     const result = WorkflowDefinition.parse({
       ...workflow,
       graph: {
-        ...workflow.graph,
+        sources: [{ repository: 'https://github.com/test/orders' }],
         domains: [{ name: '__proto__', description: 'Prototype', systemType: 'domain' }],
+        outputPath: '.riviere/graph.json',
       },
     })
 
