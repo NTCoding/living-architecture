@@ -59,19 +59,28 @@ function attachedHeadResponses(
 const WORK_DIR = '/fake/project'
 const GIT_EXECUTABLE = process.env['GIT_EXECUTABLE'] ?? '/usr/bin/git'
 
+function runGit(args: string[], cwd: string): void {
+  execFileSync(GIT_EXECUTABLE, args, {
+    cwd,
+    env: Object.fromEntries(
+      Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')),
+    ),
+  })
+}
+
 describe('detectChangedTypeScriptFiles', () => {
   it('uses the default Git executor with a controlled repository', () => {
     const directory = mkdtempSync(join(tmpdir(), 'changed-files-test-'))
     try {
-      execFileSync(GIT_EXECUTABLE, ['init', '--initial-branch=main'], { cwd: directory })
-      execFileSync(GIT_EXECUTABLE, ['config', 'user.email', 'test@example.com'], { cwd: directory })
-      execFileSync(GIT_EXECUTABLE, ['config', 'user.name', 'Test'], { cwd: directory })
+      runGit(['init', '--initial-branch=main'], directory)
+      runGit(['config', 'user.email', 'test@example.com'], directory)
+      runGit(['config', 'user.name', 'Test'], directory)
       writeFileSync(join(directory, 'changed.ts'), 'export const changed = true')
-      execFileSync(GIT_EXECUTABLE, ['add', 'changed.ts'], { cwd: directory })
-      execFileSync(GIT_EXECUTABLE, ['commit', '-m', 'initial'], { cwd: directory })
+      runGit(['add', 'changed.ts'], directory)
+      runGit(['commit', '-m', 'initial'], directory)
       writeFileSync(join(directory, 'changed.ts'), 'export const changed = false')
-      execFileSync(GIT_EXECUTABLE, ['add', 'changed.ts'], { cwd: directory })
-      execFileSync(GIT_EXECUTABLE, ['commit', '-m', 'changed'], { cwd: directory })
+      runGit(['add', 'changed.ts'], directory)
+      runGit(['commit', '-m', 'changed'], directory)
 
       expect(detectChangedTypeScriptFiles(directory, { base: 'HEAD~1' }).files).toStrictEqual([
         join(directory, 'changed.ts'),

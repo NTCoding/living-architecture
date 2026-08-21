@@ -22,18 +22,22 @@ const VALID_CONFIG = `modules:
 
 const GIT_EXECUTABLE = process.env['GIT_EXECUTABLE'] ?? '/usr/bin/git'
 
+function runGit(args: string[], cwd: string): void {
+  execFileSync(GIT_EXECUTABLE, args, {
+    cwd,
+    env: Object.fromEntries(
+      Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')),
+    ),
+    stdio: 'ignore',
+  })
+}
+
 function withWorkspace(run: (directory: string) => void): void {
   const directory = mkdtempSync(join(tmpdir(), 'extract-validation-test-'))
   writeFileSync(join(directory, 'package.json'), JSON.stringify({ name: 'workspace' }))
   writeFileSync(join(directory, 'component.ts'), 'export class Order {}')
-  execFileSync(GIT_EXECUTABLE, ['init', '--initial-branch=main'], {
-    cwd: directory,
-    stdio: 'ignore',
-  })
-  execFileSync(GIT_EXECUTABLE, ['remote', 'add', 'origin', 'https://github.com/test/repo.git'], {
-    cwd: directory,
-    stdio: 'ignore',
-  })
+  runGit(['init', '--initial-branch=main'], directory)
+  runGit(['remote', 'add', 'origin', 'https://github.com/test/repo.git'], directory)
   try {
     run(directory)
   } finally {
@@ -65,7 +69,10 @@ function writeExtendsConfig(directory: string, extendsRef: string): void {
   writeFileSync(join(directory, 'component.ts'), 'export class Order {}')
   writeFileSync(
     join(directory, 'extract.yml'),
-    VALID_CONFIG.replace('api: { notUsed: true }', `extends: ${extendsRef}\n    api: { notUsed: true }`),
+    VALID_CONFIG.replace(
+      'api: { notUsed: true }',
+      `extends: ${extendsRef}\n    api: { notUsed: true }`,
+    ),
   )
 }
 
