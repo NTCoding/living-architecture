@@ -7,8 +7,31 @@ import { describe, expect, it } from 'vitest'
 const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
+const workspaceRootCommand =
+  'workspaceRoot="$(git rev-parse --show-toplevel)" && pnpm --dir "$workspaceRoot" exec tsx "$workspaceRoot/tools/dev-workflow-v2/src/shell/codex-cli.ts"'
+const workflowCommand =
+  'workspaceRoot="$(git rev-parse --show-toplevel)" && pnpm --dir "$workspaceRoot" exec tsx "$workspaceRoot/tools/dev-workflow-v2/src/shell/codex-workflow-command.ts"'
 
 describe('plugin Agent Skills', () => {
+  it('runs Codex hooks and workflow operations from the workspace', () => {
+    const hooks: unknown = JSON.parse(readPluginFile('com.openai.codex/hooks/hooks.json'))
+
+    expect(hooks).toStrictEqual({
+      hooks: {
+        SessionStart: [{ hooks: [{ type: 'command', command: workspaceRootCommand }] }],
+        PreToolUse: [
+          {
+            matcher: 'Bash|apply_patch',
+            hooks: [{ type: 'command', command: workspaceRootCommand }],
+          },
+        ],
+        SubagentStart: [{ hooks: [{ type: 'command', command: workspaceRootCommand }] }],
+        Stop: [{ hooks: [{ type: 'command', command: workspaceRootCommand }] }],
+      },
+    })
+    expect(readPluginFile('src/shell/codex-cli.ts')).toContain(workflowCommand)
+  })
+
   it('provides an Agent Skill for every plugin command', () => {
     const commandNames = readdirSync(join(pluginRoot, 'commands'))
       .filter((filename) => filename.endsWith('.md'))
