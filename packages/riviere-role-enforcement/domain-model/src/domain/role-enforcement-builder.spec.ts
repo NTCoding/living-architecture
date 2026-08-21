@@ -164,6 +164,21 @@ describe('role', () => {
   })
 })
 
+it('includes private data member and justification constraints when provided', () => {
+  const result = role('role-b', {
+    targets: ['class'],
+    requiresPrivateDataMembers: true,
+    requiresJustification: 'Explain why no aggregate owns this behaviour.',
+  })
+
+  expectBuiltRole(result, {
+    name: 'role-b',
+    targets: ['class'],
+    requiresPrivateDataMembers: true,
+    requiresJustification: 'Explain why no aggregate owns this behaviour.',
+  })
+})
+
 describe('roleEnforcementConfiguration', () => {
   const testRoles = [
     role('cli-entrypoint', { targets: ['function'] }),

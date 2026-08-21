@@ -79,6 +79,7 @@ export const allRoles = [
   role('aggregate', {
     targets: ['interface', 'type-alias', 'class'],
     minPublicMethods: 1,
+    requiresPrivateDataMembers: true,
     approvedInstances: [
       {
         name: 'RiviereProject',
@@ -110,7 +111,12 @@ export const allRoles = [
     mustBeDataStructure: true,
   }),
   role('domain-port', { targets: ['interface', 'type-alias'] }),
-  role('domain-service', { targets: ['function', 'class'] }),
+  role('domain-service', {
+    targets: ['function', 'class'],
+    forbiddenDependencies: ['domain-service'],
+    requiresJustification:
+      'If this behaviour operates on aggregate or value object state, explain why it should not be a method on the object that owns that state. Otherwise, explain why no aggregate or value object is the natural owner.',
+  }),
   role('domain-port-adapter', {
     targets: ['function', 'class'],
     forbiddenDependencies: ['domain-port-adapter'],

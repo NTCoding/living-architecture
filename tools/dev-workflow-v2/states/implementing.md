@@ -8,7 +8,9 @@ You are implementing the task. Write code, commit often.
 - [ ] Create a plan and get user approval before writing code
 - [ ] If no GitHub issue is recorded yet: `/dev-workflow-v2:workflow record-issue <ISSUE_NUMBER>`
 - [ ] If no feature branch is recorded yet: `/dev-workflow-v2:workflow record-branch "<branch-name>"`
-- [ ] Implement the task following project conventions (`docs/conventions/software-design.md`, `docs/conventions/testing.md`)
+- [ ] Before planning or coding, read `docs/conventions/software-design.md`, `docs/conventions/standard-patterns.md`, `docs/conventions/anti-patterns.md`, `docs/conventions/testing.md`, `docs/architecture/adr/ADR-002-allowed-folder-structures.md`, `.riviere/role-enforcement.config.ts`, `.riviere/role-selection-guide.md`, and every relevant role definition.
+- [ ] In the implementation plan, justify every new or changed `domain-service`: first explain why the behaviour is not owned by an aggregate, then why it is not owned by a value object.
+- [ ] Implement the task following project conventions.
 - [ ] Write tests — 100% coverage is mandatory
 - [ ] Commit your changes (working tree must be clean before transitioning)
 - [ ] Transition to REVIEWING: `/dev-workflow-v2:workflow transition REVIEWING`

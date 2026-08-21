@@ -56,6 +56,8 @@ There are no warnings. There is no “mostly fine”. If the option cannot be im
 
 ## Hard fail checks
 
+Fail a design that introduces a domain service without testing aggregate ownership first and value object ownership second, or without a specific explanation of why neither owns the behaviour.
+
 Fail immediately when any of these are present:
 
 0. The assigned marker block is missing, still contains `Pending`, lacks exactly one option heading for the assigned option number, or lacks the required headings `Code stress test`, `Design validation`, and `Open decisions`.

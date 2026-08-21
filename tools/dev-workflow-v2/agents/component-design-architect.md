@@ -89,6 +89,8 @@ If your draft would fail any of these checks, correct it before writing to the a
 
 ## Aggregate rules
 
+Treat `domain-service` as an exception. Before proposing one, test whether the behaviour belongs on an aggregate, then a value object. Include the specific reason neither owns it in the design.
+
 Some people get confused by DDD aggregates, you never DDD. You follow the fundamental principles that should never be violated without fail:
 
 1. An aggregate is loaded and saved by a repository

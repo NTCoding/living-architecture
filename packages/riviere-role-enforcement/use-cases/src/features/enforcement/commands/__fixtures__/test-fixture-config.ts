@@ -109,6 +109,13 @@ export function configWithGenericClassStateConstraints() {
   })
 }
 
+export function configWithPrivateDataMembers() {
+  return configWithGenericAggregateOverride({
+    targets: ['class'],
+    requiresPrivateDataMembers: true,
+  })
+}
+
 export function configWithGenericRepositoryMethodInputs(allowedInputs: string[]) {
   return roleEnforcementConfiguration({
     configurations: {

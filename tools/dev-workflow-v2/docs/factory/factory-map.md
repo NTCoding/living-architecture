@@ -139,6 +139,12 @@ Verification entrypoints:
 
 Definition files:
 
+- `.riviere/roles.ts`
+- `packages/riviere-role-enforcement/domain-model/src/domain/role-enforcement-builder.ts`
+- `packages/riviere-role-enforcement/domain-model/role-enforcement-plugin.mjs`
+
+Role contracts can require private aggregate state, prevent forbidden role dependencies, and require a role-specific declaration justification. Tests must cover both rejected and accepted declarations.
+
 - `.riviere/role-enforcement.config.ts`
 - `.riviere/roles.ts`
 - `.riviere/role-selection-guide.md`

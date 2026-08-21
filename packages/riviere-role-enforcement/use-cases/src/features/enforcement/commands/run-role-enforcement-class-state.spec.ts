@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest'
 import {
   configWithGenericClassStateConstraints,
+  configWithPrivateDataMembers,
   genericTestConfig,
 } from './__fixtures__/test-fixture-config'
 import {
@@ -109,6 +110,45 @@ export class Beta {
     const result = runWith(configWithGenericClassStateConstraints(), workspaceDir)
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
+  })
+})
+
+it('rejects public aggregate state and accepts private aggregate state', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    writeDomainFile(
+      workspaceDir,
+      `/** @riviere-role role-b */
+export class Beta {
+  readonly label = 'beta'
+  private readonly secret = 'secret'
+  static readonly category = 'test'
+
+  rename(): void {}
+}
+`,
+    )
+    const result = runWith(configWithPrivateDataMembers(), workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain("requires private instance data members on 'Beta'")
+    expect(result.stdout).toContain('Found [label]')
+  })
+})
+
+it('accepts private aggregate state and static fields', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    writeDomainFile(
+      workspaceDir,
+      `/** @riviere-role role-b */
+export class Beta {
+  private readonly label = 'beta'
+  static readonly category = 'test'
+
+  rename(): void {}
+}
+`,
+    )
+    const result = runWith(configWithPrivateDataMembers(), workspaceDir)
+    expect(result.exitCode).toBe(0)
   })
 })
 

@@ -4,6 +4,7 @@ import path from 'node:path'
 import { minimatch } from 'minimatch'
 
 const ROLE_TAG = /@riviere-role\s+(\S+)/g
+const ROLE_JUSTIFICATION_TAG = /@riviere-role-justification\s+([^\r\n*]+)/g
 const DECORATOR_CONTEXT_TYPES = new Set([
   'ClassAccessorDecoratorContext',
   'ClassDecoratorContext',
@@ -130,6 +131,7 @@ export default {
           validateRequiredRoleDependencies()
           validateForbiddenImportedFunctionCalls()
             validateForbiddenMethodCalls()
+          validateForbiddenSameFileRoleCalls()
           },
         }
 
@@ -428,7 +430,25 @@ export default {
             roleName,
           })
 
+          validateRoleJustification(node, role, name, annotationNode)
           validateRoleContract(node, target, role, name)
+        }
+
+        function validateRoleJustification(node, role, name, annotationNode) {
+          if (typeof role.requiresJustification !== 'string') {
+            return
+          }
+          const justifications = sourceCode.getCommentsBefore(annotationNode)
+            .flatMap((comment) => [...comment.value.matchAll(ROLE_JUSTIFICATION_TAG)])
+            .map((match) => match[1]?.trim())
+            .filter((justification) => justification !== undefined && justification !== '')
+          if (justifications.length === 1) {
+            return
+          }
+          report(
+            node,
+            `Role '${role.name}' requires one non-empty @riviere-role-justification on '${name}'. ${role.requiresJustification}`,
+          )
         }
 
         function validateRoleContract(node, target, role, name) {
@@ -781,6 +801,45 @@ export default {
           )
           for (const node of nonImportBody) {
             walkForImportedFunctionCalls(node, importedFunctionBindings)
+          }
+        }
+
+        function validateForbiddenSameFileRoleCalls() {
+          walkForForbiddenSameFileRoleCalls(sourceCode.ast)
+        }
+
+        function walkForForbiddenSameFileRoleCalls(node) {
+          if (node === null || node === undefined || typeof node !== 'object') {
+            return
+          }
+          if (node.type === 'CallExpression' && node.callee.type === 'Identifier') {
+            const target = roleDeclarations.find(
+              (declaration) =>
+                declaration.roleName !== undefined &&
+                readDeclarationName(declaration.node) === node.callee.name,
+            )
+            const source = roleDeclarations.find(
+              (declaration) => declaration.node !== target?.node && isNodeInside(node, declaration.node),
+            )
+            if (
+              target !== undefined &&
+              source !== undefined &&
+              roleMap.get(source.roleName)?.forbiddenDependencies?.includes(target.roleName)
+            ) {
+              report(
+                node,
+                `Role '${source.roleName}' cannot call same-file role '${target.roleName}' declaration '${node.callee.name}'. ${referenceForKnownRole(options, source.roleName)}`,
+              )
+            }
+          }
+          for (const key of Object.keys(node)) {
+            if (key === 'parent') continue
+            const child = node[key]
+            if (Array.isArray(child)) {
+              for (const item of child) walkForForbiddenSameFileRoleCalls(item)
+            } else if (isAstNode(child)) {
+              walkForForbiddenSameFileRoleCalls(child)
+            }
           }
         }
 
@@ -1777,6 +1836,7 @@ export default {
           validateRequiredStaticMethodNamePrefix(node, role, name)
           validateCallableMemberConstraints(node, role, name)
           validateDataMemberRequirements(node, role, name)
+          validatePrivateDataMembers(node, role, name)
           validateClassMethodContracts(node, role, name)
         }
 
@@ -1913,6 +1973,22 @@ export default {
           )
         }
 
+        function validatePrivateDataMembers(node, role, name) {
+          if (role.requiresPrivateDataMembers !== true) {
+            return
+          }
+          const exposedMembers = readInstanceDataMembers(node)
+            .filter((member) => member.accessibility !== 'private')
+            .map((member) => member.name)
+          if (exposedMembers.length === 0) {
+            return
+          }
+          report(
+            node,
+            `Role '${role.name}' requires private instance data members on '${name}'. Found [${exposedMembers.join(', ')}]. ${referenceForKnownRole(options, role.name)}`,
+          )
+        }
+
         function countPublicMethods(classNode) {
           return classNode.body.body.filter(
             (member) =>
@@ -1970,6 +2046,7 @@ export default {
                 ? []
                 : [{
                   callable: isCallableFieldMember(member),
+                  accessibility: member.accessibility,
                   name,
                 }]
             }
@@ -2011,6 +2088,7 @@ export default {
 
           return [{
             callable: isCallableParameterProperty(param, parameter),
+            accessibility: param.accessibility,
             name: parameter.name,
           }]
         }

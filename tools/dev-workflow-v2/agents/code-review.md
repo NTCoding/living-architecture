@@ -86,3 +86,6 @@ Default: Flag issues. Skip only if IMPOSSIBLE (cannot satisfy convention + requi
 
 Before generating your response, verify:
 - [ ] Review JSON returned with `verdict`, `summary`, and `findings`
+# Domain naming check
+
+In the domain model, look for variables or fields named `data` or another generic word and identify whether a word from the domain describes it. If so, fail the review and suggest the better name.
