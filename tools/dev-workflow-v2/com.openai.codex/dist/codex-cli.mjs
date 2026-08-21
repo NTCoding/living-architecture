@@ -8549,7 +8549,7 @@ var bashForbidden = {
   flags: ["--no-verify", "--force", "--hard"]
 };
 var workflowRoot = join2(dirname(fileURLToPath(import.meta.url)), "..", "..");
-var workflowCommand = 'node "$PLUGIN_ROOT/com.openai.codex/dist/codex-workflow-command.mjs"';
+var workflowCommand = 'node "$PLUGIN_ROOT/com.openai.codex/dist/codex-workflow-command.mjs" --runtime=bundled';
 var defaultProcessDeps = createDefaultProcessDeps();
 var processDeps = {
   ...defaultProcessDeps,

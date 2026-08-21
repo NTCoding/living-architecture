@@ -1,4 +1,6 @@
-import { readFileSync, readdirSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
+import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -10,12 +12,59 @@ const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, p
 
 describe('plugin Agent Skills', () => {
   it('ships a standalone Codex runtime for hooks', () => {
-    const hooks = readPluginFile('com.openai.codex/hooks/hooks.json')
+    const hooks: unknown = JSON.parse(readPluginFile('com.openai.codex/hooks/hooks.json'))
+    const hookCommand = 'node "$PLUGIN_ROOT/com.openai.codex/dist/codex-cli.mjs"'
 
-    expect(hooks).toContain(String.raw`node \"$PLUGIN_ROOT/com.openai.codex/dist/codex-cli.mjs\"`)
-    expect(readPluginFile('com.openai.codex/dist/codex-cli.mjs')).not.toContain(
-      '@living-architecture/dev-workflow-v2-use-cases',
-    )
+    expect(hooks).toStrictEqual({
+      hooks: {
+        SessionStart: [{ hooks: [{ type: 'command', command: hookCommand }] }],
+        PreToolUse: [
+          {
+            matcher: 'Bash|apply_patch',
+            hooks: [{ type: 'command', command: hookCommand }],
+          },
+        ],
+        SubagentStart: [{ hooks: [{ type: 'command', command: hookCommand }] }],
+        Stop: [{ hooks: [{ type: 'command', command: hookCommand }] }],
+      },
+    })
+
+    for (const runtime of ['codex-cli.mjs', 'codex-workflow-command.mjs']) {
+      expect(readPluginFile(`com.openai.codex/dist/${runtime}`)).not.toContain(
+        '@living-architecture/dev-workflow-v2-use-cases',
+      )
+    }
+  })
+
+  it('runs the bundled workflow command without TSX', () => {
+    const temporaryPluginRoot = mkdtempSync(join(tmpdir(), 'dev-workflow-v2-plugin-'))
+
+    try {
+      cpSync(join(pluginRoot, 'com.openai.codex'), join(temporaryPluginRoot, 'com.openai.codex'), {
+        recursive: true,
+      })
+      const result = spawnSync(
+        process.execPath,
+        [
+          join(temporaryPluginRoot, 'com.openai.codex/dist/codex-workflow-command.mjs'),
+          '--runtime=bundled',
+          'get-state',
+        ],
+        {
+          encoding: 'utf8',
+          env: {
+            ...process.env,
+            CODEX_HOME: temporaryPluginRoot,
+            CODEX_THREAD_ID: 'test-session',
+          },
+        },
+      )
+
+      expect(result.error).toBeUndefined()
+      expect(result.stderr).not.toContain("Cannot find module 'tsx/cli'")
+    } finally {
+      rmSync(temporaryPluginRoot, { recursive: true, force: true })
+    }
   })
 
   it('provides an Agent Skill for every plugin command', () => {

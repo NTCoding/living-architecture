@@ -39,7 +39,8 @@ const bashForbidden = {
 }
 
 const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const workflowCommand = 'node "$PLUGIN_ROOT/com.openai.codex/dist/codex-workflow-command.mjs"'
+const workflowCommand =
+  'node "$PLUGIN_ROOT/com.openai.codex/dist/codex-workflow-command.mjs" --runtime=bundled'
 const defaultProcessDeps = createDefaultProcessDeps()
 const processDeps = {
   ...defaultProcessDeps,

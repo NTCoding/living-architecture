@@ -89,7 +89,9 @@ var MissingCodexThreadIdError = class extends Error {
     this.name = "MissingCodexThreadIdError";
   }
 };
-var [operation, ...operationArgs] = process.argv.slice(2);
+var invocationArgs = process.argv.slice(2);
+var runningBundledRuntime = invocationArgs[0] === "--runtime=bundled";
+var [operation, ...operationArgs] = runningBundledRuntime ? invocationArgs.slice(1) : invocationArgs;
 var sessionId = process.env.CODEX_THREAD_ID;
 if (operation === void 0 || operation === "") {
   throw new InvalidWorkflowCommandError();
@@ -102,22 +104,17 @@ var workflowSessionId = readCodexParentThreadId(sessionId, codexHome) ?? session
 var args = operationArgs[0] === sessionId || operationArgs[0] === workflowSessionId ? operationArgs.slice(1) : operationArgs;
 var cliPath = join2(dirname(fileURLToPath(import.meta.url)), "codex-cli.ts");
 var require2 = createRequire(import.meta.url);
-var runningBundledRuntime = process.argv[1]?.endsWith(".mjs") ?? false;
 var bundledCliPath = join2(dirname(fileURLToPath(import.meta.url)), "codex-cli.mjs");
 var cliArguments = runningBundledRuntime ? [bundledCliPath, operation, workflowSessionId, ...args] : [require2.resolve("tsx/cli"), cliPath, operation, workflowSessionId, ...args];
 var sourceCondition = "--conditions=@living-architecture/source";
 var nodeOptions = [process.env.NODE_OPTIONS, sourceCondition].filter(Boolean).join(" ");
-var result = spawnSync(
-  process.execPath,
-  cliArguments,
-  {
-    stdio: "inherit",
-    env: {
-      ...process.env,
-      NODE_OPTIONS: nodeOptions
-    }
+var result = spawnSync(process.execPath, cliArguments, {
+  stdio: "inherit",
+  env: {
+    ...process.env,
+    NODE_OPTIONS: nodeOptions
   }
-);
+});
 if (result.error !== void 0) {
   throw result.error;
 }

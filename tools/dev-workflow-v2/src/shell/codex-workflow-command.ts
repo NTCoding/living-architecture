@@ -19,7 +19,11 @@ class MissingCodexThreadIdError extends Error {
   }
 }
 
-const [operation, ...operationArgs] = process.argv.slice(2)
+const invocationArgs = process.argv.slice(2)
+const runningBundledRuntime = invocationArgs[0] === '--runtime=bundled'
+const [operation, ...operationArgs] = runningBundledRuntime
+  ? invocationArgs.slice(1)
+  : invocationArgs
 const sessionId = process.env.CODEX_THREAD_ID
 
 if (operation === undefined || operation === '') {
@@ -38,7 +42,6 @@ const args =
     : operationArgs
 const cliPath = join(dirname(fileURLToPath(import.meta.url)), 'codex-cli.ts')
 const require = createRequire(import.meta.url)
-const runningBundledRuntime = process.argv[1]?.endsWith('.mjs') ?? false
 const bundledCliPath = join(dirname(fileURLToPath(import.meta.url)), 'codex-cli.mjs')
 const cliArguments = runningBundledRuntime
   ? [bundledCliPath, operation, workflowSessionId, ...args]
