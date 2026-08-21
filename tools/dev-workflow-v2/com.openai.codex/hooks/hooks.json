@@ -1,8 +1,8 @@
 {
   "hooks": {
-    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node \"$PLUGIN_ROOT/com.openai.codex/dist/codex-cli.mjs\"" }] }],
-    "PreToolUse": [{ "matcher": "Bash|apply_patch", "hooks": [{ "type": "command", "command": "node \"$PLUGIN_ROOT/com.openai.codex/dist/codex-cli.mjs\"" }] }],
-    "SubagentStart": [{ "hooks": [{ "type": "command", "command": "node \"$PLUGIN_ROOT/com.openai.codex/dist/codex-cli.mjs\"" }] }],
-    "Stop": [{ "hooks": [{ "type": "command", "command": "node \"$PLUGIN_ROOT/com.openai.codex/dist/codex-cli.mjs\"" }] }]
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "workspaceRoot=\"$(git rev-parse --show-toplevel)\" && pnpm --dir \"$workspaceRoot\" exec tsx \"$workspaceRoot/tools/dev-workflow-v2/src/shell/codex-cli.ts\"" }] }],
+    "PreToolUse": [{ "matcher": "Bash|apply_patch", "hooks": [{ "type": "command", "command": "workspaceRoot=\"$(git rev-parse --show-toplevel)\" && pnpm --dir \"$workspaceRoot\" exec tsx \"$workspaceRoot/tools/dev-workflow-v2/src/shell/codex-cli.ts\"" }] }],
+    "SubagentStart": [{ "hooks": [{ "type": "command", "command": "workspaceRoot=\"$(git rev-parse --show-toplevel)\" && pnpm --dir \"$workspaceRoot\" exec tsx \"$workspaceRoot/tools/dev-workflow-v2/src/shell/codex-cli.ts\"" }] }],
+    "Stop": [{ "hooks": [{ "type": "command", "command": "workspaceRoot=\"$(git rev-parse --show-toplevel)\" && pnpm --dir \"$workspaceRoot\" exec tsx \"$workspaceRoot/tools/dev-workflow-v2/src/shell/codex-cli.ts\"" }] }]
   }
 }

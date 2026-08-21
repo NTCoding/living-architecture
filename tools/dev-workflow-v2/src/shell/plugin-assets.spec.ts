@@ -1,6 +1,4 @@
-import { spawnSync } from 'node:child_process'
-import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -9,62 +7,29 @@ import { describe, expect, it } from 'vitest'
 const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
+const workspaceRootCommand =
+  'workspaceRoot="$(git rev-parse --show-toplevel)" && pnpm --dir "$workspaceRoot" exec tsx "$workspaceRoot/tools/dev-workflow-v2/src/shell/codex-cli.ts"'
+const workflowCommand =
+  'workspaceRoot="$(git rev-parse --show-toplevel)" && pnpm --dir "$workspaceRoot" exec tsx "$workspaceRoot/tools/dev-workflow-v2/src/shell/codex-workflow-command.ts"'
 
 describe('plugin Agent Skills', () => {
-  it('ships a standalone Codex runtime for hooks', () => {
+  it('runs Codex hooks and workflow operations from the workspace', () => {
     const hooks: unknown = JSON.parse(readPluginFile('com.openai.codex/hooks/hooks.json'))
-    const hookCommand = 'node "$PLUGIN_ROOT/com.openai.codex/dist/codex-cli.mjs"'
 
     expect(hooks).toStrictEqual({
       hooks: {
-        SessionStart: [{ hooks: [{ type: 'command', command: hookCommand }] }],
+        SessionStart: [{ hooks: [{ type: 'command', command: workspaceRootCommand }] }],
         PreToolUse: [
           {
             matcher: 'Bash|apply_patch',
-            hooks: [{ type: 'command', command: hookCommand }],
+            hooks: [{ type: 'command', command: workspaceRootCommand }],
           },
         ],
-        SubagentStart: [{ hooks: [{ type: 'command', command: hookCommand }] }],
-        Stop: [{ hooks: [{ type: 'command', command: hookCommand }] }],
+        SubagentStart: [{ hooks: [{ type: 'command', command: workspaceRootCommand }] }],
+        Stop: [{ hooks: [{ type: 'command', command: workspaceRootCommand }] }],
       },
     })
-
-    for (const runtime of ['codex-cli.mjs', 'codex-workflow-command.mjs']) {
-      expect(readPluginFile(`com.openai.codex/dist/${runtime}`)).not.toContain(
-        '@living-architecture/dev-workflow-v2-use-cases',
-      )
-    }
-  })
-
-  it('runs the bundled workflow command without TSX', () => {
-    const temporaryPluginRoot = mkdtempSync(join(tmpdir(), 'dev-workflow-v2-plugin-'))
-
-    try {
-      cpSync(join(pluginRoot, 'com.openai.codex'), join(temporaryPluginRoot, 'com.openai.codex'), {
-        recursive: true,
-      })
-      const result = spawnSync(
-        process.execPath,
-        [
-          join(temporaryPluginRoot, 'com.openai.codex/dist/codex-workflow-command.mjs'),
-          '--runtime=bundled',
-          'get-state',
-        ],
-        {
-          encoding: 'utf8',
-          env: {
-            ...process.env,
-            CODEX_HOME: temporaryPluginRoot,
-            CODEX_THREAD_ID: 'test-session',
-          },
-        },
-      )
-
-      expect(result.error).toBeUndefined()
-      expect(result.stderr).not.toContain("Cannot find module 'tsx/cli'")
-    } finally {
-      rmSync(temporaryPluginRoot, { recursive: true, force: true })
-    }
+    expect(readPluginFile('src/shell/codex-cli.ts')).toContain(workflowCommand)
   })
 
   it('provides an Agent Skill for every plugin command', () => {

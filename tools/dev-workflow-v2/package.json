@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:codex-runtime": "esbuild src/shell/codex-cli.ts --bundle --platform=node --format=esm --conditions=@living-architecture/source --outfile=com.openai.codex/dist/codex-cli.mjs && esbuild src/shell/codex-workflow-command.ts --bundle --platform=node --format=esm --conditions=@living-architecture/source --outfile=com.openai.codex/dist/codex-workflow-command.mjs",
     "test": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
@@ -21,7 +20,6 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^2.0.0",
-    "esbuild": "^0.27.0",
     "typescript": "npm:typescript@^7.0.2",
     "vitest": "^2.0.0"
   }
