@@ -8,7 +8,7 @@ export default defineConfig(() => ({
     watch: false,
     globals: true,
     environment: 'jsdom',
-    include: ['.vitepress/**/*.spec.ts'],
+    include: ['.vitepress/**/*.spec.ts', 'scripts/**/*.spec.ts'],
     reporters: ['default'],
     coverage: {
       enabled: true,

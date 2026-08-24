@@ -110,6 +110,8 @@ A domain-model package contains one isolated subdomain model. Its internal domai
 
 Domain code owns business state, rules, invariants, value objects, aggregates, domain services, domain events, and domain ports. A domain model does not import another domain model.
 
+Every domain-model package must define a non-empty `description` in its `package.json`. This is the authoritative summary of the subdomain represented by the package.
+
 Ports and adapters are preferred for technical capabilities. External-package imports are not globally blocked because valid domain code includes Zod value objects and domains built around libraries such as `ts-morph`. Node capabilities such as `node:path` and `node:perf_hooks` should normally be represented by domain ports.
 
 ## Use-Case Packages
@@ -155,6 +157,8 @@ src/
 ```
 
 A published language is a minimal, stable contract intended for consumers across a boundary. It may contain published-language schemas, data structures, unions, parsers, field names, annotations, and value objects.
+
+Every published-language package must define a non-empty `description` in its `package.json`. For a subdomain with no domain-model package, this is the authoritative summary of the subdomain represented by the package.
 
 A published-language parser parses the published language and returns either its declared successful schema shape or its declared failure shape. Application behaviour does not belong in the published language.
 

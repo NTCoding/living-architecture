@@ -21,4 +21,7 @@ export const publishedLanguage = {
       importRules: { allow: {} },
     }),
   ),
+  packageManifest: {
+    requiredNonEmptyStringProperties: ['description'],
+  },
 }

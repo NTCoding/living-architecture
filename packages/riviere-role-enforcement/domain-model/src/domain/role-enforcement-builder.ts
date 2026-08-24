@@ -5,6 +5,7 @@ import { validateRoleConfiguration } from './validate-role-configuration'
 import { validateNoRepeatedInheritedImports } from './validate-location-import-rules'
 import { InvalidRoleDefinitionError } from './role-configuration-errors'
 import { type ApprovedInstance, type RoleConstraints, type RoleTarget } from './role-constraints'
+import { PackageManifestRequirements } from './package-manifest-requirements'
 export { location, locationConfiguration } from './location-configuration'
 export type { LocationBuilder, LocationConfiguration } from './location-configuration'
 interface ReturnShape<R extends string = string> {
@@ -156,6 +157,9 @@ interface RoleEnforcementConfigurationInput<R extends string> {
       string,
       {
         readonly locations: LocationConfiguration<R>
+        readonly packageManifest?: {
+          readonly requiredNonEmptyStringProperties: readonly string[]
+        }
       }
     >
   >
@@ -178,12 +182,18 @@ interface BuiltLocationNode {
   readonly roleEnforcement: boolean
 }
 
+interface WorkspacePackage {
+  readonly manifest: unknown
+  readonly path: string
+}
+
 interface RoleEnforcementConfigurationDefinition {
   readonly assignedPackages: readonly string[]
   readonly ignorePatterns: readonly string[]
   readonly importAliases?: Readonly<Record<string, string>>
   readonly include: readonly string[]
   readonly locationHierarchy: readonly BuiltLocationNode[]
+  readonly packageManifestRequirements: PackageManifestRequirements
   readonly roleDefinitionsDir: string
   readonly roles: readonly BuiltRole[]
   readonly unassignedPackages: readonly string[]
@@ -207,6 +217,7 @@ export class RoleEnforcementConfiguration {
   declare readonly importAliases?: Readonly<Record<string, string>>
   declare readonly include: readonly string[]
   declare readonly locationHierarchy: readonly BuiltLocationNode[]
+  declare readonly packageManifestRequirements: PackageManifestRequirements
   declare readonly roleDefinitionsDir: string
   declare readonly roles: readonly BuiltRole[]
   declare readonly unassignedPackages: readonly string[]
@@ -234,6 +245,7 @@ export class RoleEnforcementConfiguration {
       'include',
       'ignorePatterns',
       'locationHierarchy',
+      'packageManifestRequirements',
       'roles',
       'roleDefinitionsDir',
       'unassignedPackages',
@@ -255,8 +267,9 @@ export class RoleEnforcementConfiguration {
     }
   }
 
-  validateWorkspacePackages(workspacePackages: readonly string[]): void {
-    for (const packagePath of workspacePackages) {
+  validateWorkspacePackages(workspacePackages: readonly WorkspacePackage[]): void {
+    for (const workspacePackage of workspacePackages) {
+      const packagePath = workspacePackage.path
       const isUnassigned = this.unassignedPackages.includes(packagePath)
       if (isUnassigned) {
         continue
@@ -275,6 +288,7 @@ export class RoleEnforcementConfiguration {
           `Workspace package '${packagePath}' is assigned to more than one role-enforcement configuration.`,
         )
       }
+      this.packageManifestRequirements.validate(workspacePackage)
     }
   }
 }
@@ -303,6 +317,13 @@ export function roleEnforcementConfiguration<const R extends string>(
       `${toGlobPattern(packagePattern)}/src/**/*.tsx`,
     ]),
     locationHierarchy,
+    packageManifestRequirements: PackageManifestRequirements.parse(
+      assignedConfigurations.flatMap(([packagePattern, configuration]) =>
+        configuration.packageManifest === undefined
+          ? []
+          : [{ packagePattern, ...configuration.packageManifest }],
+      ),
+    ),
     roleDefinitionsDir: input.roleDefinitionsDir,
     roles: input.roles,
     unassignedPackages,

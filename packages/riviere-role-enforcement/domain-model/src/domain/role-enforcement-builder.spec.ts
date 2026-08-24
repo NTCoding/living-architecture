@@ -7,6 +7,7 @@ import {
   roleEnforcementConfiguration,
   RoleEnforcementConfiguration,
 } from './role-enforcement-builder'
+import { PackageManifestRequirements } from './package-manifest-requirements'
 import { RoleEnforcementExecutionError } from './role-enforcement-execution-error'
 
 function expectBuiltRole(result: BuiltRole, expected: object): void {
@@ -366,6 +367,7 @@ describe('RoleEnforcementConfiguration.parse', () => {
     ignorePatterns: [],
     include: ['packages/app/src/**/*.ts'],
     locationHierarchy: [],
+    packageManifestRequirements: PackageManifestRequirements.parse([]),
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: [],
     unassignedPackages: [],
@@ -394,6 +396,7 @@ describe('RoleEnforcementConfiguration.parse', () => {
     'include',
     'ignorePatterns',
     'locationHierarchy',
+    'packageManifestRequirements',
     'roles',
     'roleDefinitionsDir',
     'unassignedPackages',

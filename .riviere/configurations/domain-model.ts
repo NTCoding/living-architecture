@@ -23,4 +23,7 @@ export const domainModel = {
       },
     }),
   ),
+  packageManifest: {
+    requiredNonEmptyStringProperties: ['description'],
+  },
 }

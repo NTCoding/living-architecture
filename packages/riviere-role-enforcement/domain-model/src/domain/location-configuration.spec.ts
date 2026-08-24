@@ -113,7 +113,13 @@ describe('location configuration', () => {
 describe('RoleEnforcementConfiguration.validateWorkspacePackages', () => {
   function configuredWorkspace(
     configurations: Readonly<
-      Record<string, { locations: ReturnType<typeof locationConfiguration> }>
+      Record<
+        string,
+        {
+          locations: ReturnType<typeof locationConfiguration>
+          packageManifest?: { requiredNonEmptyStringProperties: readonly string[] }
+        }
+      >
     >,
     unassignedPackages: readonly string[] = [],
   ): RoleEnforcementConfiguration {
@@ -124,6 +130,10 @@ describe('RoleEnforcementConfiguration.validateWorkspacePackages', () => {
       roles: [],
       unassignedPackages,
     })
+  }
+
+  function workspacePackage(path: string, manifest: unknown = {}) {
+    return { manifest, path }
   }
 
   it('accepts assigned and explicitly unassigned packages', () => {
@@ -137,7 +147,10 @@ describe('RoleEnforcementConfiguration.validateWorkspacePackages', () => {
     )
 
     expect(() =>
-      config.validateWorkspacePackages(['packages/builder', 'apps/eclair']),
+      config.validateWorkspacePackages([
+        workspacePackage('packages/builder'),
+        workspacePackage('apps/eclair'),
+      ]),
     ).not.toThrow()
   })
 
@@ -148,7 +161,7 @@ describe('RoleEnforcementConfiguration.validateWorkspacePackages', () => {
       },
     })
 
-    expect(() => config.validateWorkspacePackages(['apps/cli'])).toThrow(
+    expect(() => config.validateWorkspacePackages([workspacePackage('apps/cli')])).toThrow(
       "Workspace package 'apps/cli' has no role-enforcement configuration",
     )
   })
@@ -163,9 +176,9 @@ describe('RoleEnforcementConfiguration.validateWorkspacePackages', () => {
       },
     })
 
-    expect(() => config.validateWorkspacePackages(['modules/payments/random'])).toThrow(
-      "Workspace package 'modules/payments/random' has no role-enforcement configuration",
-    )
+    expect(() =>
+      config.validateWorkspacePackages([workspacePackage('modules/payments/random')]),
+    ).toThrow("Workspace package 'modules/payments/random' has no role-enforcement configuration")
   })
 
   it.each(['domain-model', 'use-cases', 'published-language'])(
@@ -177,7 +190,9 @@ describe('RoleEnforcementConfiguration.validateWorkspacePackages', () => {
         },
       })
 
-      expect(() => config.validateWorkspacePackages([`tools/automation/${nestedPackage}`])).toThrow(
+      expect(() =>
+        config.validateWorkspacePackages([workspacePackage(`tools/automation/${nestedPackage}`)]),
+      ).toThrow(
         `Workspace package 'tools/automation/${nestedPackage}' has no role-enforcement configuration`,
       )
     },
@@ -190,8 +205,41 @@ describe('RoleEnforcementConfiguration.validateWorkspacePackages', () => {
       'packages/builder': { locations },
     })
 
-    expect(() => config.validateWorkspacePackages(['packages/builder'])).toThrow(
+    expect(() => config.validateWorkspacePackages([workspacePackage('packages/builder')])).toThrow(
       "Workspace package 'packages/builder' is assigned to more than one role-enforcement configuration.",
     )
   })
+
+  it('accepts a required non-empty package manifest string', () => {
+    const config = configuredWorkspace({
+      'packages/{package}': {
+        locations: locationConfiguration(location('/domain', [])),
+        packageManifest: { requiredNonEmptyStringProperties: ['description'] },
+      },
+    })
+
+    expect(() =>
+      config.validateWorkspacePackages([
+        workspacePackage('packages/builder', { description: 'Builds architecture graphs.' }),
+      ]),
+    ).not.toThrow()
+  })
+
+  it.each([{}, { description: '' }, { description: '   ' }, { description: 42 }, null])(
+    'rejects package manifest %j when a non-empty description is required',
+    (manifest) => {
+      const config = configuredWorkspace({
+        'packages/{package}': {
+          locations: locationConfiguration(location('/domain', [])),
+          packageManifest: { requiredNonEmptyStringProperties: ['description'] },
+        },
+      })
+
+      expect(() =>
+        config.validateWorkspacePackages([workspacePackage('packages/builder', manifest)]),
+      ).toThrow(
+        "Workspace package 'packages/builder' must define a non-empty string 'description' in package.json.",
+      )
+    },
+  )
 })
