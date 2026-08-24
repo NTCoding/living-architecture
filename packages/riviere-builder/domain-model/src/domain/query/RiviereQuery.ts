@@ -81,7 +81,8 @@ function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
  * const flow = query.traceFlow('orders:checkout:api:post-orders')
  * ```
  *
- * @riviere-role domain-service
+ * @riviere-role-justification Command use cases, query models, and query result types need one stable graph query API so they do not have to discover and assemble the related query services directly.
+ * @riviere-role domain-facade
  */
 export class RiviereQuery {
   private readonly graphSnapshot: RiviereGraph

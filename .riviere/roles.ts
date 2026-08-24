@@ -1,5 +1,15 @@
 import { role } from '@living-architecture/riviere-role-enforcement-domain-model'
 
+export const publishedLanguageRoles = [
+  'published-language-annotation',
+  'published-language-schema',
+  'published-language-data-structure',
+  'published-language-union',
+  'published-language-parser',
+  'published-language-field-name',
+  'value-object',
+] as const
+
 export const allRoles = [
   role('cli-entrypoint', {
     targets: ['function'],
@@ -93,6 +103,10 @@ export const allRoles = [
         name: 'RoleEnforcementProject',
         userHasApproved: true,
       },
+      {
+        name: 'MaintainerWorkflow',
+        userHasApproved: true,
+      },
     ],
   }),
   role('value-object', {
@@ -116,6 +130,21 @@ export const allRoles = [
     forbiddenDependencies: ['domain-service'],
     requiresJustification:
       'If this behaviour operates on aggregate or value object state, explain why it should not be a method on the object that owns that state. Otherwise, explain why no aggregate or value object is the natural owner.',
+  }),
+  role('domain-facade', {
+    targets: ['class'],
+    allowedDependencyRoles: ['domain-service', 'domain-error', ...publishedLanguageRoles],
+    allowedDependentRoles: ['command-use-case', 'query-model', 'query-model-value'],
+    approvedInstances: [
+      {
+        name: 'RiviereQuery',
+        userHasApproved: true,
+      },
+    ],
+    requiresPrivateDataMembers: true,
+    requiresReadonlyDataMembers: true,
+    requiresJustification:
+      'Which types of consumers need this facade, and why do they need one stable domain interface over these related capabilities instead of using the capabilities directly?',
   }),
   role('domain-port-adapter', {
     targets: ['function', 'class'],

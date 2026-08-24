@@ -165,17 +165,21 @@ describe('role', () => {
   })
 })
 
-it('includes private data member and justification constraints when provided', () => {
+it('includes data member, dependent role, and justification constraints when provided', () => {
   const result = role('role-b', {
     targets: ['class'],
+    allowedDependentRoles: ['role-a'],
     requiresPrivateDataMembers: true,
+    requiresReadonlyDataMembers: true,
     requiresJustification: 'Explain why no aggregate owns this behaviour.',
   })
 
   expectBuiltRole(result, {
     name: 'role-b',
     targets: ['class'],
+    allowedDependentRoles: ['role-a'],
     requiresPrivateDataMembers: true,
+    requiresReadonlyDataMembers: true,
     requiresJustification: 'Explain why no aggregate owns this behaviour.',
   })
 })

@@ -1,13 +1,6 @@
 import type { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import type { BuilderGraph } from '../builder-graph'
-import { RiviereQuery } from '../query/RiviereQuery'
-import {
-  calculateStats,
-  findOrphans,
-  findWarnings,
-  toRiviereGraph,
-  validateGraph,
-} from './inspection-functions'
+import { calculateStats, findOrphans, findWarnings, validateGraph } from './inspection-functions'
 
 type OperationWarning =
   | Readonly<{
@@ -52,9 +45,5 @@ export class GraphInspection {
 
   validate(): ValidationResult {
     return validateGraph(this.graph)
-  }
-
-  query(): RiviereQuery {
-    return new RiviereQuery(toRiviereGraph(this.graph))
   }
 }

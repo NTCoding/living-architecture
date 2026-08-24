@@ -116,6 +116,13 @@ export function configWithPrivateDataMembers() {
   })
 }
 
+export function configWithReadonlyDataMembers() {
+  return configWithGenericAggregateOverride({
+    targets: ['class'],
+    requiresReadonlyDataMembers: true,
+  })
+}
+
 export function configWithGenericRepositoryMethodInputs(allowedInputs: string[]) {
   return roleEnforcementConfiguration({
     configurations: {

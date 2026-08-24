@@ -16,7 +16,6 @@ import type {
 } from '@living-architecture/riviere-schema-published-language/schema'
 import type { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { RiviereBuilder as DomainBuilder } from './riviere-builder'
-import type { RiviereQuery } from './query/RiviereQuery'
 import type { ComponentSummaryStats } from './inspection/component-summary-stats'
 
 type BuilderOptions = Readonly<{
@@ -483,15 +482,6 @@ export class RiviereBuilder {
    */
   orphans(): string[] {
     return this.delegate.inspection.orphans()
-  }
-
-  /**
-   * Returns query capabilities for the current graph state.
-   *
-   * @returns A snapshot that can be queried without mutating the builder
-   */
-  query(): RiviereQuery {
-    return this.delegate.inspection.query()
   }
 
   /**

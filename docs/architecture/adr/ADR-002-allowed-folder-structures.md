@@ -108,7 +108,9 @@ src/
 
 A domain-model package contains one isolated subdomain model. Its internal domain folders are unrestricted. It has no features, entrypoints, use cases, data access, adapters, infra, or shell.
 
-Domain code owns business state, rules, invariants, value objects, aggregates, domain services, domain events, and domain ports. A domain model does not import another domain model.
+Domain code owns business state, rules, invariants, value objects, aggregates, domain services, domain facades, domain events, and domain ports. A domain model does not import another domain model.
+
+A domain facade gives command use cases and query consumers one stable domain interface over several related domain capabilities. It is an approved class for consumers, not an internal domain dependency. Its instance data is optional, private, and readonly when present.
 
 Every domain-model package must define a non-empty `description` in its `package.json`. This is the authoritative summary of the subdomain represented by the package.
 

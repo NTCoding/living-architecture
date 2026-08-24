@@ -11,11 +11,10 @@ import {
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import { getInitialWorkflowState, WorkflowState } from './workflow-types'
-import { getStateDefinition, getWorkflowRegistry } from './registry'
+import { WorkflowState } from './workflow-types'
+import { MaintainerWorkflowRegistry } from './registry'
 import type { WorkflowEvent } from './workflow-events'
 import { parseWorkflowEvent } from './workflow-events'
-import { applyEvent } from './fold'
 import {
   buildPullRequestCreationRequest,
   parsePullRequestDescriptionOptions,
@@ -45,8 +44,6 @@ const PR_FEEDBACK_TIMEOUT_MS = 300_000
 const PR_FEEDBACK_MAX_ATTEMPTS =
   Math.floor(PR_FEEDBACK_TIMEOUT_MS / PR_FEEDBACK_POLL_INTERVAL_MS) + 1
 const REQUIRED_CONSECUTIVE_CLEAN_CODERABBIT_POLLS = 2
-const WORKFLOW_REGISTRY = getWorkflowRegistry()
-
 const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
   'record-issue': {
     event: 'issue-recorded',
@@ -75,11 +72,6 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
     }),
   },
 }
-
-const RECORDING_OPS = defineRecordingOps<StateName, WorkflowState, WorkflowOperation>(
-  WORKFLOW_REGISTRY,
-  RECORDING_OPS_MAP,
-)
 
 type WorkflowDeps = {
   readonly getGitInfo: ReadWorkflowGitStatus
@@ -134,23 +126,29 @@ function readPrFeedback(
   }
 }
 
-/** @riviere-role domain-service */
-export class Workflow {
+/** @riviere-role aggregate */
+export class MaintainerWorkflow {
   private state: WorkflowState
+  private readonly registryDefinition: MaintainerWorkflowRegistry
   private readonly deps: WorkflowDeps
   private pendingEvents: WorkflowEvent[] = []
 
-  private constructor(state: WorkflowState, deps: WorkflowDeps) {
+  private constructor(
+    state: WorkflowState,
+    registry: MaintainerWorkflowRegistry,
+    deps: WorkflowDeps,
+  ) {
     this.state = state
+    this.registryDefinition = registry
     this.deps = deps
   }
 
-  static createFresh(deps: WorkflowDeps): Workflow {
-    return new Workflow(getInitialWorkflowState(), deps)
-  }
-
-  static rehydrate(state: unknown, deps: WorkflowDeps): Workflow {
-    return new Workflow(WorkflowState.parse(state), deps)
+  static build(
+    registry: MaintainerWorkflowRegistry,
+    deps: WorkflowDeps,
+    state: unknown = WorkflowState.initial(),
+  ): MaintainerWorkflow {
+    return new MaintainerWorkflow(WorkflowState.parse(state), registry, deps)
   }
 
   getPendingEvents(): readonly WorkflowEvent[] {
@@ -161,8 +159,12 @@ export class Workflow {
     return this.state
   }
 
+  registry(): MaintainerWorkflowRegistry {
+    return this.registryDefinition
+  }
+
   getAgentInstructions(pluginRoot: string): string {
-    return `${pluginRoot}/${getStateDefinition(this.state.currentStateMachineState).agentInstructions}`
+    return `${pluginRoot}/${this.registryDefinition.state(this.state.currentStateMachineState).agentInstructions}`
   }
 
   appendEvent(event: BaseEvent): void {
@@ -188,7 +190,7 @@ export class Workflow {
       ...(repository === undefined ? {} : { repository }),
     }
     this.pendingEvents = [...this.pendingEvents, event]
-    this.state = applyEvent(this.state, event)
+    this.state = this.state.apply(event)
   }
 
   getTranscriptPath(): string {
@@ -232,14 +234,18 @@ export class Workflow {
   }
 
   executeRecording(op: WorkflowOperation, ...args: readonly unknown[]): PreconditionResult {
-    const result = RECORDING_OPS.executeOp(op, this.state, this.deps.now(), args)
+    const recordingOps = defineRecordingOps<StateName, WorkflowState, WorkflowOperation>(
+      this.registryDefinition,
+      RECORDING_OPS_MAP,
+    )
+    const result = recordingOps.executeOp(op, this.state, this.deps.now(), args)
     if (!result.pass) return fail(result.reason)
     this.appendEvent(result.event)
     return pass()
   }
 
   createPr(rawArgs: unknown): PreconditionResult {
-    const gate = checkOperationGate('create-pr', this.state, WORKFLOW_REGISTRY)
+    const gate = checkOperationGate('create-pr', this.state, this.registryDefinition)
     if (!gate.pass) return gate
 
     if (this.state.githubIssue === undefined) {
@@ -275,7 +281,11 @@ export class Workflow {
   }
 
   verifyFeedbackAddressed(): PreconditionResult {
-    const gate = checkOperationGate('verify-feedback-addressed', this.state, WORKFLOW_REGISTRY)
+    const gate = checkOperationGate(
+      'verify-feedback-addressed',
+      this.state,
+      this.registryDefinition,
+    )
     if (!gate.pass) return gate
     if (this.state.prNumber === undefined) {
       return fail('prNumber not set. Record the PR before verifying feedback.')
@@ -385,7 +395,7 @@ export class Workflow {
       from,
       to,
     }
-    const targetDef = getStateDefinition(to)
+    const targetDef = this.registryDefinition.state(to)
     const stateAfter =
       targetDef.onEntry === undefined ? stateBefore : targetDef.onEntry(stateBefore, context)
     const stateOverrides = diffStateOverrides(stateBefore, stateAfter)
@@ -415,7 +425,7 @@ export class Workflow {
       )
     }
     this.pendingEvents = [...this.pendingEvents, event]
-    this.state = applyEvent(this.state, event)
+    this.state = this.state.apply(event)
   }
 
   private isPrFeedbackBlockedWithoutFailureEvent(event: WorkflowEvent): boolean {

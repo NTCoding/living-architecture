@@ -126,6 +126,7 @@ export default {
           }
           validateForbiddenDependencies()
           validateAllowedDependencyRoles()
+          validateAllowedDependentRoles()
           validateAllowedCollaboratorRoles()
           validateForbiddenInlineDependencyImplementations()
           validateRequiredRoleDependencies()
@@ -631,6 +632,12 @@ export default {
           }
         }
 
+        function validateAllowedDependentRoles() {
+          for (const statement of readAllImportStatements()) {
+            reportDisallowedDependentRoles(statement)
+          }
+        }
+
         function validateAllowedCollaboratorRoles() {
           for (const statement of sourceCode.ast.body) {
             const declaration = statement.type === 'ExportNamedDeclaration'
@@ -723,6 +730,38 @@ export default {
               report(
                 statement,
                 `Dependency '${importedRole}' is not allowed for role(s) ${restrictedByRoles.join(', ')}. Allowed roles: [${roleMap.get(restrictedByRoles[0])?.allowedDependencyRoles?.join(', ')}]. ${referenceForKnownRole(options, restrictedByRoles[0])}`,
+              )
+            }
+          }
+        }
+
+        function reportDisallowedDependentRoles(statement) {
+          const importSource = typeof statement.source.value === 'string' ? statement.source.value : null
+          if (importSource === null) {
+            return
+          }
+
+          const resolvedFile = resolveImportFile(filename, importSource, options.configDir, options.importAliases)
+          if (resolvedFile === null) {
+            return
+          }
+
+          for (const binding of readImportedRoleBindings(statement, resolvedFile)) {
+            const referencingRoles = readReferencingRoles(binding.localName)
+            for (const importedRole of binding.roles) {
+              const allowedDependentRoles = roleMap.get(importedRole)?.allowedDependentRoles
+              if (!Array.isArray(allowedDependentRoles)) {
+                continue
+              }
+              const disallowedRoles = referencingRoles.filter(
+                (roleName) => !allowedDependentRoles.includes(roleName),
+              )
+              if (disallowedRoles.length === 0) {
+                continue
+              }
+              report(
+                statement,
+                `Role '${importedRole}' only allows dependent roles [${allowedDependentRoles.join(', ')}] but is referenced by role(s) ${disallowedRoles.join(', ')}. ${referenceForKnownRole(options, importedRole)}`,
               )
             }
           }
@@ -1836,7 +1875,22 @@ export default {
           validateRequiredStaticMethodNamePrefix(node, role, name)
           validateCallableMemberConstraints(node, role, name)
           validateDataMemberRequirements(node, role, name)
-          validatePrivateDataMembers(node, role, name)
+          validateDataMemberConstraint(
+            node,
+            role,
+            name,
+            role.requiresPrivateDataMembers === true,
+            (member) => member.accessibility === 'private',
+            'private',
+          )
+          validateDataMemberConstraint(
+            node,
+            role,
+            name,
+            role.requiresReadonlyDataMembers === true,
+            (member) => member.readonly,
+            'readonly',
+          )
           validateClassMethodContracts(node, role, name)
         }
 
@@ -1973,19 +2027,19 @@ export default {
           )
         }
 
-        function validatePrivateDataMembers(node, role, name) {
-          if (role.requiresPrivateDataMembers !== true) {
+        function validateDataMemberConstraint(node, role, name, required, isValid, constraint) {
+          if (!required) {
             return
           }
           const exposedMembers = readInstanceDataMembers(node)
-            .filter((member) => member.accessibility !== 'private')
+            .filter((member) => !isValid(member))
             .map((member) => member.name)
           if (exposedMembers.length === 0) {
             return
           }
           report(
             node,
-            `Role '${role.name}' requires private instance data members on '${name}'. Found [${exposedMembers.join(', ')}]. ${referenceForKnownRole(options, role.name)}`,
+            `Role '${role.name}' requires ${constraint} instance data members on '${name}'. Found [${exposedMembers.join(', ')}]. ${referenceForKnownRole(options, role.name)}`,
           )
         }
 
@@ -2048,6 +2102,7 @@ export default {
                   callable: isCallableFieldMember(member),
                   accessibility: member.accessibility,
                   name,
+                  readonly: member.readonly === true,
                 }]
             }
 
@@ -2090,6 +2145,7 @@ export default {
             callable: isCallableParameterProperty(param, parameter),
             accessibility: param.accessibility,
             name: parameter.name,
+            readonly: param.readonly === true,
           }]
         }
 

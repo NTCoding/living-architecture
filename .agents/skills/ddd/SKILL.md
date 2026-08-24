@@ -78,6 +78,117 @@ advance the shared understanding by surfacing one tension, bringing relevant
 evidence, exploring a different angle, and asking one focused question. Do not
 front load a questionnaire or race several decisions ahead of the user.
 
+### Start new-role exploration with structural options
+
+When exploring a new role, begin by presenting multiple genuinely different
+configurations. Do not lead with a preferred configuration or define precise
+implementation details before the structural alternatives are visible.
+
+Start each option with this format:
+
+1. `Option N: <configuration name>`
+2. One brief description.
+3. A prominent statement of the key idea.
+4. Lightweight diagrams before detailed prose.
+5. A short `RISKS FOR ABUSE` section that answers whether the proposed role or
+   configuration could become an escape hatch, how it could be abused, and
+   which enforceable constraints limit that abuse. State plainly when the risk
+   cannot be constrained safely.
+
+Every diagram must:
+
+- name every node and show its concrete current or proposed role;
+- never use placeholders such as `new role candidate`; if a proposed concept
+  does not yet have a defined role, the option is not ready to present;
+- define each proposed role sufficiently to show that the relationships in the
+  option are permitted; a role name without a role contract is not an option;
+- label every arrow with the relationship it represents;
+- use horizontal space when it makes independent relationships easier to
+  compare;
+- figures may be stacked vertically when each has a numbered figure heading,
+  there is clear separation between them, and the option heading makes clear
+  that they belong to the same option;
+- do not dump several figures into one unlabelled vertical sequence that makes
+  independent relationships look sequential;
+- distinguish current roles, concrete proposed roles, external types or
+  systems, and private data that needs no role;
+- show structural differences between options rather than renaming the same
+  design.
+
+For example:
+
+```text
+***** Option 1: aggregate with owned value objects *****
+
+One aggregate owns workflow state, event application, and its immutable registry.
+
+KEY IDEA: Start from the state and invariants before considering services or new roles.
+
+CONCRETE ROLES:
+aggregate: owns mutable workflow state and enforces workflow invariants.
+value-object: represents the immutable registry and each immutable workflow state definition.
+
+RISKS FOR ABUSE: The aggregate could become a large file or construct its own
+collaborators. Keep each value object in the file for its domain concept and
+inject the registry through the aggregate constructor.
+
+FIG 1 - Aggregate ownership                          FIG 2 - Application construction
+
+┌─────────────────────────┐                           ┌─────────────────────────┐
+│ MaintainerWorkflow      │                           │ ConfigureWorkflow       │
+│ role: aggregate         │                           │ role: command-use-case  │
+└─────────────────────────┘                           └─────────────────────────┘
+            │                                                     │
+            │ owns                                                │ parses and injects
+            ▼                                                     ▼
+┌─────────────────────────┐                           ┌─────────────────────────┐
+│ WorkflowRegistry        │                           │ WorkflowRegistry        │
+│ role: value-object      │                           │ role: value-object      │
+└─────────────────────────┘                           └─────────────────────────┘
+            │
+            │ contains
+            ▼
+┌─────────────────────────┐
+│ ImplementingState       │
+│ role: value-object      │
+└─────────────────────────┘
+```
+
+Only discuss detailed trade-offs or identify a leading option after the user
+can compare the structural configurations.
+
+### Admit options before presenting them
+
+Generate more raw candidates than the user requested, then reject invalid
+candidates privately. Never pad the visible options with renamed versions of
+the same structure or with designs that break an agreed constraint.
+
+Apply the basic domain model tests first:
+
+1. If a concept owns state and enforces invariants, test it as an aggregate.
+2. If a concept has identity and a lifecycle inside an aggregate, test it as an
+   entity.
+3. If a concept is immutable and defined by its attributes, test it as a value
+   object.
+4. Consider a domain service only after aggregate and value object ownership
+   have been ruled out.
+
+Before presenting an option, verify all of these points:
+
+- every fixed user constraint is satisfied;
+- every declaration has a concrete role that fits its responsibility;
+- every dependency and consumer relationship is legal;
+- the option solves the complete error cluster rather than moving the error;
+- each file stays within the 400 line limit for a real domain reason;
+- aggregate ownership has not been confused with putting all code in one file;
+- dependencies are supplied to the aggregate rather than constructed by it;
+- fresh construction is not implemented by abusing rehydration;
+- the option is structurally different from the other visible options;
+- escape hatch risks and enforceable limits are explicit.
+
+If any check fails, do not show the option. If a required fact is unknown, stop
+and inspect the code or ask the user instead of filling the gap with a sketch.
+
 ## Apply the domain expert test
 
 Challenge every candidate with these questions:
@@ -122,6 +233,10 @@ managers, orchestrators, services, roles, folders, exemptions, or other escape
 hatches. A new role needs a distinct, durable architectural responsibility.
 Changes inside `.riviere` and new aggregate classifications require explicit
 user approval.
+
+Prefer the strongest constraints supported by current evidence when introducing
+a role. Loosen them only when a concrete valid case shows that a constraint
+rejects legitimate code.
 
 ## Converge gradually
 

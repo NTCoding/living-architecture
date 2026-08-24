@@ -8,6 +8,8 @@ If code does not fit cleanly, do not force it into the closest-looking role. Fir
 
 Before selecting `domain-service`, test whether the behaviour belongs on an aggregate, then a value object. It is valid only when neither is the natural owner. State remains private to its aggregate; a use case must not read it to decide a domain rule.
 
+Select `domain-facade` only when command use cases or query consumers need one stable interface over several related domain capabilities. It is a consumer interface, not an internal dependency of the domain model.
+
 The key question to ask:
 
 - At what point in the end-to-end flow is this code used?

@@ -83,6 +83,8 @@ function readRoleRuleReferences(roleDefinition: BuiltRole): readonly string[] {
   return [
     ...(roleDefinition.allowedInputs ?? []),
     ...(roleDefinition.allowedOutputs ?? []),
+    ...(roleDefinition.allowedDependencyRoles ?? []),
+    ...(roleDefinition.allowedDependentRoles ?? []),
     ...(roleDefinition.forbiddenDependencies ?? []),
     ...(roleDefinition.forbiddenMethodCalls ?? []),
     ...(roleDefinition.returns ?? []).flatMap((shape) => (shape['*'] === '*' ? [] : [shape['*']])),

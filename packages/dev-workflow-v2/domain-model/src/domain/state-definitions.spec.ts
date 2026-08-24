@@ -1,12 +1,11 @@
 import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
-import { defineAddressingFeedbackState } from './states/addressing-feedback'
-import { defineAwaitingCiState } from './states/awaiting-ci'
-import { defineBlockedState } from './states/blocked'
-import { defineImplementingState } from './states/implementing'
-import { defineReviewingState } from './states/reviewing'
-import { defineSubmittingPrState } from './states/submitting-pr'
+import { AddressingFeedbackState } from './states/addressing-feedback'
+import { AwaitingCiState } from './states/awaiting-ci'
+import { BlockedState } from './states/blocked'
+import { ImplementingState } from './states/implementing'
+import { ReviewingState } from './states/reviewing'
+import { SubmittingPrState } from './states/submitting-pr'
 import { getInitialWorkflowState } from './workflow-types'
-import { WorkflowTestInvariantError } from './__fixtures__/workflow-test-errors'
 
 const cleanGit: GitInfo = {
   currentBranch: 'issue-42',
@@ -16,12 +15,12 @@ const cleanGit: GitInfo = {
   hasCommitsVsDefault: true,
 }
 
-const addressingFeedback = defineAddressingFeedbackState()
-const awaitingCi = defineAwaitingCiState()
-const blocked = defineBlockedState()
-const implementing = defineImplementingState()
-const reviewing = defineReviewingState()
-const submittingPr = defineSubmittingPrState()
+const addressingFeedback = AddressingFeedbackState.parse('ADDRESSING_FEEDBACK')
+const awaitingCi = AwaitingCiState.parse('AWAITING_CI')
+const blocked = BlockedState.parse('BLOCKED')
+const implementing = ImplementingState.parse('IMPLEMENTING')
+const reviewing = ReviewingState.parse('REVIEWING')
+const submittingPr = SubmittingPrState.parse('SUBMITTING_PR')
 
 const addressingFeedbackGuard = addressingFeedback.transitionGuard
 const awaitingCiGuard = awaitingCi.transitionGuard
@@ -31,21 +30,6 @@ const reviewingGuard = reviewing.transitionGuard
 const submittingPrGuard = submittingPr.transitionGuard
 const addressingFeedbackOnEntry = addressingFeedback.onEntry
 const implementingOnEntry = implementing.onEntry
-
-if (
-  addressingFeedbackGuard === undefined ||
-  awaitingCiGuard === undefined ||
-  blockedGuard === undefined ||
-  implementingGuard === undefined ||
-  reviewingGuard === undefined ||
-  submittingPrGuard === undefined ||
-  addressingFeedbackOnEntry === undefined ||
-  implementingOnEntry === undefined
-) {
-  throw new WorkflowTestInvariantError(
-    'Expected guarded workflow states to define their domain behaviour.',
-  )
-}
 
 describe('workflow state definitions', () => {
   it('requires clean, addressed feedback before returning to review', () => {
@@ -163,6 +147,25 @@ describe('workflow state definitions', () => {
     expect(
       implementingGuard({ ...context, state: state.with({ githubIssue: 42 }), gitInfo: cleanGit }),
     ).toStrictEqual({ pass: true })
+  })
+
+  it('allows implementation to transition directly to BLOCKED', () => {
+    expect(
+      implementingGuard({
+        state: getInitialWorkflowState(),
+        gitInfo: { ...cleanGit, hasCommitsVsDefault: false },
+        from: 'IMPLEMENTING',
+        to: 'BLOCKED',
+      }),
+    ).toStrictEqual({ pass: true })
+  })
+
+  it('reports an unknown prior state when BLOCKED was entered without one', () => {
+    const state = getInitialWorkflowState().with({ currentStateMachineState: 'BLOCKED' })
+
+    expect(
+      blockedGuard({ state, gitInfo: cleanGit, from: 'BLOCKED', to: 'IMPLEMENTING' }),
+    ).toMatchObject({ pass: false, reason: expect.stringContaining('unknown') })
   })
 
   it('resets delivery checks when implementation resumes', () => {

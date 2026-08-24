@@ -4,20 +4,6 @@ import { ComponentSummaryStats } from './component-summary-stats'
 import { createValidOptions, createSourceLocation } from '../../__fixtures__/builder-fixtures'
 
 describe('RiviereBuilder', () => {
-  describe('query', () => {
-    it('queries the components currently held by the builder', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
-      const component = builder.addUseCase({
-        name: 'Create Order',
-        domain: 'orders',
-        module: 'checkout',
-        sourceLocation: createSourceLocation(),
-      })
-
-      expect(builder.query().components()).toStrictEqual([component])
-    })
-  })
-
   describe('stats', () => {
     it('returns an instance of ComponentSummaryStats', () => {
       const builder = RiviereBuilder.new(createValidOptions())

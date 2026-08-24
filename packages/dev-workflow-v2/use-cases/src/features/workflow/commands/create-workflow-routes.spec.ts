@@ -1,7 +1,7 @@
 import { defineWorkflowRoutes } from '../../../infra/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
 import { ZodSchemaProvider } from '../../../infra/external-clients/zod/zod-schema-provider'
 import { configureWorkflow } from './configure-workflow'
-import type { Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
+import type { MaintainerWorkflow as Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
 import { describe, expect, it, vi } from 'vitest'
 import {
   CreateWorkflowRoutes,

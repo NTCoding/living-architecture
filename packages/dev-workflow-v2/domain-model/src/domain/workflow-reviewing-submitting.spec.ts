@@ -7,12 +7,13 @@ import {
   eventsToAwaitingCi,
   makeDeps,
   reviewRecorded,
+  buildTestWorkflow,
+  rehydrateTestWorkflow,
 } from './__fixtures__/workflow-test-fixtures'
-import { Workflow } from './workflow'
-import { applyEvents } from './fold'
-import { defineReviewingState } from './states/reviewing'
+import { ReviewingState } from './states/reviewing'
+import { WorkflowState } from './workflow-types'
 
-const reviewingState = defineReviewingState()
+const reviewingState = ReviewingState.parse('REVIEWING')
 
 const CREATE_PR_OPTIONS = [
   '--title',
@@ -34,11 +35,7 @@ const CREATE_PR_OPTIONS = [
 ] as const
 
 function getReviewingTransitionGuard(): NonNullable<typeof reviewingState.transitionGuard> {
-  const transitionGuard = reviewingState.transitionGuard
-  if (transitionGuard === undefined) {
-    throw new WorkflowStateError('Expected REVIEWING state to define a transition guard.')
-  }
-  return transitionGuard
+  return reviewingState.transitionGuard
 }
 
 function getFailureReason(result: { readonly pass: boolean; readonly reason?: string }): string {
@@ -69,14 +66,14 @@ describe('Workflow', () => {
   describe('review details', () => {
     it('returns recorded reviews from platform review storage', () => {
       const reviews = [createStoredReview(1, 'task-check', 'PASS')]
-      const workflow = Workflow.createFresh(makeDeps({ listSessionReviews: () => reviews }))
+      const workflow = buildTestWorkflow(makeDeps({ listSessionReviews: () => reviews }))
 
       expect(workflow.getRecordedReviews()).toStrictEqual(reviews)
     })
 
     it('returns review details when review id exists', () => {
       const reviews = [createStoredReview(1, 'task-check', 'FAIL')]
-      const workflow = Workflow.createFresh(makeDeps({ listSessionReviews: () => reviews }))
+      const workflow = buildTestWorkflow(makeDeps({ listSessionReviews: () => reviews }))
 
       expect(workflow.getReviewDetails(1)).toStrictEqual(reviews[0])
     })
@@ -86,13 +83,13 @@ describe('Workflow', () => {
         createStoredReview(1, 'task-check', 'FAIL'),
         createStoredReview(2, 'task-check', 'PASS'),
       ]
-      const workflow = Workflow.createFresh(makeDeps({ listSessionReviews: () => reviews }))
+      const workflow = buildTestWorkflow(makeDeps({ listSessionReviews: () => reviews }))
 
       expect(workflow.getLatestReviewByType('task-check')).toStrictEqual(reviews[1])
     })
 
     it('throws when requested review id does not exist', () => {
-      const workflow = Workflow.createFresh(makeDeps({ listSessionReviews: () => [] }))
+      const workflow = buildTestWorkflow(makeDeps({ listSessionReviews: () => [] }))
 
       expect(() => workflow.getReviewDetails(99)).toThrow('Review 99 not found in current session.')
     })
@@ -100,14 +97,14 @@ describe('Workflow', () => {
 
   describe('REVIEWING state', () => {
     it('marks architecture review as passed when latest architecture review verdict passed', () => {
-      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      const workflow = rehydrateTestWorkflow(WorkflowState.replay(eventsToReviewing()), makeDeps())
       workflow.appendEvent(reviewRecorded('architecture-review', 'PASS'))
 
       expect(workflow.getState().architectureReviewPassed).toBe(true)
     })
 
     it('marks architecture review as failed when latest architecture review verdict failed', () => {
-      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      const workflow = rehydrateTestWorkflow(WorkflowState.replay(eventsToReviewing()), makeDeps())
       workflow.appendEvent(reviewRecorded('architecture-review', 'PASS'))
       workflow.appendEvent(reviewRecorded('architecture-review', 'FAIL'))
 
@@ -115,28 +112,28 @@ describe('Workflow', () => {
     })
 
     it('marks code review as passed when latest code review verdict passed', () => {
-      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      const workflow = rehydrateTestWorkflow(WorkflowState.replay(eventsToReviewing()), makeDeps())
       workflow.appendEvent(reviewRecorded('code-review', 'PASS'))
 
       expect(workflow.getState().codeReviewPassed).toBe(true)
     })
 
     it('marks bug scanner as failed when latest bug scanner verdict failed', () => {
-      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      const workflow = rehydrateTestWorkflow(WorkflowState.replay(eventsToReviewing()), makeDeps())
       workflow.appendEvent(reviewRecorded('bug-scanner', 'FAIL'))
 
       expect(workflow.getState().bugScannerPassed).toBe(false)
     })
 
     it('marks task check as passed when latest task check verdict passed', () => {
-      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      const workflow = rehydrateTestWorkflow(WorkflowState.replay(eventsToReviewing()), makeDeps())
       workflow.appendEvent(reviewRecorded('task-check', 'PASS'))
 
       expect(workflow.getState().taskCheckPassed).toBe(true)
     })
 
     it('uses the latest task check review attempt when multiple attempts exist', () => {
-      const workflow = Workflow.rehydrate(applyEvents(eventsToReviewing()), makeDeps())
+      const workflow = rehydrateTestWorkflow(WorkflowState.replay(eventsToReviewing()), makeDeps())
       workflow.appendEvent(reviewRecorded('task-check', 'FAIL'))
       workflow.appendEvent(reviewRecorded('task-check', 'PASS'))
 
@@ -145,7 +142,7 @@ describe('Workflow', () => {
 
     it('rejects SUBMITTING_PR without task check when no issue is recorded and required reviews failed', () => {
       const result = getReviewingTransitionGuard()({
-        state: Workflow.createFresh(makeDeps()).getState().with({
+        state: buildTestWorkflow(makeDeps()).getState().with({
           currentStateMachineState: 'REVIEWING',
           architectureReviewPassed: false,
           codeReviewPassed: false,
@@ -204,7 +201,7 @@ describe('Workflow', () => {
     })
 
     it('blocks create-pr outside SUBMITTING_PR state', () => {
-      const workflow = Workflow.createFresh(makeDeps())
+      const workflow = buildTestWorkflow(makeDeps())
 
       const result = workflow.createPr(CREATE_PR_OPTIONS)
 
@@ -217,8 +214,8 @@ describe('Workflow', () => {
         readonly title: string
         readonly body: string
       }[] = []
-      const workflow = Workflow.rehydrate(
-        applyEvents(eventsToSubmittingPr()),
+      const workflow = rehydrateTestWorkflow(
+        WorkflowState.replay(eventsToSubmittingPr()),
         makeDeps({
           createPullRequest: (request) => {
             capturedRequests.push(request)
@@ -256,9 +253,9 @@ describe('Workflow', () => {
     })
 
     it('blocks create-pr when issue is not recorded', () => {
-      const workflow = Workflow.rehydrate(
+      const workflow = rehydrateTestWorkflow(
         {
-          ...applyEvents(eventsToSubmittingPr()),
+          ...WorkflowState.replay(eventsToSubmittingPr()),
           githubIssue: undefined,
         },
         makeDeps(),
@@ -271,8 +268,8 @@ describe('Workflow', () => {
     })
 
     it('does not record pull request when create-pr returns draft pull request', () => {
-      const workflow = Workflow.rehydrate(
-        applyEvents(eventsToSubmittingPr()),
+      const workflow = rehydrateTestWorkflow(
+        WorkflowState.replay(eventsToSubmittingPr()),
         makeDeps({
           createPullRequest: () => ({
             prNumber: 123,
@@ -290,7 +287,10 @@ describe('Workflow', () => {
     })
 
     it('rejects unknown options when creating pull request', () => {
-      const workflow = Workflow.rehydrate(applyEvents(eventsToSubmittingPr()), makeDeps())
+      const workflow = rehydrateTestWorkflow(
+        WorkflowState.replay(eventsToSubmittingPr()),
+        makeDeps(),
+      )
 
       const result = workflow.createPr(['--draft'])
 
@@ -299,7 +299,10 @@ describe('Workflow', () => {
     })
 
     it('requires acceptance criteria when creating pull request', () => {
-      const workflow = Workflow.rehydrate(applyEvents(eventsToSubmittingPr()), makeDeps())
+      const workflow = rehydrateTestWorkflow(
+        WorkflowState.replay(eventsToSubmittingPr()),
+        makeDeps(),
+      )
 
       const result = workflow.createPr([
         '--title',
@@ -323,7 +326,10 @@ describe('Workflow', () => {
     })
 
     it('rejects non-string arguments when creating pull request', () => {
-      const workflow = Workflow.rehydrate(applyEvents(eventsToSubmittingPr()), makeDeps())
+      const workflow = rehydrateTestWorkflow(
+        WorkflowState.replay(eventsToSubmittingPr()),
+        makeDeps(),
+      )
 
       const result = workflow.createPr([123])
 
@@ -332,8 +338,8 @@ describe('Workflow', () => {
     })
 
     it('does not record pull request when create-pr command fails', () => {
-      const workflow = Workflow.rehydrate(
-        applyEvents(eventsToSubmittingPr()),
+      const workflow = rehydrateTestWorkflow(
+        WorkflowState.replay(eventsToSubmittingPr()),
         makeDeps({
           createPullRequest: () => {
             throw new WorkflowStateError('GitHub refused pull request creation')

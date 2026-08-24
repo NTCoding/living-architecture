@@ -1,20 +1,37 @@
-import { defineState } from '../define-state'
-import { pass, fail } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type {
+  PreconditionResult,
+  TransitionContext,
+} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import { z } from 'zod'
+import type { WorkflowState } from '../workflow-types'
 
-/** @riviere-role domain-service */
-export function defineSubmittingPrState() {
-  return defineState({
-    emoji: '🚀',
-    agentInstructions: 'states/submitting_pr.md',
-    canTransitionTo: ['AWAITING_CI', 'BLOCKED'],
-    allowedWorkflowOperations: ['record-pr', 'create-pr'],
-    forbidden: { write: true },
+type StateName = WorkflowState['currentStateMachineState']
 
-    allowForbidden: { bash: ['git push'] },
+/** @riviere-role value-object */
+export class SubmittingPrState {
+  declare private readonly brand: 'SubmittingPrState'
 
-    transitionGuard: (ctx) => {
-      if (!ctx.state.prNumber) return fail('prNumber not set. Run record-pr first.')
-      return pass()
-    },
-  })
+  readonly name: 'SUBMITTING_PR'
+  readonly emoji = '🚀'
+  readonly agentInstructions = 'states/submitting_pr.md'
+  readonly canTransitionTo = ['AWAITING_CI', 'BLOCKED'] as const
+  readonly allowedWorkflowOperations = ['record-pr', 'create-pr'] as const
+  readonly forbidden = { write: true } as const
+  readonly allowForbidden = { bash: ['git push'] } as const
+
+  private constructor(name: 'SUBMITTING_PR') {
+    this.name = name
+  }
+
+  static parse(value: unknown): SubmittingPrState {
+    z.literal('SUBMITTING_PR').parse(value)
+    return new SubmittingPrState('SUBMITTING_PR')
+  }
+
+  transitionGuard(context: TransitionContext<WorkflowState, StateName>): PreconditionResult {
+    if (!context.state.prNumber) {
+      return { pass: false, reason: 'prNumber not set. Run record-pr first.' }
+    }
+    return { pass: true }
+  }
 }

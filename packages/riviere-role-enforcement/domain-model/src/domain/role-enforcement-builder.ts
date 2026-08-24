@@ -92,6 +92,7 @@ export class BuiltRole<N extends string = string> {
   declare readonly forbiddenSupertypes?: readonly string[] | true
   declare readonly forbiddenDependencies?: readonly string[]
   declare readonly allowedDependencyRoles?: readonly string[]
+  declare readonly allowedDependentRoles?: readonly string[]
   declare readonly allowedCollaboratorRoles?: readonly string[]
   declare readonly allowsUnclassifiedInputs?: true
   declare readonly forbiddenImportedFunctionCalls?: true
@@ -106,6 +107,7 @@ export class BuiltRole<N extends string = string> {
   declare readonly returns?: readonly ReturnShape[]
   declare readonly requiresDataMembers?: true
   declare readonly requiresPrivateDataMembers?: true
+  declare readonly requiresReadonlyDataMembers?: true
   declare readonly requiresJustification?: string
   declare readonly maxPublicMethods?: number
   declare readonly nameMatches?: string

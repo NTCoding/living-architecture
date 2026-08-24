@@ -10,6 +10,7 @@ const domainRoles: RoleName[] = [
   'domain-event',
   'domain-port',
   'domain-service',
+  'domain-facade',
   'domain-error',
 ]
 

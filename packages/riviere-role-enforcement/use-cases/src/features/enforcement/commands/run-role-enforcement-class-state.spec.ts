@@ -2,6 +2,7 @@ import { expect, it } from 'vitest'
 import {
   configWithGenericClassStateConstraints,
   configWithPrivateDataMembers,
+  configWithReadonlyDataMembers,
   genericTestConfig,
 } from './__fixtures__/test-fixture-config'
 import {
@@ -149,6 +150,61 @@ export class Beta {
     )
     const result = runWith(configWithPrivateDataMembers(), workspaceDir)
     expect(result.exitCode).toBe(0)
+  })
+})
+
+it('rejects mutable instance fields when the role requires readonly data members', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    writeDomainFile(
+      workspaceDir,
+      `/** @riviere-role role-b */
+export class Beta {
+  private label = 'beta'
+}
+`,
+    )
+    const result = runWith(configWithReadonlyDataMembers(), workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain("requires readonly instance data members on 'Beta'")
+    expect(result.stdout).toContain('Found [label]')
+  })
+})
+
+it('rejects mutable constructor parameter properties when the role requires readonly data members', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    writeDomainFile(
+      workspaceDir,
+      `/** @riviere-role role-b */
+export class Beta {
+  constructor(private label: string) {}
+}
+`,
+    )
+    const result = runWith(configWithReadonlyDataMembers(), workspaceDir)
+    expect(result.exitCode).toBe(1)
+    expect(result.stdout).toContain("requires readonly instance data members on 'Beta'")
+    expect(result.stdout).toContain('Found [label]')
+  })
+})
+
+it('accepts readonly fields, readonly parameter properties, and classes without data members', () => {
+  withGenericFixtureWorkspace((workspaceDir) => {
+    writeDomainFile(
+      workspaceDir,
+      `/** @riviere-role role-b */
+export class Beta {
+  private readonly label = 'beta'
+
+  constructor(private readonly id: string) {}
+}
+
+/** @riviere-role role-b */
+export class EmptyBeta {}
+`,
+    )
+    const result = runWith(configWithReadonlyDataMembers(), workspaceDir)
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr).toBe('')
   })
 })
 

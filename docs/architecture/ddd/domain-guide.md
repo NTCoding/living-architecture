@@ -23,7 +23,7 @@ For shared domain language, use the [domain glossary](../domain-terminology/cont
 
 | Subdomain | Purpose | Domain packages | Aggregates | Command use cases | Query use cases | CLI use cases |
 | --- | --- | --- | --- | ---: | ---: | ---: |
-| [`dev-workflow-v2`](#dev-workflow-v2) | Models the maintainer delivery workflow, including its states, allowed transitions, recorded events, and pull request decisions. | domain model: `@living-architecture/dev-workflow-v2-domain-model` | _None declared_ | 9 | 0 | 0 |
+| [`dev-workflow-v2`](#dev-workflow-v2) | Models the maintainer delivery workflow, including its states, allowed transitions, recorded events, and pull request decisions. | domain model: `@living-architecture/dev-workflow-v2-domain-model` | `MaintainerWorkflow` | 9 | 0 | 0 |
 | [`riviere-builder`](#riviere-builder) | Models the construction, enrichment, validation, querying, and serialisation of Rivière architecture graphs. | domain model: `@living-architecture/riviere-builder-domain-model` | `RiviereBuilder` | 15 | 6 | 21 |
 | [`riviere-extract-config`](#riviere-extract-config) | Defines the public configuration language used to describe how Rivière components and connections are extracted from source code. | published language: `@living-architecture/riviere-extract-config-published-language` | _None declared_ | 0 | 0 | 0 |
 | [`riviere-extract-conventions`](#riviere-extract-conventions) | Defines the public TypeScript annotations used to identify Rivière architecture components and extraction behaviour in source code. | published language: `@living-architecture/riviere-extract-conventions-published-language` | _None declared_ | 0 | 0 | 0 |
@@ -47,30 +47,46 @@ Domain model package: `@living-architecture/dev-workflow-v2-domain-model`
 
 #### Aggregates
 
-_No aggregates are currently declared._
+- `MaintainerWorkflow`
+  - `build`
+  - `getPendingEvents`
+  - `getState`
+  - `registry`
+  - `getAgentInstructions`
+  - `appendEvent`
+  - `startSession`
+  - `getTranscriptPath`
+  - `getRecordedReviews`
+  - `getReviewDetails`
+  - `getLatestReviewByType`
+  - `registerAgent`
+  - `handleTeammateIdle`
+  - `executeRecording`
+  - `createPr`
+  - `verifyFeedbackAddressed`
 
 #### Supported use cases
 
 ##### Commands
 
 - `CreatePullRequest`
-  - Invokes domain service operation `Workflow.createPr`
+  - Invokes aggregate operation `MaintainerWorkflow.createPr`
 - `CreateWorkflowRoutes`
 - `RecordBranch`
-  - Invokes domain service operation `Workflow.executeRecording`
+  - Invokes aggregate operation `MaintainerWorkflow.executeRecording`
 - `RecordCiFailed`
-  - Invokes domain service operation `Workflow.executeRecording`
+  - Invokes aggregate operation `MaintainerWorkflow.executeRecording`
 - `RecordCiPassed`
-  - Invokes domain service operation `Workflow.executeRecording`
+  - Invokes aggregate operation `MaintainerWorkflow.executeRecording`
 - `RecordIssue`
-  - Invokes domain service operation `Workflow.executeRecording`
+  - Invokes aggregate operation `MaintainerWorkflow.executeRecording`
 - `RecordPullRequest`
-  - Invokes domain service operation `Workflow.executeRecording`
+  - Invokes aggregate operation `MaintainerWorkflow.executeRecording`
 - `VerifyFeedbackAddressed`
-  - Invokes domain service operation `Workflow.verifyFeedbackAddressed`
+  - Invokes aggregate operation `MaintainerWorkflow.verifyFeedbackAddressed`
 - `configureWorkflow`
-  - Invokes domain service operation `applyEvent`
   - Invokes domain service operation `parseWorkflowEvent`
+  - Invokes aggregate operation `MaintainerWorkflow.build`
   - Invokes domain service operation `getWorkflowStateNameSchema`
 
 ##### Queries
@@ -118,7 +134,6 @@ Domain model package: `@living-architecture/riviere-builder-domain-model`
   - `stats`
   - `validate`
   - `orphans`
-  - `query`
   - `serialize`
   - `build`
 
@@ -141,7 +156,7 @@ Domain model package: `@living-architecture/riviere-builder-domain-model`
 - `CheckConsistency`
   - Invokes aggregate operation `RiviereBuilder.warnings`
 - `ComponentChecklist`
-  - Invokes aggregate operation `RiviereBuilder.query`
+  - Invokes aggregate operation `RiviereBuilder.build`
 - `ComponentSummary`
   - Invokes aggregate operation `RiviereBuilder.stats`
 - `DefineCustomType`

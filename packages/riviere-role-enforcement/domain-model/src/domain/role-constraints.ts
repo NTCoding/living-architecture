@@ -17,6 +17,7 @@ export interface RoleConstraints<R extends string = string> {
   readonly forbiddenSupertypes?: readonly string[] | true
   readonly forbiddenDependencies?: readonly R[]
   readonly allowedDependencyRoles?: readonly R[]
+  readonly allowedDependentRoles?: readonly R[]
   readonly allowedCollaboratorRoles?: readonly R[]
   readonly allowsUnclassifiedInputs?: true
   readonly forbiddenImportedFunctionCalls?: true
@@ -26,6 +27,7 @@ export interface RoleConstraints<R extends string = string> {
   readonly requiredStaticMethodNamePrefix?: string
   readonly requiresDataMembers?: true
   readonly requiresPrivateDataMembers?: true
+  readonly requiresReadonlyDataMembers?: true
   readonly requiresJustification?: string
   readonly nameMatches?: string
   readonly maxPublicMethods?: number

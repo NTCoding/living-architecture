@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { WorkflowEvent } from './workflow-events'
 
 const STATE_NAMES = [
   'IMPLEMENTING',
@@ -40,6 +41,53 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
 }
 
 const WORKFLOW_STATE_SCHEMA = createWorkflowStateSchema(STATE_NAMES)
+
+function applyRecordedReviewVerdict(
+  state: WorkflowState,
+  event: Extract<WorkflowEvent, { type: 'review-recorded' }>,
+): WorkflowState {
+  const parsedReviewType = z
+    .enum(['architecture-review', 'code-review', 'bug-scanner', 'task-check'])
+    .safeParse(event.reviewType)
+  if (!parsedReviewType.success) return state
+
+  const passed = event.verdict === 'PASS'
+  switch (parsedReviewType.data) {
+    case 'architecture-review':
+      return state.with({ architectureReviewPassed: passed })
+    case 'code-review':
+      return state.with({ codeReviewPassed: passed })
+    case 'bug-scanner':
+      return state.with({ bugScannerPassed: passed })
+    case 'task-check':
+      return state.with({ taskCheckPassed: passed })
+  }
+}
+
+function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState | undefined {
+  switch (event.type) {
+    case 'architecture-review-completed':
+      return state.with({ architectureReviewPassed: event.passed })
+    case 'code-review-completed':
+      return state.with({ codeReviewPassed: event.passed })
+    case 'bug-scanner-completed':
+      return state.with({ bugScannerPassed: event.passed })
+    case 'ci-completed':
+      return state.with({ ciPassed: event.passed })
+    case 'feedback-checked':
+      return state.with({
+        feedbackClean: event.clean,
+        feedbackUnresolvedCount: event.unresolvedCount,
+      })
+    case 'feedback-addressed':
+      return state.with({ feedbackAddressed: true })
+    case 'pr-feedback-verification-failed':
+      return state.with({ prFeedbackVerificationFailedReason: event.reason })
+    case 'review-recorded':
+      return applyRecordedReviewVerdict(state, event)
+  }
+  return undefined
+}
 
 /** @riviere-role value-object */
 export class WorkflowState {
@@ -89,11 +137,49 @@ export class WorkflowState {
     return new WorkflowState(WORKFLOW_STATE_SCHEMA.parse(value))
   }
 
+  static initial(): WorkflowState {
+    return INITIAL_STATE
+  }
+
+  static replay(events: readonly WorkflowEvent[]): WorkflowState {
+    return events.reduce((state, event) => state.apply(event), WorkflowState.initial())
+  }
+
   with(changes: Partial<z.infer<typeof WORKFLOW_STATE_SCHEMA>>): WorkflowState {
     return WorkflowState.parse({
       ...this,
       ...changes,
     })
+  }
+
+  apply(event: WorkflowEvent): WorkflowState {
+    if (event.type === 'transitioned') {
+      return this.with({
+        ...event.stateOverrides,
+        currentStateMachineState: event.to,
+        preBlockedState: event.to === 'BLOCKED' ? event.from : undefined,
+      })
+    }
+
+    const reviewResult = applyReviewEvent(this, event)
+    if (reviewResult !== undefined) return reviewResult
+
+    switch (event.type) {
+      case 'issue-recorded':
+        return this.with({ githubIssue: event.issueNumber })
+      case 'branch-recorded':
+        return this.with({ featureBranch: event.branch })
+      case 'pr-recorded':
+        return this.with({ prNumber: event.prNumber, prUrl: event.prUrl })
+      case 'task-check-passed':
+        return this.with({ taskCheckPassed: true })
+      case 'session-started':
+        return this.with({
+          ...(event.transcriptPath !== undefined && { transcriptPath: event.transcriptPath }),
+        })
+      default:
+        return this
+    }
   }
 }
 
@@ -109,11 +195,6 @@ const INITIAL_STATE = WorkflowState.parse({
 })
 
 /** @riviere-role domain-service */
-export function parseStateName(value: string): StateName {
-  return STATE_NAME_SCHEMA.parse(value)
-}
-
-/** @riviere-role domain-service */
 export function getWorkflowStateNames() {
   return STATE_NAMES
 }
@@ -125,5 +206,5 @@ export function getWorkflowStateNameSchema() {
 
 /** @riviere-role domain-service */
 export function getInitialWorkflowState(): WorkflowState {
-  return INITIAL_STATE
+  return WorkflowState.initial()
 }

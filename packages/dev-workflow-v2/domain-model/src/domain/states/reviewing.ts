@@ -1,32 +1,54 @@
-import { defineState } from '../define-state'
-import { pass, fail } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type {
+  PreconditionResult,
+  TransitionContext,
+} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import { z } from 'zod'
+import type { WorkflowState } from '../workflow-types'
 
-/** @riviere-role domain-service */
-export function defineReviewingState() {
-  return defineState({
-    emoji: '📋',
-    agentInstructions: 'states/reviewing.md',
-    canTransitionTo: ['SUBMITTING_PR', 'IMPLEMENTING', 'BLOCKED'],
-    forbidden: { write: true },
-    allowedWorkflowOperations: ['record-review'],
+type StateName = WorkflowState['currentStateMachineState']
 
-    transitionGuard: (ctx) => {
-      const taskCheckRequired = ctx.state.githubIssue !== undefined
-      const allPassed =
-        ctx.state.architectureReviewPassed &&
-        ctx.state.codeReviewPassed &&
-        ctx.state.bugScannerPassed &&
-        (!taskCheckRequired || ctx.state.taskCheckPassed)
+/** @riviere-role value-object */
+export class ReviewingState {
+  declare private readonly brand: 'ReviewingState'
 
-      if (ctx.to === 'SUBMITTING_PR' && !allPassed)
-        return fail(
-          taskCheckRequired
-            ? 'Not all reviews passed. Each of architecture-review, code-review, bug-scanner, and task-check must pass.'
-            : 'Not all reviews passed. Each of architecture-review, code-review, and bug-scanner must pass.',
-        )
-      if (ctx.to === 'IMPLEMENTING' && allPassed)
-        return fail('All reviews passed. Transition to SUBMITTING_PR, not IMPLEMENTING.')
-      return pass()
-    },
-  })
+  readonly name: 'REVIEWING'
+  readonly emoji = '📋'
+  readonly agentInstructions = 'states/reviewing.md'
+  readonly canTransitionTo = ['SUBMITTING_PR', 'IMPLEMENTING', 'BLOCKED'] as const
+  readonly forbidden = { write: true } as const
+  readonly allowedWorkflowOperations = ['record-review'] as const
+
+  private constructor(name: 'REVIEWING') {
+    this.name = name
+  }
+
+  static parse(value: unknown): ReviewingState {
+    z.literal('REVIEWING').parse(value)
+    return new ReviewingState('REVIEWING')
+  }
+
+  transitionGuard(context: TransitionContext<WorkflowState, StateName>): PreconditionResult {
+    const taskCheckRequired = context.state.githubIssue !== undefined
+    const allPassed =
+      context.state.architectureReviewPassed &&
+      context.state.codeReviewPassed &&
+      context.state.bugScannerPassed &&
+      (!taskCheckRequired || context.state.taskCheckPassed)
+
+    if (context.to === 'SUBMITTING_PR' && !allPassed) {
+      return {
+        pass: false,
+        reason: taskCheckRequired
+          ? 'Not all reviews passed. Each of architecture-review, code-review, bug-scanner, and task-check must pass.'
+          : 'Not all reviews passed. Each of architecture-review, code-review, and bug-scanner must pass.',
+      }
+    }
+    if (context.to === 'IMPLEMENTING' && allPassed) {
+      return {
+        pass: false,
+        reason: 'All reviews passed. Transition to SUBMITTING_PR, not IMPLEMENTING.',
+      }
+    }
+    return { pass: true }
+  }
 }

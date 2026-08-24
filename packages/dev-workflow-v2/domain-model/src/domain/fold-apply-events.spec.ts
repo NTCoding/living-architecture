@@ -1,13 +1,12 @@
-import { applyEvents } from './fold'
 import type { WorkflowEvent } from './workflow-events'
-import { getInitialWorkflowState } from './workflow-types'
+import { getInitialWorkflowState, WorkflowState } from './workflow-types'
 
 const AT = '2026-01-01T00:00:00Z'
 const EMPTY_STATE = getInitialWorkflowState()
 
 describe('applyEvents', () => {
   it('returns EMPTY_STATE for empty event sequence', () => {
-    expect(applyEvents([])).toStrictEqual(EMPTY_STATE)
+    expect(WorkflowState.replay([])).toStrictEqual(EMPTY_STATE)
   })
 
   it('reduces a full event sequence to correct state and transition', () => {
@@ -54,7 +53,7 @@ describe('applyEvents', () => {
         to: 'SUBMITTING_PR',
       },
     ]
-    const state = applyEvents(events)
+    const state = WorkflowState.replay(events)
     expect(state.currentStateMachineState).toStrictEqual('SUBMITTING_PR')
     expect(state.githubIssue).toStrictEqual(10)
     expect(state.featureBranch).toStrictEqual('feature/foo')
@@ -78,7 +77,7 @@ describe('applyEvents', () => {
         passed: true,
       },
     ]
-    const state = applyEvents(events)
+    const state = WorkflowState.replay(events)
     expect(state.architectureReviewPassed).toStrictEqual(true)
     expect(state.codeReviewPassed).toStrictEqual(true)
     expect(state.bugScannerPassed).toStrictEqual(true)
@@ -99,7 +98,7 @@ describe('applyEvents', () => {
         to: 'IMPLEMENTING',
       },
     ]
-    const state = applyEvents(events)
+    const state = WorkflowState.replay(events)
     expect(state.currentStateMachineState).toStrictEqual('IMPLEMENTING')
     expect(state.preBlockedState).toBeUndefined()
   })
@@ -113,7 +112,7 @@ describe('applyEvents', () => {
         to: 'BLOCKED',
       },
     ]
-    const state = applyEvents(events)
+    const state = WorkflowState.replay(events)
     expect(state.preBlockedState).toStrictEqual('REVIEWING')
   })
 })
