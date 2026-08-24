@@ -5,12 +5,17 @@ import type { EnrichDraftComponentsInput } from './enrich-draft-components-input
 import type { EnrichDraftComponentsResult } from './enrich-draft-components-result'
 import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
 import type { LoadDraftComponents } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-draft-components'
+import { ConnectionTimings } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-values'
+import type { ObserveConnectionDetectionPhase } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/observe-connection-detection-phase'
+
+type ConnectionDetectionPhase = Parameters<ObserveConnectionDetectionPhase>[0]['phase']
 
 /** @riviere-role command-use-case */
 export class EnrichDraftComponents {
   constructor(
     private readonly riviereProjectRepository: RiviereProjectRepository,
     private readonly loadDraftComponents: LoadDraftComponents,
+    private readonly now: () => number,
   ) {}
 
   execute(enrichDraftComponentsInput: EnrichDraftComponentsInput): EnrichDraftComponentsResult {
@@ -21,13 +26,16 @@ export class EnrichDraftComponents {
         useTsConfig: enrichDraftComponentsInput.useTsConfig,
       })
 
+      const timing = measureConnectionDetection(this.now)
+      const result = riviereProject.enrichDraftComponents({
+        draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,
+        loadDraftComponents: this.loadDraftComponents,
+        allowIncomplete: enrichDraftComponentsInput.allowIncomplete,
+        includeConnections: enrichDraftComponentsInput.includeConnections,
+        observeConnectionDetectionPhase: timing.observe,
+      })
       return {
-        result: riviereProject.enrichDraftComponents({
-          draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,
-          loadDraftComponents: this.loadDraftComponents,
-          allowIncomplete: enrichDraftComponentsInput.allowIncomplete,
-          includeConnections: enrichDraftComponentsInput.includeConnections,
-        }),
+        result: result.kind === 'full' ? { ...result, timings: [timing.result()] } : result,
         ...(enrichDraftComponentsInput.output === undefined
           ? {}
           : { outputPath: enrichDraftComponentsInput.output }),
@@ -55,5 +63,28 @@ export class EnrichDraftComponents {
       }
       throw error
     }
+  }
+}
+
+function measureConnectionDetection(now: () => number) {
+  const startedAt = new Map<ConnectionDetectionPhase, number>()
+  const durationMs = new Map<ConnectionDetectionPhase, number>()
+  const observe: ObserveConnectionDetectionPhase = (event) => {
+    if (event.status === 'started') {
+      startedAt.set(event.phase, now())
+      return
+    }
+    const started = startedAt.get(event.phase)
+    if (started !== undefined) durationMs.set(event.phase, now() - started)
+  }
+  return {
+    observe,
+    result: () =>
+      ConnectionTimings.parse({
+        setupMs: durationMs.get('setup') ?? 0,
+        callGraphMs: durationMs.get('callGraph') ?? 0,
+        asyncDetectionMs: durationMs.get('detection') ?? 0,
+        totalMs: durationMs.get('total') ?? 0,
+      }),
   }
 }

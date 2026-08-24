@@ -381,24 +381,6 @@ describe('RiviereProjectRepository', () => {
     })
   })
 
-  it('load returns a project containing all configured files', () => {
-    withWorkspace((dir) => {
-      writeFileSync(join(dir, 'a.ts'), 'export class A {}')
-      writeFileSync(join(dir, 'b.ts'), 'export class B {}')
-      writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
-
-      const project = loadProject({
-        configPath: join(dir, 'extract.config.yml'),
-        projectRoot: dir,
-        useTsConfig: false,
-      })
-
-      expect(project.stage.moduleContexts[0]?.files).toStrictEqual(
-        expect.arrayContaining([join(dir, 'a.ts'), join(dir, 'b.ts')]),
-      )
-    })
-  })
-
   it('load throws when extends modules-array config fails schema validation', () => {
     withWorkspace((dir) => {
       writeFileSync(

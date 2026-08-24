@@ -7,44 +7,20 @@ import {
   type ValidatedModuleInput,
 } from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
-import type { ExtractedLink } from './connection-detection/extracted-link'
 import { RiviereProject, OrphanedDraftComponentError } from './riviere-project'
 import { ExtractionStage } from './extraction-stage'
 import { TestFixtureError } from './value-extraction/literal-detection'
 
-const {
-  mockEnrichComponents,
-  mockDetectPerModuleConnections,
-  mockDetectCrossModuleConnections,
-  mockDeduplicateCrossStrategy,
-} = vi.hoisted(() => ({
+const { mockEnrichComponents } = vi.hoisted(() => ({
   mockEnrichComponents: vi.fn(),
-  mockDetectPerModuleConnections: vi.fn().mockReturnValue({
-    links: [],
-    externalLinks: [],
-    timings: {
-      callGraphMs: 0,
-      setupMs: 0,
-    },
-  }),
-  mockDetectCrossModuleConnections: vi.fn().mockReturnValue({
-    links: [],
-    timings: { asyncDetectionMs: 0 },
-  }),
-  mockDeduplicateCrossStrategy: vi.fn((links: ExtractedLink[]): ExtractedLink[] => links),
 }))
 
 vi.mock('./value-extraction/enrich-components', () => ({
   enrichComponents: mockEnrichComponents,
 }))
 
-vi.mock('./connection-detection/detect-connections', () => ({
-  detectPerModuleConnections: mockDetectPerModuleConnections,
-  detectCrossModuleConnections: mockDetectCrossModuleConnections,
-  deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
-}))
-
-vi.mock('./connection-detection/resolve-http-links', () => ({
+vi.mock('./connection-detection/resolve-http-links', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./connection-detection/resolve-http-links')>()),
   stripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
 }))
 
@@ -157,6 +133,10 @@ describe('RiviereProject.enrichDraftComponents', () => {
           {
             domain: 'orders',
             name: 'CompA',
+            module: 'orders',
+            type: 'api',
+            location: { file: 'test.ts', line: 1 },
+            metadata: {},
           },
         ],
         failures: [],
@@ -166,6 +146,10 @@ describe('RiviereProject.enrichDraftComponents', () => {
           {
             domain: 'shipping',
             name: 'CompB',
+            module: 'shipping',
+            type: 'api',
+            location: { file: 'test.ts', line: 1 },
+            metadata: {},
           },
         ],
         failures: [],

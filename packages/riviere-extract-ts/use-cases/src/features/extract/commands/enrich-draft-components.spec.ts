@@ -37,6 +37,7 @@ describe('enrichDraftComponents', () => {
     const result = new EnrichDraftComponents(
       new RiviereProjectRepository(),
       mocks.loadDraftComponentsMock,
+      () => 0,
     ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
@@ -56,6 +57,94 @@ describe('enrichDraftComponents', () => {
       draftComponentsPath: 'draft.json',
       loadDraftComponents: mocks.loadDraftComponentsMock,
       includeConnections: false,
+      observeConnectionDetectionPhase: expect.any(Function),
+    })
+  })
+
+  it('measures connection detection phases outside the aggregate', () => {
+    mocks.enrichDraftComponentsMethodMock.mockImplementation(
+      (options: {
+        observeConnectionDetectionPhase: (event: {
+          phase: 'setup' | 'callGraph' | 'detection' | 'total'
+          status: 'started' | 'completed'
+        }) => void
+      }) => {
+        const observe = options.observeConnectionDetectionPhase
+        observe({ phase: 'total', status: 'started' })
+        observe({ phase: 'setup', status: 'started' })
+        observe({ phase: 'setup', status: 'completed' })
+        observe({ phase: 'callGraph', status: 'started' })
+        observe({ phase: 'callGraph', status: 'completed' })
+        observe({ phase: 'detection', status: 'started' })
+        observe({ phase: 'detection', status: 'completed' })
+        observe({ phase: 'total', status: 'completed' })
+        return {
+          kind: 'full',
+          components: [],
+          failedFields: [],
+          links: [],
+          externalLinks: [],
+        }
+      },
+    )
+    const times = [0, 2, 5, 7, 13, 17, 25, 30]
+
+    const result = new EnrichDraftComponents(
+      new RiviereProjectRepository(),
+      mocks.loadDraftComponentsMock,
+      () => times.shift() ?? 0,
+    ).execute({
+      allowIncomplete: false,
+      configPath: 'config.yml',
+      draftComponentsPath: 'draft.json',
+      includeConnections: true,
+      useTsConfig: true,
+    })
+
+    expect(result.result).toMatchObject({
+      kind: 'full',
+      timings: [{ setupMs: 3, callGraphMs: 6, asyncDetectionMs: 8, totalMs: 30 }],
+    })
+  })
+
+  it('records zero for phases that did not start', () => {
+    mocks.enrichDraftComponentsMethodMock.mockImplementation(
+      (options: {
+        observeConnectionDetectionPhase: (event: {
+          phase: 'setup' | 'callGraph' | 'detection' | 'total'
+          status: 'started' | 'completed'
+        }) => void
+      }) => {
+        const observe = options.observeConnectionDetectionPhase
+        observe({ phase: 'setup', status: 'completed' })
+        observe({ phase: 'callGraph', status: 'completed' })
+        observe({ phase: 'detection', status: 'completed' })
+        observe({ phase: 'total', status: 'completed' })
+        return {
+          kind: 'full',
+          components: [],
+          failedFields: [],
+          links: [],
+          externalLinks: [],
+        }
+      },
+    )
+
+    const result = new EnrichDraftComponents(
+      new RiviereProjectRepository(),
+      mocks.loadDraftComponentsMock,
+      () => 10,
+    ).execute({
+      allowIncomplete: false,
+      configPath: 'config.yml',
+      draftComponentsPath: 'draft.json',
+      includeConnections: true,
+      useTsConfig: true,
+    })
+
+    expect(result.result).toMatchObject({
+      kind: 'full',
+      timings: [{ setupMs: 0, callGraphMs: 0, asyncDetectionMs: 0, totalMs: 0 }],
     })
   })
 
@@ -63,6 +152,7 @@ describe('enrichDraftComponents', () => {
     new EnrichDraftComponents(
       new RiviereProjectRepository(),
       mocks.loadDraftComponentsMock,
+      () => 0,
     ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
@@ -83,6 +173,7 @@ describe('enrichDraftComponents', () => {
     const result = new EnrichDraftComponents(
       new RiviereProjectRepository(),
       mocks.loadDraftComponentsMock,
+      () => 0,
     ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
@@ -102,6 +193,7 @@ describe('enrichDraftComponents', () => {
     new EnrichDraftComponents(
       new RiviereProjectRepository(),
       mocks.loadDraftComponentsMock,
+      () => 0,
     ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
@@ -124,6 +216,7 @@ describe('enrichDraftComponents', () => {
     const result = new EnrichDraftComponents(
       new RiviereProjectRepository(),
       mocks.loadDraftComponentsMock,
+      () => 0,
     ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
@@ -148,6 +241,7 @@ describe('enrichDraftComponents', () => {
     const result = new EnrichDraftComponents(
       new RiviereProjectRepository(),
       mocks.loadDraftComponentsMock,
+      () => 0,
     ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
@@ -178,6 +272,7 @@ describe('enrichDraftComponents', () => {
     const result = new EnrichDraftComponents(
       new RiviereProjectRepository(),
       mocks.loadDraftComponentsMock,
+      () => 0,
     ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
@@ -202,6 +297,7 @@ describe('enrichDraftComponents', () => {
     const result = new EnrichDraftComponents(
       new RiviereProjectRepository(),
       mocks.loadDraftComponentsMock,
+      () => 0,
     ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
@@ -228,6 +324,7 @@ describe('enrichDraftComponents', () => {
       new EnrichDraftComponents(
         new RiviereProjectRepository(),
         mocks.loadDraftComponentsMock,
+        () => 0,
       ).execute({
         allowIncomplete: false,
         configPath: 'config.yml',

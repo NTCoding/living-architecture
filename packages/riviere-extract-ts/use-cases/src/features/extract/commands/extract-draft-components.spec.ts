@@ -31,11 +31,12 @@ const DRAFT_ONLY_RESULT = {
 
 class UnexpectedLoadingError extends Error {}
 
-function createExtractDraftComponents(): ExtractDraftComponents {
+function createExtractDraftComponents(now: () => number = () => 0): ExtractDraftComponents {
   return new ExtractDraftComponents(
     new RiviereProjectRepository(),
     mocks.findChangedSourceFilesMock,
     mocks.findSpecifiedSourceFilesMock,
+    now,
   )
 }
 
@@ -147,11 +148,91 @@ describe('extractDraftComponents', () => {
     expect(mocks.extractDraftComponentsMethodMock).toHaveBeenCalledWith({
       allowIncomplete: false,
       includeConnections: false,
+      observeConnectionDetectionPhase: expect.any(Function),
       sourceFileSelection: { kind: 'files', filePaths: [`${process.cwd()}/selected.ts`] },
     })
   })
 
   describe('result forwarding', () => {
+    it('measures connection detection phases outside the aggregate', () => {
+      mocks.extractDraftComponentsMethodMock.mockImplementation(
+        (options: {
+          observeConnectionDetectionPhase: (event: {
+            phase: 'setup' | 'callGraph' | 'detection' | 'total'
+            status: 'started' | 'completed'
+          }) => void
+        }) => {
+          const observe = options.observeConnectionDetectionPhase
+          observe({ phase: 'total', status: 'started' })
+          observe({ phase: 'setup', status: 'started' })
+          observe({ phase: 'setup', status: 'completed' })
+          observe({ phase: 'callGraph', status: 'started' })
+          observe({ phase: 'callGraph', status: 'completed' })
+          observe({ phase: 'detection', status: 'started' })
+          observe({ phase: 'detection', status: 'completed' })
+          observe({ phase: 'total', status: 'completed' })
+          return {
+            kind: 'full',
+            components: [],
+            failedFields: [],
+            links: [],
+            externalLinks: [],
+          }
+        },
+      )
+      const times = [0, 1, 3, 4, 9, 10, 17, 20]
+
+      const result = createExtractDraftComponents(() => times.shift() ?? 0).execute({
+        allowIncomplete: true,
+        configPath: 'config.yml',
+        includeConnections: true,
+        sourceFileSelectionRequest: { kind: 'all' },
+        useTsConfig: false,
+      })
+
+      expect(result.result).toMatchObject({
+        kind: 'full',
+        timings: [{ setupMs: 2, callGraphMs: 5, asyncDetectionMs: 7, totalMs: 20 }],
+      })
+    })
+
+    it('records zero for phases that did not start', () => {
+      mocks.extractDraftComponentsMethodMock.mockImplementation(
+        (options: {
+          observeConnectionDetectionPhase: (event: {
+            phase: 'setup' | 'callGraph' | 'detection' | 'total'
+            status: 'started' | 'completed'
+          }) => void
+        }) => {
+          const observe = options.observeConnectionDetectionPhase
+          observe({ phase: 'setup', status: 'completed' })
+          observe({ phase: 'callGraph', status: 'completed' })
+          observe({ phase: 'detection', status: 'completed' })
+          observe({ phase: 'total', status: 'completed' })
+          return {
+            kind: 'full',
+            components: [],
+            failedFields: [],
+            links: [],
+            externalLinks: [],
+          }
+        },
+      )
+
+      const result = createExtractDraftComponents(() => 10).execute({
+        allowIncomplete: true,
+        configPath: 'config.yml',
+        includeConnections: true,
+        sourceFileSelectionRequest: { kind: 'all' },
+        useTsConfig: false,
+      })
+
+      expect(result.result).toMatchObject({
+        kind: 'full',
+        timings: [{ setupMs: 0, callGraphMs: 0, asyncDetectionMs: 0, totalMs: 0 }],
+      })
+    })
+
     it('returns the extraction result', () => {
       const result = createExtractDraftComponents().execute({
         allowIncomplete: true,
@@ -165,8 +246,22 @@ describe('extractDraftComponents', () => {
       expect(mocks.extractDraftComponentsMethodMock).toHaveBeenCalledWith({
         allowIncomplete: true,
         includeConnections: false,
+        observeConnectionDetectionPhase: expect.any(Function),
         sourceFileSelection: { kind: 'all' },
       })
+    })
+
+    it('returns the requested output path', () => {
+      const result = createExtractDraftComponents().execute({
+        allowIncomplete: true,
+        configPath: 'config.yml',
+        includeConnections: false,
+        output: 'draft-components.json',
+        sourceFileSelectionRequest: { kind: 'all' },
+        useTsConfig: false,
+      })
+
+      expect(result.outputPath).toBe('draft-components.json')
     })
 
     it('returns config failure when loading the extraction config fails', () => {

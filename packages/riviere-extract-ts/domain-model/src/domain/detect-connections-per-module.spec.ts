@@ -8,40 +8,16 @@ import { DraftComponent } from './component-extraction/draft-component'
 import { RiviereProject } from './riviere-project'
 import { ExtractionStage } from './extraction-stage'
 
-const {
-  mockExtractComponents,
-  mockEnrichComponents,
-  mockDeduplicateCrossStrategy,
-  mockDetectCrossModule,
-  mockDetectPerModule,
-  mockStripResolvedCustomTypes,
-} = vi.hoisted(() => ({
-  mockExtractComponents: vi.fn().mockReturnValue([]),
-  mockEnrichComponents: vi.fn().mockReturnValue({
-    components: [],
-    failures: [],
+const { mockExtractComponents, mockEnrichComponents, mockStripResolvedCustomTypes } = vi.hoisted(
+  () => ({
+    mockExtractComponents: vi.fn().mockReturnValue([]),
+    mockEnrichComponents: vi.fn().mockReturnValue({
+      components: [],
+      failures: [],
+    }),
+    mockStripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
   }),
-  mockDeduplicateCrossStrategy: vi.fn((links: { source: string }[]) => links),
-  mockDetectPerModule: vi.fn().mockReturnValue({
-    links: [
-      {
-        source: 'orders:useCase:OrderService',
-        target: 'orders:repository:OrderRepo',
-        type: 'sync',
-      },
-    ],
-    externalLinks: [],
-    timings: {
-      callGraphMs: 1,
-      setupMs: 0,
-    },
-  }),
-  mockDetectCrossModule: vi.fn().mockReturnValue({
-    links: [],
-    timings: { asyncDetectionMs: 0 },
-  }),
-  mockStripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
-}))
+)
 
 vi.mock('./component-extraction/extractor', () => ({
   extractComponents: mockExtractComponents,
@@ -56,13 +32,8 @@ vi.mock('./value-extraction/enrich-components', () => ({
   enrichComponents: mockEnrichComponents,
 }))
 
-vi.mock('./connection-detection/detect-connections', () => ({
-  detectPerModuleConnections: mockDetectPerModule,
-  detectCrossModuleConnections: mockDetectCrossModule,
-  deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
-}))
-
-vi.mock('./connection-detection/resolve-http-links', () => ({
+vi.mock('./connection-detection/resolve-http-links', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./connection-detection/resolve-http-links')>()),
   stripResolvedCustomTypes: mockStripResolvedCustomTypes,
 }))
 
@@ -122,130 +93,6 @@ function createRiviereProject(
 describe('RiviereProject.extractDraftComponents', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-  })
-
-  it('returns links when includeConnections is true', () => {
-    mockExtractComponents.mockReturnValue([
-      DraftComponent.parseOrThrow({
-        name: 'OrderService',
-        domain: 'orders',
-        module: 'orders',
-        type: 'useCase',
-        location: {
-          file: 'test.ts',
-          line: 1,
-        },
-      }),
-    ])
-    mockEnrichComponents.mockReturnValue({
-      components: [
-        {
-          name: 'OrderService',
-          domain: 'orders',
-          module: 'orders',
-          type: 'useCase',
-          location: {
-            file: 'test.ts',
-            line: 1,
-          },
-          metadata: {},
-        },
-      ],
-      failures: [],
-    })
-    mockDetectPerModule.mockReturnValue({
-      links: [
-        {
-          source: 'orders:useCase:OrderService',
-          target: 'orders:repository:OrderRepo',
-          type: 'sync' as const,
-        },
-      ],
-      externalLinks: [],
-      timings: {
-        callGraphMs: 1,
-        setupMs: 0,
-      },
-    })
-
-    const eventPublishers = [{ fromType: 'eventSender', metadataKey: 'publishedEventType' }]
-    const httpLinks = [
-      {
-        fromCustomType: 'eventSender',
-        matchDomainBy: 'publishedEventType',
-        matchApiBy: ['publishedEventType'],
-      },
-    ]
-    const project = createRiviereProject('orders', { eventPublishers, httpLinks })
-    const result = project.extractDraftComponents({
-      allowIncomplete: true,
-      includeConnections: true,
-    })
-
-    expect(result).toMatchObject({
-      kind: 'full',
-      links: [
-        {
-          source: 'orders:useCase:OrderService',
-          target: 'orders:repository:OrderRepo',
-          type: 'sync',
-        },
-      ],
-    })
-    expect(mockDetectCrossModule).toHaveBeenCalledWith(
-      expect.any(Array),
-      expect.objectContaining({ eventPublishers }),
-    )
-    expect(mockDetectPerModule).toHaveBeenCalledWith(
-      expect.any(Project),
-      expect.any(Array),
-      expect.objectContaining({ httpLinks }),
-    )
-    expect(mockStripResolvedCustomTypes).toHaveBeenCalledWith(
-      expect.any(Array),
-      httpLinks,
-      expect.any(Array),
-    )
-  })
-
-  it('aggregates connection timings into one project summary', () => {
-    mockExtractComponents.mockReturnValue([
-      DraftComponent.parseOrThrow({
-        name: 'OrderService',
-        domain: 'orders',
-        module: 'orders',
-        type: 'useCase',
-        location: { file: 'test.ts', line: 1 },
-      }),
-    ])
-    mockEnrichComponents.mockReturnValue({
-      components: [
-        {
-          name: 'OrderService',
-          domain: 'orders',
-          module: 'orders',
-          type: 'useCase',
-          location: { file: 'test.ts', line: 1 },
-          metadata: {},
-        },
-      ],
-      failures: [],
-    })
-    mockDetectPerModule.mockReturnValue({
-      links: [],
-      externalLinks: [],
-      timings: { callGraphMs: 1, setupMs: 2 },
-    })
-    mockDetectCrossModule.mockReturnValue({ links: [], timings: { asyncDetectionMs: 4 } })
-
-    const result = createRiviereProject('orders').extractDraftComponents({
-      allowIncomplete: true,
-      includeConnections: true,
-    })
-
-    expect(result).toMatchObject({
-      timings: [{ callGraphMs: 1, asyncDetectionMs: 4, setupMs: 2, totalMs: 7 }],
-    })
   })
 
   it('retains components from configured submodules', () => {

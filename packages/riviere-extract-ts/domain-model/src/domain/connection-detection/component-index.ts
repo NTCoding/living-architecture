@@ -39,6 +39,10 @@ export class ComponentIndex {
     return this.byLocation.get(locationKey(file, line))
   }
 
+  allComponents(): readonly EnrichedComponent[] {
+    return [...this.byName.values()]
+  }
+
   private withoutGenericArguments(typeName: string): string {
     const index = typeName.indexOf('<')
     if (index === -1) {

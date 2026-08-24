@@ -74,8 +74,7 @@ describe('ExtractionStage', () => {
     ['duplicate contexts', (context: ModuleContext) => [context, context]],
     [
       'a context for a module absent from the configuration',
-      (context: ModuleContext, foreignModule: ModuleContext['module']) => [
-        context,
+      (_context: ModuleContext, foreignModule: ModuleContext['module']) => [
         { module: foreignModule, files: [], project: new Project() },
       ],
     ],

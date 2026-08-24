@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { ComponentIndex } from '../component-index'
-import { buildCallGraph } from './build-call-graph'
 import {
+  buildCallGraph,
   buildComponent,
+  CallGraphOptions,
   defaultOptions,
   nextFile,
   sharedProject,
 } from './__fixtures__/call-graph-fixtures'
-import { CallGraphOptions } from './call-graph-types'
 
 describe('buildCallGraph coverage - receiver resolution', () => {
   it('skips call when receiver has no property access in source method', () => {

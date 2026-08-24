@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import { performance } from 'node:perf_hooks'
 import { getDefaultGraphPathDescription } from '../infra/cli/presentation/graph-path-option'
 import { parseAddComponentInput } from '../features/builder/entrypoint/add-component/parse-add-component-input'
 import { formatError, formatSuccess } from '../infra/cli/presentation/output'
@@ -325,10 +326,12 @@ export function createProgram(): Command {
         riviereProjectRepository,
         createGitChangedSourceFileFinder(process.cwd(), detectChangedTypeScriptFiles),
         createSpecifiedSourceFileFinder(process.cwd(), findSpecifiedSourceFiles),
+        () => performance.now(),
       ),
       enrichDraftComponents: new EnrichDraftComponents(
         riviereProjectRepository,
         createDraftComponentsLoader(),
+        () => performance.now(),
       ),
       parseFlagCombinations,
       createExtractDraftComponentsInput,

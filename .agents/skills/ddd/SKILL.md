@@ -163,6 +163,17 @@ Generate more raw candidates than the user requested, then reject invalid
 candidates privately. Never pad the visible options with renamed versions of
 the same structure or with designs that break an agreed constraint.
 
+Validate every candidate concept name against the represented data and
+behaviour before presenting it. Treat existing code names as evidence, not as
+proof of a domain concept. Inspect what the code accepts, what it returns, what
+state it materialises, and which invariants it protects. Distinguish the source
+evidence, the process that interprets it, and the domain result. Do not propose
+a value object named after an algorithm or intermediate mechanism when the code
+does not materialise that value. For example, a function called
+`buildCallGraph` that returns detected architectural links does not establish a
+`CallGraph` value object unless it actually produces and protects a graph of
+code calls.
+
 Apply the basic domain model tests first:
 
 1. If a concept owns state and enforces invariants, test it as an aggregate.
@@ -176,6 +187,8 @@ Apply the basic domain model tests first:
 Before presenting an option, verify all of these points:
 
 - every fixed user constraint is satisfied;
+- every proposed concept name accurately describes the data or behaviour it
+  owns rather than copying a possibly misleading code identifier;
 - every declaration has a concrete role that fits its responsibility;
 - every dependency and consumer relationship is legal;
 - the option solves the complete error cluster rather than moving the error;

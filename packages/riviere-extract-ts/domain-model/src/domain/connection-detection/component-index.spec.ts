@@ -8,6 +8,13 @@ function buildComponent(overrides: Partial<EnrichedComponent> = {}): EnrichedCom
 }
 
 describe('ComponentIndex', () => {
+  it('returns all indexed components', () => {
+    const first = buildComponent({ name: 'First' })
+    const second = buildComponent({ name: 'Second' })
+
+    expect(ComponentIndex.parse([first, second]).allComponents()).toStrictEqual([first, second])
+  })
+
   describe('isComponent', () => {
     it('returns false when built from empty array', () => {
       const index = ComponentIndex.parse([])

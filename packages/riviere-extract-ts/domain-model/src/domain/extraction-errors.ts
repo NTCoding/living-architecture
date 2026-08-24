@@ -21,19 +21,3 @@ export class MissingModuleSourceError extends Error {
     this.name = 'MissingModuleSourceError'
   }
 }
-
-/** @riviere-role domain-error */
-export class MissingResolvedTypeNameError extends Error {
-  constructor() {
-    super('Expected resolved type name')
-    this.name = 'MissingResolvedTypeNameError'
-  }
-}
-
-/** @riviere-role domain-error */
-export class MissingInterfaceTypeNameError extends Error {
-  constructor() {
-    super('Expected interface resolution type name')
-    this.name = 'MissingInterfaceTypeNameError'
-  }
-}

@@ -54,6 +54,7 @@ export function presentExtractionResult(
 
   if (
     result.kind === 'fieldFailure' ||
+    result.kind === 'draftComponentsFailure' ||
     result.kind === 'configFailure' ||
     result.kind === 'dataAccessFailure' ||
     result.kind === 'connectionDetectionFailure'

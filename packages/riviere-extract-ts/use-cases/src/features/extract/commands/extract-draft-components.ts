@@ -7,6 +7,10 @@ import { ExtractionDataAccessError } from '../data-access/riviere-project/rivier
 import type { FindChangedSourceFiles } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/find-changed-source-files'
 import type { FindSpecifiedSourceFiles } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/find-specified-source-files'
 import { resolveSourceFileSelection } from '@living-architecture/riviere-extract-ts-domain-model/domain/resolve-source-file-selection'
+import { ConnectionTimings } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-values'
+import type { ObserveConnectionDetectionPhase } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/observe-connection-detection-phase'
+
+type ConnectionDetectionPhase = Parameters<ObserveConnectionDetectionPhase>[0]['phase']
 
 /** @riviere-role command-use-case */
 export class ExtractDraftComponents {
@@ -14,6 +18,7 @@ export class ExtractDraftComponents {
     private readonly riviereProjectRepository: RiviereProjectRepository,
     private readonly findChangedSourceFiles: FindChangedSourceFiles,
     private readonly findSpecifiedSourceFiles: FindSpecifiedSourceFiles,
+    private readonly now: () => number,
   ) {}
 
   execute(extractDraftComponentsInput: ExtractDraftComponentsInput): ExtractDraftComponentsResult {
@@ -28,13 +33,15 @@ export class ExtractDraftComponents {
         extractDraftComponentsInput,
       )
 
+      const timing = measureConnectionDetection(this.now)
       const result = riviereProject.extractDraftComponents({
         sourceFileSelection: selection.sourceFileSelection,
         allowIncomplete: extractDraftComponentsInput.allowIncomplete,
         includeConnections: extractDraftComponentsInput.includeConnections,
+        observeConnectionDetectionPhase: timing.observe,
       })
       return {
-        result,
+        result: result.kind === 'full' ? { ...result, timings: [timing.result()] } : result,
         warnings: selection.warnings,
         ...(extractDraftComponentsInput.output === undefined
           ? {}
@@ -68,6 +75,29 @@ export class ExtractDraftComponents {
       }
       throw error
     }
+  }
+}
+
+function measureConnectionDetection(now: () => number) {
+  const startedAt = new Map<ConnectionDetectionPhase, number>()
+  const durationMs = new Map<ConnectionDetectionPhase, number>()
+  const observe: ObserveConnectionDetectionPhase = (event) => {
+    if (event.status === 'started') {
+      startedAt.set(event.phase, now())
+      return
+    }
+    const started = startedAt.get(event.phase)
+    if (started !== undefined) durationMs.set(event.phase, now() - started)
+  }
+  return {
+    observe,
+    result: () =>
+      ConnectionTimings.parse({
+        setupMs: durationMs.get('setup') ?? 0,
+        callGraphMs: durationMs.get('callGraph') ?? 0,
+        asyncDetectionMs: durationMs.get('detection') ?? 0,
+        totalMs: durationMs.get('total') ?? 0,
+      }),
   }
 }
 

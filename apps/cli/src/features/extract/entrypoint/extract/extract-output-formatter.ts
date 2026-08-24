@@ -1,7 +1,7 @@
 import type { ExtractDraftComponentsResult } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components-result'
 
 type DraftComponent = Extract<
-  ExtractDraftComponentsResult,
+  ExtractDraftComponentsResult['result'],
   { kind: 'draftOnly' }
 >['components'][number]
 
