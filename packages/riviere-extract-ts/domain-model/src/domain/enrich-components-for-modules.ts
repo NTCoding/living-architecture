@@ -1,91 +1,10 @@
 import type { ValidatedModule } from '@living-architecture/riviere-extract-config-published-language'
 import type { Project } from 'ts-morph'
 import type { DraftComponent } from './component-extraction/draft-component'
-import { extractComponents } from './component-extraction/extractor'
-import type { ExtractionStage } from './extraction-stage'
 import { MissingModuleContextError } from './extraction-errors'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import { enrichComponents } from './value-extraction/enrich-components'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
-
-type ExtractComponentsForGraphResult =
-  | {
-      readonly ok: true
-      readonly repository: string
-      readonly components: EnrichedComponent[]
-      readonly failedFields: string[]
-    }
-  | {
-      readonly ok: false
-      readonly failure: {
-        readonly reason: string
-        readonly failedFields: string[]
-      }
-    }
-
-type GraphExtractionInput = {
-  readonly stage: ExtractionStage
-  readonly draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>
-  readonly allowIncomplete: boolean
-}
-
-/** @riviere-role domain-service */
-export class ExtractComponentsForGraph {
-  execute(
-    stage: ExtractionStage,
-    options: { readonly allowIncomplete: boolean },
-  ): ExtractComponentsForGraphResult {
-    const draftsByModule = extractDraftsByModule(stage)
-    return buildGraphExtractionResult({
-      stage,
-      draftsByModule,
-      allowIncomplete: options.allowIncomplete,
-    })
-  }
-}
-
-function buildGraphExtractionResult(input: GraphExtractionInput): ExtractComponentsForGraphResult {
-  const { stage } = input
-  const repositoryName = stage.repositoryName
-  const enrichment = enrichGraphComponents(input)
-  return enrichment.kind === 'fieldFailure'
-    ? failedGraphExtraction(enrichment.failedFields)
-    : successfulGraphExtraction({ repository: repositoryName, enrichment })
-}
-
-function enrichGraphComponents(input: GraphExtractionInput): EnrichmentResult {
-  const { stage, draftsByModule, allowIncomplete } = input
-  const { resolvedConfig, moduleContexts } = stage
-  return enrichComponentsForModules(
-    resolvedConfig.modules,
-    moduleContexts,
-    draftsByModule,
-    allowIncomplete,
-  )
-}
-
-function failedGraphExtraction(failedFields: string[]): ExtractComponentsForGraphResult {
-  return {
-    ok: false,
-    failure: {
-      reason: 'Field enrichment failed',
-      failedFields,
-    },
-  }
-}
-
-function successfulGraphExtraction(
-  input: SuccessfulGraphExtractionInput,
-): ExtractComponentsForGraphResult {
-  const { repository, enrichment } = input
-  const { components, failedFields } = enrichment
-  return {
-    ok: true,
-    repository,
-    components,
-    failedFields,
-  }
-}
 
 interface FieldFailureEnrichment {
   readonly kind: 'fieldFailure'
@@ -117,19 +36,9 @@ type EnrichExistingModuleInput = {
   readonly project: Project
 }
 
-type OrphanedDraftDomainsInput = {
-  readonly drafts: readonly DraftComponent[]
-  readonly module: ValidatedModule
-}
-
 type ModuleContextInput = {
   readonly contexts: readonly EnrichmentModuleContext[]
   readonly module: ValidatedModule
-}
-
-type SuccessfulGraphExtractionInput = {
-  readonly repository: string
-  readonly enrichment: SuccessfulEnrichment
 }
 
 type OrphanedModuleNamesInput = {
@@ -141,8 +50,6 @@ type EnrichmentModuleContext = {
   readonly module: ValidatedModule
   readonly project: Project
 }
-
-type ModuleContext = ExtractionStage['moduleContexts'][number]
 
 /** @riviere-role domain-service */
 export function enrichComponentsForModules(
@@ -255,40 +162,6 @@ function failuresFields(result: ReturnType<typeof enrichComponents>): string[] {
     fields.push(failureField)
   }
   return fields
-}
-
-function extractDraftsByModule(stage: ExtractionStage): Map<string, DraftComponent[]> {
-  const grouped = new Map<string, DraftComponent[]>(),
-    contexts = stage.moduleContexts
-  for (const context of contexts) {
-    const module = context.module
-    const name = module.name
-    grouped.set(name, extractModuleDrafts(context))
-  }
-  return grouped
-}
-
-function extractModuleDrafts(context: ModuleContext): DraftComponent[] {
-  const { project, module, files: contextFiles } = context
-  const files = [...contextFiles]
-  const drafts = extractComponents(project, files, module)
-  const orphanedDomains = orphanedDraftDomains({ drafts, module })
-  if (orphanedDomains.length > 0) {
-    throw new OrphanedDraftComponentError(orphanedDomains, [module.domain], 'domains')
-  }
-  return drafts
-}
-
-function orphanedDraftDomains(input: OrphanedDraftDomainsInput): string[] {
-  const { drafts, module } = input
-  const orphanedDomains = new Set<string>(),
-    moduleDomain = module.domain
-  for (const draft of drafts) {
-    const { domain: draftDomain } = draft
-    if (draftDomain === moduleDomain) continue
-    orphanedDomains.add(draftDomain)
-  }
-  return [...orphanedDomains]
 }
 
 function contextForModule(input: ModuleContextInput): EnrichmentModuleContext {

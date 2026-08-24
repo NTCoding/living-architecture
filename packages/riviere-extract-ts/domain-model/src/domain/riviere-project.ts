@@ -24,7 +24,7 @@ import {
   stripResolvedCustomTypes,
 } from './connection-detection/resolve-http-links'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
-import { enrichComponentsForModules } from './extract-components-for-graph'
+import { enrichComponentsForModules } from './enrich-components-for-modules'
 import { MissingModuleSourceError } from './extraction-errors'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
 import type { ExtractionStage } from './extraction-stage'
