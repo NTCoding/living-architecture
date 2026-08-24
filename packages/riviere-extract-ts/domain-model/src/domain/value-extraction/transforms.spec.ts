@@ -1,76 +1,70 @@
 import type { Transform } from '@living-architecture/riviere-extract-config-published-language'
 import { describe, expect, it } from 'vitest'
-import {
-  applyTransforms,
-  kebabToPascal,
-  pascalToKebab,
-  stripPrefix,
-  stripSuffix,
-  toLowerCase,
-  toUpperCase,
-} from './transforms'
+import { applyTransforms } from './transforms'
 
 describe('stripSuffix', () => {
   it("returns 'PlaceOrder' when input is 'PlaceOrderController' and suffix is 'Controller'", () => {
-    expect(stripSuffix('PlaceOrderController', 'Controller')).toBe('PlaceOrder')
+    expect(applyTransforms('PlaceOrderController', { stripSuffix: 'Controller' })).toBe(
+      'PlaceOrder',
+    )
   })
 
   it('returns original when suffix not present', () => {
-    expect(stripSuffix('OrderService', 'Controller')).toBe('OrderService')
+    expect(applyTransforms('OrderService', { stripSuffix: 'Controller' })).toBe('OrderService')
   })
 
   it('returns empty string when input equals suffix', () => {
-    expect(stripSuffix('Controller', 'Controller')).toBe('')
+    expect(applyTransforms('Controller', { stripSuffix: 'Controller' })).toBe('')
   })
 })
 
 describe('stripPrefix', () => {
   it("returns 'EventHandler' when input is 'IEventHandler' and prefix is 'I'", () => {
-    expect(stripPrefix('IEventHandler', 'I')).toBe('EventHandler')
+    expect(applyTransforms('IEventHandler', { stripPrefix: 'I' })).toBe('EventHandler')
   })
 
   it('returns original when prefix not present', () => {
-    expect(stripPrefix('EventHandler', 'I')).toBe('EventHandler')
+    expect(applyTransforms('EventHandler', { stripPrefix: 'I' })).toBe('EventHandler')
   })
 })
 
 describe('toLowerCase', () => {
   it("returns 'placeorder' when input is 'PlaceOrder'", () => {
-    expect(toLowerCase('PlaceOrder')).toBe('placeorder')
+    expect(applyTransforms('PlaceOrder', { toLowerCase: true })).toBe('placeorder')
   })
 })
 
 describe('toUpperCase', () => {
   it("returns 'PLACEORDER' when input is 'PlaceOrder'", () => {
-    expect(toUpperCase('PlaceOrder')).toBe('PLACEORDER')
+    expect(applyTransforms('PlaceOrder', { toUpperCase: true })).toBe('PLACEORDER')
   })
 })
 
 describe('kebabToPascal', () => {
   it("returns 'OrderPlaced' when input is 'order-placed'", () => {
-    expect(kebabToPascal('order-placed')).toBe('OrderPlaced')
+    expect(applyTransforms('order-placed', { kebabToPascal: true })).toBe('OrderPlaced')
   })
 
   it("returns 'PlaceOrder' when input is 'place-order'", () => {
-    expect(kebabToPascal('place-order')).toBe('PlaceOrder')
+    expect(applyTransforms('place-order', { kebabToPascal: true })).toBe('PlaceOrder')
   })
 })
 
 describe('pascalToKebab', () => {
   it("returns 'order-placed' when input is 'OrderPlaced'", () => {
-    expect(pascalToKebab('OrderPlaced')).toBe('order-placed')
+    expect(applyTransforms('OrderPlaced', { pascalToKebab: true })).toBe('order-placed')
   })
 
   it("returns 'place-order' when input is 'PlaceOrder'", () => {
-    expect(pascalToKebab('PlaceOrder')).toBe('place-order')
+    expect(applyTransforms('PlaceOrder', { pascalToKebab: true })).toBe('place-order')
   })
 
   it("returns 'order-placed' when input is 'orderPlaced' (camelCase)", () => {
-    expect(pascalToKebab('orderPlaced')).toBe('order-placed')
+    expect(applyTransforms('orderPlaced', { pascalToKebab: true })).toBe('order-placed')
   })
 
   it("returns 'lowercase' when input is 'lowercase'", () => {
-    expect(pascalToKebab('lowercase')).toBe('lowercase')
+    expect(applyTransforms('lowercase', { pascalToKebab: true })).toBe('lowercase')
   })
 })
 

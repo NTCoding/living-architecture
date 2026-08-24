@@ -1,41 +1,35 @@
 import type { Transform } from '@living-architecture/riviere-extract-config-published-language'
 
-/** @riviere-role domain-service */
-export function stripSuffix(value: string, suffix: string): string {
+function stripSuffix(value: string, suffix: string): string {
   if (value.endsWith(suffix)) {
     return value.slice(0, -suffix.length)
   }
   return value
 }
 
-/** @riviere-role domain-service */
-export function stripPrefix(value: string, prefix: string): string {
+function stripPrefix(value: string, prefix: string): string {
   if (value.startsWith(prefix)) {
     return value.slice(prefix.length)
   }
   return value
 }
 
-/** @riviere-role domain-service */
-export function toLowerCase(value: string): string {
+function toLowerCase(value: string): string {
   return value.toLowerCase()
 }
 
-/** @riviere-role domain-service */
-export function toUpperCase(value: string): string {
+function toUpperCase(value: string): string {
   return value.toUpperCase()
 }
 
-/** @riviere-role domain-service */
-export function kebabToPascal(value: string): string {
+function kebabToPascal(value: string): string {
   return value
     .split('-')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join('')
 }
 
-/** @riviere-role domain-service */
-export function pascalToKebab(value: string): string {
+function pascalToKebab(value: string): string {
   const transformed = value.replaceAll(/([A-Z])/g, '-$1').toLowerCase()
   return transformed.startsWith('-') ? transformed.slice(1) : transformed
 }
