@@ -60,6 +60,19 @@ or framed at the wrong level.
 Remain in exploration until the user explicitly asks to recommend, converge,
 or choose a model. Treat candidate models as probes, not proposals.
 
+### Start with familiar domain concepts
+
+Explore existing concepts and standard DDD building blocks before introducing
+new roles or unusual structures. Start with the current aggregate and its
+owned state, then test existing entities and value objects, followed by the
+standard aggregate, entity, value object, and domain service tests. Leave new
+roles and more exotic structures until the end.
+
+Do not skip a familiar model because it appears likely to fail. Validate it
+against the fixed constraints so the discussion has concrete proof of why it
+works or does not work. If it fails, show it explicitly as a ruled-out
+baseline, not as one of the admitted valid options.
+
 For a useful candidate:
 
 - tell the domain story in plain language before showing code or roles;
@@ -86,7 +99,7 @@ implementation details before the structural alternatives are visible.
 
 Start each option with this format:
 
-1. `Option N: <configuration name>`
+1. `Option: <configuration name>`
 2. One brief description.
 3. A prominent statement of the key idea.
 4. Lightweight diagrams before detailed prose.
@@ -105,7 +118,7 @@ Every diagram must:
 - label every arrow with the relationship it represents;
 - use horizontal space when it makes independent relationships easier to
   compare;
-- figures may be stacked vertically when each has a numbered figure heading,
+- figures may be stacked vertically when each has a clear figure heading,
   there is clear separation between them, and the option heading makes clear
   that they belong to the same option;
 - do not dump several figures into one unlabelled vertical sequence that makes
@@ -118,7 +131,7 @@ Every diagram must:
 For example:
 
 ```text
-***** Option 1: aggregate with owned value objects *****
+***** Option: aggregate with owned value objects *****
 
 One aggregate owns workflow state, event application, and its immutable registry.
 
@@ -132,7 +145,7 @@ RISKS FOR ABUSE: The aggregate could become a large file or construct its own
 collaborators. Keep each value object in the file for its domain concept and
 inject the registry through the aggregate constructor.
 
-FIG 1 - Aggregate ownership                          FIG 2 - Application construction
+FIGURE: Aggregate ownership                          FIGURE: Application construction
 
 ┌─────────────────────────┐                           ┌─────────────────────────┐
 │ MaintainerWorkflow      │                           │ ConfigureWorkflow       │
@@ -159,8 +172,11 @@ can compare the structural configurations.
 
 ### Admit options before presenting them
 
-Generate more raw candidates than the user requested, then reject invalid
-candidates privately. Never pad the visible options with renamed versions of
+Explore the candidate space until further candidates only repeat an existing
+structure, break an agreed constraint, or add no meaningful trade-off. Reject
+invalid candidates privately. Let the number of visible options follow from
+the strong, distinct candidates that remain; never target an arbitrary or
+user-mentioned count. Never pad the visible options with renamed versions of
 the same structure or with designs that break an agreed constraint.
 
 Validate every candidate concept name against the represented data and
@@ -181,12 +197,22 @@ Apply the basic domain model tests first:
    entity.
 3. If a concept is immutable and defined by its attributes, test it as a value
    object.
-4. Consider a domain service only after aggregate and value object ownership
-   have been ruled out.
+4. Consider a domain service only after aggregate, entity, and value object
+   ownership have been ruled out.
+
+An identifier passed separately from the objects linked to that identifier is
+a basic entity signal. Before preserving a map, tuple, or parallel parameters
+with that shape, test whether they are a flattened entity that should own the
+identity and the relationship.
 
 Before presenting an option, verify all of these points:
 
 - every fixed user constraint is satisfied;
+- consumers do not copy variant names, identifiers, or lookup tables owned by
+  a published language into string-typed switches, maps, or default branches;
+  resolve extensible strings through the published language API, and make
+  closed variant handling exhaustive against the imported published language
+  union with a `never` check or an exhaustive `satisfies Record<Union, ...>`;
 - every proposed concept name accurately describes the data or behaviour it
   owns rather than copying a possibly misleading code identifier;
 - every declaration has a concrete role that fits its responsibility;

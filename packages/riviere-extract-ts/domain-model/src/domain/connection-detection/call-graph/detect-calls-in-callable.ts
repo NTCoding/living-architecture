@@ -7,7 +7,10 @@ import { DetectedCall } from './detected-call'
 
 const UNRESOLVABLE_TYPES = new Set(['any', 'unknown', 'object'])
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function detectCallsInCallable(
   project: Project,
   callable: CallableReference,

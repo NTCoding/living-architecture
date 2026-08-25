@@ -6,7 +6,10 @@ interface LocationSet<R extends string> {
 
 type PackageConfigurationAssignments<T> = readonly (readonly [string, T])[]
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function assignPackageConfigurations<R extends string, T extends LocationSet<R>>(
   configurations: Readonly<Record<string, T>>,
 ): PackageConfigurationAssignments<T> {

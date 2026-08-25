@@ -21,7 +21,10 @@ type OperationWarning =
       targetName: string
     }>
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export class GraphInspection {
   private readonly graph: BuilderGraph
   private readonly operationWarnings: readonly OperationWarning[]

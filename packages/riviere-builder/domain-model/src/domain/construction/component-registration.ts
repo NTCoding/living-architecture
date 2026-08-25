@@ -14,7 +14,10 @@ type AddScalarOverwriteWarning = (
   }>,
 ) => void
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function registerComponent<T extends Component>(
   graph: BuilderGraph,
   component: T,
@@ -34,7 +37,10 @@ export function registerComponent<T extends Component>(
   }
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function upsertComponent<T extends Component>(
   graph: BuilderGraph,
   incoming: T,

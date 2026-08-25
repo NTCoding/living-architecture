@@ -7,7 +7,10 @@ const entryPointTypes: ReadonlySet<ComponentType> = new Set<ComponentType>([
   'Custom',
 ])
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function isEntryPointType(componentType: ComponentType): boolean {
   return entryPointTypes.has(componentType)
 }

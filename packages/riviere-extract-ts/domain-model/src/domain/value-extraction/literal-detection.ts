@@ -29,7 +29,10 @@ export class TestFixtureError extends Error {
 type LiteralKind = 'string' | 'number' | 'boolean' | 'string[]'
 type LiteralValue = string | number | boolean | string[]
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function isLiteralValue(expression: Expression | undefined): boolean {
   if (expression === undefined) {
     return false
@@ -141,7 +144,10 @@ function throwNonLiteralValue(expression: Expression, file: string, line: number
   )
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function extractLiteralValue(
   expression: Expression | undefined,
   file: string,

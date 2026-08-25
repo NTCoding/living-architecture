@@ -1,4 +1,7 @@
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function compareByCodePoint(a: string, b: string): number {
   const leftCodePoints = Array.from(a, toCodePoint)
   const rightCodePoints = Array.from(b, toCodePoint)

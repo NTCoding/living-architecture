@@ -7,7 +7,10 @@ interface DepthQueueEntry {
   depth: number
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function queryNodeDepths(graph: RiviereGraph): ComponentDepths {
   const depths = new Map<string, number>()
 

@@ -16,7 +16,10 @@ function extractParameterInfo(param: ParameterDeclaration): ParameterInfo {
   })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function evaluateFromMethodSignatureRule(
   _rule: FromMethodSignatureExtractionRule,
   methodDecl: MethodDeclaration,
@@ -32,7 +35,10 @@ export function evaluateFromMethodSignatureRule(
   })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function evaluateFromConstructorParamsRule(
   _rule: FromConstructorParamsExtractionRule,
   classDecl: ClassDeclaration,
@@ -46,7 +52,10 @@ export function evaluateFromConstructorParamsRule(
   return MethodExtractionResult.parse({ value: parameters })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function evaluateFromParameterTypeRule(
   rule: FromParameterTypeExtractionRule,
   methodDecl: MethodDeclaration,

@@ -27,6 +27,7 @@ const COMPONENT_TYPES: ComponentType[] = [
  * Extracts draft components from source files using a validated module configuration.
  *
  * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
  * @param project - TypeScript project containing the source files
  * @param sourceFilePaths - Source files to inspect
  * @param module - Validated extraction rules and module metadata
@@ -80,6 +81,7 @@ function resolveComponentContext(filePath: string, module: ValidatedModule): Com
 
 /**
  * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
  * @param filePath - source file path
  * @param module - validated module configuration
  * @returns resolved module name

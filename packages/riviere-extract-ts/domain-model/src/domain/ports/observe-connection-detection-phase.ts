@@ -5,5 +5,8 @@ type ConnectionDetectionPhaseEvent = Readonly<{
   status: 'started' | 'completed'
 }>
 
-/** @riviere-role domain-port */
+/**
+ * @riviere-role domain-port
+ * @riviere-role-justification This port reports the progress of current connection detection and returns no data, so it cannot restore RiviereProject state.
+ */
 export type ObserveConnectionDetectionPhase = (event: ConnectionDetectionPhaseEvent) => void

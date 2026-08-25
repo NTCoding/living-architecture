@@ -12,7 +12,10 @@ import {
   assertRequiredPropertiesProvided,
 } from './builder-assertions'
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function generateComponentId(
   domain: string,
   module: string,
@@ -23,14 +26,20 @@ export function generateComponentId(
   return `${domain}:${module}:${type}:${nameSegment}`
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function createComponentNotFoundError(components: readonly Component[], id: string): Error {
   const parsed = ComponentId.parse(id)
   if (!parsed.success) return new ComponentNotFoundError(id, [])
   return createSourceNotFoundError(components, parsed.componentId)
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function validateDomainExists(
   domains: Readonly<Record<string, DomainMetadata>>,
   domain: string,
@@ -38,7 +47,10 @@ export function validateDomainExists(
   assertDomainExists(domains, domain)
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function validateCustomType(
   customTypes: Readonly<Record<string, CustomTypeDefinition>>,
   customTypeName: string,
@@ -46,7 +58,10 @@ export function validateCustomType(
   assertCustomTypeExists(customTypes, customTypeName)
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function validateRequiredProperties(
   customTypes: Readonly<Record<string, CustomTypeDefinition>>,
   customTypeName: string,

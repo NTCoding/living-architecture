@@ -29,12 +29,18 @@ function literal(value: string | number | boolean): ExtractionResult {
   return ExtractionResult.parse({ value })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function evaluateLiteralRule(rule: LiteralExtractionRule): ExtractionResult {
   return literal(rule.literal)
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function evaluateFromClassNameRule(
   rule: FromClassNameExtractionRule,
   classDecl: ClassDeclaration,
@@ -58,7 +64,10 @@ export function evaluateFromClassNameRule(
   return ExtractionResult.parse({ value: applyTransforms(className, transform) })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function evaluateFromMethodNameRule(
   rule: FromMethodNameExtractionRule,
   methodDecl: MethodDeclaration,
@@ -77,7 +86,10 @@ export function evaluateFromMethodNameRule(
   return ExtractionResult.parse({ value: applyTransforms(methodName, transform) })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function evaluateFromFilePathRule(
   rule: FromFilePathExtractionRule,
   filePath: string,
@@ -147,7 +159,10 @@ function findPropertyInHierarchy(
   return findPropertyInHierarchy(baseClass, propertyName, isStatic)
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function evaluateFromPropertyRule(
   rule: FromPropertyExtractionRule,
   classDecl: ClassDeclaration,
@@ -295,7 +310,10 @@ function extractNamedArg(decorator: Decorator, name: string): string {
   return initializer.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function evaluateFromDecoratorArgRule(
   rule: FromDecoratorArgExtractionRule,
   decorator: Decorator,
@@ -338,7 +356,10 @@ export function evaluateFromDecoratorArgRule(
   return ExtractionResult.parse({ value: applyTransforms(value, transform) })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function evaluateFromClassDecoratorArgRule(
   rule: FromClassDecoratorArgExtractionRule,
   methodDecl: MethodDeclaration,
@@ -381,7 +402,10 @@ export function evaluateFromClassDecoratorArgRule(
   return evaluateFromDecoratorArgRule({ fromDecoratorArg: fromDecoratorArgRule }, classDecorator)
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function evaluateFromDecoratorNameRule(
   rule: FromDecoratorNameExtractionRule,
   decorator: Decorator,

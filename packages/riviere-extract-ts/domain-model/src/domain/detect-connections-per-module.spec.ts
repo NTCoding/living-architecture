@@ -85,7 +85,7 @@ function createRiviereProject(
       },
     ],
   })
-  const projectResult = RiviereProject.parse({ stage })
+  const projectResult = RiviereProject.parse({ stage, draftComponents: [] })
   assert(projectResult.success)
   return projectResult.data
 }

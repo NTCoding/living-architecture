@@ -10,7 +10,10 @@ type EnrichmentInput = Readonly<
   Pick<DomainOpComponent, 'entity' | 'stateChanges' | 'businessRules' | 'behavior' | 'signature'>
 >
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export class GraphEnrichment {
   private graph: BuilderGraph
   private readonly updateGraph: (graph: BuilderGraph) => void

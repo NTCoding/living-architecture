@@ -60,7 +60,6 @@ import { createGitChangedSourceFileFinder } from '@living-architecture/riviere-e
 import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-specified-source-file-finder'
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
 import { parseSourceFileSelection } from '../features/extract/entrypoint/extract/parse-source-file-selection'
-import { createDraftComponentsLoader } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-draft-components-loader'
 import { detectChangedTypeScriptFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/git-changed-files'
 import { findSpecifiedSourceFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/find-specified-source-files'
 import { DetectOrphans } from '@living-architecture/riviere-builder-use-cases/features/query/queries/detect-orphans'
@@ -328,10 +327,8 @@ export function createProgram(): Command {
         createSpecifiedSourceFileFinder(process.cwd(), findSpecifiedSourceFiles),
         () => performance.now(),
       ),
-      enrichDraftComponents: new EnrichDraftComponents(
-        riviereProjectRepository,
-        createDraftComponentsLoader(),
-        () => performance.now(),
+      enrichDraftComponents: new EnrichDraftComponents(riviereProjectRepository, () =>
+        performance.now(),
       ),
       parseFlagCombinations,
       createExtractDraftComponentsInput,

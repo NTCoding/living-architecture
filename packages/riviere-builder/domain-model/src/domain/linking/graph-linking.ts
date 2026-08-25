@@ -39,7 +39,10 @@ type AddDuplicateLinkWarning = (
   }>,
 ) => void
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export class GraphLinking {
   private graph: BuilderGraph
   private readonly addWarning: AddDuplicateLinkWarning

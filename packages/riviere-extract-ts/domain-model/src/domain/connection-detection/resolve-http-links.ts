@@ -9,7 +9,10 @@ import { ConnectionDetectionError } from './connection-detection-error'
 import { ExtractedLink } from './extracted-link'
 import { HttpLinkResolutionResult } from './http-link-resolution-result'
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function resolveHttpLinks(
   links: readonly ExtractedLink[],
   components: readonly EnrichedComponent[],
@@ -77,7 +80,10 @@ export function resolveHttpLinks(
   })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function stripResolvedCustomTypes(
   components: readonly EnrichedComponent[],
   httpLinkConfigs: readonly HttpLinkConfig[],

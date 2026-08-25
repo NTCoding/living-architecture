@@ -402,7 +402,10 @@ function enrichSingleComponent(
   }
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function enrichComponents(
   draftComponents: readonly DraftComponent[],
   module: ValidatedModule,

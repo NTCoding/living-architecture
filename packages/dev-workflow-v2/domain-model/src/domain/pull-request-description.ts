@@ -59,7 +59,10 @@ type PullRequestOptionValueResults = {
   readonly notes: OptionValueResult
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function parsePullRequestDescriptionOptions(rawArgs: unknown): PullRequestOptionParseResult {
   const parsedTokens = CREATE_PR_COMMAND_TOKENS_SCHEMA.safeParse(rawArgs)
   if (!parsedTokens.success) {
@@ -128,7 +131,10 @@ function readSuccessfulOptionValue(optionValueResult: OptionValueResult): string
   return OPTION_SUCCESS_SCHEMA.parse(optionValueResult).value
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function buildPullRequestCreationRequest(
   input: PullRequestDescriptionInput,
   githubIssue: number,

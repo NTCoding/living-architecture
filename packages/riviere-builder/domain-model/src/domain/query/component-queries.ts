@@ -4,7 +4,10 @@ import type {
   RiviereGraph,
 } from '@living-architecture/riviere-schema-published-language/schema'
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function findComponent(
   graph: RiviereGraph,
   predicate: (component: Component) => boolean,
@@ -12,7 +15,10 @@ export function findComponent(
   return graph.components.find(predicate)
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function findAllComponents(
   graph: RiviereGraph,
   predicate: (component: Component) => boolean,
@@ -20,12 +26,10 @@ export function findAllComponents(
   return graph.components.filter(predicate)
 }
 
-/** @riviere-role domain-service */
-export function componentById(graph: RiviereGraph, id: string): Component | undefined {
-  return findComponent(graph, (c) => c.id === id)
-}
-
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function searchComponents(graph: RiviereGraph, query: string): Component[] {
   if (query === '') {
     return []
@@ -40,12 +44,18 @@ export function searchComponents(graph: RiviereGraph, query: string): Component[
   )
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function componentsInDomain(graph: RiviereGraph, domainName: string): Component[] {
   return findAllComponents(graph, (c) => c.domain === domainName)
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function componentsByType(graph: RiviereGraph, type: ComponentType): Component[] {
   return findAllComponents(graph, (c) => c.type === type)
 }

@@ -8,7 +8,10 @@ import {
   MissingRequiredPropertiesError,
 } from './construction-errors'
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function assertDomainExists(
   domains: Readonly<Record<string, DomainMetadata>>,
   domain: string,
@@ -18,7 +21,10 @@ export function assertDomainExists(
   }
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function assertCustomTypeExists(
   customTypes: Readonly<Record<string, CustomTypeDefinition>>,
   customTypeName: string,
@@ -29,7 +35,10 @@ export function assertCustomTypeExists(
   }
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function assertRequiredPropertiesProvided(
   customTypes: Readonly<Record<string, CustomTypeDefinition>>,
   customTypeName: string,

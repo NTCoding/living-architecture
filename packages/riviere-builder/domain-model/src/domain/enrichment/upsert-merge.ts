@@ -29,7 +29,10 @@ const CUSTOM_BASE_FIELDS = new Set([
   'sourceLocation',
 ])
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function mergeComponentForUpsert<T extends Component>(
   existing: T,
   incoming: T,

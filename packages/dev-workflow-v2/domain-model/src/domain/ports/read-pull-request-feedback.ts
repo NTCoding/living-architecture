@@ -1,4 +1,7 @@
-/** @riviere-role domain-port */
+/**
+ * @riviere-role domain-port
+ * @riviere-role-justification MaintainerWorkflow reads current pull request feedback through this capability when evaluating workflow behaviour. The feedback is not previously created MaintainerWorkflow state.
+ */
 export type ReadWorkflowPullRequestFeedback = (prNumber: number) => {
   readonly reviewDecision: string | null
   readonly coderabbitReviewSeen: boolean

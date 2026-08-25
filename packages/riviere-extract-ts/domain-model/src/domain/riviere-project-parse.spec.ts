@@ -33,7 +33,7 @@ function createProject(): RiviereProject {
     resolvedConfig: configurationResult.data,
     moduleContexts: [{ module, project: new Project(), files: ['test.ts'] }],
   })
-  const result = RiviereProject.parse({ stage })
+  const result = RiviereProject.parse({ stage, draftComponents: [] })
   assert(result.success)
   return result.data
 }
@@ -55,8 +55,6 @@ describe('RiviereProject source invariants', () => {
     expectMissingSource((project) =>
       project.enrichDraftComponents({
         allowIncomplete: true,
-        draftComponentsPath: 'draft-components.json',
-        loadDraftComponents: () => ({ success: true, draftComponents: [] }),
         includeConnections: true,
       }),
     )
@@ -114,7 +112,7 @@ describe('RiviereProject.parse', () => {
       moduleContexts: [{ module: billing, project: new Project(), files: [] }],
     })
 
-    expect(RiviereProject.parse({ stage })).toStrictEqual({
+    expect(RiviereProject.parse({ stage, draftComponents: [] })).toStrictEqual({
       success: false,
       error: "Missing source for module 'orders'\nSource supplied for unknown module 'billing'",
     })

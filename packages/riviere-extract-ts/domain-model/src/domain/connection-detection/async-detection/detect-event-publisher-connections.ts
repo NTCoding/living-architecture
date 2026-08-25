@@ -7,7 +7,10 @@ import { ExtractedLink } from '../extracted-link'
 import type { AsyncDetectionOptions } from './async-detection-options'
 import { toSourceLocation } from './async-detection-types'
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function detectEventPublisherConnections(
   components: readonly EnrichedComponent[],
   eventPublishers: readonly EventPublisherConfig[],

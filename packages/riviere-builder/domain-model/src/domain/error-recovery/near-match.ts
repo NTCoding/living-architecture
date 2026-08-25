@@ -1,7 +1,10 @@
 import type { BuilderGraph } from '../builder-graph'
 import { findNearMatches } from './component-suggestion'
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export class NearMatch {
   private readonly graph: BuilderGraph
 

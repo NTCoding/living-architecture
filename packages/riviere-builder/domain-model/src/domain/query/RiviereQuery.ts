@@ -10,13 +10,12 @@ import { parseRiviereGraph } from '@living-architecture/riviere-schema-published
 import type { GraphDiff } from './graph-diff'
 
 import type { ComponentDepths } from './component-depths'
-import type { ComponentId } from './component-id'
+import { ComponentId } from './component-id'
 import {
   componentsInDomain as filterByDomain,
   componentsByType as filterByType,
   findAllComponents,
   findComponent,
-  componentById as lookupComponentById,
   searchComponents,
 } from './component-queries'
 import type { CrossDomainLink } from './cross-domain-link'
@@ -39,7 +38,7 @@ import { queryEventHandlers, queryPublishedEvents } from './event-queries'
 import type { ExternalDomain } from './external-domain'
 import { queryExternalDomains } from './external-system-queries'
 import type { Flow } from './flow'
-import { findEntryPoints, queryFlows, searchWithFlowContext, traceFlowFrom } from './flow-queries'
+import { findEntryPoints, queryFlows, traceFlowFrom } from './flow-queries'
 import { diffGraphs } from './graph-diff'
 import type { GraphStats } from './graph-stats'
 import { detectOrphanComponents } from './graph-validation'
@@ -47,10 +46,10 @@ import { ValidationResult } from '@living-architecture/riviere-schema-published-
 import type { LinkId } from './link-id'
 import type { PublishedEvent } from './published-event'
 import type { SearchWithFlowOptions } from './search-with-flow-options'
-import type { SearchWithFlowResult } from './search-with-flow-result'
+import { SearchWithFlowResult } from './search-with-flow-result'
 import type { State } from './state'
 import { queryStats } from './stats-queries'
-import { InvalidRiviereGraphError } from './errors'
+import { ComponentNotFoundError, InvalidRiviereGraphError } from './errors'
 export { ComponentNotFoundError } from './errors'
 
 function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
@@ -232,7 +231,7 @@ export class RiviereQuery {
    * ```
    */
   componentById(id: ComponentId): Component | undefined {
-    return lookupComponentById(this.graphSnapshot, id.value)
+    return findComponent(this.graphSnapshot, (component) => component.id === id.value)
   }
 
   /**
@@ -420,7 +419,14 @@ export class RiviereQuery {
     componentIds: ComponentId[]
     linkIds: LinkId[]
   } {
-    return traceFlowFrom(this.graphSnapshot, startComponentId)
+    const component = findComponent(
+      this.graphSnapshot,
+      (candidate) => candidate.id === startComponentId.value,
+    )
+    if (component === undefined) {
+      throw new ComponentNotFoundError(startComponentId.value)
+    }
+    return traceFlowFrom(this.graphSnapshot, component)
   }
 
   /**
@@ -500,7 +506,8 @@ export class RiviereQuery {
    * ```
    */
   flows(): Flow[] {
-    return queryFlows(this.graphSnapshot)
+    const entryPoints = findEntryPoints(this.graphSnapshot)
+    return queryFlows(this.graphSnapshot, entryPoints)
   }
 
   /**
@@ -520,7 +527,47 @@ export class RiviereQuery {
    * ```
    */
   searchWithFlow(query: string, options: SearchWithFlowOptions): SearchWithFlowResult {
-    return searchWithFlowContext(this.graphSnapshot, query, options)
+    const trimmedQuery = query.trim().toLowerCase()
+    const isEmptyQuery = trimmedQuery === ''
+
+    if (isEmptyQuery) {
+      if (options.returnAllOnEmptyQuery) {
+        const allIds = this.graphSnapshot.components.map((component) =>
+          ComponentId.parse(component.id),
+        )
+        return SearchWithFlowResult.parse({
+          matchingIds: allIds,
+          visibleIds: allIds,
+        })
+      }
+      return SearchWithFlowResult.parse({
+        matchingIds: [],
+        visibleIds: [],
+      })
+    }
+
+    const matchingComponents = searchComponents(this.graphSnapshot, query)
+    if (matchingComponents.length === 0) {
+      return SearchWithFlowResult.parse({
+        matchingIds: [],
+        visibleIds: [],
+      })
+    }
+
+    const matchingIds = matchingComponents.map((component) => ComponentId.parse(component.id))
+    const visibleIds = new Set<ComponentId>()
+
+    for (const component of matchingComponents) {
+      const flow = traceFlowFrom(this.graphSnapshot, component)
+      for (const id of flow.componentIds) {
+        visibleIds.add(id)
+      }
+    }
+
+    return SearchWithFlowResult.parse({
+      matchingIds,
+      visibleIds: Array.from(visibleIds),
+    })
   }
 
   /**

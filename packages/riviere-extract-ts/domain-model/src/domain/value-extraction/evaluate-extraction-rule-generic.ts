@@ -38,7 +38,10 @@ function extractTypeNames(typeNode: import('ts-morph').TypeNode): string[] {
   return [typeNode.getText()]
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function evaluateFromGenericArgRule(
   rule: FromGenericArgExtractionRule,
   classDecl: ClassDeclaration,

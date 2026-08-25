@@ -51,7 +51,10 @@ type EnrichmentModuleContext = {
   readonly project: Project
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function enrichComponentsForModules(
   modules: readonly ValidatedModule[],
   moduleContexts: readonly EnrichmentModuleContext[],

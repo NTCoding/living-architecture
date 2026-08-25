@@ -4,9 +4,9 @@ import { ConnectionDetectionError } from '@living-architecture/riviere-extract-t
 import type { EnrichDraftComponentsInput } from './enrich-draft-components-input'
 import type { EnrichDraftComponentsResult } from './enrich-draft-components-result'
 import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
-import type { LoadDraftComponents } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-draft-components'
 import { ConnectionTimings } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-values'
 import type { ObserveConnectionDetectionPhase } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/observe-connection-detection-phase'
+import { DraftComponentsLoadError } from '../data-access/riviere-project/draft-components-load-error'
 
 type ConnectionDetectionPhase = Parameters<ObserveConnectionDetectionPhase>[0]['phase']
 
@@ -14,22 +14,20 @@ type ConnectionDetectionPhase = Parameters<ObserveConnectionDetectionPhase>[0]['
 export class EnrichDraftComponents {
   constructor(
     private readonly riviereProjectRepository: RiviereProjectRepository,
-    private readonly loadDraftComponents: LoadDraftComponents,
     private readonly now: () => number,
   ) {}
 
   execute(enrichDraftComponentsInput: EnrichDraftComponentsInput): EnrichDraftComponentsResult {
     try {
-      const riviereProject = this.riviereProjectRepository.load({
+      const riviereProject = this.riviereProjectRepository.loadForEnrichment({
         projectRoot: enrichDraftComponentsInput.projectRoot ?? process.cwd(),
         configPath: enrichDraftComponentsInput.configPath,
+        draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,
         useTsConfig: enrichDraftComponentsInput.useTsConfig,
       })
 
       const timing = measureConnectionDetection(this.now)
       const result = riviereProject.enrichDraftComponents({
-        draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,
-        loadDraftComponents: this.loadDraftComponents,
         allowIncomplete: enrichDraftComponentsInput.allowIncomplete,
         includeConnections: enrichDraftComponentsInput.includeConnections,
         observeConnectionDetectionPhase: timing.observe,
@@ -60,6 +58,9 @@ export class EnrichDraftComponents {
       }
       if (error instanceof ExtractionDataAccessError) {
         return { result: { code: error.code, kind: 'dataAccessFailure', message: error.message } }
+      }
+      if (error instanceof DraftComponentsLoadError) {
+        return { result: { kind: 'draftComponentsFailure', message: error.message } }
       }
       throw error
     }

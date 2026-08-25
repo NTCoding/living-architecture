@@ -45,7 +45,10 @@ function createExampleWorkspace(): string {
         private hide(): void {}
       }
 
-      /** @riviere-role domain-service */
+      /**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
       export class OrderPolicy {
         approve(): void {}
       }

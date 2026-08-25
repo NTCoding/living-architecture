@@ -9,7 +9,10 @@ const PROTECTED_FILES: readonly (string | RegExp)[] = [
   /^vite\.config\./,
 ]
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function checkWriteAllowed(filePath: string): boolean {
   const basename = path.basename(filePath)
   for (const pattern of PROTECTED_FILES) {
@@ -20,7 +23,10 @@ export function checkWriteAllowed(filePath: string): boolean {
   return true
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function isWriteAllowed(filePath: string, state: WorkflowState): boolean {
   void state
   return checkWriteAllowed(filePath)

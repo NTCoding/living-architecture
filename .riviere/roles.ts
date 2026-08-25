@@ -124,7 +124,11 @@ export const allRoles = [
     targets: ['type-alias'],
     mustBeDataStructure: true,
   }),
-  role('domain-port', { targets: ['interface', 'type-alias'] }),
+  role('domain-port', {
+    targets: ['interface', 'type-alias'],
+    requiresJustification:
+      'If the aggregate using this port loads any data through it, explain why that data is not previously created aggregate state that its repository should load as part of the aggregate.',
+  }),
   role('domain-service', {
     targets: ['function', 'class'],
     forbiddenDependencies: ['domain-service'],

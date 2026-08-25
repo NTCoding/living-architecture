@@ -152,12 +152,18 @@ const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
 /** @riviere-role domain-event */
 export type WorkflowEvent = z.infer<typeof WORKFLOW_EVENT_SCHEMA>
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function parseWorkflowEvent(event: BaseEvent): WorkflowEvent {
   return WORKFLOW_EVENT_SCHEMA.parse(event)
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function getKnownWorkflowEventTypes(): readonly string[] {
   return [...KNOWN_WORKFLOW_EVENT_TYPES]
 }

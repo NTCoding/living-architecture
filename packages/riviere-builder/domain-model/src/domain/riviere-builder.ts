@@ -38,7 +38,10 @@ type DuplicateLinkWarning = Readonly<{
 
 type OperationWarning = ScalarOverwriteWarning | DuplicateLinkWarning
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export class RiviereBuilder {
   readonly graphPath: string
 

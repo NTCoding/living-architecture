@@ -36,7 +36,10 @@ function pascalToKebab(value: string): string {
 
 type TransformFn = (value: string) => string
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function applyTransforms(value: string, transform: Transform): string {
   const transformers: TransformFn[] = []
 

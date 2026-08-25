@@ -122,7 +122,10 @@ export class BuiltRole<N extends string = string> {
   }
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function role<const N extends string>(name: N, options: RoleOptions): BuiltRole<N> {
   return BuiltRole.parse({
     name,
@@ -295,7 +298,10 @@ export class RoleEnforcementConfiguration {
   }
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function roleEnforcementConfiguration<const R extends string>(
   input: RoleEnforcementConfigurationInput<R>,
 ): RoleEnforcementConfiguration {

@@ -122,7 +122,10 @@ type CustomInput = Readonly<
   > & { metadata?: Readonly<Record<string, unknown>> }
 >
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export class GraphConstruction {
   constructor(
     private graph: BuilderGraph,

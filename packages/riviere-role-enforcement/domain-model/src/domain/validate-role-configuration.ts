@@ -9,7 +9,10 @@ interface ConfiguredLocation {
 
 const importScopes = ['sibling', 'root', 'ownSubdomain', 'anySubdomain'] as const
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function validateRoleConfiguration(
   roles: readonly BuiltRole[],
   locations: readonly ConfiguredLocation[],

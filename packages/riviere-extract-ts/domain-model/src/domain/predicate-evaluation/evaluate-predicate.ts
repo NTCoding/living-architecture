@@ -38,6 +38,7 @@ function isNameableNode(node: Node): node is NameableNode {
  * Evaluates an extraction predicate against a TypeScript syntax node.
  *
  * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
  * @param node - Syntax node to inspect
  * @param predicate - Predicate to evaluate
  * @returns Whether the node satisfies the predicate

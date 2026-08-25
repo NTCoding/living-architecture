@@ -3,7 +3,10 @@ import type { EnrichedComponent } from '../../value-extraction/enriched-componen
 import { CallableReference } from './callable-reference'
 import { ComponentCallable } from './scoped-call-graph'
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function locateComponentCallables(
   project: Project,
   components: readonly EnrichedComponent[],

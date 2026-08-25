@@ -110,7 +110,7 @@ export function buildCallGraph(
     resolvedConfig: configuration.data,
     moduleContexts: [{ module, project, files: options.sourceFilePaths }],
   })
-  const parsedProject = RiviereProject.parse({ stage })
+  const parsedProject = RiviereProject.parse({ stage, draftComponents: [] })
   assert(parsedProject.success, parsedProject.error)
   const sourceIds = new Set(
     components.map((component) => ComponentId.parseFromParts(component).toString()),

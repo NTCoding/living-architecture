@@ -208,6 +208,50 @@ return ConnectionDetectionResult.parse({
 This is aggregate behaviour describing one domain operation. It is not evidence
 that the intermediate results must be exposed to consumers.
 
+### Recognise flattened entity relationships
+
+During the enrichment discussion, a proposed aggregate operation accepted this
+input:
+
+```ts
+draftsByModule: ReadonlyMap<string, readonly DraftComponent[]>
+```
+
+The problem was not that this private input exposed a procedural intermediate
+or weakened the aggregate boundary. That analysis was unsupported. The map
+passed a module identity separately from the draft components linked to that
+identity. This is a basic entity signal.
+
+The missing concept was `RiviereModule` as an aggregate entity. It owns its
+module identity, source context, and associated draft components. Passing the
+identity and its children separately discards that ownership and makes callers
+reconstruct it. Starting from a component entity therefore put the ownership
+boundary in the wrong place.
+
+### Do not duplicate published language knowledge in consumers
+
+A proposed `RiviereModule` implementation accepted a component type as
+`string`, then repeated every built-in component type in a local switch. The
+default branch meant a new published component type could be accepted by the
+compiler and silently treated as an unknown custom type.
+
+This is invalid even when the copied names match the current published
+language. The consumer has created a second, weaker definition of the language.
+
+Resolution of extensible strings belongs on the published language API. Closed
+variant handling in a consumer must be exhaustive against the imported
+published language union. Use a `never` check or an exhaustive
+`satisfies Record<PublishedUnion, ...>` so a language change breaks compilation
+until every consumer is updated. Never use a string-typed default branch to
+absorb future published language variants.
+
+Make the published language more type safe for consumers. When its external
+syntax uses structural alternatives, its parser should produce a discriminated
+validated type. Consumers can then match the imported discriminant exhaustively
+without copying raw property names from the external language. Exhaustive
+matching must use a domain-specific error for invalid runtime values; a generic
+`Error` is forbidden.
+
 ## Why this matters
 
 Without this test, procedural decomposition can be mistaken for domain

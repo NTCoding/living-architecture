@@ -61,7 +61,7 @@ describe('RiviereProject unresolved call reason', () => {
       resolvedConfig: configuration.data,
       moduleContexts: [{ module, files: [sourceFile.getFilePath()], project }],
     })
-    const parsedProject = RiviereProject.parse({ stage })
+    const parsedProject = RiviereProject.parse({ stage, draftComponents: [] })
     assert(parsedProject.success)
     mocks.resolveCallTargets.mockImplementation((input: { calls: DetectedCall[] }) =>
       input.calls.map((call) => ResolvedCallTarget.parse({ kind: 'unresolved', call })),

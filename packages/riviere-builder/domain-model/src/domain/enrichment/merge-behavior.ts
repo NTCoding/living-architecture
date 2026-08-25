@@ -9,7 +9,10 @@ function mergeStringArray(existing: string[] | undefined, incoming: string[]): s
   return [...base, ...deduplicateStrings(base, incoming)]
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function mergeBehavior(
   existing: DomainOpComponent['behavior'],
   incoming: OperationBehavior,

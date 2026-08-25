@@ -10,7 +10,10 @@ interface LocatedLink {
   readonly location: ReturnType<typeof sourceLocation>
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function detectConnectionsFromCalls(
   graph: ScopedCallGraph,
   repository: string,

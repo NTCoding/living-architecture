@@ -28,7 +28,6 @@ import { enrichComponentsForModules } from './enrich-components-for-modules'
 import { MissingModuleSourceError } from './extraction-errors'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
 import type { ExtractionStage } from './extraction-stage'
-import type { LoadDraftComponents } from './ports/load-draft-components'
 import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
 
 type ModuleSource = Readonly<{ files: readonly string[]; project: Project }>
@@ -40,9 +39,10 @@ export class RiviereProject {
   private constructor(
     private readonly stage: ExtractionStage,
     private readonly moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
+    private draftComponents: readonly DraftComponent[],
   ) {}
 
-  static parse(input: { stage: ExtractionStage }) {
+  static parse(input: { stage: ExtractionStage; draftComponents: readonly DraftComponent[] }) {
     const configuredModules = new Set(input.stage.resolvedConfig.modules)
     const moduleSources = new Map(
       input.stage.moduleContexts.map((context) => [context.module, context] as const),
@@ -65,7 +65,7 @@ export class RiviereProject {
 
     return {
       success: true as const,
-      data: new RiviereProject(input.stage, moduleSources),
+      data: new RiviereProject(input.stage, moduleSources, input.draftComponents),
     }
   }
 
@@ -78,11 +78,12 @@ export class RiviereProject {
     const selectedModuleSources = this.selectedModuleSources(
       options.sourceFileSelection ?? { kind: 'all' },
     )
-    const draftComponents = this.stage.resolvedConfig.modules.flatMap((module) => {
+    this.draftComponents = this.stage.resolvedConfig.modules.flatMap((module) => {
       const source = this.sourceFor(module)
       const selectedFiles = sourceForModule(selectedModuleSources, module).files
       return extractComponents(source.project, [...selectedFiles], module)
     })
+    const draftComponents = this.draftComponents
 
     if (!options.includeConnections) {
       return {
@@ -127,32 +128,11 @@ export class RiviereProject {
   }
 
   enrichDraftComponents(options: {
-    draftComponentsPath: string
-    loadDraftComponents: LoadDraftComponents
     allowIncomplete: boolean
     includeConnections: boolean
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
   }) {
-    const loadedDraftComponents = options.loadDraftComponents(options.draftComponentsPath)
-    if (!loadedDraftComponents.success)
-      return { kind: 'draftComponentsFailure' as const, message: loadedDraftComponents.error }
-    if (!Array.isArray(loadedDraftComponents.draftComponents)) {
-      return {
-        kind: 'draftComponentsFailure' as const,
-        message: `Draft components file must contain an array: ${options.draftComponentsPath}`,
-      }
-    }
-    const draftComponents = []
-    for (const draftComponent of loadedDraftComponents.draftComponents) {
-      const parsedDraftComponent = DraftComponent.parse(draftComponent)
-      if (!parsedDraftComponent.success) {
-        return {
-          kind: 'draftComponentsFailure' as const,
-          message: `${parsedDraftComponent.error}: ${options.draftComponentsPath}`,
-        }
-      }
-      draftComponents.push(parsedDraftComponent.data)
-    }
+    const draftComponents = this.draftComponents
     if (!options.includeConnections) {
       return {
         kind: 'draftOnly' as const,

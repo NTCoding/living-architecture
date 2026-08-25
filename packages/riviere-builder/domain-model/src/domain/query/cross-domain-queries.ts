@@ -8,7 +8,10 @@ function buildNodeIdToDomain(graph: RiviereGraph): Map<string, string> {
   return new Map(graph.components.map((c) => [c.id, c.domain]))
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function queryCrossDomainLinks(graph: RiviereGraph, domainName: string): CrossDomainLink[] {
   const nodeIdToDomain = buildNodeIdToDomain(graph)
   const seen = new Set<string>()
@@ -138,7 +141,10 @@ function toConnectionResults(
   )
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification TODO: Added before justification rule introduced.
+ */
 export function queryDomainConnections(
   graph: RiviereGraph,
   domainName: string,
