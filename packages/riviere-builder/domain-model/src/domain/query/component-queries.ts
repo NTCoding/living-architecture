@@ -35,8 +35,7 @@ export function searchComponents(graph: RiviereGraph, query: string): Component[
     return []
   }
   const lowerQuery = query.toLowerCase()
-  return findAllComponents(
-    graph,
+  return graph.components.filter(
     (c) =>
       c.name.toLowerCase().includes(lowerQuery) ||
       c.domain.toLowerCase().includes(lowerQuery) ||
@@ -49,7 +48,7 @@ export function searchComponents(graph: RiviereGraph, query: string): Component[
  * @riviere-role-justification TODO: Added before justification rule introduced.
  */
 export function componentsInDomain(graph: RiviereGraph, domainName: string): Component[] {
-  return findAllComponents(graph, (c) => c.domain === domainName)
+  return graph.components.filter((c) => c.domain === domainName)
 }
 
 /**
@@ -57,5 +56,5 @@ export function componentsInDomain(graph: RiviereGraph, domainName: string): Com
  * @riviere-role-justification TODO: Added before justification rule introduced.
  */
 export function componentsByType(graph: RiviereGraph, type: ComponentType): Component[] {
-  return findAllComponents(graph, (c) => c.type === type)
+  return graph.components.filter((c) => c.type === type)
 }
