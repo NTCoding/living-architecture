@@ -15,7 +15,7 @@ class UnexpectedRunnerFailureError extends Error {
 }
 
 function parseConfiguration(value: unknown): RoleEnforcementConfiguration {
-  const parsed = RoleEnforcementConfiguration.parse(value)
+  const parsed = RoleEnforcementConfiguration.parseFromUnknown(value)
   if (!parsed.success) {
     throw parsed.error
   }

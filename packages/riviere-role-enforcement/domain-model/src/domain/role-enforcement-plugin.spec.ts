@@ -5,7 +5,7 @@ import { Linter } from 'eslint'
 import { parser } from 'typescript-eslint'
 import { expect, it } from 'vitest'
 import plugin from '@living-architecture/riviere-role-enforcement-domain-model/plugin'
-import { location, locationConfiguration, role, roleEnforcementConfiguration } from '../index'
+import { location, locationConfiguration, role, RoleEnforcementConfiguration } from '../index'
 
 const commandInputFactory = role('command-input-factory', {
   forbiddenImportedFunctionCalls: true,
@@ -44,7 +44,7 @@ const cliEntrypointDependencies = role('cli-entrypoint-dependencies', {
   targets: ['interface'],
 })
 
-const config = roleEnforcementConfiguration({
+const config = RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/example': {
       locations: locationConfiguration(
@@ -153,7 +153,9 @@ export function loadInput(value: string): string {
 `)
 
   expect(messages).toHaveLength(1)
-  expect(messages[0]?.message).toContain("Role 'entrypoint-cli-input-parser' does not allow name 'loadInput'")
+  expect(messages[0]?.message).toContain(
+    "Role 'entrypoint-cli-input-parser' does not allow name 'loadInput'",
+  )
 })
 
 it('rejects an inline callable property in CLI input parser dependencies', () => {

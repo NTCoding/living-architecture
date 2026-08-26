@@ -3,7 +3,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement-domain-model'
 import { runTestRoleEnforcement, withWorkspaceFixture } from './__fixtures__/test-fixture-workspace'
 
@@ -11,7 +11,7 @@ const fieldNameRole = role('field-name', {
   requiresStringLiteralConstant: true,
 })
 
-const config = roleEnforcementConfiguration({
+const config = RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/pkg-a': {
       locations: locationConfiguration(

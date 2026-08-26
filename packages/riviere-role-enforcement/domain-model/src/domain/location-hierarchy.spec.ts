@@ -1,9 +1,9 @@
 import { expect, it } from 'vitest'
-import { validateNoRepeatedInheritedImports } from './validate-location-import-rules'
+import { LocationHierarchy } from './location-hierarchy'
 
 it('allows a child to add an import its parent does not allow', () => {
   expect(() =>
-    validateNoRepeatedInheritedImports([
+    LocationHierarchy.parseFromNodes([
       node('parent', '/parent'),
       node('child', '/child', 'parent', { allow: { sibling: ['records'] } }),
     ]),
@@ -12,7 +12,7 @@ it('allows a child to add an import its parent does not allow', () => {
 
 it('allows a child to replace inherited rules explicitly', () => {
   expect(() =>
-    validateNoRepeatedInheritedImports([
+    LocationHierarchy.parseFromNodes([
       node('parent', '/parent', undefined, { allow: { root: ['utilities'] } }),
       node('child', '/child', 'parent', {
         allow: { root: ['utilities'] },
@@ -24,7 +24,7 @@ it('allows a child to replace inherited rules explicitly', () => {
 
 it('rejects an import inherited through more than one parent', () => {
   expect(() =>
-    validateNoRepeatedInheritedImports([
+    LocationHierarchy.parseFromNodes([
       node('grandparent', '/grandparent', undefined, {
         allow: { ownSubdomain: ['api'] },
       }),
@@ -36,7 +36,7 @@ it('rejects an import inherited through more than one parent', () => {
 
 it('stops inheriting beyond a parent that replaces its inherited rules', () => {
   expect(() =>
-    validateNoRepeatedInheritedImports([
+    LocationHierarchy.parseFromNodes([
       node('grandparent', '/grandparent', undefined, { allow: { root: ['utilities'] } }),
       node('parent', '/parent', 'grandparent', {
         allow: { sibling: ['records'] },
@@ -49,7 +49,7 @@ it('stops inheriting beyond a parent that replaces its inherited rules', () => {
 
 it('rejects the same role-filtered import inherited from a parent', () => {
   expect(() =>
-    validateNoRepeatedInheritedImports([
+    LocationHierarchy.parseFromNodes([
       node('parent', '/parent', undefined, {
         allow: { anySubdomain: [{ api: ['request', 'response'] }] },
       }),
@@ -62,7 +62,7 @@ it('rejects the same role-filtered import inherited from a parent', () => {
 
 it('allows a different role filter for the same location', () => {
   expect(() =>
-    validateNoRepeatedInheritedImports([
+    LocationHierarchy.parseFromNodes([
       node('parent', '/parent', undefined, {
         allow: { sibling: [{ records: ['summary'] }] },
       }),
@@ -75,7 +75,7 @@ it('allows a different role filter for the same location', () => {
 
 it('rejects a role filter when the parent already allows every role from that location', () => {
   expect(() =>
-    validateNoRepeatedInheritedImports([
+    LocationHierarchy.parseFromNodes([
       node('parent', '/parent', undefined, { allow: { sibling: ['records'] } }),
       node('child', '/child', 'parent', {
         allow: { sibling: [{ records: ['summary'] }] },
@@ -86,7 +86,7 @@ it('rejects a role filter when the parent already allows every role from that lo
 
 it('allows a child to broaden a role-filtered parent import', () => {
   expect(() =>
-    validateNoRepeatedInheritedImports([
+    LocationHierarchy.parseFromNodes([
       node('parent', '/parent', undefined, {
         allow: { sibling: [{ records: ['summary'] }] },
       }),
@@ -97,7 +97,7 @@ it('allows a child to broaden a role-filtered parent import', () => {
 
 it('rejects an empty role-filtered import', () => {
   expect(() =>
-    validateNoRepeatedInheritedImports([
+    LocationHierarchy.parseFromNodes([
       node('parent', '/parent'),
       node('child', '/child', 'parent', { allow: { sibling: [{}] } }),
     ]),
@@ -119,8 +119,13 @@ function node(
   },
 ) {
   return {
+    allowAnySubLocations: false,
+    allowedRoles: [],
     id,
     name,
+    packagePath: 'packages/app',
+    pathTemplate: name,
+    roleEnforcement: true,
     ...(parentId === undefined ? {} : { parentId }),
     ...(importRules === undefined ? {} : { importRules }),
   }

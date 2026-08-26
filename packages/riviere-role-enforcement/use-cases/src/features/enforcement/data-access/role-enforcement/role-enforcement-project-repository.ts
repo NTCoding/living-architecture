@@ -130,7 +130,7 @@ function withoutTrailingSlash(value: string): string {
 
 function readConfig(configModule: unknown): RoleEnforcementConfiguration {
   const exportedConfiguration = readConfigExport(resolveModuleExports(configModule))
-  const parsed = RoleEnforcementConfiguration.parse(exportedConfiguration)
+  const parsed = RoleEnforcementConfiguration.parseFromUnknown(exportedConfiguration)
   if (!parsed.success) {
     throw parsed.error
   }

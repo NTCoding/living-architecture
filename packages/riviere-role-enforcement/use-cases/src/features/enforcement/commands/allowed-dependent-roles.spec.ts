@@ -4,7 +4,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement-domain-model'
 import {
   runTestRoleEnforcement,
@@ -22,7 +22,7 @@ const roles = [
   role('internal-service', { targets: ['function'] }),
 ] as const
 
-const config = roleEnforcementConfiguration({
+const config = RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/pkg-a': {
       locations: locationConfiguration(

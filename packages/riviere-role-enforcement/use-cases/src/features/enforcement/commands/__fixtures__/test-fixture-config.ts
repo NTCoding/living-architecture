@@ -2,7 +2,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement-domain-model'
 
 export const genericTestRoles = [
@@ -44,7 +44,7 @@ const genericTestLocations = locationConfiguration(
   location<GenericTestRoleName>('/repositories', ['role-b-repository']),
 )
 
-export const genericTestConfig = roleEnforcementConfiguration({
+export const genericTestConfig = RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/pkg-a': {
       locations: genericTestLocations,
@@ -56,7 +56,7 @@ export const genericTestConfig = roleEnforcementConfiguration({
 })
 
 function configWithGenericAggregateOverride(aggregateOptions: Parameters<typeof role>[1]) {
-  return roleEnforcementConfiguration({
+  return RoleEnforcementConfiguration.parse({
     configurations: {
       'packages/pkg-a': {
         locations: genericTestLocations,
@@ -124,7 +124,7 @@ export function configWithReadonlyDataMembers() {
 }
 
 export function configWithGenericRepositoryMethodInputs(allowedInputs: string[]) {
-  return roleEnforcementConfiguration({
+  return RoleEnforcementConfiguration.parse({
     configurations: {
       'packages/pkg-a': {
         locations: genericTestLocations,
@@ -144,7 +144,7 @@ export function configWithGenericRepositoryMethodInputs(allowedInputs: string[])
 }
 
 export function configWithGenericRepositoryMethodInputsOnly(allowedInputs: string[]) {
-  return roleEnforcementConfiguration({
+  return RoleEnforcementConfiguration.parse({
     configurations: {
       'packages/pkg-a': {
         locations: genericTestLocations,

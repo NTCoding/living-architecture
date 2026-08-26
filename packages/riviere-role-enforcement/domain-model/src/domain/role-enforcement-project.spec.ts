@@ -2,12 +2,11 @@ import { expect, it, vi } from 'vitest'
 import {
   location,
   locationConfiguration,
-  roleEnforcementConfiguration,
-  type RoleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
 } from './role-enforcement-builder'
 import { RoleEnforcementProject } from './role-enforcement-project'
 
-const config: RoleEnforcementConfiguration = roleEnforcementConfiguration({
+const config: RoleEnforcementConfiguration = RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/{package}': {
       locations: locationConfiguration(location('/domain', [])),

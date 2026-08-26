@@ -27,7 +27,7 @@ export function filterConfigByPackage(
     (location) => location.packagePath === packagePattern,
   )
 
-  return RoleEnforcementConfiguration.parse({
+  return RoleEnforcementConfiguration.parseFromState({
     ...config,
     assignedPackages: [normalizedPath],
     include: filteredInclude,
@@ -40,7 +40,7 @@ export function filterConfigByPackage(
         : { parentId: replacePlaceholders(location.parentId, replacements) }),
       pathTemplate: replacePlaceholders(location.pathTemplate, replacements),
     })),
-  }).data
+  })
 }
 
 function packagePatternMatches(packagePattern: string, packagePath: string): boolean {

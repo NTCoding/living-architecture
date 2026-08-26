@@ -4,7 +4,6 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
   RoleEnforcementConfiguration,
 } from './role-enforcement-builder'
 import { PackageManifestRequirements } from './package-manifest-requirements'
@@ -184,7 +183,7 @@ it('includes data member, dependent role, and justification constraints when pro
   })
 })
 
-describe('roleEnforcementConfiguration', () => {
+describe('RoleEnforcementConfiguration', () => {
   const testRoles = [
     role('cli-entrypoint', { targets: ['function'] }),
     role('aggregate', { targets: ['class'] }),
@@ -197,7 +196,7 @@ describe('roleEnforcementConfiguration', () => {
         entrypoint: ['cli-entrypoint'],
       }),
     )
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/{app}': { locations },
       },
@@ -217,7 +216,7 @@ describe('roleEnforcementConfiguration', () => {
   it('applies a package configuration to each package directly inside its configured folder', () => {
     const locations = locationConfiguration(location('/features', []))
 
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'apps/': { locations },
       },
@@ -236,7 +235,7 @@ describe('roleEnforcementConfiguration', () => {
     )
     const useCaseLocations = locationConfiguration(location('/features', []))
 
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/{subdomain}/domain-model': { locations: domainLocations },
         'packages/{subdomain}/use-cases': { locations: useCaseLocations },
@@ -260,7 +259,7 @@ describe('roleEnforcementConfiguration', () => {
 
   it('derives TypeScript and TSX include patterns from every enforced package', () => {
     const locations = locationConfiguration(location('/domain', { allowAnySubLocations: true }))
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/my-app': { locations },
         'apps/my-app': { locations },
@@ -279,7 +278,7 @@ describe('roleEnforcementConfiguration', () => {
   })
 
   it('keeps configuration values needed by the runner', () => {
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/my-app': {
           locations: locationConfiguration(location('/domain', { allowAnySubLocations: true })),
@@ -309,7 +308,7 @@ describe('roleEnforcementConfiguration', () => {
       }),
     )
 
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/app': { locations },
       },
@@ -349,7 +348,7 @@ describe('roleEnforcementConfiguration', () => {
   })
 
   it('adds unassigned packages to ignored source paths', () => {
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/app': {
           locations: locationConfiguration(location('/domain', [])),
@@ -365,7 +364,7 @@ describe('roleEnforcementConfiguration', () => {
   })
 })
 
-describe('RoleEnforcementConfiguration.parse', () => {
+describe('RoleEnforcementConfiguration.parseFromUnknown', () => {
   const completeConfiguration = {
     assignedPackages: [],
     ignorePatterns: [],
@@ -378,7 +377,7 @@ describe('RoleEnforcementConfiguration.parse', () => {
   }
 
   it('returns the configuration when all required values are present', () => {
-    const result = RoleEnforcementConfiguration.parse(completeConfiguration)
+    const result = RoleEnforcementConfiguration.parseFromUnknown(completeConfiguration)
 
     expect(result).toStrictEqual({
       success: true,
@@ -387,7 +386,7 @@ describe('RoleEnforcementConfiguration.parse', () => {
   })
 
   it('returns an error when the configuration is not an object', () => {
-    const result = RoleEnforcementConfiguration.parse(undefined)
+    const result = RoleEnforcementConfiguration.parseFromUnknown(undefined)
 
     expect(result).toStrictEqual({
       success: false,
@@ -408,7 +407,7 @@ describe('RoleEnforcementConfiguration.parse', () => {
     const incompleteConfiguration: Record<string, unknown> = { ...completeConfiguration }
     delete incompleteConfiguration[missingProperty]
 
-    const result = RoleEnforcementConfiguration.parse(incompleteConfiguration)
+    const result = RoleEnforcementConfiguration.parseFromUnknown(incompleteConfiguration)
 
     expect(result).toStrictEqual({
       success: false,

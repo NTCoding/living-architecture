@@ -6,7 +6,6 @@ export {
   locationConfiguration,
   role,
   RoleEnforcementConfiguration,
-  roleEnforcementConfiguration,
 } from './domain/role-enforcement-builder'
 export type { LocationBuilder, LocationConfiguration } from './domain/role-enforcement-builder'
 export type {

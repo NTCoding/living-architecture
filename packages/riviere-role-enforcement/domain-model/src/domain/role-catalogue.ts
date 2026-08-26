@@ -1,4 +1,6 @@
-import type { BuiltRole, LocationBuilder } from './role-enforcement-builder'
+import type { BuiltRole } from './role-enforcement-builder'
+import type { LocationHierarchy } from './location-hierarchy'
+import type { LocationBuilder } from './location-configuration'
 import { RoleEnforcementExecutionError } from './role-enforcement-execution-error'
 
 interface ConfiguredLocation {
@@ -9,17 +11,21 @@ interface ConfiguredLocation {
 
 const importScopes = ['sibling', 'root', 'ownSubdomain', 'anySubdomain'] as const
 
-/**
- * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
- */
-export function validateRoleConfiguration(
-  roles: readonly BuiltRole[],
-  locations: readonly ConfiguredLocation[],
-): void {
-  const roleNames = readUniqueRoleNames(roles)
-  validateLocationRoleReferences(locations, roleNames)
-  validateRoleRuleReferences(roles, roleNames)
+/** @riviere-role value-object */
+export class RoleCatalogue {
+  declare private readonly brand: 'RoleCatalogue'
+
+  private constructor(readonly values: readonly BuiltRole[]) {}
+
+  static parse(
+    roles: readonly BuiltRole[],
+    locationHierarchy: LocationHierarchy,
+  ): RoleCatalogue {
+    const roleNames = readUniqueRoleNames(roles)
+    validateLocationRoleReferences(locationHierarchy.values, roleNames)
+    validateRoleRuleReferences(roles, roleNames)
+    return new RoleCatalogue(roles)
+  }
 }
 
 function readUniqueRoleNames(roles: readonly BuiltRole[]): ReadonlySet<string> {
@@ -54,7 +60,9 @@ function validateLocationRoleReferences(
   }
 }
 
-function readImportRuleRoles(importRules: ConfiguredLocation['importRules']): readonly string[] {
+function readImportRuleRoles(
+  importRules: ConfiguredLocation['importRules'],
+): readonly string[] {
   const referencedRoles: string[] = []
   for (const scope of importScopes) {
     for (const allowedLocation of importRules?.allow?.[scope] ?? []) {
@@ -71,8 +79,7 @@ function validateRoleRuleReferences(
   roleNames: ReadonlySet<string>,
 ): void {
   for (const roleDefinition of roles) {
-    const references = readRoleRuleReferences(roleDefinition)
-    for (const referencedRole of references) {
+    for (const referencedRole of readRoleRuleReferences(roleDefinition)) {
       if (!roleNames.has(referencedRole)) {
         throw new RoleEnforcementExecutionError(
           `Role '${roleDefinition.name}' references unknown role '${referencedRole}'.`,

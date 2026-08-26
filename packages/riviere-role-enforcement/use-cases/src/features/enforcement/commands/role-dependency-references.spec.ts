@@ -15,7 +15,7 @@ const roles = [
   }),
 ] as const
 
-const config = enforcementBuilder.roleEnforcementConfiguration({
+const config = enforcementBuilder.RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/pkg-a': {
       locations: enforcementBuilder.locationConfiguration(

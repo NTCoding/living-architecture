@@ -1,8 +1,8 @@
-import { type LocationBuilder, type LocationConfiguration } from './location-configuration'
-import { assignPackageConfigurations } from './assign-package-configurations'
+import type { LocationConfiguration } from './location-configuration'
+import { LocationHierarchy } from './location-hierarchy'
+import { PackageConfigurationAssignments } from './package-configuration-assignments'
 import { RoleEnforcementExecutionError } from './role-enforcement-execution-error'
-import { validateRoleConfiguration } from './validate-role-configuration'
-import { validateNoRepeatedInheritedImports } from './validate-location-import-rules'
+import { RoleCatalogue } from './role-catalogue'
 import { InvalidRoleDefinitionError } from './role-configuration-errors'
 import { type ApprovedInstance, type RoleConstraints, type RoleTarget } from './role-constraints'
 import { PackageManifestRequirements } from './package-manifest-requirements'
@@ -175,18 +175,6 @@ interface RoleEnforcementConfigurationInput<R extends string> {
   readonly unassignedPackages?: readonly string[]
 }
 
-interface BuiltLocationNode {
-  readonly allowAnySubLocations: boolean
-  readonly allowedRoles: readonly string[]
-  readonly importRules?: LocationBuilder<string>['importRules']
-  readonly id: string
-  readonly name: string
-  readonly packagePath: string
-  readonly parentId?: string
-  readonly pathTemplate: string
-  readonly roleEnforcement: boolean
-}
-
 interface WorkspacePackage {
   readonly manifest: unknown
   readonly path: string
@@ -197,7 +185,7 @@ interface RoleEnforcementConfigurationDefinition {
   readonly ignorePatterns: readonly string[]
   readonly importAliases?: Readonly<Record<string, string>>
   readonly include: readonly string[]
-  readonly locationHierarchy: readonly BuiltLocationNode[]
+  readonly locationHierarchy: LocationHierarchy['values']
   readonly packageManifestRequirements: PackageManifestRequirements
   readonly roleDefinitionsDir: string
   readonly roles: readonly BuiltRole[]
@@ -208,11 +196,6 @@ type RoleEnforcementConfigurationParseResult =
   | { readonly success: true; readonly data: RoleEnforcementConfiguration }
   | { readonly success: false; readonly error: RoleEnforcementExecutionError }
 
-type ValidRoleEnforcementConfigurationParseResult = {
-  readonly success: true
-  readonly data: RoleEnforcementConfiguration
-}
-
 /** @riviere-role value-object */
 export class RoleEnforcementConfiguration {
   declare private readonly brand: 'RoleEnforcementConfiguration'
@@ -221,7 +204,7 @@ export class RoleEnforcementConfiguration {
   declare readonly ignorePatterns: readonly string[]
   declare readonly importAliases?: Readonly<Record<string, string>>
   declare readonly include: readonly string[]
-  declare readonly locationHierarchy: readonly BuiltLocationNode[]
+  declare readonly locationHierarchy: LocationHierarchy['values']
   declare readonly packageManifestRequirements: PackageManifestRequirements
   declare readonly roleDefinitionsDir: string
   declare readonly roles: readonly BuiltRole[]
@@ -231,11 +214,36 @@ export class RoleEnforcementConfiguration {
     Object.assign(this, definition)
   }
 
-  static parse(
+  static parse<const R extends string>(
+    input: RoleEnforcementConfigurationInput<R>,
+  ): RoleEnforcementConfiguration {
+    const packageAssignments = PackageConfigurationAssignments.parse(input.configurations)
+    const locationHierarchy = LocationHierarchy.parse(packageAssignments)
+    const roleCatalogue = RoleCatalogue.parse(input.roles, locationHierarchy)
+    const unassignedPackages = input.unassignedPackages ?? []
+    return new RoleEnforcementConfiguration({
+      assignedPackages: packageAssignments.assignedPackages(),
+      ignorePatterns: [
+        ...input.ignorePatterns,
+        ...unassignedPackages.map((packagePath) => `${packagePath}/src/**`),
+      ],
+      ...(input.importAliases === undefined ? {} : { importAliases: input.importAliases }),
+      include: packageAssignments.sourceFilePatterns(),
+      locationHierarchy: locationHierarchy.values,
+      packageManifestRequirements: packageAssignments.packageManifestRequirements(),
+      roleDefinitionsDir: input.roleDefinitionsDir,
+      roles: roleCatalogue.values,
+      unassignedPackages,
+    })
+  }
+
+  static parseFromState(
     value: RoleEnforcementConfigurationDefinition,
-  ): ValidRoleEnforcementConfigurationParseResult
-  static parse(value: unknown): RoleEnforcementConfigurationParseResult
-  static parse(value: unknown): RoleEnforcementConfigurationParseResult {
+  ): RoleEnforcementConfiguration {
+    return new RoleEnforcementConfiguration(value)
+  }
+
+  static parseFromUnknown(value: unknown): RoleEnforcementConfigurationParseResult {
     if (typeof value !== 'object' || value === null) {
       return {
         success: false,
@@ -256,7 +264,7 @@ export class RoleEnforcementConfiguration {
       'unassignedPackages',
     ]
     for (const key of required) {
-      if (!(key in value)) {
+      if (!Object.hasOwn(value, key)) {
         return {
           success: false,
           error: new RoleEnforcementExecutionError(
@@ -296,129 +304,6 @@ export class RoleEnforcementConfiguration {
       this.packageManifestRequirements.validate(workspacePackage)
     }
   }
-}
-
-/**
- * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
- */
-export function roleEnforcementConfiguration<const R extends string>(
-  input: RoleEnforcementConfigurationInput<R>,
-): RoleEnforcementConfiguration {
-  const assignedConfigurations = assignPackageConfigurations(input.configurations)
-  const assignedPackages = assignedConfigurations.map(([packagePattern]) => packagePattern)
-  const unassignedPackages = input.unassignedPackages ?? []
-  const locationHierarchy = assignedConfigurations.flatMap(([packagePattern, configuration]) =>
-    buildFluentLocationHierarchy(packagePattern, configuration.locations),
-  )
-  validateNoRepeatedInheritedImports(locationHierarchy)
-  validateRoleConfiguration(input.roles, locationHierarchy)
-  return RoleEnforcementConfiguration.parse({
-    assignedPackages,
-    ignorePatterns: [
-      ...input.ignorePatterns,
-      ...unassignedPackages.map((packagePath) => `${packagePath}/src/**`),
-    ],
-    ...(input.importAliases !== undefined && { importAliases: input.importAliases }),
-    include: assignedConfigurations.flatMap(([packagePattern]) => [
-      `${toGlobPattern(packagePattern)}/src/**/*.ts`,
-      `${toGlobPattern(packagePattern)}/src/**/*.tsx`,
-    ]),
-    locationHierarchy,
-    packageManifestRequirements: PackageManifestRequirements.parse(
-      assignedConfigurations.flatMap(([packagePattern, configuration]) =>
-        configuration.packageManifest === undefined
-          ? []
-          : [{ packagePattern, ...configuration.packageManifest }],
-      ),
-    ),
-    roleDefinitionsDir: input.roleDefinitionsDir,
-    roles: input.roles,
-    unassignedPackages,
-  }).data
-}
-
-function buildFluentLocationHierarchy<R extends string>(
-  packagePattern: string,
-  configuration: LocationConfiguration<R>,
-): BuiltLocationNode[] {
-  const sourceRoot = buildSourceRoot(packagePattern)
-  return [
-    sourceRoot,
-    ...configuration.locations.flatMap((root) =>
-      buildFluentLocation(root, packagePattern, sourceRoot),
-    ),
-  ]
-}
-
-function buildFluentLocation<R extends string>(
-  root: LocationBuilder<R>,
-  packagePath: string,
-  sourceRoot: BuiltLocationNode,
-): BuiltLocationNode[] {
-  return buildFluentLocationNode(
-    root,
-    packagePath,
-    sourceRoot.pathTemplate,
-    `/${normalizeLocationPath(root.path)}`,
-    true,
-  )
-}
-
-function buildSourceRoot(packagePath: string): BuiltLocationNode {
-  const pathTemplate = `${packagePath}/src`
-  return {
-    allowAnySubLocations: false,
-    allowedRoles: [],
-    id: `${packagePath}:${pathTemplate}`,
-    name: '/',
-    packagePath,
-    pathTemplate,
-    roleEnforcement: true,
-  }
-}
-
-function buildFluentLocationNode<R extends string>(
-  definition: LocationBuilder<R>,
-  packagePath: string,
-  parentPathTemplate: string,
-  locationName: string,
-  isConfigurationRoot = false,
-): BuiltLocationNode[] {
-  const pathTemplate = `${parentPathTemplate}/${normalizeLocationPath(definition.path)}`
-  const id = `${packagePath}:${pathTemplate}`
-  const node: BuiltLocationNode = {
-    allowAnySubLocations: definition.allowAnySubLocations,
-    allowedRoles: definition.allowedRoles,
-    ...(definition.importRules !== undefined && {
-      importRules: definition.importRules,
-    }),
-    id,
-    name: locationName,
-    packagePath,
-    parentId: `${packagePath}:${parentPathTemplate}`,
-    pathTemplate,
-    roleEnforcement: definition.roleEnforcement,
-  }
-  return [
-    node,
-    ...definition.subLocations.flatMap((child) => {
-      const childPath = normalizeLocationPath(child.path)
-      const childName = isConfigurationRoot ? `/${childPath}` : `${locationName}/${childPath}`
-      return buildFluentLocationNode(child, packagePath, pathTemplate, childName)
-    }),
-  ]
-}
-
-function normalizeLocationPath(locationPath: string): string {
-  return locationPath.split('/').filter(Boolean).join('/')
-}
-
-function toGlobPattern(packagePattern: string): string {
-  return packagePattern
-    .split('/')
-    .map((segment) => (segment.startsWith('{') && segment.endsWith('}') ? '*' : segment))
-    .join('/')
 }
 
 function packagePatternMatches(packagePattern: string, packagePath: string): boolean {

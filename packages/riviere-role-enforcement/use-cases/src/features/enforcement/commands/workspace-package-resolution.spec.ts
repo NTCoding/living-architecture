@@ -3,7 +3,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement-domain-model'
 import {
   runTestRoleEnforcement,
@@ -22,7 +22,7 @@ const workspacePackageTestRoles = [
   }),
 ] as const
 
-const workspacePackageConfig = roleEnforcementConfiguration({
+const workspacePackageConfig = RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/pkg-a': {
       locations: locationConfiguration(location('/repositories', ['role-b-repository'])),

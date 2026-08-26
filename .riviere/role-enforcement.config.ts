@@ -1,4 +1,4 @@
-import { roleEnforcementConfiguration } from '@living-architecture/riviere-role-enforcement-domain-model'
+import { RoleEnforcementConfiguration } from '@living-architecture/riviere-role-enforcement-domain-model'
 import { app } from './configurations/app'
 import { domainModel } from './configurations/domain-model'
 import { publishedLanguage } from './configurations/published-language'
@@ -13,7 +13,7 @@ import { allRoles } from './roles'
  * Any change to the architecture must update both.
  */
 
-export const config = roleEnforcementConfiguration({
+export const config = RoleEnforcementConfiguration.parse({
   configurations: {
     'apps/': app,
     'packages/{subdomain}/domain-model': domainModel,

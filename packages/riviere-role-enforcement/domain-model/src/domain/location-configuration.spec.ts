@@ -1,13 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { location, locationConfiguration } from './location-configuration'
-import {
-  roleEnforcementConfiguration,
-  type RoleEnforcementConfiguration,
-} from './role-enforcement-builder'
+import { RoleEnforcementConfiguration } from './role-enforcement-builder'
 
 describe('location configuration', () => {
   it('keeps location import rules and disabled role enforcement.', () => {
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/app': {
           locations: locationConfiguration(
@@ -89,7 +86,7 @@ describe('location configuration', () => {
 
   it('rejects a child import rule already allowed by its parent', () => {
     expect(() =>
-      roleEnforcementConfiguration({
+      RoleEnforcementConfiguration.parse({
         configurations: {
           'packages/app': {
             locations: locationConfiguration(
@@ -123,7 +120,7 @@ describe('RoleEnforcementConfiguration.validateWorkspacePackages', () => {
     >,
     unassignedPackages: readonly string[] = [],
   ): RoleEnforcementConfiguration {
-    return roleEnforcementConfiguration({
+    return RoleEnforcementConfiguration.parse({
       configurations,
       ignorePatterns: [],
       roleDefinitionsDir: '.riviere/role-definitions',

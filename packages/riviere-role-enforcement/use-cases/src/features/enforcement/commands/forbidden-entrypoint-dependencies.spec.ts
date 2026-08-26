@@ -3,7 +3,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement-domain-model'
 import {
   runTestRoleEnforcement,
@@ -20,7 +20,7 @@ const testRoles = [
 
 type TestRoleName = (typeof testRoles)[number]['name']
 
-const testConfig = roleEnforcementConfiguration({
+const testConfig = RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/pkg-a': {
       locations: locationConfiguration(location<TestRoleName>('/entrypoint', ['cli-entrypoint'])),

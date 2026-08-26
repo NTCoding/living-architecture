@@ -3,14 +3,13 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
   RoleEnforcementConfiguration,
   RoleEnforcementExecutionError,
   RoleEnforcementProject,
 } from '@living-architecture/riviere-role-enforcement-domain-model'
 import { RoleEnforcementProjectRepository } from './role-enforcement-project-repository'
 
-const minimalConfig = roleEnforcementConfiguration({
+const minimalConfig = RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/pkg-a': {
       locations: locationConfiguration(location('/entrypoint', ['role-entry'])),
@@ -36,12 +35,11 @@ function configurationWithPackageAssignments(params: {
   assignedPackages: readonly string[]
   unassignedPackages: readonly string[]
 }) {
-  const parsed = RoleEnforcementConfiguration.parse({
+  return RoleEnforcementConfiguration.parseFromState({
     ...minimalConfig,
     assignedPackages: params.assignedPackages,
     unassignedPackages: params.unassignedPackages,
   })
-  return parsed.data
 }
 
 describe('RoleEnforcementProjectRepository', () => {
