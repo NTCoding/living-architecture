@@ -401,7 +401,10 @@ export class RiviereBuilder {
 
   /** @returns Non fatal issues found in the graph. */
   warnings() {
-    return [...findWarnings(this.inspectionGraph()), ...this.operationWarnings]
+    const graph = this.inspectionGraph()
+    const orphanComponentIds = findOrphans(graph)
+
+    return [...findWarnings(graph, orphanComponentIds), ...this.operationWarnings]
   }
 
   /** @returns Statistics for the current graph. */

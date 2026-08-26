@@ -110,6 +110,7 @@ export function calculateStats(graph: InspectionGraph) {
  * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  *
  * @param graph - The graph to inspect
+ * @param orphanComponentIds - Components previously found to have no connections
  * @returns Array of warning objects
  *
  * @example
@@ -118,10 +119,13 @@ export function calculateStats(graph: InspectionGraph) {
  * // [{ code: 'ORPHAN_COMPONENT', message: '...', componentId: '...' }]
  * ```
  */
-export function findWarnings(graph: InspectionGraph): InspectionWarning[] {
+export function findWarnings(
+  graph: InspectionGraph,
+  orphanComponentIds: readonly string[],
+): InspectionWarning[] {
   const warnings: InspectionWarning[] = []
 
-  for (const id of findOrphans(graph)) {
+  for (const id of orphanComponentIds) {
     warnings.push({
       code: 'ORPHAN_COMPONENT',
       message: `Component '${id}' has no incoming or outgoing links`,
