@@ -1,13 +1,9 @@
-import {
-  useState, useCallback, useMemo, useRef, useEffect 
-} from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
-import type {
-  Node, Edge,
-} from '../queries/eclair-types'
+import type { Node, Edge } from '../queries/eclair-types'
 import { extractNodeTypes } from '../queries/extract-node-types'
-import { compareByCodePoint } from '../queries/compare-by-code-point'
+import { ascendingCodePointSortResult } from '../queries/ascending-code-point-sort-result'
 import { useTheme } from '@/platform/infra/theme/ThemeContext'
 import { useExport } from '@/platform/infra/export/ExportContext'
 import {
@@ -20,9 +16,7 @@ import { ForceGraph } from '@/platform/infra/graph/ForceGraph/ForceGraph'
 import { GraphTooltip } from '@/platform/infra/graph/GraphTooltip/GraphTooltip'
 import { DomainFilters } from '../components/DomainFilters/DomainFilters'
 import { NodeTypeFilters } from '../components/NodeTypeFilters/NodeTypeFilters'
-import {
-  filterByNodeType, getThemeFocusColors,
-} from '../queries/graph-focusing'
+import { filterByNodeType, getThemeFocusColors } from '../queries/graph-focusing'
 import type { TooltipData } from '@/platform/infra/graph/graph-types'
 
 function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
@@ -41,7 +35,9 @@ function findOrphanNodeIds(nodes: Node[], edges: Edge[]): Set<string> {
   return orphanIds
 }
 
-interface FullGraphPageProps {readonly graph: RiviereGraph}
+interface FullGraphPageProps {
+  readonly graph: RiviereGraph
+}
 
 interface DomainInfo {
   name: string
@@ -61,14 +57,12 @@ function extractDomains(graph: RiviereGraph): DomainInfo[] {
       name,
       nodeCount,
     }))
-    .sort((a, b) => compareByCodePoint(a.name, b.name))
+    .sort((a, b) => ascendingCodePointSortResult(a.name, b.name))
 }
 
 export function FullGraphPage({ graph }: Readonly<FullGraphPageProps>): React.ReactElement {
   const { theme } = useTheme()
-  const {
-    registerExportHandlers, clearExportHandlers 
-  } = useExport()
+  const { registerExportHandlers, clearExportHandlers } = useExport()
   const [searchParams] = useSearchParams()
   const [tooltipData, setTooltipData] = useState<TooltipData | null>(null)
   const tooltipHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)

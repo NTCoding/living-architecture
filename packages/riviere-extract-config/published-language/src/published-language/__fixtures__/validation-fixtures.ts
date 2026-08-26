@@ -69,7 +69,7 @@ export function createMutableConfig(): {
   module: ValidatedModuleInput
 } {
   const module = createMinimalModule()
-  const config = { modules: [module] }
+  const config: DraftConfiguration = { modules: [module] }
   return {
     config,
     module,

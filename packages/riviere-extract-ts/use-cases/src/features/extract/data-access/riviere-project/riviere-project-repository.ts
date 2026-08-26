@@ -185,6 +185,8 @@ export class RiviereProjectRepository {
         'VALIDATION_ERROR',
         formatExtractionConfigErrors(result.errors),
       )
+    if (result.data.modules.length === 0)
+      throw new ExtractionConfigError('VALIDATION_ERROR', 'Config has no resolved modules')
     return result.data
   }
 
@@ -230,12 +232,7 @@ export class RiviereProjectRepository {
           formatExtractionConfigErrors(extractionConfig.errors),
       )
 
-    const first = this.resolveConfiguration(extractionConfig.configuration, configDir).modules[0]
-    if (first === undefined)
-      throw new ExtractionConfigLoadError(
-        `Invalid extended config in '${source}': Config has no resolved modules`,
-      )
-    return this.moduleInput(first)
+    return this.resolveModule(extractionConfig.configuration.modules[0], configDir)
   }
 
   private topLevelRulesToModule(parsed: Partial<ValidatedModuleInput>): ResolvedModuleDefaults {
@@ -379,22 +376,5 @@ export class RiviereProjectRepository {
     return (
       typeof value === 'object' && value !== null && !Array.isArray(value) && !('modules' in value)
     )
-  }
-
-  private moduleInput(module: ValidatedModule): ValidatedModuleInput {
-    return {
-      name: module.name,
-      domain: module.domain,
-      path: module.path,
-      glob: module.glob,
-      ...(module.modules !== undefined && { modules: module.modules }),
-      api: module.api,
-      useCase: module.useCase,
-      domainOp: module.domainOp,
-      event: module.event,
-      eventHandler: module.eventHandler,
-      ui: module.ui,
-      ...(module.customTypes !== undefined && { customTypes: module.customTypes }),
-    }
   }
 }

@@ -1,6 +1,6 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { getEffectiveNodeType } from '@/platform/domain/node-type-presentation'
-import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
+import { ascendingCodePointSortResult } from '@/platform/domain/ascending-code-point-sort-result'
 
 export interface NodeTypeInfo {
   type: string
@@ -25,5 +25,5 @@ export function extractNodeTypes(graph: RiviereGraph): NodeTypeInfo[] {
       type,
       nodeCount,
     }))
-    .sort((left, right) => compareByCodePoint(left.type, right.type))
+    .sort((left, right) => ascendingCodePointSortResult(left.type, right.type))
 }

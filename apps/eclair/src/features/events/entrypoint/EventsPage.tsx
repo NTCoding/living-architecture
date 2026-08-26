@@ -1,17 +1,17 @@
-import {
-  useMemo, useState, useCallback 
-} from 'react'
-import {
-  useNavigate, useSearchParams 
-} from 'react-router-dom'
+import { useMemo, useState, useCallback } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { EventAccordion } from '@/platform/infra/ui/EventAccordion/EventAccordion'
-import { compareByCodePoint } from '../queries/compare-by-code-point'
+import { ascendingCodePointSortResult } from '../queries/ascending-code-point-sort-result'
 import type { DomainEvent } from '../queries/domain-event-types'
 
-interface EventsPageProps {readonly graph: RiviereGraph}
+interface EventsPageProps {
+  readonly graph: RiviereGraph
+}
 
-interface PublishedEvent extends DomainEvent {domain: string}
+interface PublishedEvent extends DomainEvent {
+  domain: string
+}
 
 function handlerSubscribesToEvent(
   subscribedEvents: string[] | undefined,
@@ -38,10 +38,7 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
   )
 
   const handleViewHandlerOnGraph = useCallback(
-    (handler: {
-      domain: string;
-      handlerName: string 
-    }) => {
+    (handler: { domain: string; handlerName: string }) => {
       const handlerNode = graph.components.find(
         (node) =>
           node.type === 'EventHandler' &&
@@ -57,9 +54,7 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
     [graph.components, navigate, searchParams],
   )
 
-  const {
-    publishedEvents, domains 
-  } = useMemo((): {
+  const { publishedEvents, domains } = useMemo((): {
     publishedEvents: PublishedEvent[]
     domains: string[]
   } => {
@@ -93,11 +88,11 @@ export function EventsPage({ graph }: Readonly<EventsPageProps>): React.ReactEle
 
     return {
       publishedEvents: [...published].sort((a: PublishedEvent, b: PublishedEvent) => {
-        const domainCompare = compareByCodePoint(a.domain, b.domain)
+        const domainCompare = ascendingCodePointSortResult(a.domain, b.domain)
         if (domainCompare !== 0) return domainCompare
-        return compareByCodePoint(a.eventName, b.eventName)
+        return ascendingCodePointSortResult(a.eventName, b.eventName)
       }),
-      domains: Array.from(domainSet).sort(compareByCodePoint),
+      domains: Array.from(domainSet).sort(ascendingCodePointSortResult),
     }
   }, [graph])
 

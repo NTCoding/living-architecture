@@ -172,7 +172,7 @@ Extracts value from decorator argument on the containing class
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `fromClassDecoratorArg` | `any` \| `any` | **Yes** | (no description) |
+| `fromClassDecoratorArg` | `object` | **Yes** | (no description) |
 
 ---
 

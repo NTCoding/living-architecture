@@ -4,7 +4,7 @@ import type {
   CustomTypeDefinition,
 } from '@living-architecture/riviere-schema-published-language/schema'
 import type { Theme } from '@/types/theme'
-import { compareByCodePoint } from './compare-by-code-point'
+import { ascendingCodePointSortResult } from './ascending-code-point-sort-result'
 
 const BUILT_IN_NODE_COLORS: Record<Theme, Record<string, string>> = {
   stream: {
@@ -107,7 +107,7 @@ export function getNodeTypesInGraph(graph: RiviereGraph, includeExternal = false
   if (includeExternal && (graph.externalLinks?.length ?? 0) > 0) {
     types.add('External')
   }
-  return [...types].sort(compareByCodePoint)
+  return [...types].sort(ascendingCodePointSortResult)
 }
 
 function getNodeTypeDefinition(

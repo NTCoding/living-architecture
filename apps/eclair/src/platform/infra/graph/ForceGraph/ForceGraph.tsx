@@ -1,14 +1,10 @@
-import {
-  useEffect, useRef, useCallback, useState, useMemo 
-} from 'react'
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import * as d3 from 'd3'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import type { Edge } from '@/platform/domain/eclair-types'
-import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
+import { ascendingCodePointSortResult } from '@/platform/domain/ascending-code-point-sort-result'
 import type { Theme } from '@/types/theme'
-import type {
-  SimulationNode, SimulationLink, TooltipData 
-} from '../graph-types'
+import type { SimulationNode, SimulationLink, TooltipData } from '../graph-types'
 import { computeDagreLayout } from './computeDagreLayout'
 import {
   updateHighlight,
@@ -22,9 +18,7 @@ import {
   applyDagrePositions,
   setupZoomBehavior,
 } from './GraphRenderingSetup'
-import {
-  applyFocusMode, applyResetMode 
-} from './applyFocusModeBehavior'
+import { applyFocusMode, applyResetMode } from './applyFocusModeBehavior'
 import {
   createSimulationNodes,
   createSimulationLinks,
@@ -60,12 +54,7 @@ interface ApplyDomainFocusParams {
   readonly theme: Theme
 }
 
-function applyDomainFocus({
-  node,
-  link,
-  focusedDomain,
-  theme,
-}: ApplyDomainFocusParams): void {
+function applyDomainFocus({ node, link, focusedDomain, theme }: ApplyDomainFocusParams): void {
   if (focusedDomain !== null && focusedDomain !== undefined) {
     applyFocusMode({
       node,
@@ -164,7 +153,10 @@ export function ForceGraph({
     [onNodeClick],
   )
 
-  const handleNodeHover = useCallback((data: TooltipData | null) => onNodeHoverRef.current?.(data), [])
+  const handleNodeHover = useCallback(
+    (data: TooltipData | null) => onNodeHoverRef.current?.(data),
+    [],
+  )
 
   const handleBackgroundClick = useCallback(() => {
     onBackgroundClick?.()
@@ -176,9 +168,7 @@ export function ForceGraph({
       zoom: d3.ZoomBehavior<SVGSVGElement, unknown>,
       nodes: SimulationNode[],
     ) => {
-      const {
-        translateX, translateY, scale 
-      } = calculateFitViewportTransform({
+      const { translateX, translateY, scale } = calculateFitViewportTransform({
         nodes,
         dimensions,
         padding: 80,
@@ -255,7 +245,7 @@ export function ForceGraph({
 
     const currentGraphKey = filteredNodes
       .map((n) => n.id)
-      .sort(compareByCodePoint)
+      .sort(ascendingCodePointSortResult)
       .join(',')
     const isGraphDataChange = currentGraphKey !== lastGraphKeyRef.current
     lastGraphKeyRef.current = currentGraphKey

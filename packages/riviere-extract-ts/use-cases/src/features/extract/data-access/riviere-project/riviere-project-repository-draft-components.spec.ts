@@ -63,7 +63,7 @@ describe('RiviereProjectRepository draft component restoration', () => {
         JSON.stringify([
           {
             domain: 'orders',
-            location: { file: 'component.ts', line: 1 },
+            location: { file: join(directory, 'component.ts'), line: 1 },
             module: 'orders',
             name: 'Order',
             type: 'api',

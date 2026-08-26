@@ -346,7 +346,7 @@ export interface ValidatedModuleInput extends ModuleIdentity, ModuleRules {}
 /** @riviere-role published-language-schema */
 export interface DraftConfiguration {
   $schema?: string
-  modules: DraftModule[]
+  modules: [DraftModule, ...DraftModule[]]
   connections?: ConnectionsConfig
 }
 

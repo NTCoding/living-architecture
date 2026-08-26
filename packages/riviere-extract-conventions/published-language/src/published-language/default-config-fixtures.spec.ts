@@ -1,5 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
-import * as extractionConfig from '@living-architecture/riviere-extract-config-published-language'
+import { describe, it, expect } from 'vitest'
 import {
   getDraftConfiguration,
   getFirstModule,
@@ -25,14 +24,5 @@ describe('getFirstModule', () => {
     const invalidConfig = { modules: [] }
 
     expect(() => getFirstModule(invalidConfig)).toThrow('Expected a valid DraftConfiguration')
-  })
-
-  it('rejects an empty parsed module collection', () => {
-    vi.spyOn(extractionConfig, 'parseExtractionConfig').mockReturnValueOnce({
-      success: true,
-      configuration: { modules: [] },
-    })
-
-    expect(() => getFirstModule({})).toThrow('Expected modules[0] after schema validation')
   })
 })
