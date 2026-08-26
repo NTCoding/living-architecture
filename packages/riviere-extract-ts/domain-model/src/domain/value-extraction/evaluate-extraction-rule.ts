@@ -33,7 +33,7 @@ function literal(value: string | number | boolean): ExtractionResult {
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function evaluateLiteralRule(rule: LiteralExtractionRule): ExtractionResult {
   return literal(rule.value)
@@ -41,7 +41,7 @@ export function evaluateLiteralRule(rule: LiteralExtractionRule): ExtractionResu
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function evaluateFromClassNameRule(
   rule: FromClassNameExtractionRule,
@@ -64,7 +64,7 @@ export function evaluateFromClassNameRule(
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function evaluateFromMethodNameRule(
   rule: FromMethodNameExtractionRule,
@@ -82,7 +82,7 @@ export function evaluateFromMethodNameRule(
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function evaluateFromFilePathRule(
   rule: FromFilePathExtractionRule,
@@ -228,7 +228,7 @@ function extractNamedArg(decorator: Decorator, name: string): string {
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function evaluateFromDecoratorArgRule(
   rule: FromDecoratorArgExtractionRule,
@@ -261,7 +261,7 @@ function evaluateDecoratorArgument(
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function evaluateFromClassDecoratorArgRule(
   rule: FromClassDecoratorArgExtractionRule,
@@ -295,7 +295,7 @@ export function evaluateFromClassDecoratorArgRule(
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function evaluateFromDecoratorNameRule(
   rule: FromDecoratorNameExtractionRule,

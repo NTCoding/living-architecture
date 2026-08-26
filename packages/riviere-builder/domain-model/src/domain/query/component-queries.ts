@@ -6,7 +6,7 @@ import type {
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function findComponent(
   graph: RiviereGraph,
@@ -17,7 +17,7 @@ export function findComponent(
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function findAllComponents(
   graph: RiviereGraph,
@@ -28,7 +28,7 @@ export function findAllComponents(
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function searchComponents(graph: RiviereGraph, query: string): Component[] {
   if (query === '') {
@@ -45,7 +45,7 @@ export function searchComponents(graph: RiviereGraph, query: string): Component[
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function componentsInDomain(graph: RiviereGraph, domainName: string): Component[] {
   return graph.components.filter((c) => c.domain === domainName)
@@ -53,7 +53,7 @@ export function componentsInDomain(graph: RiviereGraph, domainName: string): Com
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function componentsByType(graph: RiviereGraph, type: ComponentType): Component[] {
   return graph.components.filter((c) => c.type === type)

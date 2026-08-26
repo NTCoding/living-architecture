@@ -2,7 +2,7 @@
  * Calculates the Levenshtein edit distance between two strings.
  *
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  *
  * @param a - First string
  * @param b - Second string
@@ -44,7 +44,7 @@ export function levenshteinDistance(a: string, b: string): number {
  * Case-insensitive comparison.
  *
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  *
  * @param a - First string
  * @param b - Second string

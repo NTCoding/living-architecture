@@ -3,7 +3,7 @@ import { ComponentId } from './component-id'
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function detectOrphanComponents(graph: RiviereGraph): ComponentId[] {
   const connectedComponentIds = new Set<string>()

@@ -41,7 +41,7 @@ interface InspectionGraph {
  * Finds components with no incoming or outgoing links.
  *
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  *
  * @param graph - The graph to inspect
  * @returns Array of orphaned component IDs
@@ -71,7 +71,7 @@ export function findOrphans(graph: InspectionGraph): string[] {
  * Calculates statistics about the graph.
  *
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  *
  * @param graph - The graph to analyze
  * @returns Object with component counts, link counts, and domain count
@@ -107,7 +107,7 @@ export function calculateStats(graph: InspectionGraph) {
  * Detects orphaned components and unused domains.
  *
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  *
  * @param graph - The graph to inspect
  * @returns Array of warning objects

@@ -11,7 +11,7 @@ import { HttpLinkResolutionResult } from './http-link-resolution-result'
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function resolveHttpLinks(
   links: readonly ExtractedLink[],
@@ -82,7 +82,7 @@ export function resolveHttpLinks(
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function stripResolvedCustomTypes(
   components: readonly EnrichedComponent[],

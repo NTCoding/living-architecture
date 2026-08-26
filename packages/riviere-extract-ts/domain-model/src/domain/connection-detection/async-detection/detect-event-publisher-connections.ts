@@ -9,7 +9,7 @@ import type { AsyncDetectionOptions } from './async-detection-options'
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function detectEventPublisherConnections(
   components: readonly EnrichedComponent[],

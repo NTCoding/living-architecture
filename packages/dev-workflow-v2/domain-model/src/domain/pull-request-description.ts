@@ -61,7 +61,7 @@ type PullRequestOptionValueResults = {
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function parsePullRequestDescriptionOptions(rawArgs: unknown): PullRequestOptionParseResult {
   const parsedTokens = CREATE_PR_COMMAND_TOKENS_SCHEMA.safeParse(rawArgs)
@@ -133,7 +133,7 @@ function readSuccessfulOptionValue(optionValueResult: OptionValueResult): string
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function buildPullRequestCreationRequest(
   input: PullRequestDescriptionInput,

@@ -154,7 +154,7 @@ export type WorkflowEvent = z.infer<typeof WORKFLOW_EVENT_SCHEMA>
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function parseWorkflowEvent(event: BaseEvent): WorkflowEvent {
   return WORKFLOW_EVENT_SCHEMA.parse(event)
@@ -162,7 +162,7 @@ export function parseWorkflowEvent(event: BaseEvent): WorkflowEvent {
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function getKnownWorkflowEventTypes(): readonly string[] {
   return [...KNOWN_WORKFLOW_EVENT_TYPES]

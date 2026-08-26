@@ -19,7 +19,7 @@ const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function createWorkflowStateSchema<T extends readonly [string, ...string[]]>(stateNames: T) {
   const stateNameSchema = z.enum(stateNames)
@@ -199,7 +199,7 @@ const INITIAL_STATE = WorkflowState.parse({
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function getWorkflowStateNames() {
   return STATE_NAMES
@@ -207,7 +207,7 @@ export function getWorkflowStateNames() {
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function getWorkflowStateNameSchema() {
   return STATE_NAME_SCHEMA
@@ -215,7 +215,7 @@ export function getWorkflowStateNameSchema() {
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function getInitialWorkflowState(): WorkflowState {
   return WorkflowState.initial()

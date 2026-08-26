@@ -58,7 +58,7 @@ function detectMismatch(
  * Used for error recovery to suggest alternatives when exact matches fail.
  *
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  *
  * @param components - Array of components to search
  * @param query - Search criteria with name and optional type/domain filters

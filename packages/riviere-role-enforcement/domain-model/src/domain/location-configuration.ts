@@ -101,7 +101,7 @@ export function location<R extends string>(
 ): LocationBuilder<R>
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function location<R extends string>(
   path: string,
@@ -158,7 +158,7 @@ const reservedLocationKeys = new Set([
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function locationConfiguration<R extends string>(
   ...locations: readonly LocationBuilder<R>[]

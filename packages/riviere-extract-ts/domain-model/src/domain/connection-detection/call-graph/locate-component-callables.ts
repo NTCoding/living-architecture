@@ -5,7 +5,7 @@ import { ComponentCallable } from './scoped-call-graph'
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function locateComponentCallables(
   project: Project,

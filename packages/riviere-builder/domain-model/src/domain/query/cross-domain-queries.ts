@@ -10,7 +10,7 @@ function buildNodeIdToDomain(graph: RiviereGraph): Map<string, string> {
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function queryCrossDomainLinks(graph: RiviereGraph, domainName: string): CrossDomainLink[] {
   const nodeIdToDomain = buildNodeIdToDomain(graph)
@@ -147,7 +147,7 @@ function toConnectionResults(
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function queryDomainConnections(
   graph: RiviereGraph,

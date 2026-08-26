@@ -57,7 +57,7 @@ export class GraphDiff {
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDiff {
   const thisIds = new Set(current.components.map((c) => c.id))

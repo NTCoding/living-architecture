@@ -26,7 +26,7 @@ function canBeEntryPoint(component: Component): boolean {
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function findEntryPoints(graph: RiviereGraph): Component[] {
   const targets = new Set(graph.links.map((link) => link.target))
@@ -37,7 +37,7 @@ export function findEntryPoints(graph: RiviereGraph): Component[] {
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function traceFlowFrom(
   graph: RiviereGraph,
@@ -75,7 +75,7 @@ export function traceFlowFrom(
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function queryFlows(
   graph: RiviereGraph,

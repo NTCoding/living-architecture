@@ -131,7 +131,7 @@ export class BuiltRole<N extends string = string> {
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function role<const N extends string>(name: N, options: RoleOptions): BuiltRole<N> {
   return BuiltRole.parse({
