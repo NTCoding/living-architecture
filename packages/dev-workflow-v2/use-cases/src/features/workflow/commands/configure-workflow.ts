@@ -20,10 +20,7 @@ import {
   getKnownWorkflowEventTypes,
   parseWorkflowEvent,
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-events'
-import {
-  getWorkflowStateNameSchema,
-  WorkflowState,
-} from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
+import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
 import { isWriteAllowed } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-predicates'
 import type { ZodType } from 'zod'
 
@@ -100,7 +97,7 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
     buildWorkflow(state: WorkflowState, deps: WorkflowDeps): MaintainerWorkflow {
       return MaintainerWorkflow.build(registry, deps, state)
     },
-    stateSchema: getWorkflowStateNameSchema(),
+    stateSchema: WorkflowState.stateNameSchema(),
     initialState: WorkflowState.initial,
     getRegistry: () => registry,
     buildTransitionContext(

@@ -1,5 +1,4 @@
 import { Command } from 'commander'
-import { performance } from 'node:perf_hooks'
 import { join } from 'node:path'
 import { getDefaultGraphPathDescription } from '../infra/cli/presentation/graph-path-option'
 import { parseAddComponentInput } from '../features/builder/entrypoint/add-component/parse-add-component-input'
@@ -63,6 +62,7 @@ import { createExtractCommand } from '../features/extract/entrypoint/extract/ent
 import { parseSourceFileSelection } from '../features/extract/entrypoint/extract/parse-source-file-selection'
 import { detectChangedTypeScriptFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/git-changed-files'
 import { findSpecifiedSourceFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/find-specified-source-files'
+import { readNodePerformanceTimeInMilliseconds } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/node/read-node-performance-time-in-milliseconds'
 import { DetectOrphans } from '@living-architecture/riviere-builder-use-cases/features/query/queries/detect-orphans'
 import { ListComponents } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-components'
 import { ListDomains } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-domains'
@@ -342,10 +342,11 @@ export function createProgram(): Command {
         riviereProjectRepository,
         createGitChangedSourceFileFinder(process.cwd(), detectChangedTypeScriptFiles),
         createSpecifiedSourceFileFinder(process.cwd(), findSpecifiedSourceFiles),
-        () => performance.now(),
+        readNodePerformanceTimeInMilliseconds,
       ),
-      enrichDraftComponents: new EnrichDraftComponents(riviereProjectRepository, () =>
-        performance.now(),
+      enrichDraftComponents: new EnrichDraftComponents(
+        riviereProjectRepository,
+        readNodePerformanceTimeInMilliseconds,
       ),
       parseFlagCombinations,
       createExtractDraftComponentsInput,

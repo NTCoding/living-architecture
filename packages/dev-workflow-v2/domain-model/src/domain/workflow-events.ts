@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import { getWorkflowStateNameSchema } from './workflow-types'
+import { WorkflowState } from './workflow-types'
 
-const STATE_NAME_SCHEMA = getWorkflowStateNameSchema()
+const STATE_NAME_SCHEMA = WorkflowState.stateNameSchema()
 
 const KNOWN_WORKFLOW_EVENT_TYPES = [
   'session-started',

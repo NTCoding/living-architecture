@@ -13,7 +13,8 @@ const PROTECTED_FILES: readonly (string | RegExp)[] = [
  * @riviere-role domain-service
  * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
-export function checkWriteAllowed(filePath: string): boolean {
+export function isWriteAllowed(filePath: string, state: WorkflowState): boolean {
+  void state
   const basename = path.basename(filePath)
   for (const pattern of PROTECTED_FILES) {
     if (typeof pattern === 'string' ? basename === pattern : pattern.test(basename)) {
@@ -21,13 +22,4 @@ export function checkWriteAllowed(filePath: string): boolean {
     }
   }
   return true
-}
-
-/**
- * @riviere-role domain-service
- * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
- */
-export function isWriteAllowed(filePath: string, state: WorkflowState): boolean {
-  void state
-  return checkWriteAllowed(filePath)
 }

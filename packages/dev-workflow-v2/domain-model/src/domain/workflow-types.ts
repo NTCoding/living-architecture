@@ -140,6 +140,10 @@ export class WorkflowState {
     return new WorkflowState(WORKFLOW_STATE_SCHEMA.parse(value))
   }
 
+  static stateNameSchema() {
+    return STATE_NAME_SCHEMA
+  }
+
   static initial(): WorkflowState {
     return INITIAL_STATE
   }
@@ -203,14 +207,6 @@ const INITIAL_STATE = WorkflowState.parse({
  */
 export function getWorkflowStateNames() {
   return STATE_NAMES
-}
-
-/**
- * @riviere-role domain-service
- * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
- */
-export function getWorkflowStateNameSchema() {
-  return STATE_NAME_SCHEMA
 }
 
 /**

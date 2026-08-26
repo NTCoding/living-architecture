@@ -1,11 +1,7 @@
-import {
-  createWorkflowStateSchema,
-  getWorkflowStateNameSchema,
-  getWorkflowStateNames,
-} from './workflow-types'
+import { createWorkflowStateSchema, getWorkflowStateNames, WorkflowState } from './workflow-types'
 
 const STATE_NAMES = getWorkflowStateNames()
-const STATE_NAME_SCHEMA = getWorkflowStateNameSchema()
+const STATE_NAME_SCHEMA = WorkflowState.stateNameSchema()
 const workflowStateSchema = createWorkflowStateSchema(STATE_NAMES)
 
 describe('STATE_NAME_SCHEMA', () => {
