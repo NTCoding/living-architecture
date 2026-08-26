@@ -1,13 +1,14 @@
 import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 import type { EnrichedComponent } from '../../value-extraction/enriched-component'
 import { ExtractedLink } from '../extracted-link'
+import { TypeScriptSourceLocation } from '../typescript-source-location'
 import type { CallSite } from './call-graph-types'
 import type { CallableReference } from './callable-reference'
 import type { ScopedCallGraph, ScopedCallGraphEdge } from './scoped-call-graph'
 
 interface LocatedLink {
   readonly link: ExtractedLink
-  readonly location: ReturnType<typeof sourceLocation>
+  readonly location: TypeScriptSourceLocation
 }
 
 /**
@@ -22,14 +23,17 @@ export function detectConnectionsFromCalls(
     collapseFromRoot(graph, root.component, root.callable, repository),
   )
   const uncertainLinks = graph.unresolvedCalls.map((unresolved) => {
-    const location = sourceLocation(repository, unresolved.originCallSite)
+    const location = TypeScriptSourceLocation.parseFromCallSite(
+      repository,
+      unresolved.originCallSite,
+    )
     return {
       link: ExtractedLink.parse({
         source: componentId(unresolved.sourceComponent),
         target: '_unresolved',
         type: 'sync',
         _uncertain: unresolved.reason,
-        sourceLocation: location,
+        sourceLocation: location.toPublishedSourceLocation(),
       }),
       location,
     }
@@ -79,14 +83,14 @@ function followEdge(
   const originCallSite = input.originCallSite ?? edge.callSite
   if (edge.targetComponent !== undefined) {
     if (componentId(input.sourceComponent) === componentId(edge.targetComponent)) return []
-    const location = sourceLocation(input.repository, originCallSite)
+    const location = TypeScriptSourceLocation.parseFromCallSite(input.repository, originCallSite)
     return [
       {
         link: ExtractedLink.parse({
           source: componentId(input.sourceComponent),
           target: componentId(edge.targetComponent),
           type: 'sync',
-          sourceLocation: location,
+          sourceLocation: location.toPublishedSourceLocation(),
         }),
         location,
       },
@@ -126,13 +130,4 @@ function earlierThan(candidate: LocatedLink, existing: LocatedLink): boolean {
 
 function componentId(component: EnrichedComponent): string {
   return ComponentId.parseFromParts(component).toString()
-}
-
-function sourceLocation(repository: string, callSite: CallSite) {
-  return {
-    repository,
-    filePath: callSite.filePath,
-    lineNumber: callSite.lineNumber,
-    methodName: callSite.methodName,
-  }
 }

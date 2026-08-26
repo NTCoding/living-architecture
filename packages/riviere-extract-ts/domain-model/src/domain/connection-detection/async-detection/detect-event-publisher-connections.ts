@@ -4,8 +4,8 @@ import { EVENT_NAME_FIELD } from '@living-architecture/riviere-schema-published-
 import type { EnrichedComponent } from '../../value-extraction/enriched-component'
 import { ConnectionDetectionError } from '../connection-detection-error'
 import { ExtractedLink } from '../extracted-link'
+import { TypeScriptSourceLocation } from '../typescript-source-location'
 import type { AsyncDetectionOptions } from './async-detection-options'
-import { toSourceLocation } from './async-detection-types'
 
 /**
  * @riviere-role domain-service
@@ -64,7 +64,10 @@ function handleMissingMetadata(
     source: ComponentId.parseFromParts(publisher).toString(),
     target: '_unresolved',
     type: 'async',
-    sourceLocation: toSourceLocation(publisher, options.repository),
+    sourceLocation: TypeScriptSourceLocation.parseFromComponent(
+      options.repository,
+      publisher,
+    ).toPublishedSourceLocation(),
     _uncertain: `event publisher "${publisher.name}" is missing required "${metadataKey}" metadata`,
   })
 }
@@ -90,7 +93,10 @@ function resolvePublishTarget(
       source: ComponentId.parseFromParts(publisher).toString(),
       target: ComponentId.parseFromParts(event).toString(),
       type: 'async',
-      sourceLocation: toSourceLocation(publisher, options.repository),
+      sourceLocation: TypeScriptSourceLocation.parseFromComponent(
+        options.repository,
+        publisher,
+      ).toPublishedSourceLocation(),
     }),
   )
 }
@@ -113,7 +119,10 @@ function handleAmbiguousMatch(
     source: ComponentId.parseFromParts(publisher).toString(),
     target: '_unresolved',
     type: 'async',
-    sourceLocation: toSourceLocation(publisher, options.repository),
+    sourceLocation: TypeScriptSourceLocation.parseFromComponent(
+      options.repository,
+      publisher,
+    ).toPublishedSourceLocation(),
     _uncertain: `ambiguous: ${matchCount} events match published event type: ${publishedEventType}`,
   })
 }
@@ -135,7 +144,10 @@ function handleNoMatch(
     source: ComponentId.parseFromParts(publisher).toString(),
     target: '_unresolved',
     type: 'async',
-    sourceLocation: toSourceLocation(publisher, options.repository),
+    sourceLocation: TypeScriptSourceLocation.parseFromComponent(
+      options.repository,
+      publisher,
+    ).toPublishedSourceLocation(),
     _uncertain: `no event found for published event type: ${publishedEventType}`,
   })
 }
