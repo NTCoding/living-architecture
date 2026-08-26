@@ -7,11 +7,10 @@ import type {
   FromDecoratorNameExtractionRule,
   FromFilePathExtractionRule,
   FromMethodNameExtractionRule,
-  FromPropertyExtractionRule,
   LiteralExtractionRule,
 } from '@living-architecture/riviere-extract-config-published-language'
 import { Node, SyntaxKind } from 'ts-morph'
-import { ExtractionError, extractLiteralValue } from './literal-detection'
+import { ExtractionError } from './literal-detection'
 import { ExtractionResult } from './extraction-result'
 
 export {
@@ -21,6 +20,8 @@ export {
 } from './evaluate-extraction-rule-method'
 
 export { evaluateFromGenericArgRule } from './evaluate-extraction-rule-generic'
+
+export { evaluateFromPropertyRule } from './evaluate-property-extraction-rule'
 
 type ClassDeclaration = import('ts-morph').ClassDeclaration
 type MethodDeclaration = import('ts-morph').MethodDeclaration
@@ -115,82 +116,6 @@ export function evaluateFromFilePathRule(
   }
 
   return ExtractionResult.parse({ value: transform.applyTo(capturedValue) })
-}
-
-type PropertyInfo = {
-  initializer: ReturnType<import('ts-morph').PropertyDeclaration['getInitializer']>
-  filePath: string
-  line: number
-}
-
-function findPropertyInHierarchy(
-  classDecl: ClassDeclaration,
-  propertyName: string,
-  isStatic: boolean,
-): PropertyInfo | undefined {
-  const properties = isStatic ? classDecl.getStaticProperties() : classDecl.getInstanceProperties()
-
-  const property = properties.find((p) => p.getName() === propertyName)
-
-  if (property !== undefined && Node.isPropertyDeclaration(property)) {
-    const sourceFile = classDecl.getSourceFile()
-    return {
-      initializer: property.getInitializer(),
-      filePath: sourceFile.getFilePath(),
-      line: property.getStartLineNumber(),
-    }
-  }
-
-  if (classDecl.getExtends() === undefined) {
-    return undefined
-  }
-
-  const baseClass = classDecl.getBaseClass()
-  /* v8 ignore next -- @preserve: getExtends() !== undefined guarantees getBaseClass() returns a value */
-  if (baseClass === undefined) return undefined
-
-  return findPropertyInHierarchy(baseClass, propertyName, isStatic)
-}
-
-/**
- * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
- */
-export function evaluateFromPropertyRule(
-  rule: FromPropertyExtractionRule,
-  classDecl: ClassDeclaration,
-): ExtractionResult {
-  const name = rule.propertyName
-  const kind = rule.propertyKind
-  const transform = rule.transform
-  const isStatic = kind === 'static'
-
-  const propertyInfo = findPropertyInHierarchy(classDecl, name, isStatic)
-
-  if (propertyInfo === undefined) {
-    const sourceFile = classDecl.getSourceFile()
-    throw new ExtractionError(
-      `Property '${name}' not found on class '${classDecl.getName() ?? 'anonymous'}'`,
-      sourceFile.getFilePath(),
-      classDecl.getStartLineNumber(),
-    )
-  }
-
-  const literalResult = extractLiteralValue(
-    propertyInfo.initializer,
-    propertyInfo.filePath,
-    propertyInfo.line,
-  )
-
-  if (transform === undefined) {
-    return ExtractionResult.parse({ value: literalResult.value })
-  }
-
-  if (typeof literalResult.value !== 'string') {
-    return ExtractionResult.parse({ value: literalResult.value })
-  }
-
-  return ExtractionResult.parse({ value: transform.applyTo(literalResult.value) })
 }
 
 type DecoratorLocation = {

@@ -1,4 +1,4 @@
-import { assert, beforeEach, describe, expect, it, vi } from 'vitest'
+import { assert, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest'
 import { Project } from 'ts-morph'
 import {
   type ComponentRuleInput,
@@ -8,16 +8,14 @@ import {
 } from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
 import { RiviereProject, OrphanedDraftComponentError } from './riviere-project'
+import { RiviereModule } from './riviere-module'
 import { ExtractionStage } from './extraction-stage'
 import { TestFixtureError } from './value-extraction/literal-detection'
-
-const { mockEnrichComponents } = vi.hoisted(() => ({
-  mockEnrichComponents: vi.fn(),
-}))
-
-vi.mock('./value-extraction/enrich-components', () => ({
-  enrichComponents: mockEnrichComponents,
-}))
+import {
+  EnrichedComponent,
+  EnrichmentFailure,
+  EnrichmentResult,
+} from './value-extraction/enriched-component'
 
 vi.mock('./connection-detection/resolve-http-links', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./connection-detection/resolve-http-links')>()),
@@ -68,10 +66,49 @@ function createDraft(
   })
 }
 
-function calledModuleName(callIndex: number): string {
-  const value: unknown = mockEnrichComponents.mock.calls[callIndex]?.[1]
-  if (!(value instanceof ValidatedModule)) throw new TestFixtureError('Expected validated module')
-  return value.name
+const moduleEnrichment: {
+  spy: MockInstance<RiviereModule['enrichDraftComponents']> | undefined
+} = {
+  spy: undefined,
+}
+
+function enrichmentSpy() {
+  const spy = moduleEnrichment.spy
+  if (spy === undefined) throw new TestFixtureError('Expected module enrichment spy')
+  return spy
+}
+
+function calledModule(callIndex: number): RiviereModule {
+  const value: unknown = enrichmentSpy().mock.contexts[callIndex]
+  if (!(value instanceof RiviereModule)) throw new TestFixtureError('Expected RiviereModule')
+  return value
+}
+
+function enrichedComponent(domain: string, name: string): EnrichedComponent {
+  return EnrichedComponent.parse({
+    domain,
+    name,
+    module: domain,
+    type: 'api',
+    location: { file: 'test.ts', line: 1 },
+    metadata: {},
+    _missing: undefined,
+  })
+}
+
+function enrichmentResult(
+  components: EnrichedComponent[],
+  failures: EnrichmentFailure[] = [],
+): EnrichmentResult {
+  return EnrichmentResult.parse({ components, failures })
+}
+
+function enrichmentFailure(field: string): EnrichmentFailure {
+  return EnrichmentFailure.parse({
+    component: createDraft('orders', 'FailedComponent'),
+    field,
+    error: `Could not extract ${field}`,
+  })
 }
 
 function createRiviereProject(
@@ -120,37 +157,14 @@ function enrichDraftComponents(
 
 describe('RiviereProject.enrichDraftComponents', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.restoreAllMocks()
+    moduleEnrichment.spy = vi.spyOn(RiviereModule.prototype, 'enrichDraftComponents')
   })
 
   it('enriches drafts grouped by module', () => {
-    mockEnrichComponents
-      .mockReturnValueOnce({
-        components: [
-          {
-            domain: 'orders',
-            name: 'CompA',
-            module: 'orders',
-            type: 'api',
-            location: { file: 'test.ts', line: 1 },
-            metadata: {},
-          },
-        ],
-        failures: [],
-      })
-      .mockReturnValueOnce({
-        components: [
-          {
-            domain: 'shipping',
-            name: 'CompB',
-            module: 'shipping',
-            type: 'api',
-            location: { file: 'test.ts', line: 1 },
-            metadata: {},
-          },
-        ],
-        failures: [],
-      })
+    enrichmentSpy()
+      .mockReturnValueOnce(enrichmentResult([enrichedComponent('orders', 'CompA')]))
+      .mockReturnValueOnce(enrichmentResult([enrichedComponent('shipping', 'CompB')]))
 
     const result = enrichDraftComponents(
       [createModuleContext('orders'), createModuleContext('shipping')],
@@ -167,14 +181,11 @@ describe('RiviereProject.enrichDraftComponents', () => {
 
     assert(result.kind === 'full')
     expect(result.components).toHaveLength(2)
-    expect(mockEnrichComponents).toHaveBeenCalledTimes(2)
+    expect(enrichmentSpy()).toHaveBeenCalledTimes(2)
   })
 
   it('routes correct drafts to each module', () => {
-    mockEnrichComponents.mockReturnValue({
-      components: [],
-      failures: [],
-    })
+    enrichmentSpy().mockReturnValue(enrichmentResult([]))
 
     enrichDraftComponents(
       [createModuleContext('orders'), createModuleContext('shipping')],
@@ -187,12 +198,12 @@ describe('RiviereProject.enrichDraftComponents', () => {
 
     expect([
       {
-        drafts: mockEnrichComponents.mock.calls[0]?.[0],
-        moduleName: calledModuleName(0),
+        drafts: calledModule(0).draftComponents(),
+        moduleName: calledModule(0).name(),
       },
       {
-        drafts: mockEnrichComponents.mock.calls[1]?.[0],
-        moduleName: calledModuleName(1),
+        drafts: calledModule(1).draftComponents(),
+        moduleName: calledModule(1).name(),
       },
     ]).toStrictEqual([
       { drafts: [createDraft('orders', 'CompA')], moduleName: 'orders' },
@@ -201,15 +212,11 @@ describe('RiviereProject.enrichDraftComponents', () => {
   })
 
   it('deduplicates failed fields across modules', () => {
-    mockEnrichComponents
-      .mockReturnValueOnce({
-        components: [],
-        failures: [{ field: 'name' }],
-      })
-      .mockReturnValueOnce({
-        components: [],
-        failures: [{ field: 'name' }, { field: 'type' }],
-      })
+    enrichmentSpy()
+      .mockReturnValueOnce(enrichmentResult([], [enrichmentFailure('name')]))
+      .mockReturnValueOnce(
+        enrichmentResult([], [enrichmentFailure('name'), enrichmentFailure('type')]),
+      )
 
     const result = enrichDraftComponents(
       [createModuleContext('orders'), createModuleContext('shipping')],
@@ -226,10 +233,7 @@ describe('RiviereProject.enrichDraftComponents', () => {
   })
 
   it('skips modules with no matching drafts', () => {
-    mockEnrichComponents.mockReturnValue({
-      components: [],
-      failures: [],
-    })
+    enrichmentSpy().mockReturnValue(enrichmentResult([]))
 
     const result = enrichDraftComponents(
       [createModuleContext('orders'), createModuleContext('empty')],
@@ -240,7 +244,7 @@ describe('RiviereProject.enrichDraftComponents', () => {
       },
     )
 
-    expect(mockEnrichComponents).toHaveBeenCalledTimes(1)
+    expect(enrichmentSpy()).toHaveBeenCalledTimes(1)
     assert(result.kind === 'full')
     expect(result.components).toStrictEqual([])
   })
@@ -270,7 +274,7 @@ describe('RiviereProject.enrichDraftComponents', () => {
   })
 
   it('groups configured submodule drafts under their parent module', () => {
-    mockEnrichComponents.mockReturnValue({ components: [], failures: [] })
+    enrichmentSpy().mockReturnValue(enrichmentResult([]))
 
     enrichDraftComponents(
       [
@@ -288,11 +292,10 @@ describe('RiviereProject.enrichDraftComponents', () => {
       },
     )
 
-    expect(mockEnrichComponents).toHaveBeenCalledWith(
-      [createDraft('orders', 'CompA', 'checkout', 'src/checkout/test.ts')],
-      expect.objectContaining({ name: 'orders' }),
-      expect.any(Project),
-    )
+    expect(calledModule(0).draftComponents()).toStrictEqual([
+      createDraft('orders', 'CompA', 'checkout', 'src/checkout/test.ts'),
+    ])
+    expect(calledModule(0).name()).toBe('orders')
   })
 
   it('returns empty result when no drafts provided', () => {
@@ -303,14 +306,11 @@ describe('RiviereProject.enrichDraftComponents', () => {
 
     assert(result.kind === 'full')
     expect(result.components).toStrictEqual([])
-    expect(mockEnrichComponents).not.toHaveBeenCalled()
+    expect(enrichmentSpy()).not.toHaveBeenCalled()
   })
 
   it('returns field failure when enrichment fails and incomplete is disabled', () => {
-    mockEnrichComponents.mockReturnValue({
-      components: [],
-      failures: [{ field: 'name' }],
-    })
+    enrichmentSpy().mockReturnValue(enrichmentResult([], [enrichmentFailure('name')]))
 
     const result = enrichDraftComponents(
       [createModuleContext('orders')],

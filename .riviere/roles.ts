@@ -109,6 +109,13 @@ export const allRoles = [
       },
     ],
   }),
+  role('aggregate-entity', {
+    targets: ['class'],
+    allowedDependentRoles: ['aggregate'],
+    requiresPrivateConstructor: true,
+    requiresDataMembers: true,
+    requiresPrivateDataMembers: true,
+  }),
   role('value-object', {
     targets: ['class'],
     forbiddenCallableDataMembers: true,

@@ -28,6 +28,36 @@ function requireSuccessfulConfiguration(
   return result.data
 }
 
+describe('ValidatedModule.detectionRuleFor', () => {
+  it('resolves built-in and custom detection rules without exposing unused rules', () => {
+    const result = ValidatedModule.parse({
+      ...validModule('orders'),
+      useCase: {
+        find: 'classes',
+        where: { nameEndsWith: { suffix: 'UseCase' } },
+      },
+      customTypes: {
+        job: {
+          find: 'classes',
+          where: { nameEndsWith: { suffix: 'Job' } },
+        },
+      },
+    })
+    assert(result.success)
+
+    expect(result.data.detectionRuleFor('useCase')).toMatchObject({
+      kind: 'detection',
+      find: 'classes',
+    })
+    expect(result.data.detectionRuleFor('job')).toMatchObject({
+      kind: 'detection',
+      find: 'classes',
+    })
+    expect(result.data.detectionRuleFor('api')).toBeUndefined()
+    expect(result.data.detectionRuleFor('missing')).toBeUndefined()
+  })
+})
+
 describe('ValidatedConfiguration', () => {
   it('returns every validation failure', () => {
     const result = ValidatedConfiguration.parse({

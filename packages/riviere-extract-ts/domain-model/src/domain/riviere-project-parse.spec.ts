@@ -40,7 +40,7 @@ function createProject(): RiviereProject {
 
 function expectMissingSource(operation: (project: RiviereProject) => unknown): void {
   const project = createProject()
-  Object.defineProperty(project, 'moduleSources', { value: new Map() })
+  Object.defineProperty(project, 'modules', { value: [] })
   expect(() => operation(project)).toThrowError(new MissingModuleSourceError('orders'))
 }
 

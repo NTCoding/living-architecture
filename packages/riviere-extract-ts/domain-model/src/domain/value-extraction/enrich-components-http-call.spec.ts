@@ -5,7 +5,7 @@ import type {
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
-import { enrichComponents } from './enrich-components'
+import { RiviereModule } from '../riviere-module'
 import { createValidatedModule } from '../../__fixtures__/test-fixtures'
 import { TestFixtureError } from './literal-detection'
 
@@ -49,8 +49,8 @@ function httpCallDraft(file: string, line: number): DraftComponent {
       file,
       line,
     },
-    domain: 'orders',
-    module: 'orders-module',
+    domain: 'orders-domain',
+    module: 'orders',
   })
 }
 
@@ -59,7 +59,12 @@ function enrich(drafts: DraftComponent[], modules: ValidatedModule[]) {
   if (module === undefined) {
     throw new TestFixtureError('Expected one module in test config')
   }
-  return enrichComponents(drafts, module, sharedProject)
+  return RiviereModule.build({
+    configuration: module,
+    project: sharedProject,
+    sourceFiles: [],
+    candidateDraftComponents: drafts,
+  }).enrichDraftComponents()
 }
 
 describe('enrichComponents — httpCall metadata extraction', () => {

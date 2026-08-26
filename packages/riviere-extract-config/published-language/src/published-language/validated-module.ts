@@ -175,6 +175,17 @@ export class ValidatedModule {
   ruleFor(componentType: ComponentType): ComponentRule {
     return this.#values[componentType]
   }
+
+  detectionRuleFor(componentType: string): DetectionRule | undefined {
+    const rule = isComponentType(componentType)
+      ? this.ruleFor(componentType)
+      : this.#values.customTypes?.[componentType]
+    return rule?.kind === 'detection' ? rule : undefined
+  }
+}
+
+function isComponentType(value: string): value is ComponentType {
+  return COMPONENT_TYPES.some((componentType) => componentType === value)
 }
 
 type PropertiesOf<Union> = Union extends unknown ? keyof Union : never

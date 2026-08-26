@@ -6,7 +6,7 @@ import type {
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
-import { enrichComponents } from './enrich-components'
+import { RiviereModule } from '../riviere-module'
 import { createValidatedModule } from '../../__fixtures__/test-fixtures'
 import { TestFixtureError } from './literal-detection'
 
@@ -27,7 +27,12 @@ function enrich(drafts: DraftComponent[], modules: ValidatedModule[]) {
   if (module === undefined) {
     throw new TestFixtureError('Expected one module in test config')
   }
-  return enrichComponents(drafts, module, sharedProject)
+  return RiviereModule.build({
+    configuration: module,
+    project: sharedProject,
+    sourceFiles: [],
+    candidateDraftComponents: drafts,
+  }).enrichDraftComponents()
 }
 
 function ordersDraft(type: string, name: string, file: string, line: number): DraftComponent {
@@ -38,8 +43,8 @@ function ordersDraft(type: string, name: string, file: string, line: number): Dr
       file,
       line,
     },
-    domain: 'orders',
-    module: 'orders-module',
+    domain: 'orders-domain',
+    module: 'orders',
   })
 }
 

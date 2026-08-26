@@ -7,14 +7,6 @@ export class ModuleContextsMismatchError extends Error {
 }
 
 /** @riviere-role domain-error */
-export class MissingModuleContextError extends Error {
-  constructor(moduleName: string) {
-    super(`Missing context for module '${moduleName}'`)
-    this.name = 'MissingModuleContextError'
-  }
-}
-
-/** @riviere-role domain-error */
 export class MissingModuleSourceError extends Error {
   constructor(moduleName: string) {
     super(`Missing source for module '${moduleName}'`)

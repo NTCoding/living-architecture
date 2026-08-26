@@ -88,6 +88,24 @@ export class EnrichmentResult {
     return new EnrichmentResult(params)
   }
 
+  static mergeModuleResults(results: readonly EnrichmentResult[]): EnrichmentResult {
+    const components: EnrichedComponent[] = []
+    const failures: EnrichmentFailure[] = []
+    for (const result of results) {
+      components.push(...result.components)
+      failures.push(...result.failures)
+    }
+    return EnrichmentResult.parse({ components, failures })
+  }
+
+  hasFailures(): boolean {
+    return this.failures.length > 0
+  }
+
+  failedFieldNames(): readonly string[] {
+    return [...new Set(this.failures.map((failure) => failure.field))]
+  }
+
   private constructor(params: { components: EnrichedComponent[]; failures: EnrichmentFailure[] }) {
     this.components = params.components
     this.failures = params.failures

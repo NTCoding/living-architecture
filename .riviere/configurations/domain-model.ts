@@ -6,6 +6,7 @@ import type { RoleName } from '../roles'
 
 const domainRoles: RoleName[] = [
   'aggregate',
+  'aggregate-entity',
   'value-object',
   'domain-event',
   'domain-port',

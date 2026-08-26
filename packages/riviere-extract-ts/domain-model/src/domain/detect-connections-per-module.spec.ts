@@ -1,4 +1,4 @@
-import { assert, beforeEach, describe, expect, it, vi } from 'vitest'
+import { assert, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest'
 import { Project } from 'ts-morph'
 import {
   type ConnectionsConfig,
@@ -6,18 +6,15 @@ import {
 } from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
 import { RiviereProject } from './riviere-project'
+import { RiviereModule } from './riviere-module'
 import { ExtractionStage } from './extraction-stage'
+import { EnrichmentFailure, EnrichmentResult } from './value-extraction/enriched-component'
+import { TestFixtureError } from './value-extraction/literal-detection'
 
-const { mockExtractComponents, mockEnrichComponents, mockStripResolvedCustomTypes } = vi.hoisted(
-  () => ({
+const { mockExtractComponents, mockStripResolvedCustomTypes } = vi.hoisted(() => ({
     mockExtractComponents: vi.fn().mockReturnValue([]),
-    mockEnrichComponents: vi.fn().mockReturnValue({
-      components: [],
-      failures: [],
-    }),
     mockStripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
-  }),
-)
+  }))
 
 vi.mock('./component-extraction/extractor', () => ({
   extractComponents: mockExtractComponents,
@@ -28,14 +25,28 @@ vi.mock('./component-extraction/extractor', () => ({
   },
 }))
 
-vi.mock('./value-extraction/enrich-components', () => ({
-  enrichComponents: mockEnrichComponents,
-}))
-
 vi.mock('./connection-detection/resolve-http-links', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./connection-detection/resolve-http-links')>()),
   stripResolvedCustomTypes: mockStripResolvedCustomTypes,
 }))
+
+const moduleEnrichment: {
+  spy: MockInstance<RiviereModule['enrichDraftComponents']> | undefined
+} = {
+  spy: undefined,
+}
+
+function enrichmentSpy() {
+  const spy = moduleEnrichment.spy
+  if (spy === undefined) throw new TestFixtureError('Expected module enrichment spy')
+  return spy
+}
+
+function calledModule(): RiviereModule {
+  const value: unknown = enrichmentSpy().mock.contexts[0]
+  if (!(value instanceof RiviereModule)) throw new TestFixtureError('Expected RiviereModule')
+  return value
+}
 
 function createRiviereProject(
   moduleName: string,
@@ -92,7 +103,9 @@ function createRiviereProject(
 
 describe('RiviereProject.extractDraftComponents', () => {
   beforeEach(() => {
+    vi.restoreAllMocks()
     vi.clearAllMocks()
+    moduleEnrichment.spy = vi.spyOn(RiviereModule.prototype, 'enrichDraftComponents')
   })
 
   it('retains components from configured submodules', () => {
@@ -105,23 +118,15 @@ describe('RiviereProject.extractDraftComponents', () => {
         location: { file: 'src/checkout/test.ts', line: 1 },
       }),
     ])
-    mockEnrichComponents.mockReturnValue({ components: [], failures: [] })
-
     createRiviereProject('orders', undefined, 'src/{module}/').extractDraftComponents({
       allowIncomplete: true,
       includeConnections: true,
     })
 
-    expect(mockEnrichComponents).toHaveBeenCalledWith(
-      [
-        expect.objectContaining({
-          domain: 'orders',
-          module: 'checkout',
-        }),
-      ],
-      expect.objectContaining({ name: 'orders' }),
-      expect.any(Project),
-    )
+    expect(calledModule().draftComponents()).toStrictEqual([
+      expect.objectContaining({ domain: 'orders', module: 'checkout' }),
+    ])
+    expect(calledModule().name()).toBe('orders')
   })
 
   it('returns no links when includeConnections is false', () => {
@@ -175,7 +180,6 @@ describe('RiviereProject.extractDraftComponents', () => {
 
   it('normalises absent HTTP-link configuration', () => {
     mockExtractComponents.mockReturnValue([])
-    mockEnrichComponents.mockReturnValue({ components: [], failures: [] })
     const project = createRiviereProject('orders')
     project.extractDraftComponents({
       allowIncomplete: true,
@@ -195,10 +199,25 @@ describe('RiviereProject.extractDraftComponents', () => {
         location: { file: 'test.ts', line: 1 },
       }),
     ])
-    mockEnrichComponents.mockReturnValue({
-      components: [],
-      failures: [{ field: 'name' }],
+    const failedDraft = DraftComponent.parseOrThrow({
+      name: 'OrderService',
+      domain: 'orders',
+      module: 'orders',
+      type: 'useCase',
+      location: { file: 'test.ts', line: 1 },
     })
+    enrichmentSpy().mockReturnValue(
+      EnrichmentResult.parse({
+        components: [],
+        failures: [
+          EnrichmentFailure.parse({
+            component: failedDraft,
+            field: 'name',
+            error: 'Could not extract name',
+          }),
+        ],
+      }),
+    )
 
     const result = createRiviereProject('orders').extractDraftComponents({
       allowIncomplete: false,

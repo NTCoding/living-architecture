@@ -6,6 +6,7 @@ import type {
 import type { ClassDeclaration, MethodDeclaration, ParameterDeclaration } from 'ts-morph'
 import { ExtractionError } from './literal-detection'
 import { MethodExtractionResult, MethodSignature, ParameterInfo } from './method-extraction-result'
+import { ExtractionResult } from './extraction-result'
 
 function extractParameterInfo(param: ParameterDeclaration): ParameterInfo {
   const typeNode = param.getTypeNode()
@@ -58,7 +59,7 @@ export function evaluateFromConstructorParamsRule(
 export function evaluateFromParameterTypeRule(
   rule: FromParameterTypeExtractionRule,
   methodDecl: MethodDeclaration,
-): MethodExtractionResult {
+): ExtractionResult {
   const { position, transform } = rule
 
   const params = methodDecl.getParameters()
@@ -75,8 +76,8 @@ export function evaluateFromParameterTypeRule(
   const typeName = typeNode?.getText() ?? 'unknown'
 
   if (transform === undefined) {
-    return MethodExtractionResult.parse({ value: typeName })
+    return ExtractionResult.parse({ value: typeName })
   }
 
-  return MethodExtractionResult.parse({ value: transform.applyTo(typeName) })
+  return ExtractionResult.parse({ value: transform.applyTo(typeName) })
 }

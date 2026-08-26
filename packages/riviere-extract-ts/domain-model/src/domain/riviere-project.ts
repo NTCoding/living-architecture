@@ -1,7 +1,5 @@
 import type { Project } from 'ts-morph'
-import type { ValidatedModule } from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
-import { extractComponents, resolveModuleName } from './component-extraction/extractor'
 import { AsyncDetectionOptions } from './connection-detection/async-detection/async-detection-options'
 import { detectEventPublisherConnections } from './connection-detection/async-detection/detect-event-publisher-connections'
 import { detectSubscribeConnections } from './connection-detection/async-detection/detect-subscribe-connections'
@@ -24,13 +22,14 @@ import {
   stripResolvedCustomTypes,
 } from './connection-detection/resolve-http-links'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
-import { enrichComponentsForModules } from './enrich-components-for-modules'
 import { MissingModuleSourceError } from './extraction-errors'
-import type { EnrichedComponent } from './value-extraction/enriched-component'
+import {
+  type EnrichedComponent,
+  EnrichmentResult,
+} from './value-extraction/enriched-component'
 import type { ExtractionStage } from './extraction-stage'
 import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
-
-type ModuleSource = Readonly<{ files: readonly string[]; project: Project }>
+import { RiviereModule } from './riviere-module'
 
 export { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 
@@ -38,19 +37,25 @@ export { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 export class RiviereProject {
   private constructor(
     private readonly stage: ExtractionStage,
-    private readonly moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
-    private draftComponents: readonly DraftComponent[],
+    private readonly modules: readonly RiviereModule[],
+    private unassignedDraftComponents: readonly DraftComponent[],
   ) {}
 
   static parse(input: { stage: ExtractionStage; draftComponents: readonly DraftComponent[] }) {
     const configuredModules = new Set(input.stage.resolvedConfig.modules)
-    const moduleSources = new Map(
+    const moduleContexts = new Map(
       input.stage.moduleContexts.map((context) => [context.module, context] as const),
     )
-    const missingSources = input.stage.resolvedConfig.modules.filter(
-      (module) => !moduleSources.has(module),
+    const configuredModuleContexts = input.stage.resolvedConfig.modules.flatMap(
+      (configuration) => {
+        const context = moduleContexts.get(configuration)
+        return context === undefined ? [] : [{ configuration, context }]
+      },
     )
-    const foreignSources = [...moduleSources.keys()].filter(
+    const missingSources = input.stage.resolvedConfig.modules.filter(
+      (module) => !moduleContexts.has(module),
+    )
+    const foreignSources = [...moduleContexts.keys()].filter(
       (module) => !configuredModules.has(module),
     )
     if (missingSources.length > 0 || foreignSources.length > 0) {
@@ -63,9 +68,23 @@ export class RiviereProject {
       }
     }
 
+    const modules = configuredModuleContexts.map(({ configuration, context }) => {
+      return RiviereModule.build({
+        configuration,
+        project: context.project,
+        sourceFiles: context.files,
+        candidateDraftComponents: input.draftComponents,
+      })
+    })
+    const assignedDraftComponents = new Set(
+      modules.flatMap((module) => module.draftComponents()),
+    )
+    const unassignedDraftComponents = input.draftComponents.filter(
+      (component) => !assignedDraftComponents.has(component),
+    )
     return {
       success: true as const,
-      data: new RiviereProject(input.stage, moduleSources, input.draftComponents),
+      data: new RiviereProject(input.stage, modules, unassignedDraftComponents),
     }
   }
 
@@ -75,15 +94,14 @@ export class RiviereProject {
     includeConnections: boolean
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
   }) {
-    const selectedModuleSources = this.selectedModuleSources(
-      options.sourceFileSelection ?? { kind: 'all' },
+    this.assertEveryConfiguredModuleHasAnEntity()
+    const selection = options.sourceFileSelection ?? { kind: 'all' as const }
+    const draftComponents = this.modules.flatMap((module) =>
+      selection.kind === 'all'
+        ? module.extractAllDraftComponents()
+        : module.extractDraftComponentsFrom(new Set(selection.filePaths)),
     )
-    this.draftComponents = this.stage.resolvedConfig.modules.flatMap((module) => {
-      const source = this.sourceFor(module)
-      const selectedFiles = sourceForModule(selectedModuleSources, module).files
-      return extractComponents(source.project, [...selectedFiles], module)
-    })
-    const draftComponents = this.draftComponents
+    this.unassignedDraftComponents = []
 
     if (!options.includeConnections) {
       return {
@@ -92,39 +110,7 @@ export class RiviereProject {
       }
     }
 
-    const enrichment = enrichComponentsForModules(
-      this.stage.resolvedConfig.modules,
-      this.moduleContexts,
-      groupDraftComponentsByModule(
-        draftComponents,
-        this.stage.resolvedConfig.modules,
-        selectedModuleSources,
-      ),
-      options.allowIncomplete,
-    )
-    if (enrichment.kind === 'fieldFailure') {
-      return { kind: 'fieldFailure' as const, failedFields: enrichment.failedFields }
-    }
-
-    const connectionResult = this.detectConnections(
-      enrichment.components,
-      options.allowIncomplete,
-      options.observeConnectionDetectionPhase,
-    )
-    const httpLinks = this.stage.resolvedConfig.connections?.httpLinks ?? []
-    const visibleComponents = stripResolvedCustomTypes(
-      enrichment.components,
-      httpLinks,
-      connectionResult.links,
-    )
-
-    return {
-      kind: 'full' as const,
-      components: visibleComponents,
-      failedFields: enrichment.failedFields,
-      links: connectionResult.links,
-      externalLinks: connectionResult.externalLinks,
-    }
+    return this.enrichDraftComponentsAndDetectConnections(options)
   }
 
   enrichDraftComponents(options: {
@@ -132,7 +118,8 @@ export class RiviereProject {
     includeConnections: boolean
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
   }) {
-    const draftComponents = this.draftComponents
+    this.assertEveryConfiguredModuleHasAnEntity()
+    const draftComponents = this.modules.flatMap((module) => module.draftComponents())
     if (!options.includeConnections) {
       return {
         kind: 'draftOnly' as const,
@@ -140,36 +127,37 @@ export class RiviereProject {
       }
     }
 
-    const enrichment = enrichComponentsForModules(
-      this.stage.resolvedConfig.modules,
-      this.moduleContexts,
-      groupDraftComponentsByModule(
-        draftComponents,
-        this.stage.resolvedConfig.modules,
-        this.moduleSources,
-      ),
-      options.allowIncomplete,
-    )
-    if (enrichment.kind === 'fieldFailure') {
-      return { kind: 'fieldFailure' as const, failedFields: enrichment.failedFields }
-    }
+    return this.enrichDraftComponentsAndDetectConnections(options)
+  }
 
+  private enrichDraftComponentsAndDetectConnections(options: {
+    allowIncomplete: boolean
+    observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
+  }) {
+    this.assertNoUnassignedDraftComponents()
+    const enrichment = EnrichmentResult.mergeModuleResults(
+      this.modules
+        .filter((module) => module.draftComponents().length > 0)
+        .map((module) => module.enrichDraftComponents()),
+    )
+    const failedFields = enrichment.failedFieldNames()
+    if (enrichment.hasFailures() && !options.allowIncomplete) {
+      return { kind: 'fieldFailure' as const, failedFields }
+    }
     const connectionResult = this.detectConnections(
       enrichment.components,
       options.allowIncomplete,
       options.observeConnectionDetectionPhase,
     )
     const httpLinks = this.stage.resolvedConfig.connections?.httpLinks ?? []
-    const visibleComponents = stripResolvedCustomTypes(
-      enrichment.components,
-      httpLinks,
-      connectionResult.links,
-    )
-
     return {
       kind: 'full' as const,
-      components: visibleComponents,
-      failedFields: enrichment.failedFields,
+      components: stripResolvedCustomTypes(
+        enrichment.components,
+        httpLinks,
+        connectionResult.links,
+      ),
+      failedFields,
       links: connectionResult.links,
       externalLinks: connectionResult.externalLinks,
     }
@@ -217,23 +205,16 @@ export class RiviereProject {
     })
   }
 
-  private get moduleContexts() {
-    return this.stage.moduleContexts.map(({ module, project }) => ({ module, project }))
-  }
-
   private buildScopedCallGraphs(
     enrichedComponents: readonly EnrichedComponent[],
     componentIndex: ComponentIndex,
     strict: boolean,
   ): ScopedCallGraph[] {
-    return this.stage.resolvedConfig.modules.map((module) => {
-      const source = this.sourceFor(module)
-      const components = enrichedComponents.filter((component) =>
-        componentBelongsToModule(component, module, source.files),
-      )
+    return this.modules.map((module) => {
+      const components = enrichedComponents.filter((component) => module.owns(component))
       return buildScopedCallGraph({
-        project: source.project,
-        sourceFilePaths: source.files,
+        project: module.typeScriptProject(),
+        sourceFilePaths: module.sourceFilePaths(),
         components,
         componentIndex,
         strict,
@@ -241,21 +222,20 @@ export class RiviereProject {
     })
   }
 
-  private sourceFor(module: ValidatedModule): ModuleSource {
-    return sourceForModule(this.moduleSources, module)
+  private assertEveryConfiguredModuleHasAnEntity(): void {
+    for (const configuration of this.stage.resolvedConfig.modules) {
+      if (!this.modules.some((module) => module.name() === configuration.name)) {
+        throw new MissingModuleSourceError(configuration.name)
+      }
+    }
   }
 
-  private selectedModuleSources(selection: SourceFileSelection) {
-    if (selection.kind === 'all') return this.moduleSources
-    const selectedFiles = new Set(selection.filePaths)
-    return new Map(
-      [...this.moduleSources.entries()].map(
-        ([module, source]) =>
-          [
-            module,
-            { ...source, files: source.files.filter((file) => selectedFiles.has(file)) },
-          ] as const,
-      ),
+  private assertNoUnassignedDraftComponents(): void {
+    if (this.unassignedDraftComponents.length === 0) return
+    throw new OrphanedDraftComponentError(
+      [...new Set(this.unassignedDraftComponents.map((draft) => draft.domain))],
+      this.modules.map((module) => module.domain()),
+      'domains',
     )
   }
 }
@@ -351,52 +331,4 @@ function observePhase<T>(
   } finally {
     observer?.({ phase, status: 'completed' })
   }
-}
-
-function sourceForModule(
-  moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
-  module: ValidatedModule,
-): ModuleSource {
-  const source = moduleSources.get(module)
-  if (source === undefined) {
-    throw new MissingModuleSourceError(module.name)
-  }
-  return source
-}
-
-function groupDraftComponentsByModule(
-  draftComponents: readonly DraftComponent[],
-  modules: readonly ValidatedModule[],
-  moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
-): ReadonlyMap<string, readonly DraftComponent[]> {
-  const grouped = new Map<string, DraftComponent[]>()
-  for (const module of modules) {
-    const source = sourceForModule(moduleSources, module)
-    const moduleDrafts = draftComponents.filter((component) =>
-      componentBelongsToModule(component, module, source.files),
-    )
-    if (moduleDrafts.length > 0) grouped.set(module.name, moduleDrafts)
-  }
-  const matchedDrafts = new Set([...grouped.values()].flat())
-  const unmatchedDrafts = draftComponents.filter((draft) => !matchedDrafts.has(draft))
-  if (unmatchedDrafts.length > 0) {
-    throw new OrphanedDraftComponentError(
-      [...new Set(unmatchedDrafts.map((draft) => draft.domain))],
-      modules.map((module) => module.domain),
-      'domains',
-    )
-  }
-  return grouped
-}
-
-function componentBelongsToModule(
-  component: Pick<DraftComponent, 'domain' | 'location' | 'module'>,
-  module: ValidatedModule,
-  files: readonly string[],
-): boolean {
-  const isConfiguredFile = files.length === 0 || files.includes(component.location.file)
-  if (!isConfiguredFile || component.domain !== module.domain) return false
-  const resolvedModule =
-    files.length === 0 ? module.name : resolveModuleName(component.location.file, module)
-  return resolvedModule === component.module
 }
