@@ -209,7 +209,7 @@
           "required": ["pattern", "capture"],
           "additionalProperties": false,
           "properties": {
-            "pattern": { "type": "string", "minLength": 1 },
+            "pattern": { "type": "string", "minLength": 1, "format": "regex" },
             "capture": { "type": "integer", "minimum": 0 },
             "transform": { "$ref": "#/$defs/transform" }
           }
@@ -243,13 +243,22 @@
         "fromDecoratorArg": {
           "type": "object",
           "additionalProperties": false,
-          "minProperties": 1,
           "properties": {
             "decorator": { "type": "string", "minLength": 1 },
             "position": { "type": "integer", "minimum": 0 },
             "name": { "type": "string", "minLength": 1 },
             "transform": { "$ref": "#/$defs/transform" }
-          }
+          },
+          "oneOf": [
+            {
+              "required": ["position"],
+              "not": { "required": ["name"] }
+            },
+            {
+              "required": ["name"],
+              "not": { "required": ["position"] }
+            }
+          ]
         }
       }
     },
@@ -584,6 +593,7 @@
             "pattern": {
               "type": "string",
               "minLength": 1,
+              "format": "regex",
               "description": "Regex pattern to match against the name"
             }
           }

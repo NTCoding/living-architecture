@@ -1,7 +1,15 @@
 import { Project, SyntaxKind } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
+import { classDecoratorArgumentRule } from '../../__fixtures__/parsed-extraction-rule-fixtures'
 import { ExtractionError, TestFixtureError } from './literal-detection'
-import { evaluateFromClassDecoratorArgRule } from './evaluate-extraction-rule'
+import { evaluateFromClassDecoratorArgRule as evaluateParsedClassDecoratorArgRule } from './evaluate-extraction-rule'
+
+function evaluateFromClassDecoratorArgRule(
+  input: unknown,
+  declaration: import('ts-morph').MethodDeclaration,
+) {
+  return evaluateParsedClassDecoratorArgRule(classDecoratorArgumentRule(input), declaration)
+}
 
 function createMethodFromClass(code: string) {
   const project = new Project({ useInMemoryFileSystem: true })

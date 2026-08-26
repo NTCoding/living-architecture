@@ -1,7 +1,7 @@
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Project } from 'ts-morph'
 import {
-  type ComponentRule,
+  type ComponentRuleInput,
   ValidatedConfiguration,
   ValidatedModule,
   type ValidatedModuleInput,
@@ -24,7 +24,7 @@ vi.mock('./connection-detection/resolve-http-links', async (importOriginal) => (
   stripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
 }))
 
-const notUsedRule: ComponentRule = { notUsed: true }
+const notUsedRule: ComponentRuleInput = { notUsed: true }
 
 function createModule(name: string, modules?: string): ValidatedModuleInput {
   return {

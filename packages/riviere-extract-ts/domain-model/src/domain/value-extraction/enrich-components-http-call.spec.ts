@@ -1,5 +1,5 @@
 import type {
-  ExtractionRule,
+  ExtractionRuleInput,
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
 import { Project } from 'ts-morph'
@@ -19,7 +19,7 @@ function nextFile(path: string, content: string) {
   return filePath
 }
 
-function httpCallModule(extract: Record<string, ExtractionRule>): ValidatedModule {
+function httpCallModule(extract: Record<string, ExtractionRuleInput>): ValidatedModule {
   return createValidatedModule({
     api: { notUsed: true },
     useCase: { notUsed: true },

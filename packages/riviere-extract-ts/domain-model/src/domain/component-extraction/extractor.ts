@@ -156,7 +156,7 @@ function extractComponentType(
   componentType: ComponentType,
 ): DraftComponent[] {
   const rule = module.ruleFor(componentType)
-  if (!('find' in rule)) {
+  if (rule.kind === 'notUsed') {
     return []
   }
   return extractWithRule(sourceFile, filePath, context, componentType, rule)

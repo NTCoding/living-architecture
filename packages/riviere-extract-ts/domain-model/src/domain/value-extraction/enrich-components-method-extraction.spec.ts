@@ -1,6 +1,6 @@
 import type {
-  ComponentRule,
-  ExtractBlock,
+  ComponentRuleInput,
+  ExtractBlockInput,
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
 import { Project } from 'ts-morph'
@@ -46,8 +46,8 @@ function ordersDraft(type: string, name: string, file: string, line: number): Dr
 function ordersModule(
   path: string,
   overrides: {
-    domainOp?: ComponentRule
-    eventHandler?: ComponentRule
+    domainOp?: ComponentRuleInput
+    eventHandler?: ComponentRuleInput
   },
 ): ValidatedModule {
   return createValidatedModule({
@@ -64,7 +64,7 @@ function ordersModule(
   })
 }
 
-const domainOpMethodRule = (extract: ExtractBlock): ComponentRule => ({
+const domainOpMethodRule = (extract: ExtractBlockInput): ComponentRuleInput => ({
   find: 'methods',
   where: { nameEndsWith: { suffix: 'Order' } },
   extract,
@@ -79,7 +79,7 @@ const genericArgExtract = {
   },
 }
 
-const eventHandlerMethodRule = (extract: ExtractBlock): ComponentRule => ({
+const eventHandlerMethodRule = (extract: ExtractBlockInput): ComponentRuleInput => ({
   find: 'methods',
   where: { nameEndsWith: { suffix: 'handle' } },
   extract,

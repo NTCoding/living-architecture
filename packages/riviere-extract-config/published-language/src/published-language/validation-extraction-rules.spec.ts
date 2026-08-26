@@ -127,6 +127,16 @@ describe('extraction rules schema validation', () => {
       }
       expect(validateExtractionConfigSchema(config).valid).toBe(false)
     })
+
+    it('returns invalid when fromFilePath pattern is not a regular expression', () => {
+      const { config, module } = createMutableConfig()
+      module.api = {
+        find: 'classes',
+        where: { hasDecorator: { name: 'Controller' } },
+        extract: { domain: { fromFilePath: { pattern: '[', capture: 0 } } },
+      }
+      expect(validateExtractionConfigSchema(config).valid).toBe(false)
+    })
   })
 
   describe('fromProperty extraction rule', () => {
@@ -209,6 +219,26 @@ describe('extraction rules schema validation', () => {
         find: 'methods',
         where: { hasDecorator: { name: 'Get' } },
         extract: { path: { fromDecoratorArg: {} } },
+      }
+      expect(validateExtractionConfigSchema(config).valid).toBe(false)
+    })
+
+    it('returns invalid when fromDecoratorArg only names a decorator', () => {
+      const { config, module } = createMutableConfig()
+      module.api = {
+        find: 'methods',
+        where: { hasDecorator: { name: 'Get' } },
+        extract: { path: { fromDecoratorArg: { decorator: 'Get' } } },
+      }
+      expect(validateExtractionConfigSchema(config).valid).toBe(false)
+    })
+
+    it('returns invalid when fromDecoratorArg selects by position and name', () => {
+      const { config, module } = createMutableConfig()
+      module.api = {
+        find: 'methods',
+        where: { hasDecorator: { name: 'Get' } },
+        extract: { path: { fromDecoratorArg: { position: 0, name: 'path' } } },
       }
       expect(validateExtractionConfigSchema(config).valid).toBe(false)
     })

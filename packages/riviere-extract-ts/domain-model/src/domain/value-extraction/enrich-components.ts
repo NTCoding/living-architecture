@@ -27,6 +27,10 @@ import {
 import { evaluateFromGenericArgRule } from './evaluate-extraction-rule-generic'
 import { ExtractionResult } from './extraction-result'
 
+function isDetectionRule(rule: ComponentRule): rule is DetectionRule {
+  return rule.kind === 'detection'
+}
+
 function getBuiltInRule(module: ValidatedModule, componentType: string): DetectionRule | undefined {
   const ruleMap: Record<string, ComponentRule> = {
     api: module.api,
@@ -37,7 +41,7 @@ function getBuiltInRule(module: ValidatedModule, componentType: string): Detecti
     ui: module.ui,
   }
   const rule = ruleMap[componentType]
-  if (rule === undefined || !('find' in rule)) {
+  if (rule === undefined || !isDetectionRule(rule)) {
     return undefined
   }
   return rule
@@ -203,98 +207,77 @@ function findContainingClass(project: Project, draft: DraftComponent): ClassDecl
   )
 }
 
-function evaluateClassRule(rule: ExtractionRule, classDecl: ClassDeclaration): ExtractionResult {
-  if ('fromClassName' in rule) {
-    return evaluateFromClassNameRule(rule, classDecl)
-  }
-
-  throw new ExtractionError(
-    'Unsupported extraction rule type for class-based component',
-    classDecl.getSourceFile().getFilePath(),
-    classDecl.getStartLineNumber(),
-  )
-}
-
-function evaluateMethodRule(
-  rule: ExtractionRule,
-  draft: DraftComponent,
-  project: Project,
-): ExtractionResult | undefined {
-  if ('fromMethodName' in rule) {
-    const methodDecl = findMethodAtLine(project, draft)
-    return evaluateFromMethodNameRule(rule, methodDecl)
-  }
-
-  if ('fromDecoratorArg' in rule) {
-    const methodDecl = requireMethodForDecoratorRule(project, draft, 'fromDecoratorArg')
-    const decorator = findDecoratorOnMethod(methodDecl, rule.fromDecoratorArg.decorator)
-    return evaluateFromDecoratorArgRule(rule, decorator)
-  }
-
-  if ('fromClassDecoratorArg' in rule) {
-    const methodDecl = findMethodAtLine(project, draft)
-    return evaluateFromClassDecoratorArgRule(rule, methodDecl)
-  }
-
-  if ('fromDecoratorName' in rule) {
-    const methodDecl = requireMethodForDecoratorRule(project, draft, 'fromDecoratorName')
-    const decorator = findDecoratorOnMethod(methodDecl)
-    return evaluateFromDecoratorNameRule(rule, decorator)
-  }
-
-  if ('fromParameterType' in rule) {
-    const methodDecl = findMethodAtLine(project, draft)
-    const params = methodDecl.getParameters()
-    const position = rule.fromParameterType.position
-    const param = params[position]
-    if (param === undefined) {
-      throw new ExtractionError(
-        `Parameter position ${position} out of bounds. Method has ${params.length} parameter(s)`,
-        draft.location.file,
-        draft.location.line,
-      )
-    }
-    const typeName = param.getTypeNode()?.getText() ?? 'unknown'
-    const transform = rule.fromParameterType.transform
-    if (transform === undefined) {
-      return ExtractionResult.parse({ value: typeName })
-    }
-    return ExtractionResult.parse({ value: applyTransforms(typeName, transform) })
-  }
-
-  return undefined
-}
-
 function evaluateRule(
   rule: ExtractionRule,
   draft: DraftComponent,
   project: Project,
 ): ExtractionResult {
-  if ('literal' in rule) {
-    return evaluateLiteralRule(rule)
+  switch (rule.kind) {
+    case 'literal':
+      return evaluateLiteralRule(rule)
+    case 'fromFilePath':
+      return evaluateFromFilePathRule(rule, draft.location.file)
+    default:
+      return evaluateRuleFromComponentDeclaration(rule, draft, project)
   }
+}
 
-  if ('fromFilePath' in rule) {
-    return evaluateFromFilePathRule(rule, draft.location.file)
+function evaluateRuleFromComponentDeclaration(
+  rule: Exclude<ExtractionRule, { readonly kind: 'literal' | 'fromFilePath' }>,
+  draft: DraftComponent,
+  project: Project,
+): ExtractionResult {
+  switch (rule.kind) {
+    case 'fromMethodName':
+      return evaluateFromMethodNameRule(rule, findMethodAtLine(project, draft))
+    case 'fromDecoratorArg': {
+      const method = requireMethodForDecoratorRule(project, draft, 'fromDecoratorArg')
+      return evaluateFromDecoratorArgRule(rule, findDecoratorOnMethod(method, rule.decoratorName))
+    }
+    case 'fromClassDecoratorArg':
+      return evaluateFromClassDecoratorArgRule(rule, findMethodAtLine(project, draft))
+    case 'fromDecoratorName': {
+      const method = requireMethodForDecoratorRule(project, draft, 'fromDecoratorName')
+      return evaluateFromDecoratorNameRule(rule, findDecoratorOnMethod(method))
+    }
+    case 'fromParameterType': {
+      return evaluateComponentParameterType(rule, draft, project)
+    }
+    case 'fromGenericArg':
+      return evaluateFromGenericArgRule(rule, findContainingClass(project, draft))
+    case 'fromProperty':
+      return evaluateFromPropertyRule(rule, findContainingClass(project, draft))
+    case 'fromClassName':
+      return evaluateFromClassNameRule(rule, findClassAtLine(project, draft))
+    case 'fromMethodSignature':
+    case 'fromConstructorParams':
+      throw new ExtractionError(
+        `Rule '${rule.kind}' is not supported for component metadata extraction`,
+        draft.location.file,
+        draft.location.line,
+      )
   }
+}
 
-  const methodRuleResult = evaluateMethodRule(rule, draft, project)
-  if (methodRuleResult !== undefined) {
-    return methodRuleResult
+function evaluateComponentParameterType(
+  rule: Extract<ExtractionRule, { readonly kind: 'fromParameterType' }>,
+  draft: DraftComponent,
+  project: Project,
+): ExtractionResult {
+  const method = findMethodAtLine(project, draft)
+  const parameters = method.getParameters()
+  const parameter = parameters[rule.position]
+  if (parameter === undefined) {
+    throw new ExtractionError(
+      `Parameter position ${rule.position} out of bounds. Method has ${parameters.length} parameter(s)`,
+      draft.location.file,
+      draft.location.line,
+    )
   }
-
-  if ('fromGenericArg' in rule) {
-    const classDecl = findContainingClass(project, draft)
-    return evaluateFromGenericArgRule(rule, classDecl)
-  }
-
-  if ('fromProperty' in rule) {
-    const classDecl = findContainingClass(project, draft)
-    return evaluateFromPropertyRule(rule, classDecl)
-  }
-
-  const classDecl = findClassAtLine(project, draft)
-  return evaluateClassRule(rule, classDecl)
+  const typeName = parameter.getTypeNode()?.getText() ?? 'unknown'
+  return ExtractionResult.parse({
+    value: rule.transform === undefined ? typeName : applyTransforms(typeName, rule.transform),
+  })
 }
 
 interface SingleComponentResult {
@@ -326,7 +309,7 @@ function shouldIgnoreMissingMetadataField(
   return (
     draft.type === 'api' &&
     (fieldName === 'route' || fieldName === 'method') &&
-    'fromProperty' in extractionRule &&
+    extractionRule.kind === 'fromProperty' &&
     errorMessage.includes(`Property '${fieldName}' not found on class`)
   )
 }

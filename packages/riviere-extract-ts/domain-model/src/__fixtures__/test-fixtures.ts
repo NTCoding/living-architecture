@@ -1,8 +1,8 @@
 import type {
   ComponentType,
-  CustomTypes,
-  DetectionRule,
-  ExtractBlock,
+  CustomTypesInput,
+  DetectionRuleInput,
+  ExtractBlockInput,
   ValidatedModuleInput,
 } from '@living-architecture/riviere-extract-config-published-language'
 import {
@@ -63,7 +63,7 @@ export function createResolvedConfig(): ValidatedConfiguration {
 export function createConfigWithCustomTypes(
   domain: string,
   modulePath: string,
-  customTypes: CustomTypes,
+  customTypes: CustomTypesInput,
   moduleGlob = '**',
 ): ValidatedConfiguration {
   return createConfiguration([
@@ -87,10 +87,10 @@ export function createConfigWithRule(
   domain: string,
   modulePath: string,
   componentType: ComponentType,
-  rule: DetectionRule,
+  rule: DetectionRuleInput,
   moduleGlob = '**',
 ): ValidatedConfiguration {
-  const requiredFields: Partial<Record<ComponentType, ExtractBlock>> = {
+  const requiredFields: Partial<Record<ComponentType, ExtractBlockInput>> = {
     api: { apiType: { literal: 'REST' } },
     domainOp: { operationName: { literal: 'operation' } },
     event: { eventName: { literal: 'Event' } },

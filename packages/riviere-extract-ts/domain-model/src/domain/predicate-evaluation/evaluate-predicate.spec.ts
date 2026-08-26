@@ -1,11 +1,16 @@
-import type { Predicate } from '@living-architecture/riviere-extract-config-published-language'
-import { Project } from 'ts-morph'
+import { type PredicateInput } from '@living-architecture/riviere-extract-config-published-language'
+import { Project, type Node } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
-import { evaluatePredicate } from './evaluate-predicate'
+import { parsePredicateForTest } from '../../__fixtures__/parsed-predicate-fixture'
+import { evaluatePredicate as evaluateParsedPredicate } from './evaluate-predicate'
 
 function createTestProject(code: string) {
   const project = new Project({ useInMemoryFileSystem: true })
   return project.createSourceFile('test.ts', code)
+}
+
+function evaluatePredicate(node: Node, input: PredicateInput): boolean {
+  return evaluateParsedPredicate(node, parsePredicateForTest(input))
 }
 
 describe('evaluatePredicate', () => {
@@ -17,7 +22,7 @@ describe('evaluatePredicate', () => {
         class OrderController {}
       `)
       const classDecl = sourceFile.getClassOrThrow('OrderController')
-      const predicate: Predicate = { hasDecorator: { name: 'API' } }
+      const predicate: PredicateInput = { hasDecorator: { name: 'API' } }
 
       const result = evaluatePredicate(classDecl, predicate)
 
@@ -29,7 +34,7 @@ describe('evaluatePredicate', () => {
         class OrderController {}
       `)
       const classDecl = sourceFile.getClassOrThrow('OrderController')
-      const predicate: Predicate = { hasDecorator: { name: 'API' } }
+      const predicate: PredicateInput = { hasDecorator: { name: 'API' } }
 
       const result = evaluatePredicate(classDecl, predicate)
 
@@ -43,7 +48,7 @@ describe('evaluatePredicate', () => {
         class OrderController {}
       `)
       const classDecl = sourceFile.getClassOrThrow('OrderController')
-      const predicate: Predicate = { hasDecorator: { name: 'API' } }
+      const predicate: PredicateInput = { hasDecorator: { name: 'API' } }
 
       const result = evaluatePredicate(classDecl, predicate)
 
@@ -60,7 +65,7 @@ describe('evaluatePredicate', () => {
       `)
       const classDecl = sourceFile.getClassOrThrow('Controller')
       const method = classDecl.getMethodOrThrow('findAll')
-      const predicate: Predicate = { hasDecorator: { name: ['Get', 'Post', 'Put'] } }
+      const predicate: PredicateInput = { hasDecorator: { name: ['Get', 'Post', 'Put'] } }
 
       const result = evaluatePredicate(method, predicate)
 
@@ -72,7 +77,7 @@ describe('evaluatePredicate', () => {
         function myFunction() {}
       `)
       const funcDecl = sourceFile.getFunctionOrThrow('myFunction')
-      const predicate: Predicate = { hasDecorator: { name: 'API' } }
+      const predicate: PredicateInput = { hasDecorator: { name: 'API' } }
 
       const result = evaluatePredicate(funcDecl, predicate)
 
@@ -90,7 +95,7 @@ describe('evaluatePredicate', () => {
         `)
         const classDecl = sourceFile.getClassOrThrow('Controller')
         const method = classDecl.getMethodOrThrow('findAll')
-        const predicate: Predicate = {
+        const predicate: PredicateInput = {
           hasDecorator: {
             name: 'Get',
             from: '@nestjs/common',
@@ -112,7 +117,7 @@ describe('evaluatePredicate', () => {
         `)
         const classDecl = sourceFile.getClassOrThrow('Controller')
         const method = classDecl.getMethodOrThrow('findAll')
-        const predicate: Predicate = {
+        const predicate: PredicateInput = {
           hasDecorator: {
             name: 'Get',
             from: '@nestjs/common',
@@ -305,7 +310,9 @@ describe('evaluatePredicate', () => {
       `)
       const classDecl = sourceFile.getClassOrThrow('OrderController')
       const method = classDecl.getMethodOrThrow('findAll')
-      const predicate: Predicate = { inClassWith: { hasDecorator: { name: 'Controller' } } }
+      const predicate: PredicateInput = {
+        inClassWith: { hasDecorator: { name: 'Controller' } },
+      }
 
       const result = evaluatePredicate(method, predicate)
 
@@ -320,7 +327,9 @@ describe('evaluatePredicate', () => {
       `)
       const classDecl = sourceFile.getClassOrThrow('OrderService')
       const method = classDecl.getMethodOrThrow('process')
-      const predicate: Predicate = { inClassWith: { hasDecorator: { name: 'Controller' } } }
+      const predicate: PredicateInput = {
+        inClassWith: { hasDecorator: { name: 'Controller' } },
+      }
 
       const result = evaluatePredicate(method, predicate)
 
@@ -332,7 +341,9 @@ describe('evaluatePredicate', () => {
         class OrderService {}
       `)
       const classDecl = sourceFile.getClassOrThrow('OrderService')
-      const predicate: Predicate = { inClassWith: { hasDecorator: { name: 'Controller' } } }
+      const predicate: PredicateInput = {
+        inClassWith: { hasDecorator: { name: 'Controller' } },
+      }
 
       const result = evaluatePredicate(classDecl, predicate)
 
@@ -348,7 +359,7 @@ describe('evaluatePredicate', () => {
         class OrderController {}
       `)
       const classDecl = sourceFile.getClassOrThrow('OrderController')
-      const predicate: Predicate = {
+      const predicate: PredicateInput = {
         and: [{ hasDecorator: { name: 'API' } }, { nameEndsWith: { suffix: 'Controller' } }],
       }
 
@@ -364,7 +375,7 @@ describe('evaluatePredicate', () => {
         class OrderService {}
       `)
       const classDecl = sourceFile.getClassOrThrow('OrderService')
-      const predicate: Predicate = {
+      const predicate: PredicateInput = {
         and: [{ hasDecorator: { name: 'API' } }, { nameEndsWith: { suffix: 'Controller' } }],
       }
 
@@ -380,7 +391,7 @@ describe('evaluatePredicate', () => {
         class OrderController {}
       `)
       const classDecl = sourceFile.getClassOrThrow('OrderController')
-      const predicate: Predicate = {
+      const predicate: PredicateInput = {
         or: [{ hasDecorator: { name: 'API' } }, { nameEndsWith: { suffix: 'Controller' } }],
       }
 
@@ -394,7 +405,7 @@ describe('evaluatePredicate', () => {
         class OrderService {}
       `)
       const classDecl = sourceFile.getClassOrThrow('OrderService')
-      const predicate: Predicate = {
+      const predicate: PredicateInput = {
         or: [{ hasDecorator: { name: 'API' } }, { nameEndsWith: { suffix: 'Controller' } }],
       }
 
@@ -417,7 +428,7 @@ describe('evaluatePredicate', () => {
       `)
       const classDecl = sourceFile.getClassOrThrow('OrderController')
       const method = classDecl.getMethodOrThrow('findAll')
-      const predicate: Predicate = {
+      const predicate: PredicateInput = {
         and: [
           { hasDecorator: { name: 'Get' } },
           { inClassWith: { hasDecorator: { name: 'Controller' } } },

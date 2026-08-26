@@ -1,4 +1,4 @@
-import type { Transform } from '@living-architecture/riviere-extract-config-published-language'
+import type { ExtractionTransform } from '@living-architecture/riviere-extract-config-published-language'
 
 function stripSuffix(value: string, suffix: string): string {
   if (value.endsWith(suffix)) {
@@ -40,7 +40,7 @@ type TransformFn = (value: string) => string
  * @riviere-role domain-service
  * @riviere-role-justification TODO: Added before justification rule introduced.
  */
-export function applyTransforms(value: string, transform: Transform): string {
+export function applyTransforms(value: string, transform: ExtractionTransform): string {
   const transformers: TransformFn[] = []
 
   if (transform.stripSuffix !== undefined) {

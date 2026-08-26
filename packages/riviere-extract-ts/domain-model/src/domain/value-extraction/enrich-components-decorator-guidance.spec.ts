@@ -1,5 +1,5 @@
 import type {
-  ExtractionRule,
+  ExtractionRuleInput,
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
 import { Project } from 'ts-morph'
@@ -16,7 +16,7 @@ function nextFile(content: string): string {
   return filePath
 }
 
-function createBaseModule(extract: Record<string, ExtractionRule>): ValidatedModule {
+function createBaseModule(extract: Record<string, ExtractionRuleInput>): ValidatedModule {
   return createValidatedModule({
     name: 'orders',
     domain: 'orders-domain',

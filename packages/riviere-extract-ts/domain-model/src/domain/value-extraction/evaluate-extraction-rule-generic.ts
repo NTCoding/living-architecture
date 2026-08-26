@@ -46,7 +46,7 @@ export function evaluateFromGenericArgRule(
   rule: FromGenericArgExtractionRule,
   classDecl: ClassDeclaration,
 ): ExtractionResult {
-  const { interface: interfaceName, position, transform } = rule.fromGenericArg
+  const { interfaceName, position, transform } = rule
 
   const sourceFile = classDecl.getSourceFile()
   const location = {

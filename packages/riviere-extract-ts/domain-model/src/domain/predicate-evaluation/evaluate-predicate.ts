@@ -44,41 +44,31 @@ function isNameableNode(node: Node): node is NameableNode {
  * @returns Whether the node satisfies the predicate
  */
 export function evaluatePredicate(node: Node, predicate: Predicate): boolean {
-  if ('hasDecorator' in predicate) {
-    return evaluateHasDecorator(node, predicate.hasDecorator.name, predicate.hasDecorator.from)
+  switch (predicate.kind) {
+    case 'hasDecorator':
+      return evaluateHasDecorator(node, predicate.decoratorNames, predicate.fromPackage)
+    case 'hasJSDoc':
+      return evaluateHasJSDoc(node, predicate.tagName)
+    case 'extendsClass':
+      return evaluateExtendsClass(node, predicate.className)
+    case 'implementsInterface':
+      return evaluateImplementsInterface(node, predicate.interfaceName)
+    case 'nameEndsWith':
+      return evaluateNameEndsWith(node, predicate.suffix)
+    case 'nameMatches':
+      return evaluateNameMatches(node, predicate.pattern)
+    case 'inClassWith':
+      return evaluateInClassWith(node, predicate.predicate)
+    case 'and':
+      return predicate.predicates.every((nested) => evaluatePredicate(node, nested))
+    case 'or':
+      return predicate.predicates.some((nested) => evaluatePredicate(node, nested))
   }
-  if ('hasJSDoc' in predicate) {
-    return evaluateHasJSDoc(node, predicate.hasJSDoc.tag)
-  }
-  if ('extendsClass' in predicate) {
-    return evaluateExtendsClass(node, predicate.extendsClass.name)
-  }
-  if ('implementsInterface' in predicate) {
-    return evaluateImplementsInterface(node, predicate.implementsInterface.name)
-  }
-  if ('nameEndsWith' in predicate) {
-    return evaluateNameEndsWith(node, predicate.nameEndsWith.suffix)
-  }
-  if ('nameMatches' in predicate) {
-    return evaluateNameMatches(node, predicate.nameMatches.pattern)
-  }
-  if ('inClassWith' in predicate) {
-    return evaluateInClassWith(node, predicate.inClassWith)
-  }
-  if ('and' in predicate) {
-    return predicate.and.every((p) => evaluatePredicate(node, p))
-  }
-  /* istanbul ignore else -- @preserve: false branch leads to unreachable code; Predicate is exhaustive union */
-  if ('or' in predicate) {
-    return predicate.or.some((p) => evaluatePredicate(node, p))
-  }
-  /* istanbul ignore next -- @preserve: unreachable with valid Predicate type */
-  return false
 }
 
 function evaluateHasDecorator(
   node: Node,
-  decoratorName: string | string[],
+  decoratorNames: readonly string[],
   fromPackage?: string,
 ): boolean {
   if (!isDecoratableNode(node)) {
@@ -86,10 +76,8 @@ function evaluateHasDecorator(
   }
 
   const decorators = node.getDecorators()
-  const names = Array.isArray(decoratorName) ? decoratorName : [decoratorName]
-
   return decorators.some((d) => {
-    if (!names.includes(d.getName())) {
+    if (!decoratorNames.includes(d.getName())) {
       return false
     }
     if (fromPackage !== undefined) {

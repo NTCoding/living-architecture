@@ -1,13 +1,49 @@
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
+import {
+  classNameRule,
+  filePathRule,
+  literalRule,
+  methodNameRule,
+  propertyRule,
+} from '../../__fixtures__/parsed-extraction-rule-fixtures'
 import { ExtractionError, TestFixtureError } from './literal-detection'
 import {
-  evaluateFromClassNameRule,
-  evaluateFromFilePathRule,
-  evaluateFromMethodNameRule,
-  evaluateFromPropertyRule,
-  evaluateLiteralRule,
+  evaluateFromClassNameRule as evaluateParsedClassNameRule,
+  evaluateFromFilePathRule as evaluateParsedFilePathRule,
+  evaluateFromMethodNameRule as evaluateParsedMethodNameRule,
+  evaluateFromPropertyRule as evaluateParsedPropertyRule,
+  evaluateLiteralRule as evaluateParsedLiteralRule,
 } from './evaluate-extraction-rule'
+
+function evaluateLiteralRule(input: unknown) {
+  return evaluateParsedLiteralRule(literalRule(input))
+}
+
+function evaluateFromClassNameRule(
+  input: unknown,
+  declaration: import('ts-morph').ClassDeclaration,
+) {
+  return evaluateParsedClassNameRule(classNameRule(input), declaration)
+}
+
+function evaluateFromMethodNameRule(
+  input: unknown,
+  declaration: import('ts-morph').MethodDeclaration,
+) {
+  return evaluateParsedMethodNameRule(methodNameRule(input), declaration)
+}
+
+function evaluateFromFilePathRule(input: unknown, filePath: string) {
+  return evaluateParsedFilePathRule(filePathRule(input), filePath)
+}
+
+function evaluateFromPropertyRule(
+  input: unknown,
+  declaration: import('ts-morph').ClassDeclaration,
+) {
+  return evaluateParsedPropertyRule(propertyRule(input), declaration)
+}
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
 const counter = { value: 0 }

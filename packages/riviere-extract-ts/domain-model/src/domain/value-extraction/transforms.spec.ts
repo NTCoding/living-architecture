@@ -1,4 +1,4 @@
-import type { Transform } from '@living-architecture/riviere-extract-config-published-language'
+import type { ExtractionTransform } from '@living-architecture/riviere-extract-config-published-language'
 import { describe, expect, it } from 'vitest'
 import { applyTransforms } from './transforms'
 
@@ -70,7 +70,7 @@ describe('pascalToKebab', () => {
 
 describe('applyTransforms', () => {
   it('applies transforms in YAML order (top-to-bottom)', () => {
-    const transform: Transform = {
+    const transform: ExtractionTransform = {
       stripSuffix: 'Controller',
       toLowerCase: true,
     }
@@ -82,22 +82,22 @@ describe('applyTransforms', () => {
   })
 
   it('applies stripPrefix correctly', () => {
-    const transform: Transform = { stripPrefix: 'I' }
+    const transform: ExtractionTransform = { stripPrefix: 'I' }
     expect(applyTransforms('IEventHandler', transform)).toBe('EventHandler')
   })
 
   it('applies toUpperCase correctly', () => {
-    const transform: Transform = { toUpperCase: true }
+    const transform: ExtractionTransform = { toUpperCase: true }
     expect(applyTransforms('PlaceOrder', transform)).toBe('PLACEORDER')
   })
 
   it('applies kebabToPascal correctly', () => {
-    const transform: Transform = { kebabToPascal: true }
+    const transform: ExtractionTransform = { kebabToPascal: true }
     expect(applyTransforms('order-placed', transform)).toBe('OrderPlaced')
   })
 
   it('applies pascalToKebab correctly', () => {
-    const transform: Transform = { pascalToKebab: true }
+    const transform: ExtractionTransform = { pascalToKebab: true }
     expect(applyTransforms('OrderPlaced', transform)).toBe('order-placed')
   })
 })

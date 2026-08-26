@@ -1,7 +1,7 @@
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 import type {
-  ComponentRule,
+  ComponentRuleInput as ComponentRule,
   ComponentType,
   DraftConfiguration,
   DraftModule,

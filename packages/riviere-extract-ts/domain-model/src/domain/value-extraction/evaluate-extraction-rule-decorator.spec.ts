@@ -1,11 +1,31 @@
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
+import {
+  classDecoratorArgumentRule,
+  decoratorArgumentRule,
+  decoratorNameRule,
+} from '../../__fixtures__/parsed-extraction-rule-fixtures'
 import { ExtractionError, TestFixtureError } from './literal-detection'
 import {
-  evaluateFromClassDecoratorArgRule,
-  evaluateFromDecoratorArgRule,
-  evaluateFromDecoratorNameRule,
+  evaluateFromClassDecoratorArgRule as evaluateParsedClassDecoratorArgRule,
+  evaluateFromDecoratorArgRule as evaluateParsedDecoratorArgRule,
+  evaluateFromDecoratorNameRule as evaluateParsedDecoratorNameRule,
 } from './evaluate-extraction-rule'
+
+function evaluateFromDecoratorArgRule(input: unknown, decorator: import('ts-morph').Decorator) {
+  return evaluateParsedDecoratorArgRule(decoratorArgumentRule(input), decorator)
+}
+
+function evaluateFromClassDecoratorArgRule(
+  input: unknown,
+  declaration: import('ts-morph').MethodDeclaration,
+) {
+  return evaluateParsedClassDecoratorArgRule(classDecoratorArgumentRule(input), declaration)
+}
+
+function evaluateFromDecoratorNameRule(input: unknown, decorator: import('ts-morph').Decorator) {
+  return evaluateParsedDecoratorNameRule(decoratorNameRule(input), decorator)
+}
 
 function createDecoratorFromMethod(code: string) {
   const project = new Project({ useInMemoryFileSystem: true })
@@ -142,24 +162,6 @@ describe('evaluateFromDecoratorArgRule (positional)', () => {
         decorator,
       ),
     ).toThrowError("Expected decorator '@Post', got '@Get'")
-  })
-})
-
-describe('evaluateFromDecoratorArgRule (edge cases)', () => {
-  it('throws ExtractionError when neither position nor name provided', () => {
-    const decorator = createDecoratorFromMethod(`
-      function Get(path: string) { return () => {} }
-      class OrderController {
-        @Get('/orders')
-        list() {}
-      }
-    `)
-    expect(() =>
-      evaluateFromDecoratorArgRule(
-        { fromDecoratorArg: { transform: { toUpperCase: true } } },
-        decorator,
-      ),
-    ).toThrow(ExtractionError)
   })
 })
 

@@ -60,7 +60,7 @@ export function evaluateFromParameterTypeRule(
   rule: FromParameterTypeExtractionRule,
   methodDecl: MethodDeclaration,
 ): MethodExtractionResult {
-  const { position, transform } = rule.fromParameterType
+  const { position, transform } = rule
 
   const params = methodDecl.getParameters()
   const param = params[position]

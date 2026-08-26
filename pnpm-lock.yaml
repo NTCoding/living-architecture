@@ -341,6 +341,9 @@ importers:
       ajv-formats:
         specifier: ^3.0.1
         version: 3.0.1(ajv@8.18.0)
+      zod:
+        specifier: ^4.2.1
+        version: 4.3.5
 
   packages/riviere-extract-conventions/published-language:
     dependencies:

@@ -1,5 +1,6 @@
 import type {
-  ComponentRule,
+  ComponentRuleInput,
+  DetectionRuleInput,
   ValidatedModule,
   ValidatedModuleInput,
 } from '@living-architecture/riviere-extract-config-published-language'
@@ -56,7 +57,11 @@ function notUsedModule(name: string, path: string): ValidatedModule {
   })
 }
 
-function moduleWith(componentType: string, rule: ComponentRule): ValidatedModule {
+function isDetectionRule(input: ComponentRuleInput): input is DetectionRuleInput {
+  return Object.hasOwn(input, 'find')
+}
+
+function moduleWith(componentType: string, rule: ComponentRuleInput): ValidatedModule {
   const base: ValidatedModuleInput = {
     name: 'orders',
     domain: 'orders-domain',
@@ -70,16 +75,15 @@ function moduleWith(componentType: string, rule: ComponentRule): ValidatedModule
     ui: { notUsed: true },
   }
   if (BUILT_IN_TYPES.includes(componentType)) {
-    const completedRule =
-      'find' in rule
-        ? { ...rule, extract: { ...REQUIRED_FIELDS[componentType], ...rule.extract } }
-        : rule
+    const completedRule = isDetectionRule(rule)
+      ? { ...rule, extract: { ...REQUIRED_FIELDS[componentType], ...rule.extract } }
+      : rule
     return createValidatedModule({
       ...base,
       [componentType]: completedRule,
     })
   }
-  if ('find' in rule) {
+  if (isDetectionRule(rule)) {
     return createValidatedModule({
       ...base,
       customTypes: { [componentType]: rule },
@@ -235,7 +239,7 @@ describe('enrichComponents', () => {
       expect(result.failures).toHaveLength(1)
       expect(result.failures[0]?.field).toBe('signature')
       expect(result.failures[0]?.error).toMatch(
-        'Unsupported extraction rule type for class-based component',
+        "Rule 'fromMethodSignature' is not supported for component metadata extraction",
       )
       expect(result.components[0]?._missing).toMatchObject(['signature'])
     })
