@@ -1,5 +1,15 @@
 # Tech Debt and Future Refactorings
 
+## Extract the role enforcement published language
+
+**Issue:** The public configuration accepted by `role(...)` is currently owned by the role enforcement domain model because this subdomain has no published language package.
+
+**Current model:** `RoleTarget`, `ApprovedInstance`, and `RoleConstraints` are value objects in the domain model. The `role(...)` function preserves the convenient data syntax used by configuration authors and parses that input into the value objects.
+
+**Future refactoring:** Create `@living-architecture/riviere-role-enforcement-published-language` and move the public role configuration API there. Published language may include value objects when they provide validation, type safety, or convenience to consumers.
+
+**When to revisit:** Before the role configuration API is independently versioned or consumed without the domain model package.
+
 ## Cloudflare build:deploy bypasses NX
 
 **Issue:** Race condition in `@nx/vitest` plugin when processing vite.config.ts files concurrently on slower CI systems (Cloudflare Pages).

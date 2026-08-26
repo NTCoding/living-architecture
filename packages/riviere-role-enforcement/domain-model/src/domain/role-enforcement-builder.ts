@@ -4,7 +4,7 @@ import { PackageConfigurationAssignments } from './package-configuration-assignm
 import { RoleEnforcementExecutionError } from './role-enforcement-execution-error'
 import { RoleCatalogue } from './role-catalogue'
 import { InvalidRoleDefinitionError } from './role-configuration-errors'
-import { type ApprovedInstance, type RoleConstraints, type RoleTarget } from './role-constraints'
+import { type ApprovedInstance, RoleConstraints, RoleTarget } from './role-constraints'
 import { PackageManifestRequirements } from './package-manifest-requirements'
 export { location, locationConfiguration } from './location-configuration'
 export type { LocationBuilder, LocationConfiguration } from './location-configuration'
@@ -13,10 +13,13 @@ interface ReturnShape<R extends string = string> {
   readonly '*': R | '*'
 }
 
-type RoleOptions<R extends string = string> = RoleConstraints<R> &
+type RoleConstraintInput = Parameters<typeof RoleConstraints.parse>[0]
+type RoleTargetInput = Parameters<typeof RoleTarget.parse>[0]
+
+type RoleOptions<R extends string = string> = RoleConstraintInput &
   (
     | {
-        readonly targets: readonly RoleTarget[]
+        readonly targets: readonly RoleTargetInput[]
         readonly mustBeDataStructure?: never
         readonly requiresDecoratorSignature?: never
         readonly requiresStringLiteralConstant?: never
@@ -40,7 +43,7 @@ type RoleOptions<R extends string = string> = RoleConstraints<R> &
         readonly returns?: never
       }
     | {
-        readonly targets?: readonly ('interface' | 'type-alias')[]
+        readonly targets?: readonly Extract<RoleTargetInput, 'interface' | 'type-alias'>[]
         readonly mustBeDataStructure: true
         readonly requiresDecoratorSignature?: never
         readonly requiresStringLiteralConstant?: never
@@ -65,7 +68,8 @@ type RoleOptions<R extends string = string> = RoleConstraints<R> &
       }
   )
 
-interface BuiltRoleDefinition<N extends string = string> extends RoleConstraints {
+interface BuiltRoleDefinition<N extends string = string> {
+  readonly constraints: RoleConstraints
   readonly name: N
   readonly requiresDecoratorSignature?: true
   readonly mustBeDataStructure?: true
@@ -80,7 +84,7 @@ export class BuiltRole<N extends string = string> {
   declare private readonly brand: 'BuiltRole'
 
   declare readonly name: N
-  declare readonly targets: readonly RoleTarget[]
+  declare readonly targets: readonly RoleTargetInput[]
   declare readonly allowedInputs?: readonly string[]
   declare readonly allowedNames?: readonly string[]
   declare readonly allowedOutputs?: readonly string[]
@@ -114,7 +118,10 @@ export class BuiltRole<N extends string = string> {
   declare readonly minPublicMethods?: number
 
   private constructor(definition: BuiltRoleDefinition<N>) {
-    Object.assign(this, definition)
+    Object.assign(this, definition.constraints, {
+      name: definition.name,
+      targets: definition.targets.map((target) => target.value),
+    })
   }
 
   static parse<N extends string>(definition: BuiltRoleDefinition<N>): BuiltRole<N> {
@@ -128,30 +135,32 @@ export class BuiltRole<N extends string = string> {
  */
 export function role<const N extends string>(name: N, options: RoleOptions): BuiltRole<N> {
   return BuiltRole.parse({
+    constraints: RoleConstraints.parse(options),
     name,
-    ...options,
     targets: inferredTargets(options),
   })
 }
 
 function inferredTargets(options: RoleOptions): readonly RoleTarget[] {
   if (options.requiresDecoratorSignature === true) {
-    return ['function']
+    return [RoleTarget.parse('function')]
   }
   if (options.requiresStringLiteralConstant === true) {
-    return ['variable']
+    return [RoleTarget.parse('variable')]
   }
   if (options.mustBeDataStructure === true) {
-    return options.targets ?? ['interface', 'type-alias']
+    return (options.targets ?? ['interface', 'type-alias']).map((target) =>
+      RoleTarget.parse(target),
+    )
   }
   if (options.requiresUnion === true) {
-    return ['type-alias']
+    return [RoleTarget.parse('type-alias')]
   }
   if (Array.isArray(options.returns)) {
-    return ['function']
+    return [RoleTarget.parse('function')]
   }
   if (options.targets !== undefined) {
-    return options.targets
+    return options.targets.map((target) => RoleTarget.parse(target))
   }
   throw new InvalidRoleDefinitionError('A role must declare a target or semantic rule.')
 }

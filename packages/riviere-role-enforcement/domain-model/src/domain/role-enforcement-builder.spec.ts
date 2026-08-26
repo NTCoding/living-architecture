@@ -8,6 +8,7 @@ import {
 } from './role-enforcement-builder'
 import { PackageManifestRequirements } from './package-manifest-requirements'
 import { RoleEnforcementExecutionError } from './role-enforcement-execution-error'
+import { ApprovedInstance } from './role-constraints'
 
 function expectBuiltRole(result: BuiltRole, expected: object): void {
   expect(result).toBeInstanceOf(BuiltRole)
@@ -88,10 +89,10 @@ describe('role', () => {
       targets: ['interface', 'type-alias', 'class'],
       minPublicMethods: 1,
       approvedInstances: [
-        {
+        ApprovedInstance.parse({
           name: 'RiviereProject',
           userHasApproved: true,
-        },
+        }),
       ],
     })
   })
