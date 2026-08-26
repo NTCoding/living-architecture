@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/builder-facade'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/riviere-builder'
 import { ComponentSummaryStats } from '@living-architecture/riviere-builder-domain-model/domain/inspection/component-summary-stats'
 import {
   type TestContext,
@@ -34,17 +34,15 @@ async function createInvalidGraph(testDir: string): Promise<string> {
 }
 
 function createBuilder(): RiviereBuilder {
-  return RiviereBuilder.new(
-    {
-      domains: {
-        orders: {
-          description: 'Orders',
-          systemType: 'domain',
-        },
+  return RiviereBuilder.new({
+    domains: {
+      orders: {
+        description: 'Orders',
+        systemType: 'domain',
       },
-      sources: [{ repository: 'https://github.com/org/repo' }],
     },
-  )
+    sources: [{ repository: 'https://github.com/org/repo' }],
+  })
 }
 
 describe('additional builder command coverage', () => {
@@ -61,7 +59,9 @@ describe('additional builder command coverage', () => {
         type: undefined,
       }),
     ).toMatchObject({ result: { code: 'GRAPH_CORRUPTED' } })
-    expect(new FinalizeGraph(repo).execute({ graphFileLocation: graphPath, outputPath: 'graph.json' })).toMatchObject({
+    expect(
+      new FinalizeGraph(repo).execute({ graphFileLocation: graphPath, outputPath: 'graph.json' }),
+    ).toMatchObject({
       result: { code: 'GRAPH_CORRUPTED' },
     })
     expect(
@@ -313,9 +313,12 @@ describe('additional builder command coverage', () => {
       }),
     ).toThrow('unexpected')
 
-    expect(() => new FinalizeGraph(repo).execute({ graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'), outputPath: 'graph.json' })).toThrow(
-      'unexpected',
-    )
+    expect(() =>
+      new FinalizeGraph(repo).execute({
+        graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
+        outputPath: 'graph.json',
+      }),
+    ).toThrow('unexpected')
 
     expect(() =>
       new InitGraph(repo).execute({

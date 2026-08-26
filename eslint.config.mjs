@@ -229,7 +229,7 @@ export default tseslint.config(
   // JSDoc enforcement for public library APIs
   {
     files: [
-      'packages/riviere-builder/domain-model/src/domain/builder-facade.ts',
+      'packages/riviere-builder/domain-model/src/domain/riviere-builder.ts',
       'apps/cli/src/shell/cli.ts',
       'apps/cli/src/infra/cli/presentation/error-codes.ts',
       'apps/cli/src/infra/cli/presentation/output.ts',

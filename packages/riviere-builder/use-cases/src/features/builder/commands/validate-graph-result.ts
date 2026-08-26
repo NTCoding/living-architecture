@@ -1,4 +1,4 @@
-import type { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/builder-facade'
+import type { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/riviere-builder'
 
 /** @riviere-role command-use-case-result-value */
 export type ValidationData = ReturnType<RiviereBuilder['validate']>

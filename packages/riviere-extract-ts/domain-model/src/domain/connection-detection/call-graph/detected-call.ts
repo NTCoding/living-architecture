@@ -2,7 +2,45 @@ import type { EnrichedComponent } from '../../value-extraction/enriched-componen
 import type { CallSite } from './call-graph-types'
 import type { CallableReference } from './callable-reference'
 
-type ResolvedCallTargetKind = 'component' | 'callable' | 'unresolved' | 'dead-end'
+type ResolvedCallTargetResolution =
+  | Readonly<{
+      kind: 'component'
+      callable: CallableReference
+      component: EnrichedComponent
+    }>
+  | Readonly<{
+      kind: 'callable'
+      callable: CallableReference
+    }>
+  | Readonly<{
+      kind: 'unresolved'
+      reason: string
+    }>
+  | Readonly<{
+      kind: 'dead-end'
+    }>
+
+type ResolvedCallTargetParams =
+  | Readonly<{
+      kind: 'component'
+      call: DetectedCall
+      callable: CallableReference
+      component: EnrichedComponent
+    }>
+  | Readonly<{
+      kind: 'callable'
+      call: DetectedCall
+      callable: CallableReference
+    }>
+  | Readonly<{
+      kind: 'unresolved'
+      call: DetectedCall
+      reason: string
+    }>
+  | Readonly<{
+      kind: 'dead-end'
+      call: DetectedCall
+    }>
 
 /** @riviere-role value-object */
 export class DetectedCall {
@@ -40,34 +78,35 @@ export class DetectedCall {
 
 /** @riviere-role value-object */
 export class ResolvedCallTarget {
-  declare private brand: 'ResolvedCallTarget'
-  readonly kind: ResolvedCallTargetKind
+  declare private readonly brand: 'ResolvedCallTarget'
   readonly call: DetectedCall
-  readonly callable: CallableReference | undefined
-  readonly component: EnrichedComponent | undefined
-  readonly reason: string | undefined
+  readonly resolution: ResolvedCallTargetResolution
 
-  static parse(params: {
-    kind: ResolvedCallTargetKind
-    call: DetectedCall
-    callable?: CallableReference
-    component?: EnrichedComponent
-    reason?: string
-  }): ResolvedCallTarget {
-    return new ResolvedCallTarget(params)
+  static parse(params: ResolvedCallTargetParams): ResolvedCallTarget {
+    switch (params.kind) {
+      case 'component':
+        return new ResolvedCallTarget(params.call, {
+          kind: params.kind,
+          callable: params.callable,
+          component: params.component,
+        })
+      case 'callable':
+        return new ResolvedCallTarget(params.call, {
+          kind: params.kind,
+          callable: params.callable,
+        })
+      case 'unresolved':
+        return new ResolvedCallTarget(params.call, {
+          kind: params.kind,
+          reason: params.reason,
+        })
+      case 'dead-end':
+        return new ResolvedCallTarget(params.call, { kind: params.kind })
+    }
   }
 
-  private constructor(params: {
-    kind: ResolvedCallTargetKind
-    call: DetectedCall
-    callable?: CallableReference
-    component?: EnrichedComponent
-    reason?: string
-  }) {
-    this.kind = params.kind
-    this.call = params.call
-    this.callable = params.callable
-    this.component = params.component
-    this.reason = params.reason
+  private constructor(call: DetectedCall, resolution: ResolvedCallTargetResolution) {
+    this.call = call
+    this.resolution = resolution
   }
 }

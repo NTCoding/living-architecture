@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { RiviereBuilder } from '../builder-facade'
+import { RiviereBuilder } from '../riviere-builder'
 import { ComponentSummaryStats } from './component-summary-stats'
 import { createValidOptions, createSourceLocation } from '../../__fixtures__/builder-fixtures'
 

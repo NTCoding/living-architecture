@@ -17,17 +17,15 @@ import {
 import type { ComponentCallable } from './connection-detection/call-graph/scoped-call-graph'
 import type { CallableReference } from './connection-detection/call-graph/callable-reference'
 import type { CallSite } from './connection-detection/call-graph/call-graph-types'
+import type { ResolvedCallTarget } from './connection-detection/call-graph/detected-call'
 import {
   resolveHttpLinks,
   stripResolvedCustomTypes,
 } from './connection-detection/resolve-http-links'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import { MissingModuleSourceError } from './extraction-errors'
-import {
-  type EnrichedComponent,
-  EnrichmentResult,
-} from './value-extraction/enriched-component'
-import type { ExtractionStage } from './extraction-stage'
+import { type EnrichedComponent, EnrichmentResult } from './value-extraction/enriched-component'
+import type { ExtractionConfiguration } from './extraction-configuration'
 import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
 import { RiviereModule } from './riviere-module'
 
@@ -36,23 +34,26 @@ export { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 /** @riviere-role aggregate */
 export class RiviereProject {
   private constructor(
-    private readonly stage: ExtractionStage,
+    private readonly configuration: ExtractionConfiguration,
     private readonly modules: readonly RiviereModule[],
     private unassignedDraftComponents: readonly DraftComponent[],
   ) {}
 
-  static parse(input: { stage: ExtractionStage; draftComponents: readonly DraftComponent[] }) {
-    const configuredModules = new Set(input.stage.resolvedConfig.modules)
+  static parse(input: {
+    configuration: ExtractionConfiguration
+    draftComponents: readonly DraftComponent[]
+  }) {
+    const configuredModules = new Set(input.configuration.resolvedConfig.modules)
     const moduleContexts = new Map(
-      input.stage.moduleContexts.map((context) => [context.module, context] as const),
+      input.configuration.moduleContexts.map((context) => [context.module, context] as const),
     )
-    const configuredModuleContexts = input.stage.resolvedConfig.modules.flatMap(
+    const configuredModuleContexts = input.configuration.resolvedConfig.modules.flatMap(
       (configuration) => {
         const context = moduleContexts.get(configuration)
         return context === undefined ? [] : [{ configuration, context }]
       },
     )
-    const missingSources = input.stage.resolvedConfig.modules.filter(
+    const missingSources = input.configuration.resolvedConfig.modules.filter(
       (module) => !moduleContexts.has(module),
     )
     const foreignSources = [...moduleContexts.keys()].filter(
@@ -76,15 +77,13 @@ export class RiviereProject {
         candidateDraftComponents: input.draftComponents,
       })
     })
-    const assignedDraftComponents = new Set(
-      modules.flatMap((module) => module.draftComponents()),
-    )
+    const assignedDraftComponents = new Set(modules.flatMap((module) => module.draftComponents()))
     const unassignedDraftComponents = input.draftComponents.filter(
       (component) => !assignedDraftComponents.has(component),
     )
     return {
       success: true as const,
-      data: new RiviereProject(input.stage, modules, unassignedDraftComponents),
+      data: new RiviereProject(input.configuration, modules, unassignedDraftComponents),
     }
   }
 
@@ -149,7 +148,7 @@ export class RiviereProject {
       options.allowIncomplete,
       options.observeConnectionDetectionPhase,
     )
-    const httpLinks = this.stage.resolvedConfig.connections?.httpLinks ?? []
+    const httpLinks = this.configuration.resolvedConfig.connections?.httpLinks ?? []
     return {
       kind: 'full' as const,
       components: stripResolvedCustomTypes(
@@ -178,16 +177,16 @@ export class RiviereProject {
       )
       return observePhase(observeConnectionDetectionPhase, 'detection', () => {
         const connectionsDetectedFromCalls = scopedCallGraphs.flatMap((graph) =>
-          detectConnectionsFromCalls(graph, this.stage.repositoryName),
+          detectConnectionsFromCalls(graph, this.configuration.repositoryName),
         )
         const asyncOptions = AsyncDetectionOptions.parse({
           strict,
-          repository: this.stage.repositoryName,
+          repository: this.configuration.repositoryName,
         })
         const connectionsDetectedFromEvents = [
           ...detectEventPublisherConnections(
             enrichedComponents,
-            this.stage.resolvedConfig.connections?.eventPublishers ?? [],
+            this.configuration.resolvedConfig.connections?.eventPublishers ?? [],
             asyncOptions,
           ),
           ...detectSubscribeConnections(enrichedComponents, asyncOptions),
@@ -195,7 +194,7 @@ export class RiviereProject {
         const resolvedHttpConnections = resolveHttpLinks(
           connectionsDetectedFromCalls,
           enrichedComponents,
-          this.stage.resolvedConfig.connections?.httpLinks ?? [],
+          this.configuration.resolvedConfig.connections?.httpLinks ?? [],
         )
         return ConnectionDetectionResult.parse({
           links: [...resolvedHttpConnections.links, ...connectionsDetectedFromEvents],
@@ -223,7 +222,7 @@ export class RiviereProject {
   }
 
   private assertEveryConfiguredModuleHasAnEntity(): void {
-    for (const configuration of this.stage.resolvedConfig.modules) {
+    for (const configuration of this.configuration.resolvedConfig.modules) {
       if (!this.modules.some((module) => module.name() === configuration.name)) {
         throw new MissingModuleSourceError(configuration.name)
       }
@@ -289,34 +288,62 @@ function traceCallable(
   })
   for (const target of targets) {
     const originCallSite = input.originCallSite ?? target.call.callSite
-    if (target.kind === 'unresolved') {
+    const nextCallable = recordResolvedCallTarget(input, target, originCallSite)
+    if (nextCallable === undefined || input.visited.has(nextCallable.toKey())) continue
+    traceCallable({
+      ...input,
+      callable: nextCallable,
+      originCallSite,
+      visited: new Set([...input.visited, nextCallable.toKey()]),
+    })
+  }
+}
+
+function recordResolvedCallTarget(
+  input: BuildScopedCallGraphInput & {
+    readonly root: ComponentCallable
+    readonly callable: CallableReference
+    readonly edges: ScopedCallGraphEdge[]
+    readonly unresolvedCalls: UnresolvedScopedCall[]
+  },
+  target: ResolvedCallTarget,
+  originCallSite: CallSite,
+): CallableReference | undefined {
+  const resolution = target.resolution
+  switch (resolution.kind) {
+    case 'unresolved': {
       const isRootCallable = input.callable.toKey() === input.root.callable.toKey()
-      if (target.call.unresolvedReason !== undefined && !isRootCallable) continue
+      if (target.call.unresolvedReason !== undefined && !isRootCallable) return undefined
       input.unresolvedCalls.push(
         UnresolvedScopedCall.parse({
           sourceComponent: input.root.component,
           originCallSite,
-          reason: target.reason ?? 'Call target unresolved',
+          reason: resolution.reason,
         }),
       )
-      continue
+      return undefined
     }
-    if (target.callable === undefined || target.kind === 'dead-end') continue
-    input.edges.push(
-      ScopedCallGraphEdge.parse({
-        source: input.callable,
-        target: target.callable,
-        callSite: target.call.callSite,
-        ...(target.component === undefined ? {} : { targetComponent: target.component }),
-      }),
-    )
-    if (target.kind !== 'callable' || input.visited.has(target.callable.toKey())) continue
-    traceCallable({
-      ...input,
-      callable: target.callable,
-      originCallSite,
-      visited: new Set([...input.visited, target.callable.toKey()]),
-    })
+    case 'dead-end':
+      return undefined
+    case 'component':
+      input.edges.push(
+        ScopedCallGraphEdge.parse({
+          source: input.callable,
+          target: resolution.callable,
+          targetComponent: resolution.component,
+          callSite: target.call.callSite,
+        }),
+      )
+      return undefined
+    case 'callable':
+      input.edges.push(
+        ScopedCallGraphEdge.parse({
+          source: input.callable,
+          target: resolution.callable,
+          callSite: target.call.callSite,
+        }),
+      )
+      return resolution.callable
   }
 }
 

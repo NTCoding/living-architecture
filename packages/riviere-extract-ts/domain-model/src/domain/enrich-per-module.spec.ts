@@ -9,7 +9,7 @@ import {
 import { DraftComponent } from './component-extraction/draft-component'
 import { RiviereProject, OrphanedDraftComponentError } from './riviere-project'
 import { RiviereModule } from './riviere-module'
-import { ExtractionStage } from './extraction-stage'
+import { ExtractionConfiguration } from './extraction-configuration'
 import { TestFixtureError } from './value-extraction/literal-detection'
 import {
   EnrichedComponent,
@@ -134,7 +134,7 @@ function createRiviereProject(
     assert(context)
     stageContexts.push({ module, files: context.files, project: context.project })
   })
-  const stage = ExtractionStage.parse({
+  const configuration = ExtractionConfiguration.parse({
     name: 'test',
     configPath: 'config.yml',
     useTsConfig: false,
@@ -142,7 +142,7 @@ function createRiviereProject(
     resolvedConfig: configurationResult.data,
     moduleContexts: stageContexts,
   })
-  const projectResult = RiviereProject.parse({ stage, draftComponents })
+  const projectResult = RiviereProject.parse({ configuration, draftComponents })
   assert(projectResult.success)
   return projectResult.data
 }

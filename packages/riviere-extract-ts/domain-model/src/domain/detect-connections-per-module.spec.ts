@@ -7,14 +7,14 @@ import {
 import { DraftComponent } from './component-extraction/draft-component'
 import { RiviereProject } from './riviere-project'
 import { RiviereModule } from './riviere-module'
-import { ExtractionStage } from './extraction-stage'
+import { ExtractionConfiguration } from './extraction-configuration'
 import { EnrichmentFailure, EnrichmentResult } from './value-extraction/enriched-component'
 import { TestFixtureError } from './value-extraction/literal-detection'
 
 const { mockExtractComponents, mockStripResolvedCustomTypes } = vi.hoisted(() => ({
-    mockExtractComponents: vi.fn().mockReturnValue([]),
-    mockStripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
-  }))
+  mockExtractComponents: vi.fn().mockReturnValue([]),
+  mockStripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
+}))
 
 vi.mock('./component-extraction/extractor', () => ({
   extractComponents: mockExtractComponents,
@@ -82,7 +82,7 @@ function createRiviereProject(
   assert(configurationResult.success)
   const module = configurationResult.data.modules[0]
   assert(module)
-  const stage = ExtractionStage.parse({
+  const configuration = ExtractionConfiguration.parse({
     name: moduleName,
     configPath: 'config.yml',
     useTsConfig: false,
@@ -96,7 +96,7 @@ function createRiviereProject(
       },
     ],
   })
-  const projectResult = RiviereProject.parse({ stage, draftComponents: [] })
+  const projectResult = RiviereProject.parse({ configuration, draftComponents: [] })
   assert(projectResult.success)
   return projectResult.data
 }

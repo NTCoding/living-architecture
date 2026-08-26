@@ -13,7 +13,7 @@ interface ModuleContext {
 
 type ResolvedExtractionConfig = ValidatedConfiguration
 
-interface ExtractionStageParams {
+interface ExtractionConfigurationParams {
   readonly name: string
   readonly configPath: string
   readonly useTsConfig: boolean
@@ -23,15 +23,15 @@ interface ExtractionStageParams {
 }
 
 /** @riviere-role value-object */
-export class ExtractionStage {
-  declare private brand: 'ExtractionStage'
+export class ExtractionConfiguration {
+  declare private brand: 'ExtractionConfiguration'
 
-  static parse(params: ExtractionStageParams): ExtractionStage {
+  static parse(params: ExtractionConfigurationParams): ExtractionConfiguration {
     validateModuleContexts(params.resolvedConfig.modules, params.moduleContexts)
-    return new ExtractionStage(params)
+    return new ExtractionConfiguration(params)
   }
 
-  private constructor(params: ExtractionStageParams) {
+  private constructor(params: ExtractionConfigurationParams) {
     this.name = params.name
     this.configPath = params.configPath
     this.useTsConfig = params.useTsConfig

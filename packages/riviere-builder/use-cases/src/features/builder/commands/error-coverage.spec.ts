@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/builder-facade'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/riviere-builder'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   type TestContext,
@@ -37,17 +37,15 @@ async function createInvalidGraphPath(testDir: string): Promise<string> {
 }
 
 function createLoadedBuilder(): RiviereBuilder {
-  return RiviereBuilder.new(
-    {
-      domains: {
-        orders: {
-          description: 'Orders',
-          systemType: 'domain',
-        },
+  return RiviereBuilder.new({
+    domains: {
+      orders: {
+        description: 'Orders',
+        systemType: 'domain',
       },
-      sources: [{ repository: 'https://github.com/org/repo' }],
     },
-  )
+    sources: [{ repository: 'https://github.com/org/repo' }],
+  })
 }
 
 describe('builder command coverage', () => {
@@ -372,17 +370,23 @@ describe('builder command coverage', () => {
       }),
     ).toThrow('unexpected load failure')
 
-    expect(() => new CheckConsistency(repo).execute({ graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json') })).toThrow(
-      'unexpected load failure',
-    )
+    expect(() =>
+      new CheckConsistency(repo).execute({
+        graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
+      }),
+    ).toThrow('unexpected load failure')
 
-    expect(() => new ComponentSummary(repo).execute({ graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json') })).toThrow(
-      'unexpected load failure',
-    )
+    expect(() =>
+      new ComponentSummary(repo).execute({
+        graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
+      }),
+    ).toThrow('unexpected load failure')
 
-    expect(() => new ValidateGraph(repo).execute({ graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json') })).toThrow(
-      'unexpected load failure',
-    )
+    expect(() =>
+      new ValidateGraph(repo).execute({
+        graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
+      }),
+    ).toThrow('unexpected load failure')
   })
 
   it('rethrows unknown load errors from link-http', () => {

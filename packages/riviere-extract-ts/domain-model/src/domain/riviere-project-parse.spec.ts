@@ -2,7 +2,7 @@ import { assert, describe, expect, it } from 'vitest'
 import { Project } from 'ts-morph'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { RiviereProject } from './riviere-project'
-import { ExtractionStage } from './extraction-stage'
+import { ExtractionConfiguration } from './extraction-configuration'
 import { MissingModuleSourceError } from './extraction-errors'
 
 function createProject(): RiviereProject {
@@ -25,7 +25,7 @@ function createProject(): RiviereProject {
   assert(configurationResult.success)
   const module = configurationResult.data.modules[0]
   assert(module)
-  const stage = ExtractionStage.parse({
+  const configuration = ExtractionConfiguration.parse({
     name: 'orders',
     configPath: 'config.yml',
     useTsConfig: false,
@@ -33,7 +33,7 @@ function createProject(): RiviereProject {
     resolvedConfig: configurationResult.data,
     moduleContexts: [{ module, project: new Project(), files: ['test.ts'] }],
   })
-  const result = RiviereProject.parse({ stage, draftComponents: [] })
+  const result = RiviereProject.parse({ configuration, draftComponents: [] })
   assert(result.success)
   return result.data
 }
@@ -96,7 +96,7 @@ describe('RiviereProject.parse', () => {
     const billing = configurationResult.data.modules[1]
     assert(orders)
     assert(billing)
-    const stage = ExtractionStage.parse({
+    const configuration = ExtractionConfiguration.parse({
       name: 'test',
       configPath: 'config.yml',
       useTsConfig: false,
@@ -107,12 +107,12 @@ describe('RiviereProject.parse', () => {
         { module: billing, project: new Project(), files: [] },
       ],
     })
-    Object.assign(stage, {
+    Object.assign(configuration, {
       resolvedConfig: { ...configurationResult.data, modules: [orders] },
       moduleContexts: [{ module: billing, project: new Project(), files: [] }],
     })
 
-    expect(RiviereProject.parse({ stage, draftComponents: [] })).toStrictEqual({
+    expect(RiviereProject.parse({ configuration, draftComponents: [] })).toStrictEqual({
       success: false,
       error: "Missing source for module 'orders'\nSource supplied for unknown module 'billing'",
     })

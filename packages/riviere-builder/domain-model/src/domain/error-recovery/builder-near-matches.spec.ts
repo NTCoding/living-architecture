@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { RiviereBuilder } from '../builder-facade'
+import { RiviereBuilder } from '../riviere-builder'
 
 class TestAssertionError extends Error {
   constructor(message: string) {

@@ -1,5 +1,5 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
-import { RiviereBuilder } from '../builder-facade'
+import { RiviereBuilder } from '../riviere-builder'
 
 function parseGraph(builder: RiviereBuilder): RiviereGraph {
   const graph: RiviereGraph = JSON.parse(builder.serialize())

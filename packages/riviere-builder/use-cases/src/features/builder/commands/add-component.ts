@@ -3,7 +3,7 @@ import {
   DomainNotFoundError,
   DuplicateComponentError,
 } from '@living-architecture/riviere-builder-domain-model/domain/construction/construction-errors'
-import type { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/builder-facade'
+import type { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/riviere-builder'
 import { ComponentDefinition } from '@living-architecture/riviere-builder-domain-model/domain/component-definition'
 import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'

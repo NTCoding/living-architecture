@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { RiviereBuilder } from '../builder-facade'
+import { RiviereBuilder } from '../riviere-builder'
 
 function createBuilder(): RiviereBuilder {
   const options = {

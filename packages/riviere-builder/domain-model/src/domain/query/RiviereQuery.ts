@@ -14,13 +14,6 @@ import type { ComponentDepths } from './component-depths'
 import { ComponentCounts } from './component-counts'
 import { ComponentId } from './component-id'
 import { CodePointSequence } from './code-point-sequence'
-import {
-  componentsInDomain as filterByDomain,
-  componentsByType as filterByType,
-  findAllComponents,
-  findComponent,
-  searchComponents,
-} from './component-queries'
 import type { CrossDomainLink } from './cross-domain-link'
 import { queryCrossDomainLinks, queryDomainConnections } from './cross-domain-queries'
 import { queryNodeDepths } from './depth-queries'
@@ -202,7 +195,7 @@ export class RiviereQuery {
    * ```
    */
   find(predicate: (component: Component) => boolean): Component | undefined {
-    return findComponent(this.graphSnapshot, predicate)
+    return this.graphSnapshot.components.find(predicate)
   }
 
   /**
@@ -219,7 +212,7 @@ export class RiviereQuery {
    * ```
    */
   findAll(predicate: (component: Component) => boolean): Component[] {
-    return findAllComponents(this.graphSnapshot, predicate)
+    return this.graphSnapshot.components.filter(predicate)
   }
 
   /**
@@ -234,7 +227,7 @@ export class RiviereQuery {
    * ```
    */
   componentById(id: ComponentId): Component | undefined {
-    return findComponent(this.graphSnapshot, (component) => component.id === id.value)
+    return this.find((component) => component.id === id.value)
   }
 
   /**
@@ -252,7 +245,14 @@ export class RiviereQuery {
    * ```
    */
   search(query: string): Component[] {
-    return searchComponents(this.graphSnapshot, query)
+    if (query === '') return []
+    const lowerQuery = query.toLowerCase()
+    return this.findAll(
+      (component) =>
+        component.name.toLowerCase().includes(lowerQuery) ||
+        component.domain.toLowerCase().includes(lowerQuery) ||
+        component.type.toLowerCase().includes(lowerQuery),
+    )
   }
 
   /**
@@ -267,7 +267,7 @@ export class RiviereQuery {
    * ```
    */
   componentsInDomain(domainName: string): Component[] {
-    return filterByDomain(this.graphSnapshot, domainName)
+    return this.findAll((component) => component.domain === domainName)
   }
 
   /**
@@ -283,7 +283,7 @@ export class RiviereQuery {
    * ```
    */
   componentsByType(type: ComponentType): Component[] {
-    return filterByType(this.graphSnapshot, type)
+    return this.findAll((component) => component.type === type)
   }
 
   /**
@@ -574,10 +574,7 @@ export class RiviereQuery {
     componentIds: ComponentId[]
     linkIds: LinkId[]
   } {
-    const component = findComponent(
-      this.graphSnapshot,
-      (candidate) => candidate.id === startComponentId.value,
-    )
+    const component = this.find((candidate) => candidate.id === startComponentId.value)
     if (component === undefined) {
       throw new ComponentNotFoundError(startComponentId.value)
     }
@@ -701,7 +698,7 @@ export class RiviereQuery {
       })
     }
 
-    const matchingComponents = searchComponents(this.graphSnapshot, query)
+    const matchingComponents = this.search(query)
     if (matchingComponents.length === 0) {
       return SearchWithFlowResult.parse({
         matchingIds: [],

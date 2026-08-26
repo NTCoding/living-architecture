@@ -51,7 +51,10 @@ describe('resolveCallTargets', () => {
       strict: false,
     })
 
-    expect(result).toMatchObject({ kind: 'unresolved', reason: 'Receiver type unresolved' })
+    expect(result?.resolution).toStrictEqual({
+      kind: 'unresolved',
+      reason: 'Receiver type unresolved',
+    })
   })
 
   it('creates a synthetic callable when a component method is not in the project', () => {
@@ -66,7 +69,7 @@ describe('resolveCallTargets', () => {
       strict: false,
     })
 
-    expect(result).toMatchObject({
+    expect(result?.resolution).toMatchObject({
       kind: 'component',
       component: target,
       callable: { kind: 'synthetic', callableName: 'run' },
@@ -119,7 +122,7 @@ describe('resolveCallTargets', () => {
       strict: false,
     })
 
-    expect(result).toMatchObject({ kind: 'component', component: concrete })
+    expect(result?.resolution).toMatchObject({ kind: 'component', component: concrete })
   })
 
   it('uses declaration text when an implemented type has no symbol', () => {
@@ -143,7 +146,7 @@ describe('resolveCallTargets', () => {
       strict: false,
     })
 
-    expect(result).toMatchObject({ kind: 'component', component: concrete })
+    expect(result?.resolution).toMatchObject({ kind: 'component', component: concrete })
   })
 
   it('uses declaration text when an extended type has no symbol', () => {
@@ -167,6 +170,6 @@ describe('resolveCallTargets', () => {
       strict: false,
     })
 
-    expect(result).toMatchObject({ kind: 'component', component: concrete })
+    expect(result?.resolution).toMatchObject({ kind: 'component', component: concrete })
   })
 })

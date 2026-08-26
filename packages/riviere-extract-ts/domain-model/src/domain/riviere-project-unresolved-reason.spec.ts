@@ -10,7 +10,7 @@ vi.mock('./connection-detection/call-graph/resolve-call-targets', () => ({
 
 import { DetectedCall, ResolvedCallTarget } from './connection-detection/call-graph/detected-call'
 import { EnrichedComponent } from './value-extraction/enriched-component'
-import { ExtractionStage } from './extraction-stage'
+import { ExtractionConfiguration } from './extraction-configuration'
 import { RiviereProject } from './riviere-project'
 
 describe('RiviereProject unresolved call reason', () => {
@@ -34,7 +34,7 @@ describe('RiviereProject unresolved call reason', () => {
       metadata: {},
       _missing: undefined,
     })
-    const configuration = ValidatedConfiguration.parse({
+    const validatedConfiguration = ValidatedConfiguration.parse({
       modules: [
         {
           name: 'orders',
@@ -50,21 +50,26 @@ describe('RiviereProject unresolved call reason', () => {
         },
       ],
     })
-    assert(configuration.success)
-    const module = configuration.data.modules[0]
+    assert(validatedConfiguration.success)
+    const module = validatedConfiguration.data.modules[0]
     assert(module)
-    const stage = ExtractionStage.parse({
+    const extractionConfiguration = ExtractionConfiguration.parse({
       name: 'test',
       configPath: 'config.yml',
       useTsConfig: false,
       repositoryName: 'shop',
-      resolvedConfig: configuration.data,
+      resolvedConfig: validatedConfiguration.data,
       moduleContexts: [{ module, files: [sourceFile.getFilePath()], project }],
     })
-    const parsedProject = RiviereProject.parse({ stage, draftComponents: [] })
+    const parsedProject = RiviereProject.parse({
+      configuration: extractionConfiguration,
+      draftComponents: [],
+    })
     assert(parsedProject.success)
     mocks.resolveCallTargets.mockImplementation((input: { calls: DetectedCall[] }) =>
-      input.calls.map((call) => ResolvedCallTarget.parse({ kind: 'unresolved', call })),
+      input.calls.map((call) =>
+        ResolvedCallTarget.parse({ kind: 'unresolved', call, reason: 'Call target unresolved' }),
+      ),
     )
 
     const result = parsedProject.data.detectConnections([component], true)

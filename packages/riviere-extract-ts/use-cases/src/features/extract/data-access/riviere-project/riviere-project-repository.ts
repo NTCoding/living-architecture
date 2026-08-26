@@ -20,7 +20,7 @@ import { resolveFileOrPackagePath } from '../../../../infra/external-clients/nod
 import { GitError } from '../../../../infra/external-clients/git/git-errors'
 import { getRepositoryInfo } from '../../../../infra/external-clients/git/git-repository-info'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
-import { ExtractionStage } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-stage'
+import { ExtractionConfiguration } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-configuration'
 import { createConfiguredProject } from '../../../../infra/external-clients/ts-morph/create-configured-project'
 import { findModuleTsConfigDir } from '../../../../infra/external-clients/ts-morph/find-module-tsconfig-dir'
 import { ExtractionConfigError } from './riviere-config-error'
@@ -288,7 +288,7 @@ export class RiviereProjectRepository {
       useTsConfig,
     )
     const repositoryName = getRepositoryInfo('git', projectRoot).name
-    const stage = ExtractionStage.parse({
+    const configuration = ExtractionConfiguration.parse({
       name: configPath,
       configPath,
       useTsConfig,
@@ -301,7 +301,7 @@ export class RiviereProjectRepository {
       })),
     })
     const projectResult = RiviereProject.parse({
-      stage,
+      configuration,
       draftComponents: loadDraftComponents(),
     })
     if (!projectResult.success)

@@ -1,7 +1,7 @@
 import { assert, describe, expect, it } from 'vitest'
 import { Project } from 'ts-morph'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
-import { ExtractionStage } from './extraction-stage'
+import { ExtractionConfiguration } from './extraction-configuration'
 import { ModuleContextsMismatchError } from './extraction-errors'
 
 type ModuleContext = {
@@ -42,15 +42,15 @@ function createConfiguration() {
   return result.data
 }
 
-describe('ExtractionStage', () => {
-  it('stores the resolved extraction state for one stage', () => {
+describe('ExtractionConfiguration', () => {
+  it('stores the resolved extraction state for one configuration', () => {
     const resolvedConfig = createConfiguration()
     const module = resolvedConfig.modules[0]
     assert(module)
     const project = new Project()
     const moduleContexts = [{ module, files: ['orders/order.ts'], project }]
 
-    const stage = ExtractionStage.parse({
+    const configuration = ExtractionConfiguration.parse({
       name: 'orders',
       configPath: 'config/orders.json',
       useTsConfig: true,
@@ -59,7 +59,7 @@ describe('ExtractionStage', () => {
       moduleContexts,
     })
 
-    expect(stage).toMatchObject({
+    expect(configuration).toMatchObject({
       name: 'orders',
       configPath: 'config/orders.json',
       useTsConfig: true,
@@ -105,7 +105,7 @@ describe('ExtractionStage', () => {
     const invalidContexts = invalidContextsFor(createInvalidContexts, context, foreignModule)
 
     expect(() =>
-      ExtractionStage.parse({
+      ExtractionConfiguration.parse({
         name: 'orders',
         configPath: 'config/orders.json',
         useTsConfig: true,

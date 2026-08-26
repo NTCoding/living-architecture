@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
-import { RiviereBuilder } from './builder-facade'
+import { RiviereBuilder } from './riviere-builder'
 import { createValidOptions, createSourceLocation } from '../__fixtures__/builder-fixtures'
 
 describe('RiviereBuilder', () => {

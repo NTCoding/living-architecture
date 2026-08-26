@@ -1,4 +1,4 @@
-import { RiviereBuilder } from './builder-facade'
+import { RiviereBuilder } from './riviere-builder'
 
 const LARGE_GRAPH_SIZE = 80_000
 

@@ -63,27 +63,38 @@ export class Component {
     incomingCustomProperties?: Readonly<Record<string, unknown>>,
   ): ComponentUpdate {
     const overwrites: ScalarOverwrite[] = []
-    if (incoming.type === 'UI')
-      this.state = mergeUI(this.ui(incoming), incoming, preference, overwrites)
-    if (incoming.type === 'API')
-      this.state = mergeAPI(this.api(incoming), incoming, preference, overwrites)
-    if (incoming.type === 'UseCase')
-      this.state = mergeUseCase(this.useCase(incoming), incoming, preference, overwrites)
-    if (incoming.type === 'DomainOp')
-      this.state = mergeDomainOp(this.domainOp(incoming), incoming, preference, overwrites)
-    if (incoming.type === 'Event')
-      this.state = mergeEvent(this.event(incoming), incoming, preference, overwrites)
-    if (incoming.type === 'EventHandler')
-      this.state = mergeEventHandler(this.eventHandler(incoming), incoming, preference, overwrites)
-    if (incoming.type === 'Custom')
-      this.state = mergeCustom(
-        this.custom(incoming),
-        incoming,
-        incomingCustomProperties,
-        preference,
-        overwrites,
-      )
+    this.state = this.mergeIncoming(incoming, preference, incomingCustomProperties, overwrites)
     return { component: this.state, overwrites }
+  }
+
+  private mergeIncoming(
+    incoming: PublishedComponent,
+    preference: ExistingValuePreference,
+    incomingCustomProperties: Readonly<Record<string, unknown>> | undefined,
+    overwrites: ScalarOverwrite[],
+  ): PublishedComponent {
+    switch (incoming.type) {
+      case 'UI':
+        return mergeUI(this.ui(incoming), incoming, preference, overwrites)
+      case 'API':
+        return mergeAPI(this.api(incoming), incoming, preference, overwrites)
+      case 'UseCase':
+        return mergeUseCase(this.useCase(incoming), incoming, preference, overwrites)
+      case 'DomainOp':
+        return mergeDomainOp(this.domainOp(incoming), incoming, preference, overwrites)
+      case 'Event':
+        return mergeEvent(this.event(incoming), incoming, preference, overwrites)
+      case 'EventHandler':
+        return mergeEventHandler(this.eventHandler(incoming), incoming, preference, overwrites)
+      case 'Custom':
+        return mergeCustom(
+          this.custom(incoming),
+          incoming,
+          incomingCustomProperties,
+          preference,
+          overwrites,
+        )
+    }
   }
 
   enrichDomainOperation(enrichment: Enrichment): void {

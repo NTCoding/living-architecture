@@ -18,8 +18,8 @@ The delivery sequence first introduces the package-owned extraction model and re
 
 - Value: Extraction behaviour needed by extract commands and workflows exists through the approved package-owned extraction concepts.
 - Acceptance criteria:
-  - `ExtractionStage` exists as the approved data-only value object at `packages/riviere-extract-ts/src/domain/extraction-stage.ts`.
-  - `ExtractionStage` carries the approved extraction state: `name`, `configPath`, `useTsConfig`, `repositoryName`, `resolvedConfig`, and `moduleContexts`.
+  - `ExtractionConfiguration` exists as the approved data-only value object at `packages/riviere-extract-ts/src/domain/extraction-configuration.ts`.
+  - `ExtractionConfiguration` carries the approved extraction state: `name`, `configPath`, `useTsConfig`, `repositoryName`, `resolvedConfig`, and `moduleContexts`.
   - `ExtractComponentsForGraph` exists as the approved domain service for graph-ready components before connection detection.
   - `DetectExtractionConnections` exists as the approved domain service for connection detection.
   - Workflow code does not own extraction rules, linking rules, custom type rules, or extraction result semantics.
@@ -47,13 +47,13 @@ The delivery sequence first introduces the package-owned extraction model and re
   - Existing extract commands no longer import or depend on `ExtractionProject` or `ExtractionProjectRepository`.
   - `ExtractDraftComponents` replaces `ExtractionProjectRepository.loadFromChangedProject/loadFromSelectedFiles/loadFromFullProject(...)` with `RiviereProjectRepository.load({ projectRoot, configPath, useTsConfig })` followed by `RiviereProject.extractDraftComponents({ sourceFileSelection, allowIncomplete, includeConnections })`.
   - `EnrichDraftComponents` replaces `ExtractionProjectRepository.loadFromDraftEnrichment({ configPath, draftComponentsPath, useTsConfig })` with `RiviereProjectRepository.load({ projectRoot, configPath, useTsConfig })` followed by `RiviereProject.enrichDraftComponents({ draftComponents, allowIncomplete, includeConnections })`.
-  - `RiviereProjectRepository` loads the full aggregate state for the resolved extraction config, including expanded module `$ref` entries, resolved module `extends`, repository name, all files matched by config modules, `ts-morph` projects, and `ExtractionStage` value objects.
+  - `RiviereProjectRepository` loads the full aggregate state for the resolved extraction config, including expanded module `$ref` entries, resolved module `extends`, repository name, all files matched by config modules, `ts-morph` projects, and `ExtractionConfiguration` value objects.
   - `RiviereProjectRepository` does not accept `sourceMode`, selected files, changed-file mode, draft components, `includeConnections`, or `allowIncomplete`.
   - `sourceMode` remains CLI/input-validation context and is translated before the aggregate operation is called.
   - `draftComponentsPath` is not a repository input; draft components are loaded before calling `RiviereProject.enrichDraftComponents(...)`.
   - `ExtractionProject` is removed from approved aggregate role instances.
   - No new roles are invented.
-  - No alternative persistence concepts are added, including `ExtractionStageRepository`, a generic loader/materialiser, or a config-resolution service pretending to be architecture.
+  - No alternative persistence concepts are added, including `ExtractionConfigurationRepository`, a generic loader/materialiser, or a config-resolution service pretending to be architecture.
 - Verification:
   - Reviewer inspection confirms `ExtractionProject` and `ExtractionProjectRepository` are gone and no extract command imports them.
   - Reviewer inspection confirms existing extract commands use the exact replacement loading and operation flow above.
@@ -77,7 +77,7 @@ The delivery sequence first introduces the package-owned extraction model and re
   - `RiviereProjectRepository.load({ projectRoot, workflowName })` loads `.riviere/workflows/{workflowName}.yaml`.
   - Workflow names match the approved V1 format: `[a-z0-9][a-z0-9-]*`.
   - The repository reads required `graph.sources`, `graph.domains`, `graph.outputPath`, and `runLog.directory`.
-  - The repository materialises `ExtractionStage` value objects while loading `RiviereProject`.
+  - The repository materialises `ExtractionConfiguration` value objects while loading `RiviereProject`.
   - The repository does not run workflow stages.
   - The repository does not accept operation inputs while loading a workflow project.
   - `RunWorkflow` loads `RiviereProject` and calls `rebuildGraph()`; it does not contain the stage loop.
