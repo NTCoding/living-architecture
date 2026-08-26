@@ -252,6 +252,39 @@ without copying raw property names from the external language. Exhaustive
 matching must use a domain-specific error for invalid runtime values; a generic
 `Error` is forbidden.
 
+### Make primitive meanings and operation names explicit
+
+This must be the default way of thinking for every domain model decision: make
+the meaning explicit. Ask what a primitive value represents and what a broad
+operation name actually means before accepting the API.
+
+The proposed code point value object initially exposed this method:
+
+```ts
+compare(other: CodePointSequence): number
+```
+
+That API was technically compatible with `Array.sort`, but it concealed the
+domain meaning. `compare` did not say which relationship was being compared,
+and `number` did not say that `-1` meant before, `0` meant the same position,
+and `1` meant after.
+
+The domain-facing API should express the relationship directly:
+
+```ts
+type RelativePosition = 'before' | 'same' | 'after'
+
+positionRelativeTo(other: CodePointSequence): RelativePosition
+```
+
+Translate that explicit meaning into `-1`, `0`, or `1` only at the technical
+boundary where JavaScript requires the `Array.sort` protocol. Do not let a
+framework or language primitive define the domain interface.
+
+A primitive type can be correct while the model remains unclear. If a reader
+must already know a hidden convention to understand a return value, the model
+is missing language.
+
 ## Why this matters
 
 Without this test, procedural decomposition can be mistaken for domain

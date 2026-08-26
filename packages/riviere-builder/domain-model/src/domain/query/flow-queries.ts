@@ -1,15 +1,28 @@
 import type {
   Component,
+  ComponentType,
   ExternalLink,
   Link,
   RiviereGraph,
 } from '@living-architecture/riviere-schema-published-language/schema'
+import { LinkId } from '@living-architecture/riviere-schema-published-language/link-id'
 import { ComponentId } from './component-id'
 import { Flow } from './flow'
-import { isEntryPointType } from './flow-constants'
 import { FlowStep } from './flow-step'
-import { LinkId } from './link-id'
-import { createLinkKey } from './link-key'
+
+const entryPointEligibility = {
+  UI: true,
+  API: true,
+  UseCase: false,
+  DomainOp: false,
+  Event: false,
+  EventHandler: true,
+  Custom: true,
+} satisfies Record<ComponentType, boolean>
+
+function canBeEntryPoint(component: Component): boolean {
+  return entryPointEligibility[component.type]
+}
 
 /**
  * @riviere-role domain-service
@@ -17,7 +30,9 @@ import { createLinkKey } from './link-key'
  */
 export function findEntryPoints(graph: RiviereGraph): Component[] {
   const targets = new Set(graph.links.map((link) => link.target))
-  return graph.components.filter((c) => isEntryPointType(c.type) && !targets.has(c.id))
+  return graph.components.filter((component) => {
+    return canBeEntryPoint(component) && !targets.has(component.id)
+  })
 }
 
 /**
@@ -43,11 +58,11 @@ export function traceFlowFrom(
     for (const link of graph.links) {
       if (link.source === currentId && !visited.has(link.target)) {
         queue.push(link.target)
-        visitedLinks.add(createLinkKey(link).value)
+        visitedLinks.add(LinkId.parseFromGraphLink(link).toString())
       }
       if (link.target === currentId && !visited.has(link.source)) {
         queue.push(link.source)
-        visitedLinks.add(createLinkKey(link).value)
+        visitedLinks.add(LinkId.parseFromGraphLink(link).toString())
       }
     }
   }

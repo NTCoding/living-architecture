@@ -6,13 +6,14 @@ import type {
   Link,
   RiviereGraph,
 } from '@living-architecture/riviere-schema-published-language/schema'
+import type { LinkId } from '@living-architecture/riviere-schema-published-language/link-id'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
 import type { GraphDiff } from './graph-diff'
 
 import type { ComponentDepths } from './component-depths'
 import { ComponentCounts } from './component-counts'
 import { ComponentId } from './component-id'
-import { compareByCodePoint } from './compare-by-code-point'
+import { CodePointSequence } from './code-point-sequence'
 import {
   componentsInDomain as filterByDomain,
   componentsByType as filterByType,
@@ -39,7 +40,6 @@ import { diffGraphs } from './graph-diff'
 import type { GraphStats } from './graph-stats'
 import { detectOrphanComponents } from './graph-validation'
 import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
-import type { LinkId } from './link-id'
 import { OperationName } from './operation-name'
 import type { PublishedEvent } from './published-event'
 import type { SearchWithFlowOptions } from './search-with-flow-options'
@@ -443,13 +443,19 @@ export class RiviereQuery {
       }
     }
     return Array.from(entityMap.values())
-      .sort((left, right) => compareByCodePoint(left.name, right.name))
+      .sort((left, right) =>
+        CodePointSequence.parse(left.name)
+          .positionRelativeTo(CodePointSequence.parse(right.name))
+          .asAscendingArraySortResult(),
+      )
       .map((partial) => this.createEntity(partial))
   }
 
   private createEntity(partial: PartialEntity): Entity {
     const sortedOperations = [...partial.operations].sort((left, right) =>
-      compareByCodePoint(left.operationName, right.operationName),
+      CodePointSequence.parse(left.operationName)
+        .positionRelativeTo(CodePointSequence.parse(right.operationName))
+        .asAscendingArraySortResult(),
     )
     return Entity.parse(
       EntityName.parse(partial.name),
@@ -502,10 +508,7 @@ export class RiviereQuery {
     return this.orderStatesByTransitions(states, operations)
   }
 
-  private orderStatesByTransitions(
-    states: Set<string>,
-    operations: DomainOpComponent[],
-  ): State[] {
+  private orderStatesByTransitions(states: Set<string>, operations: DomainOpComponent[]): State[] {
     const fromStates = new Set<string>()
     const toStates = new Set<string>()
     const transitionMap = new Map<string, string>()
@@ -790,7 +793,8 @@ export class RiviereQuery {
    * ```
    */
   nodeDepths(): ComponentDepths {
-    return queryNodeDepths(this.graphSnapshot)
+    const entryPoints = findEntryPoints(this.graphSnapshot)
+    return queryNodeDepths(this.graphSnapshot, entryPoints)
   }
 
   /**

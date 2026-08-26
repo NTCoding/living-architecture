@@ -1,5 +1,5 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
-import { compareByCodePoint } from './compare-by-code-point'
+import { CodePointSequence } from './code-point-sequence'
 import { DomainName } from './domain-name'
 import { ExternalDomain } from './external-domain'
 
@@ -52,7 +52,11 @@ function convertToExternalDomains(
         connectionCount: acc.connectionCount,
       }),
     )
-    .sort((a, b) => compareByCodePoint(a.name, b.name))
+    .sort((a, b) =>
+      CodePointSequence.parse(a.name)
+        .positionRelativeTo(CodePointSequence.parse(b.name))
+        .asAscendingArraySortResult(),
+    )
 }
 
 /**

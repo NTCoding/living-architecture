@@ -1,5 +1,5 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
-import { compareByCodePoint } from './compare-by-code-point'
+import { CodePointSequence } from './code-point-sequence'
 import { CrossDomainLink } from './cross-domain-link'
 import { DomainConnection } from './domain-connection'
 import { DomainName } from './domain-name'
@@ -55,9 +55,13 @@ function linkTypeForSort(linkType: 'sync' | 'async' | undefined): string {
 }
 
 function compareCrossDomainLinks(a: CrossDomainLink, b: CrossDomainLink): number {
-  const domainCompare = compareByCodePoint(a.targetDomain.value, b.targetDomain.value)
+  const domainCompare = CodePointSequence.parse(a.targetDomain.value)
+    .positionRelativeTo(CodePointSequence.parse(b.targetDomain.value))
+    .asAscendingArraySortResult()
   if (domainCompare !== 0) return domainCompare
-  return compareByCodePoint(linkTypeForSort(a.linkType), linkTypeForSort(b.linkType))
+  return CodePointSequence.parse(linkTypeForSort(a.linkType))
+    .positionRelativeTo(CodePointSequence.parse(linkTypeForSort(b.linkType)))
+    .asAscendingArraySortResult()
 }
 
 interface ConnectionCounts {
@@ -157,5 +161,9 @@ export function queryDomainConnections(
     ...toConnectionResults(outgoing, 'outgoing'),
     ...toConnectionResults(incoming, 'incoming'),
   ]
-  return results.sort((a, b) => compareByCodePoint(a.targetDomain.value, b.targetDomain.value))
+  return results.sort((a, b) =>
+    CodePointSequence.parse(a.targetDomain.value)
+      .positionRelativeTo(CodePointSequence.parse(b.targetDomain.value))
+      .asAscendingArraySortResult(),
+  )
 }

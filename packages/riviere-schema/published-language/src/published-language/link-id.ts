@@ -4,7 +4,16 @@ import type { SourceLocation } from './schema'
 export class LinkId {
   declare private readonly brand: 'LinkId'
 
-  private constructor(private readonly value: string) {}
+  private constructor(readonly value: string) {}
+
+  static parse(value: string): LinkId {
+    return new LinkId(value)
+  }
+
+  static parseFromGraphLink(link: { id?: string; source: string; target: string }): LinkId {
+    if (link.id !== undefined) return new LinkId(link.id)
+    return LinkId.parseFromLink(link)
+  }
 
   static parseFromLink(link: {
     source: string
@@ -34,6 +43,14 @@ export class LinkId {
   }
 
   toString(): string {
+    return this.value
+  }
+
+  localeCompare(other: LinkId): number {
+    return this.value.localeCompare(other.value)
+  }
+
+  toJSON(): string {
     return this.value
   }
 }

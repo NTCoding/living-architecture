@@ -215,6 +215,8 @@ Before presenting an option, verify all of these points:
   union with a `never` check or an exhaustive `satisfies Record<Union, ...>`;
 - every proposed concept name accurately describes the data or behaviour it
   owns rather than copying a possibly misleading code identifier;
+- every primitive result states what the value represents, and every operation
+  name states the relationship or decision it performs;
 - every declaration has a concrete role that fits its responsibility;
 - every dependency and consumer relationship is legal;
 - the option solves the complete error cluster rather than moving the error;
@@ -227,6 +229,20 @@ Before presenting an option, verify all of these points:
 
 If any check fails, do not show the option. If a required fact is unknown, stop
 and inspect the code or ask the user instead of filling the gap with a sketch.
+
+### Make primitive meanings and operations explicit
+
+Treat an unexplained primitive or broad verb as missing domain language. Ask
+what a number, boolean, or string represents and what an operation such as
+`compare` means before approving the API. For example, `compare(other): number`
+hides both the ordering relationship and the meaning of `-1`, `0`, and `1`.
+Prefer an API such as
+`positionRelativeTo(other): 'before' | 'same' | 'after'`, then translate that
+meaning into the numeric `Array.sort` protocol only at the technical boundary.
+
+Apply this test to every domain model decision. A type can be technically
+correct while still concealing the concept that a reader needs to understand,
+use, and change the model safely.
 
 ## Apply the domain expert test
 
