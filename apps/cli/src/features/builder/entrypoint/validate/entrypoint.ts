@@ -12,6 +12,7 @@ interface ValidateOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateValidateCommandEntrypointDependencies {
   readonly validateGraph: ValidateGraph
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
   readonly formatSuccess: typeof formatSuccess
@@ -36,7 +37,7 @@ Examples:
     .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: ValidateOptions) => {
-      const result = validateGraph.execute({ graphPathOption: options.graph })
+      const result = validateGraph.execute({ graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation })
       if (!result.result.success) {
         console.log(
           JSON.stringify(

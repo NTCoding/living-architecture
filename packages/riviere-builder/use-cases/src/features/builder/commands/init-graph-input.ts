@@ -8,7 +8,7 @@ export interface InitDomainInput {
 /** @riviere-role command-use-case-input */
 export interface InitGraphInput {
   domains: InitDomainInput[]
-  graphPathOption: string | undefined
+  graphFileLocation: string
   name: string | undefined
   sources: string[]
 }

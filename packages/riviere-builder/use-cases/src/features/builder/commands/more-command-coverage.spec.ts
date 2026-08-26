@@ -33,7 +33,7 @@ async function createInvalidGraph(testDir: string): Promise<string> {
   return graphPath
 }
 
-function createBuilder(testDir: string): RiviereBuilder {
+function createBuilder(): RiviereBuilder {
   return RiviereBuilder.new(
     {
       domains: {
@@ -44,7 +44,6 @@ function createBuilder(testDir: string): RiviereBuilder {
       },
       sources: [{ repository: 'https://github.com/org/repo' }],
     },
-    join(testDir, '.riviere', 'graph.json'),
   )
 }
 
@@ -58,17 +57,17 @@ describe('additional builder command coverage', () => {
     const repo = new RiviereBuilderRepository()
     expect(
       new ComponentChecklist(repo).execute({
-        graphPathOption: graphPath,
+        graphFileLocation: graphPath,
         type: undefined,
       }),
     ).toMatchObject({ result: { code: 'GRAPH_CORRUPTED' } })
-    expect(new FinalizeGraph(repo).execute({ graphPathOption: graphPath, outputPath: 'graph.json' })).toMatchObject({
+    expect(new FinalizeGraph(repo).execute({ graphFileLocation: graphPath, outputPath: 'graph.json' })).toMatchObject({
       result: { code: 'GRAPH_CORRUPTED' },
     })
     expect(
       new LinkComponents(repo).execute({
         from: 'orders:core:api:source',
-        graphPathOption: graphPath,
+        graphFileLocation: graphPath,
         targetDomain: 'orders',
         targetModule: 'core',
         targetName: 'Place Order',
@@ -79,7 +78,7 @@ describe('additional builder command coverage', () => {
     expect(
       new LinkExternal(repo).execute({
         from: 'orders:core:api:source',
-        graphPathOption: graphPath,
+        graphFileLocation: graphPath,
         targetDomain: undefined,
         targetName: 'Stripe',
         targetUrl: undefined,
@@ -89,14 +88,14 @@ describe('additional builder command coverage', () => {
   })
 
   it('returns duplicate custom type validation error', () => {
-    const builder = createBuilder(ctx.testDir)
+    const builder = createBuilder()
     builder.defineCustomType({ name: 'Queue' })
     vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
 
     expect(
       new DefineCustomType(new RiviereBuilderRepository()).execute({
         description: undefined,
-        graphPathOption: undefined,
+        graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         name: 'Queue',
         optionalProperties: {},
         requiredProperties: {},
@@ -113,7 +112,7 @@ describe('additional builder command coverage', () => {
     expect(
       new DefineCustomType(new RiviereBuilderRepository()).execute({
         description: undefined,
-        graphPathOption: undefined,
+        graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         name: 'Queue',
         optionalProperties: { retries: { type: 'not-a-property-type' } },
         requiredProperties: {},
@@ -127,7 +126,7 @@ describe('additional builder command coverage', () => {
   })
 
   it('returns validation errors for duplicate Links and undefined relationship types', () => {
-    const builder = createBuilder(ctx.testDir)
+    const builder = createBuilder()
     const source = builder.addUseCase({
       domain: 'orders',
       module: 'checkout',
@@ -141,7 +140,7 @@ describe('additional builder command coverage', () => {
     const command = new LinkComponents(new RiviereBuilderRepository())
     const input = {
       from: source.id,
-      graphPathOption: undefined,
+      graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
       targetDomain: 'orders',
       targetModule: 'checkout',
       targetName: 'Create Order',
@@ -182,7 +181,7 @@ describe('additional builder command coverage', () => {
     expect(
       new DefineCustomType(repo).execute({
         description: undefined,
-        graphPathOption: missingGraphPath,
+        graphFileLocation: missingGraphPath,
         name: 'Queue',
         optionalProperties: {},
         requiredProperties: {},
@@ -199,7 +198,7 @@ describe('additional builder command coverage', () => {
         businessRules: [],
         entity: undefined,
         emits: [],
-        graphPathOption: missingGraphPath,
+        graphFileLocation: missingGraphPath,
         id: 'orders:checkout:domainop:place-order',
         modifies: [],
         reads: [],
@@ -216,7 +215,7 @@ describe('additional builder command coverage', () => {
   })
 
   it('includes reads in enrichment behavior', () => {
-    const builder = createBuilder(ctx.testDir)
+    const builder = createBuilder()
     const enrichSpy = vi.spyOn(builder, 'enrichComponent').mockImplementation(() => undefined)
     vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
 
@@ -224,7 +223,7 @@ describe('additional builder command coverage', () => {
       businessRules: [],
       entity: undefined,
       emits: [],
-      graphPathOption: undefined,
+      graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
       id: 'orders:checkout:domainop:place-order',
       modifies: [],
       reads: ['order.items'],
@@ -239,7 +238,7 @@ describe('additional builder command coverage', () => {
   })
 
   it('includes validates in enrichment behavior', () => {
-    const builder = createBuilder(ctx.testDir)
+    const builder = createBuilder()
     const enrichSpy = vi.spyOn(builder, 'enrichComponent').mockImplementation(() => undefined)
     vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
 
@@ -247,7 +246,7 @@ describe('additional builder command coverage', () => {
       businessRules: [],
       entity: undefined,
       emits: [],
-      graphPathOption: undefined,
+      graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
       id: 'orders:checkout:domainop:place-order',
       modifies: [],
       reads: [],
@@ -268,7 +267,7 @@ describe('additional builder command coverage', () => {
     expect(
       new DefineCustomType(repo).execute({
         description: undefined,
-        graphPathOption: graphPath,
+        graphFileLocation: graphPath,
         name: 'Queue',
         optionalProperties: {},
         requiredProperties: {},
@@ -285,7 +284,7 @@ describe('additional builder command coverage', () => {
         businessRules: [],
         entity: undefined,
         emits: [],
-        graphPathOption: graphPath,
+        graphFileLocation: graphPath,
         id: 'orders:checkout:domainop:place-order',
         modifies: [],
         reads: [],
@@ -309,12 +308,12 @@ describe('additional builder command coverage', () => {
     const repo = new RiviereBuilderRepository()
     expect(() =>
       new ComponentChecklist(repo).execute({
-        graphPathOption: undefined,
+        graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         type: undefined,
       }),
     ).toThrow('unexpected')
 
-    expect(() => new FinalizeGraph(repo).execute({ graphPathOption: undefined, outputPath: 'graph.json' })).toThrow(
+    expect(() => new FinalizeGraph(repo).execute({ graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'), outputPath: 'graph.json' })).toThrow(
       'unexpected',
     )
 
@@ -327,7 +326,7 @@ describe('additional builder command coverage', () => {
             systemType: 'domain',
           },
         ],
-        graphPathOption: undefined,
+        graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         name: undefined,
         sources: ['https://github.com/org/repo'],
       }),
@@ -335,7 +334,7 @@ describe('additional builder command coverage', () => {
   })
 
   it('returns success with ComponentSummaryStats for component-summary', () => {
-    const builder = createBuilder(ctx.testDir)
+    const builder = createBuilder()
     builder.addUseCase({
       name: 'Place Order',
       domain: 'orders',
@@ -348,7 +347,7 @@ describe('additional builder command coverage', () => {
     vi.spyOn(RiviereBuilderRepository.prototype, 'load').mockReturnValue(builder)
 
     const result = new ComponentSummary(new RiviereBuilderRepository()).execute({
-      graphPathOption: undefined,
+      graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
     })
 
     expect(result).toStrictEqual({
@@ -362,7 +361,7 @@ describe('additional builder command coverage', () => {
 
     expect(
       new ComponentSummary(new RiviereBuilderRepository()).execute({
-        graphPathOption: missingGraphPath,
+        graphFileLocation: missingGraphPath,
       }),
     ).toMatchObject({
       result: {

@@ -1,5 +1,6 @@
 import { Command } from 'commander'
 import { performance } from 'node:perf_hooks'
+import { join } from 'node:path'
 import { getDefaultGraphPathDescription } from '../infra/cli/presentation/graph-path-option'
 import { parseAddComponentInput } from '../features/builder/entrypoint/add-component/parse-add-component-input'
 import { formatError, formatSuccess } from '../infra/cli/presentation/output'
@@ -128,6 +129,7 @@ const packageJson = loadPackageJson()
  */
 export function createProgram(): Command {
   const builderRepository = new RiviereBuilderRepository()
+  const defaultGraphFileLocation = join(process.cwd(), '.riviere', 'graph.json')
   const riviereProjectRepository = new RiviereProjectRepository()
   const program = new Command()
 
@@ -138,6 +140,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createAddComponentCommand({
       addComponent: new AddComponent(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parseAddComponentInput,
       formatError,
@@ -148,6 +151,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createAddDomainCommand({
       addDomain: new AddDomain(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -156,6 +160,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createAddSourceCommand({
       addSource: new AddSource(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -164,6 +169,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createInitCommand({
       initGraph: new InitGraph(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -172,6 +178,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createLinkCommand({
       linkComponents: new LinkComponents(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parseLinkSourceLocation,
       formatError,
@@ -181,6 +188,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createLinkExternalCommand({
       linkExternal: new LinkExternal(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -189,6 +197,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createLinkHttpCommand({
       linkHttp: new LinkHttp(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -197,6 +206,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createValidateCommand({
       validateGraph: new ValidateGraph(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -205,6 +215,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createFinalizeCommand({
       createFinalizeGraphInput,
+      defaultGraphFileLocation,
       finalizeGraph: new FinalizeGraph(builderRepository),
       getDefaultGraphPathDescription,
       formatError,
@@ -215,6 +226,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createEnrichCommand({
       enrichComponent: new EnrichComponent(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parseStateChanges,
       formatError,
@@ -225,6 +237,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createComponentSummaryCommand({
       componentSummary: new ComponentSummary(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -233,6 +246,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createComponentChecklistCommand({
       componentChecklist: new ComponentChecklist(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -241,6 +255,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createCheckConsistencyCommand({
       checkConsistency: new CheckConsistency(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -249,6 +264,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createDefineCustomTypeCommand({
       defineCustomType: new DefineCustomType(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parsePropertySpecs,
       formatError,
@@ -258,6 +274,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createDefineRelationshipTypeCommand({
       defineRelationshipType: new DefineRelationshipType(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,

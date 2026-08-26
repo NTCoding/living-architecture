@@ -10,7 +10,7 @@ export class ValidateGraph {
 
   execute(input: ValidateGraphInput): ValidateGraphResult {
     try {
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       const validationResult = builder.validate()
       return {
         result: {

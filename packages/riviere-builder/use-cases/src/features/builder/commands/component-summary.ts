@@ -10,7 +10,7 @@ export class ComponentSummary {
 
   execute(input: ComponentSummaryInput): ComponentSummaryResult {
     try {
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       return {
         result: {
           stats: builder.stats(),

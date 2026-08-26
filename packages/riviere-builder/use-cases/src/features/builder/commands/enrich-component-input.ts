@@ -2,7 +2,7 @@
 export interface EnrichComponentInput {
   businessRules: string[]
   entity: string | undefined
-  graphPathOption: string | undefined
+  graphFileLocation: string
   id: string
   modifies: string[]
   emits: string[]

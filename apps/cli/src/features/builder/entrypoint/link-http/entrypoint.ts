@@ -19,6 +19,7 @@ interface LinkHttpOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateLinkHttpCommandEntrypointDependencies {
   readonly linkHttp: LinkHttp
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
   readonly formatSuccess: typeof formatSuccess
@@ -56,7 +57,7 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (options: LinkHttpOptions) => {
       const result = linkHttp.execute({
-        graphPathOption: options.graph,
+        graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation,
         httpMethod: options.method,
         linkType: options.linkType,
         path: options.path,

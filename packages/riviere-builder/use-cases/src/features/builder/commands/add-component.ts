@@ -33,9 +33,9 @@ export class AddComponent {
     try {
       const definition = ComponentDefinition.parse(input)
       if (!definition.success) return failure('VALIDATION_ERROR', definition.message)
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       const componentId = addDefinition(builder, definition.data.value)
-      this.repository.save(builder)
+      this.repository.save(input.graphFileLocation, builder)
       return {
         result: {
           success: true,

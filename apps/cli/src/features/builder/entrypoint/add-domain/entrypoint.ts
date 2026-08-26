@@ -15,6 +15,7 @@ interface AddDomainOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateAddDomainCommandEntrypointDependencies {
   readonly addDomain: AddDomain
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
   readonly formatSuccess: typeof formatSuccess
@@ -49,7 +50,7 @@ Examples:
     .action(async (options: AddDomainOptions) => {
       const result = addDomain.execute({
         description: options.description,
-        graphPathOption: options.graph,
+        graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation,
         name: options.name,
         systemType: options.systemType,
       })

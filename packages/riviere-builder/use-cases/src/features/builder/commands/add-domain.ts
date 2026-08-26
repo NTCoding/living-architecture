@@ -17,13 +17,13 @@ export class AddDomain {
     }
 
     try {
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       builder.addDomain({
         description: input.description,
         name: input.name,
         systemType: systemType.data.value,
       })
-      this.repository.save(builder)
+      this.repository.save(input.graphFileLocation, builder)
       return {
         result: {
           description: input.description,

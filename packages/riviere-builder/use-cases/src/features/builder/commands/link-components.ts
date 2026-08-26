@@ -21,7 +21,7 @@ export class LinkComponents {
     if (!parsedInput.success) return parsedInput.result
 
     try {
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       const linkInput: {
         from: string
         to: string
@@ -51,7 +51,7 @@ export class LinkComponents {
         linkInput.sourceLocation = input.sourceLocation
       }
       const link = builder.link(linkInput)
-      this.repository.save(builder)
+      this.repository.save(input.graphFileLocation, builder)
       return {
         result: {
           link,

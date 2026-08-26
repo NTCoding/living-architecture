@@ -1,7 +1,7 @@
 /** @riviere-role command-use-case-input */
 export interface AddDomainInput {
   description: string
-  graphPathOption: string | undefined
+  graphFileLocation: string
   name: string
   systemType: string
 }

@@ -22,6 +22,7 @@ interface DomainInputParsed {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateInitCommandEntrypointDependencies {
   readonly initGraph: InitGraph
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
   readonly formatSuccess: typeof formatSuccess
@@ -88,7 +89,7 @@ Examples:
 
       const result = initGraph.execute({
         domains,
-        graphPathOption: options.graph,
+        graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation,
         name: options.name,
         sources: options.source,
       })

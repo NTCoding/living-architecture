@@ -43,14 +43,11 @@ type OperationWarning = ScalarOverwriteWarning | DuplicateLinkWarning
  * @riviere-role-justification TODO: Added before justification rule introduced.
  */
 export class RiviereBuilder {
-  readonly graphPath: string
-
   private graph: BuilderGraph
   private readonly operationWarnings: OperationWarning[]
 
-  private constructor(graph: BuilderGraph, graphPath: string) {
+  private constructor(graph: BuilderGraph) {
     this.graph = graph
-    this.graphPath = graphPath
     this.operationWarnings = []
   }
 
@@ -88,7 +85,7 @@ export class RiviereBuilder {
     return new NearMatch(this.graph)
   }
 
-  static resume(graph: RiviereGraph, graphPath = ''): RiviereBuilder {
+  static resume(graph: RiviereGraph): RiviereBuilder {
     if (!graph.metadata.sources || graph.metadata.sources.length === 0) {
       throw new InvalidGraphError('missing sources')
     }
@@ -105,7 +102,7 @@ export class RiviereBuilder {
       links: graph.links,
       externalLinks: graph.externalLinks ?? [],
     })
-    return new RiviereBuilder(builderGraph, graphPath)
+    return new RiviereBuilder(builderGraph)
   }
 
   static new(
@@ -115,7 +112,6 @@ export class RiviereBuilder {
       readonly sources: readonly SourceInfo[]
       readonly domains: Readonly<Record<string, DomainMetadata>>
     },
-    graphPath = '',
   ): RiviereBuilder {
     if (options.sources.length === 0) {
       throw new MissingSourcesError()
@@ -140,7 +136,7 @@ export class RiviereBuilder {
       externalLinks: [],
     })
 
-    return new RiviereBuilder(graph, graphPath)
+    return new RiviereBuilder(graph)
   }
 
   serialize(): string {

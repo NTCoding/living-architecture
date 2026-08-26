@@ -20,7 +20,7 @@ export class ComponentChecklist {
     }
 
     try {
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       const allComponents = new RiviereQuery(builder.build()).components()
       const filteredComponents =
         componentType === undefined

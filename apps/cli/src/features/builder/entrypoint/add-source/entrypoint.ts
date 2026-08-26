@@ -13,6 +13,7 @@ interface AddSourceOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateAddSourceCommandEntrypointDependencies {
   readonly addSource: AddSource
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
   readonly formatSuccess: typeof formatSuccess
@@ -38,7 +39,7 @@ Examples:
     .option('--json', 'Output result as JSON')
     .action(async (options: AddSourceOptions) => {
       const result = addSource.execute({
-        graphPathOption: options.graph,
+        graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation,
         repository: options.repository,
       })
       if (!result.result.success) {

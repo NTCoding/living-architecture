@@ -17,6 +17,7 @@ interface LinkExternalOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateLinkExternalCommandEntrypointDependencies {
   readonly linkExternal: LinkExternal
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
   readonly formatSuccess: typeof formatSuccess
@@ -56,7 +57,7 @@ Examples:
     .action(async (options: LinkExternalOptions) => {
       const result = linkExternal.execute({
         from: options.from,
-        graphPathOption: options.graph,
+        graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation,
         targetDomain: options.targetDomain,
         targetName: options.targetName,
         targetUrl: options.targetUrl,

@@ -11,6 +11,7 @@ interface ComponentSummaryOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateComponentSummaryCommandEntrypointDependencies {
   readonly componentSummary: ComponentSummary
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
   readonly formatSuccess: typeof formatSuccess
@@ -33,7 +34,7 @@ Examples:
     )
     .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .action(async (options: ComponentSummaryOptions) => {
-      const result = componentSummary.execute({ graphPathOption: options.graph })
+      const result = componentSummary.execute({ graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation })
       if (!result.result.success) {
         console.log(
           JSON.stringify(

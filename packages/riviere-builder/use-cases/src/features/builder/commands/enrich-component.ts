@@ -12,7 +12,7 @@ export class EnrichComponent {
 
   execute(input: EnrichComponentInput): EnrichComponentResult {
     try {
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       const enrichmentInput = {
         ...buildBehavior(input),
         ...(input.businessRules.length > 0 ? { businessRules: input.businessRules } : {}),
@@ -21,7 +21,7 @@ export class EnrichComponent {
         ...(input.signature === undefined ? {} : { signature: input.signature }),
       }
       builder.enrichComponent(input.id, enrichmentInput)
-      this.repository.save(builder)
+      this.repository.save(input.graphFileLocation, builder)
       return {
         result: {
           componentId: input.id,

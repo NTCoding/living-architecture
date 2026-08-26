@@ -9,9 +9,10 @@ interface FinalizeGraphFactoryInput {
 /** @riviere-role command-input-factory */
 export function createFinalizeGraphInput(
   options: FinalizeGraphFactoryInput,
+  defaultGraphFileLocation: string,
 ): FinalizeGraphInput {
   return {
-    graphPathOption: options.graph,
+    graphFileLocation: options.graph ?? defaultGraphFileLocation,
     outputPath: options.output ?? options.graph ?? '.riviere/graph.json',
   }
 }

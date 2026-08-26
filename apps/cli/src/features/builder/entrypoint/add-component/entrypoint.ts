@@ -35,6 +35,7 @@ interface CliOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateAddComponentCommandEntrypointDependencies {
   readonly addComponent: AddComponent
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly parseAddComponentInput: typeof parseAddComponentInput
   readonly formatError: typeof formatError
@@ -80,7 +81,9 @@ export function createAddComponentCommand(
     .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CliOptions) => {
-      const result = addComponent.execute(dependencies.parseAddComponentInput(options))
+      const result = addComponent.execute(
+        dependencies.parseAddComponentInput(options, dependencies.defaultGraphFileLocation),
+      )
 
       if (!result.result.success) {
         const cliErrorCode = CLI_ERROR_CODES[result.result.code]

@@ -14,12 +14,12 @@ export class DefineRelationshipType {
 
   execute(input: DefineRelationshipTypeInput): DefineRelationshipTypeResult {
     try {
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       builder.defineRelationshipType({
         name: input.name,
         description: input.description,
       })
-      this.repository.save(builder)
+      this.repository.save(input.graphFileLocation, builder)
       return {
         result: {
           description: input.description,

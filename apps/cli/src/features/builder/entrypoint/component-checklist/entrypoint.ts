@@ -13,6 +13,7 @@ interface ComponentChecklistOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateComponentChecklistCommandEntrypointDependencies {
   readonly componentChecklist: ComponentChecklist
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
   readonly formatSuccess: typeof formatSuccess
@@ -39,7 +40,7 @@ Examples:
     .option('--type <type>', 'Filter by component type')
     .action(async (options: ComponentChecklistOptions) => {
       const result = componentChecklist.execute({
-        graphPathOption: options.graph,
+        graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation,
         type: options.type,
       })
       if (!result.result.success) {
