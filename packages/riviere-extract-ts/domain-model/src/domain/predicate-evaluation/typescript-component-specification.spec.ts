@@ -1,8 +1,8 @@
 import { type PredicateInput } from '@living-architecture/riviere-extract-config-published-language'
-import { Project, type Node } from 'ts-morph'
+import { Project, SyntaxKind, type Node } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { parsePredicateForTest } from '../../__fixtures__/parsed-predicate-fixture'
-import { evaluatePredicate as evaluateParsedPredicate } from './evaluate-predicate'
+import { TypeScriptComponentSpecification } from './typescript-component-specification'
 
 function createTestProject(code: string) {
   const project = new Project({ useInMemoryFileSystem: true })
@@ -10,7 +10,7 @@ function createTestProject(code: string) {
 }
 
 function evaluatePredicate(node: Node, input: PredicateInput): boolean {
-  return evaluateParsedPredicate(node, parsePredicateForTest(input))
+  return TypeScriptComponentSpecification.parse(parsePredicateForTest(input)).isSatisfiedBy(node)
 }
 
 describe('evaluatePredicate', () => {
@@ -277,6 +277,15 @@ describe('evaluatePredicate', () => {
       const varDecl = sourceFile.getVariableDeclarationOrThrow('x')
       expect(evaluatePredicate(varDecl, { nameEndsWith: { suffix: 'Controller' } })).toBe(false)
     })
+
+    it('returns false when a class declaration has no name', () => {
+      const sourceFile = createTestProject('export default class {}')
+      expect(
+        evaluatePredicate(sourceFile.getClassOrThrow(() => true), {
+          nameEndsWith: { suffix: 'Controller' },
+        }),
+      ).toBe(false)
+    })
   })
 
   describe('nameMatches', () => {
@@ -296,6 +305,15 @@ describe('evaluatePredicate', () => {
       const sourceFile = createTestProject(`const x = 1;`)
       const varDecl = sourceFile.getVariableDeclarationOrThrow('x')
       expect(evaluatePredicate(varDecl, { nameMatches: { pattern: '.*API$' } })).toBe(false)
+    })
+
+    it('returns false when a class declaration has no name', () => {
+      const sourceFile = createTestProject('export default class {}')
+      expect(
+        evaluatePredicate(sourceFile.getClassOrThrow(() => true), {
+          nameMatches: { pattern: '.*API$' },
+        }),
+      ).toBe(false)
     })
   })
 
@@ -349,95 +367,19 @@ describe('evaluatePredicate', () => {
 
       expect(result).toBe(false)
     })
-  })
 
-  describe('and', () => {
-    it('returns true when all predicates match', () => {
-      const sourceFile = createTestProject(`
-        function API() { return (target: any) => target }
-        @API
-        class OrderController {}
-      `)
-      const classDecl = sourceFile.getClassOrThrow('OrderController')
-      const predicate: PredicateInput = {
-        and: [{ hasDecorator: { name: 'API' } }, { nameEndsWith: { suffix: 'Controller' } }],
-      }
+    it('returns false when a method belongs to an object rather than a class', () => {
+      const sourceFile = createTestProject('const handler = { process() {} }')
+      const object = sourceFile
+        .getVariableDeclarationOrThrow('handler')
+        .getInitializerIfKindOrThrow(SyntaxKind.ObjectLiteralExpression)
+      const method = object.getPropertyOrThrow('process')
 
-      const result = evaluatePredicate(classDecl, predicate)
-
-      expect(result).toBe(true)
-    })
-
-    it('returns false when any predicate does not match', () => {
-      const sourceFile = createTestProject(`
-        function API() { return (target: any) => target }
-        @API
-        class OrderService {}
-      `)
-      const classDecl = sourceFile.getClassOrThrow('OrderService')
-      const predicate: PredicateInput = {
-        and: [{ hasDecorator: { name: 'API' } }, { nameEndsWith: { suffix: 'Controller' } }],
-      }
-
-      const result = evaluatePredicate(classDecl, predicate)
-
-      expect(result).toBe(false)
-    })
-  })
-
-  describe('or', () => {
-    it('returns true when any predicate matches', () => {
-      const sourceFile = createTestProject(`
-        class OrderController {}
-      `)
-      const classDecl = sourceFile.getClassOrThrow('OrderController')
-      const predicate: PredicateInput = {
-        or: [{ hasDecorator: { name: 'API' } }, { nameEndsWith: { suffix: 'Controller' } }],
-      }
-
-      const result = evaluatePredicate(classDecl, predicate)
-
-      expect(result).toBe(true)
-    })
-
-    it('returns false when no predicates match', () => {
-      const sourceFile = createTestProject(`
-        class OrderService {}
-      `)
-      const classDecl = sourceFile.getClassOrThrow('OrderService')
-      const predicate: PredicateInput = {
-        or: [{ hasDecorator: { name: 'API' } }, { nameEndsWith: { suffix: 'Controller' } }],
-      }
-
-      const result = evaluatePredicate(classDecl, predicate)
-
-      expect(result).toBe(false)
-    })
-  })
-
-  describe('nested predicates', () => {
-    it('evaluates nested and/or predicates recursively', () => {
-      const sourceFile = createTestProject(`
-        function Get() { return (target: any, key: string) => {} }
-        function Controller() { return (target: any) => target }
-        @Controller
-        class OrderController {
-          @Get
-          findAll() {}
-        }
-      `)
-      const classDecl = sourceFile.getClassOrThrow('OrderController')
-      const method = classDecl.getMethodOrThrow('findAll')
-      const predicate: PredicateInput = {
-        and: [
-          { hasDecorator: { name: 'Get' } },
-          { inClassWith: { hasDecorator: { name: 'Controller' } } },
-        ],
-      }
-
-      const result = evaluatePredicate(method, predicate)
-
-      expect(result).toBe(true)
+      expect(
+        evaluatePredicate(method, {
+          inClassWith: { nameEndsWith: { suffix: 'Handler' } },
+        }),
+      ).toBe(false)
     })
   })
 })

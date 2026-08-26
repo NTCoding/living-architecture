@@ -8,6 +8,7 @@ import type {
   ConnectionsConfig,
 } from './extraction-config-schema'
 import rawSchema from '../../extraction-config.schema.json' with { type: 'json' }
+import { ComponentTypeName } from './component-detection'
 
 /**
  * Required extraction fields by component type.
@@ -21,15 +22,6 @@ const REQUIRED_FIELDS: Record<ComponentType, string[]> = {
   ui: ['route'],
   useCase: [],
 }
-
-const COMPONENT_TYPES: ComponentType[] = [
-  'api',
-  'useCase',
-  'domainOp',
-  'event',
-  'eventHandler',
-  'ui',
-]
 
 const ajv = new Ajv({ allErrors: true })
 addFormats(ajv)
@@ -102,8 +94,8 @@ function validateModuleExtractionRules(
 ): ValidationError[] {
   const errors: ValidationError[] = []
 
-  for (const componentType of COMPONENT_TYPES) {
-    const rule = module[componentType]
+  for (const componentType of ComponentTypeName.parseBuiltIns()) {
+    const rule = module[componentType.value]
 
     if (isNotUsed(rule)) {
       continue
@@ -113,7 +105,7 @@ function validateModuleExtractionRules(
       continue
     }
 
-    const requiredFields = REQUIRED_FIELDS[componentType]
+    const requiredFields = REQUIRED_FIELDS[componentType.value]
     if (requiredFields.length === 0) {
       continue
     }
@@ -123,10 +115,10 @@ function validateModuleExtractionRules(
 
     if (missingFields.length > 0) {
       errors.push({
-        path: `/modules/${moduleIndex}/${componentType}`,
+        path: `/modules/${moduleIndex}/${componentType.value}`,
         message:
           `Missing required extraction rules: ${missingFields.join(', ')}. ` +
-          `Add extraction rules to the 'extract' block or use 'notUsed: true' if not extracting ${componentType} components.`,
+          `Add extraction rules to the 'extract' block or use 'notUsed: true' if not extracting ${componentType.value} components.`,
       })
     }
   }

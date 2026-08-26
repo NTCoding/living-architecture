@@ -34,35 +34,47 @@ function isNameableNode(node: Node): node is NameableNode {
   )
 }
 
-/**
- * Evaluates an extraction predicate against a TypeScript syntax node.
- *
- * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
- * @param node - Syntax node to inspect
- * @param predicate - Predicate to evaluate
- * @returns Whether the node satisfies the predicate
- */
-export function evaluatePredicate(node: Node, predicate: Predicate): boolean {
-  switch (predicate.kind) {
-    case 'hasDecorator':
-      return evaluateHasDecorator(node, predicate.decoratorNames, predicate.fromPackage)
-    case 'hasJSDoc':
-      return evaluateHasJSDoc(node, predicate.tagName)
-    case 'extendsClass':
-      return evaluateExtendsClass(node, predicate.className)
-    case 'implementsInterface':
-      return evaluateImplementsInterface(node, predicate.interfaceName)
-    case 'nameEndsWith':
-      return evaluateNameEndsWith(node, predicate.suffix)
-    case 'nameMatches':
-      return evaluateNameMatches(node, predicate.pattern)
-    case 'inClassWith':
-      return evaluateInClassWith(node, predicate.predicate)
-    case 'and':
-      return predicate.predicates.every((nested) => evaluatePredicate(node, nested))
-    case 'or':
-      return predicate.predicates.some((nested) => evaluatePredicate(node, nested))
+/** @riviere-role value-object */
+export class TypeScriptComponentSpecification {
+  declare private readonly brand: 'TypeScriptComponentSpecification'
+
+  private constructor(private readonly predicate: Predicate) {}
+
+  static parse(predicate: Predicate): TypeScriptComponentSpecification {
+    return new TypeScriptComponentSpecification(predicate)
+  }
+
+  isSatisfiedBy(node: Node): boolean {
+    return this.evaluate(node, this.predicate)
+  }
+
+  private evaluate(node: Node, predicate: Predicate): boolean {
+    switch (predicate.kind) {
+      case 'hasDecorator':
+        return evaluateHasDecorator(node, predicate.decoratorNames, predicate.fromPackage)
+      case 'hasJSDoc':
+        return evaluateHasJSDoc(node, predicate.tagName)
+      case 'extendsClass':
+        return evaluateExtendsClass(node, predicate.className)
+      case 'implementsInterface':
+        return evaluateImplementsInterface(node, predicate.interfaceName)
+      case 'nameEndsWith':
+        return evaluateNameEndsWith(node, predicate.suffix)
+      case 'nameMatches':
+        return evaluateNameMatches(node, predicate.pattern)
+      case 'inClassWith':
+        return this.evaluateInClassWith(node, predicate.predicate)
+      case 'and':
+        return predicate.predicates.every((nested) => this.evaluate(node, nested))
+      case 'or':
+        return predicate.predicates.some((nested) => this.evaluate(node, nested))
+    }
+  }
+
+  private evaluateInClassWith(node: Node, predicate: Predicate): boolean {
+    if (!TsMorphNode.isMethodDeclaration(node)) return false
+    const parent = node.getParent()
+    return TsMorphNode.isClassDeclaration(parent) && this.evaluate(parent, predicate)
   }
 }
 
@@ -137,7 +149,6 @@ function evaluateNameEndsWith(node: Node, suffix: string): boolean {
   }
 
   const name = node.getName()
-  /* istanbul ignore next -- @preserve: Anonymous declarations have undefined names; predicate correctly returns false */
   if (name === undefined) return false
 
   return name.endsWith(suffix)
@@ -149,21 +160,8 @@ function evaluateNameMatches(node: Node, pattern: string): boolean {
   }
 
   const name = node.getName()
-  /* istanbul ignore next -- @preserve: Anonymous declarations have undefined names; predicate correctly returns false */
   if (name === undefined) return false
 
   const regex = new RegExp(pattern)
   return regex.test(name)
-}
-
-function evaluateInClassWith(node: Node, predicate: Predicate): boolean {
-  if (!TsMorphNode.isMethodDeclaration(node)) {
-    return false
-  }
-
-  const parent = node.getParent()
-  /* istanbul ignore next -- @preserve: Methods in object literals have non-class parents; predicate correctly returns false */
-  if (!TsMorphNode.isClassDeclaration(parent)) return false
-
-  return evaluatePredicate(parent, predicate)
 }

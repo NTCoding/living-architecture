@@ -27,6 +27,10 @@ import {
 } from './extraction-rule'
 import type { ComponentRule, CustomTypes, DetectionRule, ExtractBlock } from './component-rule'
 import {
+  ComponentTypeName,
+  ConfiguredComponentDetection,
+} from './component-detection'
+import {
   AndPredicate,
   ExtendsClassPredicate,
   HasDecoratorPredicate,
@@ -48,15 +52,6 @@ const REQUIRED_FIELDS: Record<ComponentType, readonly string[]> = {
   eventHandler: ['subscribedEvents'],
   ui: ['route'],
 }
-
-const COMPONENT_TYPES: readonly ComponentType[] = [
-  'api',
-  'useCase',
-  'domainOp',
-  'event',
-  'eventHandler',
-  'ui',
-]
 
 type ValidatedModuleParseResult =
   | { success: true; data: ValidatedModule }
@@ -83,6 +78,7 @@ interface ValidatedModuleValues {
   readonly eventHandler: ComponentRule
   readonly ui: ComponentRule
   readonly customTypes?: CustomTypes
+  readonly componentDetections: readonly ConfiguredComponentDetection[]
 }
 
 interface ParsedModuleRules {
@@ -93,6 +89,7 @@ interface ParsedModuleRules {
   readonly eventHandler: ComponentRule
   readonly ui: ComponentRule
   readonly customTypes?: CustomTypes
+  readonly componentDetections: readonly ConfiguredComponentDetection[]
 }
 
 /** @riviere-role value-object */
@@ -182,10 +179,14 @@ export class ValidatedModule {
       : this.#values.customTypes?.[componentType]
     return rule?.kind === 'detection' ? rule : undefined
   }
+
+  componentDetections(): readonly ConfiguredComponentDetection[] {
+    return this.#values.componentDetections
+  }
 }
 
 function isComponentType(value: string): value is ComponentType {
-  return COMPONENT_TYPES.some((componentType) => componentType === value)
+  return ComponentTypeName.parseBuiltIns().some((componentType) => componentType.value === value)
 }
 
 type PropertiesOf<Union> = Union extends unknown ? keyof Union : never
@@ -344,6 +345,23 @@ function parseModuleRules(input: ValidatedModuleInput): ParseResult<ParsedModule
   ) {
     return { success: false, errors }
   }
+  const componentDetections = ConfiguredComponentDetection.parseAll(
+    {
+      api: api.data,
+      useCase: useCase.data,
+      domainOp: domainOp.data,
+      event: event.data,
+      eventHandler: eventHandler.data,
+      ui: ui.data,
+    },
+    customTypes.data,
+  )
+  if (!componentDetections.success) {
+    return {
+      success: false,
+      errors: componentDetections.errors.map((message) => ({ path: '/customTypes', message })),
+    }
+  }
   return {
     success: true,
     data: {
@@ -354,26 +372,27 @@ function parseModuleRules(input: ValidatedModuleInput): ParseResult<ParsedModule
       eventHandler: eventHandler.data,
       ui: ui.data,
       ...(customTypes.data === undefined ? {} : { customTypes: customTypes.data }),
+      componentDetections: componentDetections.data,
     },
   }
 }
 
 function validateModule(module: Readonly<ValidatedModuleInput>): ValidationError[] {
-  return COMPONENT_TYPES.flatMap((componentType) => {
-    const rule = module[componentType]
+  return ComponentTypeName.parseBuiltIns().flatMap((componentType) => {
+    const rule = module[componentType.value]
     if (hasUnionMemberProperty(rule, 'notUsed')) return []
     const extractedFields = new Set(Object.keys(rule.extract ?? {}))
-    const missingFields = REQUIRED_FIELDS[componentType].filter(
+    const missingFields = REQUIRED_FIELDS[componentType.value].filter(
       (field) => !extractedFields.has(field),
     )
     return missingFields.length === 0
       ? []
       : [
           {
-            path: `/${componentType}`,
+            path: `/${componentType.value}`,
             message:
               `Missing required extraction rules: ${missingFields.join(', ')}. ` +
-              `Add extraction rules to the 'extract' block or use 'notUsed: true' if not extracting ${componentType} components.`,
+              `Add extraction rules to the 'extract' block or use 'notUsed: true' if not extracting ${componentType.value} components.`,
           },
         ]
   })

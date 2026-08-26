@@ -65,6 +65,10 @@ export type {
   UnusedComponentRule,
 } from './published-language/component-rule'
 export {
+  ComponentTypeName,
+  ConfiguredComponentDetection,
+} from './published-language/component-detection'
+export {
   AndPredicate,
   ExtendsClassPredicate,
   HasDecoratorPredicate,
