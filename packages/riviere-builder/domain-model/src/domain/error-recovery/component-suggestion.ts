@@ -1,5 +1,4 @@
 import type { Component } from '@living-architecture/riviere-schema-published-language/schema'
-import { similarityScore } from '../text-similarity/string-similarity'
 type NearMatchQuery = Readonly<{
   name: string
   type?: import('@living-architecture/riviere-schema-published-language/schema').ComponentType
@@ -22,6 +21,37 @@ type NearMatchResult = Readonly<{
   score: number
   mismatch?: NearMatchMismatch
 }>
+
+function calculateEditDistance(expected: string, actual: string): number {
+  const initialRow = Array.from({ length: actual.length + 1 }, (_, index) => index)
+  const finalRow = [...expected].reduce((previousRow, expectedCharacter, expectedIndex) => {
+    const nextRow = previousRow.slice(1).reduce(
+      (state, above, actualIndex) => {
+        const substitutionCost = expectedCharacter === actual.charAt(actualIndex) ? 0 : 1
+        const value = Math.min(state.left + 1, above + 1, state.diagonal + substitutionCost)
+        state.values.push(value)
+        return { values: state.values, left: value, diagonal: above }
+      },
+      {
+        values: [expectedIndex + 1],
+        left: expectedIndex + 1,
+        diagonal: expectedIndex,
+      },
+    )
+    return nextRow.values
+  }, initialRow)
+
+  return finalRow.reduce((_previous, current) => current, 0)
+}
+
+function calculateNormalisedNameSimilarity(expected: string, actual: string): number {
+  const normalisedExpected = expected.toLowerCase()
+  const normalisedActual = actual.toLowerCase()
+  const distance = calculateEditDistance(normalisedExpected, normalisedActual)
+  const longestNameLength = Math.max(normalisedExpected.length, normalisedActual.length)
+
+  return 1 - distance / longestNameLength
+}
 
 function detectMismatch(
   query: NearMatchQuery,
@@ -85,7 +115,7 @@ export function findNearMatches(
 
   const results = components
     .map((component): NearMatchResult => {
-      const score = similarityScore(query.name, component.name)
+      const score = calculateNormalisedNameSimilarity(query.name, component.name)
       const mismatch = detectMismatch(query, component)
       return {
         component,
