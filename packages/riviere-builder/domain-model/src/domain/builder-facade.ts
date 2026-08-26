@@ -1,22 +1,41 @@
 import type {
   APIComponent,
-  CustomPropertyDefinition,
+  Component as PublishedComponent,
+  ComponentType,
   CustomComponent,
+  CustomPropertyDefinition,
   DomainMetadata,
   DomainOpComponent,
   EventComponent,
   EventHandlerComponent,
-  ExternalLink,
-  Link,
+  ExternalLink as PublishedExternalLink,
+  Link as PublishedLink,
   RiviereGraph,
   SourceInfo,
   SystemType,
   UIComponent,
   UseCaseComponent,
 } from '@living-architecture/riviere-schema-published-language/schema'
-import type { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
-import { RiviereBuilder as DomainBuilder } from './riviere-builder'
+import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
+import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
+import { Component } from './component'
+import { ComponentDefinition } from './component-definition'
+import {
+  BuildValidationError,
+  ComponentNotFoundError,
+  DuplicateComponentError,
+  DuplicateLinkError,
+  InvalidGraphError,
+  MissingDomainsError,
+  MissingSourcesError,
+} from './construction/construction-errors'
+import { ExistingValuePreference } from './existing-value-preference'
+import { ExternalLink } from './external-link'
+import { findNearMatches } from './error-recovery/component-suggestion'
+import { RiviereGraphDefinition } from './riviere-graph-definition'
+import { calculateStats, findOrphans, findWarnings } from './inspection/inspection-functions'
 import type { ComponentSummaryStats } from './inspection/component-summary-stats'
+import { Link } from './link'
 
 type BuilderOptions = Readonly<{
   name?: string
@@ -24,476 +43,516 @@ type BuilderOptions = Readonly<{
   sources: readonly SourceInfo[]
   domains: Readonly<Record<string, DomainMetadata>>
 }>
-
-type DomainInput = Readonly<{
-  name: string
-  description: string
-  systemType: SystemType
-}>
-
+type DomainInput = Readonly<{ name: string; description: string; systemType: SystemType }>
 type UpsertOptions = Readonly<{ noOverwrite?: boolean }>
-
-type UIInput = Readonly<
-  Pick<UIComponent, 'name' | 'domain' | 'module' | 'route' | 'description' | 'sourceLocation'> & {
-    metadata?: Readonly<Record<string, unknown>>
-  }
->
-
-type APIInput = Readonly<
-  Pick<
-    APIComponent,
-    | 'name'
-    | 'domain'
-    | 'module'
-    | 'apiType'
-    | 'httpMethod'
-    | 'path'
-    | 'operationName'
-    | 'description'
-    | 'sourceLocation'
-  > & { metadata?: Readonly<Record<string, unknown>> }
->
-
-type UseCaseInput = Readonly<
-  Pick<UseCaseComponent, 'name' | 'domain' | 'module' | 'description' | 'sourceLocation'> & {
-    metadata?: Readonly<Record<string, unknown>>
-  }
->
-
-type DomainOpInput = Readonly<
-  Pick<
-    DomainOpComponent,
-    | 'name'
-    | 'domain'
-    | 'module'
-    | 'operationName'
-    | 'entity'
-    | 'signature'
-    | 'behavior'
-    | 'stateChanges'
-    | 'businessRules'
-    | 'description'
-    | 'sourceLocation'
-  > & { metadata?: Readonly<Record<string, unknown>> }
->
-
-type EventInput = Readonly<
-  Pick<
-    EventComponent,
-    'name' | 'domain' | 'module' | 'eventName' | 'eventSchema' | 'description' | 'sourceLocation'
-  > & { metadata?: Readonly<Record<string, unknown>> }
->
-
-type EventHandlerInput = Readonly<
-  Pick<
-    EventHandlerComponent,
-    'name' | 'domain' | 'module' | 'subscribedEvents' | 'description' | 'sourceLocation'
-  > & { metadata?: Readonly<Record<string, unknown>> }
->
-
+type UIInput = Parameters<typeof ComponentDefinition.parseUI>[0]
+type APIInput = Parameters<typeof ComponentDefinition.parseAPI>[0]
+type UseCaseInput = Parameters<typeof ComponentDefinition.parseUseCase>[0]
+type DomainOpInput = Parameters<typeof ComponentDefinition.parseDomainOp>[0]
+type EventInput = Parameters<typeof ComponentDefinition.parseEvent>[0]
+type EventHandlerInput = Parameters<typeof ComponentDefinition.parseEventHandler>[0]
+type CustomInput = Parameters<typeof ComponentDefinition.parseCustom>[0]
 type CustomTypeInput = Readonly<{
   name: string
   description?: string
   requiredProperties?: Readonly<Record<string, CustomPropertyDefinition>>
   optionalProperties?: Readonly<Record<string, CustomPropertyDefinition>>
 }>
-
-type RelationshipTypeInput = Readonly<{
-  name: string
-  description: string
-}>
-
-type CustomInput = Readonly<
-  Pick<
-    CustomComponent,
-    'customTypeName' | 'name' | 'domain' | 'module' | 'description' | 'sourceLocation'
-  > & { metadata?: Readonly<Record<string, unknown>> }
->
-
+type RelationshipTypeInput = Readonly<{ name: string; description: string }>
 type EnrichmentInput = Readonly<
   Pick<DomainOpComponent, 'entity' | 'stateChanges' | 'businessRules' | 'behavior' | 'signature'>
 >
-
-type LinkInput = Readonly<{
-  from: Link['source']
-  to: Link['target']
-  type?: Link['type']
-  relationshipType?: Link['relationshipType']
-  condition?: Link['condition']
-  sourceLocation?: Link['sourceLocation']
+type LinkInput = Parameters<typeof Link.parseNew>[0]
+type ExternalLinkInput = Parameters<typeof ExternalLink.parseNew>[0]
+type ScalarOverwriteWarning = Readonly<{
+  code: 'SCALAR_OVERWRITE'
+  message: string
+  componentId: string
+  field: string
+  oldValue: string | number | boolean
+  newValue: string | number | boolean
+}>
+type DuplicateLinkWarning = Readonly<{
+  code: 'DUPLICATE_LINK_SKIPPED'
+  message: string
+  source: string
+  target: string
+  linkType?: string
+  targetRepository?: string
+  targetName: string
+}>
+type OperationWarning = ScalarOverwriteWarning | DuplicateLinkWarning
+type UpsertResult<T extends PublishedComponent = PublishedComponent> = Readonly<{
+  component: T
+  created: boolean
 }>
 
-type ExternalLinkInput = Readonly<{
-  from: ExternalLink['source']
-  target: ExternalLink['target']
-  type?: ExternalLink['type']
-  description?: ExternalLink['description']
-  sourceLocation?: ExternalLink['sourceLocation']
-  metadata?: Readonly<Record<string, unknown>>
-}>
-
-/**
- * Programmatically construct Riviere architecture graphs.
- *
- * Thin facade preserving the flat public API while delegating
- * to focused domain classes internally.
- *
- * @riviere-role aggregate
- */
+/** @riviere-role aggregate */
 export class RiviereBuilder {
-  private readonly delegate: DomainBuilder
+  private readonly components = new Map<string, Component>()
+  private readonly linksByStoredIdentity = new Map<string, Link>()
+  private readonly linksByOccurrenceIdentity = new Map<string, Link>()
+  private readonly externalLinks = new Map<string, ExternalLink>()
+  private readonly operationWarnings: OperationWarning[] = []
 
-  private constructor(delegate: DomainBuilder) {
-    this.delegate = delegate
+  private constructor(
+    private readonly version: string,
+    private metadata: RiviereGraphDefinition,
+    graph?: RiviereGraph,
+  ) {
+    for (const component of graph?.components ?? [])
+      this.components.set(component.id, Component.create(component))
+    for (const published of graph?.links ?? []) {
+      const link = Link.parse(published)
+      this.linksByStoredIdentity.set(link.storedIdentity(), link)
+      this.linksByOccurrenceIdentity.set(link.occurrenceIdentity(), link)
+    }
+    for (const published of graph?.externalLinks ?? []) {
+      const link = ExternalLink.parse(published)
+      this.externalLinks.set(link.connectionIdentity(), link)
+    }
   }
 
   /**
    * Restores a builder from a previously serialized graph.
-   *
-   * @param graph - A valid RiviereGraph to resume from
-   * @returns A new RiviereBuilder with the graph state restored
+   * @param graph - Graph to resume from.
+   * @returns A builder with the graph state restored.
    */
   static resume(graph: RiviereGraph): RiviereBuilder {
-    return new RiviereBuilder(DomainBuilder.resume(graph))
+    if (graph.metadata.sources === undefined || graph.metadata.sources.length === 0)
+      throw new InvalidGraphError('missing sources')
+    return new RiviereBuilder(graph.version, RiviereGraphDefinition.parse(graph.metadata), graph)
   }
 
   /**
-   * Creates a new builder with initial configuration.
-   *
-   * @param options - Configuration including sources and domains
-   * @returns A new RiviereBuilder instance
+   * Creates a new builder with its initial graph definition.
+   * @param options - Initial sources, domains, and descriptive values.
+   * @returns A new builder.
    */
   static new(options: BuilderOptions): RiviereBuilder {
-    return new RiviereBuilder(DomainBuilder.new(options))
+    if (options.sources.length === 0) throw new MissingSourcesError()
+    if (Object.keys(options.domains).length === 0) throw new MissingDomainsError()
+    return new RiviereBuilder(
+      '1.0',
+      RiviereGraphDefinition.parse({
+        ...(options.name === undefined ? {} : { name: options.name }),
+        ...(options.description === undefined ? {} : { description: options.description }),
+        sources: [...options.sources],
+        domains: { ...options.domains },
+      }),
+    )
   }
 
   /**
-   * Adds an additional source repository to the graph.
-   *
-   * @param source - Source repository information
+   * Adds a source repository to the graph definition.
+   * @param source - Source repository information.
    */
   addSource(source: SourceInfo): void {
-    this.delegate.construction.addSource(source)
+    this.metadata = this.metadata.includingSource(source)
   }
 
   /**
-   * Adds a new domain to the graph.
-   *
-   * @param input - Domain name and description
+   * Adds a domain to the graph definition.
+   * @param input - Domain name, description, and system type.
    */
   addDomain(input: DomainInput): void {
-    this.delegate.construction.addDomain(input)
+    this.metadata = this.metadata.includingDomain(input.name, {
+      description: input.description,
+      systemType: input.systemType,
+    })
   }
 
   /**
-   * Adds a UI component to the graph.
-   *
-   * @param input - UI component properties
-   * @returns The created UI component
+   * Adds a UI component.
+   * @param input - UI component values.
+   * @returns The added component.
    */
   addUI(input: UIInput): UIComponent {
-    return this.delegate.construction.addUI(input)
+    return this.add(ComponentDefinition.parseUI(input).publishedUI())
   }
 
   /**
    * Adds or updates a UI component.
-   *
-   * @param input - UI component properties
-   * @param options - Upsert behaviour
-   * @returns The component and whether it was created
+   * @param input - UI component values.
+   * @param options - Update behaviour.
+   * @returns The component and whether it was created.
    */
-  upsertUI(
-    input: UIInput,
-    options?: UpsertOptions,
-  ): {
-    component: UIComponent
-    created: boolean
-  } {
-    return this.delegate.construction.upsertUI(input, options)
+  upsertUI(input: UIInput, options?: UpsertOptions) {
+    return this.upsert(ComponentDefinition.parseUI(input).publishedUI(), options)
   }
 
   /**
-   * Adds an API component to the graph.
-   *
-   * @param input - API component properties
-   * @returns The created API component
+   * Adds an API component.
+   * @param input - API component values.
+   * @returns The added component.
    */
   addApi(input: APIInput): APIComponent {
-    return this.delegate.construction.addApi(input)
+    return this.add(ComponentDefinition.parseAPI(input).publishedAPI())
   }
 
   /**
    * Adds or updates an API component.
-   *
-   * @param input - API component properties
-   * @param options - Upsert behaviour
-   * @returns The component and whether it was created
+   * @param input - API component values.
+   * @param options - Update behaviour.
+   * @returns The component and whether it was created.
    */
-  upsertApi(
-    input: APIInput,
-    options?: UpsertOptions,
-  ): {
-    component: APIComponent
-    created: boolean
-  } {
-    return this.delegate.construction.upsertApi(input, options)
+  upsertApi(input: APIInput, options?: UpsertOptions) {
+    return this.upsert(ComponentDefinition.parseAPI(input).publishedAPI(), options)
   }
 
   /**
-   * Adds a UseCase component to the graph.
-   *
-   * @param input - UseCase component properties
-   * @returns The created UseCase component
+   * Adds a use case component.
+   * @param input - Use case component values.
+   * @returns The added component.
    */
   addUseCase(input: UseCaseInput): UseCaseComponent {
-    return this.delegate.construction.addUseCase(input)
+    return this.add(ComponentDefinition.parseUseCase(input).publishedUseCase())
   }
 
   /**
-   * Adds or updates a UseCase component.
-   *
-   * @param input - UseCase component properties
-   * @param options - Upsert behaviour
-   * @returns The component and whether it was created
+   * Adds or updates a use case component.
+   * @param input - Use case component values.
+   * @param options - Update behaviour.
+   * @returns The component and whether it was created.
    */
-  upsertUseCase(
-    input: UseCaseInput,
-    options?: UpsertOptions,
-  ): {
-    component: UseCaseComponent
-    created: boolean
-  } {
-    return this.delegate.construction.upsertUseCase(input, options)
+  upsertUseCase(input: UseCaseInput, options?: UpsertOptions) {
+    return this.upsert(ComponentDefinition.parseUseCase(input).publishedUseCase(), options)
   }
 
   /**
-   * Adds a DomainOp component to the graph.
-   *
-   * @param input - DomainOp component properties
-   * @returns The created DomainOp component
+   * Adds a domain operation component.
+   * @param input - Domain operation component values.
+   * @returns The added component.
    */
   addDomainOp(input: DomainOpInput): DomainOpComponent {
-    return this.delegate.construction.addDomainOp(input)
+    return this.add(ComponentDefinition.parseDomainOp(input).publishedDomainOp())
   }
 
   /**
-   * Adds or updates a DomainOp component.
-   *
-   * @param input - DomainOp component properties
-   * @param options - Upsert behaviour
-   * @returns The component and whether it was created
+   * Adds or updates a domain operation component.
+   * @param input - Domain operation component values.
+   * @param options - Update behaviour.
+   * @returns The component and whether it was created.
    */
-  upsertDomainOp(
-    input: DomainOpInput,
-    options?: UpsertOptions,
-  ): {
-    component: DomainOpComponent
-    created: boolean
-  } {
-    return this.delegate.construction.upsertDomainOp(input, options)
+  upsertDomainOp(input: DomainOpInput, options?: UpsertOptions) {
+    return this.upsert(ComponentDefinition.parseDomainOp(input).publishedDomainOp(), options)
   }
 
   /**
-   * Adds an Event component to the graph.
-   *
-   * @param input - Event component properties
-   * @returns The created Event component
+   * Adds an event component.
+   * @param input - Event component values.
+   * @returns The added component.
    */
   addEvent(input: EventInput): EventComponent {
-    return this.delegate.construction.addEvent(input)
+    return this.add(ComponentDefinition.parseEvent(input).publishedEvent())
   }
 
   /**
-   * Adds or updates an Event component.
-   *
-   * @param input - Event component properties
-   * @param options - Upsert behaviour
-   * @returns The component and whether it was created
+   * Adds or updates an event component.
+   * @param input - Event component values.
+   * @param options - Update behaviour.
+   * @returns The component and whether it was created.
    */
-  upsertEvent(
-    input: EventInput,
-    options?: UpsertOptions,
-  ): {
-    component: EventComponent
-    created: boolean
-  } {
-    return this.delegate.construction.upsertEvent(input, options)
+  upsertEvent(input: EventInput, options?: UpsertOptions) {
+    return this.upsert(ComponentDefinition.parseEvent(input).publishedEvent(), options)
   }
 
   /**
-   * Adds an EventHandler component to the graph.
-   *
-   * @param input - EventHandler component properties
-   * @returns The created EventHandler component
+   * Adds an event handler component.
+   * @param input - Event handler component values.
+   * @returns The added component.
    */
   addEventHandler(input: EventHandlerInput): EventHandlerComponent {
-    return this.delegate.construction.addEventHandler(input)
+    return this.add(ComponentDefinition.parseEventHandler(input).publishedEventHandler())
   }
 
   /**
-   * Adds or updates an EventHandler component.
-   *
-   * @param input - EventHandler component properties
-   * @param options - Upsert behaviour
-   * @returns The component and whether it was created
+   * Adds or updates an event handler component.
+   * @param input - Event handler component values.
+   * @param options - Update behaviour.
+   * @returns The component and whether it was created.
    */
-  upsertEventHandler(
-    input: EventHandlerInput,
-    options?: UpsertOptions,
-  ): {
-    component: EventHandlerComponent
-    created: boolean
-  } {
-    return this.delegate.construction.upsertEventHandler(input, options)
+  upsertEventHandler(input: EventHandlerInput, options?: UpsertOptions) {
+    return this.upsert(
+      ComponentDefinition.parseEventHandler(input).publishedEventHandler(),
+      options,
+    )
   }
 
   /**
-   * Defines a custom component type for the graph.
-   *
-   * @param input - Custom type definition
+   * Defines a custom component type.
+   * @param input - Custom component type definition.
    */
   defineCustomType(input: CustomTypeInput): void {
-    this.delegate.construction.defineCustomType(input)
+    this.metadata = this.metadata.includingCustomType(input.name, {
+      ...(input.description === undefined ? {} : { description: input.description }),
+      ...(input.requiredProperties === undefined
+        ? {}
+        : { requiredProperties: { ...input.requiredProperties } }),
+      ...(input.optionalProperties === undefined
+        ? {}
+        : { optionalProperties: { ...input.optionalProperties } }),
+    })
   }
 
   /**
-   * Defines a relationship type for the graph.
-   *
-   * @param input - Relationship type name and description
+   * Defines a relationship type.
+   * @param input - Relationship type definition.
    */
   defineRelationshipType(input: RelationshipTypeInput): void {
-    this.delegate.construction.defineRelationshipType(input)
+    this.metadata = this.metadata.includingRelationshipType(input.name, {
+      description: input.description,
+    })
   }
 
   /**
-   * Adds a Custom component to the graph.
-   *
-   * @param input - Custom component properties
-   * @returns The created Custom component
+   * Adds a custom component.
+   * @param input - Custom component values.
+   * @returns The added component.
    */
   addCustom(input: CustomInput): CustomComponent {
-    return this.delegate.construction.addCustom(input)
+    this.metadata.ensureCustomTypeAccepts(input.customTypeName, input.metadata)
+    return this.add(ComponentDefinition.parseCustom(input).publishedCustom())
   }
 
   /**
-   * Adds or updates a Custom component.
-   *
-   * @param input - Custom component properties
-   * @param options - Upsert behaviour
-   * @returns The component and whether it was created
+   * Adds or updates a custom component.
+   * @param input - Custom component values.
+   * @param options - Update behaviour.
+   * @returns The component and whether it was created.
    */
-  upsertCustom(
-    input: CustomInput,
-    options?: UpsertOptions,
-  ): {
-    component: CustomComponent
-    created: boolean
-  } {
-    return this.delegate.construction.upsertCustom(input, options)
+  upsertCustom(input: CustomInput, options?: UpsertOptions) {
+    this.metadata.ensureCustomTypeAccepts(input.customTypeName, input.metadata)
+    return this.upsert(
+      ComponentDefinition.parseCustom(input).publishedCustom(),
+      options,
+      input.metadata,
+    )
   }
 
   /**
-   * Enriches a DomainOp component with additional domain details.
-   *
-   * @param id - The component ID to enrich
-   * @param enrichment - State changes and business rules to add
+   * Enriches a domain operation component.
+   * @param id - Component identity.
+   * @param enrichment - Domain operation details to add.
    */
   enrichComponent(id: string, enrichment: EnrichmentInput): void {
-    this.delegate.enrichment.enrichComponent(id, enrichment)
+    this.component(id).enrichDomainOperation(enrichment)
   }
 
   /**
-   * Finds components similar to a query for error recovery.
-   *
-   * @param query - Search criteria including partial ID, name, type, or domain
-   * @param options - Optional matching thresholds and limits
-   * @returns Array of similar components with similarity scores
+   * Finds components with similar names.
+   * @param query - Component values used for matching.
+   * @param options - Matching threshold and result limit.
+   * @returns Components ordered by similarity.
    */
   nearMatches(
-    query: Readonly<{
-      name: string
-      type?: import('@living-architecture/riviere-schema-published-language/schema').ComponentType
-      domain?: string
-    }>,
-    options?: Readonly<{
-      threshold?: number
-      limit?: number
-    }>,
+    query: Readonly<{ name: string; type?: ComponentType; domain?: string }>,
+    options?: Readonly<{ threshold?: number; limit?: number }>,
   ) {
-    return this.delegate.errorRecovery.findNearMatches(query, options)
+    return findNearMatches(this.publishedComponents(), query, options)
   }
 
   /**
-   * Creates a link between two components in the graph.
-   *
-   * @param input - Link properties including source, target, and type
-   * @returns The created link
+   * Adds a link between two components.
+   * @param input - Link values.
+   * @returns The added link.
    */
-  link(input: LinkInput): Link {
-    return this.delegate.linking.link(input)
+  link(input: LinkInput): PublishedLink {
+    this.component(input.from)
+    if (input.relationshipType !== undefined)
+      this.metadata.ensureRelationshipTypeExists(input.relationshipType)
+    const link = Link.parseNew(input)
+    if (
+      this.linksByStoredIdentity.has(link.storedIdentity()) ||
+      this.linksByOccurrenceIdentity.has(link.occurrenceIdentity())
+    )
+      throw new DuplicateLinkError(link.occurrenceIdentity())
+    this.linksByStoredIdentity.set(link.storedIdentity(), link)
+    this.linksByOccurrenceIdentity.set(link.occurrenceIdentity(), link)
+    return link.published()
   }
 
   /**
-   * Creates a link from a component to an external system.
-   *
-   * @param input - External link properties including target system info
-   * @returns The created external link
+   * Adds a link from a component to an external target.
+   * @param input - External link values.
+   * @returns The added or existing link.
    */
-  linkExternal(input: ExternalLinkInput): ExternalLink {
-    return this.delegate.linking.linkExternal(input)
+  linkExternal(input: ExternalLinkInput): PublishedExternalLink {
+    this.component(input.from)
+    const link = ExternalLink.parseNew(input)
+    const existing = this.externalLinks.get(link.connectionIdentity())
+    if (existing !== undefined) {
+      this.operationWarnings.push({
+        code: 'DUPLICATE_LINK_SKIPPED',
+        message: `Duplicate external link '${input.from}' -> '${input.target.name}' (${input.type ?? 'unspecified'}) skipped`,
+        source: input.from,
+        target: input.target.name,
+        ...(input.type === undefined ? {} : { linkType: input.type }),
+        ...(input.target.repository === undefined
+          ? {}
+          : { targetRepository: input.target.repository }),
+        targetName: input.target.name,
+      })
+      return existing.published()
+    }
+    this.externalLinks.set(link.connectionIdentity(), link)
+    return link.published()
   }
 
-  /**
-   * Returns non-fatal issues found in the graph.
-   *
-   * @returns Array of warning objects with type and message
-   */
+  /** @returns Non fatal issues found in the graph. */
   warnings() {
-    return this.delegate.inspection.warnings()
+    return [...findWarnings(this.inspectionGraph()), ...this.operationWarnings]
   }
 
-  /**
-   * Returns statistics about the current graph state.
-   *
-   * @returns Counts of components by type, domains, and links
-   */
+  /** @returns Statistics for the current graph. */
   stats(): ComponentSummaryStats {
-    return this.delegate.inspection.stats()
+    return calculateStats(this.inspectionGraph())
   }
 
-  /**
-   * Runs full validation on the graph.
-   *
-   * @returns Validation result with valid flag and error details
-   */
+  /** @returns Validation results for the current graph. */
   validate(): ValidationResult {
-    return this.delegate.inspection.validate()
+    return ValidationResult.parse(this.publishedGraph())
   }
 
-  /**
-   * Returns IDs of components with no incoming or outgoing links.
-   *
-   * @returns Array of orphaned component IDs
-   */
+  /** @returns Component identities with no incoming or outgoing links. */
   orphans(): string[] {
-    return this.delegate.inspection.orphans()
+    return findOrphans(this.inspectionGraph())
   }
 
-  /**
-   * Serializes the current graph state as a JSON string.
-   *
-   * @returns JSON string representation of the graph
-   */
+  /** @returns The current graph encoded as JSON. */
   serialize(): string {
-    return this.delegate.serialize()
+    return JSON.stringify(this.serializedGraph(), null, 2)
   }
 
-  /**
-   * Validates and returns the completed graph.
-   *
-   * @returns Valid RiviereGraph object
-   */
+  /** @returns The valid completed graph. */
   build(): RiviereGraph {
-    return this.delegate.build()
+    const graph = this.publishedGraph()
+    const result = ValidationResult.parse(graph)
+    if (!result.valid) throw new BuildValidationError(result.errors.map((error) => error.message))
+    return graph
+  }
+
+  private add<T extends PublishedComponent>(published: T): T {
+    this.ensureComponentCanBeAdded(published)
+    if (this.components.has(published.id)) throw new DuplicateComponentError(published.id)
+    const component = Component.create(published)
+    this.components.set(component.id(), component)
+    return published
+  }
+
+  private upsert(published: UIComponent, options?: UpsertOptions): UpsertResult<UIComponent>
+  private upsert(published: APIComponent, options?: UpsertOptions): UpsertResult<APIComponent>
+  private upsert(
+    published: UseCaseComponent,
+    options?: UpsertOptions,
+  ): UpsertResult<UseCaseComponent>
+  private upsert(
+    published: DomainOpComponent,
+    options?: UpsertOptions,
+  ): UpsertResult<DomainOpComponent>
+  private upsert(published: EventComponent, options?: UpsertOptions): UpsertResult<EventComponent>
+  private upsert(
+    published: EventHandlerComponent,
+    options?: UpsertOptions,
+  ): UpsertResult<EventHandlerComponent>
+  private upsert(
+    published: CustomComponent,
+    options?: UpsertOptions,
+    incomingCustomProperties?: Readonly<Record<string, unknown>>,
+  ): UpsertResult<CustomComponent>
+  private upsert(
+    published: PublishedComponent,
+    options?: UpsertOptions,
+    incomingCustomProperties?: Readonly<Record<string, unknown>>,
+  ): UpsertResult
+  private upsert(
+    published: PublishedComponent,
+    options?: UpsertOptions,
+    incomingCustomProperties?: Readonly<Record<string, unknown>>,
+  ): UpsertResult {
+    this.ensureComponentCanBeAdded(published)
+    const existing = this.components.get(published.id)
+    if (existing === undefined) {
+      const component = Component.create(published)
+      this.components.set(component.id(), component)
+      return { component: component.published(), created: true }
+    }
+    const update = existing.update(
+      published,
+      ExistingValuePreference.parse(options?.noOverwrite),
+      incomingCustomProperties,
+    )
+    for (const overwrite of update.overwrites)
+      this.operationWarnings.push({
+        code: 'SCALAR_OVERWRITE',
+        message: `Scalar field '${overwrite.field}' on component '${published.id}' overwritten`,
+        componentId: published.id,
+        ...overwrite,
+      })
+    return { component: update.component, created: false }
+  }
+
+  private ensureComponentCanBeAdded(published: PublishedComponent): void {
+    this.metadata.ensureDomainExists(published.domain)
+  }
+
+  private component(id: string): Component {
+    const component = this.components.get(id)
+    if (component !== undefined) return component
+    const parsed = ComponentId.parse(id)
+    if (!parsed.success) throw new ComponentNotFoundError(id, [])
+    const suggestions = findNearMatches(
+      this.publishedComponents(),
+      { name: parsed.componentId.name() },
+      { limit: 3 },
+    ).map((match) => match.component.id)
+    throw new ComponentNotFoundError(id, suggestions)
+  }
+
+  private publishedComponents(): PublishedComponent[] {
+    return [...this.components.values()].map((component) => component.published())
+  }
+  private publishedLinks(): PublishedLink[] {
+    return [...this.linksByStoredIdentity.values()].map((link) => link.published())
+  }
+  private publishedExternalLinks(): PublishedExternalLink[] {
+    return [...this.externalLinks.values()].map((link) => link.published())
+  }
+  private inspectionGraph() {
+    return {
+      version: this.version,
+      metadata: this.metadata.published(),
+      components: this.publishedComponents(),
+      links: this.publishedLinks(),
+      externalLinks: this.publishedExternalLinks(),
+    }
+  }
+  private serializedGraph() {
+    return this.inspectionGraph()
+  }
+
+  private publishedGraph(): RiviereGraph {
+    const metadata = this.metadata.published()
+    const customTypes =
+      Object.keys(metadata.customTypes).length === 0 ? undefined : { ...metadata.customTypes }
+    const relationshipTypes =
+      Object.keys(metadata.relationshipTypes).length === 0
+        ? undefined
+        : { ...metadata.relationshipTypes }
+    const externalLinks = this.publishedExternalLinks()
+    return {
+      version: this.version,
+      metadata: {
+        ...(metadata.name === undefined ? {} : { name: metadata.name }),
+        ...(metadata.description === undefined ? {} : { description: metadata.description }),
+        sources: [...metadata.sources],
+        domains: { ...metadata.domains },
+        ...(customTypes === undefined ? {} : { customTypes }),
+        ...(relationshipTypes === undefined ? {} : { relationshipTypes }),
+      },
+      components: this.publishedComponents(),
+      links: this.publishedLinks(),
+      ...(externalLinks.length === 0 ? {} : { externalLinks }),
+    }
   }
 }

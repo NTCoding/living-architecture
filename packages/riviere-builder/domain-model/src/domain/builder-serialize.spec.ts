@@ -279,6 +279,30 @@ describe('RiviereBuilder', () => {
       expect(resumed.stats().componentCount).toBe(3)
     })
 
+    it('preserves external links after resume', () => {
+      const original = RiviereBuilder.new(createValidOptions())
+      const source = original.addUseCase({
+        name: 'Process Payment',
+        domain: 'orders',
+        module: 'checkout',
+        sourceLocation: createSourceLocation(),
+      })
+      original.linkExternal({
+        from: source.id,
+        target: { name: 'Payment provider', repository: 'external/payments' },
+      })
+
+      const resumed = RiviereBuilder.resume(JSON.parse(original.serialize()))
+
+      expect(resumed.stats().externalLinkCount).toBe(1)
+      expect(resumed.build().externalLinks).toStrictEqual([
+        {
+          source: source.id,
+          target: { name: 'Payment provider', repository: 'external/payments' },
+        },
+      ])
+    })
+
     it('throws clear error when graph has no sources', () => {
       const invalidGraph = {
         version: '1.0',

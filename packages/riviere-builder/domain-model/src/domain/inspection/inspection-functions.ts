@@ -4,11 +4,9 @@ import type {
   DomainMetadata,
   ExternalLink,
   Link,
-  RiviereGraph,
   SourceInfo,
   RelationshipTypeDefinition,
 } from '@living-architecture/riviere-schema-published-language/schema'
-import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { ComponentSummaryStats } from './component-summary-stats'
 
 type InspectionWarning =
@@ -143,63 +141,4 @@ export function findWarnings(graph: InspectionGraph): InspectionWarning[] {
   }
 
   return warnings
-}
-
-/**
- * Converts builder internal graph to schema-compliant RiviereGraph.
- *
- * Removes undefined optional fields and ensures proper structure.
- *
- * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
- *
- * @param graph - The internal builder graph
- * @returns Schema-compliant RiviereGraph
- *
- * @example
- * ```typescript
- * const output = toRiviereGraph(builderGraph)
- * JSON.stringify(output) // Valid Rivière JSON
- * ```
- */
-export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
-  const hasCustomTypes = Object.keys(graph.metadata.customTypes).length > 0
-  const hasExternalLinks = graph.externalLinks.length > 0
-  const hasRelationshipTypes = Object.keys(graph.metadata.relationshipTypes).length > 0
-
-  return {
-    version: graph.version,
-    metadata: {
-      ...(graph.metadata.name !== undefined && { name: graph.metadata.name }),
-      ...(graph.metadata.description !== undefined && { description: graph.metadata.description }),
-      sources: [...graph.metadata.sources],
-      domains: { ...graph.metadata.domains },
-      ...(hasCustomTypes && { customTypes: { ...graph.metadata.customTypes } }),
-      ...(hasRelationshipTypes && { relationshipTypes: { ...graph.metadata.relationshipTypes } }),
-    },
-    components: [...graph.components],
-    links: [...graph.links],
-    ...(hasExternalLinks && { externalLinks: [...graph.externalLinks] }),
-  }
-}
-
-/**
- * Validates the graph against the Rivière schema.
- *
- * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
- *
- * @param graph - The graph to validate
- * @returns Validation result with valid flag and any errors
- *
- * @example
- * ```typescript
- * const result = validateGraph(graph)
- * if (!result.valid) {
- *   console.error(result.errors)
- * }
- * ```
- */
-export function validateGraph(graph: InspectionGraph): ValidationResult {
-  return ValidationResult.parse(toRiviereGraph(graph))
 }

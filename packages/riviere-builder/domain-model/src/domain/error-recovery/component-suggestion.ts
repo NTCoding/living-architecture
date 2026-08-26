@@ -1,6 +1,4 @@
 import type { Component } from '@living-architecture/riviere-schema-published-language/schema'
-import type { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
-import { ComponentNotFoundError } from '../construction/construction-errors'
 import { similarityScore } from '../text-similarity/string-similarity'
 type NearMatchQuery = Readonly<{
   name: string
@@ -100,29 +98,4 @@ export function findNearMatches(
     .slice(0, limit)
 
   return results
-}
-
-/**
- * Creates a typed error with suggestions for a missing source component.
- *
- * @riviere-role domain-service
- * @riviere-role-justification TODO: Added before justification rule introduced.
- *
- * @param components - Array of existing components to search for suggestions
- * @param id - The ComponentId that was not found
- * @returns ComponentNotFoundError with suggestions array for programmatic access
- *
- * @example
- * ```typescript
- * const error = createSourceNotFoundError(components, ComponentId.parse('orders:checkout:api:create-ordr'))
- * // ComponentNotFoundError with suggestions: ['orders:checkout:api:create-order']
- * ```
- */
-export function createSourceNotFoundError(
-  components: readonly Component[],
-  id: ComponentId,
-): ComponentNotFoundError {
-  const matches = findNearMatches(components, { name: id.name() }, { limit: 3 })
-  const suggestions = matches.map((s) => s.component.id)
-  return new ComponentNotFoundError(id.toString(), suggestions)
 }
