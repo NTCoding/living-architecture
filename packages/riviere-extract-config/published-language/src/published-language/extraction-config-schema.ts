@@ -90,12 +90,12 @@ export interface NotUsedInput {
 /** Transform operations to apply to extracted values. */
 /** @riviere-role published-language-data-structure */
 export interface ExtractionTransformInput {
-  stripSuffix?: string
-  stripPrefix?: string
-  toLowerCase?: true
-  toUpperCase?: true
-  kebabToPascal?: true
-  pascalToKebab?: true
+  stripSuffix?: string | undefined
+  stripPrefix?: string | undefined
+  toLowerCase?: true | undefined
+  toUpperCase?: true | undefined
+  kebabToPascal?: true | undefined
+  pascalToKebab?: true | undefined
 }
 
 /** Extracts a hardcoded literal value. */

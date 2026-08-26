@@ -13,6 +13,7 @@ import {
   FromPropertyExtractionRule,
   LiteralExtractionRule,
 } from './extraction-rule'
+import { ExtractionTransform } from './extraction-transform'
 
 function requireParsedRule<T>(
   result:
@@ -105,35 +106,50 @@ describe('extraction rules', () => {
       }),
     )
 
+    expect([
+      className.transform,
+      methodName.transform,
+      filePath.transform,
+      property.transform,
+      genericArgument.transform,
+      parameterType.transform,
+    ]).toStrictEqual([
+      expect.any(ExtractionTransform),
+      expect.any(ExtractionTransform),
+      expect.any(ExtractionTransform),
+      expect.any(ExtractionTransform),
+      expect.any(ExtractionTransform),
+      expect.any(ExtractionTransform),
+    ])
     expect({
-      className: className.transform,
-      methodName: methodName.transform,
+      className: className.transform?.applyTo('IOrder'),
+      methodName: methodName.transform?.applyTo('IExecute'),
       filePath: {
         pattern: filePath.pattern,
         capture: filePath.capture,
-        transform: filePath.transform,
+        transformed: filePath.transform?.applyTo('IPath'),
       },
       property: {
         name: property.propertyName,
         kind: property.propertyKind,
-        transform: property.transform,
+        transformed: property.transform?.applyTo('IRoute'),
       },
       genericArgument: {
         interfaceName: genericArgument.interfaceName,
         position: genericArgument.position,
-        transform: genericArgument.transform,
+        transformed: genericArgument.transform?.applyTo('ICommand'),
       },
       parameterType: {
         position: parameterType.position,
-        transform: parameterType.transform,
+        transformed: parameterType.transform?.applyTo('IRequest'),
       },
     }).toStrictEqual({
-      className: transform,
-      methodName: transform,
-      filePath: { pattern: 'domains/(.*)', capture: 1, transform },
-      property: { name: 'route', kind: 'instance', transform },
-      genericArgument: { interfaceName: 'Handler', position: 2, transform },
-      parameterType: { position: 3, transform },
+      className: 'Order',
+      methodName: 'Execute',
+      filePath: { pattern: 'domains/(.*)', capture: 1, transformed: 'Path' },
+      property: { name: 'route', kind: 'instance', transformed: 'Route' },
+      genericArgument: { interfaceName: 'Handler', position: 2, transformed: 'Command' },
+      parameterType: { position: 3, transformed: 'Request' },
     })
   })
 
@@ -161,23 +177,23 @@ describe('extraction rules', () => {
       named: {
         decoratorName: named.decoratorName,
         argument: named.argument,
-        transform: named.transform,
+        transformed: named.transform?.applyTo('VALUE'),
       },
       positional: {
         decoratorName: positional.decoratorName,
         argument: positional.argument,
-        transform: positional.transform,
+        transformed: positional.transform?.applyTo('value'),
       },
     }).toStrictEqual({
       named: {
         decoratorName: 'Get',
         argument: { kind: 'name', name: 'path' },
-        transform: { toLowerCase: true },
+        transformed: 'value',
       },
       positional: {
         decoratorName: 'Controller',
         argument: { kind: 'position', position: 1 },
-        transform: { toUpperCase: true },
+        transformed: 'VALUE',
       },
     })
   })
@@ -192,9 +208,9 @@ describe('extraction rules', () => {
       }),
     )
 
-    expect({ mapping: rule.mapping, transform: rule.transform }).toStrictEqual({
+    expect({ mapping: rule.mapping, transformed: rule.transform?.applyTo('GET') }).toStrictEqual({
       mapping: { Get: 'GET' },
-      transform: { toLowerCase: true },
+      transformed: 'get',
     })
   })
 
@@ -212,6 +228,12 @@ describe('extraction rules', () => {
     [
       'invalid file path pattern',
       FromFilePathExtractionRule.parse({ fromFilePath: { pattern: '[', capture: 0 } }),
+    ],
+    [
+      'invalid transformation',
+      FromClassNameExtractionRule.parse({
+        fromClassName: { transform: { unknownTransform: true } },
+      }),
     ],
   ])('rejects %s', (_, result) => {
     expect(result.success).toBe(false)

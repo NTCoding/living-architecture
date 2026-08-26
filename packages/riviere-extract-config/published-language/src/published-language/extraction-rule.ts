@@ -1,26 +1,12 @@
 import { z } from 'zod'
+import { ExtractionTransform } from './extraction-transform'
 
-/** @riviere-role published-language-data-structure */
-export interface ExtractionTransform {
-  readonly stripSuffix?: string | undefined
-  readonly stripPrefix?: string | undefined
-  readonly toLowerCase?: true | undefined
-  readonly toUpperCase?: true | undefined
-  readonly kebabToPascal?: true | undefined
-  readonly pascalToKebab?: true | undefined
-}
-
-const extractionTransformSchema: z.ZodType<ExtractionTransform> = z
-  .object({
-    stripSuffix: z.string().optional(),
-    stripPrefix: z.string().optional(),
-    toLowerCase: z.literal(true).optional(),
-    toUpperCase: z.literal(true).optional(),
-    kebabToPascal: z.literal(true).optional(),
-    pascalToKebab: z.literal(true).optional(),
-  })
-  .strict()
-  .readonly()
+const extractionTransformSchema = z.unknown().transform((input, context) => {
+  const result = ExtractionTransform.parse(input)
+  if (result.success) return result.data
+  for (const message of result.errors) context.addIssue({ code: 'custom', message })
+  return z.NEVER
+})
 
 /** @riviere-role published-language-union */
 export type DecoratorArgumentSelector =

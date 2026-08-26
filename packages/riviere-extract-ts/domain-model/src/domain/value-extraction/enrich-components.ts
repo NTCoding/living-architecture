@@ -6,7 +6,6 @@ import type {
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { ClassDeclaration, MethodDeclaration, Project } from 'ts-morph'
 import { ExtractionError } from './literal-detection'
-import { applyTransforms } from './transforms'
 import type { DraftComponent } from '../component-extraction/draft-component'
 import {
   EnrichedComponent,
@@ -276,7 +275,7 @@ function evaluateComponentParameterType(
   }
   const typeName = parameter.getTypeNode()?.getText() ?? 'unknown'
   return ExtractionResult.parse({
-    value: rule.transform === undefined ? typeName : applyTransforms(typeName, rule.transform),
+    value: rule.transform === undefined ? typeName : rule.transform.applyTo(typeName),
   })
 }
 

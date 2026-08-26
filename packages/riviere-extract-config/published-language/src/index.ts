@@ -43,7 +43,6 @@ export type {
 export {
   type DecoratorArgumentSelector,
   type ExtractionRule,
-  type ExtractionTransform,
   FromClassDecoratorArgExtractionRule,
   FromClassNameExtractionRule,
   FromConstructorParamsExtractionRule,
@@ -57,6 +56,7 @@ export {
   FromPropertyExtractionRule,
   LiteralExtractionRule,
 } from './published-language/extraction-rule'
+export { ExtractionTransform } from './published-language/extraction-transform'
 export type {
   ComponentRule,
   CustomTypes,

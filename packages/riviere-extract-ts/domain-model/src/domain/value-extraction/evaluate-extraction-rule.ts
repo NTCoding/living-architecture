@@ -12,7 +12,6 @@ import type {
 } from '@living-architecture/riviere-extract-config-published-language'
 import { Node, SyntaxKind } from 'ts-morph'
 import { ExtractionError, extractLiteralValue } from './literal-detection'
-import { applyTransforms } from './transforms'
 import { ExtractionResult } from './extraction-result'
 
 export {
@@ -59,7 +58,7 @@ export function evaluateFromClassNameRule(
     return ExtractionResult.parse({ value: className })
   }
 
-  return ExtractionResult.parse({ value: applyTransforms(className, transform) })
+  return ExtractionResult.parse({ value: transform.applyTo(className) })
 }
 
 /**
@@ -77,7 +76,7 @@ export function evaluateFromMethodNameRule(
     return ExtractionResult.parse({ value: methodName })
   }
 
-  return ExtractionResult.parse({ value: applyTransforms(methodName, transform) })
+  return ExtractionResult.parse({ value: transform.applyTo(methodName) })
 }
 
 /**
@@ -115,7 +114,7 @@ export function evaluateFromFilePathRule(
     return ExtractionResult.parse({ value: capturedValue })
   }
 
-  return ExtractionResult.parse({ value: applyTransforms(capturedValue, transform) })
+  return ExtractionResult.parse({ value: transform.applyTo(capturedValue) })
 }
 
 type PropertyInfo = {
@@ -191,7 +190,7 @@ export function evaluateFromPropertyRule(
     return ExtractionResult.parse({ value: literalResult.value })
   }
 
-  return ExtractionResult.parse({ value: applyTransforms(literalResult.value, transform) })
+  return ExtractionResult.parse({ value: transform.applyTo(literalResult.value) })
 }
 
 type DecoratorLocation = {
@@ -331,7 +330,7 @@ function evaluateDecoratorArgument(
       ? extractPositionalArg(decorator, argument.position)
       : extractNamedArg(decorator, argument.name)
   return ExtractionResult.parse({
-    value: transform === undefined ? value : applyTransforms(value, transform),
+    value: transform === undefined ? value : transform.applyTo(value),
   })
 }
 
@@ -388,5 +387,5 @@ export function evaluateFromDecoratorNameRule(
     return ExtractionResult.parse({ value: mappedValue })
   }
 
-  return ExtractionResult.parse({ value: applyTransforms(mappedValue, transform) })
+  return ExtractionResult.parse({ value: transform.applyTo(mappedValue) })
 }

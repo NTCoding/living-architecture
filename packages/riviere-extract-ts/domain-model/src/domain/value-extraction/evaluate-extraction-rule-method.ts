@@ -5,7 +5,6 @@ import type {
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { ClassDeclaration, MethodDeclaration, ParameterDeclaration } from 'ts-morph'
 import { ExtractionError } from './literal-detection'
-import { applyTransforms } from './transforms'
 import { MethodExtractionResult, MethodSignature, ParameterInfo } from './method-extraction-result'
 
 function extractParameterInfo(param: ParameterDeclaration): ParameterInfo {
@@ -79,5 +78,5 @@ export function evaluateFromParameterTypeRule(
     return MethodExtractionResult.parse({ value: typeName })
   }
 
-  return MethodExtractionResult.parse({ value: applyTransforms(typeName, transform) })
+  return MethodExtractionResult.parse({ value: transform.applyTo(typeName) })
 }
