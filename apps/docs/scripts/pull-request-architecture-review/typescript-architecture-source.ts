@@ -191,7 +191,7 @@ function nodeReferencesDeclaration(
     const imported = imports.get(node.text)
     if (imported !== undefined) {
       return (
-        imported.importedName === expectedDeclaration.name &&
+        imported.importedName === declarationExportName(expectedDeclaration) &&
         moduleReferencesSource(sourceFile.fileName, imported.moduleSpecifier, expectedDeclaration)
       )
     }
@@ -216,7 +216,15 @@ function importedDeclarations(sourceFile: ts.SourceFile): ReadonlyMap<string, Im
     if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) {
       continue
     }
-    const bindings = statement.importClause?.namedBindings
+    const importClause = statement.importClause
+    if (importClause === undefined) continue
+    if (importClause.name !== undefined) {
+      imports.set(importClause.name.text, {
+        importedName: 'default',
+        moduleSpecifier: statement.moduleSpecifier.text,
+      })
+    }
+    const bindings = importClause.namedBindings
     if (bindings === undefined || !ts.isNamedImports(bindings)) continue
     for (const element of bindings.elements) {
       imports.set(element.name.text, {
@@ -226,6 +234,12 @@ function importedDeclarations(sourceFile: ts.SourceFile): ReadonlyMap<string, Im
     }
   }
   return imports
+}
+
+function declarationExportName(declaration: AnnotatedDeclaration): string {
+  return hasModifier(declaration.declaration, ts.SyntaxKind.DefaultKeyword)
+    ? 'default'
+    : declaration.name
 }
 
 function moduleReferencesSource(
