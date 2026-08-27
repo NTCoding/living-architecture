@@ -1,8 +1,12 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { compareArchitecture } from './architecture-review-diff'
+import { runArchitectureReviewCommand } from './architecture-review-command'
+import {
+  compareArchitecture,
+  type PullRequestArchitectureChanges,
+} from './architecture-review-diff'
 import { renderArchitectureReview } from './architecture-review-markdown'
 import { inspectArchitecture } from './architecture-review-source'
 import { ArchitectureReviewSourceError } from './architecture-review-types'
@@ -41,6 +45,54 @@ No architecture changes detected.
 `)
   })
 
+  it('writes the rendered review from command arguments', () => {
+    const base = createBaseWorkspace()
+    const head = createHeadWorkspace()
+    const output = path.join(createWorkspace(), 'architecture-review.md')
+
+    runArchitectureReviewCommand(['--base', base, '--head', head, '--output', output])
+
+    expect(readFileSync(output, 'utf8')).toBe(expectedArchitectureReview())
+  })
+
+  it.each([
+    ['an omitted argument', ['--head', 'head', '--output', 'output.md']],
+    ['a blank argument', ['--base', ' ', '--head', 'head', '--output', 'output.md']],
+  ])('rejects %s', (_, args) => {
+    expect(() => runArchitectureReviewCommand(args)).toThrow('Missing required argument --base.')
+  })
+
+  it('escapes table values that contain Markdown control characters', () => {
+    const changes: PullRequestArchitectureChanges = {
+      subdomains: [
+        {
+          layers: {
+            domain: emptyLayerChanges(),
+            entrypoints: {
+              added: {
+                aggregates: [],
+                items: [
+                  {
+                    name: 'createReview',
+                    packageKind: 'application',
+                    role: 'role|with`code\nforged',
+                  },
+                ],
+              },
+              removed: { aggregates: [], items: [] },
+            },
+            'use-cases': emptyLayerChanges(),
+          },
+          name: 'orders',
+        },
+      ],
+    }
+
+    expect(renderArchitectureReview(changes)).toContain(
+      '| `createReview` | `role&#124;with&#96;code forged` |',
+    )
+  })
+
   it('fails when an entrypoint cannot be assigned to one subdomain', () => {
     const workspace = createWorkspace()
     writeSubdomainManifest(workspace, 'orders')
@@ -66,7 +118,73 @@ No architecture changes detected.
       ),
     )
   })
+
+  it('assigns aggregate entities only within their package', () => {
+    const workspace = createWorkspace()
+    writePackageManifest(workspace, 'packages/orders/domain-model/package.json', {
+      name: '@example/orders-domain-model',
+    })
+    writePackageManifest(workspace, 'packages/orders/published-language/package.json', {
+      name: '@example/orders-published-language',
+    })
+    writeWorkspaceFile(
+      workspace,
+      'packages/orders/domain-model/src/shared-aggregate.ts',
+      `
+        /** @riviere-role aggregate-entity */
+        export class DomainEntity {}
+
+        /** @riviere-role aggregate */
+        export class SharedAggregate {
+          constructor(private readonly entity: DomainEntity) {}
+        }
+      `,
+    )
+    writeWorkspaceFile(
+      workspace,
+      'packages/orders/published-language/src/shared-aggregate.ts',
+      `
+        /** @riviere-role aggregate-entity */
+        export class PublishedEntity {}
+
+        /** @riviere-role aggregate */
+        export class SharedAggregate {
+          constructor(private readonly entity: PublishedEntity) {}
+        }
+      `,
+    )
+
+    const aggregates = inspectArchitecture(workspace).subdomains[0]?.layers.domain.aggregates
+
+    expect(aggregates).toStrictEqual([
+      {
+        entities: [{ name: 'DomainEntity', packageKind: 'domain-model', role: 'aggregate-entity' }],
+        methods: [],
+        name: 'SharedAggregate',
+        packageKind: 'domain-model',
+      },
+      {
+        entities: [
+          {
+            name: 'PublishedEntity',
+            packageKind: 'published-language',
+            role: 'aggregate-entity',
+          },
+        ],
+        methods: [],
+        name: 'SharedAggregate',
+        packageKind: 'published-language',
+      },
+    ])
+  })
 })
+
+function emptyLayerChanges(): PullRequestArchitectureChanges['subdomains'][number]['layers']['domain'] {
+  return {
+    added: { aggregates: [], items: [] },
+    removed: { aggregates: [], items: [] },
+  }
+}
 
 function createBaseWorkspace(): string {
   const workspace = createWorkspace()

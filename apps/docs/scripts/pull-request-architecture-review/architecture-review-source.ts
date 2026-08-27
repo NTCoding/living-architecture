@@ -73,8 +73,9 @@ function inspectPackage(
   const packageRoot = path.join(subdomainRoot, packageKind)
   if (!existsSync(path.join(packageRoot, 'package.json'))) return
   target.push(
-    ...readProductionSources(path.join(packageRoot, 'src')).flatMap(({ sourceFile }) =>
-      annotatedDeclarations(sourceFile, packageKind),
+    ...readProductionSources(path.join(packageRoot, 'src')).flatMap(
+      ({ sourceFile }): readonly AnnotatedDeclaration[] =>
+        annotatedDeclarations(sourceFile, packageKind),
     ),
   )
 }
@@ -95,7 +96,7 @@ function inspectEntrypointRoot(
   subdomains: Map<string, MutableSubdomainSnapshot>,
 ): void {
   const sources = readProductionSources(entrypointRoot)
-  const declarations = sources.flatMap(({ sourceFile }) =>
+  const declarations = sources.flatMap(({ sourceFile }): readonly AnnotatedDeclaration[] =>
     annotatedDeclarations(sourceFile, 'application'),
   )
   if (declarations.length === 0) return
@@ -135,7 +136,7 @@ function inspectDomain(declarations: readonly AnnotatedDeclaration[]): Architect
     [...entitiesByAggregate.values()].flatMap((entities) => entities.map(itemKey)),
   )
   const aggregates = aggregateDeclarations.map((entry) => ({
-    entities: entitiesByAggregate.get(entry.name) ?? [],
+    entities: entitiesByAggregate.get(aggregateDeclarationKey(entry)) ?? [],
     methods: publicMethodNames(entry),
     name: entry.name,
     packageKind: entry.packageKind,
@@ -156,8 +157,9 @@ function aggregateEntityOwners(
 ): ReadonlyMap<string, readonly ArchitectureItem[]> {
   const owners = new Map<string, ArchitectureItem[]>()
   for (const entity of entities) {
-    const matchingAggregates = aggregates.filter((aggregate) =>
-      aggregateOwnsEntity(aggregate, entity.name),
+    const matchingAggregates = aggregates.filter(
+      (aggregate) =>
+        aggregate.packageKind === entity.packageKind && aggregateOwnsEntity(aggregate, entity.name),
     )
     if (matchingAggregates.length > 1) {
       throw new ArchitectureReviewSourceError(
@@ -166,11 +168,18 @@ function aggregateEntityOwners(
     }
     const owner = matchingAggregates[0]
     if (owner === undefined) continue
-    const owned = owners.get(owner.name) ?? []
+    const ownerKey = aggregateDeclarationKey(owner)
+    const owned = owners.get(ownerKey) ?? []
     owned.push(toArchitectureItem(entity))
-    owners.set(owner.name, owned)
+    owners.set(ownerKey, owned)
   }
   return owners
+}
+
+function aggregateDeclarationKey(
+  aggregate: Pick<AnnotatedDeclaration, 'name' | 'packageKind'>,
+): string {
+  return `${aggregate.packageKind}:${aggregate.name}`
 }
 
 function useCasePackageMap(
@@ -191,10 +200,12 @@ function importedSubdomains(
   useCasePackages: ReadonlyMap<string, string>,
 ): ReadonlySet<string> {
   return new Set(
-    [...importedPackageNames(sources, new Set(useCasePackages.keys()))].flatMap((packageName) => {
-      const subdomain = useCasePackages.get(packageName)
-      return subdomain === undefined ? [] : [subdomain]
-    }),
+    [...importedPackageNames(sources, new Set(useCasePackages.keys()))].flatMap(
+      (packageName): readonly string[] => {
+        const subdomain = useCasePackages.get(packageName)
+        return subdomain === undefined ? [] : [subdomain]
+      },
+    ),
   )
 }
 
@@ -207,7 +218,7 @@ function entrypointRoots(appsRoot: string): readonly string[] {
 }
 
 function findNamedDirectories(directory: string, name: string): readonly string[] {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry): readonly string[] => {
     if (!entry.isDirectory()) return []
     const child = path.join(directory, entry.name)
     return entry.name === name ? [child] : findNamedDirectories(child, name)

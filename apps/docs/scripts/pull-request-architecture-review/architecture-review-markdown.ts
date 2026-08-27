@@ -109,9 +109,18 @@ function renderItems(
     includePackage ? '| --- | --- | --- |' : '| --- | --- |',
     ...items.map((item) =>
       includePackage
-        ? `| \`${item.name}\` | \`${item.role}\` | \`${item.packageKind}\` |`
-        : `| \`${item.name}\` | \`${item.role}\` |`,
+        ? `| ${renderTableCode(item.name)} | ${renderTableCode(item.role)} | ${renderTableCode(item.packageKind)} |`
+        : `| ${renderTableCode(item.name)} | ${renderTableCode(item.role)} |`,
     ),
     '',
   ]
+}
+
+function renderTableCode(value: string): string {
+  const escaped = value
+    .replaceAll('\r', ' ')
+    .replaceAll('\n', ' ')
+    .replaceAll('|', '&#124;')
+    .replaceAll('`', '&#96;')
+  return `\`${escaped}\``
 }

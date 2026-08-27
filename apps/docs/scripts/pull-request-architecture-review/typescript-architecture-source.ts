@@ -36,7 +36,7 @@ export function annotatedDeclarations(
   sourceFile: ts.SourceFile,
   packageKind: ArchitecturePackageKind,
 ): readonly AnnotatedDeclaration[] {
-  return sourceFile.statements.flatMap((statement) => {
+  return sourceFile.statements.flatMap((statement): readonly AnnotatedDeclaration[] => {
     if (ts.isVariableStatement(statement)) {
       return annotatedVariables(statement, sourceFile, packageKind)
     }
@@ -132,10 +132,11 @@ function annotatedVariables(
 ): readonly AnnotatedDeclaration[] {
   const role = roleAnnotation(statement)
   if (role === undefined || !isExported(statement)) return []
-  return statement.declarationList.declarations.flatMap((declaration) =>
-    ts.isIdentifier(declaration.name)
-      ? [{ declaration, name: declaration.name.text, packageKind, role, sourceFile }]
-      : [],
+  return statement.declarationList.declarations.flatMap(
+    (declaration): readonly AnnotatedDeclaration[] =>
+      ts.isIdentifier(declaration.name)
+        ? [{ declaration, name: declaration.name.text, packageKind, role, sourceFile }]
+        : [],
   )
 }
 
@@ -199,7 +200,7 @@ function importedNameAliases(sourceFile: ts.SourceFile): ReadonlyMap<string, str
 function productionSourcePaths(directory: string): readonly string[] {
   return readdirSync(directory, { withFileTypes: true })
     .sort((left, right) => compareText(left.name, right.name))
-    .flatMap((entry) => {
+    .flatMap((entry): readonly string[] => {
       if (entry.isDirectory()) {
         return isFixtureDirectory(entry.name)
           ? []
