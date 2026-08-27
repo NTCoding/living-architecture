@@ -21,8 +21,9 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 1
+          path: reporter
           persist-credentials: false
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: b21a6c21b5fa82b23e49634283ee6bb12f1d104d
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         name: Install pnpm
@@ -34,12 +35,14 @@ jobs:
         with:
           node-version: 24
           cache: 'pnpm'
+          cache-dependency-path: reporter/pnpm-lock.yaml
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir reporter install --frozen-lockfile
 
-      - name: Download pull request source
+      - name: Download source snapshots
         id: snapshots
         env:
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -47,31 +50,39 @@ jobs:
           set -euo pipefail
 
           pull_request="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"
+          base_sha="$(jq -r '.base.sha' <<< "${pull_request}")"
           head_sha="$(jq -r '.head.sha' <<< "${pull_request}")"
 
-          if [[ "${head_sha}" != "${EVENT_HEAD_SHA}" ]]; then
-            echo "Skipping stale workflow run for ${EVENT_HEAD_SHA}; current head is ${head_sha}."
+          if [[ "${base_sha}" != "${EVENT_BASE_SHA}" || "${head_sha}" != "${EVENT_HEAD_SHA}" ]]; then
+            echo "Skipping stale workflow run."
             echo "current=false" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
+          base_root="${RUNNER_TEMP}/pull-request-base"
           head_root="${RUNNER_TEMP}/pull-request-head"
-          mkdir -p "${head_root}"
+          mkdir -p "${base_root}" "${head_root}"
 
+          curl --fail --location --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${base_sha}" \
+            --output "${RUNNER_TEMP}/pull-request-base.tar.gz"
           curl --fail --location --silent --show-error \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${head_sha}" \
             --output "${RUNNER_TEMP}/pull-request-head.tar.gz"
 
+          tar -xzf "${RUNNER_TEMP}/pull-request-base.tar.gz" --strip-components=1 -C "${base_root}"
           tar -xzf "${RUNNER_TEMP}/pull-request-head.tar.gz" --strip-components=1 -C "${head_root}"
           echo "current=true" >> "${GITHUB_OUTPUT}"
 
       - name: Build architecture review
         if: steps.snapshots.outputs.current == 'true'
         run: >-
-          pnpm exec tsx apps/docs/scripts/build-pull-request-architecture-review.ts
-          --base .
+          pnpm --dir reporter exec tsx apps/docs/scripts/build-pull-request-architecture-review.ts
+          --base "${RUNNER_TEMP}/pull-request-base"
           --head "${RUNNER_TEMP}/pull-request-head"
           --output "${RUNNER_TEMP}/pull-request-architecture-review.md"
 
