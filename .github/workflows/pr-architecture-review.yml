@@ -107,9 +107,10 @@ jobs:
           set -euo pipefail
 
           comment_id="$(
-            gh api --paginate --slurp \
-              "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" \
-              --jq 'flatten | map(select(.user.login == "github-actions[bot]") | select(.body | startswith("<!-- pull-request-architecture-review -->"))) | first | .id // empty'
+            gh api --paginate \
+              "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" |
+              jq --slurp --raw-output \
+                'flatten | map(select(.user.login == "github-actions[bot]") | select(.body | startswith("<!-- pull-request-architecture-review -->"))) | first | .id // empty'
           )"
 
           if [[ ! -s "${COMMENT_PATH}" ]]; then
