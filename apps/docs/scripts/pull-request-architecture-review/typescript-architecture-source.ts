@@ -302,6 +302,8 @@ function moduleSourceCandidates(modulePath: string): readonly string[] {
     `${extensionlessPath}.cts`,
     path.join(extensionlessPath, 'index.ts'),
     path.join(extensionlessPath, 'index.tsx'),
+    path.join(extensionlessPath, 'index.mts'),
+    path.join(extensionlessPath, 'index.cts'),
   ]
 }
 
@@ -346,10 +348,11 @@ function isExported(node: ts.Node): boolean {
 }
 
 function isProductionTypeScriptFile(fileName: string): boolean {
-  const isTypeScript = fileName.endsWith('.ts') || fileName.endsWith('.tsx')
+  const isTypeScript = /\.(?:[cm]?ts|tsx)$/.test(fileName)
   const isTest = /\.(spec|test)\.[cm]?[jt]sx?$/.test(fileName)
   const isFixture = /(?:^|[.-])fixtures?\.[cm]?[jt]sx?$/.test(fileName)
-  return isTypeScript && !fileName.endsWith('.d.ts') && !isTest && !isFixture
+  const isDeclaration = /\.d\.[cm]?ts$/.test(fileName)
+  return isTypeScript && !isDeclaration && !isTest && !isFixture
 }
 
 export function isFixtureDirectory(directoryName: string): boolean {

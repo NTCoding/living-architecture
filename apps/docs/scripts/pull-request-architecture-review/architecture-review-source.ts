@@ -45,7 +45,7 @@ function inspectPackageSubdomains(workspaceRoot: string): Map<string, MutableSub
   const subdomains = new Map<string, MutableSubdomainSnapshot>()
   if (!existsSync(packagesRoot)) return subdomains
   for (const entry of readdirSync(packagesRoot, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue
+    if (!entry.isDirectory() || isFixtureDirectory(entry.name)) continue
     const subdomainRoot = path.join(packagesRoot, entry.name)
     const snapshot: MutableSubdomainSnapshot = {
       domainDeclarations: [],

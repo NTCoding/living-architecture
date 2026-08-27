@@ -13,6 +13,59 @@ afterEach(() => {
 })
 
 describe('architecture source edge cases', () => {
+  it('excludes fixture directories at the package root', () => {
+    const workspace = createWorkspace()
+    for (const fixtureDirectory of ['fixtures', '__fixtures__']) {
+      writeWorkspaceFile(
+        workspace,
+        `packages/${fixtureDirectory}/domain-model/package.json`,
+        JSON.stringify({ name: `@example/${fixtureDirectory}-domain-model` }),
+      )
+      writeWorkspaceFile(
+        workspace,
+        `packages/${fixtureDirectory}/domain-model/src/example.ts`,
+        `
+          /** @riviere-role aggregate */
+          export class FixtureAggregate {}
+        `,
+      )
+    }
+
+    expect(inspectArchitecture(workspace).subdomains).toStrictEqual([])
+  })
+
+  it('discovers production declarations in mts and cts files', () => {
+    const workspace = createWorkspace()
+    writeWorkspaceFile(
+      workspace,
+      'packages/orders/domain-model/package.json',
+      JSON.stringify({ name: '@example/orders-domain-model' }),
+    )
+    writeWorkspaceFile(
+      workspace,
+      'packages/orders/domain-model/src/order-id.mts',
+      `
+        /** @riviere-role value-object */
+        export type OrderId = string
+      `,
+    )
+    writeWorkspaceFile(
+      workspace,
+      'packages/orders/domain-model/src/order-status.cts',
+      `
+        /** @riviere-role value-object */
+        export type OrderStatus = string
+      `,
+    )
+
+    const items = inspectArchitecture(workspace).subdomains[0]?.layers.domain.items
+
+    expect(items).toStrictEqual([
+      { name: 'OrderId', packageKind: 'domain-model', role: 'value-object' },
+      { name: 'OrderStatus', packageKind: 'domain-model', role: 'value-object' },
+    ])
+  })
+
   it('excludes entrypoints nested inside fixture directories', () => {
     const workspace = createWorkspace()
     writeWorkspaceFile(
