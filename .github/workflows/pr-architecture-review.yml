@@ -1,0 +1,82 @@
+name: Pull request architecture review
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+concurrency:
+  group: pr-architecture-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  update-comment:
+    runs-on: ubuntu-latest
+    steps:
+      # Run only trusted code from the base revision. The pull request checkout
+      # below is parsed as source data and is never executed.
+      - name: Check out trusted reporter
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        name: Install pnpm
+        with:
+          version: 11.21.0
+          run_install: false
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Check out pull request source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          path: pull-request-head
+          persist-credentials: false
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+
+      - name: Build architecture review
+        run: >-
+          pnpm exec tsx apps/docs/scripts/build-pull-request-architecture-review.ts
+          --base .
+          --head pull-request-head
+          --output "${RUNNER_TEMP}/pull-request-architecture-review.md"
+
+      - name: Update pull request comment
+        env:
+          COMMENT_PATH: ${{ runner.temp }}/pull-request-architecture-review.md
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          comment_id="$(
+            gh api --paginate --slurp \
+              "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" \
+              --jq 'flatten | map(select(.user.login == "github-actions[bot]") | select(.body | startswith("<!-- pull-request-architecture-review -->"))) | first | .id // empty'
+          )"
+
+          if [[ ! -s "${COMMENT_PATH}" ]]; then
+            if [[ -n "${comment_id}" ]]; then
+              gh api --method DELETE "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}"
+            fi
+            exit 0
+          fi
+
+          if [[ -n "${comment_id}" ]]; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}" \
+              -F "body=@${COMMENT_PATH}"
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+              -F "body=@${COMMENT_PATH}"
+          fi
