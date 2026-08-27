@@ -1,42 +1,54 @@
 import type {
   Component,
+  ComponentType,
   ExternalLink,
   Link,
   RiviereGraph,
 } from '@living-architecture/riviere-schema-published-language/schema'
+import { LinkId } from '@living-architecture/riviere-schema-published-language/link-id'
 import { ComponentId } from './component-id'
-import { componentById, searchComponents } from './component-queries'
-import { ComponentNotFoundError } from './errors'
 import { Flow } from './flow'
-import { isEntryPointType } from './flow-constants'
 import { FlowStep } from './flow-step'
-import { LinkId } from './link-id'
-import { createLinkKey } from './link-key'
-import { SearchWithFlowOptions } from './search-with-flow-options'
-import { SearchWithFlowResult } from './search-with-flow-result'
 
-/** @riviere-role domain-service */
-export function findEntryPoints(graph: RiviereGraph): Component[] {
-  const targets = new Set(graph.links.map((link) => link.target))
-  return graph.components.filter((c) => isEntryPointType(c.type) && !targets.has(c.id))
+const entryPointEligibility = {
+  UI: true,
+  API: true,
+  UseCase: false,
+  DomainOp: false,
+  Event: false,
+  EventHandler: true,
+  Custom: true,
+} satisfies Record<ComponentType, boolean>
+
+function canBeEntryPoint(component: Component): boolean {
+  return entryPointEligibility[component.type]
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
+export function findEntryPoints(graph: RiviereGraph): Component[] {
+  const targets = new Set(graph.links.map((link) => link.target))
+  return graph.components.filter((component) => {
+    return canBeEntryPoint(component) && !targets.has(component.id)
+  })
+}
+
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function traceFlowFrom(
   graph: RiviereGraph,
-  startComponentId: ComponentId,
+  startComponent: Component,
 ): {
   componentIds: ComponentId[]
   linkIds: LinkId[]
 } {
-  const component = componentById(graph, startComponentId.value)
-  if (!component) {
-    throw new ComponentNotFoundError(startComponentId.value)
-  }
-
   const visited = new Set<string>()
   const visitedLinks = new Set<string>()
-  const queue: string[] = [startComponentId.value]
+  const queue: string[] = [startComponent.id]
 
   while (queue.length > 0) {
     const currentId = queue.shift()
@@ -46,11 +58,11 @@ export function traceFlowFrom(
     for (const link of graph.links) {
       if (link.source === currentId && !visited.has(link.target)) {
         queue.push(link.target)
-        visitedLinks.add(createLinkKey(link).value)
+        visitedLinks.add(LinkId.parseFromGraphLink(link).toString())
       }
       if (link.target === currentId && !visited.has(link.source)) {
         queue.push(link.source)
-        visitedLinks.add(createLinkKey(link).value)
+        visitedLinks.add(LinkId.parseFromGraphLink(link).toString())
       }
     }
   }
@@ -61,8 +73,14 @@ export function traceFlowFrom(
   }
 }
 
-/** @riviere-role domain-service */
-export function queryFlows(graph: RiviereGraph): Flow[] {
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
+export function queryFlows(
+  graph: RiviereGraph,
+  entryPoints: readonly Component[],
+): Flow[] {
   const componentByIdMap = new Map(graph.components.map((c) => [c.id, c]))
   const outgoingEdges = buildOutgoingEdges(graph)
   const externalLinksBySource = buildExternalLinksBySource(graph)
@@ -99,7 +117,7 @@ export function queryFlows(graph: RiviereGraph): Flow[] {
     return steps
   }
 
-  return findEntryPoints(graph).map((entryPoint) =>
+  return entryPoints.map((entryPoint) =>
     Flow.parse({
       entryPoint,
       steps: traceForward(entryPoint.id),
@@ -134,51 +152,4 @@ function buildOutgoingEdges(graph: RiviereGraph): Map<string, Link[]> {
     }
   }
   return edges
-}
-
-/** @riviere-role domain-service */
-export function searchWithFlowContext(
-  graph: RiviereGraph,
-  query: string,
-  options: SearchWithFlowOptions,
-): SearchWithFlowResult {
-  const trimmedQuery = query.trim().toLowerCase()
-  const isEmptyQuery = trimmedQuery === ''
-
-  if (isEmptyQuery) {
-    if (options.returnAllOnEmptyQuery) {
-      const allIds = graph.components.map((c) => ComponentId.parse(c.id))
-      return SearchWithFlowResult.parse({
-        matchingIds: allIds,
-        visibleIds: allIds,
-      })
-    }
-    return SearchWithFlowResult.parse({
-      matchingIds: [],
-      visibleIds: [],
-    })
-  }
-
-  const matchingComponents = searchComponents(graph, query)
-  if (matchingComponents.length === 0) {
-    return SearchWithFlowResult.parse({
-      matchingIds: [],
-      visibleIds: [],
-    })
-  }
-
-  const matchingIds = matchingComponents.map((c) => ComponentId.parse(c.id))
-  const visibleIds = new Set<ComponentId>()
-
-  for (const component of matchingComponents) {
-    const flow = traceFlowFrom(graph, ComponentId.parse(component.id))
-    for (const id of flow.componentIds) {
-      visibleIds.add(id)
-    }
-  }
-
-  return SearchWithFlowResult.parse({
-    matchingIds,
-    visibleIds: Array.from(visibleIds),
-  })
 }

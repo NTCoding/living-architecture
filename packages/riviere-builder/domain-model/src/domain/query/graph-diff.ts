@@ -3,10 +3,10 @@ import type {
   Link,
   RiviereGraph,
 } from '@living-architecture/riviere-schema-published-language/schema'
+import { LinkId } from '@living-architecture/riviere-schema-published-language/link-id'
 import { ComponentId } from './component-id'
 import { ComponentModification } from './component-modification'
 import { DiffStats } from './diff-stats'
-import { createLinkKey } from './link-key'
 
 /** @riviere-role value-object */
 export class GraphDiff {
@@ -55,7 +55,10 @@ export class GraphDiff {
   }
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDiff {
   const thisIds = new Set(current.components.map((c) => c.id))
   const otherIds = new Set(other.components.map((c) => c.id))
@@ -81,10 +84,18 @@ export function diffGraphs(current: RiviereGraph, other: RiviereGraph): GraphDif
     }
   }
 
-  const thisLinkKeys = new Set(current.links.map((l) => createLinkKey(l).value))
-  const otherLinkKeys = new Set(other.links.map((l) => createLinkKey(l).value))
-  const linksAdded = other.links.filter((l) => !thisLinkKeys.has(createLinkKey(l).value))
-  const linksRemoved = current.links.filter((l) => !otherLinkKeys.has(createLinkKey(l).value))
+  const thisLinkKeys = new Set(
+    current.links.map((link) => LinkId.parseFromGraphLink(link).toString()),
+  )
+  const otherLinkKeys = new Set(
+    other.links.map((link) => LinkId.parseFromGraphLink(link).toString()),
+  )
+  const linksAdded = other.links.filter(
+    (link) => !thisLinkKeys.has(LinkId.parseFromGraphLink(link).toString()),
+  )
+  const linksRemoved = current.links.filter(
+    (link) => !otherLinkKeys.has(LinkId.parseFromGraphLink(link).toString()),
+  )
 
   return GraphDiff.parse({
     components: {

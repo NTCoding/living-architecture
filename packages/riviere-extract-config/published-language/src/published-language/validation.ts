@@ -1,12 +1,13 @@
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 import type {
-  ComponentRule,
+  ComponentRuleInput as ComponentRule,
   ComponentType,
   DraftConfiguration,
   DraftModule,
   ConnectionsConfig,
 } from './extraction-config-schema'
+import { BUILT_IN_COMPONENT_TYPES } from './extraction-config-schema'
 import rawSchema from '../../extraction-config.schema.json' with { type: 'json' }
 
 /**
@@ -21,15 +22,6 @@ const REQUIRED_FIELDS: Record<ComponentType, string[]> = {
   ui: ['route'],
   useCase: [],
 }
-
-const COMPONENT_TYPES: ComponentType[] = [
-  'api',
-  'useCase',
-  'domainOp',
-  'event',
-  'eventHandler',
-  'ui',
-]
 
 const ajv = new Ajv({ allErrors: true })
 addFormats(ajv)
@@ -102,7 +94,7 @@ function validateModuleExtractionRules(
 ): ValidationError[] {
   const errors: ValidationError[] = []
 
-  for (const componentType of COMPONENT_TYPES) {
+  for (const componentType of BUILT_IN_COMPONENT_TYPES) {
     const rule = module[componentType]
 
     if (isNotUsed(rule)) {

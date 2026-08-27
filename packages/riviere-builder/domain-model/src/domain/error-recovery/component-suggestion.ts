@@ -1,7 +1,4 @@
 import type { Component } from '@living-architecture/riviere-schema-published-language/schema'
-import type { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
-import { ComponentNotFoundError } from '../construction/construction-errors'
-import { similarityScore } from '../text-similarity/string-similarity'
 type NearMatchQuery = Readonly<{
   name: string
   type?: import('@living-architecture/riviere-schema-published-language/schema').ComponentType
@@ -24,6 +21,37 @@ type NearMatchResult = Readonly<{
   score: number
   mismatch?: NearMatchMismatch
 }>
+
+function calculateEditDistance(expected: string, actual: string): number {
+  const initialRow = Array.from({ length: actual.length + 1 }, (_, index) => index)
+  const finalRow = [...expected].reduce((previousRow, expectedCharacter, expectedIndex) => {
+    const nextRow = previousRow.slice(1).reduce(
+      (state, above, actualIndex) => {
+        const substitutionCost = expectedCharacter === actual.charAt(actualIndex) ? 0 : 1
+        const value = Math.min(state.left + 1, above + 1, state.diagonal + substitutionCost)
+        state.values.push(value)
+        return { values: state.values, left: value, diagonal: above }
+      },
+      {
+        values: [expectedIndex + 1],
+        left: expectedIndex + 1,
+        diagonal: expectedIndex,
+      },
+    )
+    return nextRow.values
+  }, initialRow)
+
+  return finalRow.reduce((_previous, current) => current, 0)
+}
+
+function calculateNormalisedNameSimilarity(expected: string, actual: string): number {
+  const normalisedExpected = expected.toLowerCase()
+  const normalisedActual = actual.toLowerCase()
+  const distance = calculateEditDistance(normalisedExpected, normalisedActual)
+  const longestNameLength = Math.max(normalisedExpected.length, normalisedActual.length)
+
+  return 1 - distance / longestNameLength
+}
 
 function detectMismatch(
   query: NearMatchQuery,
@@ -60,6 +88,7 @@ function detectMismatch(
  * Used for error recovery to suggest alternatives when exact matches fail.
  *
  * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  *
  * @param components - Array of components to search
  * @param query - Search criteria with name and optional type/domain filters
@@ -86,7 +115,7 @@ export function findNearMatches(
 
   const results = components
     .map((component): NearMatchResult => {
-      const score = similarityScore(query.name, component.name)
+      const score = calculateNormalisedNameSimilarity(query.name, component.name)
       const mismatch = detectMismatch(query, component)
       return {
         component,
@@ -99,28 +128,4 @@ export function findNearMatches(
     .slice(0, limit)
 
   return results
-}
-
-/**
- * Creates a typed error with suggestions for a missing source component.
- *
- * @riviere-role domain-service
- *
- * @param components - Array of existing components to search for suggestions
- * @param id - The ComponentId that was not found
- * @returns ComponentNotFoundError with suggestions array for programmatic access
- *
- * @example
- * ```typescript
- * const error = createSourceNotFoundError(components, ComponentId.parse('orders:checkout:api:create-ordr'))
- * // ComponentNotFoundError with suggestions: ['orders:checkout:api:create-order']
- * ```
- */
-export function createSourceNotFoundError(
-  components: readonly Component[],
-  id: ComponentId,
-): ComponentNotFoundError {
-  const matches = findNearMatches(components, { name: id.name() }, { limit: 3 })
-  const suggestions = matches.map((s) => s.component.id)
-  return new ComponentNotFoundError(id.toString(), suggestions)
 }

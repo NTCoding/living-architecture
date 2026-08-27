@@ -4,7 +4,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
   type LocationConfiguration,
 } from '@living-architecture/riviere-role-enforcement-domain-model'
 import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
@@ -31,7 +31,7 @@ export function source(): string {
     },
     (workspaceDir) => {
       const result = fixtureWorkspace.runTestRoleEnforcement(
-        roleEnforcementConfiguration({
+        RoleEnforcementConfiguration.parse({
           configurations: {
             'packages/pkg-a': {
               locations: locationConfiguration(location<'role-a'>('/infra', [])),
@@ -284,7 +284,7 @@ function runRoleFixture<R extends string>(
     { prefix: 'role-enforcement-location-roles-', roles, files },
     (workspaceDir) => {
       const result = fixtureWorkspace.runTestRoleEnforcement(
-        roleEnforcementConfiguration({
+        RoleEnforcementConfiguration.parse({
           configurations: { 'packages/pkg-a': { locations } },
           ignorePatterns: [],
           roleDefinitionsDir: '.riviere/role-definitions',
@@ -316,7 +316,7 @@ function runFixture(
 }
 
 function createConfig(locations: LocationConfiguration<never>) {
-  return roleEnforcementConfiguration({
+  return RoleEnforcementConfiguration.parse({
     configurations: { 'packages/pkg-a': { locations } },
     ignorePatterns: [],
     roleDefinitionsDir: '.riviere/role-definitions',

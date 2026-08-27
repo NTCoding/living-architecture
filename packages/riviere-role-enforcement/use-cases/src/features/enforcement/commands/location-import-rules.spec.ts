@@ -4,7 +4,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement-domain-model'
 import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
@@ -87,7 +87,10 @@ it('an allowed location can be limited to selected roles', () => {
       prefix: 'role-enforcement-selected-location-roles-',
       roles,
       files: {
-        'packages/pkg-a/src/features/orders/domain/resolve.ts': `/** @riviere-role domain-service */
+        'packages/pkg-a/src/features/orders/domain/resolve.ts': `/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function resolve(): string {
   return 'resolved'
 }
@@ -105,7 +108,7 @@ export class Repository {
     },
     (workspaceDir) => {
       const result = fixtureWorkspace.runTestRoleEnforcement(
-        roleEnforcementConfiguration({
+        RoleEnforcementConfiguration.parse({
           configurations: { 'packages/pkg-a': { locations } },
           ignorePatterns: [],
           roleDefinitionsDir: '.riviere/role-definitions',
@@ -157,7 +160,7 @@ function runFixture(
     },
     (workspaceDir) => {
       const result = fixtureWorkspace.runTestRoleEnforcement(
-        roleEnforcementConfiguration({
+        RoleEnforcementConfiguration.parse({
           configurations: { 'packages/pkg-a': { locations } },
           ignorePatterns: [],
           roleDefinitionsDir: '.riviere/role-definitions',

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ComponentIndex } from '../component-index'
-import { buildCallGraph } from './build-call-graph'
 import {
+  buildCallGraph,
   buildComponent,
   defaultOptions,
   nextFile,

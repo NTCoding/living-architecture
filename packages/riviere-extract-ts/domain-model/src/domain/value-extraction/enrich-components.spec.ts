@@ -1,12 +1,14 @@
 import type {
-  ComponentRule,
+  ComponentType,
+  DetectionRuleInput,
   ValidatedModule,
   ValidatedModuleInput,
 } from '@living-architecture/riviere-extract-config-published-language'
+import { BUILT_IN_COMPONENT_TYPES } from '@living-architecture/riviere-extract-config-published-language'
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
-import { enrichComponents } from './enrich-components'
+import { RiviereModule } from '../riviere-module'
 import { createValidatedModule } from '../../__fixtures__/test-fixtures'
 import { TestFixtureError } from './literal-detection'
 
@@ -20,21 +22,18 @@ function nextFile(path: string, content: string) {
   return filePath
 }
 
-const BUILT_IN_TYPES: readonly string[] = [
-  'api',
-  'useCase',
-  'domainOp',
-  'event',
-  'eventHandler',
-  'ui',
-]
-
-const REQUIRED_FIELDS: Readonly<Record<string, Record<string, { literal: string }>>> = {
+const REQUIRED_FIELDS: Readonly<
+  Partial<Record<ComponentType, Record<string, { literal: string }>>>
+> = {
   api: { apiType: { literal: 'REST' } },
   domainOp: { operationName: { literal: 'operation' } },
   event: { eventName: { literal: 'Event' } },
   eventHandler: { subscribedEvents: { literal: 'Event' } },
   ui: { route: { literal: '/' } },
+}
+
+function isBuiltInComponentType(componentType: string): componentType is ComponentType {
+  return BUILT_IN_COMPONENT_TYPES.some((builtInType) => builtInType === componentType)
 }
 
 function notUsedModule(name: string, path: string): ValidatedModule {
@@ -56,7 +55,7 @@ function notUsedModule(name: string, path: string): ValidatedModule {
   })
 }
 
-function moduleWith(componentType: string, rule: ComponentRule): ValidatedModule {
+function moduleWith(componentType: string, rule: DetectionRuleInput): ValidatedModule {
   const base: ValidatedModuleInput = {
     name: 'orders',
     domain: 'orders-domain',
@@ -69,25 +68,20 @@ function moduleWith(componentType: string, rule: ComponentRule): ValidatedModule
     eventHandler: { notUsed: true },
     ui: { notUsed: true },
   }
-  if (BUILT_IN_TYPES.includes(componentType)) {
-    const completedRule =
-      'find' in rule
-        ? { ...rule, extract: { ...REQUIRED_FIELDS[componentType], ...rule.extract } }
-        : rule
+  if (isBuiltInComponentType(componentType)) {
+    const completedRule = {
+      ...rule,
+      extract: { ...REQUIRED_FIELDS[componentType], ...rule.extract },
+    }
     return createValidatedModule({
       ...base,
       [componentType]: completedRule,
     })
   }
-  if ('find' in rule) {
-    return createValidatedModule({
-      ...base,
-      customTypes: { [componentType]: rule },
-    })
-  }
-  throw new TestFixtureError(
-    `moduleWith: rule for custom type '${componentType}' must have a 'find' property`,
-  )
+  return createValidatedModule({
+    ...base,
+    customTypes: { [componentType]: rule },
+  })
 }
 
 function enrich(drafts: DraftComponent[], modules: ValidatedModule[]) {
@@ -95,7 +89,12 @@ function enrich(drafts: DraftComponent[], modules: ValidatedModule[]) {
   if (module === undefined) {
     throw new TestFixtureError('Expected one module in test config')
   }
-  return enrichComponents(drafts, module, sharedProject)
+  return RiviereModule.build({
+    configuration: module,
+    project: sharedProject,
+    sourceFiles: [],
+    candidateDraftComponents: drafts,
+  }).enrichDraftComponents()
 }
 
 function draft(type: string, name: string, file: string, line: number): DraftComponent {
@@ -106,12 +105,12 @@ function draft(type: string, name: string, file: string, line: number): DraftCom
       file,
       line,
     },
-    domain: 'orders',
-    module: 'orders-module',
+    domain: 'orders-domain',
+    module: 'orders',
   })
 }
 
-describe('enrichComponents', () => {
+describe('RiviereModule.enrichDraftComponents', () => {
   describe('returns components with empty metadata when no extract blocks exist', () => {
     it('returns enriched components with empty metadata when detection rules have no extract blocks', () => {
       const file = nextFile('/src/orders/order.controller.ts', 'export class OrderController {}')
@@ -129,8 +128,8 @@ describe('enrichComponents', () => {
               file,
               line: 1,
             },
-            domain: 'orders',
-            module: 'orders-module',
+            domain: 'orders-domain',
+            module: 'orders',
             metadata: {},
           },
         ],
@@ -235,7 +234,7 @@ describe('enrichComponents', () => {
       expect(result.failures).toHaveLength(1)
       expect(result.failures[0]?.field).toBe('signature')
       expect(result.failures[0]?.error).toMatch(
-        'Unsupported extraction rule type for class-based component',
+        "Rule 'fromMethodSignature' is not supported for component metadata extraction",
       )
       expect(result.components[0]?._missing).toMatchObject(['signature'])
     })

@@ -16,6 +16,7 @@ interface FinalizeOptions {
 export interface CreateFinalizeCommandEntrypointDependencies {
   readonly createFinalizeGraphInput: typeof createFinalizeGraphInput
   readonly finalizeGraph: FinalizeGraph
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
   readonly formatSuccess: typeof formatSuccess
@@ -42,7 +43,9 @@ Examples:
     .option('--output <path>', 'Output path for finalized graph (defaults to input path)')
     .option('--json', 'Output result as JSON')
     .action(async (options: FinalizeOptions) => {
-      const result = finalizeGraph.execute(dependencies.createFinalizeGraphInput(options))
+      const result = finalizeGraph.execute(
+        dependencies.createFinalizeGraphInput(options, dependencies.defaultGraphFileLocation),
+      )
       if (!result.result.success) {
         const errorCodeByResult = {
           GRAPH_CORRUPTED: CliErrorCode.GraphCorrupted,

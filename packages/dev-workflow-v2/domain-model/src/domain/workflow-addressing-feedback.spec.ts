@@ -4,21 +4,14 @@ import {
   eventsToAddressingFeedback,
   unresolvedThread,
 } from './__fixtures__/workflow-test-fixtures'
-import {
-  GitHubUnavailableTestError,
-  WorkflowTestInvariantError,
-} from './__fixtures__/workflow-test-errors'
-import { defineAddressingFeedbackState } from './states/addressing-feedback'
+import { GitHubUnavailableTestError } from './__fixtures__/workflow-test-errors'
+import { AddressingFeedbackState } from './states/addressing-feedback'
 
-const addressingFeedbackState = defineAddressingFeedbackState()
+const addressingFeedbackState = AddressingFeedbackState.parse('ADDRESSING_FEEDBACK')
 import { WorkflowState } from './workflow-types'
 
 function addressingTransitionGuard(): NonNullable<typeof addressingFeedbackState.transitionGuard> {
-  const guard = addressingFeedbackState.transitionGuard
-  if (guard === undefined) {
-    throw new WorkflowTestInvariantError('Missing ADDRESSING_FEEDBACK transition guard')
-  }
-  return guard
+  return addressingFeedbackState.transitionGuard
 }
 
 describe('ADDRESSING_FEEDBACK workflow behavior', () => {

@@ -27,7 +27,7 @@ describe('addComponent command', () => {
   function inputWithGraphPath(overrides: Partial<typeof baseInput> = {}) {
     return {
       ...baseInput,
-      graphPathOption: join(ctx.testDir, '.riviere', 'graph.json'),
+      graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
       route: '/test',
       ...overrides,
     }

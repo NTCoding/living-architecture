@@ -2,14 +2,14 @@ import { expect, it } from 'vitest'
 import { Linter } from 'eslint'
 import { parser } from 'typescript-eslint'
 import plugin from '@living-architecture/riviere-role-enforcement-domain-model/plugin'
-import { location, locationConfiguration, role, roleEnforcementConfiguration } from '../index'
+import { location, locationConfiguration, role, RoleEnforcementConfiguration } from '../index'
 
 const dataRole = role('data-role', {
   targets: ['class', 'interface', 'type-alias'],
   forbiddenSupertypes: true,
 })
 
-const dataRoleConfig = roleEnforcementConfiguration({
+const dataRoleConfig = RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/example': {
       locations: locationConfiguration(location('/data', ['data-role'])),

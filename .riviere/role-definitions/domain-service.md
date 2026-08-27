@@ -3,6 +3,8 @@
 ## Purpose
 A function or class that contains domain business logic that doesn't naturally belong on a single aggregate.
 
+`domain-service` is an exception. Before using it, first test whether the behaviour belongs on an aggregate, then whether it belongs on a value object. Each declaration must include `@riviere-role-justification` and explain why neither owns the behaviour.
+
 ## Behavioral Contract
 1. Accepts domain objects (aggregates, value objects) as parameters
 2. Performs business logic — transformations, calculations, validations
@@ -45,4 +47,5 @@ export function detectConnections(
 ## Decision Guidance
 - **vs command-use-case**: Does it load/save state? → command-use-case. Is it pure logic? → domain-service
 - **vs aggregate method**: Does the logic naturally belong to one aggregate's state? → aggregate method. Does it operate across multiple domain objects? → domain-service
+- **vs value-object method**: Does the logic operate on one value object's state? → value-object method. Use a domain service only when neither an aggregate nor value object is the natural owner.
 - **vs external-client-service**: Does it call external libraries? → external-client-service. Does it only operate on domain types? → domain-service

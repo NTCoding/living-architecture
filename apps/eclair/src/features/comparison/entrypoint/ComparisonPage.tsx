@@ -1,24 +1,21 @@
-import {
-  useState, useCallback 
-} from 'react'
+import { useState, useCallback } from 'react'
 import type { Node } from '../queries/eclair-types'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
-import {
-  compareGraphs, type GraphDiff
-} from '../queries/compare-graphs'
+import { compareGraphs, type GraphDiff } from '../queries/compare-graphs'
 import {
   computeDomainConnectionDiff,
   type DomainConnectionDiffResult,
 } from '../queries/compute-domain-connection-diff'
-import { compareByCodePoint } from '../queries/eclair-types'
+import { ascendingCodePointSortResult } from '../queries/eclair-types'
 import {
-  FilterTabs, DomainFilter, TypeFilter, type ChangeFilter
+  FilterTabs,
+  DomainFilter,
+  TypeFilter,
+  type ChangeFilter,
 } from '../components/ChangeFilters'
 import { StatsBar } from '../components/StatsBar'
 import { DomainConnectionDiff } from '../components/DomainConnectionDiff'
-import {
-  UploadZone, type UploadState
-} from '../components/UploadZone'
+import { UploadZone, type UploadState } from '../components/UploadZone'
 
 type ResultsViewMode = 'graph' | 'list'
 
@@ -82,12 +79,12 @@ function parseGraphFile(content: string, fileName: string): UploadState {
   }
 }
 
-interface ChangeItemProps {readonly item: ChangeItemBase}
+interface ChangeItemProps {
+  readonly item: ChangeItemBase
+}
 
 function ChangeItem({ item }: Readonly<ChangeItemProps>): React.ReactElement {
-  const {
-    node, changeType, changedFields 
-  } = item
+  const { node, changeType, changedFields } = item
 
   const changeIndicator = {
     added: {
@@ -143,7 +140,7 @@ function extractUniqueDomains(items: ChangeItemBase[]): string[] {
   for (const item of items) {
     domains.add(item.node.domain)
   }
-  return Array.from(domains).sort(compareByCodePoint)
+  return Array.from(domains).sort(ascendingCodePointSortResult)
 }
 
 function extractUniqueTypes(items: ChangeItemBase[]): string[] {
@@ -151,10 +148,12 @@ function extractUniqueTypes(items: ChangeItemBase[]): string[] {
   for (const item of items) {
     types.add(item.node.type)
   }
-  return Array.from(types).sort(compareByCodePoint)
+  return Array.from(types).sort(ascendingCodePointSortResult)
 }
 
-interface DetailedChangesProps {readonly diff: GraphDiff}
+interface DetailedChangesProps {
+  readonly diff: GraphDiff
+}
 
 function DetailedChanges({ diff }: Readonly<DetailedChangesProps>): React.ReactElement {
   const [filter, setFilter] = useState<ChangeFilter>('all')

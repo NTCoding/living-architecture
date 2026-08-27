@@ -3,14 +3,13 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
   RoleEnforcementConfiguration,
   RoleEnforcementExecutionError,
   RoleEnforcementProject,
 } from '@living-architecture/riviere-role-enforcement-domain-model'
 import { RoleEnforcementProjectRepository } from './role-enforcement-project-repository'
 
-const minimalConfig = roleEnforcementConfiguration({
+const minimalConfig = RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/pkg-a': {
       locations: locationConfiguration(location('/entrypoint', ['role-entry'])),
@@ -27,6 +26,7 @@ function createRepository(configModule: unknown = { config: minimalConfig }) {
     loadTypeScriptModule: vi.fn(() => configModule),
     readDirectory: vi.fn((): [] => []),
     readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md']),
+    readWorkspacePackageManifest: vi.fn(() => ({})),
     realpath: vi.fn((filePath: string): string => filePath),
   })
 }
@@ -35,12 +35,11 @@ function configurationWithPackageAssignments(params: {
   assignedPackages: readonly string[]
   unassignedPackages: readonly string[]
 }) {
-  const parsed = RoleEnforcementConfiguration.parse({
+  return RoleEnforcementConfiguration.parseFromState({
     ...minimalConfig,
     assignedPackages: params.assignedPackages,
     unassignedPackages: params.unassignedPackages,
   })
-  return parsed.data
 }
 
 describe('RoleEnforcementProjectRepository', () => {
@@ -55,6 +54,7 @@ describe('RoleEnforcementProjectRepository', () => {
       })),
       readDirectory: vi.fn((): [] => []),
       readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md']),
+      readWorkspacePackageManifest: vi.fn(() => ({})),
       realpath: vi.fn((filePath: string): string => filePath),
     })
     const config = configurationWithPackageAssignments({
@@ -88,6 +88,7 @@ describe('RoleEnforcementProjectRepository', () => {
       loadTypeScriptModule: vi.fn(() => ({ config })),
       readDirectory: vi.fn((): [] => []),
       readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md']),
+      readWorkspacePackageManifest: vi.fn(() => ({})),
       realpath: vi.fn((filePath: string): string => filePath),
     })
     const config = configurationWithPackageAssignments({
@@ -110,6 +111,7 @@ describe('RoleEnforcementProjectRepository', () => {
       loadTypeScriptModule: vi.fn(() => ({ config })),
       readDirectory: vi.fn((): [] => []),
       readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md']),
+      readWorkspacePackageManifest: vi.fn(() => ({})),
       realpath: vi.fn((filePath: string): string => filePath),
     })
     const config = configurationWithPackageAssignments({
@@ -130,6 +132,7 @@ describe('RoleEnforcementProjectRepository', () => {
       loadTypeScriptModule: vi.fn(() => ({ config })),
       readDirectory: vi.fn((): [] => []),
       readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md']),
+      readWorkspacePackageManifest: vi.fn(() => ({})),
       realpath: vi.fn((filePath: string): string => filePath),
     })
     const config = configurationWithPackageAssignments({
@@ -152,6 +155,7 @@ describe('RoleEnforcementProjectRepository', () => {
       loadTypeScriptModule: vi.fn(() => ({ config })),
       readDirectory: vi.fn((): [] => []),
       readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md']),
+      readWorkspacePackageManifest: vi.fn(() => ({})),
       realpath: vi.fn((filePath: string): string => filePath),
     })
     const config = configurationWithPackageAssignments({
@@ -202,6 +206,7 @@ describe('RoleEnforcementProjectRepository', () => {
     ['include'],
     ['ignorePatterns'],
     ['locationHierarchy'],
+    ['packageManifestRequirements'],
     ['roles'],
     ['roleDefinitionsDir'],
     ['unassignedPackages'],
@@ -211,6 +216,7 @@ describe('RoleEnforcementProjectRepository', () => {
       include: minimalConfig.include,
       ignorePatterns: minimalConfig.ignorePatterns,
       locationHierarchy: minimalConfig.locationHierarchy,
+      packageManifestRequirements: minimalConfig.packageManifestRequirements,
       roles: minimalConfig.roles,
       roleDefinitionsDir: minimalConfig.roleDefinitionsDir,
       unassignedPackages: minimalConfig.unassignedPackages,
@@ -230,6 +236,7 @@ describe('RoleEnforcementProjectRepository', () => {
       loadTypeScriptModule: vi.fn(() => ({ config: minimalConfig })),
       readDirectory: vi.fn((): [] => []),
       readRoleDefinitionFileNames: vi.fn(() => []),
+      readWorkspacePackageManifest: vi.fn(() => ({})),
       realpath: vi.fn((filePath: string): string => filePath),
     })
 
@@ -244,6 +251,7 @@ describe('RoleEnforcementProjectRepository', () => {
       loadTypeScriptModule: vi.fn(() => ({ config: minimalConfig })),
       readDirectory: vi.fn((): [] => []),
       readRoleDefinitionFileNames: vi.fn(() => ['role-entry.md', 'unused-role.md', 'index.md']),
+      readWorkspacePackageManifest: vi.fn(() => ({})),
       realpath: vi.fn((filePath: string): string => filePath),
     })
 

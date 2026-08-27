@@ -4,7 +4,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement-domain-model'
 import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
 
@@ -185,7 +185,7 @@ function runBoundaryFixture(
         ),
       }
       const result = fixtureWorkspace.runTestRoleEnforcement(
-        roleEnforcementConfiguration({
+        RoleEnforcementConfiguration.parse({
           configurations: {
             'interfaces/': interfacePackage,
             'modules/{subdomain}/consumer': consumer,
@@ -239,7 +239,7 @@ function runGenericBoundaryFixture(
         ),
       }
       const result = fixtureWorkspace.runTestRoleEnforcement(
-        roleEnforcementConfiguration({
+        RoleEnforcementConfiguration.parse({
           configurations: {
             'interfaces/': interfacePackage,
             'groups/{boundary}/consumer': consumer,

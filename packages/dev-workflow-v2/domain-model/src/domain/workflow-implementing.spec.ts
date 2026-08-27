@@ -1,18 +1,20 @@
-import { Workflow } from './workflow'
 import {
   spec,
   makeDeps,
   transitioned,
   eventsToReviewing,
   codeReviewFailed,
+  buildTestWorkflow,
+  TEST_WORKFLOW_REGISTRY,
 } from './__fixtures__/workflow-test-fixtures'
 
 describe('Workflow', () => {
   describe('createFresh', () => {
     it('creates a workflow in IMPLEMENTING state with empty pending events', () => {
-      const wf = Workflow.createFresh(makeDeps())
+      const wf = buildTestWorkflow(makeDeps())
       expect(wf.getState().currentStateMachineState).toBe('IMPLEMENTING')
       expect(wf.getPendingEvents()).toHaveLength(0)
+      expect(wf.registry()).toBe(TEST_WORKFLOW_REGISTRY)
     })
   })
 
@@ -44,7 +46,7 @@ describe('Workflow', () => {
 
   describe('getTranscriptPath', () => {
     it('throws when session has not been started', () => {
-      const wf = Workflow.createFresh(makeDeps())
+      const wf = buildTestWorkflow(makeDeps())
       expect(() => wf.getTranscriptPath()).toThrow(
         'Transcript path not set. Session has not been started.',
       )

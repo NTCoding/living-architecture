@@ -1,54 +1,25 @@
-import { type LocationBuilder, type LocationConfiguration } from './location-configuration'
-import { assignPackageConfigurations } from './assign-package-configurations'
+import type { LocationConfiguration } from './location-configuration'
+import { LocationHierarchy } from './location-hierarchy'
+import { PackageConfigurationAssignments } from './package-configuration-assignments'
 import { RoleEnforcementExecutionError } from './role-enforcement-execution-error'
-import { validateRoleConfiguration } from './validate-role-configuration'
-import { validateNoRepeatedInheritedImports } from './validate-location-import-rules'
+import { RoleCatalogue } from './role-catalogue'
 import { InvalidRoleDefinitionError } from './role-configuration-errors'
-
+import { type ApprovedInstance, RoleConstraints, RoleTarget } from './role-constraints'
+import { PackageManifestRequirements } from './package-manifest-requirements'
 export { location, locationConfiguration } from './location-configuration'
 export type { LocationBuilder, LocationConfiguration } from './location-configuration'
-
-type RoleTarget = 'class' | 'function' | 'interface' | 'type-alias' | 'variable'
-
-interface ApprovedInstance {
-  readonly name: string
-  readonly userHasApproved: true
-}
-
-interface RoleConstraints<R extends string = string> {
-  readonly allowedInputs?: readonly R[]
-  readonly allowedNames?: readonly string[]
-  readonly allowedOutputs?: readonly R[]
-  readonly approvedInstances?: readonly ApprovedInstance[]
-  readonly forbiddenCallableDataMembers?: true
-  readonly forbiddenInlineCallableMembers?: true
-  readonly forbiddenInlineFunctionImplementations?: true
-  readonly requiresRoleDependencies?: true
-  readonly forbiddenSupertypes?: readonly string[] | true
-  readonly forbiddenDependencies?: readonly R[]
-  readonly allowedDependencyRoles?: readonly R[]
-  readonly allowedCollaboratorRoles?: readonly R[]
-  readonly allowsUnclassifiedInputs?: true
-  readonly forbiddenImportedFunctionCalls?: true
-  readonly forbiddenMethodCalls?: readonly R[]
-  readonly requiredPrivateMembers?: readonly string[]
-  readonly requiresPrivateConstructor?: true
-  readonly requiredStaticMethodNamePrefix?: string
-  readonly requiresDataMembers?: true
-  readonly nameMatches?: string
-  readonly maxPublicMethods?: number
-  readonly minPublicMethods?: number
-}
-
 interface ReturnShape<R extends string = string> {
   readonly success: boolean
   readonly '*': R | '*'
 }
 
-type RoleOptions<R extends string = string> = RoleConstraints<R> &
+type RoleConstraintInput = Parameters<typeof RoleConstraints.parse>[0]
+type RoleTargetInput = Parameters<typeof RoleTarget.parse>[0]
+
+type RoleOptions<R extends string = string> = RoleConstraintInput &
   (
     | {
-        readonly targets: readonly RoleTarget[]
+        readonly targets: readonly RoleTargetInput[]
         readonly mustBeDataStructure?: never
         readonly requiresDecoratorSignature?: never
         readonly requiresStringLiteralConstant?: never
@@ -72,7 +43,7 @@ type RoleOptions<R extends string = string> = RoleConstraints<R> &
         readonly returns?: never
       }
     | {
-        readonly targets?: readonly ('interface' | 'type-alias')[]
+        readonly targets?: readonly Extract<RoleTargetInput, 'interface' | 'type-alias'>[]
         readonly mustBeDataStructure: true
         readonly requiresDecoratorSignature?: never
         readonly requiresStringLiteralConstant?: never
@@ -97,7 +68,8 @@ type RoleOptions<R extends string = string> = RoleConstraints<R> &
       }
   )
 
-interface BuiltRoleDefinition<N extends string = string> extends RoleConstraints {
+interface BuiltRoleDefinition<N extends string = string> {
+  readonly constraints: RoleConstraints
   readonly name: N
   readonly requiresDecoratorSignature?: true
   readonly mustBeDataStructure?: true
@@ -112,7 +84,7 @@ export class BuiltRole<N extends string = string> {
   declare private readonly brand: 'BuiltRole'
 
   declare readonly name: N
-  declare readonly targets: readonly RoleTarget[]
+  declare readonly targets: readonly RoleTargetInput[]
   declare readonly allowedInputs?: readonly string[]
   declare readonly allowedNames?: readonly string[]
   declare readonly allowedOutputs?: readonly string[]
@@ -124,25 +96,34 @@ export class BuiltRole<N extends string = string> {
   declare readonly forbiddenSupertypes?: readonly string[] | true
   declare readonly forbiddenDependencies?: readonly string[]
   declare readonly allowedDependencyRoles?: readonly string[]
+  declare readonly allowedDependentRoles?: readonly string[]
   declare readonly allowedCollaboratorRoles?: readonly string[]
   declare readonly allowsUnclassifiedInputs?: true
   declare readonly forbiddenImportedFunctionCalls?: true
   declare readonly forbiddenMethodCalls?: readonly string[]
   declare readonly requiredPrivateMembers?: readonly string[]
   declare readonly requiresPrivateConstructor?: true
-  declare readonly requiredStaticMethodNamePrefix?: string
+  declare readonly requiredStaticFactoryMethodNamePrefixes?: readonly string[]
+  declare readonly requiresStaticFactoryMethodParameters?: true
+  declare readonly requiresIndexedAccessTypeFromRole?: string
   declare readonly requiresDecoratorSignature?: true
   declare readonly mustBeDataStructure?: true
   declare readonly requiresStringLiteralConstant?: true
   declare readonly requiresUnion?: true
   declare readonly returns?: readonly ReturnShape[]
   declare readonly requiresDataMembers?: true
+  declare readonly requiresPrivateDataMembers?: true
+  declare readonly requiresReadonlyDataMembers?: true
+  declare readonly requiresJustification?: string
   declare readonly maxPublicMethods?: number
   declare readonly nameMatches?: string
   declare readonly minPublicMethods?: number
 
   private constructor(definition: BuiltRoleDefinition<N>) {
-    Object.assign(this, definition)
+    Object.assign(this, definition.constraints, {
+      name: definition.name,
+      targets: definition.targets.map((target) => target.value),
+    })
   }
 
   static parse<N extends string>(definition: BuiltRoleDefinition<N>): BuiltRole<N> {
@@ -150,33 +131,38 @@ export class BuiltRole<N extends string = string> {
   }
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function role<const N extends string>(name: N, options: RoleOptions): BuiltRole<N> {
   return BuiltRole.parse({
+    constraints: RoleConstraints.parse(options),
     name,
-    ...options,
     targets: inferredTargets(options),
   })
 }
 
 function inferredTargets(options: RoleOptions): readonly RoleTarget[] {
   if (options.requiresDecoratorSignature === true) {
-    return ['function']
+    return [RoleTarget.parse('function')]
   }
   if (options.requiresStringLiteralConstant === true) {
-    return ['variable']
+    return [RoleTarget.parse('variable')]
   }
   if (options.mustBeDataStructure === true) {
-    return options.targets ?? ['interface', 'type-alias']
+    return (options.targets ?? ['interface', 'type-alias']).map((target) =>
+      RoleTarget.parse(target),
+    )
   }
   if (options.requiresUnion === true) {
-    return ['type-alias']
+    return [RoleTarget.parse('type-alias')]
   }
   if (Array.isArray(options.returns)) {
-    return ['function']
+    return [RoleTarget.parse('function')]
   }
   if (options.targets !== undefined) {
-    return options.targets
+    return options.targets.map((target) => RoleTarget.parse(target))
   }
   throw new InvalidRoleDefinitionError('A role must declare a target or semantic rule.')
 }
@@ -187,6 +173,9 @@ interface RoleEnforcementConfigurationInput<R extends string> {
       string,
       {
         readonly locations: LocationConfiguration<R>
+        readonly packageManifest?: {
+          readonly requiredNonEmptyStringProperties: readonly string[]
+        }
       }
     >
   >
@@ -197,16 +186,9 @@ interface RoleEnforcementConfigurationInput<R extends string> {
   readonly unassignedPackages?: readonly string[]
 }
 
-interface BuiltLocationNode {
-  readonly allowAnySubLocations: boolean
-  readonly allowedRoles: readonly string[]
-  readonly importRules?: LocationBuilder<string>['importRules']
-  readonly id: string
-  readonly name: string
-  readonly packagePath: string
-  readonly parentId?: string
-  readonly pathTemplate: string
-  readonly roleEnforcement: boolean
+interface WorkspacePackage {
+  readonly manifest: unknown
+  readonly path: string
 }
 
 interface RoleEnforcementConfigurationDefinition {
@@ -214,7 +196,8 @@ interface RoleEnforcementConfigurationDefinition {
   readonly ignorePatterns: readonly string[]
   readonly importAliases?: Readonly<Record<string, string>>
   readonly include: readonly string[]
-  readonly locationHierarchy: readonly BuiltLocationNode[]
+  readonly locationHierarchy: LocationHierarchy['values']
+  readonly packageManifestRequirements: PackageManifestRequirements
   readonly roleDefinitionsDir: string
   readonly roles: readonly BuiltRole[]
   readonly unassignedPackages: readonly string[]
@@ -224,11 +207,6 @@ type RoleEnforcementConfigurationParseResult =
   | { readonly success: true; readonly data: RoleEnforcementConfiguration }
   | { readonly success: false; readonly error: RoleEnforcementExecutionError }
 
-type ValidRoleEnforcementConfigurationParseResult = {
-  readonly success: true
-  readonly data: RoleEnforcementConfiguration
-}
-
 /** @riviere-role value-object */
 export class RoleEnforcementConfiguration {
   declare private readonly brand: 'RoleEnforcementConfiguration'
@@ -237,7 +215,8 @@ export class RoleEnforcementConfiguration {
   declare readonly ignorePatterns: readonly string[]
   declare readonly importAliases?: Readonly<Record<string, string>>
   declare readonly include: readonly string[]
-  declare readonly locationHierarchy: readonly BuiltLocationNode[]
+  declare readonly locationHierarchy: LocationHierarchy['values']
+  declare readonly packageManifestRequirements: PackageManifestRequirements
   declare readonly roleDefinitionsDir: string
   declare readonly roles: readonly BuiltRole[]
   declare readonly unassignedPackages: readonly string[]
@@ -246,11 +225,36 @@ export class RoleEnforcementConfiguration {
     Object.assign(this, definition)
   }
 
-  static parse(
+  static parse<const R extends string>(
+    input: RoleEnforcementConfigurationInput<R>,
+  ): RoleEnforcementConfiguration {
+    const packageAssignments = PackageConfigurationAssignments.parse(input.configurations)
+    const locationHierarchy = LocationHierarchy.parse(packageAssignments)
+    const roleCatalogue = RoleCatalogue.parse(input.roles, locationHierarchy)
+    const unassignedPackages = input.unassignedPackages ?? []
+    return new RoleEnforcementConfiguration({
+      assignedPackages: packageAssignments.assignedPackages(),
+      ignorePatterns: [
+        ...input.ignorePatterns,
+        ...unassignedPackages.map((packagePath) => `${packagePath}/src/**`),
+      ],
+      ...(input.importAliases === undefined ? {} : { importAliases: input.importAliases }),
+      include: packageAssignments.sourceFilePatterns(),
+      locationHierarchy: locationHierarchy.values,
+      packageManifestRequirements: packageAssignments.packageManifestRequirements(),
+      roleDefinitionsDir: input.roleDefinitionsDir,
+      roles: roleCatalogue.values,
+      unassignedPackages,
+    })
+  }
+
+  static parseFromState(
     value: RoleEnforcementConfigurationDefinition,
-  ): ValidRoleEnforcementConfigurationParseResult
-  static parse(value: unknown): RoleEnforcementConfigurationParseResult
-  static parse(value: unknown): RoleEnforcementConfigurationParseResult {
+  ): RoleEnforcementConfiguration {
+    return new RoleEnforcementConfiguration(value)
+  }
+
+  static parseFromUnknown(value: unknown): RoleEnforcementConfigurationParseResult {
     if (typeof value !== 'object' || value === null) {
       return {
         success: false,
@@ -265,12 +269,13 @@ export class RoleEnforcementConfiguration {
       'include',
       'ignorePatterns',
       'locationHierarchy',
+      'packageManifestRequirements',
       'roles',
       'roleDefinitionsDir',
       'unassignedPackages',
     ]
     for (const key of required) {
-      if (!(key in value)) {
+      if (!Object.hasOwn(value, key)) {
         return {
           success: false,
           error: new RoleEnforcementExecutionError(
@@ -286,8 +291,9 @@ export class RoleEnforcementConfiguration {
     }
   }
 
-  validateWorkspacePackages(workspacePackages: readonly string[]): void {
-    for (const packagePath of workspacePackages) {
+  validateWorkspacePackages(workspacePackages: readonly WorkspacePackage[]): void {
+    for (const workspacePackage of workspacePackages) {
+      const packagePath = workspacePackage.path
       const isUnassigned = this.unassignedPackages.includes(packagePath)
       if (isUnassigned) {
         continue
@@ -306,121 +312,9 @@ export class RoleEnforcementConfiguration {
           `Workspace package '${packagePath}' is assigned to more than one role-enforcement configuration.`,
         )
       }
+      this.packageManifestRequirements.validate(workspacePackage)
     }
   }
-}
-
-/** @riviere-role domain-service */
-export function roleEnforcementConfiguration<const R extends string>(
-  input: RoleEnforcementConfigurationInput<R>,
-): RoleEnforcementConfiguration {
-  const assignedConfigurations = assignPackageConfigurations(input.configurations)
-  const assignedPackages = assignedConfigurations.map(([packagePattern]) => packagePattern)
-  const unassignedPackages = input.unassignedPackages ?? []
-  const locationHierarchy = assignedConfigurations.flatMap(([packagePattern, configuration]) =>
-    buildFluentLocationHierarchy(packagePattern, configuration.locations),
-  )
-  validateNoRepeatedInheritedImports(locationHierarchy)
-  validateRoleConfiguration(input.roles, locationHierarchy)
-  return RoleEnforcementConfiguration.parse({
-    assignedPackages,
-    ignorePatterns: [
-      ...input.ignorePatterns,
-      ...unassignedPackages.map((packagePath) => `${packagePath}/src/**`),
-    ],
-    ...(input.importAliases !== undefined && { importAliases: input.importAliases }),
-    include: assignedConfigurations.flatMap(([packagePattern]) => [
-      `${toGlobPattern(packagePattern)}/src/**/*.ts`,
-      `${toGlobPattern(packagePattern)}/src/**/*.tsx`,
-    ]),
-    locationHierarchy,
-    roleDefinitionsDir: input.roleDefinitionsDir,
-    roles: input.roles,
-    unassignedPackages,
-  }).data
-}
-
-function buildFluentLocationHierarchy<R extends string>(
-  packagePattern: string,
-  configuration: LocationConfiguration<R>,
-): BuiltLocationNode[] {
-  const sourceRoot = buildSourceRoot(packagePattern)
-  return [
-    sourceRoot,
-    ...configuration.locations.flatMap((root) =>
-      buildFluentLocation(root, packagePattern, sourceRoot),
-    ),
-  ]
-}
-
-function buildFluentLocation<R extends string>(
-  root: LocationBuilder<R>,
-  packagePath: string,
-  sourceRoot: BuiltLocationNode,
-): BuiltLocationNode[] {
-  return buildFluentLocationNode(
-    root,
-    packagePath,
-    sourceRoot.pathTemplate,
-    `/${normalizeLocationPath(root.path)}`,
-    true,
-  )
-}
-
-function buildSourceRoot(packagePath: string): BuiltLocationNode {
-  const pathTemplate = `${packagePath}/src`
-  return {
-    allowAnySubLocations: false,
-    allowedRoles: [],
-    id: `${packagePath}:${pathTemplate}`,
-    name: '/',
-    packagePath,
-    pathTemplate,
-    roleEnforcement: true,
-  }
-}
-
-function buildFluentLocationNode<R extends string>(
-  definition: LocationBuilder<R>,
-  packagePath: string,
-  parentPathTemplate: string,
-  locationName: string,
-  isConfigurationRoot = false,
-): BuiltLocationNode[] {
-  const pathTemplate = `${parentPathTemplate}/${normalizeLocationPath(definition.path)}`
-  const id = `${packagePath}:${pathTemplate}`
-  const node: BuiltLocationNode = {
-    allowAnySubLocations: definition.allowAnySubLocations,
-    allowedRoles: definition.allowedRoles,
-    ...(definition.importRules !== undefined && {
-      importRules: definition.importRules,
-    }),
-    id,
-    name: locationName,
-    packagePath,
-    parentId: `${packagePath}:${parentPathTemplate}`,
-    pathTemplate,
-    roleEnforcement: definition.roleEnforcement,
-  }
-  return [
-    node,
-    ...definition.subLocations.flatMap((child) => {
-      const childPath = normalizeLocationPath(child.path)
-      const childName = isConfigurationRoot ? `/${childPath}` : `${locationName}/${childPath}`
-      return buildFluentLocationNode(child, packagePath, pathTemplate, childName)
-    }),
-  ]
-}
-
-function normalizeLocationPath(locationPath: string): string {
-  return locationPath.split('/').filter(Boolean).join('/')
-}
-
-function toGlobPattern(packagePattern: string): string {
-  return packagePattern
-    .split('/')
-    .map((segment) => (segment.startsWith('{') && segment.endsWith('}') ? '*' : segment))
-    .join('/')
 }
 
 function packagePatternMatches(packagePattern: string, packagePath: string): boolean {

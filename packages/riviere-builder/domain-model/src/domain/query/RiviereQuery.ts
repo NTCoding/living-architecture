@@ -6,52 +6,47 @@ import type {
   Link,
   RiviereGraph,
 } from '@living-architecture/riviere-schema-published-language/schema'
+import type { LinkId } from '@living-architecture/riviere-schema-published-language/link-id'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
 import type { GraphDiff } from './graph-diff'
 
 import type { ComponentDepths } from './component-depths'
-import type { ComponentId } from './component-id'
-import {
-  componentsInDomain as filterByDomain,
-  componentsByType as filterByType,
-  findAllComponents,
-  findComponent,
-  componentById as lookupComponentById,
-  searchComponents,
-} from './component-queries'
+import { ComponentCounts } from './component-counts'
+import { ComponentId } from './component-id'
+import { CodePointSequence } from './code-point-sequence'
 import type { CrossDomainLink } from './cross-domain-link'
 import { queryCrossDomainLinks, queryDomainConnections } from './cross-domain-queries'
 import { queryNodeDepths } from './depth-queries'
-import type { Domain } from './domain'
+import { Domain } from './domain'
 import type { DomainConnection } from './domain-connection'
-import {
-  businessRulesForEntity,
-  operationsForEntity,
-  queryDomains,
-  queryEntities,
-  statesForEntity,
-  transitionsForEntity,
-} from './domain-queries'
-import type { Entity } from './entity'
-import type { EntityTransition } from './entity-transition'
+import { DomainName } from './domain-name'
+import { Entity } from './entity'
+import { EntityName } from './entity-name'
+import { EntityTransition } from './entity-transition'
 import type { EventHandlerInfo } from './event-handler-info'
 import { queryEventHandlers, queryPublishedEvents } from './event-queries'
 import type { ExternalDomain } from './external-domain'
 import { queryExternalDomains } from './external-system-queries'
 import type { Flow } from './flow'
-import { findEntryPoints, queryFlows, searchWithFlowContext, traceFlowFrom } from './flow-queries'
+import { findEntryPoints, queryFlows, traceFlowFrom } from './flow-queries'
 import { diffGraphs } from './graph-diff'
 import type { GraphStats } from './graph-stats'
 import { detectOrphanComponents } from './graph-validation'
 import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
-import type { LinkId } from './link-id'
+import { OperationName } from './operation-name'
 import type { PublishedEvent } from './published-event'
 import type { SearchWithFlowOptions } from './search-with-flow-options'
-import type { SearchWithFlowResult } from './search-with-flow-result'
-import type { State } from './state'
+import { SearchWithFlowResult } from './search-with-flow-result'
+import { State } from './state'
 import { queryStats } from './stats-queries'
-import { InvalidRiviereGraphError } from './errors'
+import { ComponentNotFoundError, InvalidRiviereGraphError } from './errors'
 export { ComponentNotFoundError } from './errors'
+
+interface PartialEntity {
+  name: string
+  domain: string
+  operations: DomainOpComponent[]
+}
 
 function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
   const result = parseRiviereGraph(graph)
@@ -81,7 +76,8 @@ function assertValidGraph(graph: unknown): asserts graph is RiviereGraph {
  * const flow = query.traceFlow('orders:checkout:api:post-orders')
  * ```
  *
- * @riviere-role domain-service
+ * @riviere-role-justification Command use cases, query models, and query result types need one stable graph query API so they do not have to discover and assemble the related query services directly.
+ * @riviere-role domain-facade
  */
 export class RiviereQuery {
   private readonly graphSnapshot: RiviereGraph
@@ -199,7 +195,7 @@ export class RiviereQuery {
    * ```
    */
   find(predicate: (component: Component) => boolean): Component | undefined {
-    return findComponent(this.graphSnapshot, predicate)
+    return this.graphSnapshot.components.find(predicate)
   }
 
   /**
@@ -216,7 +212,7 @@ export class RiviereQuery {
    * ```
    */
   findAll(predicate: (component: Component) => boolean): Component[] {
-    return findAllComponents(this.graphSnapshot, predicate)
+    return this.graphSnapshot.components.filter(predicate)
   }
 
   /**
@@ -231,7 +227,7 @@ export class RiviereQuery {
    * ```
    */
   componentById(id: ComponentId): Component | undefined {
-    return lookupComponentById(this.graphSnapshot, id.value)
+    return this.find((component) => component.id === id.value)
   }
 
   /**
@@ -249,7 +245,14 @@ export class RiviereQuery {
    * ```
    */
   search(query: string): Component[] {
-    return searchComponents(this.graphSnapshot, query)
+    if (query === '') return []
+    const lowerQuery = query.toLowerCase()
+    return this.findAll(
+      (component) =>
+        component.name.toLowerCase().includes(lowerQuery) ||
+        component.domain.toLowerCase().includes(lowerQuery) ||
+        component.type.toLowerCase().includes(lowerQuery),
+    )
   }
 
   /**
@@ -264,7 +267,7 @@ export class RiviereQuery {
    * ```
    */
   componentsInDomain(domainName: string): Component[] {
-    return filterByDomain(this.graphSnapshot, domainName)
+    return this.findAll((component) => component.domain === domainName)
   }
 
   /**
@@ -280,7 +283,7 @@ export class RiviereQuery {
    * ```
    */
   componentsByType(type: ComponentType): Component[] {
-    return filterByType(this.graphSnapshot, type)
+    return this.findAll((component) => component.type === type)
   }
 
   /**
@@ -297,7 +300,31 @@ export class RiviereQuery {
    * ```
    */
   domains(): Domain[] {
-    return queryDomains(this.graphSnapshot)
+    return this.queryDomains()
+  }
+
+  private queryDomains(): Domain[] {
+    return Object.entries(this.graphSnapshot.metadata.domains).map(([name, metadata]) => {
+      const domainComponents = this.componentsInDomain(name)
+      const count = (type: string): number =>
+        domainComponents.filter((component) => component.type === type).length
+      const componentCounts = ComponentCounts.parse({
+        UI: count('UI'),
+        API: count('API'),
+        UseCase: count('UseCase'),
+        DomainOp: count('DomainOp'),
+        Event: count('Event'),
+        EventHandler: count('EventHandler'),
+        Custom: count('Custom'),
+        total: domainComponents.length,
+      })
+      return Domain.parse({
+        name,
+        description: metadata.description,
+        systemType: metadata.systemType,
+        componentCounts,
+      })
+    })
   }
 
   /**
@@ -312,7 +339,7 @@ export class RiviereQuery {
    * ```
    */
   operationsFor(entityName: string): DomainOpComponent[] {
-    return operationsForEntity(this.graphSnapshot, entityName)
+    return this.operationsForEntity(entityName)
   }
 
   /**
@@ -332,7 +359,7 @@ export class RiviereQuery {
    * ```
    */
   entities(domainName?: string): Entity[] {
-    return queryEntities(this.graphSnapshot, domainName)
+    return this.queryEntities(domainName)
   }
 
   /**
@@ -347,7 +374,7 @@ export class RiviereQuery {
    * ```
    */
   businessRulesFor(entityName: string): string[] {
-    return businessRulesForEntity(this.graphSnapshot, entityName)
+    return this.businessRulesForEntity(entityName)
   }
 
   /**
@@ -362,7 +389,7 @@ export class RiviereQuery {
    * ```
    */
   transitionsFor(entityName: string): EntityTransition[] {
-    return transitionsForEntity(this.graphSnapshot, entityName)
+    return this.transitionsForEntity(entityName)
   }
 
   /**
@@ -380,7 +407,135 @@ export class RiviereQuery {
    * ```
    */
   statesFor(entityName: string): State[] {
-    return statesForEntity(this.graphSnapshot, entityName)
+    return this.statesForEntity(entityName)
+  }
+
+  private operationsForEntity(entityName: string): DomainOpComponent[] {
+    return this.graphSnapshot.components.filter(
+      (component): component is DomainOpComponent =>
+        component.type === 'DomainOp' && component.entity === entityName,
+    )
+  }
+
+  private queryEntities(domainName?: string): Entity[] {
+    const domainOperations = this.graphSnapshot.components.filter(
+      (component): component is DomainOpComponent & { entity: string } =>
+        component.type === 'DomainOp' && component.entity !== undefined,
+    )
+    const filtered = domainName
+      ? domainOperations.filter((operation) => operation.domain === domainName)
+      : domainOperations
+    const entityMap = new Map<string, PartialEntity>()
+    for (const operation of filtered) {
+      const key = `${operation.domain}:${operation.entity}`
+      const existing = entityMap.get(key)
+      if (existing === undefined) {
+        entityMap.set(key, {
+          name: operation.entity,
+          domain: operation.domain,
+          operations: [operation],
+        })
+      } else {
+        entityMap.set(key, {
+          ...existing,
+          operations: [...existing.operations, operation],
+        })
+      }
+    }
+    return Array.from(entityMap.values())
+      .sort((left, right) =>
+        CodePointSequence.parse(left.name)
+          .positionRelativeTo(CodePointSequence.parse(right.name))
+          .asAscendingArraySortResult(),
+      )
+      .map((partial) => this.createEntity(partial))
+  }
+
+  private createEntity(partial: PartialEntity): Entity {
+    const sortedOperations = [...partial.operations].sort((left, right) =>
+      CodePointSequence.parse(left.operationName)
+        .positionRelativeTo(CodePointSequence.parse(right.operationName))
+        .asAscendingArraySortResult(),
+    )
+    return Entity.parse(
+      EntityName.parse(partial.name),
+      DomainName.parse(partial.domain),
+      sortedOperations,
+      this.statesForEntity(partial.name),
+      this.transitionsForEntity(partial.name),
+      this.businessRulesForEntity(partial.name),
+    )
+  }
+
+  private businessRulesForEntity(entityName: string): string[] {
+    const operations = this.operationsForEntity(entityName)
+    const allRules: string[] = []
+    for (const operation of operations) {
+      if (operation.businessRules === undefined) continue
+      allRules.push(...operation.businessRules)
+    }
+    return [...new Set(allRules)]
+  }
+
+  private transitionsForEntity(entityName: string): EntityTransition[] {
+    const operations = this.operationsForEntity(entityName)
+    const transitions: EntityTransition[] = []
+    for (const operation of operations) {
+      if (operation.stateChanges === undefined) continue
+      for (const stateChange of operation.stateChanges) {
+        transitions.push(
+          EntityTransition.parse({
+            from: State.parse(stateChange.from),
+            to: State.parse(stateChange.to),
+            triggeredBy: OperationName.parse(operation.operationName),
+          }),
+        )
+      }
+    }
+    return transitions
+  }
+
+  private statesForEntity(entityName: string): State[] {
+    const operations = this.operationsForEntity(entityName)
+    const states = new Set<string>()
+    for (const operation of operations) {
+      if (operation.stateChanges === undefined) continue
+      for (const stateChange of operation.stateChanges) {
+        if (stateChange.from !== '*') states.add(stateChange.from)
+        states.add(stateChange.to)
+      }
+    }
+    return this.orderStatesByTransitions(states, operations)
+  }
+
+  private orderStatesByTransitions(states: Set<string>, operations: DomainOpComponent[]): State[] {
+    const fromStates = new Set<string>()
+    const toStates = new Set<string>()
+    const transitionMap = new Map<string, string>()
+    for (const operation of operations) {
+      if (operation.stateChanges === undefined) continue
+      for (const transition of operation.stateChanges) {
+        if (transition.from !== '*') {
+          fromStates.add(transition.from)
+          transitionMap.set(transition.from, transition.to)
+        }
+        toStates.add(transition.to)
+      }
+    }
+    const ordered: State[] = []
+    const visited = new Set<string>()
+    const follow = (state: string): void => {
+      if (visited.has(state)) return
+      visited.add(state)
+      ordered.push(State.parse(state))
+      const next = transitionMap.get(state)
+      if (next) follow(next)
+    }
+    ;[...fromStates].filter((state) => !toStates.has(state)).forEach(follow)
+    states.forEach((state) => {
+      if (!visited.has(state)) ordered.push(State.parse(state))
+    })
+    return ordered
   }
 
   /**
@@ -419,7 +574,11 @@ export class RiviereQuery {
     componentIds: ComponentId[]
     linkIds: LinkId[]
   } {
-    return traceFlowFrom(this.graphSnapshot, startComponentId)
+    const component = this.find((candidate) => candidate.id === startComponentId.value)
+    if (component === undefined) {
+      throw new ComponentNotFoundError(startComponentId.value)
+    }
+    return traceFlowFrom(this.graphSnapshot, component)
   }
 
   /**
@@ -499,7 +658,8 @@ export class RiviereQuery {
    * ```
    */
   flows(): Flow[] {
-    return queryFlows(this.graphSnapshot)
+    const entryPoints = findEntryPoints(this.graphSnapshot)
+    return queryFlows(this.graphSnapshot, entryPoints)
   }
 
   /**
@@ -519,7 +679,47 @@ export class RiviereQuery {
    * ```
    */
   searchWithFlow(query: string, options: SearchWithFlowOptions): SearchWithFlowResult {
-    return searchWithFlowContext(this.graphSnapshot, query, options)
+    const trimmedQuery = query.trim().toLowerCase()
+    const isEmptyQuery = trimmedQuery === ''
+
+    if (isEmptyQuery) {
+      if (options.returnAllOnEmptyQuery) {
+        const allIds = this.graphSnapshot.components.map((component) =>
+          ComponentId.parse(component.id),
+        )
+        return SearchWithFlowResult.parse({
+          matchingIds: allIds,
+          visibleIds: allIds,
+        })
+      }
+      return SearchWithFlowResult.parse({
+        matchingIds: [],
+        visibleIds: [],
+      })
+    }
+
+    const matchingComponents = this.search(query)
+    if (matchingComponents.length === 0) {
+      return SearchWithFlowResult.parse({
+        matchingIds: [],
+        visibleIds: [],
+      })
+    }
+
+    const matchingIds = matchingComponents.map((component) => ComponentId.parse(component.id))
+    const visibleIds = new Set<ComponentId>()
+
+    for (const component of matchingComponents) {
+      const flow = traceFlowFrom(this.graphSnapshot, component)
+      for (const id of flow.componentIds) {
+        visibleIds.add(id)
+      }
+    }
+
+    return SearchWithFlowResult.parse({
+      matchingIds,
+      visibleIds: Array.from(visibleIds),
+    })
   }
 
   /**
@@ -590,7 +790,8 @@ export class RiviereQuery {
    * ```
    */
   nodeDepths(): ComponentDepths {
-    return queryNodeDepths(this.graphSnapshot)
+    const entryPoints = findEntryPoints(this.graphSnapshot)
+    return queryNodeDepths(this.graphSnapshot, entryPoints)
   }
 
   /**

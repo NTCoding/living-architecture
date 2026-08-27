@@ -1,4 +1,3 @@
-import { applyEvent } from './fold'
 import type { WorkflowEvent } from './workflow-events'
 import { getInitialWorkflowState, type WorkflowState } from './workflow-types'
 
@@ -34,7 +33,7 @@ describe('applyEvent — session-started', () => {
       type: 'session-started',
       at: AT,
     }
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
     expect(result).toStrictEqual(EMPTY_STATE)
   })
 })
@@ -46,7 +45,7 @@ describe('applyEvent — issue-recorded', () => {
       at: AT,
       issueNumber: 42,
     }
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
     expect(result.githubIssue).toStrictEqual(42)
   })
 })
@@ -58,7 +57,7 @@ describe('applyEvent — branch-recorded', () => {
       at: AT,
       branch: 'feature/x',
     }
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
     expect(result.featureBranch).toStrictEqual('feature/x')
   })
 })
@@ -70,7 +69,7 @@ describe('applyEvent — architecture-review-completed', () => {
       at: AT,
       passed: true,
     }
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
     expect(result.architectureReviewPassed).toStrictEqual(true)
   })
 
@@ -81,7 +80,7 @@ describe('applyEvent — architecture-review-completed', () => {
       at: AT,
       passed: false,
     }
-    const result = applyEvent(state, event)
+    const result = state.apply(event)
     expect(result.architectureReviewPassed).toStrictEqual(false)
   })
 })
@@ -93,7 +92,7 @@ describe('applyEvent — code-review-completed', () => {
       at: AT,
       passed: true,
     }
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
     expect(result.codeReviewPassed).toStrictEqual(true)
   })
 
@@ -104,7 +103,7 @@ describe('applyEvent — code-review-completed', () => {
       at: AT,
       passed: false,
     }
-    const result = applyEvent(state, event)
+    const result = state.apply(event)
     expect(result.codeReviewPassed).toStrictEqual(false)
   })
 })
@@ -116,7 +115,7 @@ describe('applyEvent — bug-scanner-completed', () => {
       at: AT,
       passed: true,
     }
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
     expect(result.bugScannerPassed).toStrictEqual(true)
   })
 
@@ -127,7 +126,7 @@ describe('applyEvent — bug-scanner-completed', () => {
       at: AT,
       passed: false,
     }
-    const result = applyEvent(state, event)
+    const result = state.apply(event)
     expect(result.bugScannerPassed).toStrictEqual(false)
   })
 })
@@ -139,7 +138,7 @@ describe('applyEvent — pr-recorded', () => {
       at: AT,
       prNumber: 7,
     }
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
     expect(result.prNumber).toStrictEqual(7)
   })
 
@@ -150,7 +149,7 @@ describe('applyEvent — pr-recorded', () => {
       prNumber: 7,
       prUrl: 'https://github.com/x/y/pull/7',
     }
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
     expect(result.prUrl).toStrictEqual('https://github.com/x/y/pull/7')
   })
 })
@@ -162,7 +161,7 @@ describe('applyEvent — ci-completed', () => {
       at: AT,
       passed: true,
     }
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
     expect(result.ciPassed).toStrictEqual(true)
   })
 
@@ -174,7 +173,7 @@ describe('applyEvent — ci-completed', () => {
       passed: false,
       output: 'test failures',
     }
-    const result = applyEvent(state, event)
+    const result = state.apply(event)
     expect(result.ciPassed).toStrictEqual(false)
   })
 })
@@ -186,7 +185,7 @@ describe('applyEvent — feedback-checked', () => {
       at: AT,
       clean: true,
     }
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
     expect(result.feedbackClean).toStrictEqual(true)
   })
 
@@ -198,7 +197,7 @@ describe('applyEvent — feedback-checked', () => {
       clean: false,
       unresolvedCount: 3,
     }
-    const result = applyEvent(state, event)
+    const result = state.apply(event)
     expect(result.feedbackClean).toStrictEqual(false)
     expect(result.feedbackUnresolvedCount).toStrictEqual(3)
   })
@@ -210,7 +209,7 @@ describe('applyEvent — feedback-addressed', () => {
       type: 'feedback-addressed',
       at: AT,
     }
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
     expect(result.feedbackAddressed).toStrictEqual(true)
   })
 })
@@ -221,14 +220,14 @@ describe('applyEvent — task-check-passed', () => {
       type: 'task-check-passed',
       at: AT,
     }
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
     expect(result.taskCheckPassed).toStrictEqual(true)
   })
 })
 
 describe('applyEvent — transitioned', () => {
   it('changes state field', () => {
-    const result = applyEvent(EMPTY_STATE, {
+    const result = EMPTY_STATE.apply({
       type: 'transitioned',
       at: AT,
       from: 'IMPLEMENTING',
@@ -238,7 +237,7 @@ describe('applyEvent — transitioned', () => {
   })
 
   it('sets preBlockedState when transitioning to BLOCKED', () => {
-    const result = applyEvent(EMPTY_STATE, {
+    const result = EMPTY_STATE.apply({
       type: 'transitioned',
       at: AT,
       from: 'IMPLEMENTING',
@@ -253,7 +252,7 @@ describe('applyEvent — transitioned', () => {
       currentStateMachineState: 'BLOCKED',
       preBlockedState: 'IMPLEMENTING',
     })
-    const result = applyEvent(state, {
+    const result = state.apply({
       type: 'transitioned',
       at: AT,
       from: 'BLOCKED',
@@ -272,7 +271,7 @@ describe('applyEvent — transitioned', () => {
       feedbackClean: true,
       feedbackAddressed: true,
     })
-    const result = applyEvent(state, {
+    const result = state.apply({
       type: 'transitioned',
       at: AT,
       from: 'REVIEWING',
@@ -298,7 +297,7 @@ describe('applyEvent — transitioned', () => {
   })
 
   it('is backward-compatible when stateOverrides is absent', () => {
-    const result = applyEvent(EMPTY_STATE, {
+    const result = EMPTY_STATE.apply({
       type: 'transitioned',
       at: AT,
       from: 'IMPLEMENTING',
@@ -314,7 +313,7 @@ describe('applyEvent — transitioned', () => {
       feedbackAddressed: true,
       feedbackClean: true,
     })
-    const result = applyEvent(state, {
+    const result = state.apply({
       type: 'transitioned',
       at: AT,
       from: 'AWAITING_PR_FEEDBACK',
@@ -330,7 +329,7 @@ describe('applyEvent — transitioned', () => {
   })
 
   it('currentStateMachineState in stateOverrides does not override fold logic', () => {
-    const result = applyEvent(EMPTY_STATE, {
+    const result = EMPTY_STATE.apply({
       type: 'transitioned',
       at: AT,
       from: 'IMPLEMENTING',
@@ -343,7 +342,7 @@ describe('applyEvent — transitioned', () => {
 
 describe('applyEvent — observation events return unchanged state', () => {
   it('bash-checked returns state unchanged', () => {
-    const result = applyEvent(EMPTY_STATE, {
+    const result = EMPTY_STATE.apply({
       type: 'bash-checked',
       at: AT,
       tool: 'Bash',
@@ -354,7 +353,7 @@ describe('applyEvent — observation events return unchanged state', () => {
   })
 
   it('write-checked returns state unchanged', () => {
-    const result = applyEvent(EMPTY_STATE, {
+    const result = EMPTY_STATE.apply({
       type: 'write-checked',
       at: AT,
       tool: 'Write',

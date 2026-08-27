@@ -1,12 +1,9 @@
 import { useMemo } from 'react'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
-import { compareByCodePoint } from '../queries/compare-by-code-point'
+import { ascendingCodePointSortResult } from '../queries/ascending-code-point-sort-result'
 import { extractFlows } from '../queries/extract-flows'
 import { FlowCard } from '../components/FlowCard/FlowCard'
-import {
-  type FlowTypeFilter,
-  useFlowsState,
-} from '../hooks/useFlowsState'
+import { type FlowTypeFilter, useFlowsState } from '../hooks/useFlowsState'
 import type { Theme } from '@/types/theme'
 import { DEFAULT_THEME } from '@/types/theme'
 
@@ -40,7 +37,7 @@ export function FlowsPage({
 
   const domains = useMemo(() => {
     const domainSet = new Set(flows.map((f) => f.entryPoint.domain))
-    return Array.from(domainSet).sort(compareByCodePoint)
+    return Array.from(domainSet).sort(ascendingCodePointSortResult)
   }, [flows])
 
   const filteredFlows = useMemo(() => {

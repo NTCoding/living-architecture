@@ -29,7 +29,7 @@ interface AddComponentCommandInput {
   module: string
   repository: string
   filePath: string
-  graphPathOption?: string
+  graphFileLocation: string
   lineNumber?: number
   columnNumber?: number
   route?: string
@@ -47,7 +47,10 @@ interface AddComponentCommandInput {
 }
 
 /** @riviere-role entrypoint-cli-input-parser */
-export function parseAddComponentInput(options: AddComponentOptions): AddComponentCommandInput {
+export function parseAddComponentInput(
+  options: AddComponentOptions,
+  defaultGraphFileLocation: string,
+): AddComponentCommandInput {
   return {
     ...withOptional('apiType', options.apiType),
     componentType: options.type,
@@ -59,7 +62,7 @@ export function parseAddComponentInput(options: AddComponentOptions): AddCompone
     ...withOptional('eventName', options.eventName),
     ...withOptional('eventSchema', options.eventSchema),
     filePath: options.filePath,
-    ...withOptional('graphPathOption', options.graph),
+    graphFileLocation: options.graph ?? defaultGraphFileLocation,
     ...withOptional('httpMethod', options.httpMethod),
     ...withOptional('httpPath', options.httpPath),
     ...withParsedLineNumber(options.lineNumber),

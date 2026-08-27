@@ -6,10 +6,13 @@ import { ComponentId } from '@living-architecture/riviere-schema-published-langu
 import type { EnrichedComponent } from '../../value-extraction/enriched-component'
 import { ConnectionDetectionError } from '../connection-detection-error'
 import { ExtractedLink } from '../extracted-link'
+import { TypeScriptSourceLocation } from '../typescript-source-location'
 import type { AsyncDetectionOptions } from './async-detection-options'
-import { toSourceLocation } from './async-detection-types'
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function detectSubscribeConnections(
   components: readonly EnrichedComponent[],
   options: AsyncDetectionOptions,
@@ -47,7 +50,10 @@ function resolveSubscription(
       source: ComponentId.parseFromParts(event).toString(),
       target: ComponentId.parseFromParts(handler).toString(),
       type: 'async',
-      sourceLocation: toSourceLocation(handler, repository),
+      sourceLocation: TypeScriptSourceLocation.parseFromComponent(
+        repository,
+        handler,
+      ).toPublishedSourceLocation(),
     }),
   )
 }
@@ -71,7 +77,10 @@ function handleAmbiguousMatch(
     source: '_unresolved',
     target: ComponentId.parseFromParts(handler).toString(),
     type: 'async',
-    sourceLocation: toSourceLocation(handler, repository),
+    sourceLocation: TypeScriptSourceLocation.parseFromComponent(
+      repository,
+      handler,
+    ).toPublishedSourceLocation(),
     _uncertain: `ambiguous: ${matchCount} events match subscribed event name: ${eventName}`,
   })
 }
@@ -94,7 +103,10 @@ function handleNoMatch(
     source: '_unresolved',
     target: ComponentId.parseFromParts(handler).toString(),
     type: 'async',
-    sourceLocation: toSourceLocation(handler, repository),
+    sourceLocation: TypeScriptSourceLocation.parseFromComponent(
+      repository,
+      handler,
+    ).toPublishedSourceLocation(),
     _uncertain: `no event found for subscribed event name: ${eventName}`,
   })
 }

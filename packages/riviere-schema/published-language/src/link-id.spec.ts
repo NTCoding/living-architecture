@@ -1,6 +1,34 @@
 import { LinkId } from './published-language/link-id'
 
 describe('LinkId', () => {
+  it('parses an existing identifier', () => {
+    expect(LinkId.parse('stored-link-id').toString()).toBe('stored-link-id')
+  })
+
+  it('uses the stored identifier from a graph link', () => {
+    expect(
+      LinkId.parseFromGraphLink({
+        id: 'stored-link-id',
+        source: 'source',
+        target: 'target',
+      }).toString(),
+    ).toBe('stored-link-id')
+  })
+
+  it('derives the identifier for a legacy graph link without one', () => {
+    expect(
+      LinkId.parseFromGraphLink({ source: 'source', target: 'target' }).toString(),
+    ).toBe('source->target')
+  })
+
+  it('compares identifiers by their values', () => {
+    expect(LinkId.parse('a').localeCompare(LinkId.parse('b'))).toBeLessThan(0)
+  })
+
+  it('serialises as its string value', () => {
+    expect(JSON.stringify(LinkId.parse('stored-link-id'))).toBe('"stored-link-id"')
+  })
+
   it('uses source and target when source location is absent', () => {
     expect(LinkId.parseFromLink({ source: 'source', target: 'target' }).toString()).toBe(
       'source->target',

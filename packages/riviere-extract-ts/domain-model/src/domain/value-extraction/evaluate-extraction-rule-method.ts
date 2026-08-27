@@ -5,8 +5,8 @@ import type {
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { ClassDeclaration, MethodDeclaration, ParameterDeclaration } from 'ts-morph'
 import { ExtractionError } from './literal-detection'
-import { applyTransforms } from './transforms'
 import { MethodExtractionResult, MethodSignature, ParameterInfo } from './method-extraction-result'
+import { ExtractionResult } from './extraction-result'
 
 function extractParameterInfo(param: ParameterDeclaration): ParameterInfo {
   const typeNode = param.getTypeNode()
@@ -16,7 +16,10 @@ function extractParameterInfo(param: ParameterDeclaration): ParameterInfo {
   })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function evaluateFromMethodSignatureRule(
   _rule: FromMethodSignatureExtractionRule,
   methodDecl: MethodDeclaration,
@@ -32,7 +35,10 @@ export function evaluateFromMethodSignatureRule(
   })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function evaluateFromConstructorParamsRule(
   _rule: FromConstructorParamsExtractionRule,
   classDecl: ClassDeclaration,
@@ -46,12 +52,15 @@ export function evaluateFromConstructorParamsRule(
   return MethodExtractionResult.parse({ value: parameters })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function evaluateFromParameterTypeRule(
   rule: FromParameterTypeExtractionRule,
   methodDecl: MethodDeclaration,
-): MethodExtractionResult {
-  const { position, transform } = rule.fromParameterType
+): ExtractionResult {
+  const { position, transform } = rule
 
   const params = methodDecl.getParameters()
   const param = params[position]
@@ -67,8 +76,8 @@ export function evaluateFromParameterTypeRule(
   const typeName = typeNode?.getText() ?? 'unknown'
 
   if (transform === undefined) {
-    return MethodExtractionResult.parse({ value: typeName })
+    return ExtractionResult.parse({ value: typeName })
   }
 
-  return MethodExtractionResult.parse({ value: applyTransforms(typeName, transform) })
+  return ExtractionResult.parse({ value: transform.applyTo(typeName) })
 }

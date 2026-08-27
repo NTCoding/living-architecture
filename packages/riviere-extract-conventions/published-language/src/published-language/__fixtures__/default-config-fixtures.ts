@@ -39,12 +39,5 @@ export function getFirstModule(config: unknown): DraftConfiguration['modules'][n
     )
   }
 
-  const [module] = result.configuration.modules
-  if (!module) {
-    throw new TestAssertionError(
-      `Expected modules[0] after schema validation. Got undefined. Schema enforces minItems: 1.`,
-    )
-  }
-
-  return module
+  return result.configuration.modules[0]
 }

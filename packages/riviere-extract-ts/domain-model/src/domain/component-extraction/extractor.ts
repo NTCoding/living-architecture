@@ -1,5 +1,4 @@
 import type {
-  ComponentType,
   DetectionRule,
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
@@ -11,22 +10,14 @@ import {
   type Project,
   type SourceFile,
 } from 'ts-morph'
-import { evaluatePredicate } from '../predicate-evaluation/evaluate-predicate'
+import { TypeScriptComponentSpecification } from '../predicate-evaluation/typescript-component-specification'
 import { DraftComponent } from './draft-component'
-
-const COMPONENT_TYPES: ComponentType[] = [
-  'api',
-  'useCase',
-  'domainOp',
-  'event',
-  'eventHandler',
-  'ui',
-]
 
 /**
  * Extracts draft components from source files using a validated module configuration.
  *
  * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  * @param project - TypeScript project containing the source files
  * @param sourceFilePaths - Source files to inspect
  * @param module - Validated extraction rules and module metadata
@@ -64,11 +55,11 @@ function extractFromModule(
   module: ValidatedModule,
 ): DraftComponent[] {
   const context = resolveComponentContext(filePath, module)
-  const builtInComponents = COMPONENT_TYPES.flatMap((componentType) =>
-    extractComponentType(sourceFile, filePath, context, module, componentType),
-  )
-  const customComponents = extractCustomTypes(sourceFile, filePath, context, module)
-  return [...builtInComponents, ...customComponents]
+  return module
+    .componentDetections()
+    .flatMap((detection) =>
+      extractWithRule(sourceFile, filePath, context, detection.componentType.value, detection.rule),
+    )
 }
 
 function resolveComponentContext(filePath: string, module: ValidatedModule): ComponentContext {
@@ -80,6 +71,7 @@ function resolveComponentContext(filePath: string, module: ValidatedModule): Com
 
 /**
  * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  * @param filePath - source file path
  * @param module - validated module configuration
  * @returns resolved module name
@@ -111,20 +103,6 @@ export function resolveModuleName(filePath: string, module: ValidatedModule): st
   return normalized.slice(moduleStart, moduleEnd)
 }
 
-function extractCustomTypes(
-  sourceFile: SourceFile,
-  filePath: string,
-  context: ComponentContext,
-  module: ValidatedModule,
-): DraftComponent[] {
-  if (module.customTypes === undefined) {
-    return []
-  }
-  return Object.entries(module.customTypes).flatMap(([typeName, rule]) =>
-    extractWithRule(sourceFile, filePath, context, typeName, rule),
-  )
-}
-
 function extractWithRule(
   sourceFile: SourceFile,
   filePath: string,
@@ -132,32 +110,15 @@ function extractWithRule(
   componentType: string,
   rule: DetectionRule,
 ): DraftComponent[] {
-  if (rule.find === 'classes') {
-    return extractClasses(sourceFile, filePath, context, componentType, rule)
+  const specification = TypeScriptComponentSpecification.fromPredicate(rule.where)
+  switch (rule.find) {
+    case 'classes':
+      return extractClasses(sourceFile, filePath, context, componentType, specification)
+    case 'methods':
+      return extractMethods(sourceFile, filePath, context, componentType, specification)
+    case 'functions':
+      return extractFunctions(sourceFile, filePath, context, componentType, specification)
   }
-  if (rule.find === 'methods') {
-    return extractMethods(sourceFile, filePath, context, componentType, rule)
-  }
-  /* istanbul ignore else -- @preserve: false branch is unreachable; FindTarget is exhaustive */
-  if (rule.find === 'functions') {
-    return extractFunctions(sourceFile, filePath, context, componentType, rule)
-  }
-  /* istanbul ignore next -- @preserve: unreachable with valid FindTarget type; defensive fallback */
-  return []
-}
-
-function extractComponentType(
-  sourceFile: SourceFile,
-  filePath: string,
-  context: ComponentContext,
-  module: ValidatedModule,
-  componentType: ComponentType,
-): DraftComponent[] {
-  const rule = module.ruleFor(componentType)
-  if (!('find' in rule)) {
-    return []
-  }
-  return extractWithRule(sourceFile, filePath, context, componentType, rule)
 }
 
 function extractClasses(
@@ -165,11 +126,11 @@ function extractClasses(
   filePath: string,
   context: ComponentContext,
   componentType: string,
-  rule: DetectionRule,
+  specification: TypeScriptComponentSpecification,
 ): DraftComponent[] {
   return sourceFile
     .getClasses()
-    .filter((c) => evaluatePredicate(c, rule.where))
+    .filter((declaration) => specification.isSatisfiedBy(declaration))
     .flatMap((c) => createClassComponent(c, filePath, context, componentType))
 }
 
@@ -178,13 +139,13 @@ function extractMethods(
   filePath: string,
   context: ComponentContext,
   componentType: string,
-  rule: DetectionRule,
+  specification: TypeScriptComponentSpecification,
 ): DraftComponent[] {
   return sourceFile
     .getClasses()
     .flatMap((c) => c.getMethods())
     .filter(isPublicMethod)
-    .filter((m) => evaluatePredicate(m, rule.where))
+    .filter((method) => specification.isSatisfiedBy(method))
     .flatMap((m) => createMethodComponent(m, filePath, context, componentType))
 }
 
@@ -193,11 +154,11 @@ function extractFunctions(
   filePath: string,
   context: ComponentContext,
   componentType: string,
-  rule: DetectionRule,
+  specification: TypeScriptComponentSpecification,
 ): DraftComponent[] {
   return sourceFile
     .getFunctions()
-    .filter((f) => evaluatePredicate(f, rule.where))
+    .filter((declaration) => specification.isSatisfiedBy(declaration))
     .flatMap((f) => createFunctionComponent(f, filePath, context, componentType))
 }
 

@@ -1,5 +1,6 @@
 {
   "name": "@living-architecture/dev-workflow-v2-domain-model",
+  "description": "Models the maintainer delivery workflow, including its states, allowed transitions, recorded events, and pull request decisions.",
   "version": "0.0.1",
   "private": true,
   "type": "module",

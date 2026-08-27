@@ -26,6 +26,15 @@ It stores approved reusable architectural reasoning for planning. It is for less
 
 Architecture memory is advisory, not automatic enforcement.
 
+Every architecture memory must be standalone for future use. A future reader
+must be able to understand the original problem, the evidence, the reasoning,
+and the reusable lesson without access to the conversation that produced it.
+Include concrete code samples, dependency examples, diagrams, or other
+supporting content when they make the concepts clear. Include direct references
+to the relevant source files, role definitions, conventions, or architecture
+documents. Do not record vague conclusions that require the reader to guess
+what code or structural relationship they describe.
+
 When working on architecture drafting or architecture approval:
 
 1. Read `project-memory/architecture/AGENTS.md`.

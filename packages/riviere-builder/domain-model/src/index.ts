@@ -1,4 +1,4 @@
-export { RiviereBuilder } from './domain/builder-facade'
+export { RiviereBuilder } from './domain/riviere-builder'
 export { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 export {
   BuildValidationError,

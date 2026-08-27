@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { ComponentIndex } from '../component-index'
 import { ConnectionDetectionError } from '../connection-detection-error'
-import { buildCallGraph } from './build-call-graph'
 import {
+  buildCallGraph,
   buildComponent,
+  CallGraphOptions,
   defaultOptions,
   nextFile,
   sharedProject,
 } from './__fixtures__/call-graph-fixtures'
-import { CallGraphOptions } from './call-graph-types'
 
 function strictOptions(): CallGraphOptions {
   const defaults = defaultOptions()

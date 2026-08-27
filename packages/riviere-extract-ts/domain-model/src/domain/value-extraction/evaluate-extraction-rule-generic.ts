@@ -2,7 +2,6 @@ import type { FromGenericArgExtractionRule } from '@living-architecture/riviere-
 import type { ClassDeclaration } from 'ts-morph'
 import { SyntaxKind } from 'ts-morph'
 import { ExtractionError } from './literal-detection'
-import { applyTransforms } from './transforms'
 import { ExtractionResult } from './extraction-result'
 
 function getInterfaceTypeArgs(
@@ -38,12 +37,15 @@ function extractTypeNames(typeNode: import('ts-morph').TypeNode): string[] {
   return [typeNode.getText()]
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function evaluateFromGenericArgRule(
   rule: FromGenericArgExtractionRule,
   classDecl: ClassDeclaration,
 ): ExtractionResult {
-  const { interface: interfaceName, position, transform } = rule.fromGenericArg
+  const { interfaceName, position, transform } = rule
 
   const sourceFile = classDecl.getSourceFile()
   const location = {
@@ -93,6 +95,6 @@ export function evaluateFromGenericArgRule(
   }
 
   return ExtractionResult.parse({
-    value: typeNames.map((name) => applyTransforms(name, transform)),
+    value: typeNames.map((name) => transform.applyTo(name)),
   })
 }

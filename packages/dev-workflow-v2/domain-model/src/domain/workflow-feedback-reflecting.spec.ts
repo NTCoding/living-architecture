@@ -3,15 +3,15 @@ import {
   makeDeps,
   eventsToAwaitingPrFeedback,
   unresolvedThread,
+  rehydrateTestWorkflow,
 } from './__fixtures__/workflow-test-fixtures'
 import { GitHubUnavailableTestError } from './__fixtures__/workflow-test-errors'
-import { Workflow } from './workflow'
-import { applyEvents } from './fold'
+import { WorkflowState } from './workflow-types'
 
 describe('Workflow', () => {
   describe('appendEvent — AWAITING_PR_FEEDBACK side effect', () => {
     it('awaits CodeRabbit feedback and auto-transitions to REFLECTING when clean', () => {
-      const state = applyEvents([...eventsToAwaitingPrFeedback().slice(0, -1)])
+      const state = WorkflowState.replay([...eventsToAwaitingPrFeedback().slice(0, -1)])
       const sleepMs = vi.fn()
       const getPrFeedback = vi.fn(() => ({
         reviewDecision: 'APPROVED',
@@ -19,7 +19,7 @@ describe('Workflow', () => {
         unresolvedCount: 0,
         threads: [],
       }))
-      const wf = Workflow.rehydrate(
+      const wf = rehydrateTestWorkflow(
         state,
         makeDeps({
           getPrFeedback,
@@ -59,8 +59,8 @@ describe('Workflow', () => {
     })
 
     it('awaits CodeRabbit feedback and auto-transitions to ADDRESSING_FEEDBACK when feedback exists', () => {
-      const state = applyEvents([...eventsToAwaitingPrFeedback().slice(0, -1)])
-      const wf = Workflow.rehydrate(
+      const state = WorkflowState.replay([...eventsToAwaitingPrFeedback().slice(0, -1)])
+      const wf = rehydrateTestWorkflow(
         state,
         makeDeps({
           getPrFeedback: () => ({
@@ -100,7 +100,7 @@ describe('Workflow', () => {
     })
 
     it('applies ADDRESSING_FEEDBACK onEntry overrides during the automatic transition', () => {
-      const state = applyEvents([
+      const state = WorkflowState.replay([
         ...eventsToAwaitingPrFeedback().slice(0, -1),
         {
           type: 'feedback-checked',
@@ -112,7 +112,7 @@ describe('Workflow', () => {
           at: '2026-01-01T00:00:00Z',
         },
       ] as const)
-      const wf = Workflow.rehydrate(
+      const wf = rehydrateTestWorkflow(
         state,
         makeDeps({
           getPrFeedback: () => ({
@@ -143,9 +143,9 @@ describe('Workflow', () => {
     })
 
     it('times out and auto-transitions to BLOCKED when CodeRabbit feedback never appears', () => {
-      const state = applyEvents([...eventsToAwaitingPrFeedback().slice(0, -1)])
+      const state = WorkflowState.replay([...eventsToAwaitingPrFeedback().slice(0, -1)])
       const sleepMs = vi.fn()
-      const wf = Workflow.rehydrate(
+      const wf = rehydrateTestWorkflow(
         state,
         makeDeps({
           getPrFeedback: () => ({
@@ -180,8 +180,8 @@ describe('Workflow', () => {
     })
 
     it('publishes failure reason before auto-transitioning to BLOCKED when fetching PR feedback throws', () => {
-      const withPr = Workflow.rehydrate(
-        applyEvents([...eventsToAwaitingPrFeedback().slice(0, -1)]),
+      const withPr = rehydrateTestWorkflow(
+        WorkflowState.replay([...eventsToAwaitingPrFeedback().slice(0, -1)]),
         makeDeps({
           getPrFeedback: () => {
             throw new GitHubUnavailableTestError()
@@ -210,8 +210,8 @@ describe('Workflow', () => {
     })
 
     it('publishes failure reason before auto-transitioning to BLOCKED when no PR is recorded', () => {
-      const withoutPr = Workflow.rehydrate(
-        applyEvents([
+      const withoutPr = rehydrateTestWorkflow(
+        WorkflowState.replay([
           {
             type: 'issue-recorded',
             at: '2026-01-01T00:00:00Z',
@@ -260,7 +260,10 @@ describe('Workflow', () => {
     })
 
     it('throws when AWAITING_PR_FEEDBACK transitions to BLOCKED without failure event', () => {
-      const wf = Workflow.rehydrate(applyEvents(eventsToAwaitingPrFeedback()), makeDeps())
+      const wf = rehydrateTestWorkflow(
+        WorkflowState.replay(eventsToAwaitingPrFeedback()),
+        makeDeps(),
+      )
 
       expect(() =>
         wf.appendEvent({

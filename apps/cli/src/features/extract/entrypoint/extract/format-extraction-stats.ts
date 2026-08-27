@@ -1,6 +1,6 @@
 import type { ExtractDraftComponentsResult } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components-result'
 
-type FullExtractionResult = Extract<ExtractDraftComponentsResult, { kind: 'full' }>
+type FullExtractionResult = Extract<ExtractDraftComponentsResult['result'], { kind: 'full' }>
 type ConnectionTimings = FullExtractionResult['timings'][number]
 type ExtractedLink = FullExtractionResult['links'][number]
 

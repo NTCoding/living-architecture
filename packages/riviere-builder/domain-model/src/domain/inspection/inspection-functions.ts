@@ -4,11 +4,9 @@ import type {
   DomainMetadata,
   ExternalLink,
   Link,
-  RiviereGraph,
   SourceInfo,
   RelationshipTypeDefinition,
 } from '@living-architecture/riviere-schema-published-language/schema'
-import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { ComponentSummaryStats } from './component-summary-stats'
 
 type InspectionWarning =
@@ -26,9 +24,9 @@ type InspectionWarning =
 interface InspectionGraph {
   version: string
   metadata: {
-    name?: string
-    description?: string
-    generated?: string
+    name?: string | undefined
+    description?: string | undefined
+    generated?: string | undefined
     sources: readonly SourceInfo[]
     domains: Readonly<Record<string, DomainMetadata>>
     customTypes: Readonly<Record<string, CustomTypeDefinition>>
@@ -43,6 +41,7 @@ interface InspectionGraph {
  * Finds components with no incoming or outgoing links.
  *
  * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  *
  * @param graph - The graph to inspect
  * @returns Array of orphaned component IDs
@@ -72,6 +71,7 @@ export function findOrphans(graph: InspectionGraph): string[] {
  * Calculates statistics about the graph.
  *
  * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  *
  * @param graph - The graph to analyze
  * @returns Object with component counts, link counts, and domain count
@@ -107,8 +107,10 @@ export function calculateStats(graph: InspectionGraph) {
  * Detects orphaned components and unused domains.
  *
  * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  *
  * @param graph - The graph to inspect
+ * @param orphanComponentIds - Components previously found to have no connections
  * @returns Array of warning objects
  *
  * @example
@@ -117,10 +119,13 @@ export function calculateStats(graph: InspectionGraph) {
  * // [{ code: 'ORPHAN_COMPONENT', message: '...', componentId: '...' }]
  * ```
  */
-export function findWarnings(graph: InspectionGraph): InspectionWarning[] {
+export function findWarnings(
+  graph: InspectionGraph,
+  orphanComponentIds: readonly string[],
+): InspectionWarning[] {
   const warnings: InspectionWarning[] = []
 
-  for (const id of findOrphans(graph)) {
+  for (const id of orphanComponentIds) {
     warnings.push({
       code: 'ORPHAN_COMPONENT',
       message: `Component '${id}' has no incoming or outgoing links`,
@@ -140,61 +145,4 @@ export function findWarnings(graph: InspectionGraph): InspectionWarning[] {
   }
 
   return warnings
-}
-
-/**
- * Converts builder internal graph to schema-compliant RiviereGraph.
- *
- * Removes undefined optional fields and ensures proper structure.
- *
- * @riviere-role domain-service
- *
- * @param graph - The internal builder graph
- * @returns Schema-compliant RiviereGraph
- *
- * @example
- * ```typescript
- * const output = toRiviereGraph(builderGraph)
- * JSON.stringify(output) // Valid Rivière JSON
- * ```
- */
-export function toRiviereGraph(graph: InspectionGraph): RiviereGraph {
-  const hasCustomTypes = Object.keys(graph.metadata.customTypes).length > 0
-  const hasExternalLinks = graph.externalLinks.length > 0
-  const hasRelationshipTypes = Object.keys(graph.metadata.relationshipTypes).length > 0
-
-  return {
-    version: graph.version,
-    metadata: {
-      ...(graph.metadata.name !== undefined && { name: graph.metadata.name }),
-      ...(graph.metadata.description !== undefined && { description: graph.metadata.description }),
-      sources: [...graph.metadata.sources],
-      domains: { ...graph.metadata.domains },
-      ...(hasCustomTypes && { customTypes: { ...graph.metadata.customTypes } }),
-      ...(hasRelationshipTypes && { relationshipTypes: { ...graph.metadata.relationshipTypes } }),
-    },
-    components: [...graph.components],
-    links: [...graph.links],
-    ...(hasExternalLinks && { externalLinks: [...graph.externalLinks] }),
-  }
-}
-
-/**
- * Validates the graph against the Rivière schema.
- *
- * @riviere-role domain-service
- *
- * @param graph - The graph to validate
- * @returns Validation result with valid flag and any errors
- *
- * @example
- * ```typescript
- * const result = validateGraph(graph)
- * if (!result.valid) {
- *   console.error(result.errors)
- * }
- * ```
- */
-export function validateGraph(graph: InspectionGraph): ValidationResult {
-  return ValidationResult.parse(toRiviereGraph(graph))
 }

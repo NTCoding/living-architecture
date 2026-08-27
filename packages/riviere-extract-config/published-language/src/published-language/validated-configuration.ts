@@ -1,104 +1,6 @@
-import type {
-  ComponentRule,
-  ComponentType,
-  ConnectionsConfig,
-  CustomTypes,
-  ValidatedConfigurationInput,
-  ValidatedModuleInput,
-} from './extraction-config-schema'
+import type { ConnectionsConfig, ValidatedConfigurationInput } from './extraction-config-schema'
 import type { ValidationError } from './validation'
-
-const REQUIRED_FIELDS: Record<ComponentType, readonly string[]> = {
-  api: ['apiType'],
-  useCase: [],
-  domainOp: ['operationName'],
-  event: ['eventName'],
-  eventHandler: ['subscribedEvents'],
-  ui: ['route'],
-}
-
-const COMPONENT_TYPES: readonly ComponentType[] = [
-  'api',
-  'useCase',
-  'domainOp',
-  'event',
-  'eventHandler',
-  'ui',
-]
-
-type ValidatedModuleParseResult =
-  | { success: true; data: ValidatedModule }
-  | { success: false; errors: ValidationError[] }
-
-/** @riviere-role value-object */
-export class ValidatedModule {
-  declare private readonly brand: 'ValidatedModule'
-  readonly #values: Readonly<ValidatedModuleInput>
-
-  private constructor(values: Readonly<ValidatedModuleInput>) {
-    this.#values = values
-  }
-
-  static parse(input: Readonly<ValidatedModuleInput>): ValidatedModuleParseResult {
-    const errors = validateModule(input)
-    if (errors.length > 0) {
-      return { success: false, errors }
-    }
-    return { success: true, data: new ValidatedModule(input) }
-  }
-
-  get name(): string {
-    return this.#values.name
-  }
-
-  get domain(): string {
-    return this.#values.domain
-  }
-
-  get path(): string {
-    return this.#values.path
-  }
-
-  get glob(): string {
-    return this.#values.glob
-  }
-
-  get modules(): string | undefined {
-    return this.#values.modules
-  }
-
-  get api(): ComponentRule {
-    return this.#values.api
-  }
-
-  get useCase(): ComponentRule {
-    return this.#values.useCase
-  }
-
-  get domainOp(): ComponentRule {
-    return this.#values.domainOp
-  }
-
-  get event(): ComponentRule {
-    return this.#values.event
-  }
-
-  get eventHandler(): ComponentRule {
-    return this.#values.eventHandler
-  }
-
-  get ui(): ComponentRule {
-    return this.#values.ui
-  }
-
-  get customTypes(): CustomTypes | undefined {
-    return this.#values.customTypes
-  }
-
-  ruleFor(componentType: ComponentType): ComponentRule {
-    return this.#values[componentType]
-  }
-}
+import { ValidatedModule } from './validated-module'
 
 type ValidatedConfigurationParseResult =
   | { success: true; data: ValidatedConfiguration }
@@ -135,9 +37,7 @@ export class ValidatedConfiguration {
     })
     const connectionErrors = validateConnections(input)
     const errors = [...moduleErrors, ...connectionErrors]
-    if (errors.length > 0) {
-      return { success: false, errors }
-    }
+    if (errors.length > 0) return { success: false, errors }
 
     return {
       success: true,
@@ -148,29 +48,6 @@ export class ValidatedConfiguration {
   get modules(): readonly ValidatedModule[] {
     return this.#modules
   }
-}
-
-function validateModule(module: Readonly<ValidatedModuleInput>): ValidationError[] {
-  return COMPONENT_TYPES.flatMap((componentType) => {
-    const rule = module[componentType]
-    if ('notUsed' in rule) {
-      return []
-    }
-    const extractedFields = new Set(Object.keys(rule.extract ?? {}))
-    const missingFields = REQUIRED_FIELDS[componentType].filter(
-      (field) => !extractedFields.has(field),
-    )
-    return missingFields.length === 0
-      ? []
-      : [
-          {
-            path: `/${componentType}`,
-            message:
-              `Missing required extraction rules: ${missingFields.join(', ')}. ` +
-              `Add extraction rules to the 'extract' block or use 'notUsed: true' if not extracting ${componentType} components.`,
-          },
-        ]
-  })
 }
 
 function validateConnections(input: Readonly<ValidatedConfigurationInput>): ValidationError[] {

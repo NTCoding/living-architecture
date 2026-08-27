@@ -2,6 +2,11 @@
 
 TypeScript extractor for detecting architectural components from source code.
 
+The `description` in [package.json](package.json) is the source of truth for this
+subdomain's purpose. See the generated
+[domain guide](../../../docs/architecture/ddd/domain-guide.md) for its current
+aggregates and supported operations.
+
 ## Overview
 
 Extracts architectural components from TypeScript code using deterministic, config-driven detection rules. Uses ts-morph for AST parsing to identify components based on decorators, JSDoc tags, inheritance, interfaces, and naming patterns.

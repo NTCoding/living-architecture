@@ -103,9 +103,6 @@ function getTypeString(prop: SchemaProperty): string {
   if (prop.$ref) {
     return `\`${getRefTypeName(prop.$ref)}\``
   }
-  if (prop.oneOf) {
-    return formatOneOfType(prop)
-  }
   if (prop.type === 'array' && prop.items) {
     return formatArrayType(prop.items)
   }
@@ -115,7 +112,13 @@ function getTypeString(prop: SchemaProperty): string {
   if (prop.type === 'object' && typeof prop.additionalProperties === 'object') {
     return formatRecordType(prop.additionalProperties)
   }
-  return `\`${prop.type ?? 'any'}\``
+  if (prop.type !== undefined) {
+    return `\`${prop.type}\``
+  }
+  if (prop.oneOf) {
+    return formatOneOfType(prop)
+  }
+  return '`any`'
 }
 
 function generatePropertiesTable(

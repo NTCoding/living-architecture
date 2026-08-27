@@ -14,7 +14,10 @@ import { KnownSourceEvent } from './known-source-event'
 import { PublishedEvent } from './published-event'
 import { UnknownSourceEvent } from './unknown-source-event'
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function queryPublishedEvents(graph: RiviereGraph, domainName?: string): PublishedEvent[] {
   const eventComponents = graph.components.filter((c): c is EventComponent => c.type === 'Event')
   const filtered = domainName
@@ -43,7 +46,10 @@ export function queryPublishedEvents(graph: RiviereGraph, domainName?: string): 
   })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function queryEventHandlers(graph: RiviereGraph, eventName?: string): EventHandlerInfo[] {
   const eventByName = buildEventNameMap(graph)
   const handlers = findEventHandlerComponents(graph)

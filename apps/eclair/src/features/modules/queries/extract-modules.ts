@@ -3,7 +3,7 @@ import {
   getEffectiveNodeType,
   getNodeTypeDescription,
 } from '@/platform/domain/node-type-presentation'
-import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
+import { ascendingCodePointSortResult } from '@/platform/domain/ascending-code-point-sort-result'
 
 export interface ModuleNode {
   id: string
@@ -40,14 +40,16 @@ export function extractModules(graph: RiviereGraph): DomainModules[] {
   }
 
   return [...domains.entries()]
-    .sort(([left], [right]) => compareByCodePoint(left, right))
+    .sort(([left], [right]) => ascendingCodePointSortResult(left, right))
     .map(([domain, modules]) => ({
       domain,
       modules: [...modules.entries()]
-        .sort(([left], [right]) => compareByCodePoint(left, right))
+        .sort(([left], [right]) => ascendingCodePointSortResult(left, right))
         .map(([name, nodes]) => ({
           name,
-          nodes: nodes.toSorted((left, right) => compareByCodePoint(left.name, right.name)),
+          nodes: nodes.toSorted((left, right) =>
+            ascendingCodePointSortResult(left.name, right.name),
+          ),
         })),
     }))
 }

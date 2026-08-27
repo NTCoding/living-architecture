@@ -16,7 +16,7 @@ export class LinkExternal {
     if (!parsedInput.success) return parsedInput.result
 
     try {
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       const externalLinkInput = {
         from: parsedInput.sourceId.toString(),
         target: {
@@ -27,7 +27,7 @@ export class LinkExternal {
         ...(parsedInput.linkType === undefined ? {} : { type: parsedInput.linkType.value }),
       }
       const externalLink = builder.linkExternal(externalLinkInput)
-      this.repository.save(builder)
+      this.repository.save(input.graphFileLocation, builder)
       return {
         result: {
           externalLink,

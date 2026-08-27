@@ -4,7 +4,10 @@ import type {
 } from '@living-architecture/riviere-schema-published-language/schema'
 import { GraphStats } from './graph-stats'
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function queryStats(graph: RiviereGraph): GraphStats {
   const components = graph.components
 

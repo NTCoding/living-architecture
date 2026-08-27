@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ComponentId } from './component-id'
-import { LinkId } from './link-id'
+import { LinkId } from '@living-architecture/riviere-schema-published-language/link-id'
 
 describe('identifier serialization', () => {
   it('serializes a component ID to its value', () => {

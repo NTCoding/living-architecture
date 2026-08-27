@@ -10,8 +10,9 @@ An aggregate:
 1. **Owns state** — holds the data that represents the current state of a domain concept
 2. **Enforces invariants** — business rules are methods on the aggregate, not external functions
 3. **Exposes behavior** — public methods represent domain operations that may modify state
-4. **Is loaded/saved through a repository** — never created ad-hoc in commands or services
-5. **Exposes mutation** — at least one public method modifies or replaces the aggregate's state. A class with only read-only methods is NOT an aggregate.
+4. **Encapsulates state** — all instance state is private. Application code tells the aggregate to make domain decisions; it does not read aggregate state to make them itself.
+5. **Is loaded/saved through a repository** — never created ad-hoc in commands or services
+6. **Exposes mutation** — at least one public method modifies or replaces the aggregate's state. A class with only read-only methods is NOT an aggregate.
 
 ## Examples
 

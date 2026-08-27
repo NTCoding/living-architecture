@@ -1,12 +1,12 @@
 import type {
-  ComponentRule,
-  ExtractBlock,
+  ComponentRuleInput,
+  ExtractBlockInput,
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
-import { enrichComponents } from './enrich-components'
+import { RiviereModule } from '../riviere-module'
 import { createValidatedModule } from '../../__fixtures__/test-fixtures'
 import { TestFixtureError } from './literal-detection'
 
@@ -27,7 +27,12 @@ function enrich(drafts: DraftComponent[], modules: ValidatedModule[]) {
   if (module === undefined) {
     throw new TestFixtureError('Expected one module in test config')
   }
-  return enrichComponents(drafts, module, sharedProject)
+  return RiviereModule.build({
+    configuration: module,
+    project: sharedProject,
+    sourceFiles: [],
+    candidateDraftComponents: drafts,
+  }).enrichDraftComponents()
 }
 
 function ordersDraft(type: string, name: string, file: string, line: number): DraftComponent {
@@ -38,16 +43,16 @@ function ordersDraft(type: string, name: string, file: string, line: number): Dr
       file,
       line,
     },
-    domain: 'orders',
-    module: 'orders-module',
+    domain: 'orders-domain',
+    module: 'orders',
   })
 }
 
 function ordersModule(
   path: string,
   overrides: {
-    domainOp?: ComponentRule
-    eventHandler?: ComponentRule
+    domainOp?: ComponentRuleInput
+    eventHandler?: ComponentRuleInput
   },
 ): ValidatedModule {
   return createValidatedModule({
@@ -64,7 +69,7 @@ function ordersModule(
   })
 }
 
-const domainOpMethodRule = (extract: ExtractBlock): ComponentRule => ({
+const domainOpMethodRule = (extract: ExtractBlockInput): ComponentRuleInput => ({
   find: 'methods',
   where: { nameEndsWith: { suffix: 'Order' } },
   extract,
@@ -79,7 +84,7 @@ const genericArgExtract = {
   },
 }
 
-const eventHandlerMethodRule = (extract: ExtractBlock): ComponentRule => ({
+const eventHandlerMethodRule = (extract: ExtractBlockInput): ComponentRuleInput => ({
   find: 'methods',
   where: { nameEndsWith: { suffix: 'handle' } },
   extract,

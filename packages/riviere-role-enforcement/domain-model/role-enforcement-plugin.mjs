@@ -4,6 +4,7 @@ import path from 'node:path'
 import { minimatch } from 'minimatch'
 
 const ROLE_TAG = /@riviere-role\s+(\S+)/g
+const ROLE_JUSTIFICATION_TAG = /@riviere-role-justification\s+([^\r\n*]+)/g
 const DECORATOR_CONTEXT_TYPES = new Set([
   'ClassAccessorDecoratorContext',
   'ClassDecoratorContext',
@@ -12,6 +13,19 @@ const DECORATOR_CONTEXT_TYPES = new Set([
   'ClassMethodDecoratorContext',
   'ClassSetterDecoratorContext',
 ])
+
+function readIndexedAccessTypeQueryName(typeNode) {
+  if (typeNode.type !== 'TSIndexedAccessType' || typeNode.indexType.type !== 'TSNumberKeyword') {
+    return null
+  }
+  const objectType = typeNode.objectType.type === 'TSParenthesizedType'
+    ? typeNode.objectType.typeAnnotation
+    : typeNode.objectType
+  if (objectType.type !== 'TSTypeQuery' || objectType.exprName.type !== 'Identifier') {
+    return null
+  }
+  return objectType.exprName.name
+}
 
 function parseAllRoleNames(text) {
   return [...text.matchAll(ROLE_TAG)].map((match) => match[1])
@@ -125,11 +139,13 @@ export default {
           }
           validateForbiddenDependencies()
           validateAllowedDependencyRoles()
+          validateAllowedDependentRoles()
           validateAllowedCollaboratorRoles()
           validateForbiddenInlineDependencyImplementations()
           validateRequiredRoleDependencies()
           validateForbiddenImportedFunctionCalls()
             validateForbiddenMethodCalls()
+          validateForbiddenSameFileRoleCalls()
           },
         }
 
@@ -428,7 +444,25 @@ export default {
             roleName,
           })
 
+          validateRoleJustification(node, role, name, annotationNode)
           validateRoleContract(node, target, role, name)
+        }
+
+        function validateRoleJustification(node, role, name, annotationNode) {
+          if (typeof role.requiresJustification !== 'string') {
+            return
+          }
+          const justifications = sourceCode.getCommentsBefore(annotationNode)
+            .flatMap((comment) => [...comment.value.matchAll(ROLE_JUSTIFICATION_TAG)])
+            .map((match) => match[1]?.trim())
+            .filter((justification) => justification !== undefined && justification !== '')
+          if (justifications.length === 1) {
+            return
+          }
+          report(
+            node,
+            `Role '${role.name}' requires one non-empty @riviere-role-justification on '${name}'. ${role.requiresJustification}`,
+          )
         }
 
         function validateRoleContract(node, target, role, name) {
@@ -611,6 +645,12 @@ export default {
           }
         }
 
+        function validateAllowedDependentRoles() {
+          for (const statement of readAllImportStatements()) {
+            reportDisallowedDependentRoles(statement)
+          }
+        }
+
         function validateAllowedCollaboratorRoles() {
           for (const statement of sourceCode.ast.body) {
             const declaration = statement.type === 'ExportNamedDeclaration'
@@ -708,6 +748,38 @@ export default {
           }
         }
 
+        function reportDisallowedDependentRoles(statement) {
+          const importSource = typeof statement.source.value === 'string' ? statement.source.value : null
+          if (importSource === null) {
+            return
+          }
+
+          const resolvedFile = resolveImportFile(filename, importSource, options.configDir, options.importAliases)
+          if (resolvedFile === null) {
+            return
+          }
+
+          for (const binding of readImportedRoleBindings(statement, resolvedFile)) {
+            const referencingRoles = readReferencingRoles(binding.localName)
+            for (const importedRole of binding.roles) {
+              const allowedDependentRoles = roleMap.get(importedRole)?.allowedDependentRoles
+              if (!Array.isArray(allowedDependentRoles)) {
+                continue
+              }
+              const disallowedRoles = referencingRoles.filter(
+                (roleName) => !allowedDependentRoles.includes(roleName),
+              )
+              if (disallowedRoles.length === 0) {
+                continue
+              }
+              report(
+                statement,
+                `Role '${importedRole}' only allows dependent roles [${allowedDependentRoles.join(', ')}] but is referenced by role(s) ${disallowedRoles.join(', ')}. ${referenceForKnownRole(options, importedRole)}`,
+              )
+            }
+          }
+        }
+
         function readAllImportStatements() {
           return sourceCode.ast.body.filter(
             (statement) =>
@@ -781,6 +853,45 @@ export default {
           )
           for (const node of nonImportBody) {
             walkForImportedFunctionCalls(node, importedFunctionBindings)
+          }
+        }
+
+        function validateForbiddenSameFileRoleCalls() {
+          walkForForbiddenSameFileRoleCalls(sourceCode.ast)
+        }
+
+        function walkForForbiddenSameFileRoleCalls(node) {
+          if (node === null || node === undefined || typeof node !== 'object') {
+            return
+          }
+          if (node.type === 'CallExpression' && node.callee.type === 'Identifier') {
+            const target = roleDeclarations.find(
+              (declaration) =>
+                declaration.roleName !== undefined &&
+                readDeclarationName(declaration.node) === node.callee.name,
+            )
+            const source = roleDeclarations.find(
+              (declaration) => declaration.node !== target?.node && isNodeInside(node, declaration.node),
+            )
+            if (
+              target !== undefined &&
+              source !== undefined &&
+              roleMap.get(source.roleName)?.forbiddenDependencies?.includes(target.roleName)
+            ) {
+              report(
+                node,
+                `Role '${source.roleName}' cannot call same-file role '${target.roleName}' declaration '${node.callee.name}'. ${referenceForKnownRole(options, source.roleName)}`,
+              )
+            }
+          }
+          for (const key of Object.keys(node)) {
+            if (key === 'parent') continue
+            const child = node[key]
+            if (Array.isArray(child)) {
+              for (const item of child) walkForForbiddenSameFileRoleCalls(item)
+            } else if (isAstNode(child)) {
+              walkForForbiddenSameFileRoleCalls(child)
+            }
           }
         }
 
@@ -1628,6 +1739,7 @@ export default {
         }
 
         function validateTypeAliasContract(node, role, name) {
+          validateIndexedAccessTypeRole(node, role, name)
           if (role.mustBeDataStructure === true) {
             const result = inspectDataStructureType(node.typeAnnotation)
             if (!result.isDataStructure) {
@@ -1651,6 +1763,26 @@ export default {
           report(
             node,
             `Role '${role.name}' requires a union type on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+          )
+        }
+
+        function validateIndexedAccessTypeRole(node, role, name) {
+          const requiredRole = role.requiresIndexedAccessTypeFromRole
+          if (typeof requiredRole !== 'string') {
+            return
+          }
+          const sourceName = readIndexedAccessTypeQueryName(node.typeAnnotation)
+          const sourceDeclaration = roleDeclarations.find(
+            (declaration) =>
+              declaration.roleName === requiredRole &&
+              readDeclarationName(declaration.node) === sourceName,
+          )
+          if (sourceDeclaration !== undefined) {
+            return
+          }
+          report(
+            node,
+            `Role '${role.name}' requires an indexed access type derived from role '${requiredRole}' on '${name}'. ${referenceForKnownRole(options, role.name)}`,
           )
         }
 
@@ -1774,9 +1906,25 @@ export default {
           validatePublicMethodCount(node, role, name)
           validateRequiredPrivateMembers(node, role, name)
           validateRequiredPrivateConstructor(node, role, name)
-          validateRequiredStaticMethodNamePrefix(node, role, name)
+          validateStaticFactoryMethods(node, role, name)
           validateCallableMemberConstraints(node, role, name)
           validateDataMemberRequirements(node, role, name)
+          validateDataMemberConstraint(
+            node,
+            role,
+            name,
+            role.requiresPrivateDataMembers === true,
+            (member) => member.accessibility === 'private',
+            'private',
+          )
+          validateDataMemberConstraint(
+            node,
+            role,
+            name,
+            role.requiresReadonlyDataMembers === true,
+            (member) => member.readonly,
+            'readonly',
+          )
           validateClassMethodContracts(node, role, name)
         }
 
@@ -1798,26 +1946,45 @@ export default {
           )
         }
 
-        function validateRequiredStaticMethodNamePrefix(node, role, name) {
-          if (typeof role.requiredStaticMethodNamePrefix !== 'string') {
+        function validateStaticFactoryMethods(node, role, name) {
+          if (!Array.isArray(role.requiredStaticFactoryMethodNamePrefixes)) {
             return
           }
 
-          const hasRequiredStaticMethod = node.body.body.some(
-            (member) =>
-              member.type === 'MethodDefinition' &&
-              member.static === true &&
-              member.kind !== 'constructor' &&
-              readMemberName(member.key)?.startsWith(role.requiredStaticMethodNamePrefix) === true,
-          )
-          if (hasRequiredStaticMethod) {
+          const prefixes = role.requiredStaticFactoryMethodNamePrefixes
+          const factoryMethods = node.body.body.flatMap((member) => {
+            if (
+              member.type !== 'MethodDefinition' ||
+              member.static !== true ||
+              member.kind === 'constructor'
+            ) {
+              return []
+            }
+            const methodName = readMemberName(member.key)
+            return methodName !== null && prefixes.some((prefix) => methodName.startsWith(prefix))
+              ? [{ member, methodName }]
+              : []
+          })
+          if (factoryMethods.length === 0) {
+            const formattedPrefixes = prefixes.map((prefix) => `'${prefix}'`).join(', ')
+            report(
+              node,
+              `Role '${role.name}' requires at least one static factory method beginning with one of ${formattedPrefixes} on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+            )
             return
           }
 
-          report(
-            node,
-            `Role '${role.name}' requires at least one static method beginning with '${role.requiredStaticMethodNamePrefix}' on '${name}'. ${referenceForKnownRole(options, role.name)}`,
-          )
+          if (role.requiresStaticFactoryMethodParameters !== true) {
+            return
+          }
+          factoryMethods
+            .filter(({ member }) => member.value.params.length === 0)
+            .forEach(({ member, methodName }) => {
+              report(
+                member,
+                `Role '${role.name}' requires static factory method '${methodName}' on '${name}' to accept at least one parameter. ${referenceForKnownRole(options, role.name)}`,
+              )
+            })
         }
 
         function validatePublicMethodCount(node, role, name) {
@@ -1913,6 +2080,22 @@ export default {
           )
         }
 
+        function validateDataMemberConstraint(node, role, name, required, isValid, constraint) {
+          if (!required) {
+            return
+          }
+          const exposedMembers = readInstanceDataMembers(node)
+            .filter((member) => !isValid(member))
+            .map((member) => member.name)
+          if (exposedMembers.length === 0) {
+            return
+          }
+          report(
+            node,
+            `Role '${role.name}' requires ${constraint} instance data members on '${name}'. Found [${exposedMembers.join(', ')}]. ${referenceForKnownRole(options, role.name)}`,
+          )
+        }
+
         function countPublicMethods(classNode) {
           return classNode.body.body.filter(
             (member) =>
@@ -1970,7 +2153,9 @@ export default {
                 ? []
                 : [{
                   callable: isCallableFieldMember(member),
+                  accessibility: member.accessibility,
                   name,
+                  readonly: member.readonly === true,
                 }]
             }
 
@@ -2011,7 +2196,9 @@ export default {
 
           return [{
             callable: isCallableParameterProperty(param, parameter),
+            accessibility: param.accessibility,
             name: parameter.name,
+            readonly: param.readonly === true,
           }]
         }
 

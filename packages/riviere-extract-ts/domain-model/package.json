@@ -1,5 +1,6 @@
 {
   "name": "@living-architecture/riviere-extract-ts-domain-model",
+  "description": "Models the extraction of Rivière architecture components and connections from TypeScript projects according to an extraction configuration.",
   "version": "0.10.0",
   "type": "module",
   "publishConfig": {

@@ -633,3 +633,11 @@ When external review feedback reveals a pattern:
 1. Create a new section with ID `RFC-NNN`
 2. Document: Source PR, Pattern, Bad/Good examples, Detection guidance
 3. Bug-scanner will apply the check to future PRs
+## Role and domain review checks
+
+- Fail a review when application code reads aggregate state to make a domain decision. Move the decision to an aggregate or value object method.
+- Fail a review when state is taken from an aggregate and combined with a collaborator before being passed back into that aggregate. Keep the operation with the aggregate that owns the state.
+- Treat a domain service as an exception. Its declaration must explain why neither an aggregate nor value object owns the behaviour.
+- Fail a review when a domain model variable or field is named `data` or another generic word and a domain word exists. Suggest the domain word.
+- Fail architecture review when an adapter interprets generic metadata, duplicates schema knowledge, or adds a union variant that does not cause a compiler failure or contract-test failure.
+- Fail architecture review when an adapter name is ambiguous compared with its port or established terminology.

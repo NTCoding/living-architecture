@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   parseExtractionConfig,
-  type ComponentRule,
+  type ComponentRuleInput,
 } from '@living-architecture/riviere-extract-config-published-language'
 import {
   loadDefaultConfig,
@@ -10,7 +10,7 @@ import {
   TestAssertionError,
 } from './__fixtures__/default-config-fixtures'
 
-function narrowToDetectionRule(rule: ComponentRule | undefined) {
+function narrowToDetectionRule(rule: ComponentRuleInput | undefined) {
   if (!rule) {
     throw new TestAssertionError('Expected ComponentRule, got undefined')
   }
@@ -21,7 +21,7 @@ function narrowToDetectionRule(rule: ComponentRule | undefined) {
 }
 
 function assertContainerDecorator(
-  rule: ComponentRule | undefined,
+  rule: ComponentRuleInput | undefined,
   expectedDecorator: string,
 ): void {
   const detection = narrowToDetectionRule(rule)
@@ -39,14 +39,17 @@ function assertContainerDecorator(
 }
 
 function assertExtractionConfig(
-  rule: ComponentRule | undefined,
+  rule: ComponentRuleInput | undefined,
   expectedExtract: Record<string, unknown>,
 ): void {
   const detection = narrowToDetectionRule(rule)
   expect(detection.extract).toStrictEqual(expectedExtract)
 }
 
-function assertDirectDecorator(rule: ComponentRule | undefined, expectedDecorator: string): void {
+function assertDirectDecorator(
+  rule: ComponentRuleInput | undefined,
+  expectedDecorator: string,
+): void {
   const detection = narrowToDetectionRule(rule)
   if (!('hasDecorator' in detection.where)) {
     throw new TestAssertionError('Expected HasDecoratorPredicate')

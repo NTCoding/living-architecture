@@ -1,5 +1,17 @@
 import { role } from '@living-architecture/riviere-role-enforcement-domain-model'
 
+export const publishedLanguageRoles = [
+  'published-language-annotation',
+  'published-language-schema',
+  'published-language-data-structure',
+  'published-language-enumeration',
+  'published-language-enumeration-type',
+  'published-language-union',
+  'published-language-parser',
+  'published-language-field-name',
+  'value-object',
+] as const
+
 export const allRoles = [
   role('cli-entrypoint', {
     targets: ['function'],
@@ -79,6 +91,7 @@ export const allRoles = [
   role('aggregate', {
     targets: ['interface', 'type-alias', 'class'],
     minPublicMethods: 1,
+    requiresPrivateDataMembers: true,
     approvedInstances: [
       {
         name: 'RiviereProject',
@@ -92,7 +105,18 @@ export const allRoles = [
         name: 'RoleEnforcementProject',
         userHasApproved: true,
       },
+      {
+        name: 'MaintainerWorkflow',
+        userHasApproved: true,
+      },
     ],
+  }),
+  role('aggregate-entity', {
+    targets: ['class'],
+    allowedDependentRoles: ['aggregate'],
+    requiresPrivateConstructor: true,
+    requiresDataMembers: true,
+    requiresPrivateDataMembers: true,
   }),
   role('value-object', {
     targets: ['class'],
@@ -100,7 +124,8 @@ export const allRoles = [
     forbiddenSupertypes: ['Error'],
     requiredPrivateMembers: ['brand'],
     requiresPrivateConstructor: true,
-    requiredStaticMethodNamePrefix: 'parse',
+    requiredStaticFactoryMethodNamePrefixes: ['parse', 'from'],
+    requiresStaticFactoryMethodParameters: true,
     requiresDataMembers: true,
     forbiddenDependencies: ['aggregate', 'domain-service'],
   }),
@@ -109,8 +134,32 @@ export const allRoles = [
     targets: ['type-alias'],
     mustBeDataStructure: true,
   }),
-  role('domain-port', { targets: ['interface', 'type-alias'] }),
-  role('domain-service', { targets: ['function', 'class'] }),
+  role('domain-port', {
+    targets: ['interface', 'type-alias'],
+    requiresJustification:
+      'If the aggregate using this port loads any data through it, explain why that data is not previously created aggregate state that its repository should load as part of the aggregate.',
+  }),
+  role('domain-service', {
+    targets: ['function', 'class'],
+    forbiddenDependencies: ['domain-service'],
+    requiresJustification:
+      'If this behaviour operates on aggregate or value object state, explain why it should not be a method on the object that owns that state. Otherwise, explain why no aggregate or value object is the natural owner.',
+  }),
+  role('domain-facade', {
+    targets: ['class'],
+    allowedDependencyRoles: ['domain-service', 'domain-error', ...publishedLanguageRoles],
+    allowedDependentRoles: ['command-use-case', 'query-model', 'query-model-value'],
+    approvedInstances: [
+      {
+        name: 'RiviereQuery',
+        userHasApproved: true,
+      },
+    ],
+    requiresPrivateDataMembers: true,
+    requiresReadonlyDataMembers: true,
+    requiresJustification:
+      'Which types of consumers need this facade, and why do they need one stable domain interface over these related capabilities instead of using the capabilities directly?',
+  }),
   role('domain-port-adapter', {
     targets: ['function', 'class'],
     forbiddenDependencies: ['domain-port-adapter'],
@@ -177,6 +226,14 @@ export const allRoles = [
   }),
   role('published-language-data-structure', {
     mustBeDataStructure: true,
+  }),
+  role('published-language-enumeration', {
+    targets: ['variable'],
+    nameMatches: '^[A-Z][A-Z0-9_]*$',
+  }),
+  role('published-language-enumeration-type', {
+    targets: ['type-alias'],
+    requiresIndexedAccessTypeFromRole: 'published-language-enumeration',
   }),
   role('published-language-field-name', {
     requiresStringLiteralConstant: true,

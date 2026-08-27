@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import { join } from 'node:path'
 import { getDefaultGraphPathDescription } from '../infra/cli/presentation/graph-path-option'
 import { parseAddComponentInput } from '../features/builder/entrypoint/add-component/parse-add-component-input'
 import { formatError, formatSuccess } from '../infra/cli/presentation/output'
@@ -59,9 +60,9 @@ import { createGitChangedSourceFileFinder } from '@living-architecture/riviere-e
 import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-specified-source-file-finder'
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
 import { parseSourceFileSelection } from '../features/extract/entrypoint/extract/parse-source-file-selection'
-import { createDraftComponentsLoader } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-draft-components-loader'
 import { detectChangedTypeScriptFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/git-changed-files'
 import { findSpecifiedSourceFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/find-specified-source-files'
+import { readNodePerformanceTimeInMilliseconds } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/node/read-node-performance-time-in-milliseconds'
 import { DetectOrphans } from '@living-architecture/riviere-builder-use-cases/features/query/queries/detect-orphans'
 import { ListComponents } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-components'
 import { ListDomains } from '@living-architecture/riviere-builder-use-cases/features/query/queries/list-domains'
@@ -128,6 +129,7 @@ const packageJson = loadPackageJson()
  */
 export function createProgram(): Command {
   const builderRepository = new RiviereBuilderRepository()
+  const defaultGraphFileLocation = join(process.cwd(), '.riviere', 'graph.json')
   const riviereProjectRepository = new RiviereProjectRepository()
   const program = new Command()
 
@@ -138,6 +140,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createAddComponentCommand({
       addComponent: new AddComponent(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parseAddComponentInput,
       formatError,
@@ -148,6 +151,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createAddDomainCommand({
       addDomain: new AddDomain(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -156,6 +160,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createAddSourceCommand({
       addSource: new AddSource(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -164,6 +169,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createInitCommand({
       initGraph: new InitGraph(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -172,6 +178,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createLinkCommand({
       linkComponents: new LinkComponents(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parseLinkSourceLocation,
       formatError,
@@ -181,6 +188,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createLinkExternalCommand({
       linkExternal: new LinkExternal(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -189,6 +197,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createLinkHttpCommand({
       linkHttp: new LinkHttp(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -197,6 +206,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createValidateCommand({
       validateGraph: new ValidateGraph(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -205,6 +215,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createFinalizeCommand({
       createFinalizeGraphInput,
+      defaultGraphFileLocation,
       finalizeGraph: new FinalizeGraph(builderRepository),
       getDefaultGraphPathDescription,
       formatError,
@@ -215,6 +226,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createEnrichCommand({
       enrichComponent: new EnrichComponent(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parseStateChanges,
       formatError,
@@ -225,6 +237,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createComponentSummaryCommand({
       componentSummary: new ComponentSummary(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -233,6 +246,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createComponentChecklistCommand({
       componentChecklist: new ComponentChecklist(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -241,6 +255,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createCheckConsistencyCommand({
       checkConsistency: new CheckConsistency(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -249,6 +264,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createDefineCustomTypeCommand({
       defineCustomType: new DefineCustomType(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parsePropertySpecs,
       formatError,
@@ -258,6 +274,7 @@ export function createProgram(): Command {
   builderCmd.addCommand(
     createDefineRelationshipTypeCommand({
       defineRelationshipType: new DefineRelationshipType(builderRepository),
+      defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -325,10 +342,11 @@ export function createProgram(): Command {
         riviereProjectRepository,
         createGitChangedSourceFileFinder(process.cwd(), detectChangedTypeScriptFiles),
         createSpecifiedSourceFileFinder(process.cwd(), findSpecifiedSourceFiles),
+        readNodePerformanceTimeInMilliseconds,
       ),
       enrichDraftComponents: new EnrichDraftComponents(
         riviereProjectRepository,
-        createDraftComponentsLoader(),
+        readNodePerformanceTimeInMilliseconds,
       ),
       parseFlagCombinations,
       createExtractDraftComponentsInput,

@@ -10,9 +10,9 @@ export class AddSource {
 
   execute(input: AddSourceInput): AddSourceResult {
     try {
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       builder.addSource({ repository: input.repository })
-      this.repository.save(builder)
+      this.repository.save(input.graphFileLocation, builder)
       return {
         result: {
           repository: input.repository,

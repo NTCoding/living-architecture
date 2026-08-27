@@ -1,16 +1,17 @@
 # value-object
 
 ## Purpose
-A class that represents a domain concept defined by its attributes rather than identity. It owns its parsing and may expose immutable behavior.
+A class that represents a domain concept defined by its attributes rather than identity. It owns its construction from supplied values and may expose immutable behavior.
 
 ## Behavioral Contract
 1. Defined by its values, not by an identity
 2. Immutable: operations return new values instead of mutating the current value
-3. Has at least one static parsing method named `parse` or beginning with `parseFrom`
-4. Has a private constructor, so callers must use a parsing method
-5. May expose instance methods such as `equals`, `add`, or `toString`
-6. Does not store functions in instance data members
-7. Used as a building block within aggregates, inputs, and results
+3. Has at least one static factory method beginning with `parse` or `from`
+4. Every `parse` or `from` factory accepts at least one parameter
+5. Has a private constructor, so callers must use a factory method
+6. May expose instance methods such as `equals`, `add`, or `toString`
+7. Does not store functions in instance data members
+8. Used as a building block within aggregates, inputs, and results
 
 ## Examples
 
@@ -34,6 +35,10 @@ export class Money {
 
 ### Edge Cases
 - Multiple input representations may use methods such as `parseFromString` and `parseFromJson`
+- Use `parse` when the method interprets or validates its input
+- Use `from` when the method constructs the value object from already valid input
+- Use a suffix when the class and parameter types do not make the source clear
+- Zero-parameter `parse` and `from` methods are forbidden because they parse or construct from nothing
 - Parsing may return a structured validation result when input can be invalid
 - Ordinary instance methods are allowed; callable instance data members are not
 

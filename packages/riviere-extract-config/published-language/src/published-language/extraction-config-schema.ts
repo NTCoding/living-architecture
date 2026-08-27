@@ -4,206 +4,212 @@
 /** @riviere-role published-language-union */
 export type FindTarget = 'classes' | 'methods' | 'functions'
 
-/**
- * Standard architectural component types recognized by the Riviere extractor.
- * Each type represents a distinct role in the system's flow-based architecture.
- */
-/** @riviere-role published-language-union */
-export type ComponentType = 'api' | 'useCase' | 'domainOp' | 'event' | 'eventHandler' | 'ui'
+/** @riviere-role published-language-enumeration */
+export const BUILT_IN_COMPONENT_TYPES = [
+  'api',
+  'useCase',
+  'domainOp',
+  'event',
+  'eventHandler',
+  'ui',
+] as const
+
+/** @riviere-role published-language-enumeration-type */
+export type ComponentType = (typeof BUILT_IN_COMPONENT_TYPES)[number]
 
 /** Matches elements with a specific decorator. */
 /** @riviere-role published-language-data-structure */
-export interface HasDecoratorPredicate {
+export interface HasDecoratorPredicateInput {
   hasDecorator: {
-    name: string | string[]
-    from?: string
+    name: string | readonly string[]
+    from?: string | undefined
   }
 }
 
 /** Matches elements with a specific JSDoc tag. */
 /** @riviere-role published-language-data-structure */
-export interface HasJSDocPredicate {
+export interface HasJSDocPredicateInput {
   hasJSDoc: { tag: string }
 }
 
 /** Matches classes extending a specific base class. */
 /** @riviere-role published-language-data-structure */
-export interface ExtendsClassPredicate {
+export interface ExtendsClassPredicateInput {
   extendsClass: { name: string }
 }
 
 /** Matches classes implementing a specific interface. */
 /** @riviere-role published-language-data-structure */
-export interface ImplementsInterfacePredicate {
+export interface ImplementsInterfacePredicateInput {
   implementsInterface: { name: string }
 }
 
 /** Matches elements whose name ends with a suffix. */
 /** @riviere-role published-language-data-structure */
-export interface NameEndsWithPredicate {
+export interface NameEndsWithPredicateInput {
   nameEndsWith: { suffix: string }
 }
 
 /** Matches elements whose name matches a regex pattern. */
 /** @riviere-role published-language-data-structure */
-export interface NameMatchesPredicate {
+export interface NameMatchesPredicateInput {
   nameMatches: { pattern: string }
 }
 
 /** Matches methods inside classes satisfying a predicate. */
 /** @riviere-role published-language-data-structure */
-export interface InClassWithPredicate {
-  inClassWith: Predicate
+export interface InClassWithPredicateInput {
+  inClassWith: PredicateInput
 }
 
 /** Combines predicates with AND logic. */
 /** @riviere-role published-language-data-structure */
-export interface AndPredicate {
-  and: Predicate[]
+export interface AndPredicateInput {
+  and: PredicateInput[]
 }
 
 /** Combines predicates with OR logic. */
 /** @riviere-role published-language-data-structure */
-export interface OrPredicate {
-  or: Predicate[]
+export interface OrPredicateInput {
+  or: PredicateInput[]
 }
 
 /** Union of all predicate types for filtering AST elements. */
 /** @riviere-role published-language-union */
-export type Predicate =
-  | HasDecoratorPredicate
-  | HasJSDocPredicate
-  | ExtendsClassPredicate
-  | ImplementsInterfacePredicate
-  | NameEndsWithPredicate
-  | NameMatchesPredicate
-  | InClassWithPredicate
-  | AndPredicate
-  | OrPredicate
+export type PredicateInput =
+  | HasDecoratorPredicateInput
+  | HasJSDocPredicateInput
+  | ExtendsClassPredicateInput
+  | ImplementsInterfacePredicateInput
+  | NameEndsWithPredicateInput
+  | NameMatchesPredicateInput
+  | InClassWithPredicateInput
+  | AndPredicateInput
+  | OrPredicateInput
 
 /** Marker indicating a component type is not used in the module. */
 /** @riviere-role published-language-data-structure */
-export interface NotUsed {
+export interface NotUsedInput {
   notUsed: true
 }
 
 /** Transform operations to apply to extracted values. */
 /** @riviere-role published-language-data-structure */
-export interface Transform {
-  stripSuffix?: string
-  stripPrefix?: string
-  toLowerCase?: true
-  toUpperCase?: true
-  kebabToPascal?: true
-  pascalToKebab?: true
+export interface ExtractionTransformInput {
+  stripSuffix?: string | undefined
+  stripPrefix?: string | undefined
+  toLowerCase?: true | undefined
+  toUpperCase?: true | undefined
+  kebabToPascal?: true | undefined
+  pascalToKebab?: true | undefined
 }
 
 /** Extracts a hardcoded literal value. */
 /** @riviere-role published-language-data-structure */
-export interface LiteralExtractionRule {
+export interface LiteralExtractionRuleInput {
   literal: string | boolean | number
 }
 
 /** Extracts value from the class name. */
 /** @riviere-role published-language-data-structure */
-export interface FromClassNameExtractionRule {
-  fromClassName: true | { transform?: Transform }
+export interface FromClassNameExtractionRuleInput {
+  fromClassName: true | { transform?: ExtractionTransformInput }
 }
 
 /** Extracts value from the method name. */
 /** @riviere-role published-language-data-structure */
-export interface FromMethodNameExtractionRule {
-  fromMethodName: true | { transform?: Transform }
+export interface FromMethodNameExtractionRuleInput {
+  fromMethodName: true | { transform?: ExtractionTransformInput }
 }
 
 /** Extracts value from the file path using regex capture. */
 /** @riviere-role published-language-data-structure */
-export interface FromFilePathExtractionRule {
+export interface FromFilePathExtractionRuleInput {
   fromFilePath: {
     pattern: string
     capture: number
-    transform?: Transform
+    transform?: ExtractionTransformInput
   }
 }
 
 /** Extracts value from a class property. */
 /** @riviere-role published-language-data-structure */
-export interface FromPropertyExtractionRule {
+export interface FromPropertyExtractionRuleInput {
   fromProperty: {
     name: string
     kind: 'static' | 'instance'
-    transform?: Transform
+    transform?: ExtractionTransformInput
   }
 }
 
 /** Extracts value from decorator argument. */
 /** @riviere-role published-language-data-structure */
-export interface FromDecoratorArgExtractionRule {
+export interface FromDecoratorArgExtractionRuleInput {
   fromDecoratorArg: {
     decorator?: string
     position?: number
     name?: string
-    transform?: Transform
+    transform?: ExtractionTransformInput
   }
 }
 
 /** Extracts value from decorator argument on the containing class. */
 /** @riviere-role published-language-data-structure */
-export interface FromClassDecoratorArgExtractionRule {
+export interface FromClassDecoratorArgExtractionRuleInput {
   fromClassDecoratorArg:
     | {
         decorator: string
         position: number
         name?: never
-        transform?: Transform
+        transform?: ExtractionTransformInput
       }
     | {
         decorator: string
         name: string
         position?: never
-        transform?: Transform
+        transform?: ExtractionTransformInput
       }
 }
 
 /** Extracts value from the decorator name itself. */
 /** @riviere-role published-language-data-structure */
-export interface FromDecoratorNameExtractionRule {
+export interface FromDecoratorNameExtractionRuleInput {
   fromDecoratorName:
     | true
     | {
         mapping?: Record<string, string>
-        transform?: Transform
+        transform?: ExtractionTransformInput
       }
 }
 
 /** Extracts value from generic type argument. */
 /** @riviere-role published-language-data-structure */
-export interface FromGenericArgExtractionRule {
+export interface FromGenericArgExtractionRuleInput {
   fromGenericArg: {
     interface: string
     position: number
-    transform?: Transform
+    transform?: ExtractionTransformInput
   }
 }
 
 /** Extracts method parameters and return type. */
 /** @riviere-role published-language-data-structure */
-export interface FromMethodSignatureExtractionRule {
+export interface FromMethodSignatureExtractionRuleInput {
   fromMethodSignature: true
 }
 
 /** Extracts constructor parameter names and types. */
 /** @riviere-role published-language-data-structure */
-export interface FromConstructorParamsExtractionRule {
+export interface FromConstructorParamsExtractionRuleInput {
   fromConstructorParams: true
 }
 
 /** Extracts type name of parameter at position. */
 /** @riviere-role published-language-data-structure */
-export interface FromParameterTypeExtractionRule {
+export interface FromParameterTypeExtractionRuleInput {
   fromParameterType: {
     position: number
-    transform?: Transform
+    transform?: ExtractionTransformInput
   }
 }
 
@@ -212,45 +218,45 @@ export interface FromParameterTypeExtractionRule {
  * Each rule type corresponds to a different source of metadata.
  */
 /** @riviere-role published-language-union */
-export type ExtractionRule =
-  | LiteralExtractionRule
-  | FromClassNameExtractionRule
-  | FromMethodNameExtractionRule
-  | FromFilePathExtractionRule
-  | FromPropertyExtractionRule
-  | FromDecoratorArgExtractionRule
-  | FromClassDecoratorArgExtractionRule
-  | FromDecoratorNameExtractionRule
-  | FromGenericArgExtractionRule
-  | FromMethodSignatureExtractionRule
-  | FromConstructorParamsExtractionRule
-  | FromParameterTypeExtractionRule
+export type ExtractionRuleInput =
+  | LiteralExtractionRuleInput
+  | FromClassNameExtractionRuleInput
+  | FromMethodNameExtractionRuleInput
+  | FromFilePathExtractionRuleInput
+  | FromPropertyExtractionRuleInput
+  | FromDecoratorArgExtractionRuleInput
+  | FromClassDecoratorArgExtractionRuleInput
+  | FromDecoratorNameExtractionRuleInput
+  | FromGenericArgExtractionRuleInput
+  | FromMethodSignatureExtractionRuleInput
+  | FromConstructorParamsExtractionRuleInput
+  | FromParameterTypeExtractionRuleInput
 
 /**
  * Extract block mapping field names to extraction rules.
  * Each key is a Riviere schema field name (e.g., apiType, httpMethod, path).
  */
 /** @riviere-role published-language-data-structure */
-export interface ExtractBlock {
-  [fieldName: string]: ExtractionRule
+export interface ExtractBlockInput {
+  [fieldName: string]: ExtractionRuleInput
 }
 
 /** Rule specifying what to find and how to filter matches. */
 /** @riviere-role published-language-data-structure */
-export interface DetectionRule {
+export interface DetectionRuleInput {
   find: FindTarget
-  where: Predicate
-  extract?: ExtractBlock
+  where: PredicateInput
+  extract?: ExtractBlockInput
 }
 
 /** Either a detection rule or a marker that the component type is unused. */
 /** @riviere-role published-language-union */
-export type ComponentRule = NotUsed | DetectionRule
+export type ComponentRuleInput = NotUsedInput | DetectionRuleInput
 
 /** User-defined component types with their detection rules. */
 /** @riviere-role published-language-data-structure */
-export interface CustomTypes {
-  [customTypeName: string]: DetectionRule
+export interface CustomTypesInput {
+  [customTypeName: string]: DetectionRuleInput
 }
 
 /**
@@ -309,16 +315,16 @@ interface ModuleIdentity {
   glob: string
   /** Path pattern with `{module}` placeholder for resolving module names from file paths. */
   modules?: string
-  customTypes?: CustomTypes
+  customTypes?: CustomTypesInput
 }
 
 interface ModuleRules {
-  api: ComponentRule
-  useCase: ComponentRule
-  domainOp: ComponentRule
-  event: ComponentRule
-  eventHandler: ComponentRule
-  ui: ComponentRule
+  api: ComponentRuleInput
+  useCase: ComponentRuleInput
+  domainOp: ComponentRuleInput
+  event: ComponentRuleInput
+  eventHandler: ComponentRuleInput
+  ui: ComponentRuleInput
 }
 
 /** @riviere-role published-language-data-structure */
@@ -346,7 +352,7 @@ export interface ValidatedModuleInput extends ModuleIdentity, ModuleRules {}
 /** @riviere-role published-language-schema */
 export interface DraftConfiguration {
   $schema?: string
-  modules: DraftModule[]
+  modules: [DraftModule, ...DraftModule[]]
   connections?: ConnectionsConfig
 }
 

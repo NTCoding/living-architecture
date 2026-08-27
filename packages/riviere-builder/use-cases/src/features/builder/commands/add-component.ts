@@ -3,7 +3,7 @@ import {
   DomainNotFoundError,
   DuplicateComponentError,
 } from '@living-architecture/riviere-builder-domain-model/domain/construction/construction-errors'
-import type { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/builder-facade'
+import type { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/riviere-builder'
 import { ComponentDefinition } from '@living-architecture/riviere-builder-domain-model/domain/component-definition'
 import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
@@ -33,9 +33,9 @@ export class AddComponent {
     try {
       const definition = ComponentDefinition.parse(input)
       if (!definition.success) return failure('VALIDATION_ERROR', definition.message)
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       const componentId = addDefinition(builder, definition.data.value)
-      this.repository.save(builder)
+      this.repository.save(input.graphFileLocation, builder)
       return {
         result: {
           success: true,

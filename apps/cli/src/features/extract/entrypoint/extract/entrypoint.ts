@@ -127,7 +127,9 @@ export function createExtractCommand(
         )
       }
 
-      if ('warnings' in result) dependencies.presentExtractionWarnings(result.warnings)
+      if ('warnings' in result && Array.isArray(result.warnings)) {
+        dependencies.presentExtractionWarnings(result.warnings)
+      }
       dependencies.presentExtractionResult(result, options)
     })
 }

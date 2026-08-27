@@ -1,10 +1,10 @@
 import { configureWorkflow } from './configure-workflow'
-import { Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
+import { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
 
-type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
+type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
 type StateName = WorkflowState['currentStateMachineState']
 const WORKFLOW_DEFINITION = configureWorkflow({})
 

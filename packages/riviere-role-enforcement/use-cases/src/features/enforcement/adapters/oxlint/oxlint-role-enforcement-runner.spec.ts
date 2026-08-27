@@ -1,7 +1,10 @@
 import { expect, it, vi } from 'vitest'
 import { OxlintExecutionError } from '../../../../infra/external-clients/oxlint/oxlint-execution-error'
 import type { RoleEnforcementRunnerInput } from '@living-architecture/riviere-role-enforcement-domain-model'
-import { RoleEnforcementConfiguration } from '@living-architecture/riviere-role-enforcement-domain-model'
+import {
+  PackageManifestRequirements,
+  RoleEnforcementConfiguration,
+} from '@living-architecture/riviere-role-enforcement-domain-model'
 import { createOxlintRoleEnforcementRunner } from './oxlint-role-enforcement-runner'
 
 class UnexpectedRunnerFailureError extends Error {
@@ -12,7 +15,7 @@ class UnexpectedRunnerFailureError extends Error {
 }
 
 function parseConfiguration(value: unknown): RoleEnforcementConfiguration {
-  const parsed = RoleEnforcementConfiguration.parse(value)
+  const parsed = RoleEnforcementConfiguration.parseFromUnknown(value)
   if (!parsed.success) {
     throw parsed.error
   }
@@ -25,6 +28,7 @@ const input: RoleEnforcementRunnerInput = {
     ignorePatterns: ['**/*.spec.ts'],
     include: ['src/**/*.ts'],
     locationHierarchy: [],
+    packageManifestRequirements: PackageManifestRequirements.parse([]),
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: [],
     unassignedPackages: [],

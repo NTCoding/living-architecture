@@ -1,4 +1,4 @@
-import { checkWriteAllowed, isWriteAllowed } from './workflow-predicates'
+import { isWriteAllowed } from './workflow-predicates'
 import { WorkflowState } from './workflow-types'
 
 const BASE_STATE = WorkflowState.parse({
@@ -12,36 +12,32 @@ const BASE_STATE = WorkflowState.parse({
   feedbackAddressed: false,
 })
 
-describe('checkWriteAllowed predicate', () => {
+describe('isWriteAllowed predicate', () => {
   it('allows writes to normal files', () => {
-    expect(checkWriteAllowed('/src/foo.ts')).toBe(true)
+    expect(isWriteAllowed('/src/foo.ts', BASE_STATE)).toBe(true)
   })
 
   it('blocks writes to nx.json', () => {
-    expect(checkWriteAllowed('/project/nx.json')).toBe(false)
+    expect(isWriteAllowed('/project/nx.json', BASE_STATE)).toBe(false)
   })
 
   it('blocks writes to tsconfig.base.json', () => {
-    expect(checkWriteAllowed('/project/tsconfig.base.json')).toBe(false)
+    expect(isWriteAllowed('/project/tsconfig.base.json', BASE_STATE)).toBe(false)
   })
 
   it('blocks writes to eslint.config.mjs', () => {
-    expect(checkWriteAllowed('/project/eslint.config.mjs')).toBe(false)
+    expect(isWriteAllowed('/project/eslint.config.mjs', BASE_STATE)).toBe(false)
   })
 
   it('blocks writes to vitest.config.ts', () => {
-    expect(checkWriteAllowed('/project/vitest.config.ts')).toBe(false)
+    expect(isWriteAllowed('/project/vitest.config.ts', BASE_STATE)).toBe(false)
   })
 
   it('blocks writes to vite.config.ts', () => {
-    expect(checkWriteAllowed('/project/vite.config.ts')).toBe(false)
+    expect(isWriteAllowed('/project/vite.config.ts', BASE_STATE)).toBe(false)
   })
 
   it('allows writes to project-level tsconfig.json', () => {
-    expect(checkWriteAllowed('/project/packages/foo/tsconfig.json')).toBe(true)
-  })
-
-  it('delegates hook-based checks through isWriteAllowed', () => {
-    expect(isWriteAllowed('/project/nx.json', BASE_STATE)).toBe(false)
+    expect(isWriteAllowed('/project/packages/foo/tsconfig.json', BASE_STATE)).toBe(true)
   })
 })

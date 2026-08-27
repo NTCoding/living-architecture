@@ -1,5 +1,6 @@
 {
   "name": "@living-architecture/riviere-extract-config-published-language",
+  "description": "Defines the public configuration language used to describe how Rivière components and connections are extracted from source code.",
   "version": "0.10.0",
   "type": "module",
   "publishConfig": {
@@ -31,6 +32,8 @@
   ],
   "dependencies": {
     "ajv": "^8.17.1",
-    "ajv-formats": "^3.0.1"
+    "ajv-formats": "^3.0.1",
+    "safe-regex2": "^5.1.1",
+    "zod": "^4.2.1"
   }
 }

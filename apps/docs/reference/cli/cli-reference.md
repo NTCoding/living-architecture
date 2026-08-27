@@ -329,7 +329,7 @@ riviere builder finalize --json
 
 ### `enrich`
 
-Enrich a DomainOp component with semantic information. Note: Enrichment is additive — running multiple times accumulates values.
+Enrich a DomainOp component with semantic information.
 
 ```bash
 riviere builder enrich [options]
@@ -365,12 +365,6 @@ riviere builder enrich \
   --validates "items.length > 0" \
   --modifies "this.state <- Placed" \
   --emits "OrderPlaced event"
-riviere builder enrich \
-  --id "payments:gateway:domainop:paymentprocess" \
-  --state-change "Pending:Processing" \
-  --reads "amount parameter" \
-  --validates "amount > 0" \
-  --modifies "this.status <- Processing"
 ```
 
 ---

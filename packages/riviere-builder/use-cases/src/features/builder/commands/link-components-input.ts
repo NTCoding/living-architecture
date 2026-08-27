@@ -2,7 +2,7 @@
 export interface LinkComponentsInput {
   condition?: string
   from: string
-  graphPathOption: string | undefined
+  graphFileLocation: string
   relationshipType?: string
   sourceLocation?: {
     repository: string

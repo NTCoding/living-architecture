@@ -1,11 +1,37 @@
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
+import {
+  constructorParametersRule,
+  methodSignatureRule,
+  parameterTypeRule,
+} from '../../__fixtures__/parsed-extraction-rule-fixtures'
 import { ExtractionError, TestFixtureError } from './literal-detection'
 import {
-  evaluateFromConstructorParamsRule,
-  evaluateFromMethodSignatureRule,
-  evaluateFromParameterTypeRule,
+  evaluateFromConstructorParamsRule as evaluateParsedConstructorParamsRule,
+  evaluateFromMethodSignatureRule as evaluateParsedMethodSignatureRule,
+  evaluateFromParameterTypeRule as evaluateParsedParameterTypeRule,
 } from './evaluate-extraction-rule'
+
+function evaluateFromMethodSignatureRule(
+  input: unknown,
+  declaration: import('ts-morph').MethodDeclaration,
+) {
+  return evaluateParsedMethodSignatureRule(methodSignatureRule(input), declaration)
+}
+
+function evaluateFromConstructorParamsRule(
+  input: unknown,
+  declaration: import('ts-morph').ClassDeclaration,
+) {
+  return evaluateParsedConstructorParamsRule(constructorParametersRule(input), declaration)
+}
+
+function evaluateFromParameterTypeRule(
+  input: unknown,
+  declaration: import('ts-morph').MethodDeclaration,
+) {
+  return evaluateParsedParameterTypeRule(parameterTypeRule(input), declaration)
+}
 
 function createMethodDeclaration(code: string, methodName: string) {
   const project = new Project({ useInMemoryFileSystem: true })

@@ -2,7 +2,10 @@ import type { FindChangedSourceFiles } from './ports/find-changed-source-files'
 import type { FindSpecifiedSourceFiles } from './ports/find-specified-source-files'
 import { RequestedSourceFilesNotFoundError } from './requested-source-files-not-found-error'
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function resolveSourceFileSelection(
   request:
     | { readonly kind: 'all' }

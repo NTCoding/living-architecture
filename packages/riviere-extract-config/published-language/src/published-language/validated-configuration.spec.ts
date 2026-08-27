@@ -1,8 +1,10 @@
 import { assert, describe, expect, it } from 'vitest'
-import type { ValidatedModuleInput } from './extraction-config-schema'
-import { ValidatedConfiguration, ValidatedModule } from './validated-configuration'
+import type { PredicateInput, ValidatedModuleInput } from './extraction-config-schema'
+import { ValidatedConfiguration } from './validated-configuration'
+import { ValidatedModule } from './validated-module'
 
 const notUsed = { notUsed: true } as const
+const parsedNotUsed = { kind: 'notUsed' } as const
 
 function validModule(name: string): ValidatedModuleInput {
   return {
@@ -25,6 +27,36 @@ function requireSuccessfulConfiguration(
   assert(result.success)
   return result.data
 }
+
+describe('ValidatedModule.detectionRuleFor', () => {
+  it('resolves built-in and custom detection rules without exposing unused rules', () => {
+    const result = ValidatedModule.parse({
+      ...validModule('orders'),
+      useCase: {
+        find: 'classes',
+        where: { nameEndsWith: { suffix: 'UseCase' } },
+      },
+      customTypes: {
+        job: {
+          find: 'classes',
+          where: { nameEndsWith: { suffix: 'Job' } },
+        },
+      },
+    })
+    assert(result.success)
+
+    expect(result.data.detectionRuleFor('useCase')).toMatchObject({
+      kind: 'detection',
+      find: 'classes',
+    })
+    expect(result.data.detectionRuleFor('job')).toMatchObject({
+      kind: 'detection',
+      find: 'classes',
+    })
+    expect(result.data.detectionRuleFor('api')).toBeUndefined()
+    expect(result.data.detectionRuleFor('missing')).toBeUndefined()
+  })
+})
 
 describe('ValidatedConfiguration', () => {
   it('returns every validation failure', () => {
@@ -92,6 +124,8 @@ describe('ValidatedConfiguration', () => {
     const configuration = requireSuccessfulConfiguration(result)
     const module = configuration.modules[0]
     assert(module)
+    const eventPublisher = module.customTypes?.eventPublisher
+    assert(eventPublisher)
 
     expect({
       isValidatedModule: module instanceof ValidatedModule,
@@ -107,7 +141,13 @@ describe('ValidatedConfiguration', () => {
         event: module.event,
         eventHandler: module.eventHandler,
         ui: module.ui,
-        customTypes: module.customTypes,
+        eventPublisher: {
+          find: eventPublisher.find,
+          where: eventPublisher.where,
+          ruleKinds: Object.fromEntries(
+            Object.entries(eventPublisher.extract ?? {}).map(([field, rule]) => [field, rule.kind]),
+          ),
+        },
         selectedRule: module.ruleFor('api'),
       },
       connections: configuration.connections,
@@ -120,14 +160,22 @@ describe('ValidatedConfiguration', () => {
         path: 'orders',
         glob: '**/*.ts',
         modules: 'src/{module}',
-        api: notUsed,
-        useCase: notUsed,
-        domainOp: notUsed,
-        event: notUsed,
-        eventHandler: notUsed,
-        ui: notUsed,
-        customTypes: orders.customTypes,
-        selectedRule: notUsed,
+        api: parsedNotUsed,
+        useCase: parsedNotUsed,
+        domainOp: parsedNotUsed,
+        event: parsedNotUsed,
+        eventHandler: parsedNotUsed,
+        ui: parsedNotUsed,
+        eventPublisher: {
+          find: 'methods',
+          where: expect.objectContaining({ kind: 'nameEndsWith', suffix: 'Publisher' }),
+          ruleKinds: {
+            publishedEventType: 'fromParameterType',
+            targetDomain: 'fromMethodName',
+            targetApi: 'fromClassName',
+          },
+        },
+        selectedRule: parsedNotUsed,
       },
       connections,
       schema: 'schema.json',
@@ -245,5 +293,135 @@ describe('ValidatedConfiguration', () => {
     const validated: ValidatedModule = candidate
 
     expect(validated).toBe(candidate)
+  })
+
+  it('parses every extraction rule in a module into the closed rule union', () => {
+    const result = ValidatedModule.parse({
+      ...validModule('orders'),
+      customTypes: {
+        allRules: {
+          find: 'methods',
+          where: { nameEndsWith: { suffix: 'UseCase' } },
+          extract: {
+            literal: { literal: 'value' },
+            className: { fromClassName: true },
+            methodName: { fromMethodName: true },
+            filePath: { fromFilePath: { pattern: '(.*)', capture: 1 } },
+            property: { fromProperty: { name: 'value', kind: 'static' } },
+            decoratorArgument: { fromDecoratorArg: { position: 0 } },
+            classDecoratorArgument: {
+              fromClassDecoratorArg: { decorator: 'Controller', name: 'path' },
+            },
+            decoratorName: { fromDecoratorName: true },
+            genericArgument: { fromGenericArg: { interface: 'Handler', position: 0 } },
+            methodSignature: { fromMethodSignature: true },
+            constructorParameters: { fromConstructorParams: true },
+            parameterType: { fromParameterType: { position: 0 } },
+          },
+        },
+      },
+    })
+    assert(result.success)
+    const rule = result.data.customTypes?.allRules
+    assert(rule)
+
+    expect(
+      Object.values(rule.extract ?? {}).map((extractionRule) => extractionRule.kind),
+    ).toStrictEqual([
+      'literal',
+      'fromClassName',
+      'fromMethodName',
+      'fromFilePath',
+      'fromProperty',
+      'fromDecoratorArg',
+      'fromClassDecoratorArg',
+      'fromDecoratorName',
+      'fromGenericArg',
+      'fromMethodSignature',
+      'fromConstructorParams',
+      'fromParameterType',
+    ])
+  })
+
+  it('parses every predicate into the closed predicate union', () => {
+    const predicates: readonly PredicateInput[] = [
+      { hasDecorator: { name: 'Controller' } },
+      { hasJSDoc: { tag: 'domainOp' } },
+      { extendsClass: { name: 'Base' } },
+      { implementsInterface: { name: 'Handler' } },
+      { nameEndsWith: { suffix: 'Controller' } },
+      { nameMatches: { pattern: 'Controller$' } },
+      { inClassWith: { hasDecorator: { name: 'Controller' } } },
+      { and: [{ hasJSDoc: { tag: 'first' } }, { hasJSDoc: { tag: 'second' } }] },
+      { or: [{ hasJSDoc: { tag: 'first' } }, { hasJSDoc: { tag: 'second' } }] },
+    ]
+
+    const kinds = predicates.map((where, index) => {
+      const result = ValidatedModule.parse({
+        ...validModule('orders'),
+        customTypes: { [`type${index}`]: { find: 'classes', where } },
+      })
+      assert(result.success)
+      const rule = result.data.customTypes?.[`type${index}`]
+      assert(rule)
+      return rule.where.kind
+    })
+
+    expect(kinds).toStrictEqual([
+      'hasDecorator',
+      'hasJSDoc',
+      'extendsClass',
+      'implementsInterface',
+      'nameEndsWith',
+      'nameMatches',
+      'inClassWith',
+      'and',
+      'or',
+    ])
+  })
+
+  it('returns predicate parsing failures with the where path', () => {
+    const result = ValidatedModule.parse({
+      ...validModule('orders'),
+      customTypes: {
+        invalid: {
+          find: 'classes',
+          where: { nameMatches: { pattern: '[' } },
+        },
+      },
+    })
+
+    expect(result).toStrictEqual({
+      success: false,
+      errors: expect.arrayContaining([
+        expect.objectContaining({ path: '/customTypes/invalid/where' }),
+      ]),
+    })
+  })
+
+  it('returns invalid rule failures from built in and custom component rules', () => {
+    const result = ValidatedModule.parse({
+      ...validModule('orders'),
+      useCase: {
+        find: 'methods',
+        where: { nameEndsWith: { suffix: 'UseCase' } },
+        extract: { source: { fromFilePath: { pattern: '[', capture: 0 } } },
+      },
+      customTypes: {
+        job: {
+          find: 'methods',
+          where: { nameEndsWith: { suffix: 'Job' } },
+          extract: { source: { fromFilePath: { pattern: '[', capture: 0 } } },
+        },
+      },
+    })
+
+    expect(result).toStrictEqual({
+      success: false,
+      errors: [
+        expect.objectContaining({ path: '/useCase/extract/source' }),
+        expect.objectContaining({ path: '/customTypes/job/extract/source' }),
+      ],
+    })
   })
 })

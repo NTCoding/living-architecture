@@ -4,10 +4,11 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
   RoleEnforcementConfiguration,
 } from './role-enforcement-builder'
+import { PackageManifestRequirements } from './package-manifest-requirements'
 import { RoleEnforcementExecutionError } from './role-enforcement-execution-error'
+import { ApprovedInstance } from './role-constraints'
 
 function expectBuiltRole(result: BuiltRole, expected: object): void {
   expect(result).toBeInstanceOf(BuiltRole)
@@ -88,10 +89,10 @@ describe('role', () => {
       targets: ['interface', 'type-alias', 'class'],
       minPublicMethods: 1,
       approvedInstances: [
-        {
+        ApprovedInstance.parse({
           name: 'RiviereProject',
           userHasApproved: true,
-        },
+        }),
       ],
     })
   })
@@ -115,7 +116,8 @@ describe('role', () => {
       requiresDataMembers: true,
       forbiddenCallableDataMembers: true,
       requiresPrivateConstructor: true,
-      requiredStaticMethodNamePrefix: 'parse',
+      requiredStaticFactoryMethodNamePrefixes: ['parse', 'from'],
+      requiresStaticFactoryMethodParameters: true,
     })
 
     expectBuiltRole(result, {
@@ -124,7 +126,8 @@ describe('role', () => {
       requiresDataMembers: true,
       forbiddenCallableDataMembers: true,
       requiresPrivateConstructor: true,
-      requiredStaticMethodNamePrefix: 'parse',
+      requiredStaticFactoryMethodNamePrefixes: ['parse', 'from'],
+      requiresStaticFactoryMethodParameters: true,
     })
   })
 
@@ -164,7 +167,26 @@ describe('role', () => {
   })
 })
 
-describe('roleEnforcementConfiguration', () => {
+it('includes data member, dependent role, and justification constraints when provided', () => {
+  const result = role('role-b', {
+    targets: ['class'],
+    allowedDependentRoles: ['role-a'],
+    requiresPrivateDataMembers: true,
+    requiresReadonlyDataMembers: true,
+    requiresJustification: 'Explain why no aggregate owns this behaviour.',
+  })
+
+  expectBuiltRole(result, {
+    name: 'role-b',
+    targets: ['class'],
+    allowedDependentRoles: ['role-a'],
+    requiresPrivateDataMembers: true,
+    requiresReadonlyDataMembers: true,
+    requiresJustification: 'Explain why no aggregate owns this behaviour.',
+  })
+})
+
+describe('RoleEnforcementConfiguration', () => {
   const testRoles = [
     role('cli-entrypoint', { targets: ['function'] }),
     role('aggregate', { targets: ['class'] }),
@@ -177,7 +199,7 @@ describe('roleEnforcementConfiguration', () => {
         entrypoint: ['cli-entrypoint'],
       }),
     )
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/{app}': { locations },
       },
@@ -197,7 +219,7 @@ describe('roleEnforcementConfiguration', () => {
   it('applies a package configuration to each package directly inside its configured folder', () => {
     const locations = locationConfiguration(location('/features', []))
 
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'apps/': { locations },
       },
@@ -216,7 +238,7 @@ describe('roleEnforcementConfiguration', () => {
     )
     const useCaseLocations = locationConfiguration(location('/features', []))
 
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/{subdomain}/domain-model': { locations: domainLocations },
         'packages/{subdomain}/use-cases': { locations: useCaseLocations },
@@ -240,7 +262,7 @@ describe('roleEnforcementConfiguration', () => {
 
   it('derives TypeScript and TSX include patterns from every enforced package', () => {
     const locations = locationConfiguration(location('/domain', { allowAnySubLocations: true }))
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/my-app': { locations },
         'apps/my-app': { locations },
@@ -259,7 +281,7 @@ describe('roleEnforcementConfiguration', () => {
   })
 
   it('keeps configuration values needed by the runner', () => {
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/my-app': {
           locations: locationConfiguration(location('/domain', { allowAnySubLocations: true })),
@@ -289,7 +311,7 @@ describe('roleEnforcementConfiguration', () => {
       }),
     )
 
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/app': { locations },
       },
@@ -329,7 +351,7 @@ describe('roleEnforcementConfiguration', () => {
   })
 
   it('adds unassigned packages to ignored source paths', () => {
-    const result = roleEnforcementConfiguration({
+    const result = RoleEnforcementConfiguration.parse({
       configurations: {
         'packages/app': {
           locations: locationConfiguration(location('/domain', [])),
@@ -345,19 +367,20 @@ describe('roleEnforcementConfiguration', () => {
   })
 })
 
-describe('RoleEnforcementConfiguration.parse', () => {
+describe('RoleEnforcementConfiguration.parseFromUnknown', () => {
   const completeConfiguration = {
     assignedPackages: [],
     ignorePatterns: [],
     include: ['packages/app/src/**/*.ts'],
     locationHierarchy: [],
+    packageManifestRequirements: PackageManifestRequirements.parse([]),
     roleDefinitionsDir: '.riviere/role-definitions',
     roles: [],
     unassignedPackages: [],
   }
 
   it('returns the configuration when all required values are present', () => {
-    const result = RoleEnforcementConfiguration.parse(completeConfiguration)
+    const result = RoleEnforcementConfiguration.parseFromUnknown(completeConfiguration)
 
     expect(result).toStrictEqual({
       success: true,
@@ -366,7 +389,7 @@ describe('RoleEnforcementConfiguration.parse', () => {
   })
 
   it('returns an error when the configuration is not an object', () => {
-    const result = RoleEnforcementConfiguration.parse(undefined)
+    const result = RoleEnforcementConfiguration.parseFromUnknown(undefined)
 
     expect(result).toStrictEqual({
       success: false,
@@ -379,6 +402,7 @@ describe('RoleEnforcementConfiguration.parse', () => {
     'include',
     'ignorePatterns',
     'locationHierarchy',
+    'packageManifestRequirements',
     'roles',
     'roleDefinitionsDir',
     'unassignedPackages',
@@ -386,7 +410,7 @@ describe('RoleEnforcementConfiguration.parse', () => {
     const incompleteConfiguration: Record<string, unknown> = { ...completeConfiguration }
     delete incompleteConfiguration[missingProperty]
 
-    const result = RoleEnforcementConfiguration.parse(incompleteConfiguration)
+    const result = RoleEnforcementConfiguration.parseFromUnknown(incompleteConfiguration)
 
     expect(result).toStrictEqual({
       success: false,

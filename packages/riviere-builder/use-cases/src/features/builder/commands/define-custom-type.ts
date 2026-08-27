@@ -18,7 +18,7 @@ export class DefineCustomType {
     if (!optionalProperties.success) return optionalProperties.result
 
     try {
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       builder.defineCustomType({
         ...(input.description !== undefined && { description: input.description }),
         name: input.name,
@@ -29,7 +29,7 @@ export class DefineCustomType {
           ? { requiredProperties: requiredProperties.properties }
           : {}),
       })
-      this.repository.save(builder)
+      this.repository.save(input.graphFileLocation, builder)
       return {
         result: {
           description: input.description,

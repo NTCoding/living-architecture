@@ -1,11 +1,11 @@
 import type {
-  ExtractionRule,
+  ExtractionRuleInput,
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
-import { enrichComponents } from './enrich-components'
+import { RiviereModule } from '../riviere-module'
 import { createValidatedModule } from '../../__fixtures__/test-fixtures'
 
 const project = new Project({ useInMemoryFileSystem: true })
@@ -16,7 +16,7 @@ function nextFile(content: string): string {
   return filePath
 }
 
-function createBaseModule(extract: Record<string, ExtractionRule>): ValidatedModule {
+function createBaseModule(extract: Record<string, ExtractionRuleInput>): ValidatedModule {
   return createValidatedModule({
     name: 'orders',
     domain: 'orders-domain',
@@ -43,8 +43,8 @@ function createDraft(file: string): DraftComponent {
       file,
       line: 2,
     },
-    domain: 'orders',
-    module: 'orders-module',
+    domain: 'orders-domain',
+    module: 'orders',
   })
 }
 
@@ -64,7 +64,7 @@ export class FraudClient {}`,
       },
     })
 
-    const result = enrichComponents([createDraft(file)], module, project)
+    const result = enrich(module, [createDraft(file)])
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.error).toContain('fromDecoratorArg')
@@ -80,7 +80,7 @@ export class FraudClient {}`,
     )
     const module = createBaseModule({ decoratorName: { fromDecoratorName: true } })
 
-    const result = enrichComponents([createDraft(file)], module, project)
+    const result = enrich(module, [createDraft(file)])
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.error).toContain('fromDecoratorName')
@@ -96,8 +96,8 @@ export class FraudClient {}`,
         file: '/src/orders/missing.ts',
         line: 1,
       },
-      domain: 'orders',
-      module: 'orders-module',
+      domain: 'orders-domain',
+      module: 'orders',
     })
     const module = createBaseModule({
       serviceName: {
@@ -108,7 +108,7 @@ export class FraudClient {}`,
       },
     })
 
-    const result = enrichComponents([missingDraft], module, project)
+    const result = enrich(module, [missingDraft])
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.error).toContain("Source file '/src/orders/missing.ts' not found")
@@ -116,3 +116,12 @@ export class FraudClient {}`,
     expect(result.components[0]?._missing).toMatchObject(['serviceName'])
   })
 })
+
+function enrich(module: ValidatedModule, drafts: readonly DraftComponent[]) {
+  return RiviereModule.build({
+    configuration: module,
+    project,
+    sourceFiles: [],
+    candidateDraftComponents: drafts,
+  }).enrichDraftComponents()
+}

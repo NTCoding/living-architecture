@@ -1,5 +1,4 @@
-import { Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
-import { getInitialWorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
+import type { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
 import { CreatePullRequest } from './create-pull-request'
 import { RecordBranch } from './record-branch'
 import { RecordCiFailed } from './record-ci-failed'
@@ -7,10 +6,12 @@ import { RecordCiPassed } from './record-ci-passed'
 import { RecordIssue } from './record-issue'
 import { RecordPullRequest } from './record-pull-request'
 import { VerifyFeedbackAddressed } from './verify-feedback-addressed'
+import { configureWorkflow } from './configure-workflow'
 
-type WorkflowDeps = Parameters<typeof Workflow.rehydrate>[1]
+const WORKFLOW_DEFINITION = configureWorkflow({})
+type WorkflowDeps = Parameters<typeof WORKFLOW_DEFINITION.buildWorkflow>[1]
 
-function workflow(): Workflow {
+function workflow(): MaintainerWorkflow {
   const deps: WorkflowDeps = {
     getGitInfo: () => ({
       currentBranch: 'feature/test',
@@ -34,7 +35,7 @@ function workflow(): Workflow {
     sleepMs: () => undefined,
     now: () => '2026-01-01T00:00:00Z',
   }
-  return Workflow.rehydrate(getInitialWorkflowState(), deps)
+  return WORKFLOW_DEFINITION.buildWorkflow(WORKFLOW_DEFINITION.initialState(), deps)
 }
 
 describe('workflow commands', () => {

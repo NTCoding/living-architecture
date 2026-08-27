@@ -6,6 +6,10 @@ Use this guide for an initial classification before consulting the role definiti
 
 If code does not fit cleanly, do not force it into the closest-looking role. First check whether it is a fragment of a missing concept, especially a missing `aggregate-repository`.
 
+Before selecting `domain-service`, test whether the behaviour belongs on an aggregate, then a value object. It is valid only when neither is the natural owner. State remains private to its aggregate; a use case must not read it to decide a domain rule.
+
+Select `domain-facade` only when command use cases or query consumers need one stable interface over several related domain capabilities. It is a consumer interface, not an internal dependency of the domain model.
+
 The key question to ask:
 
 - At what point in the end-to-end flow is this code used?
@@ -34,6 +38,12 @@ If yes, it is part of loading an aggregate. Therefore it is:
 
 - `aggregate-repository`, or
 - a component used by the `aggregate-repository`, such as `external-client-service`
+
+This remains true when an aggregate needs the data only for one later
+operation. Previously created state from the same aggregate lifecycle must be
+restored by the repository as part of the aggregate. Do not pass a loader into
+an aggregate operation and use a `domain-port` to recover that state after the
+repository has returned the aggregate.
 
 Heuristics:
 
@@ -104,6 +114,12 @@ Keep the three responsibilities separate:
 The adapter translates between the two contracts. It does not contain domain decisions, application orchestration, direct Node API calls, or third-party package calls. It must not coordinate multiple clients. The Node and third-party restriction is specific to this architecture's deliberate split between a domain-port adapter and a generic external client; it is not a claim that all adapters everywhere must avoid technology imports. See [`domain-port-adapter`](role-definitions/domain-port-adapter.md) for the concrete Oxlint and GitHub examples and the failure caused by combining the two roles.
 
 The use case or domain receives the port. The shell constructs the generic client and adapter, then supplies the adapter at the application boundary.
+
+A port may provide a current external fact or perform an external action needed
+during domain behaviour. It must not recover previously created state owned by
+the aggregate. That is aggregate restoration and belongs to the repository,
+even when the stored state is in a separate file or is needed by only one
+aggregate operation.
 
 Repositories and query-model loaders belong in `data-access/`, not `adapters/`. Their responsibility is reconstructing or persisting application state, not implementing an external capability used during domain execution.
 

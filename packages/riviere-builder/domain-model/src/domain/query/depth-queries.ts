@@ -1,24 +1,31 @@
-import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
+import type {
+  Component,
+  RiviereGraph,
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { ComponentDepths } from './component-depths'
-import { isEntryPointType } from './flow-constants'
 
 interface DepthQueueEntry {
   id: string
   depth: number
 }
 
-/** @riviere-role domain-service */
-export function queryNodeDepths(graph: RiviereGraph): ComponentDepths {
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
+export function queryNodeDepths(
+  graph: RiviereGraph,
+  entryPoints: readonly Component[],
+): ComponentDepths {
   const depths = new Map<string, number>()
 
-  const entryPoints = findEntryPointIds(graph)
   if (entryPoints.length === 0) {
     return ComponentDepths.parse(depths)
   }
 
   const outgoingEdges = buildOutgoingEdges(graph)
-  const queue: DepthQueueEntry[] = entryPoints.map((id) => ({
-    id,
+  const queue: DepthQueueEntry[] = entryPoints.map((component) => ({
+    id: component.id,
     depth: 0,
   }))
 
@@ -60,13 +67,6 @@ function enqueueChildren(
       })
     }
   }
-}
-
-function findEntryPointIds(graph: RiviereGraph): string[] {
-  const targets = new Set(graph.links.map((link) => link.target))
-  return graph.components
-    .filter((c) => isEntryPointType(c.type) && !targets.has(c.id))
-    .map((c) => c.id)
 }
 
 function buildOutgoingEdges(graph: RiviereGraph): Map<string, string[]> {

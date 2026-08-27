@@ -12,6 +12,7 @@ interface CheckConsistencyOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateCheckConsistencyCommandEntrypointDependencies {
   readonly checkConsistency: CheckConsistency
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
   readonly formatSuccess: typeof formatSuccess
@@ -35,7 +36,7 @@ Examples:
     .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CheckConsistencyOptions) => {
-      const result = checkConsistency.execute({ graphPathOption: options.graph })
+      const result = checkConsistency.execute({ graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation })
       if (!result.result.success) {
         console.log(
           JSON.stringify(

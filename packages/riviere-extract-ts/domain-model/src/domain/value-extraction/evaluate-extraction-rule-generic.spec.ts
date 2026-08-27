@@ -1,7 +1,15 @@
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
+import { genericArgumentRule } from '../../__fixtures__/parsed-extraction-rule-fixtures'
 import { ExtractionError, TestFixtureError } from './literal-detection'
-import { evaluateFromGenericArgRule } from './evaluate-extraction-rule'
+import { evaluateFromGenericArgRule as evaluateParsedGenericArgRule } from './evaluate-extraction-rule'
+
+function evaluateFromGenericArgRule(
+  input: unknown,
+  declaration: import('ts-morph').ClassDeclaration,
+) {
+  return evaluateParsedGenericArgRule(genericArgumentRule(input), declaration)
+}
 
 const sharedProject = new Project({ useInMemoryFileSystem: true })
 const counter = { value: 0 }

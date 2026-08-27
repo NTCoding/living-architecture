@@ -1,33 +1,49 @@
-import { defineState } from '../define-state'
-import { pass, fail } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type {
+  PreconditionResult,
+  TransitionContext,
+} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import { z } from 'zod'
+import type { WorkflowState } from '../workflow-types'
 
-/** @riviere-role domain-service */
-export function defineBlockedState() {
-  return defineState({
-    emoji: '⚠️',
-    agentInstructions: 'states/blocked.md',
-    allowIdle: true,
-    forbidden: { write: true },
-    canTransitionTo: [
-      'IMPLEMENTING',
-      'REVIEWING',
-      'SUBMITTING_PR',
-      'AWAITING_CI',
-      'AWAITING_PR_FEEDBACK',
-      'ADDRESSING_FEEDBACK',
-      'REFLECTING',
-    ],
-    allowedWorkflowOperations: [],
+type StateName = WorkflowState['currentStateMachineState']
 
-    transitionGuard: (ctx) => {
-      const preBlockedState = ctx.state.preBlockedState
-      if (ctx.to !== preBlockedState) {
-        /* v8 ignore next 4 */
-        return fail(
-          `Cannot transition from BLOCKED to ${ctx.to}. Must return to pre-blocked state: ${preBlockedState ?? 'unknown'}.`,
-        )
+/** @riviere-role value-object */
+export class BlockedState {
+  declare private readonly brand: 'BlockedState'
+
+  readonly name: 'BLOCKED'
+  readonly emoji = '⚠️'
+  readonly agentInstructions = 'states/blocked.md'
+  readonly allowIdle = true
+  readonly forbidden = { write: true } as const
+  readonly canTransitionTo = [
+    'IMPLEMENTING',
+    'REVIEWING',
+    'SUBMITTING_PR',
+    'AWAITING_CI',
+    'AWAITING_PR_FEEDBACK',
+    'ADDRESSING_FEEDBACK',
+    'REFLECTING',
+  ] as const
+  readonly allowedWorkflowOperations = [] as const
+
+  private constructor(name: 'BLOCKED') {
+    this.name = name
+  }
+
+  static parse(value: unknown): BlockedState {
+    z.literal('BLOCKED').parse(value)
+    return new BlockedState('BLOCKED')
+  }
+
+  transitionGuard(context: TransitionContext<WorkflowState, StateName>): PreconditionResult {
+    const preBlockedState = context.state.preBlockedState
+    if (context.to !== preBlockedState) {
+      return {
+        pass: false,
+        reason: `Cannot transition from BLOCKED to ${context.to}. Must return to pre-blocked state: ${preBlockedState ?? 'unknown'}.`,
       }
-      return pass()
-    },
-  })
+    }
+    return { pass: true }
+  }
 }

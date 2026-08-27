@@ -1,16 +1,16 @@
 import type {
+  DecoratorArgumentSelector,
+  ExtractionTransform,
   FromClassDecoratorArgExtractionRule,
   FromClassNameExtractionRule,
   FromDecoratorArgExtractionRule,
   FromDecoratorNameExtractionRule,
   FromFilePathExtractionRule,
   FromMethodNameExtractionRule,
-  FromPropertyExtractionRule,
   LiteralExtractionRule,
 } from '@living-architecture/riviere-extract-config-published-language'
-import { SyntaxKind } from 'ts-morph'
-import { ExtractionError, extractLiteralValue } from './literal-detection'
-import { applyTransforms } from './transforms'
+import { Node, SyntaxKind } from 'ts-morph'
+import { ExtractionError } from './literal-detection'
 import { ExtractionResult } from './extraction-result'
 
 export {
@@ -21,6 +21,8 @@ export {
 
 export { evaluateFromGenericArgRule } from './evaluate-extraction-rule-generic'
 
+export { evaluateFromPropertyRule } from './evaluate-property-extraction-rule'
+
 type ClassDeclaration = import('ts-morph').ClassDeclaration
 type MethodDeclaration = import('ts-morph').MethodDeclaration
 type Decorator = import('ts-morph').Decorator
@@ -29,12 +31,18 @@ function literal(value: string | number | boolean): ExtractionResult {
   return ExtractionResult.parse({ value })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function evaluateLiteralRule(rule: LiteralExtractionRule): ExtractionResult {
-  return literal(rule.literal)
+  return literal(rule.value)
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function evaluateFromClassNameRule(
   rule: FromClassNameExtractionRule,
   classDecl: ClassDeclaration,
@@ -46,45 +54,43 @@ export function evaluateFromClassNameRule(
     throw new ExtractionError('Expected class name, got undefined', filePath, lineNumber)
   }
 
-  if (rule.fromClassName === true) {
-    return ExtractionResult.parse({ value: className })
-  }
-
-  const transform = rule.fromClassName.transform
+  const transform = rule.transform
   if (transform === undefined) {
     return ExtractionResult.parse({ value: className })
   }
 
-  return ExtractionResult.parse({ value: applyTransforms(className, transform) })
+  return ExtractionResult.parse({ value: transform.applyTo(className) })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function evaluateFromMethodNameRule(
   rule: FromMethodNameExtractionRule,
   methodDecl: MethodDeclaration,
 ): ExtractionResult {
   const methodName = methodDecl.getName()
 
-  if (rule.fromMethodName === true) {
-    return ExtractionResult.parse({ value: methodName })
-  }
-
-  const transform = rule.fromMethodName.transform
+  const transform = rule.transform
   if (transform === undefined) {
     return ExtractionResult.parse({ value: methodName })
   }
 
-  return ExtractionResult.parse({ value: applyTransforms(methodName, transform) })
+  return ExtractionResult.parse({ value: transform.applyTo(methodName) })
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function evaluateFromFilePathRule(
   rule: FromFilePathExtractionRule,
   filePath: string,
 ): ExtractionResult {
-  const pattern = rule.fromFilePath.pattern
-  const capture = rule.fromFilePath.capture
-  const transform = rule.fromFilePath.transform
+  const pattern = rule.pattern
+  const capture = rule.capture
+  const transform = rule.transform
   const regex = new RegExp(pattern)
   const match = regex.exec(filePath)
 
@@ -109,88 +115,13 @@ export function evaluateFromFilePathRule(
     return ExtractionResult.parse({ value: capturedValue })
   }
 
-  return ExtractionResult.parse({ value: applyTransforms(capturedValue, transform) })
-}
-
-type PropertyInfo = {
-  initializer: ReturnType<import('ts-morph').PropertyDeclaration['getInitializer']>
-  filePath: string
-  line: number
-}
-
-function findPropertyInHierarchy(
-  classDecl: ClassDeclaration,
-  propertyName: string,
-  isStatic: boolean,
-): PropertyInfo | undefined {
-  const properties = isStatic ? classDecl.getStaticProperties() : classDecl.getInstanceProperties()
-
-  const property = properties.find((p) => p.getName() === propertyName)
-
-  if (property !== undefined && 'getInitializer' in property) {
-    const sourceFile = classDecl.getSourceFile()
-    return {
-      initializer: property.getInitializer(),
-      filePath: sourceFile.getFilePath(),
-      line: property.getStartLineNumber(),
-    }
-  }
-
-  if (classDecl.getExtends() === undefined) {
-    return undefined
-  }
-
-  const baseClass = classDecl.getBaseClass()
-  /* v8 ignore next -- @preserve: getExtends() !== undefined guarantees getBaseClass() returns a value */
-  if (baseClass === undefined) return undefined
-
-  return findPropertyInHierarchy(baseClass, propertyName, isStatic)
-}
-
-/** @riviere-role domain-service */
-export function evaluateFromPropertyRule(
-  rule: FromPropertyExtractionRule,
-  classDecl: ClassDeclaration,
-): ExtractionResult {
-  const name = rule.fromProperty.name
-  const kind = rule.fromProperty.kind
-  const transform = rule.fromProperty.transform
-  const isStatic = kind === 'static'
-
-  const propertyInfo = findPropertyInHierarchy(classDecl, name, isStatic)
-
-  if (propertyInfo === undefined) {
-    const sourceFile = classDecl.getSourceFile()
-    throw new ExtractionError(
-      `Property '${name}' not found on class '${classDecl.getName() ?? 'anonymous'}'`,
-      sourceFile.getFilePath(),
-      classDecl.getStartLineNumber(),
-    )
-  }
-
-  const literalResult = extractLiteralValue(
-    propertyInfo.initializer,
-    propertyInfo.filePath,
-    propertyInfo.line,
-  )
-
-  if (transform === undefined) {
-    return ExtractionResult.parse({ value: literalResult.value })
-  }
-
-  if (typeof literalResult.value !== 'string') {
-    return ExtractionResult.parse({ value: literalResult.value })
-  }
-
-  return ExtractionResult.parse({ value: applyTransforms(literalResult.value, transform) })
+  return ExtractionResult.parse({ value: transform.applyTo(capturedValue) })
 }
 
 type DecoratorLocation = {
   filePath: string
   line: number
 }
-
-type DecoratorArgRule = FromDecoratorArgExtractionRule['fromDecoratorArg']
 
 function getDecoratorLocation(decorator: Decorator): DecoratorLocation {
   const sourceFile = decorator.getSourceFile()
@@ -275,7 +206,7 @@ function extractNamedArg(decorator: Decorator, name: string): string {
     )
   }
 
-  if (!('getInitializer' in property)) {
+  if (!Node.isPropertyAssignment(property)) {
     throw new ExtractionError(
       `Property '${name}' has no initializer`,
       location.filePath,
@@ -295,50 +226,43 @@ function extractNamedArg(decorator: Decorator, name: string): string {
   return initializer.asKindOrThrow(SyntaxKind.StringLiteral).getLiteralValue()
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function evaluateFromDecoratorArgRule(
   rule: FromDecoratorArgExtractionRule,
   decorator: Decorator,
 ): ExtractionResult {
-  const decoratorName = rule.fromDecoratorArg.decorator
-  const position = rule.fromDecoratorArg.position
-  const name = rule.fromDecoratorArg.name
-  const transform = rule.fromDecoratorArg.transform
-
-  if (decoratorName !== undefined && decorator.getName() !== decoratorName) {
+  if (rule.decoratorName !== undefined && decorator.getName() !== rule.decoratorName) {
     const location = getDecoratorLocation(decorator)
     throw new ExtractionError(
-      `Expected decorator '@${decoratorName}', got '@${decorator.getName()}'`,
+      `Expected decorator '@${rule.decoratorName}', got '@${decorator.getName()}'`,
       location.filePath,
       location.line,
     )
   }
-
-  const extractValue = (): string => {
-    if (position !== undefined) {
-      return extractPositionalArg(decorator, position)
-    }
-    if (!name) {
-      const location = getDecoratorLocation(decorator)
-      throw new ExtractionError(
-        'Expected name parameter when position is undefined',
-        location.filePath,
-        location.line,
-      )
-    }
-    return extractNamedArg(decorator, name)
-  }
-
-  const value = extractValue()
-
-  if (transform === undefined) {
-    return ExtractionResult.parse({ value })
-  }
-
-  return ExtractionResult.parse({ value: applyTransforms(value, transform) })
+  return evaluateDecoratorArgument(decorator, rule.argument, rule.transform)
 }
 
-/** @riviere-role domain-service */
+function evaluateDecoratorArgument(
+  decorator: Decorator,
+  argument: DecoratorArgumentSelector,
+  transform: ExtractionTransform | undefined,
+): ExtractionResult {
+  const value =
+    argument.kind === 'position'
+      ? extractPositionalArg(decorator, argument.position)
+      : extractNamedArg(decorator, argument.name)
+  return ExtractionResult.parse({
+    value: transform === undefined ? value : transform.applyTo(value),
+  })
+}
+
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function evaluateFromClassDecoratorArgRule(
   rule: FromClassDecoratorArgExtractionRule,
   methodDecl: MethodDeclaration,
@@ -355,45 +279,32 @@ export function evaluateFromClassDecoratorArgRule(
 
   const classDecorator = classDecl
     .getDecorators()
-    .find((decorator) => decorator.getName() === rule.fromClassDecoratorArg.decorator)
+    .find((decorator) => decorator.getName() === rule.decoratorName)
 
   if (classDecorator === undefined) {
     const sourceFile = classDecl.getSourceFile()
     throw new ExtractionError(
-      `Decorator '@${rule.fromClassDecoratorArg.decorator}' not found on containing class '${classDecl.getName() ?? 'anonymous'}'`,
+      `Decorator '@${rule.decoratorName}' not found on containing class '${classDecl.getName() ?? 'anonymous'}'`,
       sourceFile.getFilePath(),
       classDecl.getStartLineNumber(),
     )
   }
 
-  const fromClassDecoratorArg = rule.fromClassDecoratorArg
-  const fromDecoratorArgRule: DecoratorArgRule = {
-    decorator: fromClassDecoratorArg.decorator,
-    ...(fromClassDecoratorArg.position === undefined
-      ? {}
-      : { position: fromClassDecoratorArg.position }),
-    ...(fromClassDecoratorArg.name === undefined ? {} : { name: fromClassDecoratorArg.name }),
-    ...(fromClassDecoratorArg.transform === undefined
-      ? {}
-      : { transform: fromClassDecoratorArg.transform }),
-  }
-
-  return evaluateFromDecoratorArgRule({ fromDecoratorArg: fromDecoratorArgRule }, classDecorator)
+  return evaluateDecoratorArgument(classDecorator, rule.argument, rule.transform)
 }
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function evaluateFromDecoratorNameRule(
   rule: FromDecoratorNameExtractionRule,
   decorator: Decorator,
 ): ExtractionResult {
   const decoratorName = decorator.getName()
 
-  if (rule.fromDecoratorName === true) {
-    return ExtractionResult.parse({ value: decoratorName })
-  }
-
-  const mapping = rule.fromDecoratorName.mapping
-  const transform = rule.fromDecoratorName.transform
+  const mapping = rule.mapping
+  const transform = rule.transform
 
   const mappedValue = mapping?.[decoratorName] ?? decoratorName
 
@@ -401,5 +312,5 @@ export function evaluateFromDecoratorNameRule(
     return ExtractionResult.parse({ value: mappedValue })
   }
 
-  return ExtractionResult.parse({ value: applyTransforms(mappedValue, transform) })
+  return ExtractionResult.parse({ value: transform.applyTo(mappedValue) })
 }

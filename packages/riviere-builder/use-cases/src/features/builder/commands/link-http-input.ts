@@ -1,6 +1,6 @@
 /** @riviere-role command-use-case-input */
 export interface LinkHttpInput {
-  graphPathOption: string | undefined
+  graphFileLocation: string
   httpMethod: string | undefined
   linkType: string | undefined
   path: string

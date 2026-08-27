@@ -26,7 +26,7 @@ const layerTestLocations = enforcementBuilder.locationConfiguration(
   }),
 )
 
-const layerTestConfig = enforcementBuilder.roleEnforcementConfiguration({
+const layerTestConfig = enforcementBuilder.RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/pkg-a': {
       locations: layerTestLocations,
@@ -282,7 +282,7 @@ function createAdapterLayerConfig() {
       'external-client-service',
     ]),
   )
-  return enforcementBuilder.roleEnforcementConfiguration({
+  return enforcementBuilder.RoleEnforcementConfiguration.parse({
     configurations: {
       'packages/pkg-a': {
         locations,
@@ -295,7 +295,7 @@ function createAdapterLayerConfig() {
 }
 
 function createCrossPackageLayerConfig() {
-  return enforcementBuilder.roleEnforcementConfiguration({
+  return enforcementBuilder.RoleEnforcementConfiguration.parse({
     configurations: {
       'packages/pkg-a': {
         locations: layerTestLocations,

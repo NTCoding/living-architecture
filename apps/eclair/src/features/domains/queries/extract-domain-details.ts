@@ -12,7 +12,7 @@ import {
 } from '@/platform/domain/eclair-types'
 import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
 import type { Entity } from '@living-architecture/riviere-builder-domain-model/query/entity'
-import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
+import { ascendingCodePointSortResult } from '@/platform/domain/ascending-code-point-sort-result'
 import type { NodeBreakdown, DomainNode } from './domain-node-breakdown'
 import { countNodesByType, formatDomainNodes, extractEntryPoints } from './domain-node-breakdown'
 import type { DomainEvent } from '@/platform/domain/domain-event-types'
@@ -110,7 +110,9 @@ function buildCrossDomainEdges(graph: RiviereGraph, domainId: DomainName): Cross
     crossDomainEdges.push(crossDomainEdge)
   }
 
-  return crossDomainEdges.sort((a, b) => compareByCodePoint(a.targetDomain, b.targetDomain))
+  return crossDomainEdges.sort((a, b) =>
+    ascendingCodePointSortResult(a.targetDomain, b.targetDomain),
+  )
 }
 
 export function extractDomainDetails(
@@ -180,10 +182,10 @@ export function extractDomainDetails(
 
   const events: DomainEvents = {
     published: publishedEvents.toSorted((a: DomainEvent, b: DomainEvent) =>
-      compareByCodePoint(a.eventName, b.eventName),
+      ascendingCodePointSortResult(a.eventName, b.eventName),
     ),
     consumed: consumedHandlers.toSorted((a: DomainEventHandler, b: DomainEventHandler) =>
-      compareByCodePoint(a.handlerName, b.handlerName),
+      ascendingCodePointSortResult(a.handlerName, b.handlerName),
     ),
   }
 
@@ -238,9 +240,9 @@ function buildAggregatedConnections(graph: RiviereGraph, domainId: string): Aggr
   }
 
   return [...connections.values()].sort((left, right) => {
-    const domainOrder = compareByCodePoint(left.targetDomain, right.targetDomain)
+    const domainOrder = ascendingCodePointSortResult(left.targetDomain, right.targetDomain)
     if (domainOrder !== 0) return domainOrder
-    return compareByCodePoint(left.direction, right.direction)
+    return ascendingCodePointSortResult(left.direction, right.direction)
   })
 }
 

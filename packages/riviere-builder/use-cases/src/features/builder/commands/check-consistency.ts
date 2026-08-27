@@ -10,7 +10,7 @@ export class CheckConsistency {
 
   execute(input: CheckConsistencyInput): CheckConsistencyResult {
     try {
-      const builder = this.repository.load(input.graphPathOption)
+      const builder = this.repository.load(input.graphFileLocation)
       const warnings = builder.warnings()
       return {
         result: {

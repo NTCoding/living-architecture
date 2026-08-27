@@ -1,4 +1,4 @@
-import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/builder-facade'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-domain-model/domain/riviere-builder'
 import { GraphCorruptedError } from '../data-access/riviere-builder/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-builder/graph-not-found-error'
 import { RiviereBuilderRepository } from '../data-access/riviere-builder/riviere-builder-repository'
@@ -47,23 +47,23 @@ export class InitGraph {
     }
 
     try {
-      const builder = this.repository.load(input.graphPathOption)
+      this.repository.load(input.graphFileLocation)
       return {
         result: {
           code: 'GRAPH_EXISTS',
-          message: `Graph already exists at ${builder.graphPath}`,
-          path: builder.graphPath,
+          message: `Graph already exists at ${input.graphFileLocation}`,
+          path: input.graphFileLocation,
           success: false,
         },
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
-        const newBuilder = RiviereBuilder.new(builderOptions, error.graphPath)
-        this.repository.save(newBuilder)
+        const newBuilder = RiviereBuilder.new(builderOptions)
+        this.repository.save(input.graphFileLocation, newBuilder)
         return {
           result: {
             domains: input.domains.map((domain) => domain.name),
-            path: newBuilder.graphPath,
+            path: input.graphFileLocation,
             sources: input.sources.length,
             success: true,
           },

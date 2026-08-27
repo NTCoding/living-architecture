@@ -14,6 +14,7 @@ interface DefineRelationshipTypeOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateDefineRelationshipTypeCommandEntrypointDependencies {
   readonly defineRelationshipType: DefineRelationshipType
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly formatError: typeof formatError
   readonly formatSuccess: typeof formatSuccess
@@ -33,7 +34,7 @@ export function createDefineRelationshipTypeCommand(
     .action(async (options: DefineRelationshipTypeOptions) => {
       const result = defineRelationshipType.execute({
         description: options.description,
-        graphPathOption: options.graph,
+        graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation,
         name: options.name,
       })
       if (!result.result.success) {

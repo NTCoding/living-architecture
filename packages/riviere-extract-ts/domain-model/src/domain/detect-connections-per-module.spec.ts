@@ -1,4 +1,4 @@
-import { assert, beforeEach, describe, expect, it, vi } from 'vitest'
+import { assert, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest'
 import { Project } from 'ts-morph'
 import {
   type ConnectionsConfig,
@@ -6,40 +6,13 @@ import {
 } from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
 import { RiviereProject } from './riviere-project'
-import { ExtractionStage } from './extraction-stage'
+import { RiviereModule } from './riviere-module'
+import { ExtractionConfiguration } from './extraction-configuration'
+import { EnrichmentFailure, EnrichmentResult } from './value-extraction/enriched-component'
+import { TestFixtureError } from './value-extraction/literal-detection'
 
-const {
-  mockExtractComponents,
-  mockEnrichComponents,
-  mockDeduplicateCrossStrategy,
-  mockDetectCrossModule,
-  mockDetectPerModule,
-  mockStripResolvedCustomTypes,
-} = vi.hoisted(() => ({
+const { mockExtractComponents, mockStripResolvedCustomTypes } = vi.hoisted(() => ({
   mockExtractComponents: vi.fn().mockReturnValue([]),
-  mockEnrichComponents: vi.fn().mockReturnValue({
-    components: [],
-    failures: [],
-  }),
-  mockDeduplicateCrossStrategy: vi.fn((links: { source: string }[]) => links),
-  mockDetectPerModule: vi.fn().mockReturnValue({
-    links: [
-      {
-        source: 'orders:useCase:OrderService',
-        target: 'orders:repository:OrderRepo',
-        type: 'sync',
-      },
-    ],
-    externalLinks: [],
-    timings: {
-      callGraphMs: 1,
-      setupMs: 0,
-    },
-  }),
-  mockDetectCrossModule: vi.fn().mockReturnValue({
-    links: [],
-    timings: { asyncDetectionMs: 0 },
-  }),
   mockStripResolvedCustomTypes: vi.fn((components: unknown[]) => components),
 }))
 
@@ -52,19 +25,28 @@ vi.mock('./component-extraction/extractor', () => ({
   },
 }))
 
-vi.mock('./value-extraction/enrich-components', () => ({
-  enrichComponents: mockEnrichComponents,
-}))
-
-vi.mock('./connection-detection/detect-connections', () => ({
-  detectPerModuleConnections: mockDetectPerModule,
-  detectCrossModuleConnections: mockDetectCrossModule,
-  deduplicateCrossStrategy: mockDeduplicateCrossStrategy,
-}))
-
-vi.mock('./connection-detection/resolve-http-links', () => ({
+vi.mock('./connection-detection/resolve-http-links', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./connection-detection/resolve-http-links')>()),
   stripResolvedCustomTypes: mockStripResolvedCustomTypes,
 }))
+
+const moduleEnrichment: {
+  spy: MockInstance<RiviereModule['enrichDraftComponents']> | undefined
+} = {
+  spy: undefined,
+}
+
+function enrichmentSpy() {
+  const spy = moduleEnrichment.spy
+  if (spy === undefined) throw new TestFixtureError('Expected module enrichment spy')
+  return spy
+}
+
+function calledModule(): RiviereModule {
+  const value: unknown = enrichmentSpy().mock.contexts[0]
+  if (!(value instanceof RiviereModule)) throw new TestFixtureError('Expected RiviereModule')
+  return value
+}
 
 function createRiviereProject(
   moduleName: string,
@@ -100,7 +82,7 @@ function createRiviereProject(
   assert(configurationResult.success)
   const module = configurationResult.data.modules[0]
   assert(module)
-  const stage = ExtractionStage.parse({
+  const configuration = ExtractionConfiguration.parse({
     name: moduleName,
     configPath: 'config.yml',
     useTsConfig: false,
@@ -114,138 +96,16 @@ function createRiviereProject(
       },
     ],
   })
-  const projectResult = RiviereProject.parse({ stage })
+  const projectResult = RiviereProject.parse({ configuration, draftComponents: [] })
   assert(projectResult.success)
   return projectResult.data
 }
 
 describe('RiviereProject.extractDraftComponents', () => {
   beforeEach(() => {
+    vi.restoreAllMocks()
     vi.clearAllMocks()
-  })
-
-  it('returns links when includeConnections is true', () => {
-    mockExtractComponents.mockReturnValue([
-      DraftComponent.parseOrThrow({
-        name: 'OrderService',
-        domain: 'orders',
-        module: 'orders',
-        type: 'useCase',
-        location: {
-          file: 'test.ts',
-          line: 1,
-        },
-      }),
-    ])
-    mockEnrichComponents.mockReturnValue({
-      components: [
-        {
-          name: 'OrderService',
-          domain: 'orders',
-          module: 'orders',
-          type: 'useCase',
-          location: {
-            file: 'test.ts',
-            line: 1,
-          },
-          metadata: {},
-        },
-      ],
-      failures: [],
-    })
-    mockDetectPerModule.mockReturnValue({
-      links: [
-        {
-          source: 'orders:useCase:OrderService',
-          target: 'orders:repository:OrderRepo',
-          type: 'sync' as const,
-        },
-      ],
-      externalLinks: [],
-      timings: {
-        callGraphMs: 1,
-        setupMs: 0,
-      },
-    })
-
-    const eventPublishers = [{ fromType: 'eventSender', metadataKey: 'publishedEventType' }]
-    const httpLinks = [
-      {
-        fromCustomType: 'eventSender',
-        matchDomainBy: 'publishedEventType',
-        matchApiBy: ['publishedEventType'],
-      },
-    ]
-    const project = createRiviereProject('orders', { eventPublishers, httpLinks })
-    const result = project.extractDraftComponents({
-      allowIncomplete: true,
-      includeConnections: true,
-    })
-
-    expect(result).toMatchObject({
-      kind: 'full',
-      links: [
-        {
-          source: 'orders:useCase:OrderService',
-          target: 'orders:repository:OrderRepo',
-          type: 'sync',
-        },
-      ],
-    })
-    expect(mockDetectCrossModule).toHaveBeenCalledWith(
-      expect.any(Array),
-      expect.objectContaining({ eventPublishers }),
-    )
-    expect(mockDetectPerModule).toHaveBeenCalledWith(
-      expect.any(Project),
-      expect.any(Array),
-      expect.objectContaining({ httpLinks }),
-    )
-    expect(mockStripResolvedCustomTypes).toHaveBeenCalledWith(
-      expect.any(Array),
-      httpLinks,
-      expect.any(Array),
-    )
-  })
-
-  it('aggregates connection timings into one project summary', () => {
-    mockExtractComponents.mockReturnValue([
-      DraftComponent.parseOrThrow({
-        name: 'OrderService',
-        domain: 'orders',
-        module: 'orders',
-        type: 'useCase',
-        location: { file: 'test.ts', line: 1 },
-      }),
-    ])
-    mockEnrichComponents.mockReturnValue({
-      components: [
-        {
-          name: 'OrderService',
-          domain: 'orders',
-          module: 'orders',
-          type: 'useCase',
-          location: { file: 'test.ts', line: 1 },
-          metadata: {},
-        },
-      ],
-      failures: [],
-    })
-    mockDetectPerModule.mockReturnValue({
-      links: [],
-      externalLinks: [],
-      timings: { callGraphMs: 1, setupMs: 2 },
-    })
-    mockDetectCrossModule.mockReturnValue({ links: [], timings: { asyncDetectionMs: 4 } })
-
-    const result = createRiviereProject('orders').extractDraftComponents({
-      allowIncomplete: true,
-      includeConnections: true,
-    })
-
-    expect(result).toMatchObject({
-      timings: [{ callGraphMs: 1, asyncDetectionMs: 4, setupMs: 2, totalMs: 7 }],
-    })
+    moduleEnrichment.spy = vi.spyOn(RiviereModule.prototype, 'enrichDraftComponents')
   })
 
   it('retains components from configured submodules', () => {
@@ -258,23 +118,15 @@ describe('RiviereProject.extractDraftComponents', () => {
         location: { file: 'src/checkout/test.ts', line: 1 },
       }),
     ])
-    mockEnrichComponents.mockReturnValue({ components: [], failures: [] })
-
     createRiviereProject('orders', undefined, 'src/{module}/').extractDraftComponents({
       allowIncomplete: true,
       includeConnections: true,
     })
 
-    expect(mockEnrichComponents).toHaveBeenCalledWith(
-      [
-        expect.objectContaining({
-          domain: 'orders',
-          module: 'checkout',
-        }),
-      ],
-      expect.objectContaining({ name: 'orders' }),
-      expect.any(Project),
-    )
+    expect(calledModule().draftComponents()).toStrictEqual([
+      expect.objectContaining({ domain: 'orders', module: 'checkout' }),
+    ])
+    expect(calledModule().name()).toBe('orders')
   })
 
   it('returns no links when includeConnections is false', () => {
@@ -328,7 +180,6 @@ describe('RiviereProject.extractDraftComponents', () => {
 
   it('normalises absent HTTP-link configuration', () => {
     mockExtractComponents.mockReturnValue([])
-    mockEnrichComponents.mockReturnValue({ components: [], failures: [] })
     const project = createRiviereProject('orders')
     project.extractDraftComponents({
       allowIncomplete: true,
@@ -348,10 +199,25 @@ describe('RiviereProject.extractDraftComponents', () => {
         location: { file: 'test.ts', line: 1 },
       }),
     ])
-    mockEnrichComponents.mockReturnValue({
-      components: [],
-      failures: [{ field: 'name' }],
+    const failedDraft = DraftComponent.parseOrThrow({
+      name: 'OrderService',
+      domain: 'orders',
+      module: 'orders',
+      type: 'useCase',
+      location: { file: 'test.ts', line: 1 },
     })
+    enrichmentSpy().mockReturnValue(
+      EnrichmentResult.parse({
+        components: [],
+        failures: [
+          EnrichmentFailure.parse({
+            component: failedDraft,
+            field: 'name',
+            error: 'Could not extract name',
+          }),
+        ],
+      }),
+    )
 
     const result = createRiviereProject('orders').extractDraftComponents({
       allowIncomplete: false,

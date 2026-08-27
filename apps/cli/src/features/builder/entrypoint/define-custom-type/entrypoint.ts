@@ -17,6 +17,7 @@ interface DefineCustomTypeOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateDefineCustomTypeCommandEntrypointDependencies {
   readonly defineCustomType: DefineCustomType
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly parsePropertySpecs: typeof parsePropertySpecs
   readonly formatError: typeof formatError
@@ -69,7 +70,7 @@ export function createDefineCustomTypeCommand(
 
       const result = defineCustomType.execute({
         description: options.description,
-        graphPathOption: options.graph,
+        graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation,
         name: options.name,
         optionalProperties: optionalResult.properties,
         requiredProperties: requiredResult.properties,

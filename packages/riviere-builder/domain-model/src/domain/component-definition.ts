@@ -1,4 +1,14 @@
-import type { Component } from '@living-architecture/riviere-schema-published-language/schema'
+import type {
+  APIComponent,
+  Component,
+  CustomComponent,
+  DomainOpComponent,
+  EventComponent,
+  EventHandlerComponent,
+  UIComponent,
+  UseCaseComponent,
+} from '@living-architecture/riviere-schema-published-language/schema'
+import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 import { ComponentType } from './component-type'
 import { ApiDefinition } from './api-definition'
 import { CustomComponentDefinition } from './custom-component-definition'
@@ -28,37 +38,51 @@ interface ComponentDefinitionInput {
 }
 
 type CommonInput = Pick<Component, 'name' | 'domain' | 'module' | 'description' | 'sourceLocation'>
+type UIDefinition = { type: 'UI'; input: CommonInput & { route: string } }
+type APIDefinition = {
+  type: 'API'
+  input: CommonInput & {
+    apiType: ApiDefinition['apiType']
+    httpMethod?: NonNullable<ApiDefinition['httpMethod']>
+    path?: string
+    operationName?: string
+  }
+}
+type UseCaseDefinition = { type: 'UseCase'; input: CommonInput }
+type DomainOpDefinition = {
+  type: 'DomainOp'
+  input: Omit<DomainOpComponent, 'id' | 'type'>
+}
+type EventDefinition = { type: 'Event'; input: Omit<EventComponent, 'id' | 'type'> }
+type EventHandlerDefinition = {
+  type: 'EventHandler'
+  input: Omit<EventHandlerComponent, 'id' | 'type'>
+}
+type CustomDefinition = {
+  type: 'Custom'
+  input: CommonInput & {
+    customTypeName: string
+    metadata?: Readonly<Record<string, unknown>>
+  }
+}
 type ComponentDefinitionValue =
-  | { type: 'UI'; input: CommonInput & { route: string } }
-  | {
-      type: 'API'
-      input: CommonInput & {
-        apiType: ApiDefinition['apiType']
-        httpMethod?: NonNullable<ApiDefinition['httpMethod']>
-        path?: string
-      }
-    }
-  | { type: 'UseCase'; input: CommonInput }
-  | { type: 'DomainOp'; input: CommonInput & { operationName: string; entity?: string } }
-  | { type: 'Event'; input: CommonInput & { eventName: string; eventSchema?: string } }
-  | { type: 'EventHandler'; input: CommonInput & { subscribedEvents: string[] } }
-  | {
-      type: 'Custom'
-      input: CommonInput & {
-        customTypeName: string
-        metadata?: NonNullable<CustomComponentDefinition['metadata']>
-      }
-    }
+  | UIDefinition
+  | APIDefinition
+  | UseCaseDefinition
+  | DomainOpDefinition
+  | EventDefinition
+  | EventHandlerDefinition
+  | CustomDefinition
 
 type ParsedValue =
   | { success: true; data: ComponentDefinitionValue }
   | { success: false; message: string }
 
 /** @riviere-role value-object */
-export class ComponentDefinition {
+export class ComponentDefinition<T extends ComponentDefinitionValue = ComponentDefinitionValue> {
   declare private readonly brand: 'ComponentDefinition'
 
-  private constructor(readonly value: ComponentDefinitionValue) {}
+  private constructor(readonly value: T) {}
 
   static parse(input: ComponentDefinitionInput) {
     const componentType = ComponentType.parse(input.componentType)
@@ -68,6 +92,75 @@ export class ComponentDefinition {
       ? { success: true as const, data: new ComponentDefinition(parsed.data) }
       : parsed
   }
+
+  static parseUI(input: UIDefinition['input']): ComponentDefinition<UIDefinition> {
+    return new ComponentDefinition({ type: 'UI', input })
+  }
+
+  static parseAPI(input: APIDefinition['input']): ComponentDefinition<APIDefinition> {
+    return new ComponentDefinition({ type: 'API', input })
+  }
+
+  static parseUseCase(input: UseCaseDefinition['input']): ComponentDefinition<UseCaseDefinition> {
+    return new ComponentDefinition({ type: 'UseCase', input })
+  }
+
+  static parseDomainOp(
+    input: DomainOpDefinition['input'],
+  ): ComponentDefinition<DomainOpDefinition> {
+    return new ComponentDefinition({ type: 'DomainOp', input })
+  }
+
+  static parseEvent(input: EventDefinition['input']): ComponentDefinition<EventDefinition> {
+    return new ComponentDefinition({ type: 'Event', input })
+  }
+
+  static parseEventHandler(
+    input: EventHandlerDefinition['input'],
+  ): ComponentDefinition<EventHandlerDefinition> {
+    return new ComponentDefinition({ type: 'EventHandler', input })
+  }
+
+  static parseCustom(input: CustomDefinition['input']): ComponentDefinition<CustomDefinition> {
+    return new ComponentDefinition({ type: 'Custom', input })
+  }
+
+  publishedUI(this: ComponentDefinition<UIDefinition>): UIComponent {
+    return { id: componentId(this.value.input, 'ui'), type: 'UI', ...this.value.input }
+  }
+
+  publishedAPI(this: ComponentDefinition<APIDefinition>): APIComponent {
+    return { id: componentId(this.value.input, 'api'), type: 'API', ...this.value.input }
+  }
+
+  publishedUseCase(this: ComponentDefinition<UseCaseDefinition>): UseCaseComponent {
+    return { id: componentId(this.value.input, 'usecase'), type: 'UseCase', ...this.value.input }
+  }
+
+  publishedDomainOp(this: ComponentDefinition<DomainOpDefinition>): DomainOpComponent {
+    return { id: componentId(this.value.input, 'domainop'), type: 'DomainOp', ...this.value.input }
+  }
+
+  publishedEvent(this: ComponentDefinition<EventDefinition>): EventComponent {
+    return { id: componentId(this.value.input, 'event'), type: 'Event', ...this.value.input }
+  }
+
+  publishedEventHandler(this: ComponentDefinition<EventHandlerDefinition>): EventHandlerComponent {
+    return {
+      id: componentId(this.value.input, 'eventhandler'),
+      type: 'EventHandler',
+      ...this.value.input,
+    }
+  }
+
+  publishedCustom(this: ComponentDefinition<CustomDefinition>): CustomComponent {
+    const { metadata, ...input } = this.value.input
+    return { id: componentId(input, 'custom'), type: 'Custom', ...input, ...metadata }
+  }
+}
+
+function componentId(input: CommonInput, type: string): string {
+  return ComponentId.parseFromParts({ ...input, type }).toString()
 }
 
 function parseValue(

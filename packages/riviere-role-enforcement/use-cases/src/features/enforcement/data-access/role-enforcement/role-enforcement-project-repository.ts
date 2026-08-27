@@ -7,6 +7,7 @@ import {
 import type { findFilesMatchingPatterns } from '../../../../infra/external-clients/filesystem/find-files-matching-patterns'
 import { findFilesMatchingPatterns as defaultFindFilesMatchingPatterns } from '../../../../infra/external-clients/filesystem/find-files-matching-patterns'
 import { readWorkspacePackagePatterns as defaultReadWorkspacePackagePatterns } from '../../../../infra/external-clients/filesystem/read-workspace-package-patterns'
+import { readWorkspacePackageManifest as defaultReadWorkspacePackageManifest } from '../../../../infra/external-clients/filesystem/read-workspace-package-manifest'
 import { loadTypeScriptModule as defaultLoadTypeScriptModule } from '../../../../infra/external-clients/typescript/load-typescript-module'
 import { RoleEnforcementProjectLoadError } from './role-enforcement-project-load-error'
 
@@ -17,6 +18,7 @@ const defaultDependencies = {
   loadTypeScriptModule: defaultLoadTypeScriptModule,
   readDirectory: defaultReadDirectory,
   readRoleDefinitionFileNames: defaultReadRoleDefinitionFileNames,
+  readWorkspacePackageManifest: defaultReadWorkspacePackageManifest,
   readWorkspacePackagePatterns: defaultReadWorkspacePackagePatterns,
   realpath: (filePath: string) => realpathSync(filePath),
 }
@@ -65,7 +67,12 @@ export class RoleEnforcementProjectRepository {
       this.dependencies.readDirectory,
     )
     config.validateWorkspacePackages(
-      workspacePackageManifests.map((manifestPath) => path.posix.dirname(manifestPath)),
+      workspacePackageManifests.map((manifestPath) => ({
+        manifest: this.dependencies.readWorkspacePackageManifest(
+          path.resolve(canonicalConfigDir, manifestPath),
+        ),
+        path: path.posix.dirname(manifestPath),
+      })),
     )
     const lintTargets = this.dependencies.findFilesMatchingPatterns(
       canonicalConfigDir,
@@ -123,7 +130,7 @@ function withoutTrailingSlash(value: string): string {
 
 function readConfig(configModule: unknown): RoleEnforcementConfiguration {
   const exportedConfiguration = readConfigExport(resolveModuleExports(configModule))
-  const parsed = RoleEnforcementConfiguration.parse(exportedConfiguration)
+  const parsed = RoleEnforcementConfiguration.parseFromUnknown(exportedConfiguration)
   if (!parsed.success) {
     throw parsed.error
   }

@@ -24,7 +24,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "node -e \"import('./dist/index.js').then(m => { if (!m.roleEnforcementConfiguration) process.exit(1) })\""
+          "node -e \"import('./dist/index.js').then(m => { if (!m.RoleEnforcementConfiguration) process.exit(1) })\""
         ],
         "cwd": "{projectRoot}",
         "parallel": false

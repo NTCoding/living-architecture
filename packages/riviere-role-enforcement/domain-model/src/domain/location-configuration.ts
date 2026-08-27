@@ -99,7 +99,10 @@ export function location<R extends string>(
   path: string,
   node: LocationNodeInput<R>,
 ): LocationBuilder<R>
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function location<R extends string>(
   path: string,
   rolesOrNode?: readonly R[] | LocationNodeInput<R>,
@@ -153,7 +156,10 @@ const reservedLocationKeys = new Set([
   'roles',
 ])
 
-/** @riviere-role domain-service */
+/**
+ * @riviere-role domain-service
+ * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
+ */
 export function locationConfiguration<R extends string>(
   ...locations: readonly LocationBuilder<R>[]
 ): LocationConfiguration<R> {

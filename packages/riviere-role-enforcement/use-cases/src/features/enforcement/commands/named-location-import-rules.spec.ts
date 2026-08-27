@@ -3,7 +3,7 @@ import { it } from 'vitest'
 import {
   location,
   locationConfiguration,
-  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
   type LocationConfiguration,
 } from '@living-architecture/riviere-role-enforcement-domain-model'
 import * as fixtureWorkspace from './__fixtures__/test-fixture-workspace'
@@ -92,7 +92,7 @@ it("an own-subdomain import allows a named location in the subdomain's other pac
     },
     (workspaceDir) => {
       const result = fixtureWorkspace.runTestRoleEnforcement(
-        roleEnforcementConfiguration({
+        RoleEnforcementConfiguration.parse({
           configurations: {
             'modules/{subdomain}/consumer': { locations: consumerLocations },
             'modules/{subdomain}/provider': { locations: providerLocations },
@@ -131,7 +131,7 @@ it("an any-subdomain import allows another subdomain's named location", () => {
     },
     (workspaceDir) => {
       const result = fixtureWorkspace.runTestRoleEnforcement(
-        roleEnforcementConfiguration({
+        RoleEnforcementConfiguration.parse({
           configurations: {
             'modules/{subdomain}/consumer': { locations: consumerLocations },
             'modules/{subdomain}/exporter': { locations: exporterLocations },
@@ -171,7 +171,7 @@ it('an any-subdomain import allows the named location in a different package gro
     (workspaceDir) => {
       const interfacePackage = { locations: interfaceLocations }
       const result = fixtureWorkspace.runTestRoleEnforcement(
-        roleEnforcementConfiguration({
+        RoleEnforcementConfiguration.parse({
           configurations: {
             'interfaces/': interfacePackage,
             'modules/{subdomain}/consumer': { locations: consumerLocations },
@@ -207,7 +207,7 @@ function runFixture(
         packagePaths.map((packagePath) => [packagePath, { locations }]),
       )
       const result = fixtureWorkspace.runTestRoleEnforcement(
-        roleEnforcementConfiguration({
+        RoleEnforcementConfiguration.parse({
           configurations,
           ignorePatterns: [],
           roleDefinitionsDir: '.riviere/role-definitions',

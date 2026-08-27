@@ -87,6 +87,9 @@ Use only these values unless the user approves a new one and this README is upda
 - `cli-formatting` — deciding where CLI output formatting, presentation, or consumer-facing translation belongs.
 - `trade-off-reasoning` — reusable reasoning about architectural trade-offs and preferred option-selection criteria.
 - `product-feasibility-impact` — recognising when architecture findings should return planning to solution exploration or PRD drafting.
+- `domain-service` — deciding whether stateless domain behaviour genuinely has no natural aggregate or value object owner.
+- `value-object` — identifying immutable domain concepts that should own their parsing, normalisation, and invariants.
+- `domain-modeling` — applying domain modelling reasoning to discover concepts, ownership, boundaries, and responsibilities.
 
 Do not record concepts as system areas.
 

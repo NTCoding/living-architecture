@@ -3,13 +3,13 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
 } from './role-enforcement-builder'
 
 describe('role configuration completeness', () => {
   it('rejects duplicate role definitions', () => {
     expect(() =>
-      roleEnforcementConfiguration({
+      RoleEnforcementConfiguration.parse({
         configurations: {
           'packages/app': {
             locations: locationConfiguration(location('/domain', ['aggregate'])),
@@ -27,7 +27,7 @@ describe('role configuration completeness', () => {
 
   it('rejects a location role that has no definition', () => {
     expect(() =>
-      roleEnforcementConfiguration({
+      RoleEnforcementConfiguration.parse({
         configurations: {
           'packages/app': {
             locations: locationConfiguration(location('/domain', ['missing-role'])),
@@ -42,7 +42,7 @@ describe('role configuration completeness', () => {
 
   it('rejects a role rule that references an unknown role', () => {
     expect(() =>
-      roleEnforcementConfiguration({
+      RoleEnforcementConfiguration.parse({
         configurations: {
           'packages/app': {
             locations: locationConfiguration(location('/domain', ['known-role'])),
@@ -60,9 +60,29 @@ describe('role configuration completeness', () => {
     ).toThrow("Role 'known-role' references unknown role 'missing-role'.")
   })
 
+  it('rejects an unknown role referenced by an indexed access type rule', () => {
+    expect(() =>
+      RoleEnforcementConfiguration.parse({
+        configurations: {
+          'packages/app': {
+            locations: locationConfiguration(location('/domain', ['known-role'])),
+          },
+        },
+        ignorePatterns: [],
+        roleDefinitionsDir: '.riviere/role-definitions',
+        roles: [
+          role('known-role', {
+            targets: ['type-alias'],
+            requiresIndexedAccessTypeFromRole: 'missing-role',
+          }),
+        ],
+      }),
+    ).toThrow("Role 'known-role' references unknown role 'missing-role'.")
+  })
+
   it('rejects an unknown role in a role-filtered location import', () => {
     expect(() =>
-      roleEnforcementConfiguration({
+      RoleEnforcementConfiguration.parse({
         configurations: {
           'packages/app': {
             locations: locationConfiguration(
@@ -81,7 +101,7 @@ describe('role configuration completeness', () => {
 
   it('accepts a parser failure branch without a role-constrained result', () => {
     expect(() =>
-      roleEnforcementConfiguration({
+      RoleEnforcementConfiguration.parse({
         configurations: {
           'packages/app': {
             locations: locationConfiguration(location('/api', ['parser', 'schema'])),

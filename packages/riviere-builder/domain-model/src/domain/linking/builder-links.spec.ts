@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { RiviereBuilder } from '../builder-facade'
+import { RiviereBuilder } from '../riviere-builder'
 
 function createValidOptions() {
   return {
@@ -366,6 +366,31 @@ describe('RiviereBuilder', () => {
         source: source.id,
         target: 'Stripe API',
         targetRepository: 'acme/payments',
+        targetName: 'Stripe API',
+      })
+    })
+
+    it('records a duplicate external target without a repository', () => {
+      const builder = RiviereBuilder.new(createValidOptions())
+      const source = builder.addUseCase({
+        name: 'Create Order',
+        domain: 'orders',
+        module: 'checkout',
+        sourceLocation: {
+          repository: 'test/repo',
+          filePath: 'src/create-order.ts',
+        },
+      })
+      const input = { from: source.id, target: { name: 'Stripe API' } }
+
+      builder.linkExternal(input)
+      builder.linkExternal(input)
+
+      expect(builder.warnings()).toContainEqual({
+        code: 'DUPLICATE_LINK_SKIPPED',
+        message: `Duplicate external link '${source.id}' -> 'Stripe API' (unspecified) skipped`,
+        source: source.id,
+        target: 'Stripe API',
         targetName: 'Stripe API',
       })
     })

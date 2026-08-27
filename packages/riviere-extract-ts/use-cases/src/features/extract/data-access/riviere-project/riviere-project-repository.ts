@@ -10,17 +10,23 @@ import {
   ValidatedConfiguration,
   type ValidationError,
 } from '@living-architecture/riviere-extract-config-published-language'
-import { readTextFile } from '../../../../infra/external-clients/filesystem/file-reader'
+import {
+  FileReadError,
+  readJsonFile,
+  readTextFile,
+} from '../../../../infra/external-clients/filesystem/file-reader'
 import { fileExists } from '../../../../infra/external-clients/filesystem/file-existence'
 import { resolveFileOrPackagePath } from '../../../../infra/external-clients/node-modules/node-module-file-resolver'
 import { GitError } from '../../../../infra/external-clients/git/git-errors'
 import { getRepositoryInfo } from '../../../../infra/external-clients/git/git-repository-info'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
-import { ExtractionStage } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-stage'
+import { ExtractionConfiguration } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-configuration'
 import { createConfiguredProject } from '../../../../infra/external-clients/ts-morph/create-configured-project'
 import { findModuleTsConfigDir } from '../../../../infra/external-clients/ts-morph/find-module-tsconfig-dir'
 import { ExtractionConfigError } from './riviere-config-error'
 import { ExtractionDataAccessError } from './riviere-project-error'
+import { DraftComponent } from '@living-architecture/riviere-extract-ts-domain-model/domain/component-extraction/draft-component'
+import { DraftComponentsLoadError } from './draft-components-load-error'
 
 class ExtractionConfigLoadError extends Error {}
 type ParsedConfigState = Readonly<{ configDir: string; configuration: ValidatedConfiguration }>
@@ -30,6 +36,11 @@ type ResolvedModuleDefaults = Pick<
 >
 
 const NOT_USED = { notUsed: true } as const
+type LoadParameters = Readonly<{
+  projectRoot: string
+  configPath: string
+  useTsConfig: boolean
+}>
 
 function formatExtractionConfigErrors(errors: readonly ValidationError[]): string {
   if (errors.length === 0) return 'validation failed without specific errors'
@@ -38,7 +49,20 @@ function formatExtractionConfigErrors(errors: readonly ValidationError[]): strin
 
 /** @riviere-role aggregate-repository */
 export class RiviereProjectRepository {
-  load(params: { projectRoot: string; configPath: string; useTsConfig: boolean }): RiviereProject {
+  load(params: LoadParameters): RiviereProject {
+    return this.loadProject(params, () => [])
+  }
+
+  loadForEnrichment(
+    params: LoadParameters & { readonly draftComponentsPath: string },
+  ): RiviereProject {
+    return this.loadProject(params, () => this.loadDraftComponents(params.draftComponentsPath))
+  }
+
+  private loadProject(
+    params: LoadParameters,
+    loadDraftComponents: () => readonly DraftComponent[],
+  ): RiviereProject {
     return this.translateDataAccessErrors(() => {
       const configPath = resolve(params.projectRoot, params.configPath)
       const parsedConfigState = this.loadParsedConfigState(configPath)
@@ -49,8 +73,30 @@ export class RiviereProjectRepository {
         sourceFilesByModule,
         params.useTsConfig,
         params.projectRoot,
+        loadDraftComponents,
       )
     })
+  }
+
+  private loadDraftComponents(path: string): readonly DraftComponent[] {
+    try {
+      const values = readJsonFile(path, 'Draft components')
+      if (!Array.isArray(values)) {
+        throw new DraftComponentsLoadError(`Draft components file must contain an array: ${path}`)
+      }
+      return values.map((value) => {
+        const parsed = DraftComponent.parse(value)
+        if (!parsed.success) {
+          throw new DraftComponentsLoadError(`${parsed.error}: ${path}`)
+        }
+        return parsed.data
+      })
+    } catch (error) {
+      if (error instanceof FileReadError) {
+        throw new DraftComponentsLoadError(error.message)
+      }
+      throw error
+    }
   }
 
   private translateDataAccessErrors<T>(load: () => T): T {
@@ -139,6 +185,8 @@ export class RiviereProjectRepository {
         'VALIDATION_ERROR',
         formatExtractionConfigErrors(result.errors),
       )
+    if (result.data.modules.length === 0)
+      throw new ExtractionConfigError('VALIDATION_ERROR', 'Config has no resolved modules')
     return result.data
   }
 
@@ -184,12 +232,7 @@ export class RiviereProjectRepository {
           formatExtractionConfigErrors(extractionConfig.errors),
       )
 
-    const first = this.resolveConfiguration(extractionConfig.configuration, configDir).modules[0]
-    if (first === undefined)
-      throw new ExtractionConfigLoadError(
-        `Invalid extended config in '${source}': Config has no resolved modules`,
-      )
-    return this.moduleInput(first)
+    return this.resolveModule(extractionConfig.configuration.modules[0], configDir)
   }
 
   private topLevelRulesToModule(parsed: Partial<ValidatedModuleInput>): ResolvedModuleDefaults {
@@ -237,14 +280,15 @@ export class RiviereProjectRepository {
     sourceFilesByModule: ReadonlyMap<ValidatedModule, string[]>,
     useTsConfig: boolean,
     projectRoot: string,
+    loadDraftComponents: () => readonly DraftComponent[],
   ): RiviereProject {
-      const moduleSources = this.createModuleSources(
-        parsedConfigState.configDir,
-        sourceFilesByModule,
-        useTsConfig,
+    const moduleSources = this.createModuleSources(
+      parsedConfigState.configDir,
+      sourceFilesByModule,
+      useTsConfig,
     )
     const repositoryName = getRepositoryInfo('git', projectRoot).name
-    const stage = ExtractionStage.parse({
+    const configuration = ExtractionConfiguration.parse({
       name: configPath,
       configPath,
       useTsConfig,
@@ -256,7 +300,10 @@ export class RiviereProjectRepository {
         project: source.project,
       })),
     })
-    const projectResult = RiviereProject.parse({ stage })
+    const projectResult = RiviereProject.parse({
+      configuration,
+      draftComponents: loadDraftComponents(),
+    })
     if (!projectResult.success)
       throw new ExtractionConfigError('VALIDATION_ERROR', projectResult.error)
     return projectResult.data
@@ -329,22 +376,5 @@ export class RiviereProjectRepository {
     return (
       typeof value === 'object' && value !== null && !Array.isArray(value) && !('modules' in value)
     )
-  }
-
-  private moduleInput(module: ValidatedModule): ValidatedModuleInput {
-    return {
-      name: module.name,
-      domain: module.domain,
-      path: module.path,
-      glob: module.glob,
-      ...(module.modules !== undefined && { modules: module.modules }),
-      api: module.api,
-      useCase: module.useCase,
-      domainOp: module.domainOp,
-      event: module.event,
-      eventHandler: module.eventHandler,
-      ui: module.ui,
-      ...(module.customTypes !== undefined && { customTypes: module.customTypes }),
-    }
   }
 }

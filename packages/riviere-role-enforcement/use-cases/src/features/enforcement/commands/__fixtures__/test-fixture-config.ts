@@ -2,7 +2,7 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
+  RoleEnforcementConfiguration,
 } from '@living-architecture/riviere-role-enforcement-domain-model'
 
 export const genericTestRoles = [
@@ -44,7 +44,7 @@ const genericTestLocations = locationConfiguration(
   location<GenericTestRoleName>('/repositories', ['role-b-repository']),
 )
 
-export const genericTestConfig = roleEnforcementConfiguration({
+export const genericTestConfig = RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/pkg-a': {
       locations: genericTestLocations,
@@ -55,8 +55,8 @@ export const genericTestConfig = roleEnforcementConfiguration({
   roles: genericTestRoles,
 })
 
-function configWithGenericAggregateOverride(aggregateOptions: Parameters<typeof role>[1]) {
-  return roleEnforcementConfiguration({
+export function configWithGenericAggregateOverride(aggregateOptions: Parameters<typeof role>[1]) {
+  return RoleEnforcementConfiguration.parse({
     configurations: {
       'packages/pkg-a': {
         locations: genericTestLocations,
@@ -98,19 +98,22 @@ export function configWithGenericRequiredPrivateMembers(requiredPrivateMembers: 
   })
 }
 
-export function configWithGenericClassStateConstraints() {
+export function configWithPrivateDataMembers() {
   return configWithGenericAggregateOverride({
     targets: ['class'],
-    requiredPrivateMembers: ['brand'],
-    requiresDataMembers: true,
-    forbiddenCallableDataMembers: true,
-    requiresPrivateConstructor: true,
-    requiredStaticMethodNamePrefix: 'parse',
+    requiresPrivateDataMembers: true,
+  })
+}
+
+export function configWithReadonlyDataMembers() {
+  return configWithGenericAggregateOverride({
+    targets: ['class'],
+    requiresReadonlyDataMembers: true,
   })
 }
 
 export function configWithGenericRepositoryMethodInputs(allowedInputs: string[]) {
-  return roleEnforcementConfiguration({
+  return RoleEnforcementConfiguration.parse({
     configurations: {
       'packages/pkg-a': {
         locations: genericTestLocations,
@@ -130,7 +133,7 @@ export function configWithGenericRepositoryMethodInputs(allowedInputs: string[])
 }
 
 export function configWithGenericRepositoryMethodInputsOnly(allowedInputs: string[]) {
-  return roleEnforcementConfiguration({
+  return RoleEnforcementConfiguration.parse({
     configurations: {
       'packages/pkg-a': {
         locations: genericTestLocations,

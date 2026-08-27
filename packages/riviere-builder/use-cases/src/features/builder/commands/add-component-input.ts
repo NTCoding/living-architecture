@@ -6,7 +6,7 @@ export interface AddComponentInput {
   module: string
   repository: string
   filePath: string
-  graphPathOption?: string
+  graphFileLocation: string
   lineNumber?: number
   columnNumber?: number
   route?: string

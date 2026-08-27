@@ -1,11 +1,7 @@
-import type {
-  Node, Edge, NodeType 
-} from '@/platform/domain/eclair-types'
+import type { Node, Edge, NodeType } from '@/platform/domain/eclair-types'
 import { getNodeTypeColor } from '@/platform/domain/node-type-presentation'
-import { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
-import type {
-  SimulationNodeDatum, SimulationLinkDatum 
-} from 'd3'
+import { ascendingCodePointSortResult } from '@/platform/domain/ascending-code-point-sort-result'
+import type { SimulationNodeDatum, SimulationLinkDatum } from 'd3'
 
 export interface SimulationNode extends SimulationNodeDatum {
   id: string
@@ -137,7 +133,7 @@ function getDomainPaletteColor(index: number): string {
 }
 
 export function getDomainColor(domain: string, domains: string[]): string {
-  const sortedDomains = [...domains].sort(compareByCodePoint)
+  const sortedDomains = [...domains].sort(ascendingCodePointSortResult)
   const index = sortedDomains.indexOf(domain)
   if (index === -1) return getDomainPaletteColor(0)
   return getDomainPaletteColor(index % 10)

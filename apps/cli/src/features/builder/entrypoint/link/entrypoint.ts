@@ -25,6 +25,7 @@ interface LinkOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateLinkCommandEntrypointDependencies {
   readonly linkComponents: LinkComponents
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly parseLinkSourceLocation: typeof parseLinkSourceLocation
   readonly formatError: typeof formatError
@@ -85,7 +86,7 @@ Examples:
 
       const result = linkComponents.execute({
         from: options.from,
-        graphPathOption: options.graph,
+        graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation,
         targetDomain: options.toDomain,
         targetModule: options.toModule,
         targetName: options.toName,

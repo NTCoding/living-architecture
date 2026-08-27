@@ -1,11 +1,11 @@
 export { PackageFilterError, filterConfigByPackage } from './domain/filter-config-by-package'
+export { PackageManifestRequirements } from './domain/package-manifest-requirements'
 export {
   BuiltRole,
   location,
   locationConfiguration,
   role,
   RoleEnforcementConfiguration,
-  roleEnforcementConfiguration,
 } from './domain/role-enforcement-builder'
 export type { LocationBuilder, LocationConfiguration } from './domain/role-enforcement-builder'
 export type {

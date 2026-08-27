@@ -1,4 +1,3 @@
-import { applyEvent } from './fold'
 import type { WorkflowEvent } from './workflow-events'
 import { getInitialWorkflowState, type WorkflowState } from './workflow-types'
 
@@ -19,7 +18,7 @@ describe('applyEvent — review-recorded', () => {
       verdict: 'PASS',
     }
 
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
 
     expect(result.taskCheckPassed).toStrictEqual(true)
   })
@@ -33,7 +32,7 @@ describe('applyEvent — review-recorded', () => {
       verdict: 'FAIL',
     }
 
-    const result = applyEvent(makeState({ taskCheckPassed: true }), event)
+    const result = makeState({ taskCheckPassed: true }).apply(event)
 
     expect(result.taskCheckPassed).toStrictEqual(false)
   })
@@ -47,7 +46,7 @@ describe('applyEvent — review-recorded', () => {
       verdict: 'PASS',
     }
 
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
 
     expect(result.architectureReviewPassed).toStrictEqual(true)
   })
@@ -61,7 +60,7 @@ describe('applyEvent — review-recorded', () => {
       verdict: 'PASS',
     }
 
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
 
     expect(result.codeReviewPassed).toStrictEqual(true)
   })
@@ -75,7 +74,7 @@ describe('applyEvent — review-recorded', () => {
       verdict: 'FAIL',
     }
 
-    const result = applyEvent(makeState({ codeReviewPassed: true }), event)
+    const result = makeState({ codeReviewPassed: true }).apply(event)
 
     expect(result.codeReviewPassed).toStrictEqual(false)
   })
@@ -89,7 +88,7 @@ describe('applyEvent — review-recorded', () => {
       verdict: 'PASS',
     }
 
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
 
     expect(result.bugScannerPassed).toStrictEqual(true)
   })
@@ -103,7 +102,7 @@ describe('applyEvent — review-recorded', () => {
       verdict: 'FAIL',
     }
 
-    const result = applyEvent(makeState({ bugScannerPassed: true }), event)
+    const result = makeState({ bugScannerPassed: true }).apply(event)
 
     expect(result.bugScannerPassed).toStrictEqual(false)
   })
@@ -117,7 +116,7 @@ describe('applyEvent — review-recorded', () => {
       verdict: 'PASS',
     }
 
-    const result = applyEvent(EMPTY_STATE, event)
+    const result = EMPTY_STATE.apply(event)
 
     expect(result).toStrictEqual(EMPTY_STATE)
   })

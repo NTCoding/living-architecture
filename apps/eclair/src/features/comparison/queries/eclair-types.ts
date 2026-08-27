@@ -1,2 +1,2 @@
 export type { Node } from '@/platform/domain/eclair-types'
-export { compareByCodePoint } from '@/platform/domain/compare-by-code-point'
+export { ascendingCodePointSortResult } from '@/platform/domain/ascending-code-point-sort-result'

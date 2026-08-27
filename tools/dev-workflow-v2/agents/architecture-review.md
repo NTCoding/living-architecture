@@ -105,3 +105,10 @@ Before generating your response, verify:
 - [ ] JSON verdict returned: `{"verdict": "PASS"}` or `{"verdict": "FAIL"}`
 
 REMINDER: This is an AUDIT organized by file. Every file must have its own section. Every rule code must have a row in every file's table. Do not group by rule — group by file.
+# Additional domain and adapter checks
+
+Fail the review when application code reads aggregate state to make a domain decision, or takes aggregate state out to construct an argument passed back into that aggregate. The aggregate or value object must own that behaviour.
+
+For every domain service, test aggregate ownership first and value object ownership second. Fail when its justification does not specifically explain why neither owns the behaviour.
+
+Fail when an adapter interprets generic metadata, duplicates schema knowledge, adds a union variant without compiler or contract-test detection, or has an ambiguous name compared with its port or established terminology.

@@ -1,103 +1,67 @@
 import type { Project } from 'ts-morph'
-import type {
-  HttpLinkConfig,
-  ValidatedConfiguration,
-  ValidatedModule,
-} from '@living-architecture/riviere-extract-config-published-language'
-import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
 import { DraftComponent } from './component-extraction/draft-component'
-import { extractComponents, resolveModuleName } from './component-extraction/extractor'
-import { ConnectionTimings } from './connection-detection/connection-detection-values'
-import { detectConfiguredConnections } from './connection-detection/detect-configured-connections'
-import type { ExtractedLink } from './connection-detection/extracted-link'
-import { stripResolvedCustomTypes } from './connection-detection/resolve-http-links'
+import { AsyncDetectionOptions } from './connection-detection/async-detection/async-detection-options'
+import { detectEventPublisherConnections } from './connection-detection/async-detection/detect-event-publisher-connections'
+import { detectSubscribeConnections } from './connection-detection/async-detection/detect-subscribe-connections'
+import { ComponentIndex } from './connection-detection/component-index'
+import { ConnectionDetectionResult } from './connection-detection/connection-detection-result'
+import { detectCallsInCallable } from './connection-detection/call-graph/detect-calls-in-callable'
+import { detectConnectionsFromCalls } from './connection-detection/call-graph/detect-connections-from-calls'
+import { locateComponentCallables } from './connection-detection/call-graph/locate-component-callables'
+import { resolveCallTargets } from './connection-detection/call-graph/resolve-call-targets'
+import {
+  ScopedCallGraph,
+  ScopedCallGraphEdge,
+  UnresolvedScopedCall,
+} from './connection-detection/call-graph/scoped-call-graph'
+import type { ComponentCallable } from './connection-detection/call-graph/scoped-call-graph'
+import type { CallableReference } from './connection-detection/call-graph/callable-reference'
+import type { CallSite } from './connection-detection/call-graph/call-graph-types'
+import type { ResolvedCallTarget } from './connection-detection/call-graph/detected-call'
+import {
+  resolveHttpLinks,
+  stripResolvedCustomTypes,
+} from './connection-detection/resolve-http-links'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
-import { enrichComponentsForModules } from './extract-components-for-graph'
 import { MissingModuleSourceError } from './extraction-errors'
-import type { EnrichedComponent } from './value-extraction/enriched-component'
-import type { ExtractionStage } from './extraction-stage'
-import type { LoadDraftComponents } from './ports/load-draft-components'
-
-interface DraftOnlyOutcome {
-  kind: 'draftOnly'
-  components: readonly DraftComponent[]
-}
-
-interface FullExtractionOutcome {
-  kind: 'full'
-  components: EnrichedComponent[]
-  failedFields: string[]
-  links: ExtractedLink[]
-  externalLinks: ExternalLink[]
-  timings: ConnectionTimings[]
-}
-
-interface FieldFailureOutcome {
-  kind: 'fieldFailure'
-  failedFields: string[]
-}
-
-interface DraftComponentsFailureOutcome {
-  kind: 'draftComponentsFailure'
-  message: string
-}
-
-type ExtractionOutcome =
-  | DraftOnlyOutcome
-  | FullExtractionOutcome
-  | FieldFailureOutcome
-  | DraftComponentsFailureOutcome
-
-interface ModuleSource {
-  files: readonly string[]
-  project: Project
-}
-
-interface RiviereProjectInput {
-  stage: ExtractionStage
-}
-
-interface ComponentOwnershipInput {
-  readonly component: {
-    readonly domain: string
-    readonly location?: { readonly file: string }
-    readonly module: string
-  }
-  readonly module: ValidatedModule
-  readonly files: readonly string[]
-}
-
-type RiviereProjectParseResult =
-  | { success: true; data: RiviereProject }
-  | { success: false; error: string }
+import { type EnrichedComponent, EnrichmentResult } from './value-extraction/enriched-component'
+import type { ExtractionConfiguration } from './extraction-configuration'
+import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
+import { RiviereModule } from './riviere-module'
 
 export { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 
 /** @riviere-role aggregate */
 export class RiviereProject {
-  readonly stage: ExtractionStage
-
   private constructor(
-    stage: ExtractionStage,
-    private readonly moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
-  ) {
-    this.stage = stage
-  }
+    private readonly configuration: ExtractionConfiguration,
+    private readonly modules: readonly RiviereModule[],
+    private unassignedDraftComponents: readonly DraftComponent[],
+  ) {}
 
-  static parse(input: RiviereProjectInput): RiviereProjectParseResult {
-    const configuredModules = new Set(input.stage.resolvedConfig.modules)
-    const moduleSources = new Map(
-      input.stage.moduleContexts.map((context) => [context.module, context] as const),
+  static parse(input: {
+    configuration: ExtractionConfiguration
+    draftComponents: readonly DraftComponent[]
+  }) {
+    const configuredModules = new Set(input.configuration.resolvedConfig.modules)
+    const moduleContexts = new Map(
+      input.configuration.moduleContexts.map((context) => [context.module, context] as const),
     )
-    const missingSources = input.stage.resolvedConfig.modules.filter(
-      (module) => !moduleSources.has(module),
+    const configuredModuleContexts = input.configuration.resolvedConfig.modules.flatMap(
+      (configuration) => {
+        const context = moduleContexts.get(configuration)
+        return context === undefined ? [] : [{ configuration, context }]
+      },
     )
-    const foreignSources = [...moduleSources.keys()].filter(
+    const missingSources = input.configuration.resolvedConfig.modules.filter(
+      (module) => !moduleContexts.has(module),
+    )
+    const foreignSources = [...moduleContexts.keys()].filter(
       (module) => !configuredModules.has(module),
     )
     if (missingSources.length > 0 || foreignSources.length > 0) {
       return {
-        success: false,
+        success: false as const,
         error: [
           ...missingSources.map((module) => `Missing source for module '${module.name}'`),
           ...foreignSources.map((module) => `Source supplied for unknown module '${module.name}'`),
@@ -105,9 +69,21 @@ export class RiviereProject {
       }
     }
 
+    const modules = configuredModuleContexts.map(({ configuration, context }) => {
+      return RiviereModule.build({
+        configuration,
+        project: context.project,
+        sourceFiles: context.files,
+        candidateDraftComponents: input.draftComponents,
+      })
+    })
+    const assignedDraftComponents = new Set(modules.flatMap((module) => module.draftComponents()))
+    const unassignedDraftComponents = input.draftComponents.filter(
+      (component) => !assignedDraftComponents.has(component),
+    )
     return {
-      success: true,
-      data: new RiviereProject(input.stage, moduleSources),
+      success: true as const,
+      data: new RiviereProject(input.configuration, modules, unassignedDraftComponents),
     }
   }
 
@@ -115,153 +91,150 @@ export class RiviereProject {
     sourceFileSelection?: SourceFileSelection
     allowIncomplete: boolean
     includeConnections: boolean
-  }): ExtractionOutcome {
-    const selectedModuleSources = this.selectedModuleSources(
-      options.sourceFileSelection ?? { kind: 'all' },
+    observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
+  }) {
+    this.assertEveryConfiguredModuleHasAnEntity()
+    const selection = options.sourceFileSelection ?? { kind: 'all' as const }
+    const draftComponents = this.modules.flatMap((module) =>
+      selection.kind === 'all'
+        ? module.extractAllDraftComponents()
+        : module.extractDraftComponentsFrom(new Set(selection.filePaths)),
     )
-    const draftComponents = this.stage.resolvedConfig.modules.flatMap((module) => {
-      const source = this.sourceFor(module)
-      const selectedFiles = sourceForModule(selectedModuleSources, module).files
-      return extractComponents(source.project, [...selectedFiles], module)
-    })
+    this.unassignedDraftComponents = []
 
     if (!options.includeConnections) {
       return {
-        kind: 'draftOnly',
+        kind: 'draftOnly' as const,
         components: draftComponents,
       }
     }
 
-    const enrichment = enrichComponentsForModules(
-      this.stage.resolvedConfig.modules,
-      this.moduleContexts,
-      groupDraftsByModule(
-        draftComponents,
-        this.stage.resolvedConfig.modules,
-        selectedModuleSources,
-      ),
-      options.allowIncomplete,
-    )
-    if (enrichment.kind === 'fieldFailure') {
-      return enrichment
-    }
-
-    const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
-    const httpLinks = this.stage.resolvedConfig.connections?.httpLinks ?? []
-    const visibleComponents = stripResolvedCustomTypes(
-      enrichment.components,
-      httpLinks,
-      connectionResult.links,
-    )
-
-    return {
-      kind: 'full',
-      components: visibleComponents,
-      failedFields: enrichment.failedFields,
-      links: connectionResult.links,
-      externalLinks: connectionResult.externalLinks,
-      timings: connectionResult.timings,
-    }
+    return this.enrichDraftComponentsAndDetectConnections(options)
   }
 
   enrichDraftComponents(options: {
-    draftComponentsPath: string
-    loadDraftComponents: LoadDraftComponents
     allowIncomplete: boolean
     includeConnections: boolean
-  }): ExtractionOutcome {
-    const loadedDraftComponents = options.loadDraftComponents(options.draftComponentsPath)
-    if (!loadedDraftComponents.success)
-      return { kind: 'draftComponentsFailure', message: loadedDraftComponents.error }
-    if (!Array.isArray(loadedDraftComponents.draftComponents)) {
-      return {
-        kind: 'draftComponentsFailure',
-        message: `Draft components file must contain an array: ${options.draftComponentsPath}`,
-      }
-    }
-    const draftComponents = []
-    for (const draftComponent of loadedDraftComponents.draftComponents) {
-      const parsedDraftComponent = DraftComponent.parse(draftComponent)
-      if (!parsedDraftComponent.success) {
-        return {
-          kind: 'draftComponentsFailure',
-          message: `${parsedDraftComponent.error}: ${options.draftComponentsPath}`,
-        }
-      }
-      draftComponents.push(parsedDraftComponent.data)
-    }
+    observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
+  }) {
+    this.assertEveryConfiguredModuleHasAnEntity()
+    const draftComponents = this.modules.flatMap((module) => module.draftComponents())
     if (!options.includeConnections) {
       return {
-        kind: 'draftOnly',
+        kind: 'draftOnly' as const,
         components: draftComponents,
       }
     }
 
-    const enrichment = enrichComponentsForModules(
-      this.stage.resolvedConfig.modules,
-      this.moduleContexts,
-      groupDraftsByModule(draftComponents, this.stage.resolvedConfig.modules, this.moduleSources),
-      options.allowIncomplete,
+    return this.enrichDraftComponentsAndDetectConnections(options)
+  }
+
+  private enrichDraftComponentsAndDetectConnections(options: {
+    allowIncomplete: boolean
+    observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
+  }) {
+    this.assertNoUnassignedDraftComponents()
+    const enrichment = EnrichmentResult.mergeModuleResults(
+      this.modules
+        .filter((module) => module.draftComponents().length > 0)
+        .map((module) => module.enrichDraftComponents()),
     )
-    if (enrichment.kind === 'fieldFailure') {
-      return enrichment
+    const failedFields = enrichment.failedFieldNames()
+    if (enrichment.hasFailures() && !options.allowIncomplete) {
+      return { kind: 'fieldFailure' as const, failedFields }
     }
-
-    const connectionResult = this.detectConnections(enrichment.components, options.allowIncomplete)
-    const httpLinks = this.stage.resolvedConfig.connections?.httpLinks ?? []
-    const visibleComponents = stripResolvedCustomTypes(
+    const connectionResult = this.detectConnections(
       enrichment.components,
-      httpLinks,
-      connectionResult.links,
+      options.allowIncomplete,
+      options.observeConnectionDetectionPhase,
     )
-
+    const httpLinks = this.configuration.resolvedConfig.connections?.httpLinks ?? []
     return {
-      kind: 'full',
-      components: visibleComponents,
-      failedFields: enrichment.failedFields,
+      kind: 'full' as const,
+      components: stripResolvedCustomTypes(
+        enrichment.components,
+        httpLinks,
+        connectionResult.links,
+      ),
+      failedFields,
       links: connectionResult.links,
       externalLinks: connectionResult.externalLinks,
-      timings: connectionResult.timings,
     }
   }
 
   public detectConnections(
     enrichedComponents: EnrichedComponent[],
     allowIncomplete: boolean,
-  ): {
-    links: ExtractedLink[]
-    externalLinks: ExternalLink[]
-    timings: ConnectionTimings[]
-  } {
-    return detectProjectConnections({
-      configuration: this.stage.resolvedConfig,
-      moduleSources: this.moduleSources,
-      repository: this.stage.repositoryName,
-      enrichedComponents,
-      allowIncomplete,
-      httpLinks: this.stage.resolvedConfig.connections?.httpLinks ?? [],
+    observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase,
+  ) {
+    return observePhase(observeConnectionDetectionPhase, 'total', () => {
+      const componentIndex = observePhase(observeConnectionDetectionPhase, 'setup', () =>
+        ComponentIndex.parse(enrichedComponents),
+      )
+      const strict = !allowIncomplete
+      const scopedCallGraphs = observePhase(observeConnectionDetectionPhase, 'callGraph', () =>
+        this.buildScopedCallGraphs(enrichedComponents, componentIndex, strict),
+      )
+      return observePhase(observeConnectionDetectionPhase, 'detection', () => {
+        const connectionsDetectedFromCalls = scopedCallGraphs.flatMap((graph) =>
+          detectConnectionsFromCalls(graph, this.configuration.repositoryName),
+        )
+        const asyncOptions = AsyncDetectionOptions.parse({
+          strict,
+          repository: this.configuration.repositoryName,
+        })
+        const connectionsDetectedFromEvents = [
+          ...detectEventPublisherConnections(
+            enrichedComponents,
+            this.configuration.resolvedConfig.connections?.eventPublishers ?? [],
+            asyncOptions,
+          ),
+          ...detectSubscribeConnections(enrichedComponents, asyncOptions),
+        ]
+        const resolvedHttpConnections = resolveHttpLinks(
+          connectionsDetectedFromCalls,
+          enrichedComponents,
+          this.configuration.resolvedConfig.connections?.httpLinks ?? [],
+        )
+        return ConnectionDetectionResult.parse({
+          links: [...resolvedHttpConnections.links, ...connectionsDetectedFromEvents],
+          externalLinks: resolvedHttpConnections.externalLinks,
+        })
+      })
     })
   }
 
-  private get moduleContexts() {
-    return this.stage.moduleContexts.map(({ module, project }) => ({ module, project }))
+  private buildScopedCallGraphs(
+    enrichedComponents: readonly EnrichedComponent[],
+    componentIndex: ComponentIndex,
+    strict: boolean,
+  ): ScopedCallGraph[] {
+    return this.modules.map((module) => {
+      const components = enrichedComponents.filter((component) => module.owns(component))
+      return buildScopedCallGraph({
+        project: module.typeScriptProject(),
+        sourceFilePaths: module.sourceFilePaths(),
+        components,
+        componentIndex,
+        strict,
+      })
+    })
   }
 
-  private sourceFor(module: ValidatedModule): ModuleSource {
-    return sourceForModule(this.moduleSources, module)
+  private assertEveryConfiguredModuleHasAnEntity(): void {
+    for (const configuration of this.configuration.resolvedConfig.modules) {
+      if (!this.modules.some((module) => module.name() === configuration.name)) {
+        throw new MissingModuleSourceError(configuration.name)
+      }
+    }
   }
 
-  private selectedModuleSources(selection: SourceFileSelection) {
-    if (selection.kind === 'all') return this.moduleSources
-    const selectedFiles = new Set(selection.filePaths)
-    return new Map(
-      [...this.moduleSources.entries()].map(
-        ([module, source]) =>
-          [
-            module,
-            { ...source, files: source.files.filter((file) => selectedFiles.has(file)) },
-          ] as const,
-      ),
+  private assertNoUnassignedDraftComponents(): void {
+    if (this.unassignedDraftComponents.length === 0) return
+    throw new OrphanedDraftComponentError(
+      [...new Set(this.unassignedDraftComponents.map((draft) => draft.domain))],
+      this.modules.map((module) => module.domain()),
+      'domains',
     )
   }
 }
@@ -270,120 +243,119 @@ type SourceFileSelection =
   | { readonly kind: 'all' }
   | { readonly kind: 'files'; readonly filePaths: readonly string[] }
 
-function moduleOwnsComponent(input: ComponentOwnershipInput): boolean {
-  const { component, module, files } = input
-  const { location, domain, module: componentModule } = component
-  const { domain: moduleDomain } = module
-  if (location === undefined) {
-    return domain === moduleDomain && componentModule === module.name
+interface BuildScopedCallGraphInput {
+  readonly project: Project
+  readonly sourceFilePaths: readonly string[]
+  readonly components: readonly EnrichedComponent[]
+  readonly componentIndex: ComponentIndex
+  readonly strict: boolean
+}
+
+function buildScopedCallGraph(input: BuildScopedCallGraphInput): ScopedCallGraph {
+  const roots = locateComponentCallables(input.project, input.components)
+  const edges: ScopedCallGraphEdge[] = []
+  const unresolvedCalls: UnresolvedScopedCall[] = []
+  for (const root of roots) {
+    traceCallable({
+      ...input,
+      root,
+      callable: root.callable,
+      edges,
+      unresolvedCalls,
+      visited: new Set([root.callable.toKey()]),
+    })
   }
-  const { file } = location
-  const isConfiguredFile = files.length === 0 || files.includes(file)
-  if (!isConfiguredFile || domain !== moduleDomain) return false
-  const resolvedModule = files.length === 0 ? module.name : resolveModuleName(file, module)
-  return resolvedModule === componentModule
+  return ScopedCallGraph.parse({ roots, edges, unresolvedCalls })
 }
 
-export { moduleOwnsComponent }
-
-interface ProjectConnectionDetectionInput {
-  readonly configuration: ValidatedConfiguration
-  readonly moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>
-  readonly repository: string
-  readonly enrichedComponents: EnrichedComponent[]
-  readonly allowIncomplete: boolean
-  readonly httpLinks: HttpLinkConfig[]
-}
-
-function detectProjectConnections(input: ProjectConnectionDetectionInput): {
-  links: ExtractedLink[]
-  externalLinks: ExternalLink[]
-  timings: ConnectionTimings[]
-} {
-  const sources = input.configuration.modules.map((module) => configuredSource(module, input))
-  const result = detectConfiguredConnections({
-    sources,
-    allComponents: input.enrichedComponents,
-    options: {
-      allowIncomplete: input.allowIncomplete,
-      repository: input.repository,
-      ...(input.configuration.connections?.eventPublishers === undefined
-        ? {}
-        : { eventPublishers: input.configuration.connections.eventPublishers }),
-      ...(input.httpLinks.length === 0 ? {} : { httpLinks: input.httpLinks }),
-    },
+function traceCallable(
+  input: BuildScopedCallGraphInput & {
+    readonly root: ComponentCallable
+    readonly callable: CallableReference
+    readonly edges: ScopedCallGraphEdge[]
+    readonly unresolvedCalls: UnresolvedScopedCall[]
+    readonly visited: ReadonlySet<string>
+    readonly originCallSite?: CallSite
+  },
+): void {
+  const calls = detectCallsInCallable(input.project, input.callable, input.strict)
+  const targets = resolveCallTargets({
+    calls,
+    project: input.project,
+    sourceFilePaths: input.sourceFilePaths,
+    componentIndex: input.componentIndex,
+    strict: input.strict,
   })
-  return {
-    links: result.links,
-    externalLinks: result.externalLinks,
-    timings: [summarizeConnectionTimings(result.timings)],
+  for (const target of targets) {
+    const originCallSite = input.originCallSite ?? target.call.callSite
+    const nextCallable = recordResolvedCallTarget(input, target, originCallSite)
+    if (nextCallable === undefined || input.visited.has(nextCallable.toKey())) continue
+    traceCallable({
+      ...input,
+      callable: nextCallable,
+      originCallSite,
+      visited: new Set([...input.visited, nextCallable.toKey()]),
+    })
   }
 }
 
-function configuredSource(
-  module: ValidatedModule,
-  input: ProjectConnectionDetectionInput,
-): {
-  files: readonly string[]
-  project: Project
-  components: readonly EnrichedComponent[]
-} {
-  const source = sourceForModule(input.moduleSources, module)
-  return {
-    files: source.files,
-    project: source.project,
-    components: input.enrichedComponents.filter((component) =>
-      moduleOwnsComponent({ component, module, files: source.files }),
-    ),
-  }
-}
-
-function summarizeConnectionTimings(timings: readonly ConnectionTimings[]): ConnectionTimings {
-  return ConnectionTimings.parse({
-    callGraphMs: timings.reduce((total, timing) => total + timing.callGraphMs, 0),
-    asyncDetectionMs: timings.reduce((total, timing) => total + timing.asyncDetectionMs, 0),
-    setupMs: timings.reduce((total, timing) => total + timing.setupMs, 0),
-    totalMs: timings.reduce((total, timing) => total + timing.totalMs, 0),
-  })
-}
-
-function groupDraftsByModule(
-  drafts: readonly DraftComponent[],
-  modules: readonly ValidatedModule[],
-  moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
-): Map<string, DraftComponent[]> {
-  const grouped = new Map<string, DraftComponent[]>()
-  for (const module of modules) {
-    const source = moduleSources.get(module)
-    if (source === undefined) {
-      throw new MissingModuleSourceError(module.name)
+function recordResolvedCallTarget(
+  input: BuildScopedCallGraphInput & {
+    readonly root: ComponentCallable
+    readonly callable: CallableReference
+    readonly edges: ScopedCallGraphEdge[]
+    readonly unresolvedCalls: UnresolvedScopedCall[]
+  },
+  target: ResolvedCallTarget,
+  originCallSite: CallSite,
+): CallableReference | undefined {
+  const resolution = target.resolution
+  switch (resolution.kind) {
+    case 'unresolved': {
+      const isRootCallable = input.callable.toKey() === input.root.callable.toKey()
+      if (target.call.unresolvedReason !== undefined && !isRootCallable) return undefined
+      input.unresolvedCalls.push(
+        UnresolvedScopedCall.parse({
+          sourceComponent: input.root.component,
+          originCallSite,
+          reason: resolution.reason,
+        }),
+      )
+      return undefined
     }
-    const moduleDrafts = drafts.filter((draft) =>
-      moduleOwnsComponent({ component: draft, module, files: source.files }),
-    )
-    if (moduleDrafts.length > 0) grouped.set(module.name, moduleDrafts)
+    case 'dead-end':
+      return undefined
+    case 'component':
+      input.edges.push(
+        ScopedCallGraphEdge.parse({
+          source: input.callable,
+          target: resolution.callable,
+          targetComponent: resolution.component,
+          callSite: target.call.callSite,
+        }),
+      )
+      return undefined
+    case 'callable':
+      input.edges.push(
+        ScopedCallGraphEdge.parse({
+          source: input.callable,
+          target: resolution.callable,
+          callSite: target.call.callSite,
+        }),
+      )
+      return resolution.callable
   }
-
-  const matchedDrafts = new Set([...grouped.values()].flat())
-  const unmatchedDrafts = drafts.filter((draft) => !matchedDrafts.has(draft))
-  if (unmatchedDrafts.length > 0) {
-    throw new OrphanedDraftComponentError(
-      [...new Set(unmatchedDrafts.map((draft) => draft.domain))],
-      modules.map((module) => module.domain),
-      'domains',
-    )
-  }
-
-  return grouped
 }
 
-function sourceForModule(
-  moduleSources: ReadonlyMap<ValidatedModule, ModuleSource>,
-  module: ValidatedModule,
-): ModuleSource {
-  const source = moduleSources.get(module)
-  if (source === undefined) {
-    throw new MissingModuleSourceError(module.name)
+function observePhase<T>(
+  observer: ObserveConnectionDetectionPhase | undefined,
+  phase: 'setup' | 'callGraph' | 'detection' | 'total',
+  operation: () => T,
+): T {
+  observer?.({ phase, status: 'started' })
+  try {
+    return operation()
+  } finally {
+    observer?.({ phase, status: 'completed' })
   }
-  return source
 }

@@ -4,7 +4,6 @@ import {
   location,
   locationConfiguration,
   role,
-  roleEnforcementConfiguration,
   RoleEnforcementConfiguration,
 } from './role-enforcement-builder'
 
@@ -14,14 +13,14 @@ const testRoles = [
 ] as const
 
 function expectValidConfiguration(
-  result: ReturnType<typeof RoleEnforcementConfiguration.parse>,
+  result: ReturnType<typeof RoleEnforcementConfiguration.parseFromUnknown>,
 ): RoleEnforcementConfiguration {
   if (!result.success) throw result.error
   return result.data
 }
 
 function createMultiPackageConfig(): RoleEnforcementConfiguration {
-  return roleEnforcementConfiguration({
+  return RoleEnforcementConfiguration.parse({
     configurations: {
       'packages/{package}': {
         locations: locationConfiguration(
@@ -125,7 +124,7 @@ describe('filterConfigByPackage', () => {
 
   it('keeps an include pattern without a source folder unchanged', () => {
     const config = expectValidConfiguration(
-      RoleEnforcementConfiguration.parse({
+      RoleEnforcementConfiguration.parseFromUnknown({
         ...createMultiPackageConfig(),
         include: ['packages/*'],
       }),

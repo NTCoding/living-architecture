@@ -22,6 +22,7 @@ interface EnrichOptions {
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateEnrichCommandEntrypointDependencies {
   readonly enrichComponent: EnrichComponent
+  readonly defaultGraphFileLocation: string
   readonly getDefaultGraphPathDescription: typeof getDefaultGraphPathDescription
   readonly parseStateChanges: typeof parseStateChanges
   readonly formatError: typeof formatError
@@ -118,7 +119,7 @@ Examples:
         businessRules: options.businessRule,
         entity: options.entity,
         emits: options.emits,
-        graphPathOption: options.graph,
+        graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation,
         id: options.id,
         modifies: options.modifies,
         reads: options.reads,
