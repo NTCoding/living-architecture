@@ -7,7 +7,10 @@ export class CodePointSequence {
   private constructor(private readonly codePoints: readonly number[]) {}
 
   static parse(value: string): CodePointSequence {
-    return new CodePointSequence(Array.from(value, toCodePoint))
+    const codePoints = Array.from(value, (character) => character.codePointAt(0)).filter(
+      (codePoint) => codePoint !== undefined,
+    )
+    return new CodePointSequence(codePoints)
   }
 
   positionRelativeTo(other: CodePointSequence): RelativePosition {
@@ -23,12 +26,4 @@ export class CodePointSequence {
     }
     return RelativePosition.parse('same')
   }
-}
-
-function toCodePoint(character: string): number {
-  const firstCodeUnit = character.charCodeAt(0)
-  if (character.length === 1) return firstCodeUnit
-
-  const secondCodeUnit = character.charCodeAt(1)
-  return (firstCodeUnit - 0xd800) * 0x400 + secondCodeUnit - 0xdc00 + 0x10000
 }

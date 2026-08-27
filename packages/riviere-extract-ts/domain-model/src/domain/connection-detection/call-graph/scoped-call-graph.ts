@@ -4,7 +4,7 @@ import type { CallableReference } from './callable-reference'
 
 /** @riviere-role value-object */
 export class ComponentCallable {
-  declare private brand: 'ComponentCallable'
+  declare private readonly brand: 'ComponentCallable'
   readonly component: EnrichedComponent
   readonly callable: CallableReference
 
@@ -23,7 +23,7 @@ export class ComponentCallable {
 
 /** @riviere-role value-object */
 export class ScopedCallGraphEdge {
-  declare private brand: 'ScopedCallGraphEdge'
+  declare private readonly brand: 'ScopedCallGraphEdge'
   readonly source: CallableReference
   readonly target: CallableReference
   readonly callSite: CallSite
@@ -53,7 +53,7 @@ export class ScopedCallGraphEdge {
 
 /** @riviere-role value-object */
 export class UnresolvedScopedCall {
-  declare private brand: 'UnresolvedScopedCall'
+  declare private readonly brand: 'UnresolvedScopedCall'
   readonly sourceComponent: EnrichedComponent
   readonly originCallSite: CallSite
   readonly reason: string
@@ -79,7 +79,7 @@ export class UnresolvedScopedCall {
 
 /** @riviere-role value-object */
 export class ScopedCallGraph {
-  declare private brand: 'ScopedCallGraph'
+  declare private readonly brand: 'ScopedCallGraph'
   readonly roots: readonly ComponentCallable[]
   readonly edges: readonly ScopedCallGraphEdge[]
   readonly unresolvedCalls: readonly UnresolvedScopedCall[]

@@ -14,6 +14,19 @@ const DECORATOR_CONTEXT_TYPES = new Set([
   'ClassSetterDecoratorContext',
 ])
 
+function readIndexedAccessTypeQueryName(typeNode) {
+  if (typeNode.type !== 'TSIndexedAccessType' || typeNode.indexType.type !== 'TSNumberKeyword') {
+    return null
+  }
+  const objectType = typeNode.objectType.type === 'TSParenthesizedType'
+    ? typeNode.objectType.typeAnnotation
+    : typeNode.objectType
+  if (objectType.type !== 'TSTypeQuery' || objectType.exprName.type !== 'Identifier') {
+    return null
+  }
+  return objectType.exprName.name
+}
+
 function parseAllRoleNames(text) {
   return [...text.matchAll(ROLE_TAG)].map((match) => match[1])
 }
@@ -1771,19 +1784,6 @@ export default {
             node,
             `Role '${role.name}' requires an indexed access type derived from role '${requiredRole}' on '${name}'. ${referenceForKnownRole(options, role.name)}`,
           )
-        }
-
-        function readIndexedAccessTypeQueryName(typeNode) {
-          if (typeNode.type !== 'TSIndexedAccessType' || typeNode.indexType.type !== 'TSNumberKeyword') {
-            return null
-          }
-          const objectType = typeNode.objectType.type === 'TSParenthesizedType'
-            ? typeNode.objectType.typeAnnotation
-            : typeNode.objectType
-          if (objectType.type !== 'TSTypeQuery' || objectType.exprName.type !== 'Identifier') {
-            return null
-          }
-          return objectType.exprName.name
         }
 
         function inspectDataStructureType(typeNode) {

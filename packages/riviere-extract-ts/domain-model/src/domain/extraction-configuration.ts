@@ -24,7 +24,7 @@ interface ExtractionConfigurationParams {
 
 /** @riviere-role value-object */
 export class ExtractionConfiguration {
-  declare private brand: 'ExtractionConfiguration'
+  declare private readonly brand: 'ExtractionConfiguration'
 
   static parse(params: ExtractionConfigurationParams): ExtractionConfiguration {
     validateModuleContexts(params.resolvedConfig.modules, params.moduleContexts)

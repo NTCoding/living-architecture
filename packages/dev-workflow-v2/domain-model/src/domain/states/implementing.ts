@@ -47,11 +47,7 @@ export class ImplementingState {
     return { pass: true }
   }
 
-  onEntry(
-    state: WorkflowState,
-    _context: TransitionContext<WorkflowState, StateName>,
-  ): WorkflowState {
-    void _context
+  onEntry(state: WorkflowState): WorkflowState {
     return state.with({
       architectureReviewPassed: false,
       codeReviewPassed: false,

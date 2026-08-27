@@ -184,8 +184,10 @@ export class ValidatedModule {
 }
 
 function isComponentType(value: string): value is ComponentType {
-  return BUILT_IN_COMPONENT_TYPES.some((componentType) => componentType === value)
+  return BUILT_IN_COMPONENT_TYPE_NAMES.has(value)
 }
+
+const BUILT_IN_COMPONENT_TYPE_NAMES: ReadonlySet<string> = new Set(BUILT_IN_COMPONENT_TYPES)
 
 type PropertiesOf<Union> = Union extends unknown ? keyof Union : never
 

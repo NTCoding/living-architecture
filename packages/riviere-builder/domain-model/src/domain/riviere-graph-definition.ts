@@ -17,9 +17,9 @@ import {
 } from './construction/construction-errors'
 
 type CompleteRiviereGraphDefinition = Readonly<{
-  name?: string
-  description?: string
-  generated?: string
+  name: string | undefined
+  description: string | undefined
+  generated: string | undefined
   sources: readonly SourceInfo[]
   domains: Readonly<Record<string, DomainMetadata>>
   customTypes: Readonly<Record<string, CustomTypeDefinition>>
@@ -34,9 +34,9 @@ export class RiviereGraphDefinition {
 
   static parse(metadata: PublishedGraphMetadata): RiviereGraphDefinition {
     return new RiviereGraphDefinition({
-      ...(metadata.name === undefined ? {} : { name: metadata.name }),
-      ...(metadata.description === undefined ? {} : { description: metadata.description }),
-      ...(metadata.generated === undefined ? {} : { generated: metadata.generated }),
+      name: metadata.name,
+      description: metadata.description,
+      generated: metadata.generated,
       sources: [...(metadata.sources ?? [])],
       domains: { ...metadata.domains },
       customTypes: { ...(metadata.customTypes ?? {}) },

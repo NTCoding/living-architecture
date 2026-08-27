@@ -2,7 +2,7 @@ type CallableKind = 'method' | 'function' | 'synthetic'
 
 /** @riviere-role value-object */
 export class CallableReference {
-  declare private brand: 'CallableReference'
+  declare private readonly brand: 'CallableReference'
   readonly kind: CallableKind
   readonly filePath: string
   readonly lineNumber: number

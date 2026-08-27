@@ -3,7 +3,7 @@ import type { ExtractedLink } from './extracted-link'
 
 /** @riviere-role value-object */
 export class ConnectionDetectionResult {
-  declare private brand: 'ConnectionDetectionResult'
+  declare private readonly brand: 'ConnectionDetectionResult'
   readonly links: readonly ExtractedLink[]
   readonly externalLinks: readonly ExternalLink[]
 

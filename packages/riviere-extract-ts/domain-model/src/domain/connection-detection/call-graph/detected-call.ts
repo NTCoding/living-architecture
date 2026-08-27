@@ -44,7 +44,7 @@ type ResolvedCallTargetParams =
 
 /** @riviere-role value-object */
 export class DetectedCall {
-  declare private brand: 'DetectedCall'
+  declare private readonly brand: 'DetectedCall'
   readonly source: CallableReference
   readonly receiverTypeName: string | undefined
   readonly calledMethodName: string

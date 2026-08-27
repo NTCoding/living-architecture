@@ -24,9 +24,9 @@ type InspectionWarning =
 interface InspectionGraph {
   version: string
   metadata: {
-    name?: string
-    description?: string
-    generated?: string
+    name?: string | undefined
+    description?: string | undefined
+    generated?: string | undefined
     sources: readonly SourceInfo[]
     domains: Readonly<Record<string, DomainMetadata>>
     customTypes: Readonly<Record<string, CustomTypeDefinition>>

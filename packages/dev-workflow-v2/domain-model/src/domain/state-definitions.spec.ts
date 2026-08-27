@@ -66,14 +66,7 @@ describe('workflow state definitions', () => {
       feedbackClean: true,
     })
 
-    expect(
-      addressingFeedbackOnEntry(state, {
-        state,
-        gitInfo: cleanGit,
-        from: 'AWAITING_PR_FEEDBACK',
-        to: 'ADDRESSING_FEEDBACK',
-      }),
-    ).toMatchObject({
+    expect(addressingFeedbackOnEntry(state)).toMatchObject({
       feedbackAddressed: false,
       feedbackClean: false,
     })
@@ -179,14 +172,7 @@ describe('workflow state definitions', () => {
       feedbackAddressed: true,
     })
 
-    expect(
-      implementingOnEntry(state, {
-        state,
-        gitInfo: cleanGit,
-        from: 'REVIEWING',
-        to: 'IMPLEMENTING',
-      }),
-    ).toMatchObject({
+    expect(implementingOnEntry(state)).toMatchObject({
       architectureReviewPassed: false,
       codeReviewPassed: false,
       bugScannerPassed: false,

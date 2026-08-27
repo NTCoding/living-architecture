@@ -45,11 +45,7 @@ export class AddressingFeedbackState {
     return { pass: true }
   }
 
-  onEntry(
-    state: WorkflowState,
-    _context: TransitionContext<WorkflowState, StateName>,
-  ): WorkflowState {
-    void _context
+  onEntry(state: WorkflowState): WorkflowState {
     return state.with({
       feedbackAddressed: false,
       feedbackClean: false,
