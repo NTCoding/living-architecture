@@ -1,7 +1,7 @@
 {
   "name": "@living-architecture/riviere-builder-domain-model",
   "description": "Models the construction, enrichment, validation, querying, and serialisation of Rivière architecture graphs.",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "publishConfig": {
     "access": "public"
   },

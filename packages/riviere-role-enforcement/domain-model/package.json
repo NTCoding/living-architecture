@@ -1,7 +1,7 @@
 {
   "name": "@living-architecture/riviere-role-enforcement-domain-model",
   "description": "Models validation of source code against configured architectural roles, locations, dependencies, and package requirements.",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
