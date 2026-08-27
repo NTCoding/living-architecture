@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import safeRegex from 'safe-regex2'
 import { ExtractionTransform } from './extraction-transform'
 
 const extractionTransformSchema = z.unknown().transform((input, context) => {
@@ -105,14 +106,10 @@ const fromFilePathSchema = z
         pattern: z
           .string()
           .min(1)
-          .refine((pattern) => {
-            try {
-              new RegExp(pattern)
-              return true
-            } catch {
-              return false
-            }
-          }, 'Pattern must be a valid regular expression'),
+          .refine(
+            safeRegex,
+            'Pattern must be a valid regular expression without unsafe repetition',
+          ),
         capture: z.number().int().nonnegative(),
         transform: extractionTransformSchema.optional(),
       })

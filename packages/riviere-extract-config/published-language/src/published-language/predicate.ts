@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import safeRegex from 'safe-regex2'
 import type {
   AndPredicateInput,
   ExtendsClassPredicateInput,
@@ -138,15 +139,6 @@ export class NameEndsWithPredicate {
   }
 }
 
-function isRegularExpression(pattern: string): boolean {
-  try {
-    new RegExp(pattern)
-    return true
-  } catch {
-    return false
-  }
-}
-
 const nameMatchesSchema = z
   .object({
     nameMatches: z
@@ -154,7 +146,10 @@ const nameMatchesSchema = z
         pattern: z
           .string()
           .min(1)
-          .refine(isRegularExpression, 'Pattern must be a valid regular expression'),
+          .refine(
+            safeRegex,
+            'Pattern must be a valid regular expression without unsafe repetition',
+          ),
       })
       .strict(),
   })
@@ -181,10 +176,7 @@ const inClassWithProperty = 'inClassWith' satisfies keyof InClassWithPredicateIn
 const nestedPredicateSchema = z
   .object({ [inClassWithProperty]: z.unknown() })
   .strict()
-  .refine(
-    (value) => Object.hasOwn(value, inClassWithProperty),
-    'inClassWith is required',
-  )
+  .refine((value) => Object.hasOwn(value, inClassWithProperty), 'inClassWith is required')
 
 /** @riviere-role value-object */
 export class InClassWithPredicate {

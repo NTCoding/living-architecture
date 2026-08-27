@@ -118,6 +118,7 @@ describe('parsePredicate', () => {
     ],
     ['invalid suffix', NameEndsWithPredicate.parse({ nameEndsWith: { suffix: '' } })],
     ['invalid regex', NameMatchesPredicate.parse({ nameMatches: { pattern: '[' } })],
+    ['unsafe regex', NameMatchesPredicate.parse({ nameMatches: { pattern: '(a+)+$' } })],
     ['invalid nested predicate', InClassWithPredicate.parse({ inClassWith: { unknown: true } })],
     ['invalid nested value', InClassWithPredicate.parse({ inClassWith: 'predicate' })],
     [

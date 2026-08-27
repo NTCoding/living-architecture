@@ -230,6 +230,12 @@ describe('extraction rules', () => {
       FromFilePathExtractionRule.parse({ fromFilePath: { pattern: '[', capture: 0 } }),
     ],
     [
+      'unsafe file path pattern',
+      FromFilePathExtractionRule.parse({
+        fromFilePath: { pattern: '(a+)+$', capture: 0 },
+      }),
+    ],
+    [
       'invalid transformation',
       FromClassNameExtractionRule.parse({
         fromClassName: { transform: { unknownTransform: true } },
