@@ -116,7 +116,8 @@ describe('role', () => {
       requiresDataMembers: true,
       forbiddenCallableDataMembers: true,
       requiresPrivateConstructor: true,
-      requiredStaticMethodNamePrefix: 'parse',
+      requiredStaticFactoryMethodNamePrefixes: ['parse', 'from'],
+      requiresStaticFactoryMethodParameters: true,
     })
 
     expectBuiltRole(result, {
@@ -125,7 +126,8 @@ describe('role', () => {
       requiresDataMembers: true,
       forbiddenCallableDataMembers: true,
       requiresPrivateConstructor: true,
-      requiredStaticMethodNamePrefix: 'parse',
+      requiredStaticFactoryMethodNamePrefixes: ['parse', 'from'],
+      requiresStaticFactoryMethodParameters: true,
     })
   })
 

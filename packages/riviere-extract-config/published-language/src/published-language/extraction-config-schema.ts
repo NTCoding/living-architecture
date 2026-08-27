@@ -4,12 +4,18 @@
 /** @riviere-role published-language-union */
 export type FindTarget = 'classes' | 'methods' | 'functions'
 
-/**
- * Standard architectural component types recognized by the Riviere extractor.
- * Each type represents a distinct role in the system's flow-based architecture.
- */
-/** @riviere-role published-language-union */
-export type ComponentType = 'api' | 'useCase' | 'domainOp' | 'event' | 'eventHandler' | 'ui'
+/** @riviere-role published-language-enumeration */
+export const BUILT_IN_COMPONENT_TYPES = [
+  'api',
+  'useCase',
+  'domainOp',
+  'event',
+  'eventHandler',
+  'ui',
+] as const
+
+/** @riviere-role published-language-enumeration-type */
+export type ComponentType = (typeof BUILT_IN_COMPONENT_TYPES)[number]
 
 /** Matches elements with a specific decorator. */
 /** @riviere-role published-language-data-structure */

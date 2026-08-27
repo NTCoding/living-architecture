@@ -55,15 +55,11 @@ function extractFromModule(
   module: ValidatedModule,
 ): DraftComponent[] {
   const context = resolveComponentContext(filePath, module)
-  return module.componentDetections().flatMap((detection) =>
-    extractWithRule(
-      sourceFile,
-      filePath,
-      context,
-      detection.componentType.value,
-      detection.rule,
-    ),
-  )
+  return module
+    .componentDetections()
+    .flatMap((detection) =>
+      extractWithRule(sourceFile, filePath, context, detection.componentType.value, detection.rule),
+    )
 }
 
 function resolveComponentContext(filePath: string, module: ValidatedModule): ComponentContext {
@@ -114,7 +110,7 @@ function extractWithRule(
   componentType: string,
   rule: DetectionRule,
 ): DraftComponent[] {
-  const specification = TypeScriptComponentSpecification.parse(rule.where)
+  const specification = TypeScriptComponentSpecification.fromPredicate(rule.where)
   switch (rule.find) {
     case 'classes':
       return extractClasses(sourceFile, filePath, context, componentType, specification)

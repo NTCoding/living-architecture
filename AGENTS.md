@@ -8,6 +8,8 @@ For planning, discovery, PRD, architecture, delivery planning, or future-project
 
 For domain modelling or architecture questions, start with the generated current model at @docs/architecture/ddd/domain-guide.md. Use it to locate the relevant subdomains, aggregates, use cases, and operations, then inspect their code and tests before drawing conclusions.
 
+DOMAIN concepts must be modelled honestly. Do not compromise the design with a misleading name just to make role check pass.
+
 Domain model code must not use the TypeScript `in` operator. This includes using `in` to distinguish union members, such as `'fromClassName' in rule`. Model these values as explicit discriminated unions and match them exhaustively instead.
 
 Always strive for exhaustive type safety. Match closed unions exhaustively, and make the compiler reject every new, removed, or renamed member until all consumers handle the change. Never duplicate published language member names in unchecked string literals.

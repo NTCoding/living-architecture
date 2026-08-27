@@ -1,14 +1,5 @@
 import type { ComponentRule, CustomTypes, DetectionRule } from './component-rule'
-import type { ComponentType } from './extraction-config-schema'
-
-const BUILT_IN_COMPONENT_TYPES: readonly ComponentType[] = [
-  'api',
-  'useCase',
-  'domainOp',
-  'event',
-  'eventHandler',
-  'ui',
-]
+import { BUILT_IN_COMPONENT_TYPES, type ComponentType } from './extraction-config-schema'
 
 type ComponentTypeNameParseResult =
   | { readonly success: true; readonly data: ComponentTypeName }
@@ -26,8 +17,8 @@ export class ComponentTypeName<Value extends string = string> {
       : { success: false, errors: ['Component type name must not be empty'] }
   }
 
-  static parseBuiltIns(): readonly ComponentTypeName<ComponentType>[] {
-    return BUILT_IN_COMPONENT_TYPES.map((value) => new ComponentTypeName(value))
+  static from(componentType: ComponentType): ComponentTypeName<ComponentType> {
+    return new ComponentTypeName(componentType)
   }
 }
 
@@ -40,21 +31,22 @@ export class ConfiguredComponentDetection {
     readonly rule: DetectionRule,
   ) {}
 
-  static parse(params: {
+  static fromComponentTypeAndRule(params: {
     readonly componentType: ComponentTypeName
     readonly rule: DetectionRule
   }): ConfiguredComponentDetection {
     return new ConfiguredComponentDetection(params.componentType, params.rule)
   }
 
-  static parseAll(
+  static parseFromRules(
     builtInRules: Readonly<Record<ComponentType, ComponentRule>>,
     customTypes: CustomTypes | undefined,
   ):
     | { readonly success: true; readonly data: readonly ConfiguredComponentDetection[] }
     | { readonly success: false; readonly errors: readonly string[] } {
-    const builtInEntries = ComponentTypeName.parseBuiltIns().map(
-      (componentType) => [componentType, builtInRules[componentType.value]] as const,
+    const builtInEntries = BUILT_IN_COMPONENT_TYPES.map(
+      (componentType) =>
+        [ComponentTypeName.from(componentType), builtInRules[componentType]] as const,
     )
     const customDetections: ConfiguredComponentDetection[] = []
     const customErrors: string[] = []
@@ -65,14 +57,17 @@ export class ConfiguredComponentDetection {
         continue
       }
       customDetections.push(
-        ConfiguredComponentDetection.parse({ componentType: componentType.data, rule }),
+        ConfiguredComponentDetection.fromComponentTypeAndRule({
+          componentType: componentType.data,
+          rule,
+        }),
       )
     }
     if (customErrors.length > 0) return { success: false, errors: customErrors }
     const builtInDetections = builtInEntries.flatMap(([componentType, rule]) => {
       return rule.kind === 'notUsed'
         ? []
-        : [ConfiguredComponentDetection.parse({ componentType, rule })]
+        : [ConfiguredComponentDetection.fromComponentTypeAndRule({ componentType, rule })]
     })
     return {
       success: true,

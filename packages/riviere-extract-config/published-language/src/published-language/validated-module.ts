@@ -10,6 +10,7 @@ import type {
   PredicateInput,
   ValidatedModuleInput,
 } from './extraction-config-schema'
+import { BUILT_IN_COMPONENT_TYPES } from './extraction-config-schema'
 import {
   type ExtractionRule,
   FromClassDecoratorArgExtractionRule,
@@ -26,10 +27,7 @@ import {
   LiteralExtractionRule,
 } from './extraction-rule'
 import type { ComponentRule, CustomTypes, DetectionRule, ExtractBlock } from './component-rule'
-import {
-  ComponentTypeName,
-  ConfiguredComponentDetection,
-} from './component-detection'
+import { ConfiguredComponentDetection } from './component-detection'
 import {
   AndPredicate,
   ExtendsClassPredicate,
@@ -186,15 +184,15 @@ export class ValidatedModule {
 }
 
 function isComponentType(value: string): value is ComponentType {
-  return ComponentTypeName.parseBuiltIns().some((componentType) => componentType.value === value)
+  return BUILT_IN_COMPONENT_TYPES.some((componentType) => componentType === value)
 }
 
 type PropertiesOf<Union> = Union extends unknown ? keyof Union : never
 
-function hasUnionMemberProperty<
-  Union extends object,
-  Property extends PropertiesOf<Union>,
->(input: Union, property: Property): input is Extract<Union, Record<Property, unknown>> {
+function hasUnionMemberProperty<Union extends object, Property extends PropertiesOf<Union>>(
+  input: Union,
+  property: Property,
+): input is Extract<Union, Record<Property, unknown>> {
   return Object.hasOwn(input, property)
 }
 
@@ -345,7 +343,7 @@ function parseModuleRules(input: ValidatedModuleInput): ParseResult<ParsedModule
   ) {
     return { success: false, errors }
   }
-  const componentDetections = ConfiguredComponentDetection.parseAll(
+  const componentDetections = ConfiguredComponentDetection.parseFromRules(
     {
       api: api.data,
       useCase: useCase.data,
@@ -378,21 +376,21 @@ function parseModuleRules(input: ValidatedModuleInput): ParseResult<ParsedModule
 }
 
 function validateModule(module: Readonly<ValidatedModuleInput>): ValidationError[] {
-  return ComponentTypeName.parseBuiltIns().flatMap((componentType) => {
-    const rule = module[componentType.value]
+  return BUILT_IN_COMPONENT_TYPES.flatMap((componentType) => {
+    const rule = module[componentType]
     if (hasUnionMemberProperty(rule, 'notUsed')) return []
     const extractedFields = new Set(Object.keys(rule.extract ?? {}))
-    const missingFields = REQUIRED_FIELDS[componentType.value].filter(
+    const missingFields = REQUIRED_FIELDS[componentType].filter(
       (field) => !extractedFields.has(field),
     )
     return missingFields.length === 0
       ? []
       : [
           {
-            path: `/${componentType.value}`,
+            path: `/${componentType}`,
             message:
               `Missing required extraction rules: ${missingFields.join(', ')}. ` +
-              `Add extraction rules to the 'extract' block or use 'notUsed: true' if not extracting ${componentType.value} components.`,
+              `Add extraction rules to the 'extract' block or use 'notUsed: true' if not extracting ${componentType} components.`,
           },
         ]
   })

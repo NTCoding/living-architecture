@@ -1726,6 +1726,7 @@ export default {
         }
 
         function validateTypeAliasContract(node, role, name) {
+          validateIndexedAccessTypeRole(node, role, name)
           if (role.mustBeDataStructure === true) {
             const result = inspectDataStructureType(node.typeAnnotation)
             if (!result.isDataStructure) {
@@ -1750,6 +1751,39 @@ export default {
             node,
             `Role '${role.name}' requires a union type on '${name}'. ${referenceForKnownRole(options, role.name)}`,
           )
+        }
+
+        function validateIndexedAccessTypeRole(node, role, name) {
+          const requiredRole = role.requiresIndexedAccessTypeFromRole
+          if (typeof requiredRole !== 'string') {
+            return
+          }
+          const sourceName = readIndexedAccessTypeQueryName(node.typeAnnotation)
+          const sourceDeclaration = roleDeclarations.find(
+            (declaration) =>
+              declaration.roleName === requiredRole &&
+              readDeclarationName(declaration.node) === sourceName,
+          )
+          if (sourceDeclaration !== undefined) {
+            return
+          }
+          report(
+            node,
+            `Role '${role.name}' requires an indexed access type derived from role '${requiredRole}' on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+          )
+        }
+
+        function readIndexedAccessTypeQueryName(typeNode) {
+          if (typeNode.type !== 'TSIndexedAccessType' || typeNode.indexType.type !== 'TSNumberKeyword') {
+            return null
+          }
+          const objectType = typeNode.objectType.type === 'TSParenthesizedType'
+            ? typeNode.objectType.typeAnnotation
+            : typeNode.objectType
+          if (objectType.type !== 'TSTypeQuery' || objectType.exprName.type !== 'Identifier') {
+            return null
+          }
+          return objectType.exprName.name
         }
 
         function inspectDataStructureType(typeNode) {
@@ -1872,7 +1906,7 @@ export default {
           validatePublicMethodCount(node, role, name)
           validateRequiredPrivateMembers(node, role, name)
           validateRequiredPrivateConstructor(node, role, name)
-          validateRequiredStaticMethodNamePrefix(node, role, name)
+          validateStaticFactoryMethods(node, role, name)
           validateCallableMemberConstraints(node, role, name)
           validateDataMemberRequirements(node, role, name)
           validateDataMemberConstraint(
@@ -1912,26 +1946,45 @@ export default {
           )
         }
 
-        function validateRequiredStaticMethodNamePrefix(node, role, name) {
-          if (typeof role.requiredStaticMethodNamePrefix !== 'string') {
+        function validateStaticFactoryMethods(node, role, name) {
+          if (!Array.isArray(role.requiredStaticFactoryMethodNamePrefixes)) {
             return
           }
 
-          const hasRequiredStaticMethod = node.body.body.some(
-            (member) =>
-              member.type === 'MethodDefinition' &&
-              member.static === true &&
-              member.kind !== 'constructor' &&
-              readMemberName(member.key)?.startsWith(role.requiredStaticMethodNamePrefix) === true,
-          )
-          if (hasRequiredStaticMethod) {
+          const prefixes = role.requiredStaticFactoryMethodNamePrefixes
+          const factoryMethods = node.body.body.flatMap((member) => {
+            if (
+              member.type !== 'MethodDefinition' ||
+              member.static !== true ||
+              member.kind === 'constructor'
+            ) {
+              return []
+            }
+            const methodName = readMemberName(member.key)
+            return methodName !== null && prefixes.some((prefix) => methodName.startsWith(prefix))
+              ? [{ member, methodName }]
+              : []
+          })
+          if (factoryMethods.length === 0) {
+            const formattedPrefixes = prefixes.map((prefix) => `'${prefix}'`).join(', ')
+            report(
+              node,
+              `Role '${role.name}' requires at least one static factory method beginning with one of ${formattedPrefixes} on '${name}'. ${referenceForKnownRole(options, role.name)}`,
+            )
             return
           }
 
-          report(
-            node,
-            `Role '${role.name}' requires at least one static method beginning with '${role.requiredStaticMethodNamePrefix}' on '${name}'. ${referenceForKnownRole(options, role.name)}`,
-          )
+          if (role.requiresStaticFactoryMethodParameters !== true) {
+            return
+          }
+          factoryMethods
+            .filter(({ member }) => member.value.params.length === 0)
+            .forEach(({ member, methodName }) => {
+              report(
+                member,
+                `Role '${role.name}' requires static factory method '${methodName}' on '${name}' to accept at least one parameter. ${referenceForKnownRole(options, role.name)}`,
+              )
+            })
         }
 
         function validatePublicMethodCount(node, role, name) {

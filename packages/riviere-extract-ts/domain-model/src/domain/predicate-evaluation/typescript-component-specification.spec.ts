@@ -10,7 +10,9 @@ function createTestProject(code: string) {
 }
 
 function evaluatePredicate(node: Node, input: PredicateInput): boolean {
-  return TypeScriptComponentSpecification.parse(parsePredicateForTest(input)).isSatisfiedBy(node)
+  return TypeScriptComponentSpecification.fromPredicate(parsePredicateForTest(input)).isSatisfiedBy(
+    node,
+  )
 }
 
 describe('evaluatePredicate', () => {
@@ -281,9 +283,12 @@ describe('evaluatePredicate', () => {
     it('returns false when a class declaration has no name', () => {
       const sourceFile = createTestProject('export default class {}')
       expect(
-        evaluatePredicate(sourceFile.getClassOrThrow(() => true), {
-          nameEndsWith: { suffix: 'Controller' },
-        }),
+        evaluatePredicate(
+          sourceFile.getClassOrThrow(() => true),
+          {
+            nameEndsWith: { suffix: 'Controller' },
+          },
+        ),
       ).toBe(false)
     })
   })
@@ -310,9 +315,12 @@ describe('evaluatePredicate', () => {
     it('returns false when a class declaration has no name', () => {
       const sourceFile = createTestProject('export default class {}')
       expect(
-        evaluatePredicate(sourceFile.getClassOrThrow(() => true), {
-          nameMatches: { pattern: '.*API$' },
-        }),
+        evaluatePredicate(
+          sourceFile.getClassOrThrow(() => true),
+          {
+            nameMatches: { pattern: '.*API$' },
+          },
+        ),
       ).toBe(false)
     })
   })

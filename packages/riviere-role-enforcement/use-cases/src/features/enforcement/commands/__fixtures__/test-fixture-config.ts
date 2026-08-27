@@ -55,7 +55,7 @@ export const genericTestConfig = RoleEnforcementConfiguration.parse({
   roles: genericTestRoles,
 })
 
-function configWithGenericAggregateOverride(aggregateOptions: Parameters<typeof role>[1]) {
+export function configWithGenericAggregateOverride(aggregateOptions: Parameters<typeof role>[1]) {
   return RoleEnforcementConfiguration.parse({
     configurations: {
       'packages/pkg-a': {
@@ -95,17 +95,6 @@ export function configWithGenericRequiredPrivateMembers(requiredPrivateMembers: 
     targets: ['class'],
     minPublicMethods: 1,
     requiredPrivateMembers,
-  })
-}
-
-export function configWithGenericClassStateConstraints() {
-  return configWithGenericAggregateOverride({
-    targets: ['class'],
-    requiredPrivateMembers: ['brand'],
-    requiresDataMembers: true,
-    forbiddenCallableDataMembers: true,
-    requiresPrivateConstructor: true,
-    requiredStaticMethodNamePrefix: 'parse',
   })
 }
 

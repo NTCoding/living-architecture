@@ -61,7 +61,9 @@ interface RoleConstraintsInput<R extends string = string> {
   readonly forbiddenMethodCalls?: readonly R[]
   readonly requiredPrivateMembers?: readonly string[]
   readonly requiresPrivateConstructor?: true
-  readonly requiredStaticMethodNamePrefix?: string
+  readonly requiredStaticFactoryMethodNamePrefixes?: readonly string[]
+  readonly requiresStaticFactoryMethodParameters?: true
+  readonly requiresIndexedAccessTypeFromRole?: R
   readonly requiresDataMembers?: true
   readonly requiresPrivateDataMembers?: true
   readonly requiresReadonlyDataMembers?: true
@@ -93,7 +95,9 @@ export class RoleConstraints<R extends string = string> {
   declare readonly forbiddenMethodCalls?: readonly R[]
   declare readonly requiredPrivateMembers?: readonly string[]
   declare readonly requiresPrivateConstructor?: true
-  declare readonly requiredStaticMethodNamePrefix?: string
+  declare readonly requiredStaticFactoryMethodNamePrefixes?: readonly string[]
+  declare readonly requiresStaticFactoryMethodParameters?: true
+  declare readonly requiresIndexedAccessTypeFromRole?: R
   declare readonly requiresDataMembers?: true
   declare readonly requiresPrivateDataMembers?: true
   declare readonly requiresReadonlyDataMembers?: true

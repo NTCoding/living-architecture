@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
+import { configWithGenericClassStateConstraints } from './__fixtures__/class-state-test-fixture-config'
 import {
-  configWithGenericClassStateConstraints,
   configWithPrivateDataMembers,
   configWithReadonlyDataMembers,
   genericTestConfig,
@@ -69,12 +69,10 @@ it('accepts classes with non-callable instance data members when role requires t
       `/** @riviere-role role-b */
 export class Beta {
   private readonly brand = 'Beta'
-  readonly label = 'beta'
+  private constructor(readonly label: string) {}
 
-  private constructor() {}
-
-  static parse(): Beta {
-    return new Beta()
+  static parse(label: string): Beta {
+    return new Beta(label)
   }
 
   cancel(): void {}
@@ -94,16 +92,14 @@ it('accepts normal instance methods when callable instance data members are forb
       `/** @riviere-role role-b */
 export class Beta {
   private readonly brand = 'Beta'
-  readonly label = 'beta'
+  private constructor(readonly label: string) {}
 
-  private constructor() {}
-
-  static parse(): Beta {
-    return new Beta()
+  static parse(label: string): Beta {
+    return new Beta(label)
   }
 
   rename(): Beta {
-    return new Beta()
+    return new Beta(this.label)
   }
 }
 `,
@@ -208,7 +204,7 @@ export class EmptyBeta {}
   })
 })
 
-it('rejects a class without a static method beginning with the required prefix', () => {
+it('rejects a class without a static factory method beginning with an allowed prefix', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
     writeDomainFile(
       workspaceDir,
@@ -227,24 +223,26 @@ export class Beta {
     expect(result.exitCode).toBe(1)
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain(
-      "requires at least one static method beginning with 'parse' on 'Beta'",
+      "requires at least one static factory method beginning with one of 'parse', 'from' on 'Beta'",
     )
   })
 })
 
-it('accepts a static method whose name begins with the required prefix', () => {
+it('accepts multiple static factory methods beginning with allowed prefixes', () => {
   withGenericFixtureWorkspace((workspaceDir) => {
     writeDomainFile(
       workspaceDir,
       `/** @riviere-role role-b */
 export class Beta {
   private readonly brand = 'Beta'
-  readonly label = 'beta'
+  private constructor(readonly label: string) {}
 
-  private constructor() {}
+  static parse(label: string): Beta {
+    return new Beta(label)
+  }
 
-  static parseFromLabel(): Beta {
-    return new Beta()
+  static fromLabel(label: string): Beta {
+    return new Beta(label)
   }
 }
 `,
@@ -254,6 +252,35 @@ export class Beta {
     expect(result.stderr).toBe('')
   })
 })
+
+it.each(['parseDefault', 'fromDefault'])(
+  "rejects zero-parameter static factory method '%s'",
+  (factoryMethodName) => {
+    withGenericFixtureWorkspace((workspaceDir) => {
+      writeDomainFile(
+        workspaceDir,
+        `/** @riviere-role role-b */
+export class Beta {
+  private readonly brand = 'Beta'
+  readonly label = 'beta'
+
+  private constructor() {}
+
+  static ${factoryMethodName}(): Beta {
+    return new Beta()
+  }
+}
+`,
+      )
+      const result = runWith(configWithGenericClassStateConstraints(), workspaceDir)
+      expect(result.exitCode).toBe(1)
+      expect(result.stderr).toBe('')
+      expect(result.stdout).toContain(
+        `requires static factory method '${factoryMethodName}' on 'Beta' to accept at least one parameter`,
+      )
+    })
+  },
+)
 
 it('rejects a class with a public constructor when the role requires a private constructor', () => {
   withGenericFixtureWorkspace((workspaceDir) => {

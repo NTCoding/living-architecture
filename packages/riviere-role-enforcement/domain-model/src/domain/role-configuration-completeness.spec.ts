@@ -60,6 +60,26 @@ describe('role configuration completeness', () => {
     ).toThrow("Role 'known-role' references unknown role 'missing-role'.")
   })
 
+  it('rejects an unknown role referenced by an indexed access type rule', () => {
+    expect(() =>
+      RoleEnforcementConfiguration.parse({
+        configurations: {
+          'packages/app': {
+            locations: locationConfiguration(location('/domain', ['known-role'])),
+          },
+        },
+        ignorePatterns: [],
+        roleDefinitionsDir: '.riviere/role-definitions',
+        roles: [
+          role('known-role', {
+            targets: ['type-alias'],
+            requiresIndexedAccessTypeFromRole: 'missing-role',
+          }),
+        ],
+      }),
+    ).toThrow("Role 'known-role' references unknown role 'missing-role'.")
+  })
+
   it('rejects an unknown role in a role-filtered location import', () => {
     expect(() =>
       RoleEnforcementConfiguration.parse({

@@ -10,7 +10,9 @@ function createSourceFile(code: string) {
 }
 
 function satisfies(node: Node, input: PredicateInput): boolean {
-  return TypeScriptComponentSpecification.parse(parsePredicateForTest(input)).isSatisfiedBy(node)
+  return TypeScriptComponentSpecification.fromPredicate(parsePredicateForTest(input)).isSatisfiedBy(
+    node,
+  )
 }
 
 describe('TypeScriptComponentSpecification composition', () => {

@@ -17,10 +17,7 @@ export class RoleCatalogue {
 
   private constructor(readonly values: readonly BuiltRole[]) {}
 
-  static parse(
-    roles: readonly BuiltRole[],
-    locationHierarchy: LocationHierarchy,
-  ): RoleCatalogue {
+  static parse(roles: readonly BuiltRole[], locationHierarchy: LocationHierarchy): RoleCatalogue {
     const roleNames = readUniqueRoleNames(roles)
     validateLocationRoleReferences(locationHierarchy.values, roleNames)
     validateRoleRuleReferences(roles, roleNames)
@@ -60,9 +57,7 @@ function validateLocationRoleReferences(
   }
 }
 
-function readImportRuleRoles(
-  importRules: ConfiguredLocation['importRules'],
-): readonly string[] {
+function readImportRuleRoles(importRules: ConfiguredLocation['importRules']): readonly string[] {
   const referencedRoles: string[] = []
   for (const scope of importScopes) {
     for (const allowedLocation of importRules?.allow?.[scope] ?? []) {
@@ -97,6 +92,9 @@ function readRoleRuleReferences(roleDefinition: BuiltRole): readonly string[] {
     ...(roleDefinition.allowedDependentRoles ?? []),
     ...(roleDefinition.forbiddenDependencies ?? []),
     ...(roleDefinition.forbiddenMethodCalls ?? []),
+    ...(roleDefinition.requiresIndexedAccessTypeFromRole === undefined
+      ? []
+      : [roleDefinition.requiresIndexedAccessTypeFromRole]),
     ...(roleDefinition.returns ?? []).flatMap((shape) => (shape['*'] === '*' ? [] : [shape['*']])),
   ]
 }

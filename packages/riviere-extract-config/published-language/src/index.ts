@@ -40,6 +40,7 @@ export type {
   ValidatedConfigurationInput,
   ValidatedModuleInput,
 } from './published-language/extraction-config-schema'
+export { BUILT_IN_COMPONENT_TYPES } from './published-language/extraction-config-schema'
 export {
   type DecoratorArgumentSelector,
   type ExtractionRule,

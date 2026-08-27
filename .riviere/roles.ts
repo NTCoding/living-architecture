@@ -4,6 +4,8 @@ export const publishedLanguageRoles = [
   'published-language-annotation',
   'published-language-schema',
   'published-language-data-structure',
+  'published-language-enumeration',
+  'published-language-enumeration-type',
   'published-language-union',
   'published-language-parser',
   'published-language-field-name',
@@ -122,7 +124,8 @@ export const allRoles = [
     forbiddenSupertypes: ['Error'],
     requiredPrivateMembers: ['brand'],
     requiresPrivateConstructor: true,
-    requiredStaticMethodNamePrefix: 'parse',
+    requiredStaticFactoryMethodNamePrefixes: ['parse', 'from'],
+    requiresStaticFactoryMethodParameters: true,
     requiresDataMembers: true,
     forbiddenDependencies: ['aggregate', 'domain-service'],
   }),
@@ -223,6 +226,14 @@ export const allRoles = [
   }),
   role('published-language-data-structure', {
     mustBeDataStructure: true,
+  }),
+  role('published-language-enumeration', {
+    targets: ['variable'],
+    nameMatches: '^[A-Z][A-Z0-9_]*$',
+  }),
+  role('published-language-enumeration-type', {
+    targets: ['type-alias'],
+    requiresIndexedAccessTypeFromRole: 'published-language-enumeration',
   }),
   role('published-language-field-name', {
     requiresStringLiteralConstant: true,

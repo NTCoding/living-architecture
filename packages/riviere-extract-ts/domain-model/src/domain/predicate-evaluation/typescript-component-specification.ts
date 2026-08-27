@@ -40,7 +40,7 @@ export class TypeScriptComponentSpecification {
 
   private constructor(private readonly predicate: Predicate) {}
 
-  static parse(predicate: Predicate): TypeScriptComponentSpecification {
+  static fromPredicate(predicate: Predicate): TypeScriptComponentSpecification {
     return new TypeScriptComponentSpecification(predicate)
   }
 

@@ -7,8 +7,8 @@ import type {
   DraftModule,
   ConnectionsConfig,
 } from './extraction-config-schema'
+import { BUILT_IN_COMPONENT_TYPES } from './extraction-config-schema'
 import rawSchema from '../../extraction-config.schema.json' with { type: 'json' }
-import { ComponentTypeName } from './component-detection'
 
 /**
  * Required extraction fields by component type.
@@ -94,8 +94,8 @@ function validateModuleExtractionRules(
 ): ValidationError[] {
   const errors: ValidationError[] = []
 
-  for (const componentType of ComponentTypeName.parseBuiltIns()) {
-    const rule = module[componentType.value]
+  for (const componentType of BUILT_IN_COMPONENT_TYPES) {
+    const rule = module[componentType]
 
     if (isNotUsed(rule)) {
       continue
@@ -105,7 +105,7 @@ function validateModuleExtractionRules(
       continue
     }
 
-    const requiredFields = REQUIRED_FIELDS[componentType.value]
+    const requiredFields = REQUIRED_FIELDS[componentType]
     if (requiredFields.length === 0) {
       continue
     }
@@ -115,10 +115,10 @@ function validateModuleExtractionRules(
 
     if (missingFields.length > 0) {
       errors.push({
-        path: `/modules/${moduleIndex}/${componentType.value}`,
+        path: `/modules/${moduleIndex}/${componentType}`,
         message:
           `Missing required extraction rules: ${missingFields.join(', ')}. ` +
-          `Add extraction rules to the 'extract' block or use 'notUsed: true' if not extracting ${componentType.value} components.`,
+          `Add extraction rules to the 'extract' block or use 'notUsed: true' if not extracting ${componentType} components.`,
       })
     }
   }
