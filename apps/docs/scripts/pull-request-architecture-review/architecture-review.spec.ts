@@ -27,14 +27,18 @@ describe('pull request architecture review', () => {
     expect(report).toBe(expectedArchitectureReview())
   })
 
-  it('returns no comment when the architecture metadata is unchanged', () => {
+  it('returns a minimal comment when the architecture metadata is unchanged', () => {
     const workspace = createBaseWorkspace()
 
     const report = renderArchitectureReview(
       compareArchitecture(inspectArchitecture(workspace), inspectArchitecture(workspace)),
     )
 
-    expect(report).toBe('')
+    expect(report).toBe(`<!-- pull-request-architecture-review -->
+# Pull request architecture changes
+
+No architecture changes detected.
+`)
   })
 
   it('fails when an entrypoint cannot be assigned to one subdomain', () => {

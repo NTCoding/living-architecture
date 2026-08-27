@@ -18,7 +18,15 @@ const layerLabels: Readonly<Record<ArchitectureLayerName, string>> = {
 const layerNames: readonly ArchitectureLayerName[] = ['entrypoints', 'use-cases', 'domain']
 
 export function renderArchitectureReview(changes: PullRequestArchitectureChanges): string {
-  if (changes.subdomains.length === 0) return ''
+  if (changes.subdomains.length === 0) {
+    return [
+      COMMENT_MARKER,
+      '# Pull request architecture changes',
+      '',
+      'No architecture changes detected.',
+      '',
+    ].join('\n')
+  }
   return [
     COMMENT_MARKER,
     '# Pull request architecture changes',
