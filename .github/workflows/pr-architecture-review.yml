@@ -1,7 +1,7 @@
 name: Pull request architecture review
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, reopened, synchronize]
 
 concurrency:
@@ -11,13 +11,12 @@ concurrency:
 permissions:
   contents: read
   issues: write
+  pull-requests: read
 
 jobs:
   update-comment:
     runs-on: ubuntu-latest
     steps:
-      # Run only trusted code from the base revision. The pull request checkout
-      # below is parsed as source data and is never executed.
       - name: Check out trusted reporter
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -38,21 +37,57 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Check out pull request source
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          path: pull-request-head
-          persist-credentials: false
-          ref: refs/pull/${{ github.event.pull_request.number }}/head
+      - name: Download pull request source
+        id: snapshots
+        env:
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          pull_request="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"
+          head_sha="$(jq -r '.head.sha' <<< "${pull_request}")"
+
+          if [[ "${head_sha}" != "${EVENT_HEAD_SHA}" ]]; then
+            echo "Skipping stale workflow run for ${EVENT_HEAD_SHA}; current head is ${head_sha}."
+            echo "current=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          head_root="${RUNNER_TEMP}/pull-request-head"
+          mkdir -p "${head_root}"
+
+          curl --fail --location --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${head_sha}" \
+            --output "${RUNNER_TEMP}/pull-request-head.tar.gz"
+
+          tar -xzf "${RUNNER_TEMP}/pull-request-head.tar.gz" --strip-components=1 -C "${head_root}"
+          echo "current=true" >> "${GITHUB_OUTPUT}"
 
       - name: Build architecture review
+        if: steps.snapshots.outputs.current == 'true'
         run: >-
           pnpm exec tsx apps/docs/scripts/build-pull-request-architecture-review.ts
           --base .
-          --head pull-request-head
+          --head "${RUNNER_TEMP}/pull-request-head"
           --output "${RUNNER_TEMP}/pull-request-architecture-review.md"
 
+      - name: Record architecture review result
+        if: steps.snapshots.outputs.current == 'true'
+        env:
+          COMMENT_PATH: ${{ runner.temp }}/pull-request-architecture-review.md
+        run: |
+          if [[ -s "${COMMENT_PATH}" ]]; then
+            echo "Architecture metadata changes were detected." >> "${GITHUB_STEP_SUMMARY}"
+          else
+            echo "No architecture metadata changes were detected." >> "${GITHUB_STEP_SUMMARY}"
+          fi
+
       - name: Update pull request comment
+        if: steps.snapshots.outputs.current == 'true'
         env:
           COMMENT_PATH: ${{ runner.temp }}/pull-request-architecture-review.md
           GH_TOKEN: ${{ github.token }}
