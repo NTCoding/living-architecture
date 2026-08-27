@@ -159,7 +159,7 @@ function aggregateEntityOwners(
   for (const entity of entities) {
     const matchingAggregates = aggregates.filter(
       (aggregate) =>
-        aggregate.packageKind === entity.packageKind && aggregateOwnsEntity(aggregate, entity.name),
+        aggregate.packageKind === entity.packageKind && aggregateOwnsEntity(aggregate, entity),
     )
     if (matchingAggregates.length > 1) {
       throw new ArchitectureReviewSourceError(

@@ -117,10 +117,12 @@ function renderItems(
 }
 
 function renderTableCode(value: string): string {
-  const escaped = value
-    .replaceAll('\r', ' ')
-    .replaceAll('\n', ' ')
-    .replaceAll('|', '&#124;')
-    .replaceAll('`', '&#96;')
-  return `\`${escaped}\``
+  const singleLine = value.replaceAll('\r', ' ').replaceAll('\n', ' ')
+  const delimiter = '`'.repeat(longestBacktickRun(singleLine) + 1)
+  const padding = singleLine.includes('`') ? ' ' : ''
+  return `${delimiter}${padding}${singleLine.replaceAll('|', '\\|')}${padding}${delimiter}`
+}
+
+function longestBacktickRun(value: string): number {
+  return Math.max(0, ...[...value.matchAll(/`+/g)].map((match) => match[0].length))
 }

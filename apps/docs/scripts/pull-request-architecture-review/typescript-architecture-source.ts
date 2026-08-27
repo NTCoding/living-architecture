@@ -47,18 +47,21 @@ export function annotatedDeclarations(
   })
 }
 
-export function aggregateOwnsEntity(aggregate: AnnotatedDeclaration, entityName: string): boolean {
+export function aggregateOwnsEntity(
+  aggregate: AnnotatedDeclaration,
+  entity: AnnotatedDeclaration,
+): boolean {
   if (!ts.isClassDeclaration(aggregate.declaration)) return false
-  const aliases = importedNameAliases(aggregate.sourceFile)
+  const imports = importedDeclarations(aggregate.sourceFile)
   return aggregate.declaration.members.some((member) => {
     if (ts.isPropertyDeclaration(member)) {
-      return typeReferencesName(member.type, entityName, aliases)
+      return typeReferencesDeclaration(member.type, aggregate.sourceFile, entity, imports)
     }
     if (!ts.isConstructorDeclaration(member)) return false
     return member.parameters.some(
       (parameter) =>
         hasParameterPropertyModifier(parameter) &&
-        typeReferencesName(parameter.type, entityName, aliases),
+        typeReferencesDeclaration(parameter.type, aggregate.sourceFile, entity, imports),
     )
   })
 }
@@ -163,38 +166,93 @@ function roleAnnotation(node: ts.Node): string | undefined {
   return typeof tag?.comment === 'string' ? tag.comment.trim() : undefined
 }
 
-function typeReferencesName(
-  typeNode: ts.TypeNode | undefined,
-  expectedName: string,
-  aliases: ReadonlyMap<string, string>,
-): boolean {
-  if (typeNode === undefined) return false
-  return nodeReferencesName(typeNode, expectedName, aliases)
+interface ImportedDeclaration {
+  readonly importedName: string
+  readonly moduleSpecifier: string
 }
 
-function nodeReferencesName(
-  node: ts.Node,
-  expectedName: string,
-  aliases: ReadonlyMap<string, string>,
+function typeReferencesDeclaration(
+  typeNode: ts.TypeNode | undefined,
+  sourceFile: ts.SourceFile,
+  expectedDeclaration: AnnotatedDeclaration,
+  imports: ReadonlyMap<string, ImportedDeclaration>,
 ): boolean {
-  if (ts.isIdentifier(node) && (aliases.get(node.text) ?? node.text) === expectedName) return true
+  if (typeNode === undefined) return false
+  return nodeReferencesDeclaration(typeNode, sourceFile, expectedDeclaration, imports)
+}
+
+function nodeReferencesDeclaration(
+  node: ts.Node,
+  sourceFile: ts.SourceFile,
+  expectedDeclaration: AnnotatedDeclaration,
+  imports: ReadonlyMap<string, ImportedDeclaration>,
+): boolean {
+  if (ts.isIdentifier(node)) {
+    const imported = imports.get(node.text)
+    if (imported !== undefined) {
+      return (
+        imported.importedName === expectedDeclaration.name &&
+        moduleReferencesSource(sourceFile.fileName, imported.moduleSpecifier, expectedDeclaration)
+      )
+    }
+    if (
+      node.text === expectedDeclaration.name &&
+      sourceFile.fileName === expectedDeclaration.sourceFile.fileName
+    ) {
+      return true
+    }
+  }
   return (
-    node.forEachChild((child) => nodeReferencesName(child, expectedName, aliases) || undefined) ??
-    false
+    node.forEachChild(
+      (child) =>
+        nodeReferencesDeclaration(child, sourceFile, expectedDeclaration, imports) || undefined,
+    ) ?? false
   )
 }
 
-function importedNameAliases(sourceFile: ts.SourceFile): ReadonlyMap<string, string> {
-  const aliases = new Map<string, string>()
+function importedDeclarations(sourceFile: ts.SourceFile): ReadonlyMap<string, ImportedDeclaration> {
+  const imports = new Map<string, ImportedDeclaration>()
   for (const statement of sourceFile.statements) {
-    if (!ts.isImportDeclaration(statement)) continue
+    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) {
+      continue
+    }
     const bindings = statement.importClause?.namedBindings
     if (bindings === undefined || !ts.isNamedImports(bindings)) continue
     for (const element of bindings.elements) {
-      aliases.set(element.name.text, element.propertyName?.text ?? element.name.text)
+      imports.set(element.name.text, {
+        importedName: element.propertyName?.text ?? element.name.text,
+        moduleSpecifier: statement.moduleSpecifier.text,
+      })
     }
   }
-  return aliases
+  return imports
+}
+
+function moduleReferencesSource(
+  importingSourcePath: string,
+  moduleSpecifier: string,
+  expectedDeclaration: AnnotatedDeclaration,
+): boolean {
+  if (!moduleSpecifier.startsWith('.')) return false
+  const modulePath = path.resolve(path.dirname(importingSourcePath), moduleSpecifier)
+  const expectedSourcePath = path.resolve(expectedDeclaration.sourceFile.fileName)
+  return moduleSourceCandidates(modulePath).includes(expectedSourcePath)
+}
+
+function moduleSourceCandidates(modulePath: string): readonly string[] {
+  const extension = path.extname(modulePath)
+  const extensionlessPath = ['.js', '.jsx', '.mjs', '.cjs'].includes(extension)
+    ? modulePath.slice(0, -extension.length)
+    : modulePath
+  return [
+    modulePath,
+    `${extensionlessPath}.ts`,
+    `${extensionlessPath}.tsx`,
+    `${extensionlessPath}.mts`,
+    `${extensionlessPath}.cts`,
+    path.join(extensionlessPath, 'index.ts'),
+    path.join(extensionlessPath, 'index.tsx'),
+  ]
 }
 
 function productionSourcePaths(directory: string): readonly string[] {

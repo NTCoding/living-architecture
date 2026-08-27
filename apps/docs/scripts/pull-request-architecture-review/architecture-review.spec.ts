@@ -75,7 +75,7 @@ No architecture changes detected.
                   {
                     name: 'createReview',
                     packageKind: 'application',
-                    role: 'role|with`code\nforged',
+                    role: 'role|with``code\nforged',
                   },
                 ],
               },
@@ -89,7 +89,7 @@ No architecture changes detected.
     }
 
     expect(renderArchitectureReview(changes)).toContain(
-      '| `createReview` | `role&#124;with&#96;code forged` |',
+      '| `createReview` | ``` role\\|with``code forged ``` |',
     )
   })
 
