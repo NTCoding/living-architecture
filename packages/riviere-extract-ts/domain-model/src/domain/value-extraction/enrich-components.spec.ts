@@ -1,9 +1,10 @@
 import type {
-  ComponentRuleInput,
+  ComponentType,
   DetectionRuleInput,
   ValidatedModule,
   ValidatedModuleInput,
 } from '@living-architecture/riviere-extract-config-published-language'
+import { BUILT_IN_COMPONENT_TYPES } from '@living-architecture/riviere-extract-config-published-language'
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
@@ -21,21 +22,18 @@ function nextFile(path: string, content: string) {
   return filePath
 }
 
-const BUILT_IN_TYPES: readonly string[] = [
-  'api',
-  'useCase',
-  'domainOp',
-  'event',
-  'eventHandler',
-  'ui',
-]
-
-const REQUIRED_FIELDS: Readonly<Record<string, Record<string, { literal: string }>>> = {
+const REQUIRED_FIELDS: Readonly<
+  Partial<Record<ComponentType, Record<string, { literal: string }>>>
+> = {
   api: { apiType: { literal: 'REST' } },
   domainOp: { operationName: { literal: 'operation' } },
   event: { eventName: { literal: 'Event' } },
   eventHandler: { subscribedEvents: { literal: 'Event' } },
   ui: { route: { literal: '/' } },
+}
+
+function isBuiltInComponentType(componentType: string): componentType is ComponentType {
+  return BUILT_IN_COMPONENT_TYPES.some((builtInType) => builtInType === componentType)
 }
 
 function notUsedModule(name: string, path: string): ValidatedModule {
@@ -57,11 +55,7 @@ function notUsedModule(name: string, path: string): ValidatedModule {
   })
 }
 
-function isDetectionRule(input: ComponentRuleInput): input is DetectionRuleInput {
-  return Object.hasOwn(input, 'find')
-}
-
-function moduleWith(componentType: string, rule: ComponentRuleInput): ValidatedModule {
+function moduleWith(componentType: string, rule: DetectionRuleInput): ValidatedModule {
   const base: ValidatedModuleInput = {
     name: 'orders',
     domain: 'orders-domain',
@@ -74,24 +68,20 @@ function moduleWith(componentType: string, rule: ComponentRuleInput): ValidatedM
     eventHandler: { notUsed: true },
     ui: { notUsed: true },
   }
-  if (BUILT_IN_TYPES.includes(componentType)) {
-    const completedRule = isDetectionRule(rule)
-      ? { ...rule, extract: { ...REQUIRED_FIELDS[componentType], ...rule.extract } }
-      : rule
+  if (isBuiltInComponentType(componentType)) {
+    const completedRule = {
+      ...rule,
+      extract: { ...REQUIRED_FIELDS[componentType], ...rule.extract },
+    }
     return createValidatedModule({
       ...base,
       [componentType]: completedRule,
     })
   }
-  if (isDetectionRule(rule)) {
-    return createValidatedModule({
-      ...base,
-      customTypes: { [componentType]: rule },
-    })
-  }
-  throw new TestFixtureError(
-    `moduleWith: rule for custom type '${componentType}' must have a 'find' property`,
-  )
+  return createValidatedModule({
+    ...base,
+    customTypes: { [componentType]: rule },
+  })
 }
 
 function enrich(drafts: DraftComponent[], modules: ValidatedModule[]) {

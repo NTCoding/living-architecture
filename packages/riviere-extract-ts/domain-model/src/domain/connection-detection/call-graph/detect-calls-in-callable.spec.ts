@@ -113,15 +113,15 @@ describe('detectCallsInCallable', () => {
       async function execute(factory: Factory, pending: Promise<any>): Promise<void> {
         const typed: any = {}
         typed.run()
-        let uninitialised: any
-        uninitialised.run()
-        const inferred = {} as any
+        const unavailable: any = undefined
+        unavailable.run()
+        const inferred = JSON.parse('{}')
         inferred.run()
         const loaded = await factory.load()
         loaded.run()
         const unresolved = await pending
         unresolved.run()
-        ;({} as any).run()
+        JSON.parse('{}').run()
       }
     `)
 

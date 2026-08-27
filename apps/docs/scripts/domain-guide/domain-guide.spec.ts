@@ -65,7 +65,7 @@ function createExampleWorkspace(): string {
 
       /** @riviere-role aggregate-repository */
       export class OrderRepository {
-        load(): Order { throw new Error() }
+        load(): Order { return Order.open() }
       }
     `,
   )
