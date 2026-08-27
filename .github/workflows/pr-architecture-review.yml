@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 1
           path: reporter
           persist-credentials: false
-          ref: b21a6c21b5fa82b23e49634283ee6bb12f1d104d
+          ref: 54252fac40e6c9ce32f79f7f6925619204657cf7
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         name: Install pnpm
@@ -88,14 +88,8 @@ jobs:
 
       - name: Record architecture review result
         if: steps.snapshots.outputs.current == 'true'
-        env:
-          COMMENT_PATH: ${{ runner.temp }}/pull-request-architecture-review.md
         run: |
-          if [[ -s "${COMMENT_PATH}" ]]; then
-            echo "Architecture metadata changes were detected." >> "${GITHUB_STEP_SUMMARY}"
-          else
-            echo "No architecture metadata changes were detected." >> "${GITHUB_STEP_SUMMARY}"
-          fi
+          echo "Architecture review generated." >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Update pull request comment
         if: steps.snapshots.outputs.current == 'true'
@@ -112,13 +106,6 @@ jobs:
               jq --slurp --raw-output \
                 'flatten | map(select(.user.login == "github-actions[bot]") | select(.body | startswith("<!-- pull-request-architecture-review -->"))) | first | .id // empty'
           )"
-
-          if [[ ! -s "${COMMENT_PATH}" ]]; then
-            if [[ -n "${comment_id}" ]]; then
-              gh api --method DELETE "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}"
-            fi
-            exit 0
-          fi
 
           if [[ -n "${comment_id}" ]]; then
             gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}" \
