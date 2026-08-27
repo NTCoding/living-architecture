@@ -167,10 +167,16 @@ function roleAnnotation(node: ts.Node): string | undefined {
   return typeof tag?.comment === 'string' ? tag.comment.trim() : undefined
 }
 
-interface ImportedDeclaration {
-  readonly importedName: string
-  readonly moduleSpecifier: string
-}
+type ImportedDeclaration =
+  | {
+      readonly importedName: string
+      readonly kind: 'named'
+      readonly moduleSpecifier: string
+    }
+  | {
+      readonly kind: 'namespace'
+      readonly moduleSpecifier: string
+    }
 
 function typeReferencesDeclaration(
   typeNode: ts.TypeNode | undefined,
@@ -188,9 +194,12 @@ function nodeReferencesDeclaration(
   expectedDeclaration: AnnotatedDeclaration,
   imports: ReadonlyMap<string, ImportedDeclaration>,
 ): boolean {
+  if (namespaceImportReferencesDeclaration(node, sourceFile, expectedDeclaration, imports)) {
+    return true
+  }
   if (ts.isIdentifier(node)) {
     const imported = imports.get(node.text)
-    if (imported !== undefined) {
+    if (imported?.kind === 'named') {
       return (
         imported.importedName === declarationExportName(expectedDeclaration) &&
         moduleReferencesSource(sourceFile.fileName, imported.moduleSpecifier, expectedDeclaration)
@@ -211,6 +220,23 @@ function nodeReferencesDeclaration(
   )
 }
 
+function namespaceImportReferencesDeclaration(
+  node: ts.Node,
+  sourceFile: ts.SourceFile,
+  expectedDeclaration: AnnotatedDeclaration,
+  imports: ReadonlyMap<string, ImportedDeclaration>,
+): boolean {
+  if (!ts.isQualifiedName(node) || !ts.isIdentifier(node.left) || !ts.isIdentifier(node.right)) {
+    return false
+  }
+  const imported = imports.get(node.left.text)
+  return (
+    imported?.kind === 'namespace' &&
+    node.right.text === declarationExportName(expectedDeclaration) &&
+    moduleReferencesSource(sourceFile.fileName, imported.moduleSpecifier, expectedDeclaration)
+  )
+}
+
 function importedDeclarations(sourceFile: ts.SourceFile): ReadonlyMap<string, ImportedDeclaration> {
   const imports = new Map<string, ImportedDeclaration>()
   for (const statement of sourceFile.statements) {
@@ -222,14 +248,23 @@ function importedDeclarations(sourceFile: ts.SourceFile): ReadonlyMap<string, Im
     if (importClause.name !== undefined) {
       imports.set(importClause.name.text, {
         importedName: 'default',
+        kind: 'named',
         moduleSpecifier: statement.moduleSpecifier.text,
       })
     }
     const bindings = importClause.namedBindings
-    if (bindings === undefined || !ts.isNamedImports(bindings)) continue
+    if (bindings === undefined) continue
+    if (ts.isNamespaceImport(bindings)) {
+      imports.set(bindings.name.text, {
+        kind: 'namespace',
+        moduleSpecifier: statement.moduleSpecifier.text,
+      })
+      continue
+    }
     for (const element of bindings.elements) {
       imports.set(element.name.text, {
         importedName: element.propertyName?.text ?? element.name.text,
+        kind: 'named',
         moduleSpecifier: statement.moduleSpecifier.text,
       })
     }

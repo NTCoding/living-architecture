@@ -14,7 +14,6 @@ import {
   compareText,
   importedPackageNames,
   isFixtureDirectory,
-  itemKey,
   packageManifestName,
   publicMethodNames,
   readProductionSources,
@@ -134,18 +133,20 @@ function inspectDomain(declarations: readonly AnnotatedDeclaration[]): Architect
   const aggregateEntities = declarations.filter((entry) => entry.role === 'aggregate-entity')
   const entitiesByAggregate = aggregateEntityOwners(aggregateDeclarations, aggregateEntities)
   const ownedEntities = new Set(
-    [...entitiesByAggregate.values()].flatMap((entities) => entities.map(itemKey)),
+    [...entitiesByAggregate.values()].flatMap((entities) => entities.map(annotatedDeclarationKey)),
   )
   const aggregates = aggregateDeclarations.map((entry) => ({
-    entities: entitiesByAggregate.get(aggregateDeclarationKey(entry)) ?? [],
+    entities: (entitiesByAggregate.get(annotatedDeclarationKey(entry)) ?? []).map(
+      toArchitectureItem,
+    ),
     methods: publicMethodNames(entry),
     name: entry.name,
     packageKind: entry.packageKind,
   }))
   const items = declarations
     .filter((entry) => entry.role !== 'aggregate')
+    .filter((entry) => !ownedEntities.has(annotatedDeclarationKey(entry)))
     .map(toArchitectureItem)
-    .filter((item) => !ownedEntities.has(itemKey(item)))
   return {
     aggregates: aggregates.toSorted((left, right) => compareText(left.name, right.name)),
     items: uniqueItems(items),
@@ -155,8 +156,8 @@ function inspectDomain(declarations: readonly AnnotatedDeclaration[]): Architect
 function aggregateEntityOwners(
   aggregates: readonly AnnotatedDeclaration[],
   entities: readonly AnnotatedDeclaration[],
-): ReadonlyMap<string, readonly ArchitectureItem[]> {
-  const owners = new Map<string, ArchitectureItem[]>()
+): ReadonlyMap<string, readonly AnnotatedDeclaration[]> {
+  const owners = new Map<string, AnnotatedDeclaration[]>()
   for (const entity of entities) {
     const matchingAggregates = aggregates.filter(
       (aggregate) =>
@@ -169,18 +170,16 @@ function aggregateEntityOwners(
     }
     const owner = matchingAggregates[0]
     if (owner === undefined) continue
-    const ownerKey = aggregateDeclarationKey(owner)
+    const ownerKey = annotatedDeclarationKey(owner)
     const owned = owners.get(ownerKey) ?? []
-    owned.push(toArchitectureItem(entity))
+    owned.push(entity)
     owners.set(ownerKey, owned)
   }
   return owners
 }
 
-function aggregateDeclarationKey(
-  aggregate: Pick<AnnotatedDeclaration, 'name' | 'packageKind'>,
-): string {
-  return `${aggregate.packageKind}:${aggregate.name}`
+function annotatedDeclarationKey(declaration: AnnotatedDeclaration): string {
+  return `${declaration.packageKind}:${declaration.role}:${declaration.name}:${declaration.sourceFile.fileName}`
 }
 
 function useCasePackageMap(
