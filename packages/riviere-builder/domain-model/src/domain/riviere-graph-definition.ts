@@ -39,8 +39,8 @@ export class RiviereGraphDefinition {
       generated: metadata.generated,
       sources: [...(metadata.sources ?? [])],
       domains: { ...metadata.domains },
-      customTypes: { ...(metadata.customTypes ?? {}) },
-      relationshipTypes: { ...(metadata.relationshipTypes ?? {}) },
+      customTypes: { ...metadata.customTypes },
+      relationshipTypes: { ...metadata.relationshipTypes },
     })
   }
 
