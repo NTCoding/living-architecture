@@ -71,6 +71,7 @@ export function publicMethodNames(declaration: AnnotatedDeclaration): readonly s
   return uniqueText(
     declaration.declaration.members
       .filter(ts.isMethodDeclaration)
+      .filter((method) => !ts.isPrivateIdentifier(method.name))
       .filter((method) => !hasModifier(method, ts.SyntaxKind.PrivateKeyword))
       .filter((method) => !hasModifier(method, ts.SyntaxKind.ProtectedKeyword))
       .map((method) => method.name.getText(declaration.sourceFile)),
@@ -316,7 +317,7 @@ function isProductionTypeScriptFile(fileName: string): boolean {
   return isTypeScript && !fileName.endsWith('.d.ts') && !isTest && !isFixture
 }
 
-function isFixtureDirectory(directoryName: string): boolean {
+export function isFixtureDirectory(directoryName: string): boolean {
   return directoryName === '__fixtures__' || directoryName === 'fixtures'
 }
 

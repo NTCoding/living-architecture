@@ -369,12 +369,12 @@ function expectedArchitectureReview(): string {
 
 #### Added
 
-##### Aggregate: \`NewOrder\`
+##### Aggregate: \`NewOrder\` (\`domain-model\`)
 
 - Methods
     - \`start\`
 
-##### Aggregate: \`Order\`
+##### Aggregate: \`Order\` (\`domain-model\`)
 
 - Aggregate entities
     - \`Shipment\`
@@ -389,12 +389,12 @@ function expectedArchitectureReview(): string {
 
 #### Removed
 
-##### Aggregate: \`LegacyOrder\`
+##### Aggregate: \`LegacyOrder\` (\`domain-model\`)
 
 - Methods
     - \`archive\`
 
-##### Aggregate: \`Order\`
+##### Aggregate: \`Order\` (\`domain-model\`)
 
 - Methods
     - \`cancel\`

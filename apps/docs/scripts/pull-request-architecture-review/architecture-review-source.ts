@@ -13,6 +13,7 @@ import {
   annotatedDeclarations,
   compareText,
   importedPackageNames,
+  isFixtureDirectory,
   itemKey,
   packageManifestName,
   publicMethodNames,
@@ -219,7 +220,7 @@ function entrypointRoots(appsRoot: string): readonly string[] {
 
 function findNamedDirectories(directory: string, name: string): readonly string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry): readonly string[] => {
-    if (!entry.isDirectory()) return []
+    if (!entry.isDirectory() || isFixtureDirectory(entry.name)) return []
     const child = path.join(directory, entry.name)
     return entry.name === name ? [child] : findNamedDirectories(child, name)
   })

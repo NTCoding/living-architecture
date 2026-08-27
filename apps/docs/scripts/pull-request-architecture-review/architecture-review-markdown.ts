@@ -33,17 +33,22 @@ export function renderArchitectureReview(changes: PullRequestArchitectureChanges
     '',
     '## Changed subdomains',
     '',
-    ...changes.subdomains.map(
-      (subdomain) => `- [\`${subdomain.name}\`](#subdomain-${subdomain.name})`,
-    ),
+    ...changes.subdomains.map((subdomain) => renderSubdomainSummary(subdomain.name)),
     '',
     ...changes.subdomains.flatMap(renderSubdomain),
   ].join('\n')
 }
 
+function renderSubdomainSummary(name: string): string {
+  const renderedName = renderCodeSpan(name)
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name)
+    ? `- [${renderedName}](#subdomain-${name})`
+    : `- ${renderedName}`
+}
+
 function renderSubdomain(subdomain: SubdomainArchitectureChanges): readonly string[] {
   return [
-    `## Subdomain: \`${subdomain.name}\``,
+    `## Subdomain: ${renderCodeSpan(subdomain.name)}`,
     '',
     ...layerNames.flatMap((layer) => renderLayer(layer, subdomain.layers[layer])),
   ]
@@ -78,7 +83,7 @@ function renderChangeSet(
 
 function renderAggregate(aggregate: AggregateChanges): readonly string[] {
   return [
-    `##### Aggregate: \`${aggregate.name}\``,
+    `##### Aggregate: ${renderCodeSpan(aggregate.name)} (${renderCodeSpan(aggregate.packageKind)})`,
     '',
     ...renderAggregateMembers(
       'Aggregate entities',
@@ -95,7 +100,7 @@ function renderAggregateMembers(
 ): readonly string[] {
   return members.length === 0
     ? []
-    : [`- ${label}`, ...members.map((member) => `    - \`${member}\``)]
+    : [`- ${label}`, ...members.map((member) => `    - ${renderCodeSpan(member)}`)]
 }
 
 function renderItems(
@@ -117,10 +122,15 @@ function renderItems(
 }
 
 function renderTableCode(value: string): string {
-  const singleLine = value.replaceAll('\r', ' ').replaceAll('\n', ' ')
+  return renderCodeSpan(value, true)
+}
+
+function renderCodeSpan(value: string, escapePipes = false): string {
+  const normalized = value.replaceAll('\r', ' ').replaceAll('\n', ' ')
+  const singleLine = escapePipes ? normalized.replaceAll('|', '\\|') : normalized
   const delimiter = '`'.repeat(longestBacktickRun(singleLine) + 1)
   const padding = singleLine.includes('`') ? ' ' : ''
-  return `${delimiter}${padding}${singleLine.replaceAll('|', '\\|')}${padding}${delimiter}`
+  return `${delimiter}${padding}${singleLine}${padding}${delimiter}`
 }
 
 function longestBacktickRun(value: string): number {
