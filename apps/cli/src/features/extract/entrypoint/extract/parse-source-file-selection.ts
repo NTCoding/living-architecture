@@ -2,7 +2,6 @@ import type { ExtractDraftComponentsInput } from '@living-architecture/riviere-e
 
 type SourceFileSelectionRequest = ExtractDraftComponentsInput['sourceFileSelectionRequest']
 
-/** @riviere-role entrypoint-cli-input-parser-input */
 export interface SourceFileSelectionParserInput {
   readonly base?: string
   readonly files?: readonly string[]

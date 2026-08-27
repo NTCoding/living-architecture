@@ -1,4 +1,3 @@
-/** @riviere-role command-use-case-input */
 export interface ExtractDraftComponentsInput {
   allowIncomplete: boolean
   configPath: string
