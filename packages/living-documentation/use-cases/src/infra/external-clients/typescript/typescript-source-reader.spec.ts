@@ -7,16 +7,18 @@ import { TypescriptWorkspaceReadError } from './typescript-architecture-model'
 import {
   compareTypescriptText,
   findTypescriptAnnotatedDeclarations,
-  isTypescriptFixtureDirectory,
   readTypescriptImportedPackageNames,
   readTypescriptPackageManifestName,
-  readTypescriptProductionSources,
   readTypescriptPublicMethodNames,
   toTypescriptArchitectureItem,
   typescriptAggregateOwnsEntity,
   typescriptDeclarationReferencesDeclaration,
   uniqueTypescriptArchitectureItems,
 } from './typescript-source-reader'
+import {
+  isTypescriptFixtureDirectory,
+  readTypescriptProductionSources,
+} from './typescript-production-source-reader'
 
 const temporaryDirectories: string[] = []
 
@@ -93,6 +95,25 @@ describe('TypeScript source reader', () => {
         { name: 'Second', role: 'query-model-use-case' },
       ],
       role: 'aggregate',
+    })
+  })
+
+  it('reads the external client from its configured source location', () => {
+    const sourceFile = ts.createSourceFile(
+      '/workspace/packages/orders/use-cases/src/infra/external-clients/typescript/compiler.ts',
+      '/** @riviere-role external-client-model */ export interface Compiler {}',
+      ts.ScriptTarget.Latest,
+      true,
+    )
+    const declarations = findTypescriptAnnotatedDeclarations(sourceFile, 'use-cases')
+
+    expect(
+      toTypescriptArchitectureItem(requiredDeclaration(declarations, 'Compiler')),
+    ).toStrictEqual({
+      externalClient: 'typescript',
+      name: 'Compiler',
+      packageKind: 'use-cases',
+      role: 'external-client-model',
     })
   })
 
@@ -276,12 +297,36 @@ describe('TypeScript source reader', () => {
     expect(readTypescriptPublicMethodNames(policy)).toStrictEqual([])
     expect(
       uniqueTypescriptArchitectureItems([
+        {
+          externalClient: 'git',
+          name: 'ClientModel',
+          packageKind: 'use-cases',
+          role: 'external-client-model',
+        },
+        {
+          externalClient: 'typescript',
+          name: 'ClientModel',
+          packageKind: 'use-cases',
+          role: 'external-client-model',
+        },
         { name: 'Zed', packageKind: 'domain-model', role: 'value-object' },
         { name: 'Same', packageKind: 'published-language', role: 'event' },
         { name: 'Same', packageKind: 'domain-model', role: 'value-object' },
         { name: 'Zed', packageKind: 'domain-model', role: 'value-object' },
       ]),
     ).toStrictEqual([
+      {
+        externalClient: 'git',
+        name: 'ClientModel',
+        packageKind: 'use-cases',
+        role: 'external-client-model',
+      },
+      {
+        externalClient: 'typescript',
+        name: 'ClientModel',
+        packageKind: 'use-cases',
+        role: 'external-client-model',
+      },
       { name: 'Same', packageKind: 'domain-model', role: 'value-object' },
       { name: 'Same', packageKind: 'published-language', role: 'event' },
       { name: 'Zed', packageKind: 'domain-model', role: 'value-object' },

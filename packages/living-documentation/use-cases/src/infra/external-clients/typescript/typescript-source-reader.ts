@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 import {
@@ -7,11 +7,9 @@ import {
   type TypescriptArchitecturePackageKind,
   type TypescriptArchitectureRelationship,
 } from './typescript-architecture-model'
+import type { TypescriptParsedSource } from './typescript-production-source-reader'
 
-/** @riviere-role external-client-model */
-export interface TypescriptParsedSource {
-  readonly sourceFile: ts.SourceFile
-}
+const EXTERNAL_CLIENT_LOCATION = /[/\\]infra[/\\]external-clients[/\\]([^/\\]+)/
 
 /** @riviere-role external-client-model */
 export interface TypescriptAnnotatedDeclaration {
@@ -20,22 +18,6 @@ export interface TypescriptAnnotatedDeclaration {
   readonly packageKind: TypescriptArchitecturePackageKind
   readonly role: string
   readonly sourceFile: ts.SourceFile
-}
-
-/** @riviere-role external-client-service */
-export function readTypescriptProductionSources(
-  sourceRoot: string,
-): readonly TypescriptParsedSource[] {
-  if (!existsSync(sourceRoot)) return []
-  return productionSourcePaths(sourceRoot).map((sourcePath) => ({
-    sourceFile: ts.createSourceFile(
-      sourcePath,
-      readFileSync(sourcePath, 'utf8'),
-      ts.ScriptTarget.Latest,
-      true,
-      sourcePath.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
-    ),
-  }))
 }
 
 /** @riviere-role external-client-service */
@@ -154,8 +136,10 @@ export function toTypescriptArchitectureItem(
   declaration: TypescriptAnnotatedDeclaration,
   relatedTo: readonly TypescriptArchitectureRelationship[] = [],
 ): TypescriptArchitectureItem {
+  const externalClient = EXTERNAL_CLIENT_LOCATION.exec(declaration.sourceFile.fileName)?.[1]
   const relationships = uniqueRelationships(relatedTo)
   return {
+    ...(externalClient === undefined ? {} : { externalClient }),
     name: declaration.name,
     packageKind: declaration.packageKind,
     ...(relationships.length === 0 ? {} : { relatedTo: relationships }),
@@ -173,20 +157,16 @@ export function uniqueTypescriptArchitectureItems(
 
 /** @riviere-role external-client-service */
 function typescriptArchitectureItemKey(item: TypescriptArchitectureItem): string {
+  const externalClient = item.externalClient ?? 'no-external-client'
   const relationships = uniqueRelationships(item.relatedTo ?? [])
     .map((relationship) => `${relationship.role}:${relationship.name}`)
     .join(',')
-  return `${item.packageKind}:${item.role}:${item.name}:${relationships}`
+  return `${item.packageKind}:${item.role}:${item.name}:${externalClient}:${relationships}`
 }
 
 /** @riviere-role external-client-service */
 export function compareTypescriptText(left: string, right: string): number {
   return left.localeCompare(right, 'en')
-}
-
-/** @riviere-role external-client-service */
-export function isTypescriptFixtureDirectory(directoryName: string): boolean {
-  return directoryName === '__fixtures__' || directoryName === 'fixtures'
 }
 
 function annotatedVariables(
@@ -372,21 +352,6 @@ function moduleSourceCandidates(modulePath: string): readonly string[] {
   ]
 }
 
-function productionSourcePaths(directory: string): readonly string[] {
-  return readdirSync(directory, { withFileTypes: true })
-    .sort((left, right) => compareTypescriptText(left.name, right.name))
-    .flatMap((entry): readonly string[] => {
-      if (entry.isDirectory()) {
-        return isTypescriptFixtureDirectory(entry.name)
-          ? []
-          : productionSourcePaths(path.join(directory, entry.name))
-      }
-      return entry.isFile() && isProductionTypeScriptFile(entry.name)
-        ? [path.join(directory, entry.name)]
-        : []
-    })
-}
-
 function uniqueText(items: readonly string[]): readonly string[] {
   return [...new Set(items)].sort(compareTypescriptText)
 }
@@ -433,14 +398,6 @@ function hasModifier(node: ts.Node, modifier: ts.SyntaxKind): boolean {
 
 function isExported(node: ts.Node): boolean {
   return hasModifier(node, ts.SyntaxKind.ExportKeyword)
-}
-
-function isProductionTypeScriptFile(fileName: string): boolean {
-  const isTypeScript = /\.(?:[cm]?ts|tsx)$/.test(fileName)
-  const isTest = /\.(spec|test)\.[cm]?[jt]sx?$/.test(fileName)
-  const isFixture = /(?:^|[.-])fixtures?\.[cm]?[jt]sx?$/.test(fileName)
-  const isDeclaration = /\.d\.[cm]?ts$/.test(fileName)
-  return isTypeScript && !isDeclaration && !isTest && !isFixture
 }
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {

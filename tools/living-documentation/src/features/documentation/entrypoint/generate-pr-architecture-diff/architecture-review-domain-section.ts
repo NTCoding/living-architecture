@@ -1,27 +1,11 @@
 import type { PullRequestArchitectureDiff } from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
-import { compareArchitectureText, renderArchitectureCodeSpan } from './architecture-review-markdown'
+import { renderArchitectureCodeSpan } from './architecture-review-markdown'
 
 type Diff = ReturnType<PullRequestArchitectureDiff['changes']>
-type SubdomainChanges = Diff['subdomains'][number]
-type LayerChanges = SubdomainChanges['layers']['domain']
+type LayerChanges = Diff['subdomains'][number]['layers']['domain']
 type ChangeSet = LayerChanges['added']
 type ArchitectureItem = ChangeSet['items'][number]
 type AggregateChanges = ChangeSet['aggregates'][number]
-
-/** @riviere-role cli-output-formatter */
-export function renderArchitectureUseCaseSupportingComponents(
-  changes: LayerChanges,
-): readonly string[] {
-  const added = supportingUseCaseItems(changes.added.items)
-  const removed = supportingUseCaseItems(changes.removed.items)
-  if (added.length === 0 && removed.length === 0) return []
-  return [
-    '### Shared supporting components',
-    '',
-    ...renderSupportingChangeSet('Added', added),
-    ...renderSupportingChangeSet('Removed', removed),
-  ]
-}
 
 /** @riviere-role cli-output-formatter */
 export function renderArchitectureDomain(changes: LayerChanges): readonly string[] {
@@ -37,26 +21,6 @@ export function renderArchitectureDomain(changes: LayerChanges): readonly string
 /** @riviere-role cli-output-formatter */
 export function hasArchitectureLayerChanges(changes: LayerChanges): boolean {
   return hasChangeSetChanges(changes.added) || hasChangeSetChanges(changes.removed)
-}
-
-function renderSupportingChangeSet(
-  heading: 'Added' | 'Removed',
-  items: readonly ArchitectureItem[],
-): readonly string[] {
-  if (items.length === 0) return []
-  const roles = [...new Set(items.map((item) => item.role))].sort(compareArchitectureText)
-  return [
-    `#### ${heading}`,
-    '',
-    ...roles.flatMap((role) => [
-      `##### ${roleLabel(role)}`,
-      '',
-      ...items
-        .filter((item) => item.role === role)
-        .map((item) => `- ${renderArchitectureCodeSpan(item.name)}`),
-      '',
-    ]),
-  ]
 }
 
 function renderDomainChangeSet(
@@ -107,29 +71,10 @@ function renderDomainItems(items: readonly ArchitectureItem[]): readonly string[
   ]
 }
 
-function supportingUseCaseItems(items: readonly ArchitectureItem[]): readonly ArchitectureItem[] {
-  return items.filter(
-    (item) =>
-      !isUseCaseRole(item.role) &&
-      !(item.relatedTo ?? []).some((relationship) => isUseCaseRole(relationship.role)),
-  )
-}
-
 function hasChangeSetChanges(changes: ChangeSet): boolean {
   return changes.aggregates.length > 0 || changes.items.length > 0
 }
 
-function isUseCaseRole(role: string): boolean {
-  return role === 'command-use-case' || role === 'query-model-use-case'
-}
-
 function tableCode(value: string): string {
   return renderArchitectureCodeSpan(value, true)
-}
-
-function roleLabel(role: string): string {
-  return role
-    .split('-')
-    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
-    .join(' ')
 }

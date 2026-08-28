@@ -28,8 +28,10 @@ describe('pull request architecture diff formatter', () => {
           item('GenerateSummaryInput', 'query-model-use-case-input', [query]),
           item('Summary', 'query-model', [query]),
           item('SummaryLoader', 'query-model-loader', [query]),
-          item('CompilerModel', 'external-client-model'),
-          item('readCompiler', 'external-client-service'),
+          item('GitModel', 'external-client-model', undefined, 'git'),
+          item('CompilerModel', 'external-client-model', undefined, 'typescript'),
+          item('readCompiler', 'external-client-service', undefined, 'typescript'),
+          item('WorkspaceArchitectureSources', 'query-model'),
         ]),
       }),
     )
@@ -73,22 +75,40 @@ describe('pull request architecture diff formatter', () => {
 - Output model: \`Summary\` (\`query-model\`)
 - Loader: \`SummaryLoader\` (\`query-model-loader\`)
 
-### Shared supporting components
+### External clients
 
-#### Added
+#### Client: \`git\`
 
-##### External Client Model
+##### Added
+
+###### External Client Model
+
+- \`GitModel\`
+
+#### Client: \`typescript\`
+
+##### Added
+
+###### External Client Model
 
 - \`CompilerModel\`
 
-##### External Client Service
+###### External Client Service
 
 - \`readCompiler\`
+
+### Query models
+
+#### Added
+
+##### Query Model
+
+- \`WorkspaceArchitectureSources\`
 `)
     expect(report).not.toContain('SummaryDependencies')
   })
 
-  it('renders removed primary changes, shared components, and domain changes safely', () => {
+  it('renders removed primary, uncategorised, and domain changes safely', () => {
     const entrypoint = { name: 'oldCommand', role: 'cli-entrypoint' } as const
     const query = { name: 'OldQuery', role: 'query-model-use-case' } as const
     const report = format(
@@ -110,7 +130,11 @@ describe('pull request architecture diff formatter', () => {
         useCases: layer(
           [],
           [],
-          [item('OldResult', 'unclassified-result', [query]), item('OldSupport', 'other-support')],
+          [
+            item('OldResult', 'unclassified-result', [query]),
+            item('OldSupport', 'other-support'),
+            item('OldCompiler', 'external-client-service', undefined, 'typescript'),
+          ],
         ),
       }),
     )
@@ -121,12 +145,15 @@ describe('pull request architecture diff formatter', () => {
       entities: report.includes('- Aggregate entities\n    - `Line`'),
       forgedHeading: report.includes('\n## forged'),
       methods: report.includes('- Methods\n    - `cancel`'),
+      removedExternalClient: report.includes(
+        '#### Client: `typescript`\n\n##### Removed\n\n###### External Client Service\n\n- `OldCompiler`',
+      ),
       query: report.includes('##### `OldQuery`'),
       querySection: report.includes('### Query use cases\n\n#### Removed'),
       relatedComponent: report.includes('- Related component: `OldResult` (`unclassified-result`)'),
       safeHeading: report.includes('## Subdomain: `` orders`[]() ## forged ``'),
       safeSummary: report.includes('- `` orders`[]() ## forged ``'),
-      sharedSection: report.includes('### Shared supporting components\n\n#### Removed'),
+      uncategorisedSection: report.includes('### Uncategorised changes\n\n#### Removed'),
       tableEscaping: report.includes(
         [
           '| `',
@@ -142,12 +169,13 @@ describe('pull request architecture diff formatter', () => {
       entities: true,
       forgedHeading: false,
       methods: true,
+      removedExternalClient: true,
       query: true,
       querySection: true,
       relatedComponent: true,
       safeHeading: true,
       safeSummary: true,
-      sharedSection: true,
+      uncategorisedSection: true,
       tableEscaping: true,
     })
   })
@@ -166,7 +194,7 @@ No architecture changes detected.
 `)
   })
 
-  it('omits empty entry point and supporting sections from a visible subdomain', () => {
+  it('omits empty entry point and role category sections from a visible subdomain', () => {
     const query = { name: 'ReadOrders', role: 'query-model-use-case' } as const
     const report = format(
       subdomain('orders', 'changed', {
@@ -187,8 +215,16 @@ No architecture changes detected.
     expect({
       domain: report.includes('### Domain'),
       entrypoints: report.includes('### Entry points'),
-      supporting: report.includes('### Shared supporting components'),
-    }).toStrictEqual({ domain: true, entrypoints: false, supporting: false })
+      externalClients: report.includes('### External clients'),
+      queryModels: report.includes('### Query models'),
+      uncategorised: report.includes('### Uncategorised changes'),
+    }).toStrictEqual({
+      domain: true,
+      entrypoints: false,
+      externalClients: false,
+      queryModels: false,
+      uncategorised: false,
+    })
   })
 
   it('escapes code spans and table pipes', () => {
@@ -240,8 +276,14 @@ function layer(
   }
 }
 
-function item(name: string, role: string, relatedTo?: Item['relatedTo']): Item {
+function item(
+  name: string,
+  role: string,
+  relatedTo?: Item['relatedTo'],
+  externalClient?: string,
+): Item {
   return {
+    ...(externalClient === undefined ? {} : { externalClient }),
     name,
     packageKind: role.startsWith('cli-') ? 'application' : 'use-cases',
     ...(relatedTo === undefined ? {} : { relatedTo }),

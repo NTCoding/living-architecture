@@ -8,8 +8,12 @@ import {
 import {
   hasArchitectureLayerChanges,
   renderArchitectureDomain,
-  renderArchitectureUseCaseSupportingComponents,
-} from './architecture-review-supporting-sections'
+} from './architecture-review-domain-section'
+import {
+  renderArchitectureExternalClients,
+  renderArchitectureQueryModels,
+  renderUncategorisedArchitectureChanges,
+} from './architecture-review-role-sections'
 
 type Diff = ReturnType<PullRequestArchitectureDiff['changes']>
 type PullRequestArchitectureDiffView = Pick<PullRequestArchitectureDiff, 'changes' | 'outputPath'>
@@ -66,7 +70,9 @@ function renderSubdomain(subdomain: SubdomainChanges): readonly string[] {
       'query-model-use-case',
       subdomain.layers['use-cases'],
     ),
-    ...renderArchitectureUseCaseSupportingComponents(subdomain.layers['use-cases']),
+    ...renderArchitectureExternalClients(subdomain.layers['use-cases']),
+    ...renderArchitectureQueryModels(subdomain.layers['use-cases']),
+    ...renderUncategorisedArchitectureChanges(subdomain.layers['use-cases']),
     ...renderArchitectureDomain(subdomain.layers.domain),
   ]
 }

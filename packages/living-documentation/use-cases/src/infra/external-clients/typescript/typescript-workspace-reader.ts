@@ -11,18 +11,20 @@ import {
 import {
   compareTypescriptText,
   findTypescriptAnnotatedDeclarations,
-  isTypescriptFixtureDirectory,
   readTypescriptImportedPackageNames,
   readTypescriptPackageManifestName,
-  readTypescriptProductionSources,
   readTypescriptPublicMethodNames,
   toTypescriptArchitectureItem,
   typescriptAggregateOwnsEntity,
   typescriptDeclarationReferencesDeclaration,
   uniqueTypescriptArchitectureItems,
   type TypescriptAnnotatedDeclaration,
-  type TypescriptParsedSource,
 } from './typescript-source-reader'
+import {
+  isTypescriptFixtureDirectory,
+  readTypescriptProductionSources,
+  type TypescriptParsedSource,
+} from './typescript-production-source-reader'
 
 interface MutableSubdomainSnapshot {
   readonly domainDeclarations: TypescriptAnnotatedDeclaration[]

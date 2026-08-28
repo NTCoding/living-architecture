@@ -42,6 +42,12 @@ describe('architecture', () => {
                 aggregates: [],
                 items: [
                   {
+                    externalClient: 'typescript',
+                    name: 'Compiler',
+                    packageKind: 'use-cases',
+                    role: 'external-client-model',
+                  },
+                  {
                     name: 'Summary',
                     packageKind: 'use-cases',
                     relatedTo: [
@@ -87,6 +93,12 @@ describe('architecture', () => {
             'use-cases': {
               aggregates: [],
               items: [
+                {
+                  externalClient: 'typescript',
+                  name: 'Compiler',
+                  packageKind: 'use-cases',
+                  role: 'external-client-model',
+                },
                 {
                   name: 'GenerateSummary',
                   packageKind: 'use-cases',

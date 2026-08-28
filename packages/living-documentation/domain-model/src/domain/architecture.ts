@@ -2,6 +2,7 @@ type ArchitectureLayerName = 'entrypoints' | 'use-cases' | 'domain'
 type ArchitecturePackageKind = 'application' | 'use-cases' | 'domain-model' | 'published-language'
 
 interface ArchitectureItemValue {
+  readonly externalClient?: string
   readonly name: string
   readonly packageKind: ArchitecturePackageKind
   readonly relatedTo?: readonly ArchitectureRelationshipValue[]
@@ -302,6 +303,7 @@ function copyAggregate(aggregate: AggregateValue): AggregateValue {
 function copyItem(item: ArchitectureItemValue): ArchitectureItemValue {
   const relatedTo = canonicalRelationships(item.relatedTo ?? [])
   return {
+    ...(item.externalClient === undefined ? {} : { externalClient: item.externalClient }),
     name: item.name,
     packageKind: item.packageKind,
     ...(relatedTo.length === 0 ? {} : { relatedTo }),
@@ -342,10 +344,11 @@ function aggregateKey(aggregate: AggregateValue): string {
 }
 
 function itemKey(item: ArchitectureItemValue): string {
+  const externalClient = item.externalClient ?? 'no-external-client'
   const relationships = canonicalRelationships(item.relatedTo ?? [])
     .map((relationship) => `${relationship.role}:${relationship.name}`)
     .join(',')
-  return `${item.packageKind}:${item.role}:${item.name}:${relationships}`
+  return `${item.packageKind}:${item.role}:${item.name}:${externalClient}:${relationships}`
 }
 
 function canonicalRelationships(
