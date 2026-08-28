@@ -8,10 +8,17 @@ import type {
 } from '@living-architecture/riviere-schema-published-language/schema'
 import type { LinkId } from '@living-architecture/riviere-schema-published-language/link-id'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
+import {
+  GraphDiagnostics,
+  type NearMatchOptions,
+  type NearMatchQuery,
+  type NearMatchResult,
+} from '@living-architecture/riviere-builder-published-language'
 import type { GraphDiff } from './graph-diff'
 
 import type { ComponentDepths } from './component-depths'
 import { ComponentCounts } from './component-counts'
+import { ComponentSummaryStats } from './component-summary-stats'
 import { ComponentId } from './component-id'
 import { CodePointSequence } from './code-point-sequence'
 import type { CrossDomainLink } from './cross-domain-link'
@@ -31,8 +38,6 @@ import type { Flow } from './flow'
 import { findEntryPoints, queryFlows, traceFlowFrom } from './flow-queries'
 import { diffGraphs } from './graph-diff'
 import type { GraphStats } from './graph-stats'
-import { detectOrphanComponents } from './graph-validation'
-import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { OperationName } from './operation-name'
 import type { PublishedEvent } from './published-event'
 import type { SearchWithFlowOptions } from './search-with-flow-options'
@@ -148,25 +153,6 @@ export class RiviereQuery {
   }
 
   /**
-   * Validates the graph structure beyond schema validation.
-   *
-   * Checks for structural issues like invalid link references.
-   *
-   * @returns Validation result with any errors found
-   *
-   * @example
-   * ```typescript
-   * const result = query.validate()
-   * if (!result.valid) {
-   *   console.error('Validation errors:', result.errors)
-   * }
-   * ```
-   */
-  validate(): ValidationResult {
-    return ValidationResult.parse(this.graphSnapshot)
-  }
-
-  /**
    * Detects orphan components with no incoming or outgoing links.
    *
    * @returns Array of component IDs that are disconnected from the graph
@@ -180,7 +166,9 @@ export class RiviereQuery {
    * ```
    */
   detectOrphans(): ComponentId[] {
-    return detectOrphanComponents(this.graphSnapshot)
+    return GraphDiagnostics.fromGraph(this.graphSnapshot)
+      .orphanComponents()
+      .map((component) => ComponentId.parse(component.id))
   }
 
   /**
@@ -253,6 +241,11 @@ export class RiviereQuery {
         component.domain.toLowerCase().includes(lowerQuery) ||
         component.type.toLowerCase().includes(lowerQuery),
     )
+  }
+
+  /** Finds components with similar names and reports exact-name type or domain mismatches. */
+  nearMatches(query: NearMatchQuery, options?: NearMatchOptions): readonly NearMatchResult[] {
+    return GraphDiagnostics.fromGraph(this.graphSnapshot).nearMatches(query, options)
   }
 
   /**
@@ -772,6 +765,11 @@ export class RiviereQuery {
    */
   stats(): GraphStats {
     return queryStats(this.graphSnapshot)
+  }
+
+  /** Returns graph construction summary counts grouped by component type. */
+  componentSummary(): ComponentSummaryStats {
+    return ComponentSummaryStats.fromGraph(this.graphSnapshot)
   }
 
   /**

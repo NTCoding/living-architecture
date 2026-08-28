@@ -5,13 +5,24 @@ A class that represents a domain concept defined by its attributes rather than i
 
 ## Behavioral Contract
 1. Defined by its values, not by an identity
-2. Immutable: operations return new values instead of mutating the current value
+2. Immutable by default: operations return new values instead of mutating the current value
 3. Has at least one static factory method beginning with `parse` or `from`
 4. Every `parse` or `from` factory accepts at least one parameter
 5. Has a private constructor, so callers must use a factory method
 6. May expose instance methods such as `equals`, `add`, or `toString`
 7. Does not store functions in instance data members
 8. Used as a building block within aggregates, inputs, and results
+
+### Explicit Mutable Value Objects
+
+A value object may mutate in place when all of these conditions apply:
+
+1. Consumers observe its current values, not a stable identity
+2. It has no lifecycle or repository of its own
+3. Mutation protects a measured performance characteristic or another documented domain constraint
+4. Equivalent supplied values reconstruct equivalent behaviour
+
+The role annotation stays `value-object`. Mutability does not create identity.
 
 ## Examples
 

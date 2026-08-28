@@ -4,7 +4,7 @@ import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
 import { parseStateChanges } from './enrichment-parser'
 import { parseSignature } from './signature-parser'
-import type { EnrichComponent } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/enrich-component'
+import type { EnrichComponent } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-component'
 interface EnrichOptions {
   id: string
   entity?: string

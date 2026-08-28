@@ -1,1 +1,1 @@
-export { AddComponent } from './features/builder/commands/add-component'
+export { ListComponents } from './features/query/queries/list-components'

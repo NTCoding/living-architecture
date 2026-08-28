@@ -1,18 +1,17 @@
 import { Project } from 'ts-morph'
 import { assert, describe, expect, it } from 'vitest'
 import { buildComponent } from './__fixtures__/call-graph-fixtures'
-import { locateComponentCallables } from './locate-component-callables'
 
-describe('locateComponentCallables', () => {
+describe('EnrichedComponent.callableReferencesIn', () => {
   it('returns no callable when the source or declaration is absent', () => {
     const project = new Project({ useInMemoryFileSystem: true })
     project.createSourceFile('/src/present.ts', 'const value = 1')
 
     expect(
-      locateComponentCallables(project, [
+      [
         buildComponent('MissingFile', '/src/missing.ts', 1),
         buildComponent('MissingDeclaration', '/src/present.ts', 99),
-      ]),
+      ].flatMap((component) => component.callableReferencesIn(project)),
     ).toStrictEqual([])
   })
 
@@ -24,12 +23,14 @@ describe('locateComponentCallables', () => {
     )
     const declaration = sourceFile.getClassOrThrow('Handler')
 
-    const result = locateComponentCallables(project, [
-      buildComponent('Handler', sourceFile.getFilePath(), declaration.getStartLineNumber()),
-    ])
+    const result = buildComponent(
+      'Handler',
+      sourceFile.getFilePath(),
+      declaration.getStartLineNumber(),
+    ).callableReferencesIn(project)
 
-    expect(result.map(({ callable }) => callable.callableName)).toStrictEqual(['first', 'second'])
-    expect(result[0]?.callable.containerTypeName).toBe('Handler')
+    expect(result.map((callable) => callable.callableName)).toStrictEqual(['first', 'second'])
+    expect(result[0]?.containerTypeName).toBe('Handler')
   })
 
   it('uses the component name for an anonymous class component', () => {
@@ -41,15 +42,13 @@ describe('locateComponentCallables', () => {
     const declaration = sourceFile.getClasses()[0]
     assert(declaration)
 
-    const result = locateComponentCallables(project, [
-      buildComponent(
-        'AnonymousHandler',
-        sourceFile.getFilePath(),
-        declaration.getStartLineNumber(),
-      ),
-    ])
+    const result = buildComponent(
+      'AnonymousHandler',
+      sourceFile.getFilePath(),
+      declaration.getStartLineNumber(),
+    ).callableReferencesIn(project)
 
-    expect(result[0]?.callable.containerTypeName).toBe('AnonymousHandler')
+    expect(result[0]?.containerTypeName).toBe('AnonymousHandler')
   })
 
   it('locates a component declared on a method', () => {
@@ -60,11 +59,13 @@ describe('locateComponentCallables', () => {
     )
     const method = sourceFile.getClassOrThrow('Handler').getMethodOrThrow('run')
 
-    const result = locateComponentCallables(project, [
-      buildComponent('Run', sourceFile.getFilePath(), method.getStartLineNumber()),
-    ])
+    const result = buildComponent(
+      'Run',
+      sourceFile.getFilePath(),
+      method.getStartLineNumber(),
+    ).callableReferencesIn(project)
 
-    expect(result[0]?.callable).toMatchObject({
+    expect(result[0]).toMatchObject({
       kind: 'method',
       callableName: 'run',
       containerTypeName: 'Handler',
@@ -80,11 +81,13 @@ describe('locateComponentCallables', () => {
     const method = sourceFile.getClasses()[0]?.getMethodOrThrow('run')
     assert(method)
 
-    const result = locateComponentCallables(project, [
-      buildComponent('Run', sourceFile.getFilePath(), method.getStartLineNumber()),
-    ])
+    const result = buildComponent(
+      'Run',
+      sourceFile.getFilePath(),
+      method.getStartLineNumber(),
+    ).callableReferencesIn(project)
 
-    expect(result[0]?.callable.containerTypeName).toBeUndefined()
+    expect(result[0]?.containerTypeName).toBeUndefined()
   })
 
   it('locates a function component', () => {
@@ -92,10 +95,12 @@ describe('locateComponentCallables', () => {
     const sourceFile = project.createSourceFile('/src/function.ts', 'function execute(): void {}')
     const declaration = sourceFile.getFunctionOrThrow('execute')
 
-    const result = locateComponentCallables(project, [
-      buildComponent('Execute', sourceFile.getFilePath(), declaration.getStartLineNumber()),
-    ])
+    const result = buildComponent(
+      'Execute',
+      sourceFile.getFilePath(),
+      declaration.getStartLineNumber(),
+    ).callableReferencesIn(project)
 
-    expect(result[0]?.callable).toMatchObject({ kind: 'function', callableName: 'execute' })
+    expect(result[0]).toMatchObject({ kind: 'function', callableName: 'execute' })
   })
 })

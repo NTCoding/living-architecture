@@ -31,6 +31,7 @@
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
+    "@living-architecture/riviere-schema-published-language": "workspace:*",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "safe-regex2": "^5.1.1",

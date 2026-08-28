@@ -1,4 +1,4 @@
-import type { FinalizeGraphResult } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/finalize-graph-result'
+import type { FinalizeGraphResult } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/finalize-graph-result'
 import { writeUtf8File } from '@living-architecture/riviere-builder-use-cases/infra/external-clients/filesystem/write-utf8-file'
 
 /** @riviere-role cli-response-writer */

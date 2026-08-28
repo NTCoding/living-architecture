@@ -3,10 +3,7 @@ import { createFinalizeGraphInput } from './create-finalize-graph-input'
 
 it('uses the explicit output path', () => {
   expect(
-    createFinalizeGraphInput(
-      { graph: 'source.json', output: 'final.json' },
-      'default.json',
-    ),
+    createFinalizeGraphInput({ graph: 'source.json', output: 'final.json' }, 'default.json'),
   ).toStrictEqual({
     graphFileLocation: 'source.json',
     outputPath: 'final.json',

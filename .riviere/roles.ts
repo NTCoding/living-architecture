@@ -1,6 +1,7 @@
 import { role } from '@living-architecture/riviere-role-enforcement-domain-model'
 
 export const publishedLanguageRoles = [
+  'domain-error',
   'published-language-annotation',
   'published-language-schema',
   'published-language-data-structure',
@@ -95,10 +96,6 @@ export const allRoles = [
     approvedInstances: [
       {
         name: 'RiviereProject',
-        userHasApproved: true,
-      },
-      {
-        name: 'RiviereBuilder',
         userHasApproved: true,
       },
       {

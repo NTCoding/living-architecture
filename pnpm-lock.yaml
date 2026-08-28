@@ -317,6 +317,18 @@ importers:
 
   packages/riviere-builder/domain-model:
     dependencies:
+      '@living-architecture/riviere-builder-published-language':
+        specifier: workspace:*
+        version: link:../published-language
+      '@living-architecture/riviere-schema-published-language':
+        specifier: workspace:*
+        version: link:../../riviere-schema/published-language
+      zod:
+        specifier: ^4.2.1
+        version: 4.3.5
+
+  packages/riviere-builder/published-language:
+    dependencies:
       '@living-architecture/riviere-schema-published-language':
         specifier: workspace:*
         version: link:../../riviere-schema/published-language
@@ -329,12 +341,18 @@ importers:
       '@living-architecture/riviere-builder-domain-model':
         specifier: workspace:*
         version: link:../domain-model
+      '@living-architecture/riviere-builder-published-language':
+        specifier: workspace:*
+        version: link:../published-language
       '@living-architecture/riviere-schema-published-language':
         specifier: workspace:*
         version: link:../../riviere-schema/published-language
 
   packages/riviere-extract-config/published-language:
     dependencies:
+      '@living-architecture/riviere-schema-published-language':
+        specifier: workspace:*
+        version: link:../../riviere-schema/published-language
       ajv:
         specifier: ^8.17.1
         version: 8.18.0
@@ -359,6 +377,9 @@ importers:
 
   packages/riviere-extract-ts/domain-model:
     dependencies:
+      '@living-architecture/riviere-builder-published-language':
+        specifier: workspace:*
+        version: link:../../riviere-builder/published-language
       '@living-architecture/riviere-extract-config-published-language':
         specifier: workspace:*
         version: link:../../riviere-extract-config/published-language
@@ -371,6 +392,9 @@ importers:
 
   packages/riviere-extract-ts/use-cases:
     dependencies:
+      '@living-architecture/riviere-builder-published-language':
+        specifier: workspace:*
+        version: link:../../riviere-builder/published-language
       '@living-architecture/riviere-extract-config-published-language':
         specifier: workspace:*
         version: link:../../riviere-extract-config/published-language
@@ -4672,6 +4696,7 @@ packages:
   eslint@9.39.4:
     resolution: {integrity: sha512-XoMjdBOwe/esVgEvLmNsD3IRHkm7fbKIUGvrleloJXUZgDHig2IPWNniv+GwjyJXzuNqVjlr5+4yVUZjycJwfQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'

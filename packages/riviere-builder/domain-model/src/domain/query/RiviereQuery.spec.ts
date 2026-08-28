@@ -245,6 +245,16 @@ describe('RiviereQuery', () => {
     })
   })
 
+  describe('nearMatches()', () => {
+    it('returns similar components through graph diagnostics', () => {
+      const query = new RiviereQuery(createMinimalValidGraph())
+
+      expect(
+        query.nearMatches({ name: 'Test Pag' }).map((match) => match.component.id),
+      ).toStrictEqual(['test:mod:ui:page'])
+    })
+  })
+
   describe('componentsInDomain()', () => {
     it('returns all components in specified domain', () => {
       const graph = createMinimalValidGraph()

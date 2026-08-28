@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
 import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
-import type { ComponentSummary } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/component-summary'
+import type { ComponentSummary } from '@living-architecture/riviere-builder-use-cases/features/query/queries/component-summary'
 
 interface ComponentSummaryOptions {
   graph?: string
@@ -34,7 +34,9 @@ Examples:
     )
     .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .action(async (options: ComponentSummaryOptions) => {
-      const result = componentSummary.execute({ graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation })
+      const result = componentSummary.execute({
+        graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation,
+      })
       if (!result.result.success) {
         console.log(
           JSON.stringify(

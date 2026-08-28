@@ -11,6 +11,7 @@
   "include": ["src/**/*.ts"],
   "references": [
     { "path": "../domain-model/tsconfig.lib.json" },
+    { "path": "../../riviere-builder/published-language/tsconfig.lib.json" },
     { "path": "../../riviere-extract-config/published-language/tsconfig.lib.json" },
     { "path": "../../riviere-schema/published-language/tsconfig.lib.json" }
   ],

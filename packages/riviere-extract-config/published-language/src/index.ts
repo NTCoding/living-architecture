@@ -88,3 +88,16 @@ export {
   parseExtractionConfig,
   type ValidationError,
 } from './published-language/validation'
+export {
+  parseWorkflowDefinition,
+  type WorkflowDefinition,
+  type WorkflowDefinitionParseFailure,
+  type WorkflowDefinitionParseResult,
+  type WorkflowDefinitionParseSuccess,
+  type WorkflowExtractStageDefinition,
+  type WorkflowGraphDefinition,
+  type WorkflowLinkStageDefinition,
+  type WorkflowRunLogDefinition,
+  type WorkflowStageDefinition,
+  type WorkflowValidateStageDefinition,
+} from './published-language/workflow-definition'

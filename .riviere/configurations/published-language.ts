@@ -8,7 +8,7 @@ export const publishedLanguage = {
   locations: locationConfiguration<RoleName>(
     location('/published-language', publishedLanguageRoles, {
       'eslint-plugin': { roleEnforcement: false },
-      importRules: { allow: {} },
+      importRules: { allow: { anySubdomain: ['published-language'] } },
     }),
   ),
   packageManifest: {

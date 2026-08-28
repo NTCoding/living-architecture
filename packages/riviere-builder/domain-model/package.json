@@ -47,6 +47,7 @@
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
+    "@living-architecture/riviere-builder-published-language": "workspace:*",
     "@living-architecture/riviere-schema-published-language": "workspace:*",
     "zod": "^4.2.1"
   }

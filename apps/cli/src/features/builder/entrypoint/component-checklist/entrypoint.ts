@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
 import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
-import type { ComponentChecklist } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/component-checklist'
+import type { ComponentChecklist } from '@living-architecture/riviere-builder-use-cases/features/query/queries/component-checklist'
 
 interface ComponentChecklistOptions {
   graph?: string

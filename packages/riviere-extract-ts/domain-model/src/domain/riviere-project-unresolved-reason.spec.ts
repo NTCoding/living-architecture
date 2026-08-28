@@ -1,14 +1,8 @@
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { Project } from 'ts-morph'
 import { assert, describe, expect, it, vi } from 'vitest'
-
-const mocks = vi.hoisted(() => ({ resolveCallTargets: vi.fn() }))
-
-vi.mock('./connection-detection/call-graph/resolve-call-targets', () => ({
-  resolveCallTargets: mocks.resolveCallTargets,
-}))
-
-import { DetectedCall, ResolvedCallTarget } from './connection-detection/call-graph/detected-call'
+import { DetectedCall } from './connection-detection/call-graph/detected-call'
+import { ResolvedCallTarget } from './connection-detection/call-graph/resolved-call-target'
 import { EnrichedComponent } from './value-extraction/enriched-component'
 import { ExtractionConfiguration } from './extraction-configuration'
 import { RiviereProject } from './riviere-project'
@@ -61,16 +55,20 @@ describe('RiviereProject unresolved call reason', () => {
       resolvedConfig: validatedConfiguration.data,
       moduleContexts: [{ module, files: [sourceFile.getFilePath()], project }],
     })
-    const parsedProject = RiviereProject.parse({
+    const parsedProject = RiviereProject.start({
       configuration: extractionConfiguration,
       draftComponents: [],
     })
     assert(parsedProject.success)
-    mocks.resolveCallTargets.mockImplementation((input: { calls: DetectedCall[] }) =>
-      input.calls.map((call) =>
-        ResolvedCallTarget.parse({ kind: 'unresolved', call, reason: 'Call target unresolved' }),
-      ),
-    )
+    vi.spyOn(DetectedCall.prototype, 'resolveTarget').mockImplementation(function (
+      this: DetectedCall,
+    ) {
+      return ResolvedCallTarget.parse({
+        kind: 'unresolved',
+        call: this,
+        reason: 'Call target unresolved',
+      })
+    })
 
     const result = parsedProject.data.detectConnections([component], true)
 

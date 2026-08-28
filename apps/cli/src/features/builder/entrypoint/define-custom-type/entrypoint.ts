@@ -3,7 +3,7 @@ import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentati
 import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import { parsePropertySpecs } from './custom-type-parser'
-import type { DefineCustomType } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/define-custom-type'
+import type { DefineCustomType } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/define-custom-type'
 
 interface DefineCustomTypeOptions {
   name: string
