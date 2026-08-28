@@ -19,6 +19,18 @@ describe('architecture', () => {
                     name: 'Order',
                     packageKind: 'domain-model',
                   },
+                  {
+                    entities: [
+                      {
+                        name: 'Shipment',
+                        packageKind: 'domain-model',
+                        role: 'aggregate-entity',
+                      },
+                    ],
+                    methods: ['cancel', 'open'],
+                    name: 'Order',
+                    packageKind: 'domain-model',
+                  },
                 ],
                 items: [
                   { name: 'OrderId', packageKind: 'domain-model', role: 'value-object' },
@@ -62,8 +74,9 @@ describe('architecture', () => {
                 {
                   entities: [
                     { name: 'Line', packageKind: 'domain-model', role: 'aggregate-entity' },
+                    { name: 'Shipment', packageKind: 'domain-model', role: 'aggregate-entity' },
                   ],
-                  methods: ['open', 'place'],
+                  methods: ['cancel', 'open', 'place'],
                   name: 'Order',
                   packageKind: 'domain-model',
                 },

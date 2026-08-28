@@ -294,6 +294,17 @@ describe('TypeScript source reader', () => {
       )
     },
   )
+
+  it('rejects a malformed package manifest with the workspace reader error', () => {
+    const manifestPath = path.join(temporaryDirectory(), 'package.json')
+    writeFileSync(manifestPath, '{ malformed')
+
+    expect(() => readTypescriptPackageManifestName(manifestPath)).toThrow(
+      new TypescriptWorkspaceReadError(
+        `Package manifest '${manifestPath}' must contain valid JSON.`,
+      ),
+    )
+  })
 })
 
 function temporaryDirectory(): string {

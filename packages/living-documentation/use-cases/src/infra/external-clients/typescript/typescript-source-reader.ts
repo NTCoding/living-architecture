@@ -126,7 +126,7 @@ export function readTypescriptImportedPackageNames(
 
 /** @riviere-role external-client-service */
 export function readTypescriptPackageManifestName(manifestPath: string): string {
-  const manifest: unknown = JSON.parse(readFileSync(manifestPath, 'utf8'))
+  const manifest = parseTypescriptPackageManifest(manifestPath)
   if (
     !isRecord(manifest) ||
     typeof manifest['name'] !== 'string' ||
@@ -137,6 +137,16 @@ export function readTypescriptPackageManifestName(manifestPath: string): string 
     )
   }
   return manifest['name']
+}
+
+function parseTypescriptPackageManifest(manifestPath: string): unknown {
+  try {
+    return JSON.parse(readFileSync(manifestPath, 'utf8'))
+  } catch {
+    throw new TypescriptWorkspaceReadError(
+      `Package manifest '${manifestPath}' must contain valid JSON.`,
+    )
+  }
 }
 
 /** @riviere-role external-client-service */

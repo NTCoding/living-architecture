@@ -128,16 +128,23 @@ function canonicalArchitecture(value: ArchitectureValue): ArchitectureValue {
 
 function canonicalLayer(layer: ArchitectureLayerValue): ArchitectureLayerValue {
   return {
-    aggregates: layer.aggregates
-      .map((aggregate) => ({
-        entities: uniqueItems(aggregate.entities),
-        methods: uniqueText(aggregate.methods),
-        name: aggregate.name,
-        packageKind: aggregate.packageKind,
-      }))
-      .toSorted(compareAggregates),
+    aggregates: canonicalAggregates(layer.aggregates),
     items: uniqueItems(layer.items),
   }
+}
+
+function canonicalAggregates(aggregates: readonly AggregateValue[]): readonly AggregateValue[] {
+  const canonical = new Map<string, AggregateValue>()
+  for (const aggregate of aggregates) {
+    const existing = canonical.get(aggregateKey(aggregate))
+    canonical.set(aggregateKey(aggregate), {
+      entities: uniqueItems([...(existing?.entities ?? []), ...aggregate.entities]),
+      methods: uniqueText([...(existing?.methods ?? []), ...aggregate.methods]),
+      name: aggregate.name,
+      packageKind: aggregate.packageKind,
+    })
+  }
+  return [...canonical.values()].sort(compareAggregates)
 }
 
 function compareArchitectureValues(
