@@ -1,5 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { runArchitectureReviewCommand } from './architecture-review-command'
@@ -9,15 +8,14 @@ import {
 } from './architecture-review-diff'
 import { renderArchitectureReview } from './architecture-review-markdown'
 import { inspectArchitecture } from './architecture-review-source'
+import {
+  createWorkspace,
+  removeTemporaryWorkspaces,
+  writeWorkspaceFile,
+} from './architecture-review-test-workspace'
 import { ArchitectureReviewSourceError } from './architecture-review-types'
 
-const temporaryWorkspaces: string[] = []
-
-afterEach(() => {
-  for (const workspace of temporaryWorkspaces.splice(0)) {
-    rmSync(workspace, { force: true, recursive: true })
-  }
-})
+afterEach(removeTemporaryWorkspaces)
 
 describe('pull request architecture review', () => {
   it('renders only added and removed metadata in the agreed hierarchy', () => {
@@ -405,12 +403,6 @@ function expectedArchitectureReview(): string {
 `
 }
 
-function createWorkspace(): string {
-  const workspace = mkdtempSync(path.join(tmpdir(), 'architecture-review-'))
-  temporaryWorkspaces.push(workspace)
-  return workspace
-}
-
 function writeSubdomainManifest(workspace: string, subdomain: string): void {
   writePackageManifest(workspace, `packages/${subdomain}/domain-model/package.json`, {
     name: `@example/${subdomain}-domain-model`,
@@ -426,10 +418,4 @@ function writePackageManifest(
   manifest: Readonly<Record<string, unknown>>,
 ): void {
   writeWorkspaceFile(workspace, relativePath, JSON.stringify(manifest))
-}
-
-function writeWorkspaceFile(workspace: string, relativePath: string, source: string): void {
-  const filePath = path.join(workspace, relativePath)
-  mkdirSync(path.dirname(filePath), { recursive: true })
-  writeFileSync(filePath, source)
 }

@@ -127,7 +127,9 @@ function renderTableCode(value: string): string {
 
 function renderCodeSpan(value: string, escapePipes = false): string {
   const normalized = value.replaceAll('\r', ' ').replaceAll('\n', ' ')
-  const singleLine = escapePipes ? normalized.replaceAll('|', '\\|') : normalized
+  const singleLine = escapePipes
+    ? normalized.replaceAll('\\', '\\\\').replaceAll('|', '\\|')
+    : normalized
   const delimiter = '`'.repeat(longestBacktickRun(singleLine) + 1)
   const padding = singleLine.includes('`') ? ' ' : ''
   return `${delimiter}${padding}${singleLine}${padding}${delimiter}`

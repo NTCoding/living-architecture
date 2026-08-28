@@ -65,6 +65,37 @@ describe('architecture review Markdown', () => {
     expect(report).toContain('##### Aggregate: `Order` (`domain-model`)')
     expect(report).toContain('##### Aggregate: `Order` (`published-language`)')
   })
+
+  it('preserves backslashes before escaped table pipes', () => {
+    const report = renderArchitectureReview({
+      subdomains: [
+        {
+          layers: {
+            domain: {
+              added: {
+                aggregates: [],
+                items: [
+                  {
+                    name: String.raw`one\|pipe`,
+                    packageKind: 'domain-model',
+                    role: String.raw`many\\|pipes`,
+                  },
+                ],
+              },
+              removed: { aggregates: [], items: [] },
+            },
+            entrypoints: emptyLayerChanges(),
+            'use-cases': emptyLayerChanges(),
+          },
+          name: 'orders',
+        },
+      ],
+    })
+    const escapedName = String.raw`one\\\|pipe`
+    const escapedRole = String.raw`many\\\\\|pipes`
+
+    expect(report).toContain(`| \`${escapedName}\` | \`${escapedRole}\` | \`domain-model\` |`)
+  })
 })
 
 function emptyLayerChanges(): PullRequestArchitectureChanges['subdomains'][number]['layers']['domain'] {
