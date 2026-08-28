@@ -15,6 +15,9 @@
         "riviere-builder:typedoc",
         "riviere-cli:generate-docs"
       ]
+    },
+    "check-generated-docs": {
+      "dependsOn": ["@living-architecture/living-documentation:check-generated-docs"]
     }
   }
 }

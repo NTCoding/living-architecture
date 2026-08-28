@@ -129,6 +129,32 @@ describe('architecture source edge cases', () => {
     expect(entrypoints).toStrictEqual([])
   })
 
+  it.each(['__tests__', 'test', 'tests'])('excludes entrypoints nested inside %s', (directory) => {
+    const workspace = createWorkspace()
+    writeWorkspaceFile(
+      workspace,
+      'packages/orders/use-cases/package.json',
+      JSON.stringify({ name: '@example/orders-use-cases' }),
+    )
+    writeWorkspaceFile(
+      workspace,
+      'packages/orders/use-cases/src/place-order.ts',
+      '/** @riviere-role command-use-case */ export class PlaceOrder {}',
+    )
+    writeWorkspaceFile(
+      workspace,
+      `apps/cli/src/${directory}/entrypoint/entrypoint.ts`,
+      `
+        import type { PlaceOrder } from '@example/orders-use-cases/place-order'
+
+        /** @riviere-role cli-entrypoint */
+        export function createTestCommand(_: PlaceOrder): void {}
+      `,
+    )
+
+    expect(inspectArchitecture(workspace).subdomains[0]?.layers.entrypoints.items).toStrictEqual([])
+  })
+
   it('excludes ECMAScript private methods from aggregate methods', () => {
     const workspace = createWorkspace()
     writeWorkspaceFile(

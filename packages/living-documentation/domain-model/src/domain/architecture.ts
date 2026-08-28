@@ -113,17 +113,39 @@ export function extractArchitecture(source: ArchitectureSource): Architecture {
 }
 
 function canonicalArchitecture(value: ArchitectureValue): ArchitectureValue {
+  const subdomains = new Map<
+    string,
+    Readonly<Record<ArchitectureLayerName, ArchitectureLayerValue>>
+  >()
+  for (const subdomain of value.subdomains) {
+    const existing = subdomains.get(subdomain.name) ?? emptyLayers()
+    subdomains.set(subdomain.name, {
+      domain: mergeLayers(existing.domain, subdomain.layers.domain),
+      entrypoints: mergeLayers(existing.entrypoints, subdomain.layers.entrypoints),
+      'use-cases': mergeLayers(existing['use-cases'], subdomain.layers['use-cases']),
+    })
+  }
   return {
-    subdomains: value.subdomains
-      .map((subdomain) => ({
+    subdomains: [...subdomains.entries()]
+      .map(([name, layers]) => ({
         layers: {
-          domain: canonicalLayer(subdomain.layers.domain),
-          entrypoints: canonicalLayer(subdomain.layers.entrypoints),
-          'use-cases': canonicalLayer(subdomain.layers['use-cases']),
+          domain: canonicalLayer(layers.domain),
+          entrypoints: canonicalLayer(layers.entrypoints),
+          'use-cases': canonicalLayer(layers['use-cases']),
         },
-        name: subdomain.name,
+        name,
       }))
       .toSorted((left, right) => compareText(left.name, right.name)),
+  }
+}
+
+function mergeLayers(
+  left: ArchitectureLayerValue,
+  right: ArchitectureLayerValue,
+): ArchitectureLayerValue {
+  return {
+    aggregates: [...left.aggregates, ...right.aggregates],
+    items: [...left.items, ...right.items],
   }
 }
 
@@ -345,13 +367,9 @@ function aggregateKey(aggregate: AggregateValue): string {
 
 function itemKey(item: ArchitectureItemValue): string {
   const externalClient =
-    item.externalClient === undefined
-      ? 'missing-external-client'
-      : `present-external-client:${item.externalClient}`
-  const relationships = canonicalRelationships(item.relatedTo ?? [])
-    .map((relationship) => `${relationship.role}:${relationship.name}`)
-    .join(',')
-  return `${item.packageKind}:${item.role}:${item.name}:${externalClient}:${relationships}`
+    item.externalClient === undefined ? ([false] as const) : ([true, item.externalClient] as const)
+  const relationships = canonicalRelationships(item.relatedTo ?? []).map(relationshipKey)
+  return JSON.stringify([item.packageKind, item.role, item.name, externalClient, relationships])
 }
 
 function canonicalRelationships(
@@ -359,13 +377,17 @@ function canonicalRelationships(
 ): readonly ArchitectureRelationshipValue[] {
   const unique = new Map(
     relationships.map((relationship) => [
-      `${relationship.role}:${relationship.name}`,
+      relationshipKey(relationship),
       { name: relationship.name, role: relationship.role },
     ]),
   )
   return [...unique.values()].sort((left, right) =>
-    compareText(`${left.role}:${left.name}`, `${right.role}:${right.name}`),
+    compareText(relationshipKey(left), relationshipKey(right)),
   )
+}
+
+function relationshipKey(relationship: ArchitectureRelationshipValue): string {
+  return JSON.stringify([relationship.role, relationship.name])
 }
 
 function compareAggregates(left: AggregateValue, right: AggregateValue): number {

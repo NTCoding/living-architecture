@@ -26,8 +26,11 @@ describe('living documentation shell', () => {
       outputPath,
     ]
 
-    await import('./main')
-    process.argv = originalArguments
+    try {
+      await import('./main')
+    } finally {
+      process.argv = originalArguments
+    }
 
     expect(existsSync(outputPath)).toBe(true)
     expect(readFileSync(outputPath, 'utf8')).toContain('# Domain guide')

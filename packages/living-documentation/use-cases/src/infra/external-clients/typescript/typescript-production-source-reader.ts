@@ -29,12 +29,22 @@ export function isTypescriptFixtureDirectory(directoryName: string): boolean {
   return directoryName === '__fixtures__' || directoryName === 'fixtures'
 }
 
+/** @riviere-role external-client-service */
+export function isTypescriptNonProductionDirectory(directoryName: string): boolean {
+  return (
+    isTypescriptFixtureDirectory(directoryName) ||
+    directoryName === '__tests__' ||
+    directoryName === 'test' ||
+    directoryName === 'tests'
+  )
+}
+
 function productionSourcePaths(directory: string): readonly string[] {
   return readdirSync(directory, { withFileTypes: true })
     .sort((left, right) => compareTypescriptText(left.name, right.name))
     .flatMap((entry): readonly string[] => {
       if (entry.isDirectory()) {
-        return isExcludedProductionSourceDirectory(entry.name)
+        return isTypescriptNonProductionDirectory(entry.name)
           ? []
           : productionSourcePaths(path.join(directory, entry.name))
       }
@@ -42,15 +52,6 @@ function productionSourcePaths(directory: string): readonly string[] {
         ? [path.join(directory, entry.name)]
         : []
     })
-}
-
-function isExcludedProductionSourceDirectory(directoryName: string): boolean {
-  return (
-    isTypescriptFixtureDirectory(directoryName) ||
-    directoryName === '__tests__' ||
-    directoryName === 'test' ||
-    directoryName === 'tests'
-  )
 }
 
 function isProductionTypeScriptFile(fileName: string): boolean {

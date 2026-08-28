@@ -22,6 +22,7 @@ import {
 } from './typescript-source-reader'
 import {
   isTypescriptFixtureDirectory,
+  isTypescriptNonProductionDirectory,
   readTypescriptProductionSources,
   type TypescriptParsedSource,
 } from './typescript-production-source-reader'
@@ -313,7 +314,7 @@ function entrypointRoots(workspaceRoot: string): readonly string[] {
 
 function findNamedDirectories(directory: string, name: string): readonly string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry): readonly string[] => {
-    if (!entry.isDirectory() || isTypescriptFixtureDirectory(entry.name)) return []
+    if (!entry.isDirectory() || isTypescriptNonProductionDirectory(entry.name)) return []
     const child = path.join(directory, entry.name)
     return entry.name === name ? [child] : findNamedDirectories(child, name)
   })
