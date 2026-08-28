@@ -66,11 +66,16 @@ function renderPrimary(
   return [
     `##### ${renderArchitectureCodeSpan(primary.name)}`,
     '',
+    '<details>',
+    '<summary>Details</summary>',
+    '',
     `- Role: ${renderArchitectureCodeSpan(primary.role)}`,
     ...related.map(
       (item) =>
-        `- ${relatedRoleLabel(item.role)}: ${renderArchitectureCodeSpan(item.name)} (${renderArchitectureCodeSpan(item.role)})`,
+        `- ${renderArchitectureCodeSpan(item.role)}: ${renderArchitectureCodeSpan(item.name)}`,
     ),
+    '',
+    '</details>',
     '',
   ]
 }
@@ -119,16 +124,4 @@ function sameRelationship(left: Relationship, right: Relationship): boolean {
 
 function relationshipKey(relationship: Relationship): string {
   return `${relationship.role}:${relationship.name}`
-}
-
-function relatedRoleLabel(role: string): string {
-  const labels: Readonly<Record<string, string>> = {
-    'cli-output-formatter': 'Output formatter',
-    'cli-response-writer': 'Response writer',
-    'command-use-case-input': 'Input',
-    'query-model': 'Output model',
-    'query-model-loader': 'Loader',
-    'query-model-use-case-input': 'Input',
-  }
-  return labels[role] ?? 'Related component'
 }

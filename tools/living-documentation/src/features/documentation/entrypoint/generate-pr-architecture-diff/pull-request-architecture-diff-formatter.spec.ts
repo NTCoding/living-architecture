@@ -51,9 +51,14 @@ describe('pull request architecture diff formatter', () => {
 
 ##### \`createSummaryCommand\`
 
+<details>
+<summary>Details</summary>
+
 - Role: \`cli-entrypoint\`
-- Output formatter: \`formatSummary\` (\`cli-output-formatter\`)
-- Response writer: \`writeSummary\` (\`cli-response-writer\`)
+- \`cli-output-formatter\`: \`formatSummary\`
+- \`cli-response-writer\`: \`writeSummary\`
+
+</details>
 
 ### Command use cases
 
@@ -61,8 +66,13 @@ describe('pull request architecture diff formatter', () => {
 
 ##### \`RefreshSummary\`
 
+<details>
+<summary>Details</summary>
+
 - Role: \`command-use-case\`
-- Input: \`RefreshSummaryInput\` (\`command-use-case-input\`)
+- \`command-use-case-input\`: \`RefreshSummaryInput\`
+
+</details>
 
 ### Query use cases
 
@@ -70,10 +80,15 @@ describe('pull request architecture diff formatter', () => {
 
 ##### \`GenerateSummary\`
 
+<details>
+<summary>Details</summary>
+
 - Role: \`query-model-use-case\`
-- Input: \`GenerateSummaryInput\` (\`query-model-use-case-input\`)
-- Output model: \`Summary\` (\`query-model\`)
-- Loader: \`SummaryLoader\` (\`query-model-loader\`)
+- \`query-model-use-case-input\`: \`GenerateSummaryInput\`
+- \`query-model\`: \`Summary\`
+- \`query-model-loader\`: \`SummaryLoader\`
+
+</details>
 
 ### External clients
 
@@ -150,7 +165,7 @@ describe('pull request architecture diff formatter', () => {
       ),
       query: report.includes('##### `OldQuery`'),
       querySection: report.includes('### Query use cases\n\n#### Removed'),
-      relatedComponent: report.includes('- Related component: `OldResult` (`unclassified-result`)'),
+      relatedComponent: report.includes('- `unclassified-result`: `OldResult`'),
       safeHeading: report.includes('## Subdomain: `` orders`[]() ## forged ``'),
       safeSummary: report.includes('- `` orders`[]() ## forged ``'),
       uncategorisedSection: report.includes('### Uncategorised changes\n\n#### Removed'),
