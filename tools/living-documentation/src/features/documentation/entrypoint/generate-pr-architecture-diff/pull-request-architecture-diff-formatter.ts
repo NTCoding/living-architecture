@@ -27,9 +27,9 @@ export function formatPullRequestArchitectureDiff(diff: PullRequestArchitectureD
   if (subdomains.length === 0) return renderNoArchitectureChanges()
   return [
     COMMENT_MARKER,
-    '# Pull request architecture changes',
+    '**Pull request architecture changes**',
     '',
-    '## Changed subdomains',
+    '# Changed subdomains',
     '',
     ...subdomains.map(renderSubdomainSummary),
     '',
@@ -40,7 +40,7 @@ export function formatPullRequestArchitectureDiff(diff: PullRequestArchitectureD
 function renderNoArchitectureChanges(): string {
   return [
     COMMENT_MARKER,
-    '# Pull request architecture changes',
+    '**Pull request architecture changes**',
     '',
     'No architecture changes detected.',
     '',
@@ -57,7 +57,7 @@ function renderSubdomainSummary(subdomain: SubdomainChanges): string {
 
 function renderSubdomain(subdomain: SubdomainChanges): readonly string[] {
   return [
-    `## Subdomain: ${renderArchitectureCodeSpan(subdomain.name)}`,
+    `# Subdomain: ${renderArchitectureCodeSpan(subdomain.name)}`,
     '',
     ...renderArchitectureEntrypoints(subdomain.layers.entrypoints),
     ...renderArchitectureUseCaseCategory(

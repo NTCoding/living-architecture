@@ -11,7 +11,7 @@ type AggregateChanges = ChangeSet['aggregates'][number]
 export function renderArchitectureDomain(changes: LayerChanges): readonly string[] {
   if (!hasArchitectureLayerChanges(changes)) return []
   return [
-    '### Domain',
+    '## Domain',
     '',
     ...renderDomainChangeSet('Added', changes.added),
     ...renderDomainChangeSet('Removed', changes.removed),
@@ -29,7 +29,7 @@ function renderDomainChangeSet(
 ): readonly string[] {
   if (!hasChangeSetChanges(changes)) return []
   return [
-    `#### ${heading}`,
+    `### ${heading}`,
     '',
     ...changes.aggregates.flatMap(renderAggregate),
     ...renderDomainItems(changes.items),
@@ -38,7 +38,7 @@ function renderDomainChangeSet(
 
 function renderAggregate(aggregate: AggregateChanges): readonly string[] {
   return [
-    `##### Aggregate: ${renderArchitectureCodeSpan(aggregate.name)} (${renderArchitectureCodeSpan(aggregate.packageKind)})`,
+    `#### Aggregate: ${renderArchitectureCodeSpan(aggregate.name)} (${renderArchitectureCodeSpan(aggregate.packageKind)})`,
     '',
     ...renderAggregateMembers(
       'Aggregate entities',

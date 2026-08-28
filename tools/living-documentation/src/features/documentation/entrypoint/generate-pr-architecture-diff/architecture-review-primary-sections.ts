@@ -10,7 +10,7 @@ type Relationship = NonNullable<ArchitectureItem['relatedTo']>[number]
 export function renderArchitectureEntrypoints(changes: LayerChanges): readonly string[] {
   if (!hasVisibleEntrypointChanges(changes)) return []
   return [
-    '### Entry points',
+    '## Entry points',
     '',
     ...renderPrimaryChangeSet('Added', changes.added.items, isEntrypoint),
     ...renderPrimaryChangeSet('Removed', changes.removed.items, isEntrypoint),
@@ -26,7 +26,7 @@ export function renderArchitectureUseCaseCategory(
   const selected = (relationship: Relationship): boolean => relationship.role === primaryRole
   if (!hasPrimaryChanges(changes, selected)) return []
   return [
-    `### ${label}`,
+    `## ${label}`,
     '',
     ...renderPrimaryChangeSet('Added', changes.added.items, selected),
     ...renderPrimaryChangeSet('Removed', changes.removed.items, selected),
@@ -50,7 +50,7 @@ function renderPrimaryChangeSet(
   return primaries.length === 0
     ? []
     : [
-        `#### ${heading}`,
+        `### ${heading}`,
         '',
         ...primaries.flatMap((primary) => renderPrimary(primary, visibleItems)),
       ]
@@ -64,7 +64,7 @@ function renderPrimary(
     (item.relatedTo ?? []).some((relationship) => sameRelationship(relationship, primary)),
   )
   return [
-    `##### ${renderArchitectureCodeSpan(primary.name)}`,
+    `#### ${renderArchitectureCodeSpan(primary.name)}`,
     '',
     '<details>',
     '<summary>Details</summary>',

@@ -18,13 +18,13 @@ export function renderArchitectureExternalClients(changes: LayerChanges): readon
   ])
   if (clients.length === 0) return []
   return [
-    '### External clients',
+    '## External clients',
     '',
     ...clients.flatMap((client) => [
-      `#### Client: ${renderArchitectureCodeSpan(client)}`,
+      `### Client: ${renderArchitectureCodeSpan(client)}`,
       '',
-      ...renderRoleChangeSet('Added', itemsForClient(added, client), 5),
-      ...renderRoleChangeSet('Removed', itemsForClient(removed, client), 5),
+      ...renderRoleChangeSet('Added', itemsForClient(added, client), 4),
+      ...renderRoleChangeSet('Removed', itemsForClient(removed, client), 4),
     ]),
   ]
 }
@@ -48,17 +48,17 @@ function renderRoleSection(
   const removed = selectItems(changes.removed.items)
   if (added.length === 0 && removed.length === 0) return []
   return [
-    `### ${label}`,
+    `## ${label}`,
     '',
-    ...renderRoleChangeSet('Added', added, 4),
-    ...renderRoleChangeSet('Removed', removed, 4),
+    ...renderRoleChangeSet('Added', added, 3),
+    ...renderRoleChangeSet('Removed', removed, 3),
   ]
 }
 
 function renderRoleChangeSet(
   heading: 'Added' | 'Removed',
   items: readonly ArchitectureItem[],
-  headingLevel: 4 | 5,
+  headingLevel: 3 | 4,
 ): readonly string[] {
   if (items.length === 0) return []
   const roles = [...new Set(items.map((item) => item.role))].sort(compareArchitectureText)

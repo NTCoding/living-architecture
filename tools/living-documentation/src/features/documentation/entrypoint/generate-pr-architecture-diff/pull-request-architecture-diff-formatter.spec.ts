@@ -37,19 +37,19 @@ describe('pull request architecture diff formatter', () => {
     )
 
     expect(report).toBe(`<!-- pull-request-architecture-review -->
-# Pull request architecture changes
+**Pull request architecture changes**
 
-## Changed subdomains
+# Changed subdomains
 
 - [\`living-documentation\`](#subdomain-living-documentation) **NEW**
 
-## Subdomain: \`living-documentation\`
+# Subdomain: \`living-documentation\`
 
-### Entry points
+## Entry points
 
-#### Added
+### Added
 
-##### \`createSummaryCommand\`
+#### \`createSummaryCommand\`
 
 <details>
 <summary>Details</summary>
@@ -60,11 +60,11 @@ describe('pull request architecture diff formatter', () => {
 
 </details>
 
-### Command use cases
+## Command use cases
 
-#### Added
+### Added
 
-##### \`RefreshSummary\`
+#### \`RefreshSummary\`
 
 <details>
 <summary>Details</summary>
@@ -74,11 +74,11 @@ describe('pull request architecture diff formatter', () => {
 
 </details>
 
-### Query use cases
+## Query use cases
 
-#### Added
+### Added
 
-##### \`GenerateSummary\`
+#### \`GenerateSummary\`
 
 <details>
 <summary>Details</summary>
@@ -90,33 +90,33 @@ describe('pull request architecture diff formatter', () => {
 
 </details>
 
-### External clients
+## External clients
 
-#### Client: \`git\`
-
-##### Added
-
-###### \`External Client Model\`
-
-- \`GitModel\`
-
-#### Client: \`typescript\`
-
-##### Added
-
-###### \`External Client Model\`
-
-- \`CompilerModel\`
-
-###### \`External Client Service\`
-
-- \`readCompiler\`
-
-### Query models
+### Client: \`git\`
 
 #### Added
 
-##### \`Query Model\`
+##### \`External Client Model\`
+
+- \`GitModel\`
+
+### Client: \`typescript\`
+
+#### Added
+
+##### \`External Client Model\`
+
+- \`CompilerModel\`
+
+##### \`External Client Service\`
+
+- \`readCompiler\`
+
+## Query models
+
+### Added
+
+#### \`Query Model\`
 
 - \`WorkspaceArchitectureSources\`
 `)
@@ -155,21 +155,21 @@ describe('pull request architecture diff formatter', () => {
     )
 
     expect({
-      aggregate: report.includes('##### Aggregate: `Order` (`domain-model`)'),
-      emptyAggregate: report.includes('##### Aggregate: `Empty` (`domain-model`)'),
+      aggregate: report.includes('#### Aggregate: `Order` (`domain-model`)'),
+      emptyAggregate: report.includes('#### Aggregate: `Empty` (`domain-model`)'),
       entities: report.includes('- Aggregate entities\n    - `Line`'),
       forgedHeading: report.includes('\n## forged'),
       methods: report.includes('- Methods\n    - `cancel`'),
       removedExternalClient: report.includes(
-        '#### Client: `typescript`\n\n##### Removed\n\n###### `External Client Service`\n\n- `OldCompiler`',
+        '### Client: `typescript`\n\n#### Removed\n\n##### `External Client Service`\n\n- `OldCompiler`',
       ),
-      query: report.includes('##### `OldQuery`'),
-      querySection: report.includes('### Query use cases\n\n#### Removed'),
+      query: report.includes('#### `OldQuery`'),
+      querySection: report.includes('## Query use cases\n\n### Removed'),
       relatedComponent: report.includes('- `unclassified-result`: `OldResult`'),
-      roleHeading: report.includes('##### `Other Support ## injected`'),
-      safeHeading: report.includes('## Subdomain: `` orders`[]() ## forged ``'),
+      roleHeading: report.includes('#### `Other Support ## injected`'),
+      safeHeading: report.includes('# Subdomain: `` orders`[]() ## forged ``'),
       safeSummary: report.includes('- `` orders`[]() ## forged ``'),
-      uncategorisedSection: report.includes('### Uncategorised changes\n\n#### Removed'),
+      uncategorisedSection: report.includes('## Uncategorised changes\n\n### Removed'),
       tableEscaping: report.includes(
         [
           '| `',
@@ -205,7 +205,7 @@ describe('pull request architecture diff formatter', () => {
         }),
       ),
     ).toBe(`<!-- pull-request-architecture-review -->
-# Pull request architecture changes
+**Pull request architecture changes**
 
 No architecture changes detected.
 `)
@@ -230,11 +230,11 @@ No architecture changes detected.
     )
 
     expect({
-      domain: report.includes('### Domain'),
-      entrypoints: report.includes('### Entry points'),
-      externalClients: report.includes('### External clients'),
-      queryModels: report.includes('### Query models'),
-      uncategorised: report.includes('### Uncategorised changes'),
+      domain: report.includes('## Domain'),
+      entrypoints: report.includes('## Entry points'),
+      externalClients: report.includes('## External clients'),
+      queryModels: report.includes('## Query models'),
+      uncategorised: report.includes('## Uncategorised changes'),
     }).toStrictEqual({
       domain: true,
       entrypoints: false,
