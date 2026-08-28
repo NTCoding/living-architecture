@@ -14,33 +14,34 @@ The delivery sequence first introduces the package-owned extraction model and re
 
 ### M1: Retire `ExtractionProject`
 
-#### D1.1: Introduce the approved extraction-stage/service model
+#### D1.1: Introduce the approved extraction model
 
 - Value: Extraction behaviour needed by extract commands and workflows exists through the approved package-owned extraction concepts.
 - Acceptance criteria:
-  - `ExtractionConfiguration` exists as the approved data-only value object at `packages/riviere-extract-ts/src/domain/extraction-configuration.ts`.
+  - `ExtractionConfiguration` exists as the approved data-only value object at `packages/riviere-extract-ts/domain-model/src/domain/extraction-configuration.ts`.
   - `ExtractionConfiguration` carries the approved extraction state: `name`, `configPath`, `useTsConfig`, `repositoryName`, `resolvedConfig`, and `moduleContexts`.
-  - `ExtractComponentsForGraph` exists as the approved domain service for graph-ready components before connection detection.
-  - `DetectExtractionConnections` exists as the approved domain service for connection detection.
+  - `RiviereProject` extracts and enriches components for an extraction stage before connection detection.
+  - `RiviereProject` detects connections for the link stage against every component accumulated by the Workflow.
+  - `EnrichedComponent.toComponentDefinition(repository)` converts an enriched extraction value into the published Builder definition value required by the component type.
   - Workflow code does not own extraction rules, linking rules, custom type rules, or extraction result semantics.
   - Workflow files and workflow CLI options do not introduce `allowIncomplete` or other extraction semantics switches.
 - Verification:
   - Reviewer inspection confirms only the approved extraction concepts are introduced for this model change.
-  - Tests cover graph-ready extraction before connection detection and separate connection detection; no exact command was named in the approved PRD or architecture.
+  - Tests cover enriched component definitions, extraction before connection detection, and connection detection against accumulated components; no exact command was named in the approved PRD or architecture.
 - Dependencies:
   - None.
 - Out of scope:
   - Workflow execution.
 - Source refs:
   - PRD: Sections 4, 5, 6.
-  - Architecture: Section 3, concrete extraction seam required by all options; required extraction and graph-application split.
+  - Architecture: Section 3, accepted Option 1 extraction and graph application flow.
 
 #### D1.2: Replace the old extraction aggregate path with `RiviereProject`
 
 - Value: Existing extract command behaviour continues through the new extraction-package aggregate instead of the old CLI-owned `ExtractionProject` model.
 - Acceptance criteria:
-  - `RiviereProject` exists as the approved aggregate at `packages/riviere-extract-ts/src/domain/riviere-project.ts`.
-  - `RiviereProjectRepository` exists as the shared aggregate repository at `packages/riviere-cli/src/data-access/riviere-project/riviere-project-repository.ts`.
+  - `RiviereProject` exists as the approved aggregate at `packages/riviere-extract-ts/domain-model/src/domain/riviere-project.ts`.
+  - `RiviereProjectRepository` exists as the shared aggregate repository at `packages/riviere-extract-ts/use-cases/src/features/extract/data-access/riviere-project/riviere-project-repository.ts`.
   - `ExtractionProject` no longer exists.
   - `ExtractionProjectRepository` no longer exists.
   - Existing extract command behaviour still works after the replacement.
@@ -72,12 +73,13 @@ The delivery sequence first introduces the package-owned extraction model and re
 
 - Value: A project-local workflow file becomes a concrete aggregate that can rebuild one graph.
 - Acceptance criteria:
-  - `RiviereProject` exists as the approved aggregate at `packages/riviere-extract-ts/src/domain/riviere-project.ts`.
-  - `RiviereProjectRepository` exists as the shared aggregate repository at `packages/riviere-cli/src/data-access/riviere-project/riviere-project-repository.ts`.
-  - `RiviereProjectRepository.load({ projectRoot, workflowName })` loads `.riviere/workflows/{workflowName}.yaml`.
+  - `RiviereProject` exists as the approved aggregate at `packages/riviere-extract-ts/domain-model/src/domain/riviere-project.ts`.
+  - `RiviereProjectRepository` exists as the shared aggregate repository at `packages/riviere-extract-ts/use-cases/src/features/extract/data-access/riviere-project/riviere-project-repository.ts`.
+  - `RiviereProjectRepository.loadWorkflow({ projectRoot, workflowName })` loads `.riviere/workflows/{workflowName}.yaml`.
   - Workflow names match the approved V1 format: `[a-z0-9][a-z0-9-]*`.
   - The repository reads required `graph.sources`, `graph.domains`, `graph.outputPath`, and `runLog.directory`.
   - The repository materialises `ExtractionConfiguration` value objects while loading `RiviereProject`.
+  - The repository materialises the named `Workflow` aggregate entity inside `RiviereProject`.
   - The repository does not run workflow stages.
   - The repository does not accept operation inputs while loading a workflow project.
   - `RunWorkflow` loads `RiviereProject` and calls `rebuildGraph()`; it does not contain the stage loop.
@@ -121,17 +123,18 @@ The delivery sequence first introduces the package-owned extraction model and re
 
 ### M3: Rebuild one graph in memory
 
-#### D3.1: `RiviereProject.rebuildGraph()` starts from an empty graph
+#### D3.1: `RiviereProject.rebuildGraph()` starts the owned Workflow with an empty graph
 
 - Value: Every workflow run rebuilds one graph from a clean state.
 - Acceptance criteria:
-  - `RiviereProject.rebuildGraph()` creates a fresh `RiviereBuilder` internally.
+  - `RiviereProject.rebuildGraph()` replaces its owned `RiviereBuilder` with fresh graph state.
   - The use case does not pass a builder into `RiviereProject`.
+  - The selected `Workflow` entity owns the ordered stage loop, progression, failures, run events, and run warnings.
   - A workflow run starts from an empty graph state.
   - The final graph artefact is returned only after all stages succeed.
   - `RiviereProject` does not write the graph file.
 - Verification:
-  - Tests confirm each rebuild starts from a fresh in-memory builder and returns no graph artefact on failure; no exact command was named in the approved PRD or architecture.
+  - Tests confirm each rebuild starts from a fresh Builder owned by the Project, the Workflow owns stage progression, and failure returns no graph artefact.
 - Dependencies:
   - M1.
   - M2.
@@ -146,13 +149,14 @@ The delivery sequence first introduces the package-owned extraction model and re
 - Value: The approved `extract → link → validate` journey produces one coherent graph-building run.
 - Acceptance criteria:
   - One or more extract stages run before the link stage.
-  - Each extract stage calls `ExtractComponentsForGraph` with strict V1 extraction.
+  - Each extract stage asks `RiviereProject` to extract and enrich the configured components in strict V1 mode.
   - Extracted graph-ready components are accumulated for the workflow run.
   - The link stage runs only against extraction stages that have executed in the current run.
   - Connection detection uses the accumulated graph-ready components.
   - The validate stage calls `builder.validate()` before final graph build.
   - Any stage failure aborts immediately.
   - Later stages do not run after a failure.
+  - The stage loop does not exist in `RunWorkflow`, `RiviereProjectRepository`, the CLI entrypoint, or the shell.
 - Verification:
   - Tests cover ordered extract, link, validate execution, accumulated components, and fail-fast behaviour; no exact command was named in the approved PRD or architecture.
 - Dependencies:
@@ -166,25 +170,25 @@ The delivery sequence first introduces the package-owned extraction model and re
   - PRD: Sections 2, 4, 5, 6.
   - Architecture: Sections 3, 4, 6; stage materialisation and execution mechanics.
 
-#### D3.3: Apply extraction output through `ApplyExtractionToGraph`
+#### D3.3: Apply extraction output through the Workflow and published Builder API
 
 - Value: Extraction output becomes graph state through explicit approved builder operations.
 - Acceptance criteria:
-  - `ApplyExtractionToGraph` exists in workflow domain.
-  - Components are applied through real `RiviereBuilder` methods, including `upsertApi`, `upsertUseCase`, `upsertDomainOp`, `upsertEvent`, `upsertEventHandler`, `upsertUI`, and `upsertCustom`.
+  - `EnrichedComponent.toComponentDefinition(repository)` creates the appropriate published Builder definition value.
+  - The Workflow applies component definitions through the real `RiviereBuilder` upsert methods.
   - Links are applied through real builder link methods.
-  - Required graph fields are validated before builder calls.
+  - Published Builder definition values validate required graph fields before mutation.
   - Source repository information from extraction is preserved in graph source locations.
-  - `ApplyExtractionToGraph` is not moved to builder, extraction, infra mapping, or CLI output.
+  - No duplicate graph application service or graph write adapter is introduced.
 - Verification:
-  - Tests cover component application, link application, required field failures, and repository preservation; no exact command was named in the approved PRD or architecture.
+  - Tests cover component definition creation, component application, link application, required field failures, warnings, and repository preservation; no exact command was named in the approved PRD or architecture.
 - Dependencies:
   - D1.2.
   - D3.1.
 - Out of scope:
   - Generic graph mapping utilities.
 - Source refs:
-  - Architecture: Section 3; `ApplyExtractionToGraph`; architecture approval disposition.
+  - Architecture: Section 3; accepted Option 1 component and link application.
 
 ### M4: Run workflows through the CLI boundary
 
@@ -194,7 +198,7 @@ The delivery sequence first introduces the package-owned extraction model and re
 - Acceptance criteria:
   - The workflow CLI entrypoint exists.
   - `createRunWorkflowInput` converts parsed CLI options into typed workflow input.
-  - `RunWorkflow` loads the project and invokes `RiviereProject.rebuildGraph()`.
+  - `RunWorkflow` loads the project and invokes `RiviereProject.rebuildGraph()`; the selected Workflow entity owns execution order and failure stopping.
   - The command runs a named workflow inside a project.
   - The command does not support arbitrary shell stages or generic task-runner behaviour.
 - Verification:
@@ -239,7 +243,7 @@ The delivery sequence first introduces the package-owned extraction model and re
   - Failed runs leave the previous final graph unchanged.
   - Graph writing uses temp-file plus rename behaviour.
   - Graph write failure emits failure log events.
-  - CLI-boundary graph and run-log writing lives under `packages/riviere-cli/src/features/workflow/entrypoint/run-workflow/`.
+  - CLI-boundary graph and run-log writing lives under `apps/cli/src/features/workflow/entrypoint/run-workflow/`.
   - No graph-output or run-log writer is added under `features/workflow/data-access/`; those files implement CLI output policy, not loading or saving a domain model.
   - Workflow presentation/output is not added under the older `infra/cli/output` pattern.
 - Verification:

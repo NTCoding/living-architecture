@@ -1,23 +1,16 @@
-import type { Project } from 'ts-morph'
+import {
+  ComponentDefinition,
+  RiviereBuilder,
+} from '@living-architecture/riviere-builder-published-language'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { DraftComponent } from './component-extraction/draft-component'
 import { AsyncDetectionOptions } from './connection-detection/async-detection/async-detection-options'
 import { detectEventPublisherConnections } from './connection-detection/async-detection/detect-event-publisher-connections'
 import { detectSubscribeConnections } from './connection-detection/async-detection/detect-subscribe-connections'
 import { ComponentIndex } from './connection-detection/component-index'
 import { ConnectionDetectionResult } from './connection-detection/connection-detection-result'
-import { detectCallsInCallable } from './connection-detection/call-graph/detect-calls-in-callable'
 import { detectConnectionsFromCalls } from './connection-detection/call-graph/detect-connections-from-calls'
-import { locateComponentCallables } from './connection-detection/call-graph/locate-component-callables'
-import { resolveCallTargets } from './connection-detection/call-graph/resolve-call-targets'
-import {
-  ScopedCallGraph,
-  ScopedCallGraphEdge,
-  UnresolvedScopedCall,
-} from './connection-detection/call-graph/scoped-call-graph'
-import type { ComponentCallable } from './connection-detection/call-graph/scoped-call-graph'
-import type { CallableReference } from './connection-detection/call-graph/callable-reference'
-import type { CallSite } from './connection-detection/call-graph/call-graph-types'
-import type { ResolvedCallTarget } from './connection-detection/call-graph/detected-call'
+import { ScopedCallGraph } from './connection-detection/call-graph/scoped-call-graph'
 import {
   resolveHttpLinks,
   stripResolvedCustomTypes,
@@ -28,55 +21,38 @@ import { type EnrichedComponent, EnrichmentResult } from './value-extraction/enr
 import type { ExtractionConfiguration } from './extraction-configuration'
 import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
 import { RiviereModule } from './riviere-module'
+import {
+  ExtractionConfigurationUnavailableError,
+  GraphStateUnavailableError,
+} from './riviere-project-errors'
+import { Workflow } from './workflow'
+import type { WorkflowStageValue } from './workflow-stage'
 
 export { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 
 /** @riviere-role aggregate */
 export class RiviereProject {
   private constructor(
-    private readonly configuration: ExtractionConfiguration,
+    private readonly configuration: ExtractionConfiguration | undefined,
     private readonly modules: readonly RiviereModule[],
     private unassignedDraftComponents: readonly DraftComponent[],
+    private builder?: RiviereBuilder,
+    private readonly workflows: Workflow[] = [],
   ) {}
 
-  static parse(input: {
-    configuration: ExtractionConfiguration
-    draftComponents: readonly DraftComponent[]
-  }) {
-    const configuredModules = new Set(input.configuration.resolvedConfig.modules)
-    const moduleContexts = new Map(
-      input.configuration.moduleContexts.map((context) => [context.module, context] as const),
-    )
-    const configuredModuleContexts = input.configuration.resolvedConfig.modules.flatMap(
-      (configuration) => {
-        const context = moduleContexts.get(configuration)
-        return context === undefined ? [] : [{ configuration, context }]
-      },
-    )
-    const missingSources = input.configuration.resolvedConfig.modules.filter(
-      (module) => !moduleContexts.has(module),
-    )
-    const foreignSources = [...moduleContexts.keys()].filter(
-      (module) => !configuredModules.has(module),
-    )
-    if (missingSources.length > 0 || foreignSources.length > 0) {
+  static start(input: GraphProjectStartInput): RiviereProjectStartSuccess
+  static start(input: ExtractionProjectStartInput): RiviereProjectStartResult
+  static start(input: RiviereProjectStartInput): RiviereProjectStartResult
+  static start(input: RiviereProjectStartInput): RiviereProjectStartResult {
+    if (input.graphDefinition !== undefined) {
       return {
-        success: false as const,
-        error: [
-          ...missingSources.map((module) => `Missing source for module '${module.name}'`),
-          ...foreignSources.map((module) => `Source supplied for unknown module '${module.name}'`),
-        ].join('\n'),
+        success: true as const,
+        data: new RiviereProject(undefined, [], [], RiviereBuilder.new(input.graphDefinition)),
       }
     }
-
-    const modules = configuredModuleContexts.map(({ configuration, context }) => {
-      return RiviereModule.build({
-        configuration,
-        project: context.project,
-        sourceFiles: context.files,
-        candidateDraftComponents: input.draftComponents,
-      })
-    })
+    const sourceErrors = RiviereModule.configurationSourceErrors(input.configuration)
+    if (sourceErrors.length > 0) return { success: false, error: sourceErrors.join('\n') }
+    const modules = RiviereModule.fromConfiguration(input.configuration, input.draftComponents)
     const assignedDraftComponents = new Set(modules.flatMap((module) => module.draftComponents()))
     const unassignedDraftComponents = input.draftComponents.filter(
       (component) => !assignedDraftComponents.has(component),
@@ -85,6 +61,149 @@ export class RiviereProject {
       success: true as const,
       data: new RiviereProject(input.configuration, modules, unassignedDraftComponents),
     }
+  }
+
+  static rehydrate(graph: RiviereGraph): RiviereProject {
+    return new RiviereProject(undefined, [], [], RiviereBuilder.fromGraph(graph))
+  }
+
+  addWorkflow(input: Parameters<typeof Workflow.start>[0]) {
+    const result = Workflow.start(input)
+    if (result.success) this.workflows.push(result.data)
+    return result
+  }
+
+  addSource(input: Parameters<RiviereBuilder['addSource']>[0]): void {
+    this.graphBuilder().addSource(input)
+  }
+
+  addDomain(input: Parameters<RiviereBuilder['addDomain']>[0]): void {
+    this.graphBuilder().addDomain(input)
+  }
+
+  addComponent(definition: ComponentDefinition['value']): string {
+    const builder = this.graphBuilder()
+    switch (definition.type) {
+      case 'UI':
+        return builder.addUI(definition.input).id
+      case 'API':
+        return builder.addApi(definition.input).id
+      case 'UseCase':
+        return builder.addUseCase(definition.input).id
+      case 'DomainOp':
+        return builder.addDomainOp(definition.input).id
+      case 'Event':
+        return builder.addEvent(definition.input).id
+      case 'EventHandler':
+        return builder.addEventHandler(definition.input).id
+      case 'Custom':
+        return builder.addCustom(definition.input).id
+    }
+  }
+
+  defineCustomType(input: Parameters<RiviereBuilder['defineCustomType']>[0]): void {
+    this.graphBuilder().defineCustomType(input)
+  }
+
+  defineRelationshipType(input: Parameters<RiviereBuilder['defineRelationshipType']>[0]): void {
+    this.graphBuilder().defineRelationshipType(input)
+  }
+
+  enrichComponent(...input: Parameters<RiviereBuilder['enrichComponent']>): void {
+    this.graphBuilder().enrichComponent(...input)
+  }
+
+  link(input: Parameters<RiviereBuilder['link']>[0]) {
+    return this.graphBuilder().link(input)
+  }
+
+  linkExternal(input: Parameters<RiviereBuilder['linkExternal']>[0]) {
+    return this.graphBuilder().linkExternal(input)
+  }
+
+  warnings() {
+    return this.graphBuilder().warnings()
+  }
+
+  validate() {
+    return this.graphBuilder().validate()
+  }
+
+  build(): RiviereGraph {
+    return this.graphBuilder().build()
+  }
+
+  serialize(): string {
+    return this.graphBuilder().serialize()
+  }
+
+  rebuildGraph(workflowName: string) {
+    const workflow = this.workflows.find((candidate) => candidate.name() === workflowName)
+    if (workflow === undefined) {
+      return workflowFailure('WORKFLOW_NOT_FOUND', `Workflow '${workflowName}' was not found`)
+    }
+    const previousBuilder = this.builder
+    if (previousBuilder === undefined) {
+      return workflowFailure('GRAPH_STATE_UNAVAILABLE', 'Graph state is unavailable')
+    }
+    this.builder = previousBuilder.fresh()
+    const run = workflow.run(this.builder, (stage, components) =>
+      this.executeWorkflowStage(stage, components),
+    )
+    if (!run.success) {
+      this.builder = previousBuilder
+      return run
+    }
+    return {
+      success: true as const,
+      graph: this.graphBuilder().build(),
+      outputPath: workflow.outputPath(),
+      runLogDirectory: workflow.runLogDirectory(),
+      events: run.events,
+      warnings: run.warnings,
+    }
+  }
+
+  private executeWorkflowStage(
+    stage: Exclude<WorkflowStageValue, { kind: 'validate' }>,
+    accumulatedComponents: readonly EnrichedComponent[],
+  ) {
+    switch (stage.kind) {
+      case 'extract':
+        return this.executeExtractionStage(stage.configuration)
+      case 'link':
+        return this.executeLinkStage(stage.configuration, accumulatedComponents)
+    }
+  }
+
+  private executeExtractionStage(configuration: ExtractionConfiguration) {
+    const modules = RiviereModule.fromConfiguration(configuration, [])
+    modules.forEach((module) => module.extractAllDraftComponents())
+    const enrichment = EnrichmentResult.mergeModuleResults(
+      modules.map((module) => module.enrichDraftComponents()),
+    )
+    if (enrichment.hasFailures()) {
+      return {
+        success: false as const,
+        errorCode: 'FIELD_ENRICHMENT_FAILED',
+        reason: `Field enrichment failed: ${enrichment.failedFieldNames().join(', ')}`,
+      }
+    }
+    return {
+      success: true as const,
+      kind: 'components' as const,
+      components: enrichment.components,
+      repository: configuration.repositoryName,
+    }
+  }
+
+  private executeLinkStage(
+    configuration: ExtractionConfiguration,
+    components: readonly EnrichedComponent[],
+  ) {
+    const modules = RiviereModule.fromConfiguration(configuration, [])
+    const connections = this.detectConnectionsUsing(configuration, modules, components, false)
+    return { success: true as const, kind: 'connections' as const, connections }
   }
 
   extractDraftComponents(options: {
@@ -148,7 +267,7 @@ export class RiviereProject {
       options.allowIncomplete,
       options.observeConnectionDetectionPhase,
     )
-    const httpLinks = this.configuration.resolvedConfig.connections?.httpLinks ?? []
+    const httpLinks = this.extractionConfiguration().resolvedConfig.connections?.httpLinks ?? []
     return {
       kind: 'full' as const,
       components: stripResolvedCustomTypes(
@@ -167,26 +286,42 @@ export class RiviereProject {
     allowIncomplete: boolean,
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase,
   ) {
+    return this.detectConnectionsUsing(
+      this.extractionConfiguration(),
+      this.modules,
+      enrichedComponents,
+      allowIncomplete,
+      observeConnectionDetectionPhase,
+    )
+  }
+
+  private detectConnectionsUsing(
+    configuration: ExtractionConfiguration,
+    modules: readonly RiviereModule[],
+    enrichedComponents: readonly EnrichedComponent[],
+    allowIncomplete: boolean,
+    observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase,
+  ) {
     return observePhase(observeConnectionDetectionPhase, 'total', () => {
       const componentIndex = observePhase(observeConnectionDetectionPhase, 'setup', () =>
         ComponentIndex.parse(enrichedComponents),
       )
       const strict = !allowIncomplete
       const scopedCallGraphs = observePhase(observeConnectionDetectionPhase, 'callGraph', () =>
-        this.buildScopedCallGraphs(enrichedComponents, componentIndex, strict),
+        this.buildScopedCallGraphs(modules, enrichedComponents, componentIndex, strict),
       )
       return observePhase(observeConnectionDetectionPhase, 'detection', () => {
         const connectionsDetectedFromCalls = scopedCallGraphs.flatMap((graph) =>
-          detectConnectionsFromCalls(graph, this.configuration.repositoryName),
+          detectConnectionsFromCalls(graph, configuration.repositoryName),
         )
         const asyncOptions = AsyncDetectionOptions.parse({
           strict,
-          repository: this.configuration.repositoryName,
+          repository: configuration.repositoryName,
         })
         const connectionsDetectedFromEvents = [
           ...detectEventPublisherConnections(
             enrichedComponents,
-            this.configuration.resolvedConfig.connections?.eventPublishers ?? [],
+            configuration.resolvedConfig.connections?.eventPublishers ?? [],
             asyncOptions,
           ),
           ...detectSubscribeConnections(enrichedComponents, asyncOptions),
@@ -194,7 +329,7 @@ export class RiviereProject {
         const resolvedHttpConnections = resolveHttpLinks(
           connectionsDetectedFromCalls,
           enrichedComponents,
-          this.configuration.resolvedConfig.connections?.httpLinks ?? [],
+          configuration.resolvedConfig.connections?.httpLinks ?? [],
         )
         return ConnectionDetectionResult.parse({
           links: [...resolvedHttpConnections.links, ...connectionsDetectedFromEvents],
@@ -205,13 +340,14 @@ export class RiviereProject {
   }
 
   private buildScopedCallGraphs(
+    modules: readonly RiviereModule[],
     enrichedComponents: readonly EnrichedComponent[],
     componentIndex: ComponentIndex,
     strict: boolean,
   ): ScopedCallGraph[] {
-    return this.modules.map((module) => {
+    return modules.map((module) => {
       const components = enrichedComponents.filter((component) => module.owns(component))
-      return buildScopedCallGraph({
+      return ScopedCallGraph.from({
         project: module.typeScriptProject(),
         sourceFilePaths: module.sourceFilePaths(),
         components,
@@ -222,7 +358,7 @@ export class RiviereProject {
   }
 
   private assertEveryConfiguredModuleHasAnEntity(): void {
-    for (const configuration of this.configuration.resolvedConfig.modules) {
+    for (const configuration of this.extractionConfiguration().resolvedConfig.modules) {
       if (!this.modules.some((module) => module.name() === configuration.name)) {
         throw new MissingModuleSourceError(configuration.name)
       }
@@ -237,115 +373,43 @@ export class RiviereProject {
       'domains',
     )
   }
+
+  private extractionConfiguration(): ExtractionConfiguration {
+    if (this.configuration === undefined) {
+      throw new ExtractionConfigurationUnavailableError()
+    }
+    return this.configuration
+  }
+
+  private graphBuilder(): RiviereBuilder {
+    if (this.builder === undefined) throw new GraphStateUnavailableError()
+    return this.builder
+  }
 }
+
+type ExtractionProjectStartInput = Readonly<{
+  configuration: ExtractionConfiguration
+  draftComponents: readonly DraftComponent[]
+  graphDefinition?: undefined
+}>
+
+type GraphProjectStartInput = Readonly<{
+  graphDefinition: GraphDefinition
+  configuration?: undefined
+  draftComponents?: undefined
+}>
+
+type GraphDefinition = Parameters<typeof RiviereBuilder.new>[0]
+
+type RiviereProjectStartInput = ExtractionProjectStartInput | GraphProjectStartInput
+type RiviereProjectStartSuccess = Readonly<{ success: true; data: RiviereProject }>
+type RiviereProjectStartResult =
+  | RiviereProjectStartSuccess
+  | Readonly<{ success: false; error: string }>
 
 type SourceFileSelection =
   | { readonly kind: 'all' }
   | { readonly kind: 'files'; readonly filePaths: readonly string[] }
-
-interface BuildScopedCallGraphInput {
-  readonly project: Project
-  readonly sourceFilePaths: readonly string[]
-  readonly components: readonly EnrichedComponent[]
-  readonly componentIndex: ComponentIndex
-  readonly strict: boolean
-}
-
-function buildScopedCallGraph(input: BuildScopedCallGraphInput): ScopedCallGraph {
-  const roots = locateComponentCallables(input.project, input.components)
-  const edges: ScopedCallGraphEdge[] = []
-  const unresolvedCalls: UnresolvedScopedCall[] = []
-  for (const root of roots) {
-    traceCallable({
-      ...input,
-      root,
-      callable: root.callable,
-      edges,
-      unresolvedCalls,
-      visited: new Set([root.callable.toKey()]),
-    })
-  }
-  return ScopedCallGraph.parse({ roots, edges, unresolvedCalls })
-}
-
-function traceCallable(
-  input: BuildScopedCallGraphInput & {
-    readonly root: ComponentCallable
-    readonly callable: CallableReference
-    readonly edges: ScopedCallGraphEdge[]
-    readonly unresolvedCalls: UnresolvedScopedCall[]
-    readonly visited: ReadonlySet<string>
-    readonly originCallSite?: CallSite
-  },
-): void {
-  const calls = detectCallsInCallable(input.project, input.callable, input.strict)
-  const targets = resolveCallTargets({
-    calls,
-    project: input.project,
-    sourceFilePaths: input.sourceFilePaths,
-    componentIndex: input.componentIndex,
-    strict: input.strict,
-  })
-  for (const target of targets) {
-    const originCallSite = input.originCallSite ?? target.call.callSite
-    const nextCallable = recordResolvedCallTarget(input, target, originCallSite)
-    if (nextCallable === undefined || input.visited.has(nextCallable.toKey())) continue
-    traceCallable({
-      ...input,
-      callable: nextCallable,
-      originCallSite,
-      visited: new Set([...input.visited, nextCallable.toKey()]),
-    })
-  }
-}
-
-function recordResolvedCallTarget(
-  input: BuildScopedCallGraphInput & {
-    readonly root: ComponentCallable
-    readonly callable: CallableReference
-    readonly edges: ScopedCallGraphEdge[]
-    readonly unresolvedCalls: UnresolvedScopedCall[]
-  },
-  target: ResolvedCallTarget,
-  originCallSite: CallSite,
-): CallableReference | undefined {
-  const resolution = target.resolution
-  switch (resolution.kind) {
-    case 'unresolved': {
-      const isRootCallable = input.callable.toKey() === input.root.callable.toKey()
-      if (target.call.unresolvedReason !== undefined && !isRootCallable) return undefined
-      input.unresolvedCalls.push(
-        UnresolvedScopedCall.parse({
-          sourceComponent: input.root.component,
-          originCallSite,
-          reason: resolution.reason,
-        }),
-      )
-      return undefined
-    }
-    case 'dead-end':
-      return undefined
-    case 'component':
-      input.edges.push(
-        ScopedCallGraphEdge.parse({
-          source: input.callable,
-          target: resolution.callable,
-          targetComponent: resolution.component,
-          callSite: target.call.callSite,
-        }),
-      )
-      return undefined
-    case 'callable':
-      input.edges.push(
-        ScopedCallGraphEdge.parse({
-          source: input.callable,
-          target: resolution.callable,
-          callSite: target.call.callSite,
-        }),
-      )
-      return resolution.callable
-  }
-}
 
 function observePhase<T>(
   observer: ObserveConnectionDetectionPhase | undefined,
@@ -357,5 +421,15 @@ function observePhase<T>(
     return operation()
   } finally {
     observer?.({ phase, status: 'completed' })
+  }
+}
+
+function workflowFailure(errorCode: string, reason: string) {
+  return {
+    success: false as const,
+    errorCode,
+    reason,
+    events: [],
+    warnings: [],
   }
 }

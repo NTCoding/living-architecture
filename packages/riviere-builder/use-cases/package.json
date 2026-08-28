@@ -41,6 +41,7 @@
   ],
   "dependencies": {
     "@living-architecture/riviere-builder-domain-model": "workspace:*",
+    "@living-architecture/riviere-builder-published-language": "workspace:*",
     "@living-architecture/riviere-schema-published-language": "workspace:*"
   }
 }

@@ -30,7 +30,7 @@ For a team with 3 microservices, an EventCatalog, and an AsyncAPI spec, this mea
 
 ### 2.1 Workflows Are Riviere Workflows
 
-This is not a generic workflow engine. Workflows are purpose-built for Riviere extraction. Every step receives the workflow-owned builder facade over `RiviereBuilder` and calls its API to construct the graph. The builder remains the single source of truth for graph construction — ID generation, validation, deduplication all go through the builder surface.
+This is not a generic workflow engine. Workflows are purpose-built for Riviere extraction. Every step receives the workflow-owned builder facade over the `RiviereBuilder` owned by `RiviereProject` and calls its API to construct the graph. The builder remains the single source of truth for graph construction — ID generation, validation, deduplication all go through the builder surface.
 
 **Trade-off:** We sacrifice generality for simplicity and correctness. A generic engine would require intermediate representations, merge logic, and format translation. Builder-centric workflows get all of that for free from the existing builder infrastructure.
 
@@ -158,7 +158,7 @@ steps:
     type: schema-validate
 ```
 
-**Execution model:** Steps run sequentially, top to bottom. All steps share the same workflow-owned builder facade (passed by reference) over `RiviereBuilder`. Builder state accumulates across steps. If a step throws, the workflow aborts, no final graph is written, and the structured workflow log remains available for debugging.
+**Execution model:** Steps run sequentially, top to bottom. `RiviereProject` starts each rebuild with fresh Builder state and passes that private state to its selected Workflow. All steps share the same workflow-owned builder facade over that Builder. Builder state accumulates across steps. If a step throws, the workflow aborts, no final graph is written, and the structured workflow log remains available for debugging.
 
 **Step order is semantic (last-wins).** When multiple steps set the same scalar field on the same canonical component, **the later step wins**. Recommended order follows the priority doctrine in §2.2:
 
@@ -326,7 +326,7 @@ interface WorkflowBuilder {
 }
 
 interface StepContext<TConfig> {
-  /** Workflow-owned facade over the underlying RiviereBuilder. */
+  /** Workflow-owned facade over the RiviereBuilder owned by RiviereProject. */
   builder: WorkflowBuilder
   config: TConfig
   logger: StepLogger
@@ -353,11 +353,11 @@ interface WorkflowStepDefinition<TConfig = Record<string, unknown>> {
 
 The runtime is decoupled from concrete step implementations. It resolves step handlers by type name from the registry, derives the effective execution plan for the current mode, validates the active steps, then executes them in order. The step contract is exported from `riviere-workflow` so future extension can depend on the same seam.
 
-`WorkflowBuilder` is a workflow-owned facade over the underlying `RiviereBuilder`; steps do **not** receive the raw builder directly. The underlying `RiviereBuilder` remains graph-only and workflow-unaware. The facade forwards graph construction/query calls, layers workflow-only diagnostics/log reconciliation on top, and exposes workflow-level `validate()` / `build()` methods that compose the underlying builder result with the workflow diagnostics store. This keeps graph semantics in `riviere-builder` while keeping workflow-specific incomplete-state handling in `riviere-workflow`.
+`WorkflowBuilder` is a workflow-owned facade over the `RiviereBuilder` owned by `RiviereProject`; steps do **not** receive the raw builder directly. The underlying `RiviereBuilder` remains graph-only and workflow-unaware. The Project passes its private Builder to the Workflow when execution starts. The facade forwards graph construction/query calls, layers workflow-only diagnostics/log reconciliation on top, and exposes workflow-level `validate()` / `build()` methods that compose the underlying builder result with the workflow diagnostics store. This keeps graph semantics in `riviere-builder` while keeping workflow-specific incomplete-state handling in `riviere-workflow`.
 
 ### 3.3 Builder Creation and Workflow Compatibility Rules
 
-The underlying builder requires `sources` and `domains` at construction (`RiviereBuilder.new()`). The workflow therefore creates the shared builder facade eagerly at startup from its top-level graph definition.
+The underlying builder requires `sources` and `domains` at construction (`RiviereBuilder.new()`). `RiviereProject` therefore starts fresh Builder state from the workflow's top-level graph definition before the Workflow creates its shared facade.
 
 **How it works (aligned with `workflow run` in §3.6):**
 
@@ -365,7 +365,7 @@ The underlying builder requires `sources` and `domains` at construction (`Rivier
 2. Structural validation of intrinsic workflow shape
 3. Derive the effective execution plan for the current run mode
 4. Validate referenced config files, step configs, and runtime prerequisites only for steps in that effective plan
-5. Create the underlying `RiviereBuilder.new({ name, description, sources, domains }, output)` and wrap it in the shared `WorkflowBuilder` facade — builder constructed exactly once, eagerly, after all active-step validation passes
+5. Ask `RiviereProject` to start fresh Builder state from `{ name, description, sources, domains }`, then let the selected Workflow wrap it in the shared `WorkflowBuilder` facade after all active-step validation passes
 6. Execute steps sequentially with that concrete builder
 7. On success: `builder.build()` → write JSON to `output` path
 8. On failure at any step: abort, discard builder state, exit non-zero
@@ -397,21 +397,16 @@ The extraction config remains the source of truth for extraction behavior — de
 
 The extraction config may still declare sources and domains for standalone usage. In a workflow run, those declarations are validated against the workflow's top-level `sources` and `domains`.
 
-**Required extraction refactor (hidden scope made explicit):** Today `riviere extract` owns the full lifecycle — it creates its own builder (or equivalent internal structure), drives extraction, then writes JSON to stdout/file via a CLI-shell presenter. To make `code-extraction` a workflow step that feeds the shared builder, `riviere-extract-ts` must be refactored as follows:
+**Required extraction integration:** Direct extraction and workflow extraction both operate through `RiviereProject`. The Builder remains private aggregate state; extraction does not receive a graph write port or Builder adapter.
 
-1. **Extract a pure core** (`extractInto(writePort, config, options)` or equivalent) that accepts a caller-supplied write port rather than owning output concerns. The port exposes the typed component-write and link methods the extractor needs **plus** a draft-diagnostic channel (`reportMissingField`, `reportUncertainLink`, or equivalent) so `_missing` / `_uncertain` cross the boundary explicitly instead of being hidden in workflow-only code. No filesystem writes. No presenter. No `process.exit`.
-2. **Provide two write-port adapters over builder state:**
-   - a **strict direct-CLI adapter** over a fresh builder that preserves current duplicate-component failure behaviour for standalone `riviere extract`
-   - a **merge-capable workflow adapter** over the shared workflow builder that routes component writes through typed `upsert*` methods and routes link writes through the standard deduping `link()` surface
-   - both adapters consume the same explicit draft-diagnostic channel; the direct-CLI adapter preserves today's direct-extract behaviour, while the workflow adapter records workflow diagnostics
-   - the workflow adapter still detects **same-step duplicate component emission** from one extractor run by tracking canonical IDs written during that step and throwing on duplicate re-emission; merge/upsert behaviour applies only against builder state that pre-existed the current step
-   - same-step duplicate **links** are still treated by the normal tuple-dedupe rule, not as hard errors
-3. **Rewrite `riviere extract` CLI** as a thin shell that: constructs a builder from the extraction config's own `sources` / `domains`, binds the strict direct-CLI write-port adapter, calls the pure core, then writes `builder.build()` to stdout or the configured output path. Preserves current CLI behaviour exactly — same inputs → same output JSON.
-4. **`code-extraction` step handler** calls the same pure core with the merge-capable workflow write-port adapter backed by the shared workflow builder. Zero behavioural divergence in extraction logic between direct CLI and workflow usage; only the write-port semantics differ where Phase 13 intentionally needs merge-aware composition.
-5. **Lenient-mode incomplete-state diagnostics**: the core still surfaces draft missing/uncertain state through the write port's explicit diagnostic channel; the workflow adapter converts those into structured runtime diagnostic events rather than graph fields. They never enter `riviere-schema`, and `builder.build()` fails with an `IncompleteGraphError` if unresolved missing-field / uncertain-link diagnostics remain at workflow completion (§3.5.2).
-6. **ts-morph resource management**: the core is responsible for disposing any per-call ts-morph `Project` instances before returning, so multiple `code-extraction` steps in one workflow run do not accumulate compiler state.
+1. `RiviereProjectRepository` loads the complete Project state required by the operation.
+2. Direct `riviere extract` invokes the existing `RiviereProject` extraction operation and preserves current CLI input and output behaviour.
+3. A `code-extraction` workflow step invokes the same Project extraction behaviour. Its result is applied through Project graph operations to the Builder owned by the Project.
+4. Same-step duplicate component emission still fails. Merge and upsert behaviour applies only to graph state contributed by earlier completed steps.
+5. Lenient-mode missing and uncertain state becomes structured Workflow diagnostics rather than graph fields. It never enters `riviere-schema`.
+6. Per-step ts-morph resources are disposed before the step returns, so multiple `code-extraction` steps do not retain compiler state.
 
-This refactor lands in `riviere-extract-ts` and `riviere-cli` as a prerequisite of the `code-extraction` step — it is **not** a downstream detail of Phase 13 but a named deliverable. See success criterion #24.
+This integration lands in `riviere-extract-ts` and `riviere-cli` as a prerequisite of the `code-extraction` step. See success criterion #24.
 
 **Non-goal:** changing extraction behaviour itself. The refactor is purely a structural separation of concerns — current tests for `riviere extract` must continue to pass unchanged against the rewritten CLI shell.
 
@@ -973,7 +968,7 @@ riviere-workflow
 - `riviere-workflow` — workflow executor, step registry, exported step contract, built-in steps, shell-out invocation of user-configured AI CLIs (§3.4.1). No AI SDK dependency.
 - `riviere-builder` — graph construction, idempotent `addSource()` / `addDomain()`, and the seven typed `upsert*` methods with `{ noOverwrite }`
 - `riviere-extract-config` — workflow and step config schemas/types, mapping file schemas, AI response schemas
-- `riviere-extract-ts` — deterministic extraction; exposes the pure `extractInto(writePort, config, options)` core reused by `code-extraction`
+- `riviere-extract-ts` — deterministic extraction; exposes `RiviereProject` operations reused by direct extraction and `code-extraction`
 
 **Extension direction:** Phase 13 exports the step contract now but does not implement user plugin loading. Built-in steps are resolved through the same registry that future external steps will use.
 
@@ -1655,8 +1650,8 @@ Phase 13 is intentionally narrow. The exclusions below centralize the scope boun
 | 21  | Steps can access workflow diagnostics through `StepContext.diagnostics` (read unresolved diagnostics, emit structured log events, report/resolve workflow-only diagnostics); `RiviereQuery` remains unchanged and does not gain draft-only helper methods                                                                                                                                                                                                                                           | Unit tests for diagnostics contract plus integration tests that AI steps consume unresolved diagnostics and deterministic steps emit/resolve diagnostics without extending `riviere-query`                                                                                                                                                                                          |
 | 22  | `ai-extract` gap categories (`uncertain-links`, `missing-events`, `missing-event-handlers`, `missing-use-cases`) each have a documented computation rule and a passing test                                                                                                                                                                                                                                                                                                                         | Integration tests assert each gap category produces the expected candidate set against demo-app fixtures                                                                                                                                                                                                                                                                            |
 | 23  | `schema-validate` uses `builder.validate()` (non-throwing) so it can surface malformed graph state and unresolved incomplete-state diagnostics without mutating builder state before the step fails                                                                                                                                                                                                                                                                                                 | Integration test: insert `schema-validate` mid-workflow, assert it reports validation errors including unresolved diagnostics and leaves builder state unchanged                                                                                                                                                                                                                    |
-| 24  | `riviere-extract-ts` exposes a pure `extractInto(writePort, config, options)` core that writes through a caller-supplied port without writing JSON; `riviere extract` CLI is rewritten as a thin shell over this core using a strict direct-CLI write-port adapter; existing CLI behaviour is unchanged                                                                                                                                                                                             | Unit tests for the pure core and both write-port adapters; existing `riviere extract` integration tests pass against the refactored CLI with no change in output JSON                                                                                                                                                                                                               |
-| 25  | `code-extraction` workflow step calls the same pure core used by `riviere extract` CLI, but binds the merge-capable workflow write-port adapter so overlapping deterministic sources compose through builder upserts; same-step duplicate emission still fails; lenient-mode incomplete-state diagnostics are preserved in workflow diagnostics rather than graph schema                                                                                                                            | Integration test: running `riviere extract --config X` and running a workflow with a single `code-extraction` step using the same config produce identical component and link sets; duplicate emission within one extractor run still fails; a multi-step workflow with overlapping deterministic sources composes through upsert-backed writes without duplicate-component failure |
+| 24  | Direct extraction and workflow extraction invoke `RiviereProject` operations; neither path introduces a graph write port or Builder adapter; existing CLI behaviour is unchanged                                                                                                                                                                                                                                                                                                                    | Existing `riviere extract` integration tests pass with no change in output JSON; Project operation tests cover direct and workflow invocation                                                                                                                                                                                 |
+| 25  | A `code-extraction` workflow step uses the same Project extraction behaviour as direct extraction and applies its result through Project graph operations; same-step duplicate emission still fails; earlier completed step contributions compose through Builder upserts; lenient-mode incomplete-state diagnostics remain Workflow state rather than graph schema                                                                                                                                 | Integration test: direct extraction and a single `code-extraction` workflow using the same config produce identical component and link sets; duplicate emission within one step still fails; multiple extraction configurations contribute to one Project graph                                                               |
 | 26  | ts-morph `Project` instances created during `code-extraction` are disposed before the step returns; multiple `code-extraction` steps in one workflow run do not retain compiler state between steps                                                                                                                                                                                                                                                                                                 | Memory-pressure test: run 5 `code-extraction` steps sequentially in one process; assert retained-heap after each step is bounded                                                                                                                                                                                                                                                    |
 | 27  | `ecommerce-demo-app` repo (separate) satisfies all M0 deliverables in §7 plus the detailed M0 acceptance checklist in §3.7.1 D0.1–D0.10 before any other milestone can claim a §3.8-dependent success criterion                                                                                                                                                                                                                                                                                     | Cross-repo gate: `living-architecture` CI pins a commit SHA from `ecommerce-demo-app`; pinning requires M0 checklist sign-off in the demo-app PR                                                                                                                                                                                                                                    |
 | 28  | Phase 13 integration and E2E tests fetch `ecommerce-demo-app` at the pinned SHA and run against it; no demo-app source or fixture lives in `living-architecture`                                                                                                                                                                                                                                                                                                                                    | Grep in `living-architecture` for demo-app source returns empty; CI test harness clones the demo-app at the pinned SHA                                                                                                                                                                                                                                                              |
@@ -1730,10 +1725,10 @@ The runtime can load a workflow, validate the active plan, and execute sequentia
   - Key scenarios: typed `upsert*` merge on same canonical ID, `noOverwrite` preservation for AI callers, idempotent `addSource()` / `addDomain()`, duplicate-link logging.
   - Acceptance criteria: builder exposes the seven typed `upsert*` methods; merge and dedup semantics match §3.5.
   - Verification: unit tests in `riviere-builder` for merge, warning, and dedup behaviour.
-- **D1.3:** `code-extraction` reuses a pure core through explicit write-port adapters
-  - Key scenarios: pure `extractInto(writePort, config, options)` core exists; direct CLI binds the strict adapter and preserves current output; workflow binds the merge-capable adapter; same-step duplicate emission still fails; lenient draft markers become workflow diagnostics instead of graph fields.
-  - Acceptance criteria: `riviere extract` remains output-compatible; workflow single-step parity with direct extract is proven; same-step duplicates still fail; overlapping deterministic workflow steps compose through upsert-backed writes without duplicate-component failure.
-  - Verification: parity integration tests, same-step duplicate detection tests, overlapping-source workflow tests, plus memory/resource-disposal tests for repeated extraction steps.
+- **D1.3:** `code-extraction` reuses `RiviereProject` extraction behaviour
+  - Key scenarios: direct CLI and workflow steps invoke Project operations; no graph write port or Builder adapter exists; same-step duplicate emission still fails; lenient draft markers become Workflow diagnostics instead of graph fields.
+  - Acceptance criteria: `riviere extract` remains output-compatible; workflow single-step parity with direct extraction is proven; earlier completed step contributions compose through the Builder owned by the Project.
+  - Verification: parity integration tests, same-step duplicate detection tests, multiple-configuration workflow tests, plus memory/resource-disposal tests for repeated extraction steps.
 - **D1.4:** Architecture documentation is updated for the new runtime boundary
   - Key scenarios: architecture overview shows the new package boundary, a dedicated ADR records the runtime decision, and glossary terms exist for the workflow runtime surface.
   - What doc to update and why: update `docs/architecture/overview.md` to show `riviere-workflow` in the package graph; add an ADR capturing the registry runtime + shared-builder boundary; update glossary entries for workflow runtime terms.
@@ -1963,7 +1958,7 @@ riviere-workflow
 - `riviere-workflow` owns workflow execution, the step registry, step contracts, diagnostics/log orchestration, file-relative path resolution, and built-in step implementations.
 - `riviere-builder` remains the graph-construction authority; Phase 13 extends it with typed upsert semantics rather than introducing a parallel graph-merge layer.
 - `riviere-extract-config` owns workflow, importer, mapping, and AI response schemas so validation rules stay centralized.
-- `riviere-extract-ts` remains the deterministic extractor and exposes a pure `extractInto(...)` core reused by both direct CLI extraction and workflow execution.
+- `riviere-extract-ts` remains the deterministic extractor. Direct extraction and workflow extraction invoke the same `RiviereProject` behaviour.
 - `riviere-query` remains the read-only graph query surface exposed via `builder.query()`; Phase 13 reuses it and does not add draft-only helpers.
 
 **Thin-boundary rule:** `riviere-workflow` owns orchestration only — sequencing, validation, diagnostics reconciliation, path resolution, and adapter invocation. It does **not** own extraction DSL semantics, graph merge semantics beyond invoking builder upserts, or reusable vendor-domain models.
@@ -2025,7 +2020,7 @@ src/
 - Whether typed builder upserts are the right extension seam versus a separate merge layer.
 - Whether importer-specific dependencies stay isolated inside workflow-owned adapters rather than leaking into step handlers or runtime code.
 - Whether the AI CLI boundary is sufficiently explicit to avoid accidental credential, SDK, or retry/cost logic creeping into core packages.
-- Whether the write-port adapter split for `extractInto(...)` cleanly preserves strict direct-CLI behaviour while enabling merge-capable workflow composition.
+- Whether direct extraction and workflow extraction remain behaviourally identical while multiple workflow configurations contribute safely through one Builder owned by the Project.
 
 ---
 

@@ -1787,6 +1787,14 @@ export default {
         }
 
         function inspectDataStructureType(typeNode) {
+          if (
+            typeNode.type === 'TSTypeReference' &&
+            typeNode.typeName?.type === 'Identifier' &&
+            typeNode.typeName.name === 'Readonly' &&
+            typeNode.typeArguments?.params.length === 1
+          ) {
+            return inspectDataStructureType(typeNode.typeArguments.params[0])
+          }
           if (typeNode.type === 'TSTypeLiteral') {
             return {
               isDataStructure: true,

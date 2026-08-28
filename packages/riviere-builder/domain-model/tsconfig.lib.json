@@ -12,6 +12,9 @@
   "references": [
     {
       "path": "../../riviere-schema/published-language/tsconfig.lib.json"
+    },
+    {
+      "path": "../published-language/tsconfig.lib.json"
     }
   ],
   "exclude": [

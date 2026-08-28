@@ -130,12 +130,12 @@ describe('RiviereProjectRepository validation', () => {
   it('maps an invalid aggregate result to a configuration error', () => {
     withWorkspace((directory) => {
       writeFileSync(join(directory, 'extract.yml'), VALID_CONFIG)
-      const parse = vi.spyOn(RiviereProject, 'parse').mockReturnValueOnce({
+      const start = vi.spyOn(RiviereProject, 'start').mockReturnValueOnce({
         success: false,
         error: 'Invalid module sources',
       })
       expect(() => load(directory)).toThrow(/Invalid module sources/)
-      parse.mockRestore()
+      start.mockRestore()
     })
   })
 

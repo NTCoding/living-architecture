@@ -1,4 +1,3 @@
-import { findNearMatches } from '@living-architecture/riviere-builder-domain-model/domain/error-recovery/component-suggestion'
 import { ComponentId as QueryComponentId } from '@living-architecture/riviere-builder-domain-model/query/component-id'
 import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 import {
@@ -27,8 +26,7 @@ export class FoundFlowTrace {
       if (!parsedComponentId.success) {
         return MissingFlowTrace.parse(error.message, [])
       }
-      const matches = findNearMatches(
-        query.components(),
+      const matches = query.nearMatches(
         { name: parsedComponentId.componentId.name() },
         { limit: 3 },
       )

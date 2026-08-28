@@ -3,7 +3,7 @@ import { formatError, formatSuccess } from '../../../../infra/cli/presentation/o
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
 import { parseDomainJson } from './domain-input-parser'
-import type { InitGraph } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/init-graph'
+import type { InitGraph } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/init-graph'
 
 interface InitOptions {
   name?: string
