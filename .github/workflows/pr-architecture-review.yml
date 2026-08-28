@@ -85,7 +85,7 @@ jobs:
       - name: Build architecture review
         if: steps.snapshots.outputs.current == 'true'
         run: >-
-          pnpm --dir reporter exec tsx apps/docs/scripts/build-pull-request-architecture-review.ts
+          pnpm --dir reporter exec tsx tools/living-documentation/src/shell/main.ts generate-pr-architecture-diff
           --base "${RUNNER_TEMP}/pull-request-base"
           --head "${RUNNER_TEMP}/pull-request-head"
           --output "${RUNNER_TEMP}/pull-request-architecture-review.md"

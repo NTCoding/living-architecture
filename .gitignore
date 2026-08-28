@@ -66,3 +66,8 @@ tools/dev-workflow-v2/workflow.db-shm
 tools/dev-workflow-v2/workflow.db-wal
 
 .oxlintrc.role-enforcement.*.json
+
+.claude/settings.local.json
+.nx/polygraph
+.nx/self-healing
+.nx/migrate-runs

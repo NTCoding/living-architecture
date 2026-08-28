@@ -11,29 +11,10 @@
       "dependsOn": [
         "lint",
         "^build",
-        "generate-domain-guide",
+        "@living-architecture/living-documentation:generate-architecture-summary",
         "riviere-builder:typedoc",
         "riviere-cli:generate-docs"
       ]
-    },
-    "generate-domain-guide": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "./build-domain-guide.sh",
-        "cwd": "{workspaceRoot}"
-      },
-      "outputs": ["{workspaceRoot}/docs/architecture/ddd/domain-guide.md"]
-    },
-    "check-generated-docs": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": [
-          "./build-domain-guide.sh",
-          "git diff --exit-code -- docs/architecture/ddd/domain-guide.md || (echo 'Domain guide is stale. Run: ./build-domain-guide.sh' && exit 1)"
-        ],
-        "cwd": "{workspaceRoot}",
-        "parallel": false
-      }
     }
   }
 }

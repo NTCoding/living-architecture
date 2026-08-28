@@ -17,6 +17,8 @@ tools/      - Standalone app packages; their subdomain packages live under packa
 ```
 
 Current packages:
+- `packages/living-documentation/domain-model` - Living documentation architecture model and comparison
+- `packages/living-documentation/use-cases` - Architecture summary and pull request architecture diff queries
 - `packages/dev-workflow-v2/domain-model` - Maintainer workflow domain model
 - `packages/dev-workflow-v2/use-cases` - Maintainer workflow commands and adapters
 - `packages/riviere-builder/domain-model` - Browser-safe graph construction and querying domain model
@@ -36,6 +38,7 @@ Apps:
 
 Tools:
 - `tools/dev-workflow-v2` - Maintainer workflow app and plugin entrypoints
+- `tools/living-documentation` - CLI for generating architecture summaries and pull request architecture diffs
 
 Key documents:
 - `docs/project/PRD/` - Current PRD folders

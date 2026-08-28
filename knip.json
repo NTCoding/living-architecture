@@ -52,6 +52,17 @@
       "entry": ["src/index.ts", "src/domain/component-definition.ts"],
       "project": ["src/**/*.ts"]
     },
+    "packages/riviere-extract-ts/domain-model": {
+      "entry": ["src/domain/connection-detection/connection-detection-values.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/riviere-extract-ts/use-cases": {
+      "entry": [
+        "src/index.ts",
+        "src/infra/external-clients/node/read-node-performance-time-in-milliseconds.ts"
+      ],
+      "project": ["src/**/*.ts"]
+    },
     "packages/*/*": {
       "project": ["src/**/*.ts"]
     },
@@ -60,6 +71,10 @@
     },
     "tools/dev-workflow-v2": {
       "entry": ["src/shell/cli.ts", "src/shell/codex-cli.ts", "src/shell/codex-workflow-command.ts", "src/shell/opencode-plugin.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "tools/living-documentation": {
+      "entry": ["src/shell/main.ts"],
       "project": ["src/**/*.ts"]
     }
   },
