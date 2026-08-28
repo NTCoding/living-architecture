@@ -42,6 +42,17 @@ describe('architecture', () => {
                 aggregates: [],
                 items: [
                   {
+                    name: 'ClientModel',
+                    packageKind: 'use-cases',
+                    role: 'external-client-model',
+                  },
+                  {
+                    externalClient: 'no-external-client',
+                    name: 'ClientModel',
+                    packageKind: 'use-cases',
+                    role: 'external-client-model',
+                  },
+                  {
                     externalClient: 'typescript',
                     name: 'Compiler',
                     packageKind: 'use-cases',
@@ -93,6 +104,17 @@ describe('architecture', () => {
             'use-cases': {
               aggregates: [],
               items: [
+                {
+                  name: 'ClientModel',
+                  packageKind: 'use-cases',
+                  role: 'external-client-model',
+                },
+                {
+                  externalClient: 'no-external-client',
+                  name: 'ClientModel',
+                  packageKind: 'use-cases',
+                  role: 'external-client-model',
+                },
                 {
                   externalClient: 'typescript',
                   name: 'Compiler',

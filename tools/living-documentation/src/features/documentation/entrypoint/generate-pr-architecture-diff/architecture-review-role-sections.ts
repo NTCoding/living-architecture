@@ -66,7 +66,7 @@ function renderRoleChangeSet(
     `${'#'.repeat(headingLevel)} ${heading}`,
     '',
     ...roles.flatMap((role) => [
-      `${'#'.repeat(headingLevel + 1)} ${roleLabel(role)}`,
+      `${'#'.repeat(headingLevel + 1)} ${renderArchitectureCodeSpan(roleLabel(role))}`,
       '',
       ...items
         .filter((item) => item.role === role)

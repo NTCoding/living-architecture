@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import ts from 'typescript'
@@ -15,10 +15,6 @@ import {
   typescriptDeclarationReferencesDeclaration,
   uniqueTypescriptArchitectureItems,
 } from './typescript-source-reader'
-import {
-  isTypescriptFixtureDirectory,
-  readTypescriptProductionSources,
-} from './typescript-production-source-reader'
 
 const temporaryDirectories: string[] = []
 
@@ -29,29 +25,6 @@ afterEach(() => {
 })
 
 describe('TypeScript source reader', () => {
-  it('reads only sorted production TypeScript sources', () => {
-    const directory = temporaryDirectory()
-    for (const [file, contents] of [
-      ['z.tsx', 'export const z = <div />'],
-      ['a.ts', 'export const a = 1'],
-      ['ignored.d.ts', 'export declare const ignored: number'],
-      ['ignored.spec.ts', 'export const ignored = 1'],
-      ['ignored.fixture.ts', 'export const ignored = 1'],
-      ['ignored.js', 'export const ignored = 1'],
-      ['__fixtures__/ignored.ts', 'export const ignored = 1'],
-      ['nested/value.mts', 'export const value = 1'],
-    ] as const) {
-      write(directory, file, contents)
-    }
-
-    expect(readTypescriptProductionSources(path.join(directory, 'missing'))).toStrictEqual([])
-    expect(
-      readTypescriptProductionSources(directory).map(({ sourceFile }) =>
-        path.relative(directory, sourceFile.fileName),
-      ),
-    ).toStrictEqual(['a.ts', 'nested/value.mts', 'z.tsx'])
-  })
-
   it('finds exported annotated declarations and variables', () => {
     const sourceFile = parse(`
       /** @riviere-role aggregate */ export class Order {}
@@ -298,6 +271,17 @@ describe('TypeScript source reader', () => {
     expect(
       uniqueTypescriptArchitectureItems([
         {
+          externalClient: 'no-external-client',
+          name: 'ClientModel',
+          packageKind: 'use-cases',
+          role: 'external-client-model',
+        },
+        {
+          name: 'ClientModel',
+          packageKind: 'use-cases',
+          role: 'external-client-model',
+        },
+        {
           externalClient: 'git',
           name: 'ClientModel',
           packageKind: 'use-cases',
@@ -316,7 +300,18 @@ describe('TypeScript source reader', () => {
       ]),
     ).toStrictEqual([
       {
+        name: 'ClientModel',
+        packageKind: 'use-cases',
+        role: 'external-client-model',
+      },
+      {
         externalClient: 'git',
+        name: 'ClientModel',
+        packageKind: 'use-cases',
+        role: 'external-client-model',
+      },
+      {
+        externalClient: 'no-external-client',
         name: 'ClientModel',
         packageKind: 'use-cases',
         role: 'external-client-model',
@@ -350,15 +345,11 @@ describe('TypeScript source reader', () => {
     ).toStrictEqual(new Set(['@example/orders-use-cases']))
   })
 
-  it('reads package manifest names and fixture names', () => {
+  it('reads package manifest names', () => {
     const directory = temporaryDirectory()
     const manifestPath = path.join(directory, 'package.json')
     writeFileSync(manifestPath, JSON.stringify({ name: '@example/package' }))
     expect(readTypescriptPackageManifestName(manifestPath)).toBe('@example/package')
-
-    expect(isTypescriptFixtureDirectory('fixtures')).toBe(true)
-    expect(isTypescriptFixtureDirectory('__fixtures__')).toBe(true)
-    expect(isTypescriptFixtureDirectory('production')).toBe(false)
   })
 
   it.each([[], null, {}, { name: '' }, { name: 42 }])(
@@ -389,12 +380,6 @@ function temporaryDirectory(): string {
   const directory = mkdtempSync(path.join(tmpdir(), 'typescript-source-reader-'))
   temporaryDirectories.push(directory)
   return directory
-}
-
-function write(root: string, relativePath: string, contents: string): void {
-  const filePath = path.join(root, relativePath)
-  mkdirSync(path.dirname(filePath), { recursive: true })
-  writeFileSync(filePath, contents)
 }
 
 function parse(source: string): ts.SourceFile {

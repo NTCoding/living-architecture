@@ -344,7 +344,10 @@ function aggregateKey(aggregate: AggregateValue): string {
 }
 
 function itemKey(item: ArchitectureItemValue): string {
-  const externalClient = item.externalClient ?? 'no-external-client'
+  const externalClient =
+    item.externalClient === undefined
+      ? 'missing-external-client'
+      : `present-external-client:${item.externalClient}`
   const relationships = canonicalRelationships(item.relatedTo ?? [])
     .map((relationship) => `${relationship.role}:${relationship.name}`)
     .join(',')

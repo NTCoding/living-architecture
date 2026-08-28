@@ -157,7 +157,10 @@ export function uniqueTypescriptArchitectureItems(
 
 /** @riviere-role external-client-service */
 function typescriptArchitectureItemKey(item: TypescriptArchitectureItem): string {
-  const externalClient = item.externalClient ?? 'no-external-client'
+  const externalClient =
+    item.externalClient === undefined
+      ? 'missing-external-client'
+      : `present-external-client:${item.externalClient}`
   const relationships = uniqueRelationships(item.relatedTo ?? [])
     .map((relationship) => `${relationship.role}:${relationship.name}`)
     .join(',')

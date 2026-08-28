@@ -34,7 +34,7 @@ function productionSourcePaths(directory: string): readonly string[] {
     .sort((left, right) => compareTypescriptText(left.name, right.name))
     .flatMap((entry): readonly string[] => {
       if (entry.isDirectory()) {
-        return isTypescriptFixtureDirectory(entry.name)
+        return isExcludedProductionSourceDirectory(entry.name)
           ? []
           : productionSourcePaths(path.join(directory, entry.name))
       }
@@ -42,6 +42,15 @@ function productionSourcePaths(directory: string): readonly string[] {
         ? [path.join(directory, entry.name)]
         : []
     })
+}
+
+function isExcludedProductionSourceDirectory(directoryName: string): boolean {
+  return (
+    isTypescriptFixtureDirectory(directoryName) ||
+    directoryName === '__tests__' ||
+    directoryName === 'test' ||
+    directoryName === 'tests'
+  )
 }
 
 function isProductionTypeScriptFile(fileName: string): boolean {

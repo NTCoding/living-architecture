@@ -96,7 +96,7 @@ describe('pull request architecture diff formatter', () => {
 
 ##### Added
 
-###### External Client Model
+###### \`External Client Model\`
 
 - \`GitModel\`
 
@@ -104,11 +104,11 @@ describe('pull request architecture diff formatter', () => {
 
 ##### Added
 
-###### External Client Model
+###### \`External Client Model\`
 
 - \`CompilerModel\`
 
-###### External Client Service
+###### \`External Client Service\`
 
 - \`readCompiler\`
 
@@ -116,7 +116,7 @@ describe('pull request architecture diff formatter', () => {
 
 #### Added
 
-##### Query Model
+##### \`Query Model\`
 
 - \`WorkspaceArchitectureSources\`
 `)
@@ -147,7 +147,7 @@ describe('pull request architecture diff formatter', () => {
           [],
           [
             item('OldResult', 'unclassified-result', [query]),
-            item('OldSupport', 'other-support'),
+            item('OldSupport', 'other-support\n## injected'),
             item('OldCompiler', 'external-client-service', undefined, 'typescript'),
           ],
         ),
@@ -161,11 +161,12 @@ describe('pull request architecture diff formatter', () => {
       forgedHeading: report.includes('\n## forged'),
       methods: report.includes('- Methods\n    - `cancel`'),
       removedExternalClient: report.includes(
-        '#### Client: `typescript`\n\n##### Removed\n\n###### External Client Service\n\n- `OldCompiler`',
+        '#### Client: `typescript`\n\n##### Removed\n\n###### `External Client Service`\n\n- `OldCompiler`',
       ),
       query: report.includes('##### `OldQuery`'),
       querySection: report.includes('### Query use cases\n\n#### Removed'),
       relatedComponent: report.includes('- `unclassified-result`: `OldResult`'),
+      roleHeading: report.includes('##### `Other Support ## injected`'),
       safeHeading: report.includes('## Subdomain: `` orders`[]() ## forged ``'),
       safeSummary: report.includes('- `` orders`[]() ## forged ``'),
       uncategorisedSection: report.includes('### Uncategorised changes\n\n#### Removed'),
@@ -188,6 +189,7 @@ describe('pull request architecture diff formatter', () => {
       query: true,
       querySection: true,
       relatedComponent: true,
+      roleHeading: true,
       safeHeading: true,
       safeSummary: true,
       uncategorisedSection: true,
