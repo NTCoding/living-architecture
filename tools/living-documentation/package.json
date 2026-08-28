@@ -97,6 +97,9 @@
         }
       },
       "generate-architecture-summary": {
+        "dependsOn": [
+          "^build"
+        ],
         "executor": "nx:run-commands",
         "options": {
           "command": "./build-domain-guide.sh",
@@ -107,6 +110,9 @@
         ]
       },
       "check-generated-docs": {
+        "dependsOn": [
+          "^build"
+        ],
         "executor": "nx:run-commands",
         "options": {
           "commands": [
