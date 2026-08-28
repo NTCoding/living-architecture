@@ -37,88 +37,93 @@ describe('pull request architecture diff formatter', () => {
     )
 
     expect(report).toBe(`<!-- pull-request-architecture-review -->
-**Pull request architecture changes**
+# Architecture changes
 
-# Changed subdomains
+## Summary
 
-- [\`living-documentation\`](#subdomain-living-documentation) **NEW**
+| Subdomain | Status | Added | Removed |
+| --- | --- | --- | --- |
+| 🌍 **\`living-documentation\`** | 🆕 | 1 entry point · 1 command use case · 1 query use case · 1 query model · \`git\` external client with 1 component · \`typescript\` external client with 2 components | — |
 
-# Subdomain: \`living-documentation\`
+---
 
-## Entry points
+<details open>
+<summary><h2>🌍 living-documentation — 🆕</h2></summary>
 
-### Added
-
-#### \`createSummaryCommand\`
+### Entry points (1 added)
 
 <details>
-<summary>Details</summary>
+<summary>createSummaryCommand</summary>
 
-- Role: \`cli-entrypoint\`
-- \`cli-output-formatter\`: \`formatSummary\`
-- \`cli-response-writer\`: \`writeSummary\`
+| Role | Component |
+| --- | --- |
+| \`cli-output-formatter\` | \`formatSummary\` |
+| \`cli-response-writer\` | \`writeSummary\` |
 
 </details>
 
-## Command use cases
-
-### Added
-
-#### \`RefreshSummary\`
+### Command use cases (1 added)
 
 <details>
-<summary>Details</summary>
+<summary>RefreshSummary</summary>
 
-- Role: \`command-use-case\`
-- \`command-use-case-input\`: \`RefreshSummaryInput\`
+| Role | Component |
+| --- | --- |
+| \`command-use-case-input\` | \`RefreshSummaryInput\` |
 
 </details>
 
-## Query use cases
-
-### Added
-
-#### \`GenerateSummary\`
+### Query use cases (1 added)
 
 <details>
-<summary>Details</summary>
+<summary>GenerateSummary</summary>
 
-- Role: \`query-model-use-case\`
-- \`query-model-use-case-input\`: \`GenerateSummaryInput\`
-- \`query-model\`: \`Summary\`
-- \`query-model-loader\`: \`SummaryLoader\`
+| Role | Component |
+| --- | --- |
+| \`query-model-use-case-input\` | \`GenerateSummaryInput\` |
+| \`query-model\` | \`Summary\` |
+| \`query-model-loader\` | \`SummaryLoader\` |
 
 </details>
 
-## External clients
+### Query models (1 added)
 
-### Client: \`git\`
+- <span>WorkspaceArchitectureSources</span>
 
-#### Added
+### External clients (2 added)
 
-##### \`External Client Model\`
+<details>
+<summary>git — 1 component added</summary>
+
+<details>
+<summary>external-client-model — 1 added</summary>
 
 - \`GitModel\`
 
-### Client: \`typescript\`
+</details>
 
-#### Added
+</details>
 
-##### \`External Client Model\`
+<details>
+<summary>typescript — 2 components added</summary>
+
+<details>
+<summary>external-client-model — 1 added</summary>
 
 - \`CompilerModel\`
 
-##### \`External Client Service\`
+</details>
+
+<details>
+<summary>external-client-service — 1 added</summary>
 
 - \`readCompiler\`
 
-## Query models
+</details>
 
-### Added
+</details>
 
-#### \`Query Model\`
-
-- \`WorkspaceArchitectureSources\`
+</details>
 `)
     expect(report).not.toContain('SummaryDependencies')
   })
@@ -126,6 +131,13 @@ describe('pull request architecture diff formatter', () => {
   it('renders removed primary, uncategorised, and domain changes safely', () => {
     const entrypoint = { name: 'oldCommand', role: 'cli-entrypoint' } as const
     const query = { name: 'OldQuery', role: 'query-model-use-case' } as const
+    const domainItemLine = [
+      '- <span>',
+      String.raw`one\|pipe`,
+      '</span> (',
+      String.raw`many\\|pipes`,
+      ')',
+    ].join('')
     const report = format(
       subdomain('orders`[]()\n## forged', 'changed', {
         domain: layer(
@@ -155,32 +167,25 @@ describe('pull request architecture diff formatter', () => {
     )
 
     expect({
-      aggregate: report.includes('#### Aggregate: `Order` (`domain-model`)'),
-      emptyAggregate: report.includes('#### Aggregate: `Empty` (`domain-model`)'),
-      entities: report.includes('- Aggregate entities\n    - `Line`'),
+      aggregate: report.includes('- <span>Order</span> (aggregate, `domain-model`)'),
+      domainItemEscaping: report.includes(domainItemLine),
+      emptyAggregate: report.includes('- <span>Empty</span> (aggregate, `domain-model`)'),
+      entities: report.includes('    - Aggregate entities\n        - `Line`'),
       forgedHeading: report.includes('\n## forged'),
-      methods: report.includes('- Methods\n    - `cancel`'),
+      methods: report.includes('    - Methods\n        - `cancel`'),
       removedExternalClient: report.includes(
-        '### Client: `typescript`\n\n#### Removed\n\n##### `External Client Service`\n\n- `OldCompiler`',
+        '<summary>typescript — 1 component removed</summary>\n\n<details>\n<summary>external-client-service — 1 removed</summary>\n\n- `OldCompiler`',
       ),
-      query: report.includes('#### `OldQuery`'),
-      querySection: report.includes('## Query use cases\n\n### Removed'),
-      relatedComponent: report.includes('- `unclassified-result`: `OldResult`'),
-      roleHeading: report.includes('#### `Other Support ## injected`'),
-      safeHeading: report.includes('# Subdomain: `` orders`[]() ## forged ``'),
-      safeSummary: report.includes('- `` orders`[]() ## forged ``'),
-      uncategorisedSection: report.includes('## Uncategorised changes\n\n### Removed'),
-      tableEscaping: report.includes(
-        [
-          '| `',
-          String.raw`one\\\|pipe`,
-          '` | `',
-          String.raw`many\\\\\|pipes`,
-          '` | `use-cases` |',
-        ].join(''),
-      ),
+      query: report.includes('<summary>OldQuery</summary>'),
+      querySection: report.includes('### Query use cases (1 removed)'),
+      relatedComponent: report.includes('| `unclassified-result` | `OldResult` |'),
+      roleHeading: report.includes('- <span>OldSupport</span> (other-support ## injected)'),
+      safeHeading: report.includes('<summary><h2>🌍 orders`[]() ## forged</h2></summary>'),
+      safeSummary: report.includes('| 🌍 **`` orders`[]() ## forged ``** | Changed'),
+      uncategorisedSection: report.includes('### Uncategorised changes (1 removed)'),
     }).toStrictEqual({
       aggregate: true,
+      domainItemEscaping: true,
       emptyAggregate: true,
       entities: true,
       forgedHeading: false,
@@ -193,7 +198,78 @@ describe('pull request architecture diff formatter', () => {
       safeHeading: true,
       safeSummary: true,
       uncategorisedSection: true,
-      tableEscaping: true,
+    })
+  })
+
+  it('distinguishes additions and removals within the same architecture sections', () => {
+    const addedQuery = { name: 'NewQuery', role: 'query-model-use-case' } as const
+    const removedQuery = { name: 'OldQuery', role: 'query-model-use-case' } as const
+    const report = format(
+      subdomain('orders', 'changed', {
+        domain: layer(
+          [item('NewOrderPolicy', 'domain-service')],
+          [],
+          [item('OldOrderPolicy', 'domain-service')],
+        ),
+        entrypoints: layer(
+          [item('createNewCommand', 'cli-entrypoint')],
+          [],
+          [item('createOldCommand', 'cli-entrypoint')],
+        ),
+        useCases: layer(
+          [
+            item(addedQuery.name, addedQuery.role),
+            item('NewQueryValue', 'query-model-value'),
+            item('NewCompilerModel', 'external-client-model', undefined, 'typescript'),
+            item('NewSupport', 'support-role'),
+          ],
+          [],
+          [
+            item(removedQuery.name, removedQuery.role),
+            item('OldQueryValue', 'query-model-value'),
+            item('OldCompilerModel', 'external-client-model', undefined, 'typescript'),
+            item('OldSupport', 'support-role'),
+          ],
+        ),
+      }),
+    )
+
+    expect({
+      changedClient: report.includes('### External clients (1 changed)'),
+      clientCounts: report.includes(
+        '<summary>typescript — 1 component added, 1 component removed</summary>',
+      ),
+      domainHeadings: report.includes(
+        '### Domain (1 added, 1 removed)\n\n#### Added\n\n- <span>NewOrderPolicy</span> (domain-service)\n\n#### Removed',
+      ),
+      externalClientHeadings: report.includes(
+        '<summary>external-client-model — 1 added, 1 removed</summary>\n\n##### Added\n\n- `NewCompilerModel`\n\n##### Removed',
+      ),
+      primaryHeadings: report.includes(
+        '### Entry points (1 added, 1 removed)\n\n#### Added\n\n- <span>createNewCommand</span>\n\n#### Removed',
+      ),
+      queryModelHeadings: report.includes(
+        '### Query models (1 added, 1 removed)\n\n#### Added\n\n- <span>NewQueryValue</span> (query-model-value)\n\n#### Removed',
+      ),
+      summary: report.includes(
+        '| 🌍 **`orders`** | Changed | 1 entry point · 1 query use case · 1 query model value · 1 domain item · 1 `typescript` external client component · 1 uncategorised change | 1 entry point · 1 query use case · 1 query model value · 1 domain item · 1 `typescript` external client component · 1 uncategorised change |',
+      ),
+      uncategorisedHeadings: report.includes(
+        '### Uncategorised changes (1 added, 1 removed)\n\n#### Added\n\n- <span>NewSupport</span> (support-role)\n\n#### Removed',
+      ),
+      useCaseHeadings: report.includes(
+        '### Query use cases (1 added, 1 removed)\n\n#### Added\n\n- <span>NewQuery</span>\n\n#### Removed',
+      ),
+    }).toStrictEqual({
+      changedClient: true,
+      clientCounts: true,
+      domainHeadings: true,
+      externalClientHeadings: true,
+      primaryHeadings: true,
+      queryModelHeadings: true,
+      summary: true,
+      uncategorisedHeadings: true,
+      useCaseHeadings: true,
     })
   })
 
@@ -205,7 +281,7 @@ describe('pull request architecture diff formatter', () => {
         }),
       ),
     ).toBe(`<!-- pull-request-architecture-review -->
-**Pull request architecture changes**
+# Architecture changes
 
 No architecture changes detected.
 `)

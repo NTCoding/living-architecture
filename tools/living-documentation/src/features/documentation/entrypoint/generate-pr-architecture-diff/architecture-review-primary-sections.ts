@@ -1,20 +1,23 @@
 import type { PullRequestArchitectureDiff } from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
-import { compareArchitectureText, renderArchitectureCodeSpan } from './architecture-review-markdown'
+import {
+  compareArchitectureText,
+  renderArchitectureChangeCount,
+} from './architecture-review-markdown'
+import { renderArchitecturePrimary } from './architecture-review-primary-item'
 
 type Diff = ReturnType<PullRequestArchitectureDiff['changes']>
 type LayerChanges = Diff['subdomains'][number]['layers']['entrypoints']
 type ArchitectureItem = LayerChanges['added']['items'][number]
 type Relationship = NonNullable<ArchitectureItem['relatedTo']>[number]
 
+type ArchitecturePrimaryChangeCounts = {
+  readonly added: number
+  readonly removed: number
+}
+
 /** @riviere-role cli-output-formatter */
 export function renderArchitectureEntrypoints(changes: LayerChanges): readonly string[] {
-  if (!hasVisibleEntrypointChanges(changes)) return []
-  return [
-    '## Entry points',
-    '',
-    ...renderPrimaryChangeSet('Added', changes.added.items, isEntrypoint),
-    ...renderPrimaryChangeSet('Removed', changes.removed.items, isEntrypoint),
-  ]
+  return renderPrimarySection('Entry points', changes, isEntrypoint)
 }
 
 /** @riviere-role cli-output-formatter */
@@ -23,61 +26,78 @@ export function renderArchitectureUseCaseCategory(
   primaryRole: 'command-use-case' | 'query-model-use-case',
   changes: LayerChanges,
 ): readonly string[] {
-  const selected = (relationship: Relationship): boolean => relationship.role === primaryRole
-  if (!hasPrimaryChanges(changes, selected)) return []
-  return [
-    `## ${label}`,
-    '',
-    ...renderPrimaryChangeSet('Added', changes.added.items, selected),
-    ...renderPrimaryChangeSet('Removed', changes.removed.items, selected),
-  ]
+  return renderPrimarySection(
+    label,
+    changes,
+    (relationship: Relationship): boolean => relationship.role === primaryRole,
+  )
+}
+
+/** @riviere-role cli-output-formatter */
+export function architectureEntrypointChangeCounts(
+  changes: LayerChanges,
+): ArchitecturePrimaryChangeCounts {
+  return primaryChangeCounts(changes, isEntrypoint)
+}
+
+/** @riviere-role cli-output-formatter */
+export function architectureUseCaseChangeCounts(
+  changes: LayerChanges,
+  primaryRole: 'command-use-case' | 'query-model-use-case',
+): ArchitecturePrimaryChangeCounts {
+  return primaryChangeCounts(
+    changes,
+    (relationship: Relationship): boolean => relationship.role === primaryRole,
+  )
 }
 
 /** @riviere-role cli-output-formatter */
 export function hasVisibleEntrypointChanges(changes: LayerChanges): boolean {
-  return [changes.added, changes.removed].some((changeSet) =>
-    changeSet.items.some((item) => !isEntrypointDependencies(item)),
-  )
+  const counts = architectureEntrypointChangeCounts(changes)
+  return counts.added > 0 || counts.removed > 0
+}
+
+function renderPrimarySection(
+  label: 'Entry points' | 'Command use cases' | 'Query use cases',
+  changes: LayerChanges,
+  isSelectedPrimary: (relationship: Relationship) => boolean,
+): readonly string[] {
+  const addedItems = visibleItems(changes.added.items)
+  const removedItems = visibleItems(changes.removed.items)
+  const added = primaryRelationships(addedItems).filter(isSelectedPrimary)
+  const removed = primaryRelationships(removedItems).filter(isSelectedPrimary)
+  if (added.length === 0 && removed.length === 0) return []
+  const showChangeHeadings = added.length > 0 && removed.length > 0
+  return [
+    `### ${label} (${renderArchitectureChangeCount(added.length, removed.length)})`,
+    '',
+    ...renderPrimaryChangeSet('Added', added, addedItems, showChangeHeadings),
+    ...renderPrimaryChangeSet('Removed', removed, removedItems, showChangeHeadings),
+  ]
 }
 
 function renderPrimaryChangeSet(
   heading: 'Added' | 'Removed',
+  primaries: readonly Relationship[],
   items: readonly ArchitectureItem[],
-  isSelectedPrimary: (relationship: Relationship) => boolean,
+  showHeading: boolean,
 ): readonly string[] {
-  const visibleItems = items.filter((item) => !isEntrypointDependencies(item))
-  const primaries = primaryRelationships(visibleItems).filter(isSelectedPrimary)
-  return primaries.length === 0
-    ? []
-    : [
-        `### ${heading}`,
-        '',
-        ...primaries.flatMap((primary) => renderPrimary(primary, visibleItems)),
-      ]
+  if (primaries.length === 0) return []
+  return [
+    ...(showHeading ? [`#### ${heading}`, ''] : []),
+    ...primaries.flatMap((primary) => renderArchitecturePrimary(primary, items)),
+  ]
 }
 
-function renderPrimary(
-  primary: Relationship,
-  items: readonly ArchitectureItem[],
-): readonly string[] {
-  const related = items.filter((item) =>
-    (item.relatedTo ?? []).some((relationship) => sameRelationship(relationship, primary)),
-  )
-  return [
-    `#### ${renderArchitectureCodeSpan(primary.name)}`,
-    '',
-    '<details>',
-    '<summary>Details</summary>',
-    '',
-    `- Role: ${renderArchitectureCodeSpan(primary.role)}`,
-    ...related.map(
-      (item) =>
-        `- ${renderArchitectureCodeSpan(item.role)}: ${renderArchitectureCodeSpan(item.name)}`,
-    ),
-    '',
-    '</details>',
-    '',
-  ]
+function primaryChangeCounts(
+  changes: LayerChanges,
+  isSelectedPrimary: (relationship: Relationship) => boolean,
+): ArchitecturePrimaryChangeCounts {
+  return {
+    added: primaryRelationships(visibleItems(changes.added.items)).filter(isSelectedPrimary).length,
+    removed: primaryRelationships(visibleItems(changes.removed.items)).filter(isSelectedPrimary)
+      .length,
+  }
 }
 
 function primaryRelationships(items: readonly ArchitectureItem[]): readonly Relationship[] {
@@ -93,15 +113,6 @@ function primaryRelationships(items: readonly ArchitectureItem[]): readonly Rela
   )
 }
 
-function hasPrimaryChanges(
-  changes: LayerChanges,
-  isSelectedPrimary: (relationship: Relationship) => boolean,
-): boolean {
-  return [changes.added, changes.removed].some((changeSet) =>
-    primaryRelationships(changeSet.items).some(isSelectedPrimary),
-  )
-}
-
 function isPrimaryRole(role: string): boolean {
   return role.endsWith('-entrypoint') || isUseCaseRole(role)
 }
@@ -110,16 +121,12 @@ function isEntrypoint(relationship: Relationship): boolean {
   return relationship.role.endsWith('-entrypoint')
 }
 
-function isEntrypointDependencies(item: ArchitectureItem): boolean {
-  return item.role.endsWith('-entrypoint-dependencies')
+function visibleItems(items: readonly ArchitectureItem[]): readonly ArchitectureItem[] {
+  return items.filter((item) => !item.role.endsWith('-entrypoint-dependencies'))
 }
 
 function isUseCaseRole(role: string): boolean {
   return role === 'command-use-case' || role === 'query-model-use-case'
-}
-
-function sameRelationship(left: Relationship, right: Relationship): boolean {
-  return relationshipKey(left) === relationshipKey(right)
 }
 
 function relationshipKey(relationship: Relationship): string {

@@ -1,5 +1,5 @@
 import type { PullRequestArchitectureDiff } from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
-import { renderArchitectureCodeSpan } from './architecture-review-markdown'
+import { renderArchitectureHtmlText } from './architecture-review-markdown'
 import {
   hasVisibleEntrypointChanges,
   renderArchitectureEntrypoints,
@@ -10,10 +10,11 @@ import {
   renderArchitectureDomain,
 } from './architecture-review-domain-section'
 import {
-  renderArchitectureExternalClients,
   renderArchitectureQueryModels,
   renderUncategorisedArchitectureChanges,
 } from './architecture-review-role-sections'
+import { renderArchitectureExternalClients } from './architecture-review-external-client-section'
+import { renderArchitectureSummary } from './architecture-review-summary'
 
 type Diff = ReturnType<PullRequestArchitectureDiff['changes']>
 type PullRequestArchitectureDiffView = Pick<PullRequestArchitectureDiff, 'changes' | 'outputPath'>
@@ -27,12 +28,9 @@ export function formatPullRequestArchitectureDiff(diff: PullRequestArchitectureD
   if (subdomains.length === 0) return renderNoArchitectureChanges()
   return [
     COMMENT_MARKER,
-    '**Pull request architecture changes**',
+    '# Architecture changes',
     '',
-    '# Changed subdomains',
-    '',
-    ...subdomains.map(renderSubdomainSummary),
-    '',
+    ...renderArchitectureSummary(subdomains),
     ...subdomains.flatMap(renderSubdomain),
   ].join('\n')
 }
@@ -40,24 +38,20 @@ export function formatPullRequestArchitectureDiff(diff: PullRequestArchitectureD
 function renderNoArchitectureChanges(): string {
   return [
     COMMENT_MARKER,
-    '**Pull request architecture changes**',
+    '# Architecture changes',
     '',
     'No architecture changes detected.',
     '',
   ].join('\n')
 }
 
-function renderSubdomainSummary(subdomain: SubdomainChanges): string {
-  const renderedName = renderArchitectureCodeSpan(subdomain.name)
-  const link = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(subdomain.name)
-    ? `[${renderedName}](#subdomain-${subdomain.name})`
-    : renderedName
-  return subdomain.change === 'added' ? `- ${link} **NEW**` : `- ${link}`
-}
-
 function renderSubdomain(subdomain: SubdomainChanges): readonly string[] {
+  const status = subdomain.change === 'added' ? ' — 🆕' : ''
   return [
-    `# Subdomain: ${renderArchitectureCodeSpan(subdomain.name)}`,
+    '---',
+    '',
+    '<details open>',
+    `<summary><h2>🌍 ${renderArchitectureHtmlText(subdomain.name)}${status}</h2></summary>`,
     '',
     ...renderArchitectureEntrypoints(subdomain.layers.entrypoints),
     ...renderArchitectureUseCaseCategory(
@@ -70,10 +64,12 @@ function renderSubdomain(subdomain: SubdomainChanges): readonly string[] {
       'query-model-use-case',
       subdomain.layers['use-cases'],
     ),
-    ...renderArchitectureExternalClients(subdomain.layers['use-cases']),
     ...renderArchitectureQueryModels(subdomain.layers['use-cases']),
-    ...renderUncategorisedArchitectureChanges(subdomain.layers['use-cases']),
     ...renderArchitectureDomain(subdomain.layers.domain),
+    ...renderArchitectureExternalClients(subdomain.layers['use-cases']),
+    ...renderUncategorisedArchitectureChanges(subdomain.layers['use-cases']),
+    '</details>',
+    '',
   ]
 }
 
