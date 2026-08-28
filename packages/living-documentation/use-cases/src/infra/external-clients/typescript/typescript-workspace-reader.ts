@@ -18,6 +18,7 @@ import {
   readTypescriptPublicMethodNames,
   toTypescriptArchitectureItem,
   typescriptAggregateOwnsEntity,
+  typescriptDeclarationReferencesDeclaration,
   uniqueTypescriptArchitectureItems,
   type TypescriptAnnotatedDeclaration,
   type TypescriptParsedSource,
@@ -25,9 +26,14 @@ import {
 
 interface MutableSubdomainSnapshot {
   readonly domainDeclarations: TypescriptAnnotatedDeclaration[]
-  readonly entrypoints: TypescriptArchitectureItem[]
+  readonly entrypoints: TypescriptAnnotatedDeclaration[]
   readonly name: string
-  readonly useCases: TypescriptArchitectureItem[]
+  readonly useCases: TypescriptAnnotatedDeclaration[]
+}
+
+interface RelationshipTraversal {
+  readonly canBridge: (declaration: TypescriptAnnotatedDeclaration) => boolean
+  readonly omitRelationships: (declaration: TypescriptAnnotatedDeclaration) => boolean
 }
 
 /** @riviere-role external-client-service */
@@ -64,7 +70,7 @@ function readPackageSubdomains(workspaceRoot: string): Map<string, MutableSubdom
     readPackage(subdomainRoot, 'published-language', snapshot.domainDeclarations)
     const useCaseDeclarations: TypescriptAnnotatedDeclaration[] = []
     readPackage(subdomainRoot, 'use-cases', useCaseDeclarations)
-    snapshot.useCases.push(...useCaseDeclarations.map(toTypescriptArchitectureItem))
+    snapshot.useCases.push(...useCaseDeclarations)
     if (snapshot.domainDeclarations.length > 0 || snapshot.useCases.length > 0) {
       subdomains.set(entry.name, snapshot)
     }
@@ -120,7 +126,7 @@ function readEntrypointRoot(
         `Cannot determine one subdomain for entrypoint declaration '${declaration.name}'.`,
       )
     }
-    subdomains.get(owner)?.entrypoints.push(toTypescriptArchitectureItem(declaration))
+    subdomains.get(owner)?.entrypoints.push(declaration)
   }
 }
 
@@ -133,15 +139,78 @@ function toSubdomainSnapshot(
       domain: { aggregates, items },
       entrypoints: {
         aggregates: [],
-        items: uniqueTypescriptArchitectureItems(snapshot.entrypoints),
+        items: relatedArchitectureItems(snapshot.entrypoints, isEntrypoint, {
+          canBridge: (declaration) => !isEntrypoint(declaration),
+          omitRelationships: isEntrypointDependencies,
+        }),
       },
       'use-cases': {
         aggregates: [],
-        items: uniqueTypescriptArchitectureItems(snapshot.useCases),
+        items: relatedArchitectureItems(snapshot.useCases, isUseCase),
       },
     },
     name: snapshot.name,
   }
+}
+
+function relatedArchitectureItems(
+  declarations: readonly TypescriptAnnotatedDeclaration[],
+  isPrimary: (declaration: TypescriptAnnotatedDeclaration) => boolean,
+  traversal?: RelationshipTraversal,
+): readonly TypescriptArchitectureItem[] {
+  const primaryDeclarations = declarations.filter(isPrimary)
+  return uniqueTypescriptArchitectureItems(
+    declarations.map((declaration) =>
+      toTypescriptArchitectureItem(
+        declaration,
+        isPrimary(declaration) || traversal?.omitRelationships(declaration) === true
+          ? []
+          : primaryDeclarations
+              .filter((primary) =>
+                declarationReferencesThrough(
+                  primary,
+                  declaration,
+                  declarations,
+                  traversal?.canBridge,
+                  new Set(),
+                ),
+              )
+              .map(({ name, role }) => ({ name, role })),
+      ),
+    ),
+  )
+}
+
+function declarationReferencesThrough(
+  source: TypescriptAnnotatedDeclaration,
+  target: TypescriptAnnotatedDeclaration,
+  declarations: readonly TypescriptAnnotatedDeclaration[],
+  canBridge: ((declaration: TypescriptAnnotatedDeclaration) => boolean) | undefined,
+  visited: ReadonlySet<string>,
+): boolean {
+  if (typescriptDeclarationReferencesDeclaration(source, target)) return true
+  if (canBridge === undefined) return false
+  const nextVisited = new Set(visited).add(annotatedDeclarationKey(source))
+  return declarations
+    .filter(canBridge)
+    .filter((bridge) => !nextVisited.has(annotatedDeclarationKey(bridge)))
+    .some(
+      (bridge) =>
+        typescriptDeclarationReferencesDeclaration(source, bridge) &&
+        declarationReferencesThrough(bridge, target, declarations, canBridge, nextVisited),
+    )
+}
+
+function isEntrypoint(declaration: TypescriptAnnotatedDeclaration): boolean {
+  return declaration.role.endsWith('-entrypoint')
+}
+
+function isEntrypointDependencies(declaration: TypescriptAnnotatedDeclaration): boolean {
+  return declaration.role.endsWith('-entrypoint-dependencies')
+}
+
+function isUseCase(declaration: TypescriptAnnotatedDeclaration): boolean {
+  return declaration.role === 'command-use-case' || declaration.role === 'query-model-use-case'
 }
 
 function readDomain(
@@ -154,8 +223,8 @@ function readDomain(
     [...entitiesByAggregate.values()].flatMap((entities) => entities.map(annotatedDeclarationKey)),
   )
   const aggregates = aggregateDeclarations.map((entry) => ({
-    entities: (entitiesByAggregate.get(annotatedDeclarationKey(entry)) ?? []).map(
-      toTypescriptArchitectureItem,
+    entities: (entitiesByAggregate.get(annotatedDeclarationKey(entry)) ?? []).map((entity) =>
+      toTypescriptArchitectureItem(entity),
     ),
     methods: readTypescriptPublicMethodNames(entry),
     name: entry.name,
@@ -164,7 +233,7 @@ function readDomain(
   const items = declarations
     .filter((entry) => entry.role !== 'aggregate')
     .filter((entry) => !ownedEntities.has(annotatedDeclarationKey(entry)))
-    .map(toTypescriptArchitectureItem)
+    .map((declaration) => toTypescriptArchitectureItem(declaration))
   return {
     aggregates: aggregates.toSorted((left, right) => compareTypescriptText(left.name, right.name)),
     items: uniqueTypescriptArchitectureItems(items),

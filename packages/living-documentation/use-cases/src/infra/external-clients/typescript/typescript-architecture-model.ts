@@ -12,6 +12,13 @@ export type TypescriptArchitecturePackageKind =
 export interface TypescriptArchitectureItem {
   readonly name: string
   readonly packageKind: TypescriptArchitecturePackageKind
+  readonly relatedTo?: readonly TypescriptArchitectureRelationship[]
+  readonly role: string
+}
+
+/** @riviere-role external-client-model */
+export interface TypescriptArchitectureRelationship {
+  readonly name: string
   readonly role: string
 }
 

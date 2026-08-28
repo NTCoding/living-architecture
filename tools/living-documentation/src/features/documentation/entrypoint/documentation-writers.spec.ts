@@ -3,6 +3,9 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ArchitectureSummary } from '@living-architecture/living-documentation-use-cases/features/documentation/queries/architecture-summary'
+import { ArchitectureSourceLoader } from '@living-architecture/living-documentation-use-cases/features/documentation/data-access/architecture-source/architecture-source-loader'
+import { GeneratePullRequestArchitectureDiff } from '@living-architecture/living-documentation-use-cases/features/documentation/queries/generate-pr-architecture-diff'
+import { TypescriptWorkspaceReader } from '@living-architecture/living-documentation-use-cases/infra/external-clients/typescript/typescript-workspace-reader'
 import { writeArchitectureSummary } from './generate-architecture-summary/architecture-summary-writer'
 import { writePullRequestArchitectureDiff } from './generate-pr-architecture-diff/pull-request-architecture-diff-writer'
 
@@ -23,10 +26,17 @@ describe('documentation writers', () => {
 
   it('writes a pull request architecture diff', () => {
     const outputPath = temporaryOutput('diff.md')
+    const diff = new GeneratePullRequestArchitectureDiff(
+      new ArchitectureSourceLoader(new TypescriptWorkspaceReader()),
+    ).execute({
+      baseWorkspaceRoot: '/missing-base',
+      headWorkspaceRoot: '/missing-head',
+      outputPath,
+    })
 
-    writePullRequestArchitectureDiff({ markdown: '# Diff', outputPath })
+    writePullRequestArchitectureDiff(diff)
 
-    expect(readFileSync(outputPath, 'utf8')).toBe('# Diff')
+    expect(readFileSync(outputPath, 'utf8')).toContain('No architecture changes detected.')
   })
 })
 

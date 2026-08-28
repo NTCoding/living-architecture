@@ -5,6 +5,7 @@ import {
   TypescriptWorkspaceReadError,
   type TypescriptArchitectureItem,
   type TypescriptArchitecturePackageKind,
+  type TypescriptArchitectureRelationship,
 } from './typescript-architecture-model'
 
 /** @riviere-role external-client-model */
@@ -75,6 +76,19 @@ export function typescriptAggregateOwnsEntity(
 }
 
 /** @riviere-role external-client-service */
+export function typescriptDeclarationReferencesDeclaration(
+  source: TypescriptAnnotatedDeclaration,
+  target: TypescriptAnnotatedDeclaration,
+): boolean {
+  return nodeReferencesDeclaration(
+    source.declaration,
+    source.sourceFile,
+    target,
+    importedDeclarations(source.sourceFile),
+  )
+}
+
+/** @riviere-role external-client-service */
 export function readTypescriptPublicMethodNames(
   declaration: TypescriptAnnotatedDeclaration,
 ): readonly string[] {
@@ -128,10 +142,13 @@ export function readTypescriptPackageManifestName(manifestPath: string): string 
 /** @riviere-role external-client-service */
 export function toTypescriptArchitectureItem(
   declaration: TypescriptAnnotatedDeclaration,
+  relatedTo: readonly TypescriptArchitectureRelationship[] = [],
 ): TypescriptArchitectureItem {
+  const relationships = uniqueRelationships(relatedTo)
   return {
     name: declaration.name,
     packageKind: declaration.packageKind,
+    ...(relationships.length === 0 ? {} : { relatedTo: relationships }),
     role: declaration.role,
   }
 }
@@ -146,7 +163,10 @@ export function uniqueTypescriptArchitectureItems(
 
 /** @riviere-role external-client-service */
 function typescriptArchitectureItemKey(item: TypescriptArchitectureItem): string {
-  return `${item.packageKind}:${item.role}:${item.name}`
+  const relationships = uniqueRelationships(item.relatedTo ?? [])
+    .map((relationship) => `${relationship.role}:${relationship.name}`)
+    .join(',')
+  return `${item.packageKind}:${item.role}:${item.name}:${relationships}`
 }
 
 /** @riviere-role external-client-service */
@@ -349,6 +369,20 @@ function productionSourcePaths(directory: string): readonly string[] {
 
 function uniqueText(items: readonly string[]): readonly string[] {
   return [...new Set(items)].sort(compareTypescriptText)
+}
+
+function uniqueRelationships(
+  relationships: readonly TypescriptArchitectureRelationship[],
+): readonly TypescriptArchitectureRelationship[] {
+  const unique = new Map(
+    relationships.map((relationship) => [
+      `${relationship.role}:${relationship.name}`,
+      { name: relationship.name, role: relationship.role },
+    ]),
+  )
+  return [...unique.values()].sort((left, right) =>
+    compareTypescriptText(`${left.role}:${left.name}`, `${right.role}:${right.name}`),
+  )
 }
 
 function compareArchitectureItems(

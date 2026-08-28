@@ -26,7 +26,26 @@ describe('architecture', () => {
                 ],
               },
               entrypoints: { aggregates: [], items: [] },
-              'use-cases': { aggregates: [], items: [] },
+              'use-cases': {
+                aggregates: [],
+                items: [
+                  {
+                    name: 'Summary',
+                    packageKind: 'use-cases',
+                    relatedTo: [
+                      { name: 'GenerateSummary', role: 'query-model-use-case' },
+                      { name: 'AnotherSummary', role: 'query-model-use-case' },
+                      { name: 'GenerateSummary', role: 'query-model-use-case' },
+                    ],
+                    role: 'query-model',
+                  },
+                  {
+                    name: 'GenerateSummary',
+                    packageKind: 'use-cases',
+                    role: 'query-model-use-case',
+                  },
+                ],
+              },
             },
             name: 'orders',
           },
@@ -52,7 +71,25 @@ describe('architecture', () => {
               items: [{ name: 'OrderId', packageKind: 'domain-model', role: 'value-object' }],
             },
             entrypoints: { aggregates: [], items: [] },
-            'use-cases': { aggregates: [], items: [] },
+            'use-cases': {
+              aggregates: [],
+              items: [
+                {
+                  name: 'GenerateSummary',
+                  packageKind: 'use-cases',
+                  role: 'query-model-use-case',
+                },
+                {
+                  name: 'Summary',
+                  packageKind: 'use-cases',
+                  relatedTo: [
+                    { name: 'AnotherSummary', role: 'query-model-use-case' },
+                    { name: 'GenerateSummary', role: 'query-model-use-case' },
+                  ],
+                  role: 'query-model',
+                },
+              ],
+            },
           },
           name: 'orders',
         },
@@ -145,6 +182,7 @@ describe('architecture', () => {
     expect(ArchitectureDiff.fromArchitectures(base, head).changes()).toStrictEqual({
       subdomains: [
         {
+          change: 'changed',
           layers: {
             domain: {
               added: {
@@ -198,6 +236,7 @@ describe('architecture', () => {
           name: 'orders',
         },
         {
+          change: 'removed',
           layers: {
             domain: {
               added: { aggregates: [], items: [] },
@@ -299,7 +338,10 @@ describe('architecture', () => {
     expect(
       ArchitectureDiff.fromArchitectures(base, head)
         .changes()
-        .subdomains.map((subdomain) => subdomain.name),
-    ).toStrictEqual(['added', 'removed'])
+        .subdomains.map(({ change, name }) => ({ change, name })),
+    ).toStrictEqual([
+      { change: 'added', name: 'added' },
+      { change: 'removed', name: 'removed' },
+    ])
   })
 })

@@ -4,6 +4,12 @@ type ArchitecturePackageKind = 'application' | 'use-cases' | 'domain-model' | 'p
 interface ArchitectureItemValue {
   readonly name: string
   readonly packageKind: ArchitecturePackageKind
+  readonly relatedTo?: readonly ArchitectureRelationshipValue[]
+  readonly role: string
+}
+
+interface ArchitectureRelationshipValue {
+  readonly name: string
   readonly role: string
 }
 
@@ -41,6 +47,7 @@ interface ArchitectureLayerChangesValue {
 }
 
 interface SubdomainArchitectureChangesValue {
+  readonly change: 'added' | 'changed' | 'removed'
   readonly layers: Readonly<Record<ArchitectureLayerName, ArchitectureLayerChangesValue>>
   readonly name: string
 }
@@ -143,16 +150,30 @@ function compareArchitectureValues(
     compareText,
   )
   const subdomains = subdomainNames.flatMap((name) => {
-    const baseLayers = baseSubdomains.get(name)?.layers ?? emptyLayers()
-    const headLayers = headSubdomains.get(name)?.layers ?? emptyLayers()
+    const baseSubdomain = baseSubdomains.get(name)
+    const headSubdomain = headSubdomains.get(name)
+    const baseLayers = baseSubdomain?.layers ?? emptyLayers()
+    const headLayers = headSubdomain?.layers ?? emptyLayers()
     const layers: Readonly<Record<ArchitectureLayerName, ArchitectureLayerChangesValue>> = {
       domain: compareLayer(baseLayers.domain, headLayers.domain),
       entrypoints: compareLayer(baseLayers.entrypoints, headLayers.entrypoints),
       'use-cases': compareLayer(baseLayers['use-cases'], headLayers['use-cases']),
     }
-    return layerNames.some((layer) => hasLayerChanges(layers[layer])) ? [{ layers, name }] : []
+    const change = subdomainChange(baseSubdomain, headSubdomain)
+    return layerNames.some((layer) => hasLayerChanges(layers[layer]))
+      ? [{ change, layers, name }]
+      : []
   })
   return { subdomains }
+}
+
+function subdomainChange(
+  base: SubdomainArchitectureValue | undefined,
+  head: SubdomainArchitectureValue | undefined,
+): SubdomainArchitectureChangesValue['change'] {
+  if (base === undefined) return 'added'
+  if (head === undefined) return 'removed'
+  return 'changed'
 }
 
 function compareLayer(
@@ -272,12 +293,19 @@ function copyAggregate(aggregate: AggregateValue): AggregateValue {
 }
 
 function copyItem(item: ArchitectureItemValue): ArchitectureItemValue {
-  return { name: item.name, packageKind: item.packageKind, role: item.role }
+  const relatedTo = canonicalRelationships(item.relatedTo ?? [])
+  return {
+    name: item.name,
+    packageKind: item.packageKind,
+    ...(relatedTo.length === 0 ? {} : { relatedTo }),
+    role: item.role,
+  }
 }
 
 function copyArchitectureDiff(value: ArchitectureDiffValue): ArchitectureDiffValue {
   return {
     subdomains: value.subdomains.map((subdomain) => ({
+      change: subdomain.change,
       layers: {
         domain: copyLayerChanges(subdomain.layers.domain),
         entrypoints: copyLayerChanges(subdomain.layers.entrypoints),
@@ -307,7 +335,24 @@ function aggregateKey(aggregate: AggregateValue): string {
 }
 
 function itemKey(item: ArchitectureItemValue): string {
-  return `${item.packageKind}:${item.role}:${item.name}`
+  const relationships = canonicalRelationships(item.relatedTo ?? [])
+    .map((relationship) => `${relationship.role}:${relationship.name}`)
+    .join(',')
+  return `${item.packageKind}:${item.role}:${item.name}:${relationships}`
+}
+
+function canonicalRelationships(
+  relationships: readonly ArchitectureRelationshipValue[],
+): readonly ArchitectureRelationshipValue[] {
+  const unique = new Map(
+    relationships.map((relationship) => [
+      `${relationship.role}:${relationship.name}`,
+      { name: relationship.name, role: relationship.role },
+    ]),
+  )
+  return [...unique.values()].sort((left, right) =>
+    compareText(`${left.role}:${left.name}`, `${right.role}:${right.name}`),
+  )
 }
 
 function compareAggregates(left: AggregateValue, right: AggregateValue): number {

@@ -12,25 +12,50 @@ import { GeneratePullRequestArchitectureDiff } from './generate-pr-architecture-
 afterEach(removeTemporaryWorkspaces)
 
 describe('pull request architecture review', () => {
-  it('renders only added and removed metadata in the agreed hierarchy', () => {
+  it('extracts related entry point and use case changes', () => {
     const base = createBaseWorkspace()
     const head = createHeadWorkspace()
 
-    const report = generateArchitectureReview(base, head)
+    const changes = generateArchitectureReview(base, head)
+    const orders = changes.subdomains.find((subdomain) => subdomain.name === 'orders')
 
-    expect(report).toBe(expectedArchitectureReview())
+    expect(orders?.change).toBe('changed')
+    expect(orders?.layers.entrypoints.added.items).toStrictEqual([
+      { name: 'createFulfilOrderCommand', packageKind: 'application', role: 'cli-entrypoint' },
+      {
+        name: 'FulfilOrderDependencies',
+        packageKind: 'application',
+        role: 'cli-entrypoint-dependencies',
+      },
+      {
+        name: 'writeFulfilOrder',
+        packageKind: 'application',
+        relatedTo: [{ name: 'createFulfilOrderCommand', role: 'cli-entrypoint' }],
+        role: 'cli-response-writer',
+      },
+    ])
+    expect(orders?.layers['use-cases'].added.items).toStrictEqual([
+      { name: 'FulfilOrder', packageKind: 'use-cases', role: 'command-use-case' },
+      {
+        name: 'FulfilOrderInput',
+        packageKind: 'use-cases',
+        relatedTo: [{ name: 'FulfilOrder', role: 'command-use-case' }],
+        role: 'command-use-case-input',
+      },
+      {
+        name: 'FulfilOrderResult',
+        packageKind: 'use-cases',
+        relatedTo: [{ name: 'FulfilOrder', role: 'command-use-case' }],
+        role: 'command-use-case-result',
+      },
+      { name: 'SharedSupport', packageKind: 'use-cases', role: 'query-model' },
+    ])
   })
 
-  it('returns a minimal comment when the architecture metadata is unchanged', () => {
+  it('returns no changes when the architecture metadata is unchanged', () => {
     const workspace = createBaseWorkspace()
 
-    const report = generateArchitectureReview(workspace, workspace)
-
-    expect(report).toBe(`<!-- pull-request-architecture-review -->
-# Pull request architecture changes
-
-No architecture changes detected.
-`)
+    expect(generateArchitectureReview(workspace, workspace)).toStrictEqual({ subdomains: [] })
   })
 
   it('fails when an entrypoint cannot be assigned to one subdomain', () => {
@@ -123,10 +148,12 @@ function inspectArchitecture(workspaceRoot: string) {
   return new TypescriptWorkspaceReader().readArchitectureSnapshot(workspaceRoot)
 }
 
-function generateArchitectureReview(baseWorkspaceRoot: string, headWorkspaceRoot: string): string {
+function generateArchitectureReview(baseWorkspaceRoot: string, headWorkspaceRoot: string) {
   return new GeneratePullRequestArchitectureDiff(
     new ArchitectureSourceLoader(new TypescriptWorkspaceReader()),
-  ).execute({ baseWorkspaceRoot, headWorkspaceRoot, outputPath: 'output.md' }).markdown
+  )
+    .execute({ baseWorkspaceRoot, headWorkspaceRoot, outputPath: 'output.md' })
+    .changes()
 }
 
 function createBaseWorkspace(): string {
@@ -248,104 +275,53 @@ function createHeadWorkspace(): string {
     workspace,
     'packages/orders/use-cases/src/fulfil-order.ts',
     `
+      import type { FulfilOrderInput } from './fulfil-order-input'
+      import type { FulfilOrderResult } from './fulfil-order-result'
+
       /** @riviere-role command-use-case */
-      export class FulfilOrder {}
+      export class FulfilOrder {
+        execute(_: FulfilOrderInput): FulfilOrderResult { return { completed: true } }
+      }
     `,
+  )
+  writeWorkspaceFile(
+    workspace,
+    'packages/orders/use-cases/src/fulfil-order-input.ts',
+    '/** @riviere-role command-use-case-input */ export interface FulfilOrderInput { readonly id: string }',
+  )
+  writeWorkspaceFile(
+    workspace,
+    'packages/orders/use-cases/src/fulfil-order-result.ts',
+    '/** @riviere-role command-use-case-result */ export interface FulfilOrderResult { readonly completed: boolean }',
+  )
+  writeWorkspaceFile(
+    workspace,
+    'packages/orders/use-cases/src/shared-support.ts',
+    '/** @riviere-role query-model */ export interface SharedSupport { readonly value: string }',
   )
   writeWorkspaceFile(
     workspace,
     'apps/cli/src/features/orders/entrypoint/fulfil/entrypoint.ts',
     `
       import type { FulfilOrder } from '@example/orders-use-cases/fulfil-order'
+      import { writeFulfilOrder } from './writer'
 
       /** @riviere-role cli-entrypoint-dependencies */
-      export interface FulfilOrderDependencies { readonly fulfilOrder: FulfilOrder }
+      export interface FulfilOrderDependencies {
+        readonly fulfilOrder: FulfilOrder
+        readonly writeFulfilOrder: typeof writeFulfilOrder
+      }
 
       /** @riviere-role cli-entrypoint */
       export function createFulfilOrderCommand(_: FulfilOrderDependencies): void {}
     `,
   )
+  writeWorkspaceFile(
+    workspace,
+    'apps/cli/src/features/orders/entrypoint/fulfil/writer.ts',
+    '/** @riviere-role cli-response-writer */ export function writeFulfilOrder(): void {}',
+  )
   return workspace
-}
-
-function expectedArchitectureReview(): string {
-  return `<!-- pull-request-architecture-review -->
-# Pull request architecture changes
-
-## Changed subdomains
-
-- [\`orders\`](#subdomain-orders)
-
-## Subdomain: \`orders\`
-
-### Entry points
-
-#### Added
-
-| Name | Role |
-| --- | --- |
-| \`createFulfilOrderCommand\` | \`cli-entrypoint\` |
-| \`FulfilOrderDependencies\` | \`cli-entrypoint-dependencies\` |
-
-#### Removed
-
-| Name | Role |
-| --- | --- |
-| \`createPlaceOrderCommand\` | \`cli-entrypoint\` |
-| \`PlaceOrderDependencies\` | \`cli-entrypoint-dependencies\` |
-
-### Use cases
-
-#### Added
-
-| Name | Role |
-| --- | --- |
-| \`FulfilOrder\` | \`command-use-case\` |
-
-#### Removed
-
-| Name | Role |
-| --- | --- |
-| \`PlaceOrder\` | \`command-use-case\` |
-
-### Domain
-
-#### Added
-
-##### Aggregate: \`NewOrder\` (\`domain-model\`)
-
-- Methods
-    - \`start\`
-
-##### Aggregate: \`Order\` (\`domain-model\`)
-
-- Aggregate entities
-    - \`Shipment\`
-- Methods
-    - \`fulfil\`
-
-| Name | Role | Package |
-| --- | --- | --- |
-| \`LegacyOrder\` | \`value-object\` | \`published-language\` |
-| \`newOrderPolicy\` | \`domain-service\` | \`domain-model\` |
-| \`OrderPolicy\` | \`value-object\` | \`domain-model\` |
-
-#### Removed
-
-##### Aggregate: \`LegacyOrder\` (\`domain-model\`)
-
-- Methods
-    - \`archive\`
-
-##### Aggregate: \`Order\` (\`domain-model\`)
-
-- Methods
-    - \`cancel\`
-
-| Name | Role | Package |
-| --- | --- | --- |
-| \`oldOrderPolicy\` | \`domain-service\` | \`domain-model\` |
-`
 }
 
 function writeSubdomainManifest(workspace: string, subdomain: string): void {

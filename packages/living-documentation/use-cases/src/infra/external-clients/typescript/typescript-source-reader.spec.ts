@@ -14,6 +14,7 @@ import {
   readTypescriptPublicMethodNames,
   toTypescriptArchitectureItem,
   typescriptAggregateOwnsEntity,
+  typescriptDeclarationReferencesDeclaration,
   uniqueTypescriptArchitectureItems,
 } from './typescript-source-reader'
 
@@ -79,6 +80,20 @@ describe('TypeScript source reader', () => {
       packageKind: 'domain-model',
       role: 'aggregate',
     })
+    expect(
+      toTypescriptArchitectureItem(requiredDeclaration(declarations, 'Order'), [
+        { name: 'Second', role: 'query-model-use-case' },
+        { name: 'First', role: 'command-use-case' },
+      ]),
+    ).toStrictEqual({
+      name: 'Order',
+      packageKind: 'domain-model',
+      relatedTo: [
+        { name: 'First', role: 'command-use-case' },
+        { name: 'Second', role: 'query-model-use-case' },
+      ],
+      role: 'aggregate',
+    })
   })
 
   it('recognises aggregate state in properties and parameter properties', () => {
@@ -132,6 +147,41 @@ describe('TypeScript source reader', () => {
     )
 
     expect(typescriptAggregateOwnsEntity(order, line)).toBe(false)
+  })
+
+  it('detects references between annotated declarations', () => {
+    const relatedSource = ts.createSourceFile(
+      '/workspace/related.ts',
+      '/** @riviere-role query-model */ export class Result {}',
+      ts.ScriptTarget.Latest,
+      true,
+    )
+    const useCaseSource = ts.createSourceFile(
+      '/workspace/use-case.ts',
+      `
+        import { Result as Output } from './related'
+        /** @riviere-role query-model-use-case */
+        export class Query { execute(): Output { return new Output() } }
+        /** @riviere-role query-model-use-case */ export class Unrelated {}
+      `,
+      ts.ScriptTarget.Latest,
+      true,
+    )
+    const result = requiredDeclaration(
+      findTypescriptAnnotatedDeclarations(relatedSource, 'use-cases'),
+      'Result',
+    )
+    const useCases = findTypescriptAnnotatedDeclarations(useCaseSource, 'use-cases')
+
+    expect(
+      typescriptDeclarationReferencesDeclaration(requiredDeclaration(useCases, 'Query'), result),
+    ).toBe(true)
+    expect(
+      typescriptDeclarationReferencesDeclaration(
+        requiredDeclaration(useCases, 'Unrelated'),
+        result,
+      ),
+    ).toBe(false)
   })
 
   it('handles missing types, same-named external types and each parameter property modifier', () => {
