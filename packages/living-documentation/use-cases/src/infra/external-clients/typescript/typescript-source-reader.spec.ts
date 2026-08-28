@@ -162,7 +162,8 @@ describe('TypeScript source reader', () => {
         import { Result as Output } from './related'
         /** @riviere-role query-model-use-case */
         export class Query { execute(): Output { return new Output() } }
-        /** @riviere-role query-model-use-case */ export class Unrelated {}
+        /** @riviere-role query-model-use-case */
+        export class Unrelated { execute(): unknown { return this.Result } }
       `,
       ts.ScriptTarget.Latest,
       true,
@@ -182,6 +183,38 @@ describe('TypeScript source reader', () => {
         result,
       ),
     ).toBe(false)
+  })
+
+  it('detects namespace imported type and value references', () => {
+    const relatedSource = ts.createSourceFile(
+      '/workspace/related.ts',
+      '/** @riviere-role query-model */ export class Result {}',
+      ts.ScriptTarget.Latest,
+      true,
+    )
+    const useCaseSource = ts.createSourceFile(
+      '/workspace/use-case.ts',
+      `
+        import * as Related from './related'
+        /** @riviere-role query-model-use-case */
+        export class TypedQuery { execute(result: Related.Result): void {} }
+        /** @riviere-role query-model-use-case */
+        export class ValueQuery { execute(): unknown { return new Related.Result() } }
+      `,
+      ts.ScriptTarget.Latest,
+      true,
+    )
+    const result = requiredDeclaration(
+      findTypescriptAnnotatedDeclarations(relatedSource, 'use-cases'),
+      'Result',
+    )
+    const useCases = findTypescriptAnnotatedDeclarations(useCaseSource, 'use-cases')
+
+    expect(
+      ['TypedQuery', 'ValueQuery'].map((name) =>
+        typescriptDeclarationReferencesDeclaration(requiredDeclaration(useCases, name), result),
+      ),
+    ).toStrictEqual([true, true])
   })
 
   it('handles missing types, same-named external types and each parameter property modifier', () => {

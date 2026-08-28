@@ -281,15 +281,25 @@ function namespaceImportReferencesDeclaration(
   expectedDeclaration: TypescriptAnnotatedDeclaration,
   imports: ReadonlyMap<string, ImportedDeclaration>,
 ): boolean {
-  if (!ts.isQualifiedName(node) || !ts.isIdentifier(node.left) || !ts.isIdentifier(node.right)) {
-    return false
-  }
-  const imported = imports.get(node.left.text)
+  const reference = namespaceReference(node)
+  if (reference === undefined) return false
+  const imported = imports.get(reference.namespaceName)
   return (
     imported?.kind === 'namespace' &&
-    node.right.text === declarationExportName(expectedDeclaration) &&
+    reference.declarationName === declarationExportName(expectedDeclaration) &&
     moduleReferencesSource(sourceFile.fileName, imported.moduleSpecifier, expectedDeclaration)
   )
+}
+
+function namespaceReference(
+  node: ts.Node,
+): { readonly declarationName: string; readonly namespaceName: string } | undefined {
+  if (ts.isQualifiedName(node) && ts.isIdentifier(node.left)) {
+    return { declarationName: node.right.text, namespaceName: node.left.text }
+  }
+  if (!ts.isPropertyAccessExpression(node)) return undefined
+  if (!ts.isIdentifier(node.expression)) return undefined
+  return { declarationName: node.name.text, namespaceName: node.expression.text }
 }
 
 function importedDeclarations(sourceFile: ts.SourceFile): ReadonlyMap<string, ImportedDeclaration> {
