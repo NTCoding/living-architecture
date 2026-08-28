@@ -1,4 +1,4 @@
-import type { FinalizeGraphInput } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/finalize-graph-input'
+import type { FinalizeGraphInput } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/finalize-graph-input'
 
 /** @riviere-role command-input-factory-input */
 interface FinalizeGraphFactoryInput {

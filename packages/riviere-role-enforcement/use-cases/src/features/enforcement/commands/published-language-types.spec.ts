@@ -84,6 +84,17 @@ export type Link = {
   expect(result.exitCode).toBe(0)
 })
 
+it('allows a Readonly type alias containing data', () => {
+  const result = runWith(`/** @riviere-role data-structure */
+export type Link = Readonly<{
+  source: string
+  target: string
+}>
+`)
+
+  expect(result.exitCode).toBe(0)
+})
+
 it('rejects a method in a type-alias data structure', () => {
   const result = runWith(`/** @riviere-role data-structure */
 export type Link = {
@@ -100,6 +111,17 @@ it('rejects a function-valued field in a type-alias data structure', () => {
 export type Link = {
   resolve: () => string
 }
+`)
+
+  expect(result.exitCode).toBe(1)
+  expect(result.stdout).toContain("Role 'data-structure' does not allow methods")
+})
+
+it('rejects a function-valued field inside a Readonly data structure', () => {
+  const result = runWith(`/** @riviere-role data-structure */
+export type Link = Readonly<{
+  resolve: () => string
+}>
 `)
 
   expect(result.exitCode).toBe(1)

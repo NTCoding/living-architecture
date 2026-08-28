@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
-import type { FinalizeGraph } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/finalize-graph'
+import type { FinalizeGraph } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/finalize-graph'
 import { createFinalizeGraphInput } from './create-finalize-graph-input'
 import { writeFinalizedGraph } from './write-finalized-graph'
 

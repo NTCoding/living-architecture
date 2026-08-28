@@ -6,7 +6,6 @@ import { ConnectionDetectionError } from '../connection-detection-error'
 import { CallSite } from './call-graph-types'
 import { CallableReference } from './callable-reference'
 import { DetectedCall } from './detected-call'
-import { resolveCallTargets } from './resolve-call-targets'
 
 function component(name: string, file: string, line: number): EnrichedComponent {
   return EnrichedComponent.parse({
@@ -39,12 +38,11 @@ function detectedCall(receiverTypeName?: string, calledMethodName = 'run'): Dete
   })
 }
 
-describe('resolveCallTargets', () => {
+describe('DetectedCall.resolveTarget', () => {
   it('uses a default reason when the receiver type is absent', () => {
     const project = createProject()
 
-    const [result] = resolveCallTargets({
-      calls: [detectedCall()],
+    const result = detectedCall().resolveTarget({
       project,
       sourceFilePaths: [],
       componentIndex: ComponentIndex.parse([]),
@@ -61,8 +59,7 @@ describe('resolveCallTargets', () => {
     const target = component('Target', '/src/target.ts', 4)
     const project = createProject()
 
-    const [result] = resolveCallTargets({
-      calls: [detectedCall('Target')],
+    const result = detectedCall('Target').resolveTarget({
       project,
       sourceFilePaths: [],
       componentIndex: ComponentIndex.parse([target]),
@@ -88,8 +85,7 @@ describe('resolveCallTargets', () => {
     )
 
     expect(() =>
-      resolveCallTargets({
-        calls: [detectedCall('Gateway')],
+      detectedCall('Gateway').resolveTarget({
         project,
         sourceFilePaths: [sourceFile.getFilePath()],
         componentIndex: ComponentIndex.parse([]),
@@ -114,8 +110,7 @@ describe('resolveCallTargets', () => {
       concreteDeclaration.getStartLineNumber(),
     )
 
-    const [result] = resolveCallTargets({
-      calls: [detectedCall('Base')],
+    const result = detectedCall('Base').resolveTarget({
       project,
       sourceFilePaths: [sourceFile.getFilePath()],
       componentIndex: ComponentIndex.parse([concrete]),
@@ -138,8 +133,7 @@ describe('resolveCallTargets', () => {
       declaration.getStartLineNumber(),
     )
 
-    const [result] = resolveCallTargets({
-      calls: [detectedCall('MissingContract')],
+    const result = detectedCall('MissingContract').resolveTarget({
       project,
       sourceFilePaths: [sourceFile.getFilePath()],
       componentIndex: ComponentIndex.parse([concrete]),
@@ -162,8 +156,7 @@ describe('resolveCallTargets', () => {
       declaration.getStartLineNumber(),
     )
 
-    const [result] = resolveCallTargets({
-      calls: [detectedCall('MissingBase')],
+    const result = detectedCall('MissingBase').resolveTarget({
       project,
       sourceFilePaths: [sourceFile.getFilePath()],
       componentIndex: ComponentIndex.parse([concrete]),

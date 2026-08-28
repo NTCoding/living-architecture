@@ -53,6 +53,9 @@
     },
     {
       "path": "./tools/living-documentation"
+    },
+    {
+      "path": "./packages/riviere-builder/published-language"
     }
   ]
 }

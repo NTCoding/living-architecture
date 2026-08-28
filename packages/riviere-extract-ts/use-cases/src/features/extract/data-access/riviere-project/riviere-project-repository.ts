@@ -1,14 +1,15 @@
-import { dirname, posix, resolve } from 'node:path'
-import { parse as parseYaml } from 'yaml'
-import { globSync } from 'glob'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
 import {
   type DraftConfiguration,
   type DraftModule,
   parseExtractionConfig,
+  parseWorkflowDefinition,
   type ValidatedModuleInput,
   type ValidatedModule,
   ValidatedConfiguration,
   type ValidationError,
+  type WorkflowDefinition,
 } from '@living-architecture/riviere-extract-config-published-language'
 import {
   FileReadError,
@@ -21,12 +22,20 @@ import { GitError } from '../../../../infra/external-clients/git/git-errors'
 import { getRepositoryInfo } from '../../../../infra/external-clients/git/git-repository-info'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { ExtractionConfiguration } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-configuration'
-import { createConfiguredProject } from '../../../../infra/external-clients/ts-morph/create-configured-project'
-import { findModuleTsConfigDir } from '../../../../infra/external-clients/ts-morph/find-module-tsconfig-dir'
+import { createTypeScriptProjects } from '../../../../infra/external-clients/ts-morph/create-typescript-projects'
 import { ExtractionConfigError } from './riviere-config-error'
 import { ExtractionDataAccessError } from './riviere-project-error'
 import { DraftComponent } from '@living-architecture/riviere-extract-ts-domain-model/domain/component-extraction/draft-component'
+import { WorkflowStage } from '@living-architecture/riviere-extract-ts-domain-model/domain/workflow-stage'
 import { DraftComponentsLoadError } from './draft-components-load-error'
+import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
+import { globSourceFiles } from '../../../../infra/external-clients/glob/glob-source-files'
+import {
+  YamlDocumentError,
+  YamlDocumentReader,
+} from '../../../../infra/external-clients/yaml/yaml-document-reader'
+import { GraphCorruptedError } from './graph-corrupted-error'
+import { GraphNotFoundError } from './graph-not-found-error'
 
 class ExtractionConfigLoadError extends Error {}
 type ParsedConfigState = Readonly<{ configDir: string; configuration: ValidatedConfiguration }>
@@ -41,6 +50,7 @@ type LoadParameters = Readonly<{
   configPath: string
   useTsConfig: boolean
 }>
+type WorkflowLoadParameters = Readonly<{ projectRoot: string; workflowName: string }>
 
 function formatExtractionConfigErrors(errors: readonly ValidationError[]): string {
   if (errors.length === 0) return 'validation failed without specific errors'
@@ -49,8 +59,14 @@ function formatExtractionConfigErrors(errors: readonly ValidationError[]): strin
 
 /** @riviere-role aggregate-repository */
 export class RiviereProjectRepository {
-  load(params: LoadParameters): RiviereProject {
+  load(params: LoadParameters | string): RiviereProject {
+    if (typeof params === 'string') return this.loadGraph(params)
     return this.loadProject(params, () => [])
+  }
+
+  save(graphFileLocation: string, project: RiviereProject): void {
+    mkdirSync(dirname(graphFileLocation), { recursive: true })
+    writeFileSync(graphFileLocation, project.serialize(), 'utf-8')
   }
 
   loadForEnrichment(
@@ -59,23 +75,123 @@ export class RiviereProjectRepository {
     return this.loadProject(params, () => this.loadDraftComponents(params.draftComponentsPath))
   }
 
+  loadWorkflow(params: WorkflowLoadParameters): RiviereProject {
+    return this.translateDataAccessErrors(() => {
+      const definition = this.loadWorkflowDefinition(params)
+      const stages = definition.stages.map((stage) => {
+        if (stage.kind === 'validate') return WorkflowStage.fromValidation(stage.name)
+        const configuration = this.loadExtractionConfiguration({
+          projectRoot: params.projectRoot,
+          configPath: stage.configPath,
+          useTsConfig: stage.useTsConfig,
+        })
+        return stage.kind === 'extract'
+          ? WorkflowStage.fromExtraction(stage.name, configuration)
+          : WorkflowStage.fromLink(stage.name, configuration)
+      })
+      const graphPath = resolve(params.projectRoot, definition.graph.outputPath)
+      const project = this.loadWorkflowGraph(graphPath, {
+        ...(definition.graph.name === undefined ? {} : { name: definition.graph.name }),
+        ...(definition.graph.description === undefined
+          ? {}
+          : { description: definition.graph.description }),
+        sources: definition.graph.sources,
+        domains: definition.graph.domains,
+      })
+      const workflow = project.addWorkflow({
+        name: params.workflowName,
+        outputPath: graphPath,
+        runLogDirectory: resolve(params.projectRoot, definition.runLog.directory),
+        stages,
+      })
+      if (!workflow.success)
+        throw new ExtractionConfigError('VALIDATION_ERROR', workflow.error.message)
+      return project
+    })
+  }
+
   private loadProject(
     params: LoadParameters,
     loadDraftComponents: () => readonly DraftComponent[],
   ): RiviereProject {
     return this.translateDataAccessErrors(() => {
-      const configPath = resolve(params.projectRoot, params.configPath)
-      const parsedConfigState = this.loadParsedConfigState(configPath)
-      const sourceFilesByModule = this.resolveSourceFilePaths(parsedConfigState)
-      return this.createRiviereProject(
-        configPath,
-        parsedConfigState,
-        sourceFilesByModule,
-        params.useTsConfig,
-        params.projectRoot,
-        loadDraftComponents,
-      )
+      const configuration = this.loadExtractionConfiguration(params)
+      const projectResult = RiviereProject.start({
+        configuration,
+        draftComponents: loadDraftComponents(),
+      })
+      if (!projectResult.success)
+        throw new ExtractionConfigError('VALIDATION_ERROR', projectResult.error)
+      return projectResult.data
     })
+  }
+
+  private loadExtractionConfiguration(params: LoadParameters): ExtractionConfiguration {
+    const configPath = resolve(params.projectRoot, params.configPath)
+    const parsedConfigState = this.loadParsedConfigState(configPath)
+    const sourceFilesByModule = this.resolveSourceFilePaths(parsedConfigState)
+    const moduleSources = createTypeScriptProjects(
+      parsedConfigState.configDir,
+      sourceFilesByModule,
+      params.useTsConfig,
+    )
+    return ExtractionConfiguration.parse({
+      name: configPath,
+      configPath,
+      useTsConfig: params.useTsConfig,
+      repositoryName: getRepositoryInfo('git', params.projectRoot).name,
+      resolvedConfig: parsedConfigState.configuration,
+      moduleContexts: [...moduleSources.entries()].map(([module, source]) => ({
+        module,
+        files: source.files,
+        project: source.project,
+      })),
+    })
+  }
+
+  private loadWorkflowDefinition(params: WorkflowLoadParameters): WorkflowDefinition {
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(params.workflowName)) {
+      throw new ExtractionConfigError('VALIDATION_ERROR', 'Invalid workflow name')
+    }
+    const path = resolve(params.projectRoot, '.riviere', 'workflows', `${params.workflowName}.yaml`)
+    if (!fileExists(path)) {
+      throw new ExtractionConfigError('CONFIG_NOT_FOUND', `Workflow file not found: ${path}`)
+    }
+    const definition = parseWorkflowDefinition(this.parseConfigFile(readTextFile(path)))
+    if (!definition.success) {
+      throw new ExtractionConfigError(
+        'VALIDATION_ERROR',
+        `Invalid workflow: ${definition.issues.join('\n')}`,
+      )
+    }
+    return definition.definition
+  }
+
+  private loadWorkflowGraph(
+    graphPath: string,
+    graphDefinition: Omit<WorkflowDefinition['graph'], 'outputPath'>,
+  ): RiviereProject {
+    if (!fileExists(graphPath)) return RiviereProject.start({ graphDefinition }).data
+    const parsed = parseRiviereGraph(readJsonFile(graphPath, 'Rivière graph'))
+    if (!parsed.success)
+      throw new ExtractionConfigError(
+        'VALIDATION_ERROR',
+        `Invalid existing graph: ${parsed.issues.join('\n')}`,
+      )
+    return RiviereProject.rehydrate(parsed.graph)
+  }
+
+  private loadGraph(graphFileLocation: string): RiviereProject {
+    if (!fileExists(graphFileLocation)) throw new GraphNotFoundError(graphFileLocation)
+    try {
+      const result = parseRiviereGraph(readJsonFile(graphFileLocation, 'Rivière graph'))
+      if (!result.success)
+        throw new GraphCorruptedError(graphFileLocation, { cause: result.issues })
+      return RiviereProject.rehydrate(result.graph)
+    } catch (error) {
+      if (!(error instanceof FileReadError)) throw error
+      throw new GraphCorruptedError(graphFileLocation, { cause: error })
+    }
   }
 
   private loadDraftComponents(path: string): readonly DraftComponent[] {
@@ -134,8 +250,11 @@ export class RiviereProjectRepository {
 
   private parseConfigFile(content: string): unknown {
     try {
-      return parseYaml(content)
+      return YamlDocumentReader.parse(content).value()
     } catch (error) {
+      if (error instanceof YamlDocumentError) {
+        throw new ExtractionConfigError('VALIDATION_ERROR', `Invalid config file: ${error.message}`)
+      }
       throw new ExtractionConfigError('VALIDATION_ERROR', `Invalid config file: ${String(error)}`)
     }
   }
@@ -168,7 +287,7 @@ export class RiviereProjectRepository {
       )
 
     const content = readTextFile(refPath)
-    const parsed: unknown = parseYaml(content)
+    const parsed = YamlDocumentReader.parse(content).value()
     return parsed
   }
 
@@ -201,7 +320,7 @@ export class RiviereProjectRepository {
         `Cannot resolve extends reference '${source}'. File not found: ${filePath}`,
       )
 
-    const parsed: unknown = parseYaml(readTextFile(filePath))
+    const parsed = YamlDocumentReader.parse(readTextFile(filePath)).value()
     if (this.hasModulesArray(parsed)) {
       return this.resolveFirstModuleFromConfig(parsed, source, dirname(filePath))
     }
@@ -274,57 +393,18 @@ export class RiviereProjectRepository {
     }
   }
 
-  private createRiviereProject(
-    configPath: string,
-    parsedConfigState: ParsedConfigState,
-    sourceFilesByModule: ReadonlyMap<ValidatedModule, string[]>,
-    useTsConfig: boolean,
-    projectRoot: string,
-    loadDraftComponents: () => readonly DraftComponent[],
-  ): RiviereProject {
-    const moduleSources = this.createModuleSources(
-      parsedConfigState.configDir,
-      sourceFilesByModule,
-      useTsConfig,
-    )
-    const repositoryName = getRepositoryInfo('git', projectRoot).name
-    const configuration = ExtractionConfiguration.parse({
-      name: configPath,
-      configPath,
-      useTsConfig,
-      repositoryName,
-      resolvedConfig: parsedConfigState.configuration,
-      moduleContexts: [...moduleSources.entries()].map(([module, source]) => ({
-        module,
-        files: source.files,
-        project: source.project,
-      })),
-    })
-    const projectResult = RiviereProject.parse({
-      configuration,
-      draftComponents: loadDraftComponents(),
-    })
-    if (!projectResult.success)
-      throw new ExtractionConfigError('VALIDATION_ERROR', projectResult.error)
-    return projectResult.data
-  }
-
   private resolveSourceFilePaths(
     parsedConfigState: ParsedConfigState,
   ): ReadonlyMap<ValidatedModule, string[]> {
-    const sourceFilesByModule = new Map(
-      parsedConfigState.configuration.modules.map((module) => [
-        module,
-        globSync(posix.join(module.path, module.glob), { cwd: parsedConfigState.configDir }).map(
-          (filePath) => resolve(parsedConfigState.configDir, filePath),
-        ),
-      ]),
+    const sourceFilesByModule = globSourceFiles(
+      parsedConfigState.configuration.modules,
+      parsedConfigState.configDir,
     )
     const sourceFilePaths = [...sourceFilesByModule.values()].flat()
 
     if (sourceFilePaths.length === 0) {
       const patterns = parsedConfigState.configuration.modules
-        .map((module) => posix.join(module.path, module.glob))
+        .map((module) => `${module.path}/${module.glob}`)
         .join(', ')
       throw new ExtractionConfigError(
         'VALIDATION_ERROR',
@@ -333,25 +413,6 @@ export class RiviereProjectRepository {
     }
 
     return sourceFilesByModule
-  }
-
-  private createModuleSources(
-    configDir: string,
-    sourceFilesByModule: ReadonlyMap<ValidatedModule, string[]>,
-    useTsConfig: boolean,
-  ) {
-    const sources = new Map<
-      ValidatedModule,
-      { files: string[]; project: ReturnType<typeof createConfiguredProject> }
-    >()
-    for (const [module, moduleFiles] of sourceFilesByModule) {
-      const moduleConfigDir = findModuleTsConfigDir(configDir, module.path)
-      const project = createConfiguredProject(moduleConfigDir, !useTsConfig)
-      project.addSourceFilesAtPaths(moduleFiles)
-
-      sources.set(module, { files: moduleFiles, project })
-    }
-    return sources
   }
 
   private hasModulesArray(value: unknown): value is { modules: unknown[] } {

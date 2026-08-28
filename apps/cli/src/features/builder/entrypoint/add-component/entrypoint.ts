@@ -4,8 +4,8 @@ import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentati
 import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
 import { getAddComponentHints } from '../../../../infra/cli/presentation/add-component-hints'
 import { parseAddComponentInput } from './parse-add-component-input'
-import type { AddComponent } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-component'
-import type { AddComponentErrorCode } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-component-result'
+import type { AddComponent } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/add-component'
+import type { AddComponentErrorCode } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/add-component-result'
 
 interface CliOptions {
   type: string

@@ -3,6 +3,8 @@
 ## Purpose
 A typed error class representing a domain-specific failure — a named outcome that domain logic can produce and callers can handle explicitly.
 
+Domain errors may be part of a published language when consumers need to handle failures from that public domain interface.
+
 ## Behavioral Contract
 1. Extends `Error` (or a base domain error class)
 2. Carries only information relevant to the domain failure — no infrastructure concerns

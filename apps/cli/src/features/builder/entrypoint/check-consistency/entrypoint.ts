@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
 import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
-import type { CheckConsistency } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/check-consistency'
+import type { CheckConsistency } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/check-consistency'
 
 interface CheckConsistencyOptions {
   graph?: string
@@ -36,7 +36,9 @@ Examples:
     .option('--graph <path>', dependencies.getDefaultGraphPathDescription())
     .option('--json', 'Output result as JSON')
     .action(async (options: CheckConsistencyOptions) => {
-      const result = checkConsistency.execute({ graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation })
+      const result = checkConsistency.execute({
+        graphFileLocation: options.graph ?? dependencies.defaultGraphFileLocation,
+      })
       if (!result.result.success) {
         console.log(
           JSON.stringify(

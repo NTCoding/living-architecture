@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { getDefaultGraphPathDescription } from '../../../../infra/cli/presentation/graph-path-option'
 import { formatError, formatSuccess } from '../../../../infra/cli/presentation/output'
 import { CliErrorCode } from '../../../../infra/cli/presentation/error-codes'
-import type { DefineRelationshipType } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/define-relationship-type'
+import type { DefineRelationshipType } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/define-relationship-type'
 
 interface DefineRelationshipTypeOptions {
   name: string

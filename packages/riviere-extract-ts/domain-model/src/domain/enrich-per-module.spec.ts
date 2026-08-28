@@ -142,7 +142,7 @@ function createRiviereProject(
     resolvedConfig: configurationResult.data,
     moduleContexts: stageContexts,
   })
-  const projectResult = RiviereProject.parse({ configuration, draftComponents })
+  const projectResult = RiviereProject.start({ configuration, draftComponents })
   assert(projectResult.success)
   return projectResult.data
 }

@@ -24,6 +24,8 @@ import { evaluateFromPropertyRule } from './value-extraction/evaluate-property-e
 import { evaluateFromGenericArgRule } from './value-extraction/evaluate-extraction-rule-generic'
 import { evaluateFromParameterTypeRule } from './value-extraction/evaluate-extraction-rule-method'
 import { ExtractionResult } from './value-extraction/extraction-result'
+import type { ExtractionConfiguration } from './extraction-configuration'
+import { MissingModuleSourceError } from './extraction-errors'
 
 type RiviereModuleInput = {
   readonly configuration: ValidatedModule
@@ -45,8 +47,7 @@ type ExtractedMetadata = {
 
 type ComponentMetadataExtractionRule = Exclude<
   ExtractionRule,
-  | { readonly kind: 'fromMethodSignature' }
-  | { readonly kind: 'fromConstructorParams' }
+  { readonly kind: 'fromMethodSignature' } | { readonly kind: 'fromConstructorParams' }
 >
 
 /** @riviere-role aggregate-entity */
@@ -59,16 +60,43 @@ export class RiviereModule {
   ) {}
 
   static build(input: RiviereModuleInput): RiviereModule {
-    const module = new RiviereModule(
-      input.configuration,
-      input.project,
-      input.sourceFiles,
-      [],
-    )
+    const module = new RiviereModule(input.configuration, input.project, input.sourceFiles, [])
     module.draftComponentsState = input.candidateDraftComponents.filter((component) =>
       module.owns(component),
     )
     return module
+  }
+
+  static fromConfiguration(
+    configuration: ExtractionConfiguration,
+    candidateDraftComponents: readonly DraftComponent[],
+  ): readonly RiviereModule[] {
+    const contexts = new Map(
+      configuration.moduleContexts.map((context) => [context.module, context] as const),
+    )
+    return configuration.resolvedConfig.modules.map((module) => {
+      const context = contexts.get(module)
+      if (context === undefined) throw new MissingModuleSourceError(module.name)
+      return RiviereModule.build({
+        configuration: module,
+        project: context.project,
+        sourceFiles: context.files,
+        candidateDraftComponents,
+      })
+    })
+  }
+
+  static configurationSourceErrors(configuration: ExtractionConfiguration): readonly string[] {
+    const configuredModules = new Set(configuration.resolvedConfig.modules)
+    const contextModules = new Set(configuration.moduleContexts.map((context) => context.module))
+    return [
+      ...configuration.resolvedConfig.modules
+        .filter((module) => !contextModules.has(module))
+        .map((module) => `Missing source for module '${module.name}'`),
+      ...configuration.moduleContexts
+        .filter((context) => !configuredModules.has(context.module))
+        .map((context) => `Source supplied for unknown module '${context.module.name}'`),
+    ]
   }
 
   name(): string {

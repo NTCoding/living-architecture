@@ -40,6 +40,7 @@
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
+    "@living-architecture/riviere-builder-published-language": "workspace:*",
     "@living-architecture/riviere-extract-config-published-language": "workspace:*",
     "@living-architecture/riviere-extract-ts-domain-model": "workspace:*",
     "@living-architecture/riviere-schema-published-language": "workspace:*",

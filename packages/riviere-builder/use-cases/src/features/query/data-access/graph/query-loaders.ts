@@ -7,6 +7,8 @@ import { DomainList } from '../../queries/list-domains-result'
 import { EntryPointList } from '../../queries/list-entry-points-result'
 import { ComponentSearch } from '../../queries/search-components-result'
 import { FoundFlowTrace, type FlowTrace } from '../../queries/trace-flow-result'
+import { ComponentChecklistResult } from '../../queries/component-checklist-result'
+import { ComponentSummaryResult } from '../../queries/component-summary-result'
 import { GraphCorruptedError } from './graph-corrupted-error'
 import { GraphNotFoundError } from './graph-not-found-error'
 
@@ -55,6 +57,25 @@ export class ComponentSearchLoader {
 export class FlowTraceLoader {
   load(graphPathOption: string | undefined, componentIdInput: string): FlowTrace {
     return loadQueryModel(graphPathOption, (graph) => FoundFlowTrace.parse(graph, componentIdInput))
+  }
+}
+
+/** @riviere-role query-model-loader */
+export class ComponentChecklistLoader {
+  load(
+    graphPathOption: string | undefined,
+    type: ComponentType | undefined,
+  ): ComponentChecklistResult {
+    return loadQueryModel(graphPathOption, (graph) =>
+      ComponentChecklistResult.fromGraph(graph, type),
+    )
+  }
+}
+
+/** @riviere-role query-model-loader */
+export class ComponentSummaryLoader {
+  load(graphPathOption: string | undefined): ComponentSummaryResult {
+    return loadQueryModel(graphPathOption, ComponentSummaryResult.fromGraph)
   }
 }
 

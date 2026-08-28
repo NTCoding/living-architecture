@@ -2,7 +2,7 @@ import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { ConnectionDetectionError } from '../connection-detection-error'
 import { CallableReference } from './callable-reference'
-import { detectCallsInCallable } from './detect-calls-in-callable'
+import { DetectedCall } from './detected-call'
 
 function createProject(content: string) {
   const project = new Project({ useInMemoryFileSystem: true })
@@ -38,7 +38,7 @@ function methodReference(
   })
 }
 
-describe('detectCallsInCallable', () => {
+describe('DetectedCall.fromCallable', () => {
   it('returns no calls when the callable has no declaration', () => {
     const { project } = createProject('function present(): void {}')
 
@@ -67,10 +67,10 @@ describe('detectCallsInCallable', () => {
       callableName: 'synthetic',
     })
 
-    expect(detectCallsInCallable(project, missingFile, false)).toStrictEqual([])
-    expect(detectCallsInCallable(project, missingFunction, false)).toStrictEqual([])
-    expect(detectCallsInCallable(project, missingMethod, false)).toStrictEqual([])
-    expect(detectCallsInCallable(project, synthetic, false)).toStrictEqual([])
+    expect(DetectedCall.fromCallable(missingFile, project, false)).toStrictEqual([])
+    expect(DetectedCall.fromCallable(missingFunction, project, false)).toStrictEqual([])
+    expect(DetectedCall.fromCallable(missingMethod, project, false)).toStrictEqual([])
+    expect(DetectedCall.fromCallable(synthetic, project, false)).toStrictEqual([])
   })
 
   it('ignores calls without a receiver', () => {
@@ -79,9 +79,9 @@ describe('detectCallsInCallable', () => {
       function run(): void { helper() }
     `)
 
-    expect(detectCallsInCallable(project, functionReference(project, 'run'), false)).toStrictEqual(
-      [],
-    )
+    expect(
+      DetectedCall.fromCallable(functionReference(project, 'run'), project, false),
+    ).toStrictEqual([])
   })
 
   it('resolves chained and promised return types', () => {
@@ -97,7 +97,7 @@ describe('detectCallsInCallable', () => {
       }
     `)
 
-    const calls = detectCallsInCallable(project, functionReference(project, 'execute'), false)
+    const calls = DetectedCall.fromCallable(functionReference(project, 'execute'), project, false)
 
     expect(calls).toStrictEqual(
       expect.arrayContaining([
@@ -125,7 +125,7 @@ describe('detectCallsInCallable', () => {
       }
     `)
 
-    const calls = detectCallsInCallable(project, functionReference(project, 'execute'), false)
+    const calls = DetectedCall.fromCallable(functionReference(project, 'execute'), project, false)
 
     expect(calls.filter((call) => call.unresolvedReason !== undefined)).toHaveLength(6)
   })
@@ -148,7 +148,7 @@ describe('detectCallsInCallable', () => {
       }
     `)
 
-    const calls = detectCallsInCallable(project, functionReference(project, 'execute'), false)
+    const calls = DetectedCall.fromCallable(functionReference(project, 'execute'), project, false)
 
     expect(calls.filter((call) => call.calledMethodName === 'run')).toHaveLength(4)
   })
@@ -160,7 +160,7 @@ describe('detectCallsInCallable', () => {
       function execute(factory: Factory): void { factory.create().run() }
     `)
 
-    const calls = detectCallsInCallable(project, functionReference(project, 'execute'), false)
+    const calls = DetectedCall.fromCallable(functionReference(project, 'execute'), project, false)
 
     expect(calls).toStrictEqual(
       expect.arrayContaining([
@@ -177,7 +177,7 @@ describe('detectCallsInCallable', () => {
     `)
 
     expect(() =>
-      detectCallsInCallable(project, methodReference(project, 'Caller', 'execute'), true),
+      DetectedCall.fromCallable(methodReference(project, 'Caller', 'execute'), project, true),
     ).toThrow(ConnectionDetectionError)
   })
 })

@@ -20,28 +20,27 @@ import {
 import { formatQueryGraphLoadFailure } from '../infra/cli/presentation/query-graph-load-failure-output'
 import { toComponentOutput } from '../infra/cli/presentation/component-output'
 import { createRequire } from 'module'
-import { AddComponent } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-component'
-import { AddDomain } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-domain'
-import { AddSource } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/add-source'
-import { CheckConsistency } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/check-consistency'
-import { ComponentChecklist } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/component-checklist'
-import { ComponentSummary } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/component-summary'
-import { DefineCustomType } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/define-custom-type'
-import { DefineRelationshipType } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/define-relationship-type'
-import { EnrichComponent } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/enrich-component'
-import { FinalizeGraph } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/finalize-graph'
-import { InitGraph } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/init-graph'
-import { LinkComponents } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/link-components'
-import { LinkExternal } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/link-external'
-import { LinkHttp } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/link-http'
-import { ValidateGraph } from '@living-architecture/riviere-builder-use-cases/features/builder/commands/validate-graph'
-import { RiviereBuilderRepository } from '@living-architecture/riviere-builder-use-cases/features/builder/data-access/riviere-builder/riviere-builder-repository'
+import { AddComponent } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/add-component'
+import { AddDomain } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/add-domain'
+import { AddSource } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/add-source'
+import { CheckConsistency } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/check-consistency'
+import { ComponentChecklist } from '@living-architecture/riviere-builder-use-cases/features/query/queries/component-checklist'
+import { ComponentSummary } from '@living-architecture/riviere-builder-use-cases/features/query/queries/component-summary'
+import { DefineCustomType } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/define-custom-type'
+import { DefineRelationshipType } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/define-relationship-type'
+import { EnrichComponent } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-component'
+import { FinalizeGraph } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/finalize-graph'
+import { InitGraph } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/init-graph'
+import { LinkComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/link-components'
+import { LinkExternal } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/link-external'
+import { LinkHttp } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/link-http'
+import { ValidateGraph } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/validate-graph'
 import { createAddComponentCommand } from '../features/builder/entrypoint/add-component/entrypoint'
 import { createAddDomainCommand } from '../features/builder/entrypoint/add-domain/entrypoint'
 import { createAddSourceCommand } from '../features/builder/entrypoint/add-source/entrypoint'
 import { createCheckConsistencyCommand } from '../features/builder/entrypoint/check-consistency/entrypoint'
-import { createComponentChecklistCommand } from '../features/builder/entrypoint/component-checklist/entrypoint'
-import { createComponentSummaryCommand } from '../features/builder/entrypoint/component-summary/entrypoint'
+import { createComponentChecklistCommand } from '../features/query/entrypoint/component-checklist/entrypoint'
+import { createComponentSummaryCommand } from '../features/query/entrypoint/component-summary/entrypoint'
 import { createDefineCustomTypeCommand } from '../features/builder/entrypoint/define-custom-type/entrypoint'
 import { createDefineRelationshipTypeCommand } from '../features/builder/entrypoint/define-relationship-type/entrypoint'
 import { createEnrichCommand } from '../features/builder/entrypoint/enrich/entrypoint'
@@ -71,7 +70,9 @@ import { SearchComponents } from '@living-architecture/riviere-builder-use-cases
 import { TraceFlow } from '@living-architecture/riviere-builder-use-cases/features/query/queries/trace-flow'
 import {
   ComponentListLoader,
+  ComponentChecklistLoader,
   ComponentSearchLoader,
+  ComponentSummaryLoader,
   DomainListLoader,
   EntryPointListLoader,
   FlowTraceLoader,
@@ -128,9 +129,8 @@ const packageJson = loadPackageJson()
  * @returns Configured Rivière CLI program
  */
 export function createProgram(): Command {
-  const builderRepository = new RiviereBuilderRepository()
-  const defaultGraphFileLocation = join(process.cwd(), '.riviere', 'graph.json')
   const riviereProjectRepository = new RiviereProjectRepository()
+  const defaultGraphFileLocation = join(process.cwd(), '.riviere', 'graph.json')
   const program = new Command()
 
   program.name('riviere').version(packageJson.version)
@@ -139,7 +139,7 @@ export function createProgram(): Command {
 
   builderCmd.addCommand(
     createAddComponentCommand({
-      addComponent: new AddComponent(builderRepository),
+      addComponent: new AddComponent(riviereProjectRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parseAddComponentInput,
@@ -150,7 +150,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createAddDomainCommand({
-      addDomain: new AddDomain(builderRepository),
+      addDomain: new AddDomain(riviereProjectRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -159,7 +159,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createAddSourceCommand({
-      addSource: new AddSource(builderRepository),
+      addSource: new AddSource(riviereProjectRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -168,7 +168,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createInitCommand({
-      initGraph: new InitGraph(builderRepository),
+      initGraph: new InitGraph(riviereProjectRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -177,7 +177,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createLinkCommand({
-      linkComponents: new LinkComponents(builderRepository),
+      linkComponents: new LinkComponents(riviereProjectRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parseLinkSourceLocation,
@@ -187,7 +187,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createLinkExternalCommand({
-      linkExternal: new LinkExternal(builderRepository),
+      linkExternal: new LinkExternal(riviereProjectRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -196,7 +196,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createLinkHttpCommand({
-      linkHttp: new LinkHttp(builderRepository),
+      linkHttp: new LinkHttp(riviereProjectRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -205,7 +205,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createValidateCommand({
-      validateGraph: new ValidateGraph(builderRepository),
+      validateGraph: new ValidateGraph(riviereProjectRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -216,7 +216,7 @@ export function createProgram(): Command {
     createFinalizeCommand({
       createFinalizeGraphInput,
       defaultGraphFileLocation,
-      finalizeGraph: new FinalizeGraph(builderRepository),
+      finalizeGraph: new FinalizeGraph(riviereProjectRepository),
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -225,7 +225,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createEnrichCommand({
-      enrichComponent: new EnrichComponent(builderRepository),
+      enrichComponent: new EnrichComponent(riviereProjectRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parseStateChanges,
@@ -236,7 +236,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createComponentSummaryCommand({
-      componentSummary: new ComponentSummary(builderRepository),
+      componentSummary: new ComponentSummary(new ComponentSummaryLoader()),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -245,7 +245,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createComponentChecklistCommand({
-      componentChecklist: new ComponentChecklist(builderRepository),
+      componentChecklist: new ComponentChecklist(new ComponentChecklistLoader()),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -254,7 +254,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createCheckConsistencyCommand({
-      checkConsistency: new CheckConsistency(builderRepository),
+      checkConsistency: new CheckConsistency(riviereProjectRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -263,7 +263,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createDefineCustomTypeCommand({
-      defineCustomType: new DefineCustomType(builderRepository),
+      defineCustomType: new DefineCustomType(riviereProjectRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parsePropertySpecs,
@@ -273,7 +273,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createDefineRelationshipTypeCommand({
-      defineRelationshipType: new DefineRelationshipType(builderRepository),
+      defineRelationshipType: new DefineRelationshipType(riviereProjectRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,

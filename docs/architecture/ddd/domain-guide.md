@@ -26,10 +26,10 @@ For shared domain language, use the [domain glossary](../domain-terminology/cont
 | --- | --- | --- | --- | ---: | ---: | ---: |
 | [`dev-workflow-v2`](#dev-workflow-v2) | Models the maintainer delivery workflow, including its states, allowed transitions, recorded events, and pull request decisions. | domain model: `@living-architecture/dev-workflow-v2-domain-model` | `MaintainerWorkflow` | 9 | 0 | 9 |
 | [`living-documentation`](#living-documentation) | Models source architecture, extracted architecture, and architecture differences for living documentation. | domain model: `@living-architecture/living-documentation-domain-model` | _None declared_ | 0 | 2 | 2 |
-| [`riviere-builder`](#riviere-builder) | Models the construction, enrichment, validation, querying, and serialisation of Rivière architecture graphs. | domain model: `@living-architecture/riviere-builder-domain-model` | `RiviereBuilder` | 15 | 6 | 21 |
+| [`riviere-builder`](#riviere-builder) | Models the construction, enrichment, validation, querying, and serialisation of Rivière architecture graphs. | domain model: `@living-architecture/riviere-builder-domain-model`<br>published language: `@living-architecture/riviere-builder-published-language` | _None declared_ | 0 | 8 | 8 |
 | [`riviere-extract-config`](#riviere-extract-config) | Defines the public configuration language used to describe how Rivière components and connections are extracted from source code. | published language: `@living-architecture/riviere-extract-config-published-language` | _None declared_ | 0 | 0 | 0 |
 | [`riviere-extract-conventions`](#riviere-extract-conventions) | Defines the public TypeScript annotations used to identify Rivière architecture components and extraction behaviour in source code. | published language: `@living-architecture/riviere-extract-conventions-published-language` | _None declared_ | 0 | 0 | 0 |
-| [`riviere-extract-ts`](#riviere-extract-ts) | Models the extraction of Rivière architecture components and connections from TypeScript projects according to an extraction configuration. | domain model: `@living-architecture/riviere-extract-ts-domain-model` | `RiviereProject` | 2 | 0 | 2 |
+| [`riviere-extract-ts`](#riviere-extract-ts) | Models the extraction of Rivière architecture components and connections from TypeScript projects according to an extraction configuration. | domain model: `@living-architecture/riviere-extract-ts-domain-model` | `RiviereProject` | 16 | 0 | 15 |
 | [`riviere-role-enforcement`](#riviere-role-enforcement) | Models validation of source code against configured architectural roles, locations, dependencies, and package requirements. | domain model: `@living-architecture/riviere-role-enforcement-domain-model` | `RoleEnforcementProject` | 1 | 0 | 1 |
 | [`riviere-schema`](#riviere-schema) | Defines the public Rivière architecture graph language, including components, connections, identifiers, custom properties, and validation rules. | published language: `@living-architecture/riviere-schema-published-language` | _None declared_ | 0 | 0 | 0 |
 
@@ -139,87 +139,22 @@ _None._
 Models the construction, enrichment, validation, querying, and serialisation of Rivière architecture graphs.
 
 Domain model package: `@living-architecture/riviere-builder-domain-model`
+Published language package: `@living-architecture/riviere-builder-published-language`
 
 #### Aggregates
 
-- `RiviereBuilder`
-  - `resume`
-  - `new`
-  - `addSource`
-  - `addDomain`
-  - `addUI`
-  - `upsertUI`
-  - `addApi`
-  - `upsertApi`
-  - `addUseCase`
-  - `upsertUseCase`
-  - `addDomainOp`
-  - `upsertDomainOp`
-  - `addEvent`
-  - `upsertEvent`
-  - `addEventHandler`
-  - `upsertEventHandler`
-  - `defineCustomType`
-  - `defineRelationshipType`
-  - `addCustom`
-  - `upsertCustom`
-  - `enrichComponent`
-  - `nearMatches`
-  - `link`
-  - `linkExternal`
-  - `warnings`
-  - `stats`
-  - `validate`
-  - `orphans`
-  - `serialize`
-  - `build`
+_No aggregates are currently declared._
 
 #### Supported use cases
 
 ##### Commands
 
-- `AddComponent`
-  - Invokes aggregate operation `RiviereBuilder.addUI`
-  - Invokes aggregate operation `RiviereBuilder.addApi`
-  - Invokes aggregate operation `RiviereBuilder.addUseCase`
-  - Invokes aggregate operation `RiviereBuilder.addDomainOp`
-  - Invokes aggregate operation `RiviereBuilder.addEvent`
-  - Invokes aggregate operation `RiviereBuilder.addEventHandler`
-  - Invokes aggregate operation `RiviereBuilder.addCustom`
-- `AddDomain`
-  - Invokes aggregate operation `RiviereBuilder.addDomain`
-- `AddSource`
-  - Invokes aggregate operation `RiviereBuilder.addSource`
-- `CheckConsistency`
-  - Invokes aggregate operation `RiviereBuilder.warnings`
-- `ComponentChecklist`
-  - Invokes aggregate operation `RiviereBuilder.build`
-- `ComponentSummary`
-  - Invokes aggregate operation `RiviereBuilder.stats`
-- `DefineCustomType`
-  - Invokes aggregate operation `RiviereBuilder.defineCustomType`
-- `DefineRelationshipType`
-  - Invokes aggregate operation `RiviereBuilder.defineRelationshipType`
-- `EnrichComponent`
-  - Invokes aggregate operation `RiviereBuilder.enrichComponent`
-- `FinalizeGraph`
-  - Invokes aggregate operation `RiviereBuilder.validate`
-  - Invokes aggregate operation `RiviereBuilder.build`
-- `InitGraph`
-  - Invokes aggregate operation `RiviereBuilder.new`
-- `LinkComponents`
-  - Invokes aggregate operation `RiviereBuilder.link`
-- `LinkExternal`
-  - Invokes aggregate operation `RiviereBuilder.linkExternal`
-- `LinkHttp`
-  - Invokes aggregate operation `RiviereBuilder.build`
-  - Invokes aggregate operation `RiviereBuilder.link`
-- `ValidateGraph`
-  - Invokes aggregate operation `RiviereBuilder.validate`
-  - Invokes aggregate operation `RiviereBuilder.warnings`
+_None._
 
 ##### Queries
 
+- `ComponentChecklist`
+- `ComponentSummary`
 - `DetectOrphans`
 - `ListComponents`
 - `ListDomains`
@@ -229,27 +164,14 @@ Domain model package: `@living-architecture/riviere-builder-domain-model`
 
 #### CLI use cases
 
-- `AddComponent`
-- `AddDomain`
-- `AddSource`
-- `CheckConsistency`
 - `ComponentChecklist`
 - `ComponentSummary`
-- `DefineCustomType`
-- `DefineRelationshipType`
 - `DetectOrphans`
-- `EnrichComponent`
-- `FinalizeGraph`
-- `InitGraph`
-- `LinkComponents`
-- `LinkExternal`
-- `LinkHttp`
 - `ListComponents`
 - `ListDomains`
 - `ListEntryPoints`
 - `SearchComponents`
 - `TraceFlow`
-- `ValidateGraph`
 
 ### `riviere-extract-config`
 
@@ -308,7 +230,22 @@ Domain model package: `@living-architecture/riviere-extract-ts-domain-model`
 #### Aggregates
 
 - `RiviereProject`
-  - `parse`
+  - `start`
+  - `rehydrate`
+  - `addWorkflow`
+  - `addSource`
+  - `addDomain`
+  - `addComponent`
+  - `defineCustomType`
+  - `defineRelationshipType`
+  - `enrichComponent`
+  - `link`
+  - `linkExternal`
+  - `warnings`
+  - `validate`
+  - `build`
+  - `serialize`
+  - `rebuildGraph`
   - `extractDraftComponents`
   - `enrichDraftComponents`
   - `detectConnections`
@@ -317,11 +254,42 @@ Domain model package: `@living-architecture/riviere-extract-ts-domain-model`
 
 ##### Commands
 
+- `AddComponent`
+  - Invokes aggregate operation `RiviereProject.addComponent`
+- `AddDomain`
+  - Invokes aggregate operation `RiviereProject.addDomain`
+- `AddSource`
+  - Invokes aggregate operation `RiviereProject.addSource`
+- `CheckConsistency`
+  - Invokes aggregate operation `RiviereProject.warnings`
+- `DefineCustomType`
+  - Invokes aggregate operation `RiviereProject.defineCustomType`
+- `DefineRelationshipType`
+  - Invokes aggregate operation `RiviereProject.defineRelationshipType`
+- `EnrichComponent`
+  - Invokes aggregate operation `RiviereProject.enrichComponent`
 - `EnrichDraftComponents`
   - Invokes aggregate operation `RiviereProject.enrichDraftComponents`
 - `ExtractDraftComponents`
   - Invokes domain service operation `resolveSourceFileSelection`
   - Invokes aggregate operation `RiviereProject.extractDraftComponents`
+- `FinalizeGraph`
+  - Invokes aggregate operation `RiviereProject.validate`
+  - Invokes aggregate operation `RiviereProject.build`
+- `InitGraph`
+  - Invokes aggregate operation `RiviereProject.start`
+- `LinkComponents`
+  - Invokes aggregate operation `RiviereProject.link`
+- `LinkExternal`
+  - Invokes aggregate operation `RiviereProject.linkExternal`
+- `LinkHttp`
+  - Invokes aggregate operation `RiviereProject.build`
+  - Invokes aggregate operation `RiviereProject.link`
+- `RunWorkflow`
+  - Invokes aggregate operation `RiviereProject.rebuildGraph`
+- `ValidateGraph`
+  - Invokes aggregate operation `RiviereProject.validate`
+  - Invokes aggregate operation `RiviereProject.warnings`
 
 ##### Queries
 
@@ -329,8 +297,21 @@ _None._
 
 #### CLI use cases
 
+- `AddComponent`
+- `AddDomain`
+- `AddSource`
+- `CheckConsistency`
+- `DefineCustomType`
+- `DefineRelationshipType`
+- `EnrichComponent`
 - `EnrichDraftComponents`
 - `ExtractDraftComponents`
+- `FinalizeGraph`
+- `InitGraph`
+- `LinkComponents`
+- `LinkExternal`
+- `LinkHttp`
+- `ValidateGraph`
 
 ### `riviere-role-enforcement`
 
