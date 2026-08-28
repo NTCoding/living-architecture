@@ -1,16 +1,12 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { inspectArchitecture } from './architecture-review-source'
+import {
+  createWorkspace,
+  removeTemporaryWorkspaces,
+  writeWorkspaceFile,
+} from './architecture-review-test-workspace'
 
-const temporaryWorkspaces: string[] = []
-
-afterEach(() => {
-  for (const workspace of temporaryWorkspaces.splice(0)) {
-    rmSync(workspace, { force: true, recursive: true })
-  }
-})
+afterEach(removeTemporaryWorkspaces)
 
 describe('aggregate entity source identity', () => {
   it('distinguishes same-named aggregate entities by source module', () => {
@@ -225,15 +221,3 @@ describe('aggregate entity source identity', () => {
     ])
   })
 })
-
-function createWorkspace(): string {
-  const workspace = mkdtempSync(path.join(tmpdir(), 'architecture-review-'))
-  temporaryWorkspaces.push(workspace)
-  return workspace
-}
-
-function writeWorkspaceFile(workspace: string, relativePath: string, source: string): void {
-  const filePath = path.join(workspace, relativePath)
-  mkdirSync(path.dirname(filePath), { recursive: true })
-  writeFileSync(filePath, source)
-}

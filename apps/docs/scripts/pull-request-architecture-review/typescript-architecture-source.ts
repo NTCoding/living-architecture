@@ -340,7 +340,10 @@ function hasParameterPropertyModifier(parameter: ts.ParameterDeclaration): boole
 }
 
 function hasModifier(node: ts.Node, modifier: ts.SyntaxKind): boolean {
-  return ts.canHaveModifiers(node) && ts.getModifiers(node)?.some((item) => item.kind === modifier)
+  return (
+    ts.canHaveModifiers(node) &&
+    (ts.getModifiers(node)?.some((item) => item.kind === modifier) ?? false)
+  )
 }
 
 function isExported(node: ts.Node): boolean {

@@ -1,16 +1,12 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { inspectArchitecture } from './architecture-review-source'
+import {
+  createWorkspace,
+  removeTemporaryWorkspaces,
+  writeWorkspaceFile,
+} from './architecture-review-test-workspace'
 
-const temporaryWorkspaces: string[] = []
-
-afterEach(() => {
-  for (const workspace of temporaryWorkspaces.splice(0)) {
-    rmSync(workspace, { force: true, recursive: true })
-  }
-})
+afterEach(removeTemporaryWorkspaces)
 
 describe('architecture source edge cases', () => {
   it('excludes fixture directories at the package root', () => {
@@ -128,15 +124,3 @@ describe('architecture source edge cases', () => {
     ])
   })
 })
-
-function createWorkspace(): string {
-  const workspace = mkdtempSync(path.join(tmpdir(), 'architecture-review-'))
-  temporaryWorkspaces.push(workspace)
-  return workspace
-}
-
-function writeWorkspaceFile(workspace: string, relativePath: string, source: string): void {
-  const filePath = path.join(workspace, relativePath)
-  mkdirSync(path.dirname(filePath), { recursive: true })
-  writeFileSync(filePath, source)
-}
