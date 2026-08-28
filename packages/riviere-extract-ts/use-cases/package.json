@@ -1,6 +1,6 @@
 {
   "name": "@living-architecture/riviere-extract-ts-use-cases",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "publishConfig": {
     "access": "public"
   },

@@ -1,7 +1,7 @@
 {
   "name": "@living-architecture/riviere-schema-published-language",
   "description": "Defines the public Rivière architecture graph language, including components, connections, identifiers, custom properties, and validation rules.",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
