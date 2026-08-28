@@ -43,6 +43,9 @@ jobs:
 
       - run: pnpm --dir reporter install --frozen-lockfile
 
+      - name: Build trusted reporter
+        run: pnpm --dir reporter exec nx build @living-architecture/living-documentation
+
       - name: Download source snapshots
         id: snapshots
         env:
@@ -85,7 +88,7 @@ jobs:
       - name: Build architecture review
         if: steps.snapshots.outputs.current == 'true'
         run: >-
-          pnpm --dir reporter exec tsx tools/living-documentation/src/shell/main.ts generate-pr-architecture-diff
+          node reporter/tools/living-documentation/dist/main.js generate-pr-architecture-diff
           --base "${RUNNER_TEMP}/pull-request-base"
           --head "${RUNNER_TEMP}/pull-request-head"
           --output "${RUNNER_TEMP}/pull-request-architecture-review.md"
