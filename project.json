@@ -27,8 +27,16 @@
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],
       "options": {
-          "command": "pnpm exec tsx apps/cli/src/shell/role-enforcement-bin.ts .riviere/role-enforcement.config.ts",
+        "command": "pnpm exec tsx apps/cli/src/shell/role-enforcement-bin.ts .riviere/role-enforcement.config.ts",
         "cwd": "{workspaceRoot}"
+      }
+    },
+    "local-registry": {
+      "executor": "@nx/js:verdaccio",
+      "options": {
+        "port": 4873,
+        "config": ".verdaccio/config.yml",
+        "storage": "tmp/local-registry/storage"
       }
     }
   }

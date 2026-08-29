@@ -46,6 +46,15 @@
       "path": "./packages/dev-workflow-v2/use-cases"
     },
     {
+      "path": "./packages/living-documentation/domain-model"
+    },
+    {
+      "path": "./packages/living-documentation/use-cases"
+    },
+    {
+      "path": "./tools/living-documentation"
+    },
+    {
       "path": "./packages/riviere-builder/published-language"
     }
   ]

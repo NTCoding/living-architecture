@@ -1,5 +1,5 @@
 /** @riviere-role query-model-value */
-export interface ChecklistComponent {
+interface ChecklistComponent {
   domain: string
   id: string
   name: string

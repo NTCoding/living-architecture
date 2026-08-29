@@ -1,0 +1,133 @@
+{
+  "name": "@living-architecture/living-documentation",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "living-documentation": "./dist/main.js"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "executor": "@nx/esbuild:esbuild",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "defaultConfiguration": "production",
+        "options": {
+          "platform": "node",
+          "outputPath": "tools/living-documentation/dist",
+          "format": [
+            "esm"
+          ],
+          "bundle": true,
+          "main": "tools/living-documentation/src/shell/main.ts",
+          "tsConfig": "tools/living-documentation/tsconfig.app.json",
+          "esbuildOptions": {
+            "sourcemap": true,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        },
+        "configurations": {
+          "development": {},
+          "production": {
+            "esbuildOptions": {
+              "sourcemap": false,
+              "outExtension": {
+                ".js": ".js"
+              }
+            }
+          }
+        }
+      },
+      "prune-lockfile": {
+        "dependsOn": [
+          "build"
+        ],
+        "cache": true,
+        "executor": "@nx/js:prune-lockfile",
+        "outputs": [
+          "{workspaceRoot}/tools/living-documentation/dist/package.json",
+          "{workspaceRoot}/tools/living-documentation/dist/pnpm-lock.yaml"
+        ],
+        "options": {
+          "buildTarget": "build"
+        }
+      },
+      "copy-workspace-modules": {
+        "dependsOn": [
+          "build"
+        ],
+        "cache": true,
+        "outputs": [
+          "{workspaceRoot}/tools/living-documentation/dist/workspace_modules"
+        ],
+        "executor": "@nx/js:copy-workspace-modules",
+        "options": {
+          "buildTarget": "build"
+        }
+      },
+      "prune": {
+        "dependsOn": [
+          "prune-lockfile",
+          "copy-workspace-modules"
+        ],
+        "executor": "nx:noop"
+      },
+      "serve": {
+        "continuous": true,
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "@living-architecture/living-documentation:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "@living-architecture/living-documentation:build:development"
+          },
+          "production": {
+            "buildTarget": "@living-architecture/living-documentation:build:production"
+          }
+        }
+      },
+      "generate-architecture-summary": {
+        "dependsOn": [
+          "^build"
+        ],
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "./build-domain-guide.sh",
+          "cwd": "{workspaceRoot}"
+        },
+        "outputs": [
+          "{workspaceRoot}/docs/architecture/ddd/domain-guide.md"
+        ]
+      },
+      "check-generated-docs": {
+        "dependsOn": [
+          "^build"
+        ],
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "./build-domain-guide.sh",
+            "git diff --exit-code -- docs/architecture/ddd/domain-guide.md || (echo 'Domain guide is stale. Run: ./build-domain-guide.sh' && exit 1)"
+          ],
+          "cwd": "{workspaceRoot}",
+          "parallel": false
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "@living-architecture/living-documentation-use-cases": "workspace:*",
+    "commander": "^14.0.2",
+    "entities": "^7.0.1"
+  }
+}

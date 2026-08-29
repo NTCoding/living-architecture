@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 1
           path: reporter
           persist-credentials: false
-          ref: b475150950de5d7d87c840197190ed56a079cd90
+          ref: 8ceb117bb0ad384c9b103ad5411b2ebd793cd365
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         name: Install pnpm
@@ -42,6 +42,9 @@ jobs:
           cache-dependency-path: reporter/pnpm-lock.yaml
 
       - run: pnpm --dir reporter install --frozen-lockfile
+
+      - name: Build trusted reporter
+        run: pnpm --dir reporter exec nx build @living-architecture/living-documentation
 
       - name: Download source snapshots
         id: snapshots
@@ -85,7 +88,7 @@ jobs:
       - name: Build architecture review
         if: steps.snapshots.outputs.current == 'true'
         run: >-
-          pnpm --dir reporter exec tsx apps/docs/scripts/build-pull-request-architecture-review.ts
+          node reporter/tools/living-documentation/dist/main.js generate-pr-architecture-diff
           --base "${RUNNER_TEMP}/pull-request-base"
           --head "${RUNNER_TEMP}/pull-request-head"
           --output "${RUNNER_TEMP}/pull-request-architecture-review.md"

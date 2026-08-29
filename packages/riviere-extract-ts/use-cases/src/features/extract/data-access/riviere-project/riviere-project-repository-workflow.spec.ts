@@ -30,16 +30,22 @@ function workspace(): string {
   mkdirSync(join(directory, '.riviere', 'workflows'), { recursive: true })
   writeFileSync(join(directory, 'package.json'), '{"name":"workflow-test"}')
   writeFileSync(join(directory, 'component.ts'), 'export class Component {}')
-  execFileSync('/usr/bin/git', ['init', '--initial-branch=main'], {
-    cwd: directory,
-    stdio: 'ignore',
-  })
-  execFileSync(
-    '/usr/bin/git',
-    ['remote', 'add', 'origin', 'https://github.com/test/workflow-test.git'],
-    { cwd: directory, stdio: 'ignore' },
-  )
+  runIsolatedGit(directory, ['init', '--initial-branch=main'])
+  runIsolatedGit(directory, [
+    'remote',
+    'add',
+    'origin',
+    'https://github.com/test/workflow-test.git',
+  ])
   return directory
+}
+
+function runIsolatedGit(directory: string, args: string[]): void {
+  const environment = { ...process.env }
+  for (const name of Object.keys(environment)) {
+    if (name.startsWith('GIT_')) delete environment[name]
+  }
+  execFileSync('/usr/bin/git', args, { cwd: directory, env: environment, stdio: 'ignore' })
 }
 
 function writeWorkflow(

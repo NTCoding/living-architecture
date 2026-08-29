@@ -1,5 +1,5 @@
-import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
+import { createProject } from '../__fixtures__/detect-connections-fixtures'
 import { EnrichedComponent } from '../../value-extraction/enriched-component'
 import { ComponentIndex } from '../component-index'
 import { ConnectionDetectionError } from '../connection-detection-error'
@@ -40,7 +40,7 @@ function detectedCall(receiverTypeName?: string, calledMethodName = 'run'): Dete
 
 describe('DetectedCall.resolveTarget', () => {
   it('uses a default reason when the receiver type is absent', () => {
-    const project = new Project({ useInMemoryFileSystem: true })
+    const project = createProject()
 
     const result = detectedCall().resolveTarget({
       project,
@@ -57,7 +57,7 @@ describe('DetectedCall.resolveTarget', () => {
 
   it('creates a synthetic callable when a component method is not in the project', () => {
     const target = component('Target', '/src/target.ts', 4)
-    const project = new Project({ useInMemoryFileSystem: true })
+    const project = createProject()
 
     const result = detectedCall('Target').resolveTarget({
       project,
@@ -74,7 +74,7 @@ describe('DetectedCall.resolveTarget', () => {
   })
 
   it('rejects several implementations in strict mode', () => {
-    const project = new Project({ useInMemoryFileSystem: true })
+    const project = createProject()
     const sourceFile = project.createSourceFile(
       '/src/gateways.ts',
       `
@@ -95,7 +95,7 @@ describe('DetectedCall.resolveTarget', () => {
   })
 
   it('resolves an abstract class through its sole subclass', () => {
-    const project = new Project({ useInMemoryFileSystem: true })
+    const project = createProject()
     const sourceFile = project.createSourceFile(
       '/src/base.ts',
       `
@@ -121,7 +121,7 @@ describe('DetectedCall.resolveTarget', () => {
   })
 
   it('uses declaration text when an implemented type has no symbol', () => {
-    const project = new Project({ useInMemoryFileSystem: true })
+    const project = createProject()
     const sourceFile = project.createSourceFile(
       '/src/missing-contract.ts',
       'class Concrete implements MissingContract { run(): void {} }',
@@ -144,7 +144,7 @@ describe('DetectedCall.resolveTarget', () => {
   })
 
   it('uses declaration text when an extended type has no symbol', () => {
-    const project = new Project({ useInMemoryFileSystem: true })
+    const project = createProject()
     const sourceFile = project.createSourceFile(
       '/src/missing-base.ts',
       'class Concrete extends MissingBase { run(): void {} }',
