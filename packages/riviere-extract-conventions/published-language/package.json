@@ -1,7 +1,7 @@
 {
   "name": "@living-architecture/riviere-extract-conventions-published-language",
   "description": "Defines the public TypeScript annotations used to identify Rivière architecture components and extraction behaviour in source code.",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
