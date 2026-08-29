@@ -35,6 +35,7 @@ export class RiviereProject {
   private constructor(
     private readonly configuration: ExtractionConfiguration | undefined,
     private readonly modules: readonly RiviereModule[],
+    private readonly graphOptions: GraphDefinition | undefined,
     private unassignedDraftComponents: readonly DraftComponent[],
     private builder?: RiviereBuilder,
     private readonly workflows: Workflow[] = [],
@@ -47,7 +48,13 @@ export class RiviereProject {
     if (input.graphDefinition !== undefined) {
       return {
         success: true as const,
-        data: new RiviereProject(undefined, [], [], RiviereBuilder.new(input.graphDefinition)),
+        data: new RiviereProject(
+          undefined,
+          [],
+          input.graphDefinition,
+          [],
+          RiviereBuilder.new(input.graphDefinition),
+        ),
       }
     }
     const sourceErrors = RiviereModule.configurationSourceErrors(input.configuration)
@@ -59,12 +66,12 @@ export class RiviereProject {
     )
     return {
       success: true as const,
-      data: new RiviereProject(input.configuration, modules, unassignedDraftComponents),
+      data: new RiviereProject(input.configuration, modules, undefined, unassignedDraftComponents),
     }
   }
 
-  static rehydrate(graph: RiviereGraph): RiviereProject {
-    return new RiviereProject(undefined, [], [], RiviereBuilder.fromGraph(graph))
+  static rehydrate(graph: RiviereGraph, graphOptions = RiviereBuilder.graphOptionsFrom(graph)) {
+    return new RiviereProject(undefined, [], graphOptions, [], RiviereBuilder.fromGraph(graph))
   }
 
   addWorkflow(input: Parameters<typeof Workflow.start>[0]) {
@@ -143,10 +150,9 @@ export class RiviereProject {
       return workflowFailure('WORKFLOW_NOT_FOUND', `Workflow '${workflowName}' was not found`)
     }
     const previousBuilder = this.builder
-    if (previousBuilder === undefined) {
+    if (previousBuilder === undefined || this.graphOptions === undefined)
       return workflowFailure('GRAPH_STATE_UNAVAILABLE', 'Graph state is unavailable')
-    }
-    this.builder = previousBuilder.fresh()
+    this.builder = RiviereBuilder.new(this.graphOptions)
     const run = workflow.run(this.builder, (stage, components) =>
       this.executeWorkflowStage(stage, components),
     )

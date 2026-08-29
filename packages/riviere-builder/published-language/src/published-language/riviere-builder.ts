@@ -116,6 +116,20 @@ export class RiviereBuilder {
     return new RiviereBuilder(graph.version, RiviereGraphDefinition.parse(graph.metadata), graph)
   }
 
+  static graphOptionsFrom(graph: RiviereGraph): BuilderOptions {
+    const sources = graph.metadata.sources
+    if (sources === undefined || sources.length === 0)
+      throw new InvalidGraphError('missing sources')
+    return {
+      ...(graph.metadata.name === undefined ? {} : { name: graph.metadata.name }),
+      ...(graph.metadata.description === undefined
+        ? {}
+        : { description: graph.metadata.description }),
+      sources: [...sources],
+      domains: { ...graph.metadata.domains },
+    }
+  }
+
   /**
    * Creates a new builder with its initial graph definition.
    * @param options - Initial sources, domains, and descriptive values.

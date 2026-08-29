@@ -139,6 +139,40 @@ describe('RiviereBuilder', () => {
     })
   })
 
+  describe('graphOptionsFrom', () => {
+    it('returns graph construction options from persisted metadata', () => {
+      const builder = RiviereBuilder.new({
+        ...createValidOptions(),
+        name: 'Shop',
+        description: 'Shop graph',
+      })
+
+      expect(RiviereBuilder.graphOptionsFrom(builder.build())).toStrictEqual({
+        name: 'Shop',
+        description: 'Shop graph',
+        sources: createValidOptions().sources,
+        domains: createValidOptions().domains,
+      })
+    })
+
+    it('omits absent optional graph metadata', () => {
+      const graph = RiviereBuilder.new(createValidOptions()).build()
+
+      expect(RiviereBuilder.graphOptionsFrom(graph)).toStrictEqual(createValidOptions())
+    })
+
+    it('rejects persisted metadata without sources', () => {
+      const graph = {
+        version: '1.0',
+        metadata: { domains: createValidOptions().domains },
+        components: [],
+        links: [],
+      }
+
+      expect(() => RiviereBuilder.graphOptionsFrom(graph)).toThrow('Invalid graph: missing sources')
+    })
+  })
+
   describe('addSource', () => {
     it('appends source to metadata sources', () => {
       const builder = RiviereBuilder.new(createValidOptions())
