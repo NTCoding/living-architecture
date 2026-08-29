@@ -137,7 +137,11 @@ describe('Workflow definition', () => {
       name: 'build-graph',
       outputPath: 'graph.json',
       runLogDirectory: 'logs',
-      stages: [WorkflowStage.fromExtraction('extract', config)],
+      stages: [
+        WorkflowStage.fromLink('link', config),
+        WorkflowStage.fromExtraction('extract', config),
+        WorkflowStage.fromValidation('validate'),
+      ],
     })
 
     assert(!invalidName.success)
@@ -151,19 +155,9 @@ describe('Workflow definition', () => {
     expect(invalidOrder.error.code).toBe('INVALID_STAGE_ORDER')
   })
 
-  it('rejects misplaced link and validate stages', () => {
+  it('rejects validate before link', () => {
     const config = configuration()
-    const misplacedLink = Workflow.start({
-      name: 'build-graph',
-      outputPath: 'graph.json',
-      runLogDirectory: 'logs',
-      stages: [
-        WorkflowStage.fromLink('link', config),
-        WorkflowStage.fromExtraction('extract', config),
-        WorkflowStage.fromValidation('validate'),
-      ],
-    })
-    const misplacedValidate = Workflow.start({
+    const invalidOrder = Workflow.start({
       name: 'build-graph',
       outputPath: 'graph.json',
       runLogDirectory: 'logs',
@@ -174,8 +168,8 @@ describe('Workflow definition', () => {
       ],
     })
 
-    expect(misplacedLink.success).toBe(false)
-    expect(misplacedValidate.success).toBe(false)
+    assert(!invalidOrder.success)
+    expect(invalidOrder.error.code).toBe('INVALID_STAGE_ORDER')
   })
 })
 

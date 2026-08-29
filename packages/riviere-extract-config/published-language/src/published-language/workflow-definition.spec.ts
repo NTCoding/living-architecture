@@ -87,11 +87,26 @@ describe('parseWorkflowDefinition', () => {
   it.each([
     ['unsupported version', { ...validWorkflow, version: 2 }],
     ['missing graph metadata', { ...validWorkflow, graph: { outputPath: 'graph.json' } }],
+    [
+      'missing graph sources',
+      { ...validWorkflow, graph: { ...validWorkflow.graph, sources: undefined } },
+    ],
+    [
+      'missing graph domains',
+      { ...validWorkflow, graph: { ...validWorkflow.graph, domains: undefined } },
+    ],
+    [
+      'missing graph output path',
+      { ...validWorkflow, graph: { ...validWorkflow.graph, outputPath: undefined } },
+    ],
+    ['missing run log directory', { ...validWorkflow, runLog: {} }],
     ['unknown stage type', { ...validWorkflow, stages: [{ command: { run: 'echo forbidden' } }] }],
     [
       'more than one type in a stage',
       { ...validWorkflow, stages: [{ extract: {}, validate: {} }] },
     ],
+    ['missing extract config', { ...validWorkflow, stages: [{ extract: { name: 'orders' } }] }],
+    ['missing link config', { ...validWorkflow, stages: [{ link: {} }] }],
     ['empty strings', { ...validWorkflow, graph: { ...validWorkflow.graph, outputPath: '' } }],
     [
       'unsupported system type',

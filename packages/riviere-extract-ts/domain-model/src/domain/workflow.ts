@@ -223,13 +223,7 @@ function validateWorkflow(
       `Duplicate workflow stage name '${duplicateName}'`,
     )
   }
-  if (!hasValidStageOrder(stages)) {
-    return WorkflowDefinitionFailure.parse(
-      'INVALID_STAGE_ORDER',
-      'Workflow stages must contain one or more extract stages, followed by one link stage and one validate stage',
-    )
-  }
-  return undefined
+  return validateStageSequence(stages)
 }
 
 function findDuplicateStageName(stages: readonly WorkflowStage[]): string | undefined {
@@ -241,12 +235,73 @@ function findDuplicateStageName(stages: readonly WorkflowStage[]): string | unde
   return undefined
 }
 
-function hasValidStageOrder(stages: readonly WorkflowStage[]): boolean {
-  if (stages.length < 3) return false
+function validateStageSequence(
+  stages: readonly WorkflowStage[],
+): WorkflowDefinitionFailure | undefined {
+  const counts = countStageKinds(stages)
+  if (counts.extract === 0) {
+    return WorkflowDefinitionFailure.parse(
+      'MISSING_EXTRACT_STAGE',
+      'Workflow stages must contain one or more extract stages',
+    )
+  }
+  if (counts.link === 0) {
+    return WorkflowDefinitionFailure.parse(
+      'MISSING_LINK_STAGE',
+      'Workflow stages must contain exactly one link stage',
+    )
+  }
+  if (counts.link > 1) {
+    return WorkflowDefinitionFailure.parse(
+      'MULTIPLE_LINK_STAGES',
+      'Workflow stages must contain exactly one link stage',
+    )
+  }
+  if (counts.validate === 0) {
+    return WorkflowDefinitionFailure.parse(
+      'MISSING_VALIDATE_STAGE',
+      'Workflow stages must contain exactly one validate stage',
+    )
+  }
+  if (counts.validate > 1) {
+    return WorkflowDefinitionFailure.parse(
+      'MULTIPLE_VALIDATE_STAGES',
+      'Workflow stages must contain exactly one validate stage',
+    )
+  }
   const linkStage = stages.at(-2)
   const validateStage = stages.at(-1)
-  if (linkStage?.value.kind !== 'link' || validateStage?.value.kind !== 'validate') return false
-  return stages.slice(0, -2).every((stage) => stage.value.kind === 'extract')
+  if (linkStage?.value.kind === 'link' && validateStage?.value.kind === 'validate') {
+    return undefined
+  }
+  return WorkflowDefinitionFailure.parse(
+    'INVALID_STAGE_ORDER',
+    'Workflow stages must contain all extract stages, followed by one link stage and one validate stage',
+  )
+}
+
+function countStageKinds(
+  stages: readonly WorkflowStage[],
+): Record<WorkflowStageValue['kind'], number> {
+  const counts: Record<WorkflowStageValue['kind'], number> = {
+    extract: 0,
+    link: 0,
+    validate: 0,
+  }
+  for (const stage of stages) {
+    switch (stage.value.kind) {
+      case 'extract':
+        counts.extract += 1
+        break
+      case 'link':
+        counts.link += 1
+        break
+      case 'validate':
+        counts.validate += 1
+        break
+    }
+  }
+  return counts
 }
 
 function validateGraph(builder: RiviereBuilder): WorkflowStageExecutionResult {
