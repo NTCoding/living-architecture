@@ -1,6 +1,6 @@
 {
   "$schema": "https://knip.dev/reference/knip-json",
-  "ignoreDependencies": ["tailwindcss", "oxlint"],
+  "ignoreDependencies": ["tailwindcss", "oxlint", "tsx"],
   "workspaces": {
     ".": {
       "entry": [

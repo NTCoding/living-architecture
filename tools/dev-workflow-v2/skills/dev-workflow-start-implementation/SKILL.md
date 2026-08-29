@@ -8,8 +8,8 @@ description: Start implementation for a GitHub issue. Use only when the user exp
 Use the supplied issue number. Follow the canonical procedure in the plugin's `commands/start-implementation.md` exactly, with this Codex-specific replacement for its two Claude workflow commands:
 
 ```bash
-pnpm --dir "$(git rev-parse --show-toplevel)" exec tsx "$(git rev-parse --show-toplevel)/tools/dev-workflow-v2/src/shell/codex-workflow-command.ts" init
-pnpm --dir "$(git rev-parse --show-toplevel)" exec tsx "$(git rev-parse --show-toplevel)/tools/dev-workflow-v2/src/shell/codex-workflow-command.ts" record-issue <issue-number>
+pnpm --dir "$(git rev-parse --show-toplevel)/tools/dev-workflow-v2" run codex-workflow init
+pnpm --dir "$(git rev-parse --show-toplevel)/tools/dev-workflow-v2" run codex-workflow record-issue <issue-number>
 ```
 
 The shared command reads Codex's `CODEX_THREAD_ID`. Do not read a session ID from hook output or substitute any other value.

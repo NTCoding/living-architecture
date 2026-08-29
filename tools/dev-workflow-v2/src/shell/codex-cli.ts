@@ -38,9 +38,8 @@ const bashForbidden = {
   flags: ['--no-verify', '--force', '--hard'],
 }
 
-const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const workflowCommand =
-  'pnpm --dir "$PLUGIN_ROOT" exec tsx "$PLUGIN_ROOT/src/shell/codex-workflow-command.ts"'
+const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
+const workflowCommand = 'pnpm --dir "$PLUGIN_ROOT" run codex-workflow'
 const defaultProcessDeps = createDefaultProcessDeps()
 const processDeps = {
   ...defaultProcessDeps,
