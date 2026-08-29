@@ -6,8 +6,6 @@ const pullRequestSchema = z.object({
   isDraft: z.boolean(),
 })
 
-const createPullRequestOutputSchema = z.object({ url: z.string().url() })
-
 /** @riviere-role external-client-model */
 export interface GithubPullRequestCreationInput {
   readonly body: string
@@ -37,16 +35,7 @@ export function createGithubPullRequestClient(
   runGh: GhRunner,
 ): (request: GithubPullRequestCreationInput) => GithubPullRequest {
   return (request: GithubPullRequestCreationInput): GithubPullRequest => {
-    const createOutput = runGh([
-      'pr',
-      'create',
-      '--title',
-      request.title,
-      '--body',
-      request.body,
-      '--json',
-      'url',
-    ])
+    const createOutput = runGh(['pr', 'create', '--title', request.title, '--body', request.body])
     const pullRequestUrl = readPullRequestUrl(createOutput)
     return readPullRequest(runGh, pullRequestUrl)
   }
@@ -56,15 +45,15 @@ function readPullRequestUrl(createOutput: string): string {
   const trimmedOutput = createOutput.trim()
   if (trimmedOutput.length === 0) {
     throw new PullRequestCreationOutputError(
-      'Expected gh pr create to return JSON with a url field. Got empty output.',
+      'Expected gh pr create to return a URL. Got empty output.',
     )
   }
 
   try {
-    return createPullRequestOutputSchema.parse(JSON.parse(trimmedOutput)).url
+    return z.string().url().parse(trimmedOutput)
   } catch {
     throw new PullRequestCreationOutputError(
-      `Expected gh pr create to return JSON with a url field. Got: ${trimmedOutput}`,
+      `Expected gh pr create to return a URL. Got: ${trimmedOutput}`,
     )
   }
 }

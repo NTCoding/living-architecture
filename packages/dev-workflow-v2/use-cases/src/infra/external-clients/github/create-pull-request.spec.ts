@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { createGithubPullRequestClient } from './create-pull-request'
 
 describe('createGithubPullRequestClient', () => {
-  it('creates pull request from structured title and body', () => {
+  it('creates pull request from the URL returned by gh', () => {
     const calls: Array<readonly string[]> = []
     const createPullRequest = createGithubPullRequestClient((args) => {
       calls.push(args)
       if (args[1] === 'create') {
-        return JSON.stringify({ url: 'https://github.com/example/repo/pull/123' })
+        return 'https://github.com/example/repo/pull/123\n'
       }
       return JSON.stringify({
         number: 123,
@@ -27,16 +27,7 @@ describe('createGithubPullRequestClient', () => {
       isDraft: false,
     })
     expect(calls).toStrictEqual([
-      [
-        'pr',
-        'create',
-        '--title',
-        'Ready PR',
-        '--body',
-        '## Description\n\nCreates a ready PR.',
-        '--json',
-        'url',
-      ],
+      ['pr', 'create', '--title', 'Ready PR', '--body', '## Description\n\nCreates a ready PR.'],
       ['pr', 'view', 'https://github.com/example/repo/pull/123', '--json', 'number,url,isDraft'],
     ])
   })
@@ -46,7 +37,7 @@ describe('createGithubPullRequestClient', () => {
     const createPullRequest = createGithubPullRequestClient((args) => {
       calls.push(args)
       if (args[1] === 'create') {
-        return JSON.stringify({ url: 'https://github.com/example/repo/pull/123' })
+        return 'https://github.com/example/repo/pull/123\n'
       }
       return JSON.stringify({
         number: 123,
@@ -66,16 +57,7 @@ describe('createGithubPullRequestClient', () => {
       isDraft: true,
     })
     expect(calls).toStrictEqual([
-      [
-        'pr',
-        'create',
-        '--title',
-        'Ready PR',
-        '--body',
-        '## Description\n\nCreates a ready PR.',
-        '--json',
-        'url',
-      ],
+      ['pr', 'create', '--title', 'Ready PR', '--body', '## Description\n\nCreates a ready PR.'],
       ['pr', 'view', 'https://github.com/example/repo/pull/123', '--json', 'number,url,isDraft'],
     ])
   })
@@ -88,10 +70,10 @@ describe('createGithubPullRequestClient', () => {
         title: 'Ready PR',
         body: '## Description\n\nCreates a ready PR.',
       }),
-    ).toThrow('Expected gh pr create to return JSON with a url field. Got empty output.')
+    ).toThrow('Expected gh pr create to return a URL. Got empty output.')
   })
 
-  it('throws when create command returns non-json output', () => {
+  it('throws when create command returns an invalid URL', () => {
     const createPullRequest = createGithubPullRequestClient(() => 'not-json')
 
     expect(() =>
@@ -99,17 +81,6 @@ describe('createGithubPullRequestClient', () => {
         title: 'Ready PR',
         body: '## Description\n\nCreates a ready PR.',
       }),
-    ).toThrow('Expected gh pr create to return JSON with a url field. Got: not-json')
-  })
-
-  it('throws when create command returns json without a url', () => {
-    const createPullRequest = createGithubPullRequestClient(() => JSON.stringify({}))
-
-    expect(() =>
-      createPullRequest({
-        title: 'Ready PR',
-        body: '## Description\n\nCreates a ready PR.',
-      }),
-    ).toThrow('Expected gh pr create to return JSON with a url field. Got: {}')
+    ).toThrow('Expected gh pr create to return a URL. Got: not-json')
   })
 })
