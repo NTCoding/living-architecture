@@ -1,5 +1,6 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { RiviereBuilder } from './riviere-builder'
+import { InvalidGraphError } from './construction-errors'
 
 function parseGraph(builder: RiviereBuilder): RiviereGraph {
   const graph: RiviereGraph = JSON.parse(builder.serialize())
@@ -136,6 +137,43 @@ describe('RiviereBuilder', () => {
 
       expect(freshGraph.metadata).not.toHaveProperty('name')
       expect(freshGraph.metadata).not.toHaveProperty('description')
+    })
+  })
+
+  describe('graphOptionsFrom', () => {
+    it('returns graph construction options from persisted metadata', () => {
+      const builder = RiviereBuilder.new({
+        ...createValidOptions(),
+        name: 'Shop',
+        description: 'Shop graph',
+      })
+
+      expect(RiviereBuilder.graphOptionsFrom(builder.build())).toStrictEqual({
+        name: 'Shop',
+        description: 'Shop graph',
+        sources: createValidOptions().sources,
+        domains: createValidOptions().domains,
+      })
+    })
+
+    it('omits absent optional graph metadata', () => {
+      const graph = RiviereBuilder.new(createValidOptions()).build()
+
+      expect(RiviereBuilder.graphOptionsFrom(graph)).toStrictEqual(createValidOptions())
+    })
+
+    it('rejects persisted metadata without sources', () => {
+      const graph = {
+        version: '1.0',
+        metadata: { domains: createValidOptions().domains },
+        components: [],
+        links: [],
+      }
+
+      expect(() => RiviereBuilder.graphOptionsFrom(graph)).toThrowError(InvalidGraphError)
+      expect(() => RiviereBuilder.graphOptionsFrom(graph)).toThrowError(
+        'Invalid graph: missing sources',
+      )
     })
   })
 

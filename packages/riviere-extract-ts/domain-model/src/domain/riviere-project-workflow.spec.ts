@@ -141,6 +141,29 @@ describe('RiviereProject workflow graph rebuild', () => {
     expect(second.graph.components.map((item) => item.name)).toStrictEqual(['Second run'])
   })
 
+  it('retains graph metadata added before rebuilding', () => {
+    vi.spyOn(RiviereModule.prototype, 'extractAllDraftComponents').mockReturnValue([])
+    vi.spyOn(RiviereModule.prototype, 'enrichDraftComponents').mockReturnValue(
+      EnrichmentResult.parse({ components: [], failures: [] }),
+    )
+    const subject = project()
+    subject.addSource({ repository: 'catalogue' })
+    subject.addDomain({ name: 'payments', description: 'Payments', systemType: 'domain' })
+
+    const result = subject.rebuildGraph('build-graph')
+
+    assert(result.success)
+    expect(result.graph.metadata.sources).toStrictEqual([
+      { repository: 'shop' },
+      { repository: 'catalogue' },
+    ])
+    expect(result.graph.metadata.domains).toStrictEqual({
+      orders: { description: 'Orders', systemType: 'domain' },
+      shipping: { description: 'Shipping', systemType: 'domain' },
+      payments: { description: 'Payments', systemType: 'domain' },
+    })
+  })
+
   it('restores the previous completed graph after a failed rebuild', () => {
     const subject = project()
     subject.addComponent({
@@ -175,6 +198,7 @@ describe('RiviereProject workflow graph rebuild', () => {
     const result = subject.rebuildGraph('build-graph')
 
     expect(result).toMatchObject({ success: false, errorCode: 'FIELD_ENRICHMENT_FAILED' })
+    expect(result).not.toHaveProperty('graph')
     expect(subject.build().components.map((item) => item.name)).toStrictEqual(['Existing graph'])
   })
 
@@ -227,12 +251,58 @@ describe('RiviereProject workflow graph rebuild', () => {
         sourceLocation: { repository: 'shop', filePath: 'persisted.ts' },
       },
     })
-    const rehydrated = RiviereProject.rehydrate(persisted.build())
+    const rehydrated = RiviereProject.rehydrate(persisted.build(), {
+      name: 'Shop',
+      description: 'Shop graph',
+      sources: [{ repository: 'shop' }],
+      domains: {
+        orders: { description: 'Orders', systemType: 'domain' },
+        shipping: { description: 'Shipping', systemType: 'domain' },
+      },
+    })
     assert(rehydrated.addWorkflow(workflowDefinition()).success)
 
     const result = rehydrated.rebuildGraph('build-graph')
 
     assert(result.success)
     expect(result.graph.components).toStrictEqual([])
+  })
+
+  it('uses workflow graph options instead of persisted graph options when rebuilding', () => {
+    vi.spyOn(RiviereModule.prototype, 'extractAllDraftComponents').mockReturnValue([])
+    vi.spyOn(RiviereModule.prototype, 'enrichDraftComponents').mockReturnValue(
+      EnrichmentResult.parse({ components: [], failures: [] }),
+    )
+    const persisted = project([])
+    persisted.addComponent({
+      type: 'UseCase',
+      input: {
+        name: 'Persisted component',
+        domain: 'orders',
+        module: 'orders',
+        sourceLocation: { repository: 'shop', filePath: 'persisted.ts' },
+      },
+    })
+    const rehydrated = RiviereProject.rehydrate(persisted.build(), {
+      name: 'Workflow graph',
+      description: 'Workflow description',
+      sources: [{ repository: 'workflow-repository' }],
+      domains: {
+        shipping: { description: 'Shipping', systemType: 'domain' },
+      },
+    })
+    assert(rehydrated.addWorkflow(workflowDefinition()).success)
+
+    const result = rehydrated.rebuildGraph('build-graph')
+
+    assert(result.success)
+    expect(result.graph.metadata).toStrictEqual({
+      name: 'Workflow graph',
+      description: 'Workflow description',
+      sources: [{ repository: 'workflow-repository' }],
+      domains: {
+        shipping: { description: 'Shipping', systemType: 'domain' },
+      },
+    })
   })
 })

@@ -63,8 +63,8 @@ export class RiviereProject {
     }
   }
 
-  static rehydrate(graph: RiviereGraph): RiviereProject {
-    return new RiviereProject(undefined, [], [], RiviereBuilder.fromGraph(graph))
+  static rehydrate(graph: RiviereGraph, graphOptions = RiviereBuilder.graphOptionsFrom(graph)) {
+    return new RiviereProject(undefined, [], [], RiviereBuilder.fromGraph(graph, graphOptions))
   }
 
   addWorkflow(input: Parameters<typeof Workflow.start>[0]) {
@@ -146,7 +146,7 @@ export class RiviereProject {
     if (previousBuilder === undefined) {
       return workflowFailure('GRAPH_STATE_UNAVAILABLE', 'Graph state is unavailable')
     }
-    this.builder = previousBuilder.fresh()
+    this.builder = RiviereBuilder.new(RiviereBuilder.graphOptionsFrom(previousBuilder.build()))
     const run = workflow.run(this.builder, (stage, components) =>
       this.executeWorkflowStage(stage, components),
     )
@@ -394,12 +394,10 @@ type ExtractionProjectStartInput = Readonly<{
 }>
 
 type GraphProjectStartInput = Readonly<{
-  graphDefinition: GraphDefinition
+  graphDefinition: Parameters<typeof RiviereBuilder.new>[0]
   configuration?: undefined
   draftComponents?: undefined
 }>
-
-type GraphDefinition = Parameters<typeof RiviereBuilder.new>[0]
 
 type RiviereProjectStartInput = ExtractionProjectStartInput | GraphProjectStartInput
 type RiviereProjectStartSuccess = Readonly<{ success: true; data: RiviereProject }>

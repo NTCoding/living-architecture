@@ -110,10 +110,34 @@ export class RiviereBuilder {
    * @param graph - Graph values used to reconstruct the builder.
    * @returns A builder with equivalent graph construction state.
    */
-  static fromGraph(graph: RiviereGraph): RiviereBuilder {
+  static fromGraph(graph: RiviereGraph, options?: BuilderOptions): RiviereBuilder {
     if (graph.metadata.sources === undefined || graph.metadata.sources.length === 0)
       throw new InvalidGraphError('missing sources')
-    return new RiviereBuilder(graph.version, RiviereGraphDefinition.parse(graph.metadata), graph)
+    const graphOptions = options ?? RiviereBuilder.graphOptionsFrom(graph)
+    return new RiviereBuilder(
+      graph.version,
+      RiviereGraphDefinition.parse({
+        ...graph.metadata,
+        ...graphOptions,
+        sources: [...graphOptions.sources],
+        domains: { ...graphOptions.domains },
+      }),
+      graph,
+    )
+  }
+
+  static graphOptionsFrom(graph: RiviereGraph): BuilderOptions {
+    const sources = graph.metadata.sources
+    if (sources === undefined || sources.length === 0)
+      throw new InvalidGraphError('missing sources')
+    return {
+      ...(graph.metadata.name === undefined ? {} : { name: graph.metadata.name }),
+      ...(graph.metadata.description === undefined
+        ? {}
+        : { description: graph.metadata.description }),
+      sources: [...sources],
+      domains: { ...graph.metadata.domains },
+    }
   }
 
   /**

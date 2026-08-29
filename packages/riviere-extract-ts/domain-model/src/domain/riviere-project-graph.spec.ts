@@ -174,6 +174,16 @@ describe('RiviereProject graph behaviour', () => {
     expect(() => started.data.build()).toThrowError(new GraphStateUnavailableError())
   })
 
+  it('rejects graph metadata mutations on an extraction only project', () => {
+    const configuration = extractionConfiguration()
+    const started = RiviereProject.start({ configuration, draftComponents: [] })
+    assert(started.success)
+
+    expect(() => started.data.addSource({ repository: 'catalogue' })).toThrowError(
+      new GraphStateUnavailableError(),
+    )
+  })
+
   it('rejects extraction behaviour on a graph only project', () => {
     expect(() => graphProject().detectConnections([], false)).toThrowError(
       new ExtractionConfigurationUnavailableError(),

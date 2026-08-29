@@ -178,7 +178,7 @@ export class RiviereProjectRepository {
         'VALIDATION_ERROR',
         `Invalid existing graph: ${parsed.issues.join('\n')}`,
       )
-    return RiviereProject.rehydrate(parsed.graph)
+    return RiviereProject.rehydrate(parsed.graph, graphDefinition)
   }
 
   private loadGraph(graphFileLocation: string): RiviereProject {
