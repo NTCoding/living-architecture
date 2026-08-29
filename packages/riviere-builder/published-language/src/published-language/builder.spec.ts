@@ -1,5 +1,6 @@
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { RiviereBuilder } from './riviere-builder'
+import { InvalidGraphError } from './construction-errors'
 
 function parseGraph(builder: RiviereBuilder): RiviereGraph {
   const graph: RiviereGraph = JSON.parse(builder.serialize())
@@ -169,7 +170,10 @@ describe('RiviereBuilder', () => {
         links: [],
       }
 
-      expect(() => RiviereBuilder.graphOptionsFrom(graph)).toThrow('Invalid graph: missing sources')
+      expect(() => RiviereBuilder.graphOptionsFrom(graph)).toThrowError(InvalidGraphError)
+      expect(() => RiviereBuilder.graphOptionsFrom(graph)).toThrowError(
+        'Invalid graph: missing sources',
+      )
     })
   })
 

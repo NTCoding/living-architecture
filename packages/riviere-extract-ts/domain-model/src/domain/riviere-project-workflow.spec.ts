@@ -273,7 +273,7 @@ describe('RiviereProject workflow graph rebuild', () => {
     const result = rehydrated.rebuildGraph('build-graph')
 
     assert(result.success)
-    expect(result.graph.metadata).toMatchObject({
+    expect(result.graph.metadata).toStrictEqual({
       name: 'Workflow graph',
       description: 'Workflow description',
       sources: [{ repository: 'workflow-repository' }],
