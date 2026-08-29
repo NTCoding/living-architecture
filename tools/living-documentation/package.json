@@ -127,6 +127,7 @@
   },
   "dependencies": {
     "@living-architecture/living-documentation-use-cases": "workspace:*",
-    "commander": "^14.0.2"
+    "commander": "^14.0.2",
+    "entities": "^7.0.1"
   }
 }

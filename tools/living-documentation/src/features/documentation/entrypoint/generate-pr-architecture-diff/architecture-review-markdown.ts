@@ -1,3 +1,5 @@
+import { escapeText } from 'entities/escape'
+
 /** @riviere-role cli-output-formatter */
 export function renderArchitectureCodeSpan(value: string, escapePipes = false): string {
   const normalized = value.replaceAll('\r', ' ').replaceAll('\n', ' ')
@@ -11,12 +13,7 @@ export function renderArchitectureCodeSpan(value: string, escapePipes = false): 
 
 /** @riviere-role cli-output-formatter */
 export function renderArchitectureHtmlText(value: string): string {
-  return value
-    .replaceAll('\r', ' ')
-    .replaceAll('\n', ' ')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
+  return escapeText(value).replaceAll('\r', ' ').replaceAll('\n', ' ')
 }
 
 /** @riviere-role cli-output-formatter */
