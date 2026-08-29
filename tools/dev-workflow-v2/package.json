@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node esbuild.config.mjs",
+    "precodex-workflow": "pnpm --dir ../.. exec nx build dev-workflow-v2",
+    "codex-workflow": "node dist/codex-workflow-command.js",
     "test": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
@@ -11,10 +14,11 @@
     "@living-architecture/dev-workflow-v2-use-cases": "workspace:*",
     "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.4.1",
     "@nt-ai-lab/deterministic-agent-workflow-cli": "0.4.1",
-    "@nt-ai-lab/deterministic-agent-workflow-codex": "0.4.2",
+    "@nt-ai-lab/deterministic-agent-workflow-codex": "0.4.3",
     "@nt-ai-lab/deterministic-agent-workflow-engine": "0.4.1",
     "@nt-ai-lab/deterministic-agent-workflow-event-store": "0.4.1",
     "@nt-ai-lab/deterministic-agent-workflow-opencode": "0.4.1",
+    "esbuild": "0.27.2",
     "tsx": "4.21.0"
   },
   "devDependencies": {

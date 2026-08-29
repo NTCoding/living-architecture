@@ -107,7 +107,9 @@ describe('plugin Agent Skills', () => {
 
       expect({
         detectsCodex: skill.includes('If `CODEX_THREAD_ID` is present'),
-        usesCodexRunner: skill.includes('codex-workflow-command.ts <operation> [args]'),
+        usesCodexRunner: skill.includes(
+          'pnpm --dir tools/dev-workflow-v2 run codex-workflow <operation> [args]',
+        ),
         usesSlashCommand: skill.includes('/dev-workflow-v2:workflow <operation> [args]'),
       }).toStrictEqual({
         detectsCodex: true,
