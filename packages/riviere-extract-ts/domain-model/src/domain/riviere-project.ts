@@ -381,7 +381,9 @@ export class RiviereProject {
   }
 
   private extractionConfiguration(): ExtractionConfiguration {
-    if (this.configuration === undefined) throw new ExtractionConfigurationUnavailableError()
+    if (this.configuration === undefined) {
+      throw new ExtractionConfigurationUnavailableError()
+    }
     return this.configuration
   }
 
