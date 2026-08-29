@@ -79,11 +79,20 @@ describe('Workflow stage plan validation', () => {
       'MULTIPLE_VALIDATE_STAGES',
     ],
     [
-      'misplaced stages',
+      'link before extract',
       [
         WorkflowStage.fromLink('link', configuration()),
         WorkflowStage.fromExtraction('extract', configuration()),
         WorkflowStage.fromValidation('validate'),
+      ],
+      'INVALID_STAGE_ORDER',
+    ],
+    [
+      'validate before link',
+      [
+        WorkflowStage.fromExtraction('extract', configuration()),
+        WorkflowStage.fromValidation('validate'),
+        WorkflowStage.fromLink('link', configuration()),
       ],
       'INVALID_STAGE_ORDER',
     ],

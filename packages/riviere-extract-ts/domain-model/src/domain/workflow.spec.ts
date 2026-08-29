@@ -154,6 +154,23 @@ describe('Workflow definition', () => {
     })
     expect(invalidOrder.error.code).toBe('INVALID_STAGE_ORDER')
   })
+
+  it('rejects validate before link', () => {
+    const config = configuration()
+    const invalidOrder = Workflow.start({
+      name: 'build-graph',
+      outputPath: 'graph.json',
+      runLogDirectory: 'logs',
+      stages: [
+        WorkflowStage.fromExtraction('extract', config),
+        WorkflowStage.fromValidation('validate'),
+        WorkflowStage.fromLink('link', config),
+      ],
+    })
+
+    assert(!invalidOrder.success)
+    expect(invalidOrder.error.code).toBe('INVALID_STAGE_ORDER')
+  })
 })
 
 describe('Workflow.run', () => {
