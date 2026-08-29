@@ -35,7 +35,7 @@ export class RiviereProject {
   private constructor(
     private readonly configuration: ExtractionConfiguration | undefined,
     private readonly modules: readonly RiviereModule[],
-    private readonly graphOptions: GraphDefinition | undefined,
+    private graphOptions: GraphDefinition | undefined,
     private unassignedDraftComponents: readonly DraftComponent[],
     private builder?: RiviereBuilder,
     private readonly workflows: Workflow[] = [],
@@ -81,11 +81,11 @@ export class RiviereProject {
   }
 
   addSource(input: Parameters<RiviereBuilder['addSource']>[0]): void {
-    this.graphBuilder().addSource(input)
+    this.updateGraphOptions((builder) => builder.addSource(input))
   }
 
   addDomain(input: Parameters<RiviereBuilder['addDomain']>[0]): void {
-    this.graphBuilder().addDomain(input)
+    this.updateGraphOptions((builder) => builder.addDomain(input))
   }
 
   addComponent(definition: ComponentDefinition['value']): string {
@@ -381,15 +381,21 @@ export class RiviereProject {
   }
 
   private extractionConfiguration(): ExtractionConfiguration {
-    if (this.configuration === undefined) {
-      throw new ExtractionConfigurationUnavailableError()
-    }
+    if (this.configuration === undefined) throw new ExtractionConfigurationUnavailableError()
     return this.configuration
   }
 
   private graphBuilder(): RiviereBuilder {
     if (this.builder === undefined) throw new GraphStateUnavailableError()
     return this.builder
+  }
+
+  private updateGraphOptions(update: (builder: RiviereBuilder) => void): void {
+    if (this.graphOptions === undefined) throw new GraphStateUnavailableError()
+    const optionsBuilder = RiviereBuilder.new(this.graphOptions)
+    update(optionsBuilder)
+    update(this.graphBuilder())
+    this.graphOptions = RiviereBuilder.graphOptionsFrom(optionsBuilder.build())
   }
 }
 
@@ -431,11 +437,5 @@ function observePhase<T>(
 }
 
 function workflowFailure(errorCode: string, reason: string) {
-  return {
-    success: false as const,
-    errorCode,
-    reason,
-    events: [],
-    warnings: [],
-  }
+  return { success: false as const, errorCode, reason, events: [], warnings: [] }
 }

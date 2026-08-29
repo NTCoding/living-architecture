@@ -141,6 +141,29 @@ describe('RiviereProject workflow graph rebuild', () => {
     expect(second.graph.components.map((item) => item.name)).toStrictEqual(['Second run'])
   })
 
+  it('retains graph metadata added before rebuilding', () => {
+    vi.spyOn(RiviereModule.prototype, 'extractAllDraftComponents').mockReturnValue([])
+    vi.spyOn(RiviereModule.prototype, 'enrichDraftComponents').mockReturnValue(
+      EnrichmentResult.parse({ components: [], failures: [] }),
+    )
+    const subject = project()
+    subject.addSource({ repository: 'catalogue' })
+    subject.addDomain({ name: 'payments', description: 'Payments', systemType: 'domain' })
+
+    const result = subject.rebuildGraph('build-graph')
+
+    assert(result.success)
+    expect(result.graph.metadata.sources).toStrictEqual([
+      { repository: 'shop' },
+      { repository: 'catalogue' },
+    ])
+    expect(result.graph.metadata.domains).toStrictEqual({
+      orders: { description: 'Orders', systemType: 'domain' },
+      shipping: { description: 'Shipping', systemType: 'domain' },
+      payments: { description: 'Payments', systemType: 'domain' },
+    })
+  })
+
   it('restores the previous completed graph after a failed rebuild', () => {
     const subject = project()
     subject.addComponent({
