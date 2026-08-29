@@ -137,7 +137,11 @@ describe('Workflow definition', () => {
       name: 'build-graph',
       outputPath: 'graph.json',
       runLogDirectory: 'logs',
-      stages: [WorkflowStage.fromExtraction('extract', config)],
+      stages: [
+        WorkflowStage.fromLink('link', config),
+        WorkflowStage.fromExtraction('extract', config),
+        WorkflowStage.fromValidation('validate'),
+      ],
     })
 
     assert(!invalidName.success)
@@ -149,33 +153,6 @@ describe('Workflow definition', () => {
       message: "Duplicate workflow stage name 'same'",
     })
     expect(invalidOrder.error.code).toBe('INVALID_STAGE_ORDER')
-  })
-
-  it('rejects misplaced link and validate stages', () => {
-    const config = configuration()
-    const misplacedLink = Workflow.start({
-      name: 'build-graph',
-      outputPath: 'graph.json',
-      runLogDirectory: 'logs',
-      stages: [
-        WorkflowStage.fromLink('link', config),
-        WorkflowStage.fromExtraction('extract', config),
-        WorkflowStage.fromValidation('validate'),
-      ],
-    })
-    const misplacedValidate = Workflow.start({
-      name: 'build-graph',
-      outputPath: 'graph.json',
-      runLogDirectory: 'logs',
-      stages: [
-        WorkflowStage.fromExtraction('extract', config),
-        WorkflowStage.fromValidation('validate'),
-        WorkflowStage.fromLink('link', config),
-      ],
-    })
-
-    expect(misplacedLink.success).toBe(false)
-    expect(misplacedValidate.success).toBe(false)
   })
 })
 

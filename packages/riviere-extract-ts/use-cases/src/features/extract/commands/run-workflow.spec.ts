@@ -53,6 +53,7 @@ describe('RunWorkflow', () => {
         warnings: [],
       },
     })
+    expect(mocks.rebuildGraph).not.toHaveBeenCalled()
   })
 
   it('does not hide unexpected failures', () => {

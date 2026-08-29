@@ -53,6 +53,10 @@ function writeWorkflow(
   secondConfig = 'shipping.yaml',
   secondStageName = 'shipping',
   graphMetadata = '',
+  stages = `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
+  - extract: { name: ${secondStageName}, config: ${secondConfig}, useTsConfig: false }
+  - link: { config: orders.yaml, useTsConfig: false }
+  - validate: {}`,
 ): void {
   writeFileSync(
     join(directory, '.riviere', 'workflows', 'combined.yaml'),
@@ -64,10 +68,7 @@ ${graphMetadata}
   outputPath: .riviere/graph.json
 runLog: { directory: .riviere/logs }
 stages:
-  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
-  - extract: { name: ${secondStageName}, config: ${secondConfig}, useTsConfig: false }
-  - link: { config: orders.yaml, useTsConfig: false }
-  - validate: {}
+${stages}
 `,
   )
 }
@@ -184,6 +185,54 @@ describe('RiviereProjectRepository workflow loading', () => {
         workflowName: 'combined',
       }),
     ).toThrow("Duplicate workflow stage name 'orders'")
+  })
+
+  it.each([
+    [
+      'missing extract stages',
+      `  - link: { config: orders.yaml, useTsConfig: false }
+  - validate: {}`,
+      'one or more extract stages',
+    ],
+    [
+      'missing the link stage',
+      `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
+  - validate: {}`,
+      'exactly one link stage',
+    ],
+    [
+      'multiple link stages',
+      `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
+  - link: { config: orders.yaml, useTsConfig: false }
+  - link: { config: orders.yaml, useTsConfig: false }
+  - validate: {}`,
+      "Duplicate workflow stage name 'link'",
+    ],
+    [
+      'missing the validate stage',
+      `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
+  - link: { config: orders.yaml, useTsConfig: false }`,
+      'exactly one validate stage',
+    ],
+    [
+      'multiple validate stages',
+      `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
+  - link: { config: orders.yaml, useTsConfig: false }
+  - validate: {}
+  - validate: {}`,
+      "Duplicate workflow stage name 'validate'",
+    ],
+  ])('rejects workflows with %s before stages run', (_case, stages, reason) => {
+    const directory = workspace()
+    writeFileSync(join(directory, 'orders.yaml'), CONFIG)
+    writeWorkflow(directory, 'shipping.yaml', 'shipping', '', stages)
+
+    expect(() =>
+      new RiviereProjectRepository().loadWorkflow({
+        projectRoot: directory,
+        workflowName: 'combined',
+      }),
+    ).toThrow(reason)
   })
 
   it('translates unexpected workflow document failures', () => {
