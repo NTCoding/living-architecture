@@ -35,7 +35,6 @@ export class RiviereProject {
   private constructor(
     private readonly configuration: ExtractionConfiguration | undefined,
     private readonly modules: readonly RiviereModule[],
-    private graphOptions: Parameters<typeof RiviereBuilder.new>[0] | undefined,
     private unassignedDraftComponents: readonly DraftComponent[],
     private builder?: RiviereBuilder,
     private readonly workflows: Workflow[] = [],
@@ -43,19 +42,12 @@ export class RiviereProject {
 
   static start(input: GraphProjectStartInput): RiviereProjectStartSuccess
   static start(input: ExtractionProjectStartInput): RiviereProjectStartResult
-  static start(
-    input: ExtractionProjectStartInput | GraphProjectStartInput,
-  ): RiviereProjectStartResult {
+  static start(input: RiviereProjectStartInput): RiviereProjectStartResult
+  static start(input: RiviereProjectStartInput): RiviereProjectStartResult {
     if (input.graphDefinition !== undefined) {
       return {
         success: true as const,
-        data: new RiviereProject(
-          undefined,
-          [],
-          input.graphDefinition,
-          [],
-          RiviereBuilder.new(input.graphDefinition),
-        ),
+        data: new RiviereProject(undefined, [], [], RiviereBuilder.new(input.graphDefinition)),
       }
     }
     const sourceErrors = RiviereModule.configurationSourceErrors(input.configuration)
@@ -67,12 +59,12 @@ export class RiviereProject {
     )
     return {
       success: true as const,
-      data: new RiviereProject(input.configuration, modules, undefined, unassignedDraftComponents),
+      data: new RiviereProject(input.configuration, modules, unassignedDraftComponents),
     }
   }
 
   static rehydrate(graph: RiviereGraph, graphOptions = RiviereBuilder.graphOptionsFrom(graph)) {
-    return new RiviereProject(undefined, [], graphOptions, [], RiviereBuilder.fromGraph(graph))
+    return new RiviereProject(undefined, [], [], RiviereBuilder.fromGraph(graph, graphOptions))
   }
 
   addWorkflow(input: Parameters<typeof Workflow.start>[0]) {
@@ -82,11 +74,11 @@ export class RiviereProject {
   }
 
   addSource(input: Parameters<RiviereBuilder['addSource']>[0]): void {
-    this.updateGraphOptions((builder) => builder.addSource(input))
+    this.graphBuilder().addSource(input)
   }
 
   addDomain(input: Parameters<RiviereBuilder['addDomain']>[0]): void {
-    this.updateGraphOptions((builder) => builder.addDomain(input))
+    this.graphBuilder().addDomain(input)
   }
 
   addComponent(definition: ComponentDefinition['value']): string {
@@ -148,16 +140,13 @@ export class RiviereProject {
   rebuildGraph(workflowName: string) {
     const workflow = this.workflows.find((candidate) => candidate.name() === workflowName)
     if (workflow === undefined) {
-      return Workflow.failureResult(
-        'WORKFLOW_NOT_FOUND',
-        `Workflow '${workflowName}' was not found`,
-      )
+      return workflowFailure('WORKFLOW_NOT_FOUND', `Workflow '${workflowName}' was not found`)
     }
     const previousBuilder = this.builder
-    if (previousBuilder === undefined || this.graphOptions === undefined) {
-      return Workflow.failureResult('GRAPH_STATE_UNAVAILABLE', 'Graph state is unavailable')
+    if (previousBuilder === undefined) {
+      return workflowFailure('GRAPH_STATE_UNAVAILABLE', 'Graph state is unavailable')
     }
-    this.builder = RiviereBuilder.new(this.graphOptions)
+    this.builder = RiviereBuilder.new(RiviereBuilder.graphOptionsFrom(previousBuilder.build()))
     const run = workflow.run(this.builder, (stage, components) =>
       this.executeWorkflowStage(stage, components),
     )
@@ -396,14 +385,6 @@ export class RiviereProject {
     if (this.builder === undefined) throw new GraphStateUnavailableError()
     return this.builder
   }
-
-  private updateGraphOptions(update: (builder: RiviereBuilder) => void): void {
-    if (this.graphOptions === undefined) throw new GraphStateUnavailableError()
-    const optionsBuilder = RiviereBuilder.new(this.graphOptions)
-    update(optionsBuilder)
-    update(this.graphBuilder())
-    this.graphOptions = RiviereBuilder.graphOptionsFrom(optionsBuilder.build())
-  }
 }
 
 type ExtractionProjectStartInput = Readonly<{
@@ -418,6 +399,7 @@ type GraphProjectStartInput = Readonly<{
   draftComponents?: undefined
 }>
 
+type RiviereProjectStartInput = ExtractionProjectStartInput | GraphProjectStartInput
 type RiviereProjectStartSuccess = Readonly<{ success: true; data: RiviereProject }>
 type RiviereProjectStartResult =
   | RiviereProjectStartSuccess
@@ -437,5 +419,15 @@ function observePhase<T>(
     return operation()
   } finally {
     observer?.({ phase, status: 'completed' })
+  }
+}
+
+function workflowFailure(errorCode: string, reason: string) {
+  return {
+    success: false as const,
+    errorCode,
+    reason,
+    events: [],
+    warnings: [],
   }
 }

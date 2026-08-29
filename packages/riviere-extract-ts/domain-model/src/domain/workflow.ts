@@ -68,25 +68,6 @@ export class Workflow {
   private runWarnings: OperationWarning[] = []
   private accumulatedComponents: EnrichedComponent[] = []
 
-  static failureResult(
-    errorCode: string,
-    reason: string,
-  ): Readonly<{
-    success: false
-    errorCode: string
-    reason: string
-    events: readonly WorkflowRunEvent[]
-    warnings: readonly OperationWarning[]
-  }> {
-    return {
-      success: false,
-      errorCode,
-      reason,
-      events: [],
-      warnings: [],
-    }
-  }
-
   static start(input: {
     name: string
     outputPath: string
