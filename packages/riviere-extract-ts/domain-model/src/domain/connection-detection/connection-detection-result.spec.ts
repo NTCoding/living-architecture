@@ -43,4 +43,20 @@ describe('ConnectionDetectionResult', () => {
       externalLinks,
     )
   })
+
+  it('combines results from several extraction contexts', () => {
+    const first = ConnectionDetectionResult.parse({
+      links: [ExtractedLink.parse({ source: 'orders:api:orders', target: 'orders:usecase:list' })],
+      externalLinks: [],
+    })
+    const second = ConnectionDetectionResult.parse({
+      links: [],
+      externalLinks: [{ source: 'orders:api:orders', target: { name: 'payments' } }],
+    })
+
+    expect(ConnectionDetectionResult.combine([first, second])).toMatchObject({
+      links: first.links,
+      externalLinks: second.externalLinks,
+    })
+  })
 })

@@ -14,6 +14,13 @@ export class ConnectionDetectionResult {
     return new ConnectionDetectionResult(params)
   }
 
+  static combine(results: readonly ConnectionDetectionResult[]): ConnectionDetectionResult {
+    return ConnectionDetectionResult.parse({
+      links: results.flatMap((result) => result.links),
+      externalLinks: results.flatMap((result) => result.externalLinks),
+    })
+  }
+
   private constructor(params: {
     links: readonly ExtractedLink[]
     externalLinks: readonly ExternalLink[]

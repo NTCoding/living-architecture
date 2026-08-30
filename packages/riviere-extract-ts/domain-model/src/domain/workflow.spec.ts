@@ -1,4 +1,7 @@
-import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
+import {
+  ComponentId,
+  RiviereBuilder,
+} from '@living-architecture/riviere-builder-published-language'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { Project } from 'ts-morph'
@@ -193,39 +196,46 @@ describe('Workflow.run', () => {
         return { success: true, kind: 'components', components, repository: 'shop' }
       }
       expect(accumulated).toStrictEqual(components)
-      const graph = graphBuilder.build()
-      const source = graph.components[0]
-      const target = graph.components[1]
-      assert(source)
-      assert(target)
+      const source = ComponentId.parseFromParts({
+        domain: 'orders',
+        module: 'orders',
+        type: 'ui',
+        name: 'Orders page',
+      }).toString()
+      const target = ComponentId.parseFromParts({
+        domain: 'orders',
+        module: 'orders',
+        type: 'api',
+        name: 'Orders API',
+      }).toString()
       return {
         success: true,
         kind: 'connections',
         connections: ConnectionDetectionResult.parse({
           links: [
             ExtractedLink.parse({
-              source: source.id,
-              target: target.id,
+              source,
+              target,
               type: 'sync',
               sourceLocation: { repository: 'shop', filePath: 'orders.ts', lineNumber: 4 },
             }),
-            ExtractedLink.parse({ source: target.id, target: source.id }),
+            ExtractedLink.parse({ source: target, target: source }),
           ],
           externalLinks: [
             {
-              source: source.id,
+              source,
               target: { name: 'Payments API', repository: 'payments' },
               type: 'sync',
               description: 'Charges the order',
               sourceLocation: { repository: 'shop', filePath: 'orders.ts', lineNumber: 5 },
             },
             {
-              source: source.id,
+              source,
               target: { name: 'Payments API', repository: 'payments' },
               type: 'sync',
             },
             {
-              source: target.id,
+              source: target,
               target: { name: 'Search API' },
             },
           ],
@@ -234,7 +244,7 @@ describe('Workflow.run', () => {
     })
 
     assert(result.success)
-    expect(graphBuilder.build()).toMatchObject({
+    expect(result.builder.build()).toMatchObject({
       components: expect.arrayContaining([
         expect.objectContaining({ type: 'UI' }),
         expect.objectContaining({ type: 'API' }),
@@ -374,7 +384,9 @@ describe('Workflow.run', () => {
       ...graphBuilder.build(),
       links: [{ source: 'missing', target: 'also-missing', type: 'sync' as const }],
     }
-    vi.spyOn(graphBuilder, 'validate').mockReturnValue(ValidationResult.parse(invalidGraph))
+    vi.spyOn(RiviereBuilder.prototype, 'validate').mockReturnValue(
+      ValidationResult.parse(invalidGraph),
+    )
 
     const result = workflow().run(graphBuilder, (stage) =>
       stage.kind === 'extract'

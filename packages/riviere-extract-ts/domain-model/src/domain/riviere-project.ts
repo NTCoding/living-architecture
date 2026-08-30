@@ -142,21 +142,18 @@ export class RiviereProject {
     if (workflow === undefined) {
       return workflowFailure('WORKFLOW_NOT_FOUND', `Workflow '${workflowName}' was not found`)
     }
-    const previousBuilder = this.builder
-    if (previousBuilder === undefined) {
+    const currentBuilder = this.builder
+    if (currentBuilder === undefined) {
       return workflowFailure('GRAPH_STATE_UNAVAILABLE', 'Graph state is unavailable')
     }
-    this.builder = previousBuilder.fresh()
-    const run = workflow.run(this.builder, (stage, components) =>
-      this.executeWorkflowStage(stage, components),
+    const run = workflow.run(currentBuilder, (stage, components, executedExtractions) =>
+      this.executeWorkflowStage(stage, components, executedExtractions),
     )
-    if (!run.success) {
-      this.builder = previousBuilder
-      return run
-    }
+    if (!run.success) return run
+    this.builder = run.builder
     return {
       success: true as const,
-      graph: this.graphBuilder().build(),
+      graph: run.builder.build(),
       outputPath: workflow.outputPath(),
       runLogDirectory: workflow.runLogDirectory(),
       events: run.events,
@@ -167,12 +164,17 @@ export class RiviereProject {
   private executeWorkflowStage(
     stage: Exclude<WorkflowStageValue, { kind: 'validate' }>,
     accumulatedComponents: readonly EnrichedComponent[],
+    executedExtractions: readonly ExtractionConfiguration[],
   ) {
     switch (stage.kind) {
       case 'extract':
         return this.executeExtractionStage(stage.configuration)
       case 'link':
-        return this.executeLinkStage(stage.configuration, accumulatedComponents)
+        return this.executeLinkStage(
+          stage.configuration,
+          executedExtractions,
+          accumulatedComponents,
+        )
     }
   }
 
@@ -198,11 +200,15 @@ export class RiviereProject {
   }
 
   private executeLinkStage(
-    configuration: ExtractionConfiguration,
+    linkConfiguration: ExtractionConfiguration,
+    executedExtractions: readonly ExtractionConfiguration[],
     components: readonly EnrichedComponent[],
   ) {
-    const modules = RiviereModule.fromConfiguration(configuration, [])
-    const connections = this.detectConnectionsUsing(configuration, modules, components, false)
+    const detectedConnections = executedExtractions.map((extraction) => {
+      const modules = RiviereModule.fromConfiguration(extraction, [])
+      return this.detectConnectionsUsing(linkConfiguration, modules, components, false)
+    })
+    const connections = ConnectionDetectionResult.combine(detectedConnections)
     return { success: true as const, kind: 'connections' as const, connections }
   }
 
