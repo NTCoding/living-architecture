@@ -133,7 +133,24 @@ describe('workflow-cli hooks', () => {
     expect(result.exitCode).toStrictEqual(0)
   })
 
-  it('rejects Write with missing file_path', () => {
+  it('allows workflow tools without a file path', () => {
+    const ctx = setup()
+    runCommand(ctx, ['init'])
+
+    const stdinJson = JSON.stringify({
+      session_id: ctx.sessionId,
+      transcript_path: '/transcript',
+      cwd: '/dir',
+      hook_event_name: 'PreToolUse',
+      tool_name: 'workflow',
+      tool_input: { operation: 'record-issue', args: ['410'] },
+      tool_use_id: 'tu-workflow',
+    })
+    const result = runHook(ctx, stdinJson)
+    expect(result.exitCode).toStrictEqual(0)
+  })
+
+  it('blocks Write with missing file_path', () => {
     const ctx = setup()
     runCommand(ctx, ['init'])
 
@@ -146,7 +163,9 @@ describe('workflow-cli hooks', () => {
       tool_input: {},
       tool_use_id: 'tu-write-no-path',
     })
-    expect(() => runHook(ctx, stdinJson)).toThrow('String must contain at least 1 character')
+    const result = runHook(ctx, stdinJson)
+    expect(result.exitCode).toStrictEqual(2)
+    expect(result.output).toContain('Cannot determine every file edited by Write.')
   })
 
   it('throws when Write file_path is non-string type', () => {
