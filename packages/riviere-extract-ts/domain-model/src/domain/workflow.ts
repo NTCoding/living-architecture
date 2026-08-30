@@ -9,8 +9,7 @@ import type { EnrichedComponent } from './value-extraction/enriched-component'
 import { WorkflowDefinitionFailure } from './workflow-definition-failure'
 import { WorkflowRunEvent } from './workflow-run-event'
 import type { WorkflowStage, WorkflowStageValue } from './workflow-stage'
-
-type WorkflowState = 'ready' | 'running' | 'completed' | 'failed'
+import { WorkflowState } from './workflow-state'
 
 type WorkflowStageExecutionResult =
   | Readonly<{
@@ -41,6 +40,7 @@ type WorkflowStagePreparationResult =
 type WorkflowRunResult =
   | Readonly<{
       success: true
+      builder: RiviereBuilder
       events: readonly WorkflowRunEvent[]
       warnings: readonly OperationWarning[]
     }>
@@ -59,14 +59,12 @@ type WorkflowStartResult =
 type ExecuteWorkflowStage = (
   stage: Exclude<WorkflowStageValue, { kind: 'validate' }>,
   accumulatedComponents: readonly EnrichedComponent[],
+  executedExtractions: readonly ExtractionConfiguration[],
 ) => WorkflowStagePreparationResult
 
 /** @riviere-role aggregate-entity */
 export class Workflow {
-  private state: WorkflowState = 'ready'
-  private runEvents: WorkflowRunEvent[] = []
-  private runWarnings: OperationWarning[] = []
-  private accumulatedComponents: EnrichedComponent[] = []
+  private state: WorkflowState | undefined
 
   static start(input: {
     name: string
@@ -101,8 +99,8 @@ export class Workflow {
     return this.logDirectory
   }
 
-  status(): WorkflowState {
-    return this.state
+  status(): ReturnType<WorkflowState['status']> {
+    return this.state?.status() ?? 'ready'
   }
 
   configurations(): readonly ExtractionConfiguration[] {
@@ -112,39 +110,50 @@ export class Workflow {
   }
 
   run(builder: RiviereBuilder, execute: ExecuteWorkflowStage): WorkflowRunResult {
-    this.startRun()
-    this.defineCustomTypes(builder)
-    for (const [index, stage] of this.stages.entries()) {
-      const values = stageEventValues(stage.value, index)
-      this.runEvents.push(WorkflowRunEvent.fromStage('StageStarted', values))
-      const result = this.executeStage(builder, execute, stage.value)
-      if (!result.success) return this.failRun(values, result)
-      this.recordStageSuccess(stage.value, values, result)
-    }
-    this.state = 'completed'
-    this.runEvents.push(WorkflowRunEvent.fromWorkflow('WorkflowCompleted'))
-    return { success: true, events: [...this.runEvents], warnings: [...this.runWarnings] }
+    const state = WorkflowState.fromBuilder(builder)
+    this.state = state
+    this.defineCustomTypes(state.builder())
+    return this.runStages(state, execute, 0)
   }
 
-  private startRun(): void {
-    this.state = 'running'
-    this.runEvents = [WorkflowRunEvent.fromWorkflow('WorkflowStarted')]
-    this.runWarnings = []
-    this.accumulatedComponents = []
+  private runStages(
+    state: WorkflowState,
+    execute: ExecuteWorkflowStage,
+    index: number,
+  ): WorkflowRunResult {
+    const stage = this.stages[index]
+    if (stage === undefined) {
+      const completedState = state.complete()
+      this.state = completedState
+      return {
+        success: true,
+        builder: completedState.builder(),
+        events: completedState.events(),
+        warnings: completedState.warnings(),
+      }
+    }
+    const values = stageEventValues(stage.value, index)
+    const startedState = state.startStage(values)
+    this.state = startedState
+    const result = this.executeStage(startedState, execute, stage.value)
+    if (!result.success) return this.failRun(startedState, values, result)
+    const completedState = this.recordStageSuccess(startedState, stage.value, values, result)
+    this.state = completedState
+    return this.runStages(completedState, execute, index + 1)
   }
 
   private executeStage(
-    builder: RiviereBuilder,
+    state: WorkflowState,
     execute: ExecuteWorkflowStage,
     stage: WorkflowStageValue,
   ): WorkflowStageExecutionResult {
     try {
-      if (stage.kind === 'validate') return validateGraph(builder)
-      const prepared = execute(stage, this.accumulatedComponents)
+      if (stage.kind === 'validate') return validateGraph(state.builder())
+      const prepared = execute(stage, state.accumulatedComponents(), state.executedExtractions())
       if (!prepared.success) return prepared
       return prepared.kind === 'components'
-        ? applyComponents(builder, prepared.components, prepared.repository)
-        : applyConnections(builder, prepared.connections)
+        ? applyComponents(state.builder(), prepared.components, prepared.repository)
+        : applyConnections(state.builder(), prepared.connections)
     } catch (error) {
       return {
         success: false,
@@ -166,32 +175,27 @@ export class Workflow {
   }
 
   private recordStageSuccess(
+    state: WorkflowState,
     stage: WorkflowStageValue,
     values: WorkflowStageEventValues,
     result: Extract<WorkflowStageExecutionResult, { success: true }>,
-  ): void {
-    if (stage.kind === 'extract' && result.extractedComponents !== undefined) {
-      this.accumulatedComponents.push(...result.extractedComponents)
-    }
-    this.runWarnings.push(...result.warnings)
-    this.runEvents.push(WorkflowRunEvent.fromStage('StageCompleted', values))
+  ): WorkflowState {
+    return state.completeStage(stage, values, result.extractedComponents, result.warnings)
   }
 
   private failRun(
+    state: WorkflowState,
     values: WorkflowStageEventValues,
     failure: Extract<WorkflowStageExecutionResult, { success: false }>,
   ): WorkflowRunResult {
-    this.state = 'failed'
-    this.runEvents.push(
-      WorkflowRunEvent.fromStageFailure(values, failure.reason, failure.errorCode),
-      WorkflowRunEvent.fromWorkflowFailure(failure.reason, failure.errorCode),
-    )
+    const failedState = state.fail(values, failure.reason, failure.errorCode)
+    this.state = failedState
     return {
       success: false,
       errorCode: failure.errorCode,
       reason: failure.reason,
-      events: [...this.runEvents],
-      warnings: [...this.runWarnings],
+      events: failedState.events(),
+      warnings: failedState.warnings(),
     }
   }
 }

@@ -57,6 +57,7 @@ function component(domain: string, name: string): EnrichedComponent {
 function workflowDefinition(
   orderConfig = configuration('orders'),
   shippingConfig = configuration('shipping'),
+  linkConfig = orderConfig,
 ) {
   return {
     name: 'build-graph',
@@ -65,7 +66,7 @@ function workflowDefinition(
     stages: [
       WorkflowStage.fromExtraction('extract-orders', orderConfig),
       WorkflowStage.fromExtraction('extract-shipping', shippingConfig),
-      WorkflowStage.fromLink('link', orderConfig),
+      WorkflowStage.fromLink('link', linkConfig),
       WorkflowStage.fromValidation('validate'),
     ],
   }
@@ -116,6 +117,26 @@ describe('RiviereProject workflow graph rebuild', () => {
       runLogDirectory: '/project/.riviere/logs/workflows',
       warnings: [],
     })
+    expect(subject.build()).toStrictEqual(result.graph)
+  })
+
+  it('detects links through the configurations that completed extraction', () => {
+    const orders = configuration('orders')
+    const shipping = configuration('shipping')
+    const link = configuration('link-rules')
+    const fromConfiguration = vi.spyOn(RiviereModule, 'fromConfiguration')
+    vi.spyOn(RiviereModule.prototype, 'extractAllDraftComponents').mockReturnValue([])
+    vi.spyOn(RiviereModule.prototype, 'enrichDraftComponents').mockReturnValue(
+      EnrichmentResult.parse({ components: [], failures: [] }),
+    )
+    const subject = project([workflowDefinition(orders, shipping, link)])
+
+    const result = subject.rebuildGraph('build-graph')
+
+    assert(result.success)
+    expect(fromConfiguration.mock.calls.map(([configuration]) => configuration.name)).toStrictEqual(
+      ['orders', 'shipping', 'orders', 'shipping'],
+    )
   })
 
   it('starts repeated runs with fresh graph construction state', () => {
@@ -164,7 +185,7 @@ describe('RiviereProject workflow graph rebuild', () => {
     })
   })
 
-  it('restores the previous completed graph after a failed rebuild', () => {
+  it('leaves the previous completed graph unchanged after a failed rebuild', () => {
     const subject = project()
     subject.addComponent({
       type: 'UseCase',
