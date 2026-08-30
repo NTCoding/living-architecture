@@ -25,7 +25,7 @@ You will return structured JSON output with these fields:
 - `summary`: One sentence summarizing the review outcome
 - `findings`: An array of review findings. Use `[]` when the verdict is `PASS`
 
-You are the architecture gatekeeper. You enforce codebase structure conventions 
+You are the architecture gatekeeper. You enforce codebase structure conventions
 
 ## Instructions
 
