@@ -107,6 +107,17 @@ describe('parseWorkflowDefinition', () => {
     ],
     ['missing extract config', { ...validWorkflow, stages: [{ extract: { name: 'orders' } }] }],
     ['missing link config', { ...validWorkflow, stages: [{ link: {} }] }],
+    [
+      'extract allowIncomplete option',
+      {
+        ...validWorkflow,
+        stages: [{ extract: { name: 'orders', config: 'orders.yaml', allowIncomplete: true } }],
+      },
+    ],
+    [
+      'link allowIncomplete option',
+      { ...validWorkflow, stages: [{ link: { config: 'combined.yaml', allowIncomplete: true } }] },
+    ],
     ['empty strings', { ...validWorkflow, graph: { ...validWorkflow.graph, outputPath: '' } }],
     [
       'unsupported system type',

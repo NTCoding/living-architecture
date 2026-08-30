@@ -1,4 +1,6 @@
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
+import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { Project } from 'ts-morph'
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ExtractionConfiguration } from './extraction-configuration'
@@ -200,6 +202,32 @@ describe('RiviereProject workflow graph rebuild', () => {
     expect(result).toMatchObject({ success: false, errorCode: 'FIELD_ENRICHMENT_FAILED' })
     expect(result).not.toHaveProperty('graph')
     expect(subject.build().components.map((item) => item.name)).toStrictEqual(['Existing graph'])
+  })
+
+  it('returns no graph artefact when workflow validation fails', () => {
+    vi.spyOn(RiviereModule.prototype, 'extractAllDraftComponents').mockReturnValue([])
+    vi.spyOn(RiviereModule.prototype, 'enrichDraftComponents').mockReturnValue(
+      EnrichmentResult.parse({ components: [], failures: [] }),
+    )
+    const subject = project()
+    const graph = subject.build()
+    const invalidGraph = {
+      version: graph.version,
+      metadata: graph.metadata,
+      components: graph.components,
+      links: [{ source: 'missing', target: 'also-missing', type: 'sync' as const }],
+    }
+    vi.spyOn(RiviereBuilder.prototype, 'validate').mockReturnValue(
+      ValidationResult.parse(invalidGraph),
+    )
+
+    const result = subject.rebuildGraph('build-graph')
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: 'GRAPH_VALIDATION_FAILED',
+    })
+    expect(result).not.toHaveProperty('graph')
   })
 
   it('returns typed failures for an unknown workflow and unavailable graph state', () => {
