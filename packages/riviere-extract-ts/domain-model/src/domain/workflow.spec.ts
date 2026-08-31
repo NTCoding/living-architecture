@@ -1,99 +1,17 @@
-import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
-import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
-import { Project } from 'ts-morph'
 import { assert, describe, expect, it, vi } from 'vitest'
 import { ConnectionDetectionResult } from './connection-detection/connection-detection-result'
 import { ExtractedLink } from './connection-detection/extracted-link'
-import { ExtractionConfiguration } from './extraction-configuration'
-import { EnrichedComponent, type MetadataValue } from './value-extraction/enriched-component'
 import { TestFixtureError } from './value-extraction/literal-detection'
 import { Workflow } from './workflow'
+import {
+  builder,
+  component,
+  configuration,
+  stagesFor,
+  workflow,
+} from './__fixtures__/workflow-fixtures'
 import { WorkflowStage } from './workflow-stage'
-
-function configuration(customType?: string): ExtractionConfiguration {
-  const parsed = ValidatedConfiguration.parse({
-    modules: [
-      {
-        api: { notUsed: true },
-        domain: 'orders',
-        domainOp: { notUsed: true },
-        event: { notUsed: true },
-        eventHandler: { notUsed: true },
-        glob: '**/*.ts',
-        name: 'orders',
-        path: '.',
-        ui: { notUsed: true },
-        useCase: { notUsed: true },
-        ...(customType === undefined
-          ? {}
-          : {
-              customTypes: {
-                [customType]: {
-                  find: 'classes' as const,
-                  where: { hasJSDoc: { tag: 'scheduledJob' } },
-                },
-              },
-            }),
-      },
-    ],
-  })
-  assert(parsed.success)
-  const module = parsed.data.modules[0]
-  assert(module)
-  return ExtractionConfiguration.parse({
-    name: 'orders',
-    configPath: 'orders.yml',
-    useTsConfig: false,
-    repositoryName: 'shop',
-    resolvedConfig: parsed.data,
-    moduleContexts: [{ module, project: new Project(), files: [] }],
-  })
-}
-
-function builder(): RiviereBuilder {
-  return RiviereBuilder.new({
-    name: 'Shop',
-    description: 'Shop graph',
-    sources: [{ repository: 'shop' }],
-    domains: { orders: { description: 'Orders', systemType: 'domain' } },
-  })
-}
-
-function component(
-  type: string,
-  name: string,
-  metadata: Record<string, MetadataValue> = {},
-): EnrichedComponent {
-  return EnrichedComponent.parse({
-    type,
-    name,
-    domain: 'orders',
-    module: 'orders',
-    location: { file: 'orders.ts', line: 1 },
-    metadata,
-    _missing: undefined,
-  })
-}
-
-function workflow(stages = stagesFor(configuration())): Workflow {
-  const result = Workflow.start({
-    name: 'build-graph',
-    outputPath: '.riviere/graph.json',
-    runLogDirectory: '.riviere/logs/workflows',
-    stages,
-  })
-  assert(result.success)
-  return result.data
-}
-
-function stagesFor(config: ExtractionConfiguration) {
-  return [
-    WorkflowStage.fromExtraction('extract', config),
-    WorkflowStage.fromLink('link', config),
-    WorkflowStage.fromValidation('validate'),
-  ]
-}
 
 describe('Workflow definition', () => {
   it('owns its identity, paths, ready state and configurations', () => {
@@ -308,6 +226,49 @@ describe('Workflow.run', () => {
     expect(second.events).toHaveLength(10)
   })
 
+  it('passes components from every extraction stage to the link stage', () => {
+    const config = configuration()
+    const subject = workflow([
+      WorkflowStage.fromExtraction('extract-orders', config),
+      WorkflowStage.fromExtraction('extract-shipping', config),
+      WorkflowStage.fromLink('link', config),
+      WorkflowStage.fromValidation('validate'),
+    ])
+    const orderComponents = [component('useCase', 'Place order')]
+    const shippingComponents = [component('useCase', 'Ship order')]
+    const linkInputs = new Map<string, readonly ReturnType<typeof component>[]>()
+
+    const result = subject.run(builder(), (stage, accumulatedComponents) => {
+      if (stage.kind === 'extract' && stage.name === 'extract-orders') {
+        return {
+          success: true,
+          kind: 'components',
+          components: orderComponents,
+          repository: 'shop',
+        }
+      }
+      if (stage.kind === 'extract') {
+        return {
+          success: true,
+          kind: 'components',
+          components: shippingComponents,
+          repository: 'shop',
+        }
+      }
+      linkInputs.set(stage.name, accumulatedComponents)
+      return {
+        success: true,
+        kind: 'connections',
+        connections: ConnectionDetectionResult.parse({ links: [], externalLinks: [] }),
+      }
+    })
+
+    assert(result.success)
+    const componentsProvidedToLink = linkInputs.get('link')
+    assert(componentsProvidedToLink)
+    expect(componentsProvidedToLink).toStrictEqual([...orderComponents, ...shippingComponents])
+  })
+
   it('stops after a typed stage failure', () => {
     const subject = workflow()
     const execute = vi.fn().mockReturnValue({
@@ -331,6 +292,43 @@ describe('Workflow.run', () => {
       result: { errorCode: 'EXTRACTION_FAILED', reason: 'Extraction failed' },
       eventTypes: ['WorkflowStarted', 'StageStarted', 'StageFailed', 'WorkflowFailed'],
       failure: { reason: 'Extraction failed', errorCode: 'EXTRACTION_FAILED' },
+    })
+  })
+
+  it('does not validate after the link stage fails', () => {
+    const graphBuilder = builder()
+    const validate = vi.spyOn(graphBuilder, 'validate')
+
+    const result = workflow().run(graphBuilder, (stage) => {
+      if (stage.kind === 'extract') {
+        return { success: true, kind: 'components', components: [], repository: 'shop' }
+      }
+      return {
+        success: false,
+        errorCode: 'CONNECTION_DETECTION_FAILED',
+        reason: 'Connection detection failed',
+      }
+    })
+
+    expect({
+      result,
+      validationCalls: validate.mock.calls.length,
+      eventTypes: result.events.map((event) => event.type),
+    }).toMatchObject({
+      result: {
+        success: false,
+        errorCode: 'CONNECTION_DETECTION_FAILED',
+        reason: 'Connection detection failed',
+      },
+      validationCalls: 0,
+      eventTypes: [
+        'WorkflowStarted',
+        'StageStarted',
+        'StageCompleted',
+        'StageStarted',
+        'StageFailed',
+        'WorkflowFailed',
+      ],
     })
   })
 
