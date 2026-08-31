@@ -30,7 +30,7 @@ For a team with 3 microservices, an EventCatalog, and an AsyncAPI spec, this mea
 
 ### 2.1 Workflows Are Riviere Workflows
 
-This is not a generic workflow engine. Workflows are purpose-built for Riviere extraction. Every step receives the workflow-owned builder facade over the `RiviereBuilder` owned by `RiviereProject` and calls its API to construct the graph. The builder remains the single source of truth for graph construction — ID generation, validation, deduplication all go through the builder surface.
+This is not a generic workflow engine. Workflows are purpose-built for Riviere extraction. Every step receives the `RiviereBuilder` owned by `RiviereProject` and calls its published API to construct the graph. The builder remains the single source of truth for graph construction — ID generation, validation, deduplication all go through the builder surface. **The earlier builder-facade decision is superseded. See Appendix A.**
 
 **Trade-off:** We sacrifice generality for simplicity and correctness. A generic engine would require intermediate representations, merge logic, and format translation. Builder-centric workflows get all of that for free from the existing builder infrastructure.
 
@@ -158,7 +158,7 @@ steps:
     type: schema-validate
 ```
 
-**Execution model:** Steps run sequentially, top to bottom. `RiviereProject` starts each rebuild with fresh Builder state and passes that private state to its selected Workflow. All steps share the same workflow-owned builder facade over that Builder. Builder state accumulates across steps. If a step throws, the workflow aborts, no final graph is written, and the structured workflow log remains available for debugging.
+**Execution model:** Steps run sequentially, top to bottom. `RiviereProject` starts each rebuild with fresh Builder state and passes that private `RiviereBuilder` directly to its selected Workflow and steps. Builder state accumulates across steps. If a step throws, the workflow aborts, no final graph is written, and the structured workflow log remains available for debugging. **The earlier builder-facade decision is superseded. See Appendix A.**
 
 **Step order is semantic (last-wins).** When multiple steps set the same scalar field on the same canonical component, **the later step wins**. Recommended order follows the priority doctrine in §2.2:
 
@@ -290,44 +290,9 @@ interface WorkflowDiagnostics {
   resolve(diagnostic: UnresolvedDiagnostic): void
 }
 
-interface WorkflowBuilder {
-  addSource(input: SourceInfo): void
-  addDomain(input: DomainInput): void
-  upsertUI(input: UIInput, options?: UpsertOptions): { component: UIComponent; created: boolean }
-  upsertApi(input: APIInput, options?: UpsertOptions): { component: APIComponent; created: boolean }
-  upsertUseCase(
-    input: UseCaseInput,
-    options?: UpsertOptions,
-  ): { component: UseCaseComponent; created: boolean }
-  upsertDomainOp(
-    input: DomainOpInput,
-    options?: UpsertOptions,
-  ): { component: DomainOpComponent; created: boolean }
-  upsertEvent(
-    input: EventInput,
-    options?: UpsertOptions,
-  ): { component: EventComponent; created: boolean }
-  upsertEventHandler(
-    input: EventHandlerInput,
-    options?: UpsertOptions,
-  ): { component: EventHandlerComponent; created: boolean }
-  upsertCustom(
-    input: CustomInput,
-    options?: UpsertOptions,
-  ): { component: CustomComponent; created: boolean }
-  link(input: LinkInput): void
-  linkExternal(input: ExternalLinkInput): void
-  warnings(): readonly BuilderWarning[]
-  stats(): BuilderStats
-  orphans(): readonly string[]
-  query(): RiviereQuery
-  validate(): ValidationResult
-  build(): RiviereGraph
-}
-
 interface StepContext<TConfig> {
-  /** Workflow-owned facade over the RiviereBuilder owned by RiviereProject. */
-  builder: WorkflowBuilder
+  /** The RiviereBuilder privately owned by RiviereProject for this run. */
+  builder: RiviereBuilder
   config: TConfig
   logger: StepLogger
   diagnostics: WorkflowDiagnostics
@@ -353,11 +318,11 @@ interface WorkflowStepDefinition<TConfig = Record<string, unknown>> {
 
 The runtime is decoupled from concrete step implementations. It resolves step handlers by type name from the registry, derives the effective execution plan for the current mode, validates the active steps, then executes them in order. The step contract is exported from `riviere-workflow` so future extension can depend on the same seam.
 
-`WorkflowBuilder` is a workflow-owned facade over the `RiviereBuilder` owned by `RiviereProject`; steps do **not** receive the raw builder directly. The underlying `RiviereBuilder` remains graph-only and workflow-unaware. The Project passes its private Builder to the Workflow when execution starts. The facade forwards graph construction/query calls, layers workflow-only diagnostics/log reconciliation on top, and exposes workflow-level `validate()` / `build()` methods that compose the underlying builder result with the workflow diagnostics store. This keeps graph semantics in `riviere-builder` while keeping workflow-specific incomplete-state handling in `riviere-workflow`.
+The Project passes its private `RiviereBuilder` directly to the Workflow when execution starts, and the Workflow passes it directly to each step. The Builder remains graph-only and workflow-unaware. Workflow diagnostics remain separate runtime state in `StepContext.diagnostics`; the Workflow coordinates diagnostic checks with direct Builder validation and finalisation. No graph-write port, builder adapter, facade, or graph-application service is introduced. See Appendix A.
 
 ### 3.3 Builder Creation and Workflow Compatibility Rules
 
-The underlying builder requires `sources` and `domains` at construction (`RiviereBuilder.new()`). `RiviereProject` therefore starts fresh Builder state from the workflow's top-level graph definition before the Workflow creates its shared facade.
+The underlying builder requires `sources` and `domains` at construction (`RiviereBuilder.new()`). `RiviereProject` therefore starts fresh Builder state from the workflow's top-level graph definition before the Workflow begins execution.
 
 **How it works (aligned with `workflow run` in §3.6):**
 
@@ -365,7 +330,7 @@ The underlying builder requires `sources` and `domains` at construction (`Rivier
 2. Structural validation of intrinsic workflow shape
 3. Derive the effective execution plan for the current run mode
 4. Validate referenced config files, step configs, and runtime prerequisites only for steps in that effective plan
-5. Ask `RiviereProject` to start fresh Builder state from `{ name, description, sources, domains }`, then let the selected Workflow wrap it in the shared `WorkflowBuilder` facade after all active-step validation passes
+5. Ask `RiviereProject` to start fresh Builder state from `{ name, description, sources, domains }`, then pass that Builder directly to the selected Workflow after all active-step validation passes
 6. Execute steps sequentially with that concrete builder
 7. On success: `builder.build()` → write JSON to `output` path
 8. On failure at any step: abort, discard builder state, exit non-zero
@@ -830,18 +795,18 @@ The single `noOverwrite` option covers the additive-only AI use case without add
 
 **`addDomain()` and `addSource()` become idempotent:** Adding a domain/source that already exists is a no-op. No error. Source identity = `repository`. Domain identity = domain name.
 
-#### 3.5.1 Workflow Builder Read Surface
+#### 3.5.1 Builder Read Surface
 
-Phase 13 does **not** introduce new read-method names for step authors. The workflow facade mirrors the familiar builder surface, while the underlying `RiviereBuilder` remains graph-only. Step handlers and transition-fixture capture use the workflow-facing surface below:
+Phase 13 does **not** introduce a workflow builder facade or new read-method names for step authors. Step handlers and transition-fixture capture use the `RiviereBuilder` surface directly:
 
 | Method                                 | Purpose                                                                                                                                     |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder.validate(): ValidationResult` | **Workflow-facade validation**: underlying builder graph validation plus unresolved workflow diagnostics. `schema-validate` step uses this. |
+| `builder.validate(): ValidationResult` | Graph validation. The Workflow separately checks unresolved workflow diagnostics before accepting a run. |
 | `builder.warnings()`                   | Non-fatal issues on the current graph (runtime logs the per-step delta).                                                                    |
 | `builder.stats()`                      | Counts of components, links, domains.                                                                                                       |
 | `builder.orphans()`                    | Component IDs with no incoming or outgoing links.                                                                                           |
 | `builder.query(): RiviereQuery`        | Full read-only query object from `@living-architecture/riviere-builder-domain-model`.                                                                     |
-| `builder.build(): RiviereGraph`        | **Workflow-facade finalization**: underlying builder `build()` plus unresolved-workflow-diagnostic guard. Used for final output.            |
+| `builder.build(): RiviereGraph`        | Builder finalisation after the Workflow has confirmed that no unresolved workflow diagnostics remain.                                      |
 
 `RiviereQuery` already exposes `components()`, `links()`, `find(predicate)`, `findAll(predicate)`, `componentById(id)`, `componentsInDomain(name)`, `componentsByType(type)`, `publishedEvents()`, `eventHandlers()`, `externalLinks()`, and more. Phase 13 does **not** add draft-only helper methods to `RiviereQuery`. AI steps that need incomplete-state information read it from `StepContext.diagnostics`, not from `RiviereGraph`.
 
@@ -853,11 +818,11 @@ Today `_missing` lives on `EnrichedComponent` (extract-ts) and `_uncertain` on `
 - **Workflow/runtime boundary:** when `code-extraction` runs in lenient mode, draft markers are converted into structured diagnostic events keyed by canonical component identity / link tuple.
 - **Runtime diagnostics view:** unresolved `missing-field` / `uncertain-link` events are available to later steps through `StepContext.diagnostics` and are written to the workflow log (§3.9).
 - **Canonical keys:** `missing-field` diagnostics key on `(componentId, field)`; `uncertain-link` diagnostics key on `(source, target, linkType)`. These keys are stable across steps and log events.
-- **Resolution ownership:** the `WorkflowBuilder` facade is the default resolver. Successful upserts automatically resolve matching `(componentId, field)` diagnostics only when the field transitions from unset to set. Successful link additions automatically resolve matching uncertain-link tuples only when a new matching link is actually created. Skipped writes under `{ noOverwrite: true }` do **not** resolve diagnostics. Step handlers call `diagnostics.resolve()` only for exceptional cases where no builder mutation can express the resolution directly.
+- **Resolution ownership:** the Workflow diagnostics store is the default resolver. After a successful direct Builder upsert or link addition, the Workflow resolves matching diagnostics only when the corresponding field or link was newly applied. Skipped writes under `{ noOverwrite: true }` do **not** resolve diagnostics. Step handlers call `diagnostics.resolve()` only for exceptional cases where no builder mutation can express the resolution directly.
 - **Resolution logging:** every auto-resolution or explicit resolution emits a `diagnostic-resolved` log event keyed to the same canonical diagnostic so log-parsing commands can reconstruct current unresolved state.
-- **Validation/build:** `builder.validate()` reports unresolved incomplete-state diagnostics as validation failures, and `builder.build()` throws `IncompleteGraphError` if any unresolved `missing-field` / `uncertain-link` diagnostics remain.
+- **Validation/build:** the Workflow combines `builder.validate()` with unresolved incomplete-state diagnostics before accepting a validation stage or final graph. `builder.build()` remains Builder finalisation and is called only after that Workflow-owned check succeeds.
 
-Result: AI steps can operate on the draft / in-progress state, while the final `RiviereGraph` remains clean and schema-valid. The underlying `RiviereBuilder` stays graph-only; the `WorkflowBuilder` facade composes underlying graph validation/finalization with the runtime diagnostics store so `validate()` / `build()` reflect both concerns without moving workflow semantics into `riviere-builder`.
+Result: AI steps can operate on the draft / in-progress state, while the final `RiviereGraph` remains clean and schema-valid. The underlying `RiviereBuilder` stays graph-only; the Workflow coordinates its direct Builder calls with the runtime diagnostics store without introducing an adapter layer.
 
 Standalone `riviere extract` preserves current draft-output semantics. Only workflow execution converts draft missing/uncertain state into runtime diagnostics.
 
@@ -1713,7 +1678,7 @@ The demo app becomes a stable first-customer workflow fixture without breaking t
 
 ### M1: Workflow engine and shared builder are in place
 
-The runtime can load a workflow, validate the active plan, and execute sequential steps against one shared builder facade.
+The runtime can load a workflow, validate the active plan, and execute sequential steps against one shared `RiviereBuilder` owned by `RiviereProject`. **The earlier builder-facade decision is superseded. See Appendix A.**
 
 #### Deliverables
 
@@ -1963,7 +1928,7 @@ riviere-workflow
 
 **Thin-boundary rule:** `riviere-workflow` owns orchestration only — sequencing, validation, diagnostics reconciliation, path resolution, and adapter invocation. It does **not** own extraction DSL semantics, graph merge semantics beyond invoking builder upserts, or reusable vendor-domain models.
 
-**Builder/workflow ownership split:** `riviere-builder` owns graph construction, typed upsert semantics, and graph-only validation/finalization. `riviere-workflow` owns runtime diagnostics, execution-plan orchestration, and the workflow-facade `validate()` / `build()` composition that layers unresolved workflow diagnostics on top of the underlying builder result.
+**Builder/workflow ownership split:** `riviere-builder` owns graph construction, typed upsert semantics, and graph-only validation/finalization. `riviere-workflow` owns runtime diagnostics and execution-plan orchestration. The Workflow combines diagnostic checks with direct `RiviereBuilder` validation before finalisation. **The earlier workflow-facade composition is superseded. See Appendix A.**
 
 **Internal package shape (ADR-002-aligned):**
 
@@ -2058,7 +2023,7 @@ src/
 | Term                       | Definition                                                                                                                                                                                                                                                                                                                                                            |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Workflow**               | A YAML definition specifying a sequence of steps that produce a complete Riviere graph. The primary interface for using Riviere.                                                                                                                                                                                                                                      |
-| **Workflow Builder**       | The workflow-owned facade over `RiviereBuilder` that steps receive in `StepContext.builder`. Preserves the builder surface while composing in workflow-only diagnostics and finalisation rules.                                                                                                                                                                       |
+| **Workflow Builder**       | **Superseded. See Appendix A.** Steps receive the `RiviereBuilder` directly; workflow diagnostics remain separate runtime state.                                                                                                                                                                                                                                      |
 | **Step**                   | A single unit of work in a workflow. Receives the builder, performs extraction/import/analysis, adds to the graph. Implements `WorkflowStepHandler`.                                                                                                                                                                                                                  |
 | **Step Type**              | A category of step with specific behavior: `code-extraction`, `eventcatalog-import`, `asyncapi-import`, `ai-extract`, `ai-enrich`, `schema-validate`.                                                                                                                                                                                                                 |
 | **Step Config**            | Configuration specific to a step type, stored in a separate file referenced by the workflow. Not part of the workflow definition.                                                                                                                                                                                                                                     |
@@ -2071,3 +2036,13 @@ src/
 | **Upsert**                 | Typed builder capability (one `upsert*` method per component type) to add-or-merge a component. If the component ID already exists, scalar fields are merged **last-wins** by default (or preserved under `{ noOverwrite: true }`) and array fields union. If not, it creates the component. Enables multi-source graph construction.                                 |
 | **noOverwrite**            | Option on every `upsert*` method. When `true`, scalar writes apply only to fields whose existing value is `undefined`/`null`; already-set scalars are preserved. Arrays still union. AI steps always pass `noOverwrite: true` so they never disturb values set by earlier deterministic steps.                                                                        |
 | **Workflow Init**          | Interactive CLI command (`riviere workflow init`) that creates a workflow definition and all step configs. The setup process for new workflows.                                                                                                                                                                                                                       |
+
+---
+
+## Appendix A: Current Builder Integration
+
+The earlier builder-facade design is superseded. `RiviereProject` directly depends on and privately owns `RiviereBuilder`. For each rebuild it creates fresh Builder state, gives that Builder directly to its selected `Workflow`, and restores the prior Builder state if the run fails.
+
+`Workflow` applies extraction output directly through the published Builder API. `EnrichedComponent.toComponentDefinition(repository)` creates typed component definitions; the Workflow dispatches each definition to the corresponding `upsert*` operation and applies internal and external links through `link` and `linkExternal`. Required graph fields are validated by the published definition value before Builder mutation.
+
+No graph-write port, Builder adapter, Builder facade, or `ApplyExtractionToGraph` service is part of the current architecture. Workflow diagnostics are separate runtime state and do not change Builder ownership or API access.
