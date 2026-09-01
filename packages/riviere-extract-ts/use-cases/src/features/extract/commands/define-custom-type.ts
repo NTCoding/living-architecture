@@ -18,7 +18,7 @@ export class DefineCustomType {
     if (!optionalProperties.success) return optionalProperties.result
 
     try {
-      const project = this.repository.load(input.graphFileLocation)
+      const project = this.repository.loadByGraphPath(input.graphFileLocation)
       project.defineCustomType({
         ...(input.description !== undefined && { description: input.description }),
         name: input.name,

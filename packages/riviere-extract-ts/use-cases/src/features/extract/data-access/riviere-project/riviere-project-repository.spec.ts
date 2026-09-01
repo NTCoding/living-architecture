@@ -48,8 +48,8 @@ function loadProject(params: {
   configPath: string
   projectRoot?: string
   useTsConfig: boolean
-}): ReturnType<RiviereProjectRepository['load']> {
-  return new RiviereProjectRepository().load({
+}): ReturnType<RiviereProjectRepository['loadByExtractionConfigPath']> {
+  return new RiviereProjectRepository().loadByExtractionConfigPath({
     projectRoot: params.projectRoot ?? process.cwd(),
     configPath: params.configPath,
     useTsConfig: params.useTsConfig,

@@ -25,7 +25,7 @@ export class LinkHttp {
     if (!parsedInput.success) return parsedInput.result
 
     try {
-      const project = this.repository.load(input.graphFileLocation)
+      const project = this.repository.loadByGraphPath(input.graphFileLocation)
       const graph = project.build()
       const matchingApis = findApisByPath(graph, input.path, parsedInput.httpMethod?.value)
       const [matchedApi, ...otherApis] = matchingApis

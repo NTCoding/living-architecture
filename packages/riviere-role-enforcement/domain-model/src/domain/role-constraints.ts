@@ -46,6 +46,7 @@ interface RoleConstraintsInput<R extends string = string> {
   readonly allowedInputs?: readonly R[]
   readonly allowedNames?: readonly string[]
   readonly allowedOutputs?: readonly R[]
+  readonly outputMethodNameMatches?: string
   readonly approvedInstances?: readonly ApprovedInstanceInput[]
   readonly forbiddenCallableDataMembers?: true
   readonly forbiddenInlineCallableMembers?: true
@@ -80,6 +81,7 @@ export class RoleConstraints<R extends string = string> {
   declare readonly allowedInputs?: readonly R[]
   declare readonly allowedNames?: readonly string[]
   declare readonly allowedOutputs?: readonly R[]
+  declare readonly outputMethodNameMatches?: string
   declare readonly approvedInstances?: readonly ApprovedInstance[]
   declare readonly forbiddenCallableDataMembers?: true
   declare readonly forbiddenInlineCallableMembers?: true

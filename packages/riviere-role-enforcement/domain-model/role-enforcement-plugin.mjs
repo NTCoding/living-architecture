@@ -2045,12 +2045,40 @@ export default {
             ) {
               const methodName = member.key?.name ?? '?'
               validateFunctionContract(member.value, role, `${name}.${methodName}`)
+              validateOutputMethodName(member, role, methodName)
             }
           }
         }
 
         function hasClassMethodContracts(role) {
-          return Array.isArray(role.allowedInputs) || Array.isArray(role.allowedOutputs)
+          return (
+            Array.isArray(role.allowedInputs) ||
+            Array.isArray(role.allowedOutputs) ||
+            typeof role.outputMethodNameMatches === 'string'
+          )
+        }
+
+        function validateOutputMethodName(member, role, methodName) {
+          if (
+            typeof role.outputMethodNameMatches !== 'string' ||
+            !Array.isArray(role.allowedOutputs)
+          ) {
+            return
+          }
+
+          const outputRoles = readOutputTypeRoles(member.value.returnType, filename)
+          if (
+            outputRoles === null ||
+            !outputRoles.some((outputRole) => role.allowedOutputs.includes(outputRole)) ||
+            new RegExp(role.outputMethodNameMatches).test(methodName)
+          ) {
+            return
+          }
+
+          report(
+            member,
+            `Role '${role.name}' requires aggregate-returning method '${methodName}' to match '${role.outputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
+          )
         }
 
         function validateCallableMemberConstraints(node, role, name) {

@@ -32,6 +32,7 @@ describe('role', () => {
       allowedOutputs: ['command-use-case-result'],
       forbiddenDependencies: ['command-use-case'],
       nameMatches: '.*UseCase$',
+      outputMethodNameMatches: '^execute$',
     })
 
     expectBuiltRole(result, {
@@ -41,6 +42,7 @@ describe('role', () => {
       allowedOutputs: ['command-use-case-result'],
       forbiddenDependencies: ['command-use-case'],
       nameMatches: '.*UseCase$',
+      outputMethodNameMatches: '^execute$',
     })
   })
 

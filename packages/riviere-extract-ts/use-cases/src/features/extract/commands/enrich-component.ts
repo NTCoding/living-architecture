@@ -14,7 +14,7 @@ export class EnrichComponent {
 
   execute(input: EnrichComponentInput): EnrichComponentResult {
     try {
-      const project = this.repository.load(input.graphFileLocation)
+      const project = this.repository.loadByGraphPath(input.graphFileLocation)
       const enrichmentInput = {
         ...buildBehavior(input),
         ...(input.businessRules.length > 0 ? { businessRules: input.businessRules } : {}),

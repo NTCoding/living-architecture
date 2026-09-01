@@ -112,7 +112,7 @@ describe('builder command coverage', () => {
 
   it('rethrows unexpected add-domain errors', () => {
     const project = createLoadedProject()
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
     vi.spyOn(project, 'addDomain').mockImplementation(() => {
       throw new UnexpectedBuilderFailure('domain explode')
     })
@@ -146,7 +146,7 @@ describe('builder command coverage', () => {
 
   it('rethrows unknown define-relationship-type errors', () => {
     const project = createLoadedProject()
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
     vi.spyOn(project, 'defineRelationshipType').mockImplementation(() => {
       throw new UnexpectedBuilderFailure('relationship explode')
     })
@@ -162,7 +162,7 @@ describe('builder command coverage', () => {
 
   it('rethrows unknown define-custom-type errors', () => {
     const project = createLoadedProject()
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
     vi.spyOn(project, 'defineCustomType').mockImplementation(() => {
       throw new UnexpectedBuilderFailure('explode')
     })
@@ -183,7 +183,7 @@ describe('builder command coverage', () => {
     const linkProject = createLoadedProject()
     const externalProject = createLoadedProject()
 
-    vi.spyOn(RiviereProjectRepository.prototype, 'load')
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath')
       .mockReturnValueOnce(enrichProject)
       .mockReturnValueOnce(linkProject)
       .mockReturnValueOnce(externalProject)
@@ -258,7 +258,7 @@ describe('builder command coverage', () => {
 
   it('includes ambiguous suggestions in link-http results', () => {
     const project = createLoadedProject()
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
     project.addComponent({
       type: 'API',
       input: {
@@ -312,7 +312,7 @@ describe('builder command coverage', () => {
 
   it('maps generic Error in add-component', () => {
     const project = createLoadedProject()
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
     vi.spyOn(project, 'addComponent').mockImplementation(() => {
       throw new UnexpectedBuilderFailure('builder exploded')
     })
@@ -339,7 +339,7 @@ describe('builder command coverage', () => {
 
   it('rethrows non-Error values in add-component', () => {
     const project = createLoadedProject()
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
     vi.spyOn(project, 'addComponent').mockImplementation(() => {
       throw 'boom'
     })
@@ -359,7 +359,7 @@ describe('builder command coverage', () => {
   })
 
   it('rethrows unknown load errors from add-source, check-consistency, and validate-graph', () => {
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockImplementation(() => {
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockImplementation(() => {
       throw new UnexpectedBuilderFailure('unexpected load failure')
     })
 
@@ -385,7 +385,7 @@ describe('builder command coverage', () => {
   })
 
   it('rethrows unknown load errors from link-http', () => {
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockImplementation(() => {
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockImplementation(() => {
       throw new UnexpectedBuilderFailure('unexpected load failure')
     })
 

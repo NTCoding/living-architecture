@@ -86,6 +86,7 @@ export const allRoles = [
   role('aggregate-repository', {
     targets: ['class'],
     allowedOutputs: ['aggregate'],
+    outputMethodNameMatches: '^load(?:By[A-Z][A-Za-z0-9]*)?$',
     forbiddenDependencies: ['aggregate-repository'],
   }),
   role('data-access-error', { targets: ['class'] }),

@@ -19,7 +19,7 @@ export class EnrichDraftComponents {
 
   execute(enrichDraftComponentsInput: EnrichDraftComponentsInput): EnrichDraftComponentsResult {
     try {
-      const riviereProject = this.riviereProjectRepository.loadForEnrichment({
+      const riviereProject = this.riviereProjectRepository.loadByDraftComponentsPath({
         projectRoot: enrichDraftComponentsInput.projectRoot ?? process.cwd(),
         configPath: enrichDraftComponentsInput.configPath,
         draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,

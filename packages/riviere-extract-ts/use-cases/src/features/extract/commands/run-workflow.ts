@@ -10,7 +10,7 @@ export class RunWorkflow {
 
   execute(input: RunWorkflowInput): RunWorkflowResult {
     try {
-      const project = this.projects.loadWorkflow(input)
+      const project = this.projects.loadByWorkflowName(input)
       return { result: project.rebuildGraph(input.workflowName) }
     } catch (error) {
       if (error instanceof ExtractionConfigError || error instanceof ExtractionDataAccessError) {
