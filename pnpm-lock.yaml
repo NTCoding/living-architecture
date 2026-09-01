@@ -262,11 +262,11 @@ importers:
   packages/dev-workflow-v2/domain-model:
     dependencies:
       '@nt-ai-lab/deterministic-agent-workflow-dsl':
-        specifier: 0.3.6
-        version: 0.3.6
+        specifier: 0.4.3
+        version: 0.4.3
       '@nt-ai-lab/deterministic-agent-workflow-engine':
-        specifier: 0.3.6
-        version: 0.3.6
+        specifier: 0.4.3
+        version: 0.4.3
       zod:
         specifier: ^3.23.0
         version: 3.25.76
@@ -290,14 +290,14 @@ importers:
         specifier: workspace:*
         version: link:../domain-model
       '@nt-ai-lab/deterministic-agent-workflow-cli':
-        specifier: 0.4.1
-        version: 0.4.1
+        specifier: 0.4.3
+        version: 0.4.3
       '@nt-ai-lab/deterministic-agent-workflow-dsl':
-        specifier: 0.3.6
-        version: 0.3.6
+        specifier: 0.4.3
+        version: 0.4.3
       '@nt-ai-lab/deterministic-agent-workflow-engine':
-        specifier: 0.3.6
-        version: 0.3.6
+        specifier: 0.4.3
+        version: 0.4.3
       zod:
         specifier: ^3.23.0
         version: 3.25.76
@@ -461,23 +461,23 @@ importers:
         specifier: workspace:*
         version: link:../../packages/dev-workflow-v2/use-cases
       '@nt-ai-lab/deterministic-agent-workflow-claude-code':
-        specifier: 0.4.1
-        version: 0.4.1
-      '@nt-ai-lab/deterministic-agent-workflow-cli':
-        specifier: 0.4.2
-        version: 0.4.2
-      '@nt-ai-lab/deterministic-agent-workflow-codex':
         specifier: 0.4.3
         version: 0.4.3
+      '@nt-ai-lab/deterministic-agent-workflow-cli':
+        specifier: 0.4.3
+        version: 0.4.3
+      '@nt-ai-lab/deterministic-agent-workflow-codex':
+        specifier: 0.4.5
+        version: 0.4.5
       '@nt-ai-lab/deterministic-agent-workflow-engine':
-        specifier: 0.4.2
-        version: 0.4.2
+        specifier: 0.4.3
+        version: 0.4.3
       '@nt-ai-lab/deterministic-agent-workflow-event-store':
-        specifier: 0.4.2
-        version: 0.4.2
+        specifier: 0.4.3
+        version: 0.4.3
       '@nt-ai-lab/deterministic-agent-workflow-opencode':
-        specifier: 0.4.2
-        version: 0.4.2
+        specifier: 0.4.3
+        version: 0.4.3
       esbuild:
         specifier: 0.27.2
         version: 0.27.2
@@ -517,6 +517,10 @@ packages:
 
   '@adobe/css-tools@4.4.4':
     resolution: {integrity: sha512-Elp+iwUx5rN5+Y8xLt5/GRoG20WGoDCQ/1Fb+1LiGtvwbDavuSk0jhD/eZdckHAuzcDzccnkv+rEjyWfRx18gg==}
+
+  '@ai-sdk/provider@3.0.8':
+    resolution: {integrity: sha512-oGMAgGoQdBXbZqNG0Ze56CHjDZ1IDYOwGYxYjO5KLSlz5HiNQ9udIXsPZ61VWaHGZ5XW/jyjmr6t2xz2jGVwbQ==}
+    engines: {node: '>=18'}
 
   '@algolia/abtesting@1.12.3':
     resolution: {integrity: sha512-0SpSdnME0RCS6UHSs9XD3ox4bMcCg1JTmjAJ3AU6rcTlX54CZOAEPc2as8uSghX6wfKGT0HWes4TeUpjJMg6FQ==}
@@ -2067,6 +2071,36 @@ packages:
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
 
+  '@msgpackr-extract/msgpackr-extract-darwin-arm64@3.0.4':
+    resolution: {integrity: sha512-LCkGo6JDfaBhgST7UpPWgNgLINpcpabaHfyz5OBx75nUYxBsaEPxjnyNjWpeb/xBup/682QnBfRBy2/LvPutZQ==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@msgpackr-extract/msgpackr-extract-darwin-x64@3.0.4':
+    resolution: {integrity: sha512-zExlW9zUJKZH/tOtVMttwjKa4Xm/3KcNjnE3dPN92uCktwavMxpgCA3MoJK/DOnTWsQgo224OaST27/mPNAf+w==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@msgpackr-extract/msgpackr-extract-linux-arm64@3.0.4':
+    resolution: {integrity: sha512-dgX0P/9wGPJeHFBG+ZmhgE6bmtMt7NP5CRBGyyktpopdk/mW4POnrpQsSLtKI1dwpc+pPLuXHDh6vvskyQE/sw==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@msgpackr-extract/msgpackr-extract-linux-arm@3.0.4':
+    resolution: {integrity: sha512-Tg3yX65f5GbtXLkrYEHE5oibZG9epyYWas7FogTTEJeDEF9JlXJzKgXaNhT3UXlTOeA+AfZpYZYZ0uPj7Cfquw==}
+    cpu: [arm]
+    os: [linux]
+
+  '@msgpackr-extract/msgpackr-extract-linux-x64@3.0.4':
+    resolution: {integrity: sha512-8TNXMEjJc3QEy7R/x1INhgiU+XakDAFUzBhaz7+Rbrs8NH5UQeHQxxmzsSBJGyV6I1jW79undiQm8tOI+D+8FQ==}
+    cpu: [x64]
+    os: [linux]
+
+  '@msgpackr-extract/msgpackr-extract-win32-x64@3.0.4':
+    resolution: {integrity: sha512-CmCXPQrkbwExx3j946/PtHWHbYJiCRBRDl4BlkRQcJB/YOwQxJRTpoo7aTsortjgoJ1x7opzTSxn7C+ASSLVjQ==}
+    cpu: [x64]
+    os: [win32]
+
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     resolution: {integrity: sha512-oTXEIha4SsuXdTA4Iyskj0kpdx2yVXdhd75c2v3xGrHFfVMsbhTPZU/nMPL4sWKo4pBHm3aucLaqGlF696dTyQ==}
     engines: {node: ^22.20 || ^24.12 || >=25}
@@ -2099,44 +2133,26 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.4.1':
-    resolution: {integrity: sha512-te4phVmxnMbsTDaN7YxTAfr8Hsg4nohuwFgPaOIl2YsD11oPoxuwNBcXejfXUUZ+CS4VET29yYzceGvP6KH8zA==}
+  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.4.3':
+    resolution: {integrity: sha512-jpn36qFh/nJT9kwZ/92JuC/JW7XaxJTWC3yulSugYB4G8mhkFbSlAyVT3y4MhcXRQMSsuJKM9luxY4ZOADLREg==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-cli@0.4.1':
-    resolution: {integrity: sha512-dpm2vb3z0cCweaZDyJEvUzo7LaoU3SBg4Ff+xTmJxCGo/2nBwFQuzJXXBhUyhqDm4VkWzVmswGL8pf6oigdrNw==}
+  '@nt-ai-lab/deterministic-agent-workflow-cli@0.4.3':
+    resolution: {integrity: sha512-gx+B70rXZJNfcaqyL/g7G8M2RDIPuDnxbLeo8FkxteX5CAeoEwTV3L4T+lMZGBMVYG9qlUo7O49p5Ep2IGy7FQ==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-cli@0.4.2':
-    resolution: {integrity: sha512-+ZQmTDoV/QiYHOMiZlzU4T18Ujz0V9uY8EUXFfIacj7p3/7g71j5Vuk9ZLALanemL8hjgcVjZukxMofnPnr3sA==}
+  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.5':
+    resolution: {integrity: sha512-rR0n2AjIBTA5txTHPvOnH5PbMRdF3cBBK1y+WXhagdyXVQQ/K46aOtVdPzYu6qHZI9bskv8iPC7e2Yw4lcu6XQ==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.3':
-    resolution: {integrity: sha512-Ri08mUk8mJ5NALvpGUd7pMsF/6fOOgC7+DgSQEvpvfbhPgV8IsYXfHUircMwpH4hLdBOlZ4u2dVtFgFG1KWN1g==}
+  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.4.3':
+    resolution: {integrity: sha512-K0MaUBycKCuviv8yc4nmwFoUZW3ZuYPsc8YDY9qIsuSmet9c2A2n46l36ExHuWKkJBW/8GHSUpYj1vHr7JOPvQ==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.3.6':
-    resolution: {integrity: sha512-HluSmsDvoIgYIepnNn8GcGMZs65AtJ3ydoZW0b9H4BlU38Qr6BHz08aEj9+OetDcy4pkFqQj4JfAlxaacl+wnQ==}
+  '@nt-ai-lab/deterministic-agent-workflow-engine@0.4.3':
+    resolution: {integrity: sha512-74qrxUFo3V762teC4JQ2izKsTfKqL3XAB48yTeDZUeCLMyDUVn5W/bDimJjun9cpodMq0QJdi7KvLLhyDU2fEQ==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.4.1':
-    resolution: {integrity: sha512-q4zgiRSfxf4j+5uq8Huon2Gu9cncjko8/ELYnf2bto+P2tReHvKMhuo85GF/YNgxLZNZ+/uYXDrsr5Xbpmkvuw==}
+  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.4.3':
+    resolution: {integrity: sha512-FPSUcMa9nAzWjMm7yHzBl5arwLSaC/NFg4y8B35wrSlwTk0Jlv+tuY6rJJVSdCHEKUxx7ZkdWCzA1QKirrMN8Q==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.4.2':
-    resolution: {integrity: sha512-ZMjCmYl6oP1eSuC+iS9UAdc6dVkmoTCsmAzT0582i4W2StXrHybdQO4xm3KOsAHh+HY+/MovE8KQ63xQHSgB7w==}
-
-  '@nt-ai-lab/deterministic-agent-workflow-engine@0.3.6':
-    resolution: {integrity: sha512-06hbQQ1p5NkHKPMTBK6CQj/t6LQ1SwApak3vNqkkO4bVMlamcsIIDcw0DLyBvbQ69osesIWa6y/nVuH3phNuwQ==}
-
-  '@nt-ai-lab/deterministic-agent-workflow-engine@0.4.1':
-    resolution: {integrity: sha512-VUZXT4vdFxr1ki1rzAqe2qE+8shyyrktWF4ROw6MeFwqrB9hch+rUhoYWXDJTv0fudIHghLCDAmVFrQImkg10Q==}
-
-  '@nt-ai-lab/deterministic-agent-workflow-engine@0.4.2':
-    resolution: {integrity: sha512-sAWFcZHQHFzsQuugp+PQhUExC8nxydyg1mP/8bO0z+QImb31c3RVdnGqAN5fgKCbjqbHOqPSuzU4Biaz0IR0Qw==}
-
-  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.4.1':
-    resolution: {integrity: sha512-wM1UfmNg1GUAD4kFIQPkjFxOPj1YYNGVJvo7z+06Nf32sxyKkNKHPJufIJqiBBmceBnU+4aqypvU6dHM9D/7dA==}
-
-  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.4.2':
-    resolution: {integrity: sha512-kIjdN3KMbjyT6PisIHXxTRJHZ/zX+Y74eIOoqAFGkpmu2gxEVj1I/nIHW2ojplSeVIEECNUJXcRC3BKRm6o9Yw==}
-
-  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.4.2':
-    resolution: {integrity: sha512-9j0wn5vFIQLqgbZecfsHud1Up6v0pLXYQh4z6yiyPdlAseldHrr+DFR0NwQHiQq0DRlgPvN/E010Gi7vUKBJEA==}
+  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.4.3':
+    resolution: {integrity: sha512-sTTul3A1GQrLlyohHxPLpn1w2pgcELPTvFNTXFuSqOJDo9HbXeiFFUu9QAPSWt4dctXmVzzZhldqEzd2rl/pBQ==}
 
   '@nx/devkit@23.1.1':
     resolution: {integrity: sha512-FmBfS1xUkWYvDYH/ysO7gAqGlaRzugLac8SIC+X/p76WBmhM6tJhfRW/BQ8mxOFZoVLmwhIiR8X0dRPKdasFxw==}
@@ -2267,19 +2283,22 @@ packages:
   '@nx/workspace@23.1.1':
     resolution: {integrity: sha512-woBDOW9bNcp+I2UEKhV62zc+1/gPCKPkTHZgwCdgoXSlXC3N9soGpnLG5QFy8NLodFC1f+5TSQJqN1tBW5rfIA==}
 
-  '@opencode-ai/plugin@1.4.3':
-    resolution: {integrity: sha512-Ob/3tVSIeuMRJBr2O23RtrnC5djRe01Lglx+TwGEmjrH9yDBJ2tftegYLnNEjRoMuzITgq9LD8168p4pzv+U/A==}
+  '@opencode-ai/plugin@1.18.23':
+    resolution: {integrity: sha512-a+LbJe+wyyiwOQ7DeYOY4MkI/6VL45wkgYunVNZGC93UQgaj6sMGemS45CsLXrjyF4bvJMtqGd66GJvgjzbXAg==}
     peerDependencies:
-      '@opentui/core': '>=0.1.97'
-      '@opentui/solid': '>=0.1.97'
+      '@opentui/core': '>=0.4.5'
+      '@opentui/keymap': '>=0.4.5'
+      '@opentui/solid': '>=0.4.5'
     peerDependenciesMeta:
       '@opentui/core':
+        optional: true
+      '@opentui/keymap':
         optional: true
       '@opentui/solid':
         optional: true
 
-  '@opencode-ai/sdk@1.4.3':
-    resolution: {integrity: sha512-X0CAVbwoGAjTY2iecpWkx2B+GAa2jSaQKYpJ+xILopeF/OGKZUN15mjqci+L7cEuwLHV5wk3x2TStUOVCa5p0A==}
+  '@opencode-ai/sdk@1.18.23':
+    resolution: {integrity: sha512-VouYbL8O2ynLq0atr5fjzCv8YLtFi/zKLQ/uYkCvTJ4CmUdA01XwPn8om+u3TvxnGEfQsBfmThGU141vt3sg5w==}
 
   '@oxc-resolver/binding-android-arm-eabi@11.16.3':
     resolution: {integrity: sha512-CVyWHu6ACDqDcJxR4nmGiG8vDF4TISJHqRNzac5z/gPQycs/QrP/1pDsJBy0MD7jSw8nVq2E5WqeHQKabBG/Jg==}
@@ -4963,6 +4982,9 @@ packages:
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
+  effect@4.0.0-beta.83:
+    resolution: {integrity: sha512-0wsak8RtgGAr9UWSbVDgJHZcUqMSvicHcvaZv1MbMM7MCGgW4Rn/137J1MHQbwYPcwYGxT/IqehFd+UbYuj78w==}
+
   ejs@5.0.1:
     resolution: {integrity: sha512-COqBPFMxuPTPspXl2DkVYaDS3HtrD1GpzOGkNTJ1IYkifq/r9h8SVEFrjA3D9/VJGOEoMQcrlhpntcSUrM8k6A==}
     engines: {node: '>=0.12.18'}
@@ -5287,6 +5309,10 @@ packages:
     resolution: {integrity: sha512-11Ndz7Nv+mvAC1j0ktTa7fAb0vLyGGX+rMHNBYQviQDGU0Hw7lhctJANqbPhu9nV9/izT/IntTgZ7Im/9LJs9g==}
     engines: {'0': node >=0.6.0}
 
+  fast-check@4.9.0:
+    resolution: {integrity: sha512-7ms6T7SybUev/PQITciI0yLM2pOSFy5zpG8Ty7tQofcVaQUvrMXp6CBwqF6fThLCLOrfBtuHAtwq6Yu4XPCllg==}
+    engines: {node: '>=12.17.0'}
+
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
 
@@ -5339,6 +5365,9 @@ packages:
   finalhandler@1.3.1:
     resolution: {integrity: sha512-6BN9trH7bp3qvnrRyzsBz+g3lZxTNZTbVO2EV1CS0WIcDbawYVdYvGflME/9QP0h0pYlCDBCTjYa9nZzMDpyxQ==}
     engines: {node: '>= 0.8'}
+
+  find-my-way-ts@0.1.6:
+    resolution: {integrity: sha512-a85L9ZoXtNAey3Y6Z+eBWW658kO/MwR7zIafkIUPUMf3isZG0NCs2pjW2wtjxAKuJPxMAsHUIP4ZPGv0o5gyTA==}
 
   find-up-simple@1.0.1:
     resolution: {integrity: sha512-afd4O7zpqHeRyg4PfDQsXmlDe2PfdHtJt6Akt8jOWaApLOZk5JXs6VMR29lz03pRe9mpykrRCYIYxaJYcfpncQ==}
@@ -5724,6 +5753,10 @@ packages:
   ini@4.1.1:
     resolution: {integrity: sha512-QQnnxNyfvmHFIsj7gkPcYymR8Jdw/o7mp5ZFihxn6h8Ci6fh3Dx4E1gPjpQEpIuPo9XVNY/ZUwh4BPMjGyL01g==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
+
+  ini@7.0.0:
+    resolution: {integrity: sha512-ifK0CgjALofS5bkrcTy4RaQ9Vx2Knf/eLeIO+NaswQEpH1UblrtTSCIvN71qQDMq0PeQ/SSPojvEJp9vvvfr+w==}
+    engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
 
   internal-slot@1.1.0:
     resolution: {integrity: sha512-4gd7VpWNQNB4UKKCFFVcp1AVv+FMOgs9NKzjHKusc8jTMhd5eL1NqQqOpE0KzMds804/yHlglp3uxgluOqAPLw==}
@@ -6218,6 +6251,9 @@ packages:
       '@types/node': '>=18'
       typescript: '>=5.0.4 <7'
 
+  kubernetes-types@1.30.0:
+    resolution: {integrity: sha512-Dew1okvhM/SQcIa2rcgujNndZwU8VnSapDgdxlYoB84ZlpAD43U6KLAFqYo17ykSFGHNPrg0qry0bP+GJd9v7Q==}
+
   language-subtag-registry@0.3.23:
     resolution: {integrity: sha512-0K65Lea881pHotoGEa5gDlMxt3pctLi2RplBb7Ezh4rRdLEOtgi7n4EwK9lamnUCkKBqaeKRVebTq6BAxSkpXQ==}
 
@@ -6695,6 +6731,16 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
+  msgpackr-extract@3.0.4:
+    resolution: {integrity: sha512-4kmO/MdyUIkLIvTPr8VHLil4AtoKIoniWPIEk5+CDy0xnWC84azhSFmuJ7PxZdsYtiP5kEeQsORAVIeMgxT+Hw==}
+    hasBin: true
+
+  msgpackr@2.0.6:
+    resolution: {integrity: sha512-plGul/tqjt9vqWFR9zyqyLZls6gb5KTLvnsRO2B9+TZ8tNiXiVI/CR8LiDWlAX4IUeVkQ9gsmzKA6voC2QOciw==}
+
+  multipasta@0.2.8:
+    resolution: {integrity: sha512-ZPWuMKyv0cSO29f7hozp+k6+crZbQijV8ipMvxNxRf2SwtYGTX1ZX89Kd20VV4H9Znonx+EQn+iy1wGQsJ+b+Q==}
+
   nano-spawn@2.0.0:
     resolution: {integrity: sha512-tacvGzUY5o2D8CBh2rrwxyNojUsZNU2zjNTzKQrkgGJQTbGAfArVWXSKMBokBeeg6C7OLRGUEyoFlYbfeWQIqw==}
     engines: {node: '>=20.17'}
@@ -6731,6 +6777,10 @@ packages:
     peerDependenciesMeta:
       encoding:
         optional: true
+
+  node-gyp-build-optional-packages@5.2.2:
+    resolution: {integrity: sha512-s+w+rBWnpTMwSFbaE0UXsRlg7hU4FjekKU4eyAih5T8nJuNZT1nNsskXpxmeqSK9UzkBl6UgRlnKc8hz8IEqOw==}
+    hasBin: true
 
   node-int64@0.4.0:
     resolution: {integrity: sha512-O5lz91xSOeoXP6DulyHfllpq+Eg00MWitZIbtPfoSEvqIHdl5gfcY6hYzDWnj0qD5tz52PI08u9qUvSVeUBeHw==}
@@ -7125,6 +7175,9 @@ packages:
 
   pure-rand@7.0.1:
     resolution: {integrity: sha512-oTUZM/NAZS8p7ANR3SHh30kXB+zK2r2BPcEn/awJIbOvq82WoMN4p62AWWp3Hhw50G0xMsw1mhIBLqHw64EcNQ==}
+
+  pure-rand@8.4.2:
+    resolution: {integrity: sha512-vvuOGgcuPJAirlHvuQw1TrOiw7ptaIXXmIbNuiNOY6lNGJJH49PQ1Kj4nd783nPdQhQdicgOjVI2yI/9BD6/Ng==}
 
   qs@6.15.3:
     resolution: {integrity: sha512-O9gl3zCl5h5blw1KGUzQKhA5oUXSl8rwUIM5o0S3nCXMliSvy5Dzx7/DJcI+SwgICv+IneSZwhBh1oSyEHA71A==}
@@ -7852,6 +7905,10 @@ packages:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
 
+  toml@4.3.0:
+    resolution: {integrity: sha512-lVb8X9BsPVuH0M4BKeS91tXAmJvCjQ5UIyAbQFaxkKGyUFK2RPkhwaFSQH8vbpl1d23eu/IBH+dwVMHWaq9A5A==}
+    engines: {node: '>=20'}
+
   totalist@3.0.1:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
@@ -8088,6 +8145,10 @@ packages:
   utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
+
+  uuid@14.0.2:
+    resolution: {integrity: sha512-xZe/16rV4aa+HGSOCiY2YeLT1OybRLrrkL/Rqaq7p7GMVXjFh+6wN4oMYgjFmnSnhY8t6Xpdl2l9qmnHYuMHwQ==}
+    hasBin: true
 
   v8-to-istanbul@9.3.0:
     resolution: {integrity: sha512-kiGUalWN+rgBJ/1OHZsBtU4rXZOfj/7rKQxULKlIzwzQSvMJUUNgPwJEEh7gU6xEVxC0ahoOBvN2YI8GH6FNgA==}
@@ -8519,6 +8580,10 @@ snapshots:
   '@acemir/cssom@0.9.31': {}
 
   '@adobe/css-tools@4.4.4': {}
+
+  '@ai-sdk/provider@3.0.8':
+    dependencies:
+      json-schema: 0.4.0
 
   '@algolia/abtesting@1.12.3':
     dependencies:
@@ -10303,6 +10368,24 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
+  '@msgpackr-extract/msgpackr-extract-darwin-arm64@3.0.4':
+    optional: true
+
+  '@msgpackr-extract/msgpackr-extract-darwin-x64@3.0.4':
+    optional: true
+
+  '@msgpackr-extract/msgpackr-extract-linux-arm64@3.0.4':
+    optional: true
+
+  '@msgpackr-extract/msgpackr-extract-linux-arm@3.0.4':
+    optional: true
+
+  '@msgpackr-extract/msgpackr-extract-linux-x64@3.0.4':
+    optional: true
+
+  '@msgpackr-extract/msgpackr-extract-win32-x64@3.0.4':
+    optional: true
+
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true
 
@@ -10338,76 +10421,49 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.4.1':
+  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.4.3':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.4.1
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.1
+      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.4.3
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.3
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-cli@0.4.1':
+  '@nt-ai-lab/deterministic-agent-workflow-cli@0.4.3':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-dsl': 0.4.1
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.1
-      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.1
+      '@nt-ai-lab/deterministic-agent-workflow-dsl': 0.4.3
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.3
+      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.3
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-cli@0.4.2':
+  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.5':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-dsl': 0.4.2
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.2
-      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.2
+      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.4.3
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.3
+      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.3
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.3':
+  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.4.3':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.4.1
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.1
-      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.1
-      zod: 3.25.76
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.3
 
-  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.3.6':
-    dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.3.6
-
-  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.4.1':
-    dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.1
-
-  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.4.2':
-    dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.2
-
-  '@nt-ai-lab/deterministic-agent-workflow-engine@0.3.6':
+  '@nt-ai-lab/deterministic-agent-workflow-engine@0.4.3':
     dependencies:
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-engine@0.4.1':
+  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.4.3':
     dependencies:
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.3
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-engine@0.4.2':
+  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.4.3':
     dependencies:
-      zod: 3.25.76
-
-  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.4.1':
-    dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.1
-      zod: 3.25.76
-
-  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.4.2':
-    dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.2
-      zod: 3.25.76
-
-  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.4.2':
-    dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.4.2
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.2
-      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.2
-      '@opencode-ai/plugin': 1.4.3
+      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.4.3
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.3
+      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.3
+      '@opencode-ai/plugin': 1.18.23
       zod: 3.25.76
     transitivePeerDependencies:
       - '@opentui/core'
+      - '@opentui/keymap'
       - '@opentui/solid'
 
   '@nx/devkit@23.1.1(nx@23.1.1(@swc-node/register@1.11.1(@swc/core@1.15.33(@swc/helpers@0.5.23))(@swc/types@0.1.26)(supports-color@7.2.0)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.23)))':
@@ -10625,12 +10681,14 @@ snapshots:
       - '@swc-node/register'
       - '@swc/core'
 
-  '@opencode-ai/plugin@1.4.3':
+  '@opencode-ai/plugin@1.18.23':
     dependencies:
-      '@opencode-ai/sdk': 1.4.3
+      '@ai-sdk/provider': 3.0.8
+      '@opencode-ai/sdk': 1.18.23
+      effect: 4.0.0-beta.83
       zod: 4.1.8
 
-  '@opencode-ai/sdk@1.4.3':
+  '@opencode-ai/sdk@1.18.23':
     dependencies:
       cross-spawn: 7.0.6
 
@@ -13511,6 +13569,19 @@ snapshots:
 
   ee-first@1.1.1: {}
 
+  effect@4.0.0-beta.83:
+    dependencies:
+      '@standard-schema/spec': 1.1.0
+      fast-check: 4.9.0
+      find-my-way-ts: 0.1.6
+      ini: 7.0.0
+      kubernetes-types: 1.30.0
+      msgpackr: 2.0.6
+      multipasta: 0.2.8
+      toml: 4.3.0
+      uuid: 14.0.2
+      yaml: 2.9.0
+
   ejs@5.0.1: {}
 
   electron-to-chromium@1.5.267: {}
@@ -14113,6 +14184,10 @@ snapshots:
 
   extsprintf@1.3.0: {}
 
+  fast-check@4.9.0:
+    dependencies:
+      pure-rand: 8.4.2
+
   fast-deep-equal@3.1.3: {}
 
   fast-fifo@1.3.2: {}
@@ -14171,6 +14246,8 @@ snapshots:
       unpipe: 1.0.0
     transitivePeerDependencies:
       - supports-color
+
+  find-my-way-ts@0.1.6: {}
 
   find-up-simple@1.0.1: {}
 
@@ -14628,6 +14705,8 @@ snapshots:
   inherits@2.0.4: {}
 
   ini@4.1.1: {}
+
+  ini@7.0.0: {}
 
   internal-slot@1.1.0:
     dependencies:
@@ -15386,6 +15465,8 @@ snapshots:
       typescript: 5.9.3
       zod: 4.3.5
 
+  kubernetes-types@1.30.0: {}
+
   language-subtag-registry@0.3.23: {}
 
   language-tags@1.0.9:
@@ -15925,6 +16006,24 @@ snapshots:
 
   ms@2.1.3: {}
 
+  msgpackr-extract@3.0.4:
+    dependencies:
+      node-gyp-build-optional-packages: 5.2.2
+    optionalDependencies:
+      '@msgpackr-extract/msgpackr-extract-darwin-arm64': 3.0.4
+      '@msgpackr-extract/msgpackr-extract-darwin-x64': 3.0.4
+      '@msgpackr-extract/msgpackr-extract-linux-arm': 3.0.4
+      '@msgpackr-extract/msgpackr-extract-linux-arm64': 3.0.4
+      '@msgpackr-extract/msgpackr-extract-linux-x64': 3.0.4
+      '@msgpackr-extract/msgpackr-extract-win32-x64': 3.0.4
+    optional: true
+
+  msgpackr@2.0.6:
+    optionalDependencies:
+      msgpackr-extract: 3.0.4
+
+  multipasta@0.2.8: {}
+
   nano-spawn@2.0.0: {}
 
   nanoid@3.3.17: {}
@@ -15943,6 +16042,11 @@ snapshots:
   node-fetch@2.6.7:
     dependencies:
       whatwg-url: 5.0.0
+
+  node-gyp-build-optional-packages@5.2.2:
+    dependencies:
+      detect-libc: 2.1.2
+    optional: true
 
   node-int64@0.4.0:
     optional: true
@@ -16494,6 +16598,8 @@ snapshots:
 
   pure-rand@7.0.1:
     optional: true
+
+  pure-rand@8.4.2: {}
 
   qs@6.15.3:
     dependencies:
@@ -17314,6 +17420,8 @@ snapshots:
 
   toidentifier@1.0.1: {}
 
+  toml@4.3.0: {}
+
   totalist@3.0.1: {}
 
   tough-cookie@5.1.2:
@@ -17601,6 +17709,8 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   utils-merge@1.0.1: {}
+
+  uuid@14.0.2: {}
 
   v8-to-istanbul@9.3.0:
     dependencies:
