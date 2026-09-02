@@ -6,10 +6,21 @@ import { RiviereBuilder } from './riviere-builder'
 
 class ExpectedMapMetadataError extends Error {}
 class ExpectedCustomComponentError extends Error {}
+class ExpectedSetMetadataError extends Error {}
 
 function mapMetadata(value: unknown): Map<unknown, unknown> {
   if (value instanceof Map) return value
   throw new ExpectedMapMetadataError()
+}
+
+function setMetadata(value: unknown): Set<unknown> {
+  if (value instanceof Set) return value
+  throw new ExpectedSetMetadataError()
+}
+
+function policyRoles(value: unknown): Set<unknown> {
+  if (typeof value !== 'object' || value === null) throw new ExpectedSetMetadataError()
+  return setMetadata(Reflect.get(value, 'roles'))
 }
 
 function customComponent(components: readonly Component[]): CustomComponent {
@@ -101,12 +112,16 @@ describe('RiviereBuilder snapshots', () => {
         repository: 'test/repo',
         filePath: 'src/order-policy.ts',
       },
-      metadata: { policies: new Map([['authorize', { enabled: true }]]) },
+      metadata: {
+        policies: new Map([
+          ['authorize', { enabled: true, roles: new Set(['admin']), reviewedAt: new Date(0) }],
+        ]),
+      },
     })
     const policies = mapMetadata(customComponent(builder.components())['policies'])
-    policies.set('capture', {
-      enabled: true,
-    })
+    const policy = policies.get('authorize')
+    const roles = policyRoles(policy)
+    roles.add('auditor')
 
     expect(builder.components()).toStrictEqual([component])
   })
