@@ -2094,7 +2094,7 @@ export default {
           if (
             isPrivateMember(member) ||
             (member.accessibility !== 'public' && member.accessibility != null) ||
-            !member.computed ||
+            (member.key.type === 'Identifier' && !member.computed) ||
             (member.key.type === 'Literal' && typeof member.key.value === 'string') ||
             (member.key.type === 'TemplateLiteral' && member.key.expressions.length === 0) ||
             !isPublicCallableMethodOrField(member)
