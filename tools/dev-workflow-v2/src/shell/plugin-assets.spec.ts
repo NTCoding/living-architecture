@@ -120,9 +120,9 @@ describe('plugin Agent Skills', () => {
   )
 })
 
-describe('reviewer workflow preflight', () => {
+describe('reviewer workflow state isolation', () => {
   it.each(['architecture-review', 'code-review', 'bug-scanner', 'task-check'])(
-    'checks REVIEWING state before %s reads project files',
+    'does not read isolated workflow state before %s reads project files',
     (reviewerName) => {
       const reviewer = readPluginFile(`agents/${reviewerName}.md`)
       const codexPreflightPosition = reviewer.indexOf('$dev-workflow-v2:workflow get-state')
@@ -139,11 +139,11 @@ describe('reviewer workflow preflight', () => {
           codexPreflightPosition < projectReadPosition &&
           slashPreflightPosition < projectReadPosition,
       }).toStrictEqual({
-        hasCodexInvocation: true,
-        hasSlashInvocation: true,
-        hasStateField: true,
-        hasReviewingGuard: true,
-        hasRefusal: true,
+        hasCodexInvocation: false,
+        hasSlashInvocation: false,
+        hasStateField: false,
+        hasReviewingGuard: false,
+        hasRefusal: false,
         preflightBeforeReview: true,
       })
     },
