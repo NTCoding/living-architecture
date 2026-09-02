@@ -80,6 +80,8 @@ For every proposed dogfooding deliverable, first state:
 2. the supported capability and customer journey it exercises; and
 3. why that journey matters to a user or customer.
 
+High-level purpose does not mean abstract wording. Name the product capability, the action the user takes, and the result the user sees. Never use an undefined reference such as “the Workflow”, “the demo”, “the customer journey”, “the result”, “all capabilities”, or “everything”. At the point of reference, name the file, stages, sources, commands, outputs, or decision involved, or link to the exact source that defines it. An agent must write `riviere-workflow.yaml` with its named stages, not “the Workflow”.
+
 Only then specify the files, configurations, fixtures, scripts, and README changes that make the journey executable and repeatable. Do not present an artefact list as the dogfooding solution or as user value.
 
 Another crucial objective for this step is to ensure the requirements for engineers are sufficiently detailed so there are no mistakes or misassumptions when planning or implementing the dogfooding solution. So detail is crucial, it's better to over-specify the solution than unders-specify. Lots of code / configuration samples are encouraged showing exactly how this solution will look in the target repository and it must be implementable.
