@@ -129,6 +129,8 @@ Describe what users are trying to do, what makes that difficult or unreliable to
 
 Do not define the problem as the absence of the proposed solution, deliverable, artefact, component, or implementation. For example, "users have no complete, executable reference" describes a missing solution rather than the underlying user problem.
 
+For a learning or adoption ticket, do not say that users lack a demo, example, guide, configuration, or documentation. Those are possible solutions. State what people cannot learn, understand, do, or adopt in their own work.
+
 Use concrete, plain-language nouns and actions. Do not use umbrella terms or project jargon when the approved sources provide more specific language. For example, replace "architecture facts" with the actual information and sources involved: components, operations, events, and relationships obtained from source code, EventCatalog, AsyncAPI, and AI-assisted discovery.
 
 The problem must be understandable without ticket IDs, deliverable IDs, milestone names, or knowledge of the delivery plan. Never justify the problem by saying that another ticket depends on this ticket, that the ticket appears in an approved delivery sequence, or that delaying it would affect later implementation. Dependency information belongs only in `## Dependencies`.
@@ -136,7 +138,7 @@ The problem must be understandable without ticket IDs, deliverable IDs, mileston
 Bad:
 
 ```text
-Product-level tests alone do not prove that a real multi-domain customer can author the complete Workflow or that exact accumulated state remains correct after each stage. This slice matters because D0.3 is an explicit dependency in the approved delivery sequence and an incomplete boundary would push design decisions into later implementation tickets.
+Product-level tests alone do not prove that a real multi-domain customer can use the product. This slice matters because D0.3 is an explicit dependency in the approved delivery sequence and an incomplete boundary would push design decisions into later implementation tickets.
 ```
 
 This is project verification and delivery-sequence rationale, not the difficulty or consequence experienced by users.
@@ -164,6 +166,22 @@ This section must:
 - explain how this ticket fits with the surrounding deliverables or wider approved solution
 - explain the boundary between this ticket and neighbouring work where that boundary matters
 - stay source-backed by the approved PRD, solution exploration where referenced by the PRD, and delivery plan
+
+Write the solution in this order:
+
+1. Start with the high-level purpose of the change.
+2. Add the relevant capability detail and clarification.
+3. Explain why the resulting capability matters to the user or customer.
+
+High-level purpose does not mean abstract wording. The first sentence must name the product capability, the action the user takes, and the result the user needs. Never use an undefined reference such as “the Workflow”, “the demo”, “the customer journey”, “the result”, “all capabilities”, “everything”, or “works together”. At the point of reference, name the file, stages, sources, commands, outputs, or decision involved, or link to the exact source that defines it. For a Workflow deliverable, an agent must write `riviere-workflow.yaml` with its named stages, not “the Workflow”.
+
+For a dogfooding ticket, the first sentence may name the update to the named demo repository. It must then name the product capabilities, user actions, and outputs that the repository exercises. For example:
+
+```text
+Update ecommerce-demo-app to help people new to Riviere learn how TypeScript code extraction, EventCatalog import, AsyncAPI import, additive AI extraction, additive AI enrichment, and schema validation work. The README shows people how to run riviere-workflow.yaml and inspect its graph and log, so they can apply the same setup to their own application.
+```
+
+The solution must never be only a to-do list or an artefact inventory, such as adding a root Workflow file, stage configs, fixtures, tooling, and README documentation. Those details belong in `## Agreed target architecture and design` after the purpose, capability, and user value are clear.
 
 Do not describe detailed technical architecture, code, config, or runtime flow here. That belongs in `## Agreed target architecture and design`.
 
@@ -498,6 +516,10 @@ Block task creation if any of these are true:
 30. `## Problem` does not state a source-backed user or product consequence
 31. `## Problem` does not explain the concrete user task, difficulty, or failure mode covered by this ticket
 32. `## Problem` does not explain how the ticket's problem fits into the wider approved problem context
+33. `## Solution` does not begin with the high-level purpose, add the relevant capability detail and clarification, and explain why the result matters to the user or customer
+34. a dogfooding ticket presents source files, configurations, fixtures, tooling, or README changes as its solution instead of naming the user action, product capabilities, and observable result it demonstrates
+35. a dogfooding ticket claims to demonstrate a capability that the product cannot yet run through the demo
+36. `## Solution` uses an undefined reference such as “the Workflow”, “the demo”, “the customer journey”, “the result”, “all capabilities”, “everything”, or “works together” instead of naming the file, stages, sources, commands, outputs, decision, or exact source reference at the point of reference
 
 If blocked, the current planning command must produce:
 
