@@ -165,6 +165,20 @@ This section must:
 - explain the boundary between this ticket and neighbouring work where that boundary matters
 - stay source-backed by the approved PRD, solution exploration where referenced by the PRD, and delivery plan
 
+Write the solution in this order:
+
+1. Start with the high-level purpose of the change.
+2. Add the relevant capability detail and clarification.
+3. Explain why the resulting capability matters to the user or customer.
+
+For a dogfooding ticket, the first sentence may name the update to the customer demo. It must then name the supported capabilities exercised through the customer journey and why users or customers need that demonstration. For example:
+
+```text
+Update ecommerce-demo-app to test and validate the new Workflow capabilities through the customer journey. It shows how code extraction, EventCatalog, AsyncAPI, AI assistance, and validation combine into one supported result, so users can see and assess the complete workflow on a realistic system.
+```
+
+The solution must never be only a to-do list or an artefact inventory, such as adding a root Workflow file, stage configs, fixtures, tooling, and README documentation. Those details belong in `## Agreed target architecture and design` after the purpose, capability, and user value are clear.
+
 Do not describe detailed technical architecture, code, config, or runtime flow here. That belongs in `## Agreed target architecture and design`.
 
 Do not list acceptance criteria here. Those belong in `## What "done" looks like`.
@@ -498,6 +512,9 @@ Block task creation if any of these are true:
 30. `## Problem` does not state a source-backed user or product consequence
 31. `## Problem` does not explain the concrete user task, difficulty, or failure mode covered by this ticket
 32. `## Problem` does not explain how the ticket's problem fits into the wider approved problem context
+33. `## Solution` does not begin with the high-level purpose, add the relevant capability detail and clarification, and explain why the result matters to the user or customer
+34. a dogfooding ticket presents source files, configurations, fixtures, tooling, or README changes as its solution instead of explaining the supported customer journey it demonstrates
+35. a dogfooding ticket claims to demonstrate a capability that the product cannot yet run through the demo
 
 If blocked, the current planning command must produce:
 

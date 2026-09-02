@@ -14,6 +14,10 @@ We need a high level of confidence that our product functionality meets the need
 
 In this step of the planning process, your objective is to look at the new PRD.md and ARCH.md and identify what new functionality is being added and how can we dogfood it to verify it works as expected and to ensure it provides the optimal experience for our users. It's a crucial step that must be done with care and high levels of rigour to leave no stone unturned.
 
+`ecommerce-demo-app` is a user and customer demo, not merely a fixture repository. Its purpose is to demonstrate supported Living Architecture capabilities through a realistic, runnable customer journey. A dogfooding deliverable must exercise the capability it names through the product. Source files, mappings, generated fixtures, and tooling are evidence for that journey; they are not the customer outcome on their own.
+
+If a capability is not supported yet, source preparation may be planned separately, but it must be described as preparation and must not claim to demonstrate that capability. The executable demo and customer validation must wait until the product can run the relevant journey.
+
 You will produce the document `docs/project/PRD/<planning-id>/dogfooding.md` with this exact top level structure:
 
 1. New functionality added in this PRD to verify
@@ -69,6 +73,14 @@ In the output document, write section 2 `What dogfooding exists today`. This sho
 ## Step 3: Designing new dogfooding solutions
 
 This step is crucial. It is important to design a detailed solution that fully exercises the capability. Mistakes here will result in customers having a bad or broken product and we don't realise because it falls through our net.
+
+For every proposed dogfooding deliverable, first state:
+
+1. the high-level purpose of the demo update;
+2. the supported capability and customer journey it exercises; and
+3. why that journey matters to a user or customer.
+
+Only then specify the files, configurations, fixtures, scripts, and README changes that make the journey executable and repeatable. Do not present an artefact list as the dogfooding solution or as user value.
 
 Another crucial objective for this step is to ensure the requirements for engineers are sufficiently detailed so there are no mistakes or misassumptions when planning or implementing the dogfooding solution. So detail is crucial, it's better to over-specify the solution than unders-specify. Lots of code / configuration samples are encouraged showing exactly how this solution will look in the target repository and it must be implementable.
 
