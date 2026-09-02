@@ -29,7 +29,7 @@ export class RiviereProjectRepository {
 
 ### Edge Cases
 - A public method returning an aggregate must be named `load` or `loadBy<AccessCriterion>`. The access criterion says how the aggregate is found, such as `loadByGraphPath` or `loadByExtractionConfigPath`.
-- `loadByEnrichment` is invalid because enrichment is an operation performed after loading, not an access criterion.
+- `loadByEnrichment` is invalid because enrichment is an operation performed after loading, not an access criterion. Configure known operation labels as forbidden output method-name patterns rather than allowing them through the lexical loading pattern.
 - Persistence methods such as `save` and private helper methods are not constrained by the loading-name rule.
 - Private helper methods inside the repository are implementation details, not separate roles
 

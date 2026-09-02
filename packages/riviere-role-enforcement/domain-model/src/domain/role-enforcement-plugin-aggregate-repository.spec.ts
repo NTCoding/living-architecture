@@ -53,7 +53,7 @@ it('rejects an aggregate repository method named loadBy without an access criter
   expect(messages[0]?.message).toContain("aggregate-returning method 'loadBy'")
 })
 
-it.each(['loadWorkflow', 'loadForEnrichment', 'loadFromPersistedState'])(
+it.each(['loadByEnrichment', 'loadWorkflow', 'loadForEnrichment', 'loadFromPersistedState'])(
   'rejects aggregate repository method %s',
   (methodName) => {
     const messages = enforceAggregateRepository(`
@@ -72,6 +72,32 @@ it('does not constrain private aggregate assembly methods', () => {
 `)
 
   expect(messages).toStrictEqual([])
+})
+
+it('does not constrain ECMAScript-private aggregate assembly methods', () => {
+  const messages = enforceAggregateRepository(`
+  loadByGraphPath(): Project { return this.#loadForEnrichment() }
+  #loadForEnrichment(): Project { return new Project() }
+`)
+
+  expect(messages).toStrictEqual([])
+})
+
+it('accepts aggregate repository methods with literal access-criterion names', () => {
+  const messages = enforceAggregateRepository(`
+  ['loadByGraphPath'](): Project { return new Project() }
+`)
+
+  expect(messages).toStrictEqual([])
+})
+
+it('rejects callable aggregate-returning fields with operation-labelled names', () => {
+  const messages = enforceAggregateRepository(`
+  loadByEnrichment = (): Project => new Project()
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("aggregate-returning method 'loadByEnrichment'")
 })
 
 it('does not constrain persistence methods without aggregate outputs', () => {

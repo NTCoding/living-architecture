@@ -89,6 +89,7 @@ export class BuiltRole<N extends string = string> {
   declare readonly allowedNames?: readonly string[]
   declare readonly allowedOutputs?: readonly string[]
   declare readonly outputMethodNameMatches?: string
+  declare readonly forbiddenOutputMethodNameMatches?: string
   declare readonly approvedInstances?: readonly ApprovedInstance[]
   declare readonly forbiddenCallableDataMembers?: true
   declare readonly forbiddenInlineCallableMembers?: true

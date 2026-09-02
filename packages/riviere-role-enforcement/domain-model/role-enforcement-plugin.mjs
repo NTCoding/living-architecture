@@ -2038,15 +2038,18 @@ export default {
           }
 
           for (const member of node.body.body) {
-            if (
-              member.type === 'MethodDefinition' &&
-              member.kind !== 'constructor' &&
-              (member.accessibility === 'public' || member.accessibility == null)
-            ) {
-              const methodName = member.key?.name ?? '?'
-              validateFunctionContract(member.value, role, `${name}.${methodName}`)
-              validateOutputMethodName(member, role, methodName)
+            const callableMember = readPublicCallableMember(member)
+            if (callableMember === null) {
+              continue
             }
+
+            const methodName = readMemberName(member.key)
+            if (methodName === null) {
+              continue
+            }
+
+            validateFunctionContract(callableMember, role, `${name}.${methodName}`)
+            validateOutputMethodName(member, callableMember, role, methodName)
           }
         }
 
@@ -2054,11 +2057,12 @@ export default {
           return (
             Array.isArray(role.allowedInputs) ||
             Array.isArray(role.allowedOutputs) ||
-            typeof role.outputMethodNameMatches === 'string'
+            typeof role.outputMethodNameMatches === 'string' ||
+            typeof role.forbiddenOutputMethodNameMatches === 'string'
           )
         }
 
-        function validateOutputMethodName(member, role, methodName) {
+        function validateOutputMethodName(member, callableMember, role, methodName) {
           if (
             typeof role.outputMethodNameMatches !== 'string' ||
             !Array.isArray(role.allowedOutputs)
@@ -2066,11 +2070,13 @@ export default {
             return
           }
 
-          const outputRoles = readOutputTypeRoles(member.value.returnType, filename)
+          const outputRoles = readOutputTypeRoles(callableMember.returnType, filename)
           if (
             outputRoles === null ||
             !outputRoles.some((outputRole) => role.allowedOutputs.includes(outputRole)) ||
-            new RegExp(role.outputMethodNameMatches).test(methodName)
+            (new RegExp(role.outputMethodNameMatches).test(methodName) &&
+              (typeof role.forbiddenOutputMethodNameMatches !== 'string' ||
+                !new RegExp(role.forbiddenOutputMethodNameMatches).test(methodName)))
           ) {
             return
           }
@@ -2079,6 +2085,28 @@ export default {
             member,
             `Role '${role.name}' requires aggregate-returning method '${methodName}' to match '${role.outputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
           )
+        }
+
+        function readPublicCallableMember(member) {
+          if (isStaticMember(member) || isPrivateMember(member)) {
+            return null
+          }
+
+          if (member.accessibility !== 'public' && member.accessibility != null) {
+            return null
+          }
+
+          if (member.type === 'MethodDefinition') {
+            return member.kind === 'constructor' ? null : member.value
+          }
+
+          if (!isDataFieldMember(member) || !isCallableFieldMember(member)) {
+            return null
+          }
+
+          return isFunctionExpression(member.value)
+            ? member.value
+            : member.typeAnnotation?.typeAnnotation
         }
 
         function validateCallableMemberConstraints(node, role, name) {

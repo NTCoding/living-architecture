@@ -45,6 +45,7 @@ const aggregate = role('aggregate', { targets: ['class'] })
 const aggregateRepository = role('aggregate-repository', {
   allowedOutputs: ['aggregate'],
   outputMethodNameMatches: '^load(?:By[A-Z][A-Za-z0-9]*)?$',
+  forbiddenOutputMethodNameMatches: '^loadByEnrichment$',
   targets: ['class'],
 })
 
