@@ -3,26 +3,34 @@ import type {
   CustomComponent,
 } from '@living-architecture/riviere-schema-published-language/schema'
 import { RiviereBuilder } from './riviere-builder'
+import { SnapshotMetadataError } from './riviere-graph-definition'
 
-class ExpectedMapMetadataError extends Error {}
 class ExpectedCustomComponentError extends Error {}
+class ExpectedSnapshotValueError extends Error {}
+class ExpectedMapMetadataError extends Error {}
 class ExpectedSetMetadataError extends Error {}
 class ExpectedDateMetadataError extends Error {}
-class ExpectedObjectMetadataError extends Error {}
-class ExpectedRegularExpressionMetadataError extends Error {}
 class ExpectedTypedArrayMetadataError extends Error {}
+class ExpectedRegularExpressionMetadataError extends Error {}
+class ExpectedArrayMetadataError extends Error {}
 class ExpectedArrayBufferMetadataError extends Error {}
 
-class PolicyConfiguration {
-  readonly self: PolicyConfiguration
+class PrivatePolicy {
+  #enabled = true
 
-  constructor(readonly enabled: boolean) {
-    this.self = this
-    Object.defineProperty(this, 'label', {
-      enumerable: true,
-      get: () => 'policy',
-    })
+  enabled(): boolean {
+    return this.#enabled
   }
+}
+
+class PolicyConfiguration {
+  constructor(readonly enabled: boolean) {}
+}
+
+function customComponent(components: readonly Component[]): CustomComponent {
+  const component = components.find((component) => component.type === 'Custom')
+  if (component === undefined) throw new ExpectedCustomComponentError()
+  return component
 }
 
 function mapMetadata(value: unknown): Map<unknown, unknown> {
@@ -40,14 +48,19 @@ function dateMetadata(value: unknown): Date {
   throw new ExpectedDateMetadataError()
 }
 
+function typedArrayMetadata(value: unknown): Uint8Array {
+  if (value instanceof Uint8Array) return value
+  throw new ExpectedTypedArrayMetadataError()
+}
+
 function regularExpressionMetadata(value: unknown): RegExp {
   if (value instanceof RegExp) return value
   throw new ExpectedRegularExpressionMetadataError()
 }
 
-function typedArrayMetadata(value: unknown): Uint8Array {
-  if (value instanceof Uint8Array) return value
-  throw new ExpectedTypedArrayMetadataError()
+function arrayMetadata(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value
+  throw new ExpectedArrayMetadataError()
 }
 
 function arrayBufferMetadata(value: unknown): ArrayBuffer {
@@ -56,28 +69,19 @@ function arrayBufferMetadata(value: unknown): ArrayBuffer {
 }
 
 function objectMetadata(value: unknown): object {
-  if ((typeof value === 'object' && value !== null) || typeof value === 'function') return value
-  throw new ExpectedObjectMetadataError()
+  if (typeof value === 'object' && value !== null) return value
+  throw new ExpectedSnapshotValueError()
 }
 
-function policyRoles(value: unknown): Set<unknown> {
-  return setMetadata(Reflect.get(objectMetadata(value), 'roles'))
-}
-
-function customComponent(components: readonly Component[]): CustomComponent {
-  const component = components.find((component) => component.type === 'Custom')
-  if (component === undefined) throw new ExpectedCustomComponentError()
-  return component
+function firstSnapshotValue<T>(values: readonly T[]): T {
+  const value = values[0]
+  if (value === undefined) throw new ExpectedSnapshotValueError()
+  return value
 }
 
 function createBuilder(): RiviereBuilder {
   return RiviereBuilder.new({
-    sources: [
-      {
-        repository: 'test/repo',
-        commit: 'abc123',
-      },
-    ],
+    sources: [{ repository: 'test/repo', commit: 'abc123' }],
     domains: {
       orders: {
         description: 'Order domain',
@@ -99,6 +103,25 @@ function addPlaceOrderUseCase(builder: RiviereBuilder) {
   })
 }
 
+function addPolicy(builder: RiviereBuilder, metadata: Readonly<Record<string, unknown>>): void {
+  builder.defineCustomType({ name: 'Policy' })
+  builder.addCustom({
+    name: 'Order policy',
+    domain: 'orders',
+    module: 'checkout',
+    customTypeName: 'Policy',
+    sourceLocation: {
+      repository: 'test/repo',
+      filePath: 'src/order-policy.ts',
+    },
+    metadata,
+  })
+}
+
+function policyMetadata(builder: RiviereBuilder, property: string): unknown {
+  return customComponent(builder.components())[property]
+}
+
 describe('RiviereBuilder snapshots', () => {
   it('returns an empty array when no external Links have accumulated', () => {
     expect(createBuilder().externalLinks()).toStrictEqual([])
@@ -114,46 +137,188 @@ describe('RiviereBuilder snapshots', () => {
   it('preserves Builder component state when a returned component is changed', () => {
     const builder = createBuilder()
     const component = addPlaceOrderUseCase(builder)
-    const snapshot = builder.components()
+    const returnedComponent = firstSnapshotValue(builder.components())
 
-    for (const returnedComponent of snapshot)
-      returnedComponent.sourceLocation.filePath = 'src/changed.ts'
+    returnedComponent.sourceLocation.filePath = 'src/changed.ts'
 
+    expect(returnedComponent.sourceLocation.filePath).toBe('src/changed.ts')
     expect(builder.components()).toStrictEqual([component])
   })
 
-  it('preserves Builder component state when returned function metadata is changed', () => {
+  it('preserves Builder state through reflective changes to returned plain metadata', () => {
     const builder = createBuilder()
-    const behavior = () => 'accepted metadata'
-    Reflect.set(behavior, 'self', behavior)
-    builder.defineCustomType({ name: 'Policy' })
+    addPolicy(builder, { policy: { enabled: true } })
+    const returnedPolicy = objectMetadata(policyMetadata(builder, 'policy'))
 
-    builder.addCustom({
-      name: 'Order policy',
-      domain: 'orders',
-      module: 'checkout',
-      customTypeName: 'Policy',
-      sourceLocation: {
-        repository: 'test/repo',
-        filePath: 'src/order-policy.ts',
-      },
-      metadata: {
-        behavior,
-        steps: [{ name: 'authorize' }],
-        absent: null,
-      },
+    expect(Reflect.set(returnedPolicy, 'enabled', false)).toBe(true)
+    expect(Reflect.defineProperty(returnedPolicy, 'owner', { value: 'security' })).toBe(true)
+    expect({ returnedPolicy, owner: Reflect.get(returnedPolicy, 'owner') }).toStrictEqual({
+      returnedPolicy: { enabled: false },
+      owner: 'security',
     })
-
-    const returnedBehavior = objectMetadata(customComponent(builder.components())['behavior'])
-    Reflect.set(returnedBehavior, 'category', 'changed')
-
-    expect(Reflect.get(returnedBehavior, 'self')).toBe(returnedBehavior)
-    expect(
-      Reflect.get(objectMetadata(customComponent(builder.components())['behavior']), 'category'),
-    ).toBe(undefined)
+    expect(policyMetadata(builder, 'policy')).toStrictEqual({ enabled: true })
   })
 
-  it('throws when metadata declares a property without a descriptor', () => {
+  it('preserves nested Map, Set, and Date metadata when a returned value is changed', () => {
+    const builder = createBuilder()
+    addPolicy(builder, {
+      policies: new Map([['authorize', { roles: new Set(['admin']), reviewedAt: new Date(0) }]]),
+    })
+    const returnedPolicies = mapMetadata(policyMetadata(builder, 'policies'))
+    const returnedPolicy = objectMetadata(returnedPolicies.get('authorize'))
+    const returnedRoles = setMetadata(Reflect.get(returnedPolicy, 'roles'))
+    const returnedReview = dateMetadata(Reflect.get(returnedPolicy, 'reviewedAt'))
+
+    returnedRoles.add('auditor')
+    returnedReview.setTime(1)
+
+    expect(returnedRoles).toStrictEqual(new Set(['admin', 'auditor']))
+    expect(returnedReview).toStrictEqual(new Date(1))
+    expect(policyMetadata(builder, 'policies')).toStrictEqual(
+      new Map([['authorize', { roles: new Set(['admin']), reviewedAt: new Date(0) }]]),
+    )
+  })
+
+  it('preserves circular null-prototype metadata and standalone buffers', () => {
+    const builder = createBuilder()
+    const circularPolicy: object = {}
+    Reflect.setPrototypeOf(circularPolicy, null)
+    Reflect.set(circularPolicy, 'self', circularPolicy)
+    addPolicy(builder, { absent: null, circularPolicy, checksum: new ArrayBuffer(1) })
+    const returnedCircularPolicy = objectMetadata(policyMetadata(builder, 'circularPolicy'))
+    const returnedChecksum = arrayBufferMetadata(policyMetadata(builder, 'checksum'))
+
+    new Uint8Array(returnedChecksum)[0] = 9
+
+    expect(Reflect.getPrototypeOf(returnedCircularPolicy)).toBe(null)
+    expect(Reflect.get(returnedCircularPolicy, 'self')).toBe(returnedCircularPolicy)
+    expect(new Uint8Array(returnedChecksum)).toStrictEqual(new Uint8Array([9]))
+    expect({
+      absent: policyMetadata(builder, 'absent'),
+      checksum: new Uint8Array(arrayBufferMetadata(policyMetadata(builder, 'checksum'))),
+    }).toStrictEqual({ absent: null, checksum: new Uint8Array([0]) })
+  })
+
+  it('preserves regular expression metadata when a returned value is changed', () => {
+    const builder = createBuilder()
+    addPolicy(builder, { matcher: /order/gi })
+    const matcher = regularExpressionMetadata(policyMetadata(builder, 'matcher'))
+    matcher.lastIndex = 4
+
+    expect(matcher.lastIndex).toBe(4)
+    expect(policyMetadata(builder, 'matcher')).toStrictEqual(/order/gi)
+  })
+
+  it('preserves ArrayBuffer view topology while isolating returned metadata', () => {
+    const builder = createBuilder()
+    const buffer = new Uint8Array([1, 2]).buffer
+    addPolicy(builder, {
+      first: new Uint8Array(buffer, 0, 1),
+      second: new Uint8Array(buffer, 1, 1),
+    })
+    const snapshot = customComponent(builder.components())
+    const first = typedArrayMetadata(snapshot['first'])
+    const second = typedArrayMetadata(snapshot['second'])
+
+    first[0] = 9
+
+    expect({
+      sharesSnapshotBuffer: first.buffer === second.buffer,
+      detachesSourceBuffer: first.buffer !== buffer,
+      returnedFirst: first,
+      returnedSecond: second,
+      storedFirst: typedArrayMetadata(policyMetadata(builder, 'first')),
+      storedSecond: typedArrayMetadata(policyMetadata(builder, 'second')),
+    }).toStrictEqual({
+      sharesSnapshotBuffer: true,
+      detachesSourceBuffer: true,
+      returnedFirst: new Uint8Array([9]),
+      returnedSecond: new Uint8Array([2]),
+      storedFirst: new Uint8Array([1]),
+      storedSecond: new Uint8Array([2]),
+    })
+  })
+
+  it('preserves every supported ArrayBuffer view type in returned metadata', () => {
+    const builder = createBuilder()
+    addPolicy(builder, {
+      views: [
+        new DataView(new ArrayBuffer(1)),
+        new Int8Array(1),
+        new Uint8Array(1),
+        new Uint8ClampedArray(1),
+        new Int16Array(1),
+        new Uint16Array(1),
+        new Int32Array(1),
+        new Uint32Array(1),
+        new Float32Array(1),
+        new Float64Array(1),
+        new BigInt64Array(1),
+        new BigUint64Array(1),
+      ],
+    })
+
+    expect(
+      arrayMetadata(policyMetadata(builder, 'views')).map((view) =>
+        Object.prototype.toString.call(view),
+      ),
+    ).toStrictEqual([
+      '[object DataView]',
+      '[object Int8Array]',
+      '[object Uint8Array]',
+      '[object Uint8ClampedArray]',
+      '[object Int16Array]',
+      '[object Uint16Array]',
+      '[object Int32Array]',
+      '[object Uint32Array]',
+      '[object Float32Array]',
+      '[object Float64Array]',
+      '[object BigInt64Array]',
+      '[object BigUint64Array]',
+    ])
+  })
+
+  it.each([
+    ['a Promise', Promise.resolve('pending'), 'Promise values are not supported'],
+    ['a function', () => 'metadata', 'functions are not supported'],
+    [
+      'an accessor property',
+      Object.defineProperty({}, 'value', { get: () => 'metadata' }),
+      'accessor properties are not supported',
+    ],
+    [
+      'a private-field class instance',
+      new PrivatePolicy(),
+      'custom class instances are not supported',
+    ],
+    [
+      'a custom class instance',
+      new PolicyConfiguration(true),
+      'custom class instances are not supported',
+    ],
+    ['a SharedArrayBuffer', new SharedArrayBuffer(1), 'SharedArrayBuffer values are not supported'],
+    [
+      'a SharedArrayBuffer view',
+      new Uint8Array(new SharedArrayBuffer(1)),
+      'SharedArrayBuffer views are not supported',
+    ],
+    [
+      'an unsupported Float16Array view',
+      new Float16Array(1),
+      'the ArrayBuffer view type is not supported',
+    ],
+  ])(
+    'throws SnapshotMetadataError when metadata contains %s',
+    (_description, metadata, message) => {
+      const builder = createBuilder()
+      addPolicy(builder, { metadata })
+
+      expect(() => builder.components()).toThrow(SnapshotMetadataError)
+      expect(() => builder.components()).toThrow(message)
+    },
+  )
+
+  it('throws SnapshotMetadataError when metadata declares a property without a descriptor', () => {
     const builder = createBuilder()
     const malformedMetadata = new Proxy(
       {},
@@ -162,149 +327,10 @@ describe('RiviereBuilder snapshots', () => {
         getOwnPropertyDescriptor: () => undefined,
       },
     )
-    builder.defineCustomType({ name: 'Policy' })
-    builder.addCustom({
-      name: 'Order policy',
-      domain: 'orders',
-      module: 'checkout',
-      customTypeName: 'Policy',
-      sourceLocation: {
-        repository: 'test/repo',
-        filePath: 'src/order-policy.ts',
-      },
-      metadata: { malformedMetadata },
-    })
+    addPolicy(builder, { malformedMetadata })
 
-    expect(() => builder.components()).toThrow(
-      `Expected property descriptor for 'missing'. Got undefined.`,
-    )
-  })
-
-  it('preserves Builder component state when returned Map metadata is changed', () => {
-    const builder = createBuilder()
-    builder.defineCustomType({ name: 'Policy' })
-    const component = builder.addCustom({
-      name: 'Order policy',
-      domain: 'orders',
-      module: 'checkout',
-      customTypeName: 'Policy',
-      sourceLocation: {
-        repository: 'test/repo',
-        filePath: 'src/order-policy.ts',
-      },
-      metadata: {
-        policies: new Map([
-          [
-            'authorize',
-            {
-              enabled: true,
-              roles: new Set(['admin']),
-              reviewedAt: new Date(0),
-            },
-          ],
-        ]),
-      },
-    })
-    const policies = mapMetadata(customComponent(builder.components())['policies'])
-    const policy = objectMetadata(policies.get('authorize'))
-    const roles = policyRoles(policy)
-    const reviewedAt = dateMetadata(Reflect.get(policy, 'reviewedAt'))
-    roles.add('auditor')
-    reviewedAt.setTime(1)
-
-    expect(builder.components()).toStrictEqual([component])
-  })
-
-  it('preserves Builder component state when returned class metadata is changed', () => {
-    const builder = createBuilder()
-    builder.defineCustomType({ name: 'Policy' })
-    builder.addCustom({
-      name: 'Order policy',
-      domain: 'orders',
-      module: 'checkout',
-      customTypeName: 'Policy',
-      sourceLocation: {
-        repository: 'test/repo',
-        filePath: 'src/order-policy.ts',
-      },
-      metadata: {
-        policy: new PolicyConfiguration(true),
-      },
-    })
-    const policy = objectMetadata(customComponent(builder.components())['policy'])
-
-    Reflect.set(policy, 'enabled', false)
-
-    const preservedPolicy = objectMetadata(customComponent(builder.components())['policy'])
-
-    expect(preservedPolicy).toBeInstanceOf(PolicyConfiguration)
-    expect(Reflect.get(preservedPolicy, 'enabled')).toBe(true)
-  })
-
-  it('preserves Builder component state when returned regular expression metadata is changed', () => {
-    const builder = createBuilder()
-    builder.defineCustomType({ name: 'Policy' })
-    builder.addCustom({
-      name: 'Order policy',
-      domain: 'orders',
-      module: 'checkout',
-      customTypeName: 'Policy',
-      sourceLocation: {
-        repository: 'test/repo',
-        filePath: 'src/order-policy.ts',
-      },
-      metadata: { matcher: /order/gi },
-    })
-    const matcher = regularExpressionMetadata(customComponent(builder.components())['matcher'])
-    matcher.lastIndex = 4
-
-    expect(
-      regularExpressionMetadata(customComponent(builder.components())['matcher']),
-    ).toStrictEqual(/order/gi)
-  })
-
-  it('preserves Builder component state when returned typed array metadata is changed', () => {
-    const builder = createBuilder()
-    builder.defineCustomType({ name: 'Policy' })
-    builder.addCustom({
-      name: 'Order policy',
-      domain: 'orders',
-      module: 'checkout',
-      customTypeName: 'Policy',
-      sourceLocation: {
-        repository: 'test/repo',
-        filePath: 'src/order-policy.ts',
-      },
-      metadata: { priority: new Uint8Array([1]) },
-    })
-    const priority = typedArrayMetadata(customComponent(builder.components())['priority'])
-    priority[0] = 2
-
-    expect(typedArrayMetadata(customComponent(builder.components())['priority'])).toStrictEqual(
-      new Uint8Array([1]),
-    )
-  })
-
-  it('preserves Builder component state when returned array buffer metadata is changed', () => {
-    const builder = createBuilder()
-    builder.defineCustomType({ name: 'Policy' })
-    builder.addCustom({
-      name: 'Order policy',
-      domain: 'orders',
-      module: 'checkout',
-      customTypeName: 'Policy',
-      sourceLocation: {
-        repository: 'test/repo',
-        filePath: 'src/order-policy.ts',
-      },
-      metadata: { checksum: new Uint8Array([1]).buffer },
-    })
-    const checksum = arrayBufferMetadata(customComponent(builder.components())['checksum'])
-    new Uint8Array(checksum)[0] = 2
-
-    expect(
-      new Uint8Array(arrayBufferMetadata(customComponent(builder.components())['checksum'])),
-    ).toStrictEqual(new Uint8Array([1]))
+    expect(() => builder.components()).toThrow(SnapshotMetadataError)
+    expect(() => builder.components()).toThrow("property 'missing' has no descriptor")
   })
 
   it('returns exact Link occurrences when Links have accumulated', () => {
@@ -340,15 +366,13 @@ describe('RiviereBuilder snapshots', () => {
     const link = builder.link({
       from: source.id,
       to: 'orders:domain:domainop:place-order',
-      sourceLocation: {
-        repository: 'test/repo',
-        filePath: 'src/place-order.ts',
-      },
+      sourceLocation: { repository: 'test/repo', filePath: 'src/place-order.ts' },
     })
-    const snapshot = builder.links()
+    const returnedLink = firstSnapshotValue(builder.links())
 
-    for (const returnedLink of snapshot) returnedLink.source = 'orders:checkout:usecase:changed'
+    returnedLink.source = 'orders:checkout:usecase:changed'
 
+    expect(returnedLink.source).toBe('orders:checkout:usecase:changed')
     expect(builder.links()).toStrictEqual([link])
   })
 
@@ -357,10 +381,7 @@ describe('RiviereBuilder snapshots', () => {
     const source = addPlaceOrderUseCase(builder)
     const { link } = builder.linkExternal({
       from: source.id,
-      target: {
-        name: 'Payments API',
-        repository: 'test/payments',
-      },
+      target: { name: 'Payments API', repository: 'test/payments' },
       type: 'async',
     })
 
@@ -372,15 +393,13 @@ describe('RiviereBuilder snapshots', () => {
     const source = addPlaceOrderUseCase(builder)
     const { link } = builder.linkExternal({
       from: source.id,
-      target: {
-        name: 'Payments API',
-        repository: 'test/payments',
-      },
+      target: { name: 'Payments API', repository: 'test/payments' },
     })
-    const snapshot = builder.externalLinks()
+    const returnedLink = firstSnapshotValue(builder.externalLinks())
 
-    for (const returnedLink of snapshot) returnedLink.target.name = 'Changed API'
+    returnedLink.target.name = 'Changed API'
 
+    expect(returnedLink.target.name).toBe('Changed API')
     expect(builder.externalLinks()).toStrictEqual([link])
   })
 })

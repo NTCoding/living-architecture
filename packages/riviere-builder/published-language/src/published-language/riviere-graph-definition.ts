@@ -37,6 +37,14 @@ type InspectionGraph = Readonly<{
   externalLinks: readonly PublishedExternalLink[]
 }>
 
+/** @riviere-role domain-error */
+export class SnapshotMetadataError extends Error {
+  constructor(reason: string) {
+    super(`Cannot create a detached metadata snapshot: ${reason}`)
+    this.name = 'SnapshotMetadataError'
+  }
+}
+
 /** @riviere-role value-object */
 export class RiviereGraphDefinition {
   declare private readonly brand: 'RiviereGraphDefinition'
@@ -192,19 +200,17 @@ function emptyRecord<T>(
   return Object.keys(record).length === 0 ? undefined : { ...record }
 }
 
-class MissingSnapshotPropertyDescriptorError extends Error {
-  constructor(property: PropertyKey) {
-    super(`Expected property descriptor for '${String(property)}'. Got undefined.`)
-  }
+function clonePublishedValue(publishedValue: unknown, clones: WeakMap<object, object>): unknown {
+  if (typeof publishedValue !== 'object') return cloneNonObjectPublishedValue(publishedValue)
+  if (publishedValue === null) return publishedValue
+  return clonePublishedObjectValue(publishedValue, clones)
 }
 
-function clonePublishedValue(publishedValue: unknown, clones: WeakMap<object, object>): unknown {
-  if (typeof publishedValue !== 'object' && typeof publishedValue !== 'function') {
-    return publishedValue
+function cloneNonObjectPublishedValue(publishedValue: unknown): unknown {
+  if (typeof publishedValue === 'function') {
+    throw new SnapshotMetadataError('functions are not supported')
   }
-  if (publishedValue === null) return publishedValue
-  if (typeof publishedValue === 'function') return clonePublishedFunction(publishedValue, clones)
-  return clonePublishedObjectValue(publishedValue, clones)
+  return publishedValue
 }
 
 function clonePublishedObjectValue(
@@ -213,6 +219,12 @@ function clonePublishedObjectValue(
 ): unknown {
   const existingClone = clones.get(publishedObject)
   if (existingClone !== undefined) return existingClone
+  if (publishedObject instanceof Promise) {
+    throw new SnapshotMetadataError('Promise values are not supported')
+  }
+  if (isSharedArrayBuffer(publishedObject)) {
+    throw new SnapshotMetadataError('SharedArrayBuffer values are not supported')
+  }
   if (publishedObject instanceof Date) return cloneDate(publishedObject, clones)
   if (publishedObject instanceof RegExp) return cloneRegularExpression(publishedObject, clones)
   if (publishedObject instanceof Map) return cloneMap(publishedObject, clones)
@@ -220,25 +232,19 @@ function clonePublishedObjectValue(
   if (publishedObject instanceof ArrayBuffer) return cloneArrayBuffer(publishedObject, clones)
   if (ArrayBuffer.isView(publishedObject)) return cloneArrayBufferView(publishedObject, clones)
   if (Array.isArray(publishedObject)) return cloneArray(publishedObject, clones)
+  if (!isPlainObject(publishedObject)) {
+    throw new SnapshotMetadataError('custom class instances are not supported')
+  }
   return clonePublishedObject(publishedObject, clones)
 }
 
-function clonePublishedFunction(
-  publishedFunction: object,
-  clones: WeakMap<object, object>,
-): object {
-  const existingClone = clones.get(publishedFunction)
-  if (existingClone !== undefined) return existingClone
-  const snapshotFunction = new Proxy(publishedFunction, {
-    get(target, property, receiver) {
-      return clonePublishedValue(Reflect.get(target, property, receiver), clones)
-    },
-    set() {
-      return true
-    },
-  })
-  clones.set(publishedFunction, snapshotFunction)
-  return snapshotFunction
+function isSharedArrayBuffer(value: object): boolean {
+  return typeof SharedArrayBuffer !== 'undefined' && value instanceof SharedArrayBuffer
+}
+
+function isPlainObject(value: object): boolean {
+  const prototype = Reflect.getPrototypeOf(value)
+  return prototype === null || prototype === Object.prototype
 }
 
 function cloneDate(publishedDate: Date, clones: WeakMap<object, object>): Date {
@@ -289,9 +295,76 @@ function cloneArrayBufferView(
   publishedView: ArrayBufferView,
   clones: WeakMap<object, object>,
 ): ArrayBufferView {
-  const snapshotView: ArrayBufferView = structuredClone(publishedView)
+  const snapshotBuffer = cloneViewBuffer(publishedView.buffer, clones)
+  const snapshotView = cloneView(publishedView, snapshotBuffer)
   clones.set(publishedView, snapshotView)
   return snapshotView
+}
+
+function cloneViewBuffer(
+  publishedBuffer: ArrayBufferLike,
+  clones: WeakMap<object, object>,
+): ArrayBuffer {
+  if (publishedBuffer instanceof ArrayBuffer) {
+    const existingClone = clones.get(publishedBuffer)
+    if (existingClone instanceof ArrayBuffer) return existingClone
+    return cloneArrayBuffer(publishedBuffer, clones)
+  }
+  throw new SnapshotMetadataError('SharedArrayBuffer views are not supported')
+}
+
+function cloneView(publishedView: ArrayBufferView, snapshotBuffer: ArrayBuffer): ArrayBufferView {
+  if (publishedView instanceof DataView) {
+    return new DataView(snapshotBuffer, publishedView.byteOffset, publishedView.byteLength)
+  }
+  return cloneTypedArray(publishedView, snapshotBuffer)
+}
+
+function cloneTypedArray(
+  publishedView: Exclude<ArrayBufferView, DataView>,
+  snapshotBuffer: ArrayBuffer,
+) {
+  if (publishedView instanceof BigInt64Array || publishedView instanceof BigUint64Array) {
+    return cloneBigIntTypedArray(publishedView, snapshotBuffer)
+  }
+  if (publishedView instanceof Int8Array) {
+    return new Int8Array(snapshotBuffer, publishedView.byteOffset, publishedView.length)
+  }
+  if (publishedView instanceof Uint8Array) {
+    return new Uint8Array(snapshotBuffer, publishedView.byteOffset, publishedView.length)
+  }
+  if (publishedView instanceof Uint8ClampedArray) {
+    return new Uint8ClampedArray(snapshotBuffer, publishedView.byteOffset, publishedView.length)
+  }
+  if (publishedView instanceof Int16Array) {
+    return new Int16Array(snapshotBuffer, publishedView.byteOffset, publishedView.length)
+  }
+  if (publishedView instanceof Uint16Array) {
+    return new Uint16Array(snapshotBuffer, publishedView.byteOffset, publishedView.length)
+  }
+  if (publishedView instanceof Int32Array) {
+    return new Int32Array(snapshotBuffer, publishedView.byteOffset, publishedView.length)
+  }
+  if (publishedView instanceof Uint32Array) {
+    return new Uint32Array(snapshotBuffer, publishedView.byteOffset, publishedView.length)
+  }
+  if (publishedView instanceof Float32Array) {
+    return new Float32Array(snapshotBuffer, publishedView.byteOffset, publishedView.length)
+  }
+  if (publishedView instanceof Float64Array) {
+    return new Float64Array(snapshotBuffer, publishedView.byteOffset, publishedView.length)
+  }
+  throw new SnapshotMetadataError('the ArrayBuffer view type is not supported')
+}
+
+function cloneBigIntTypedArray(
+  publishedView: BigInt64Array | BigUint64Array,
+  snapshotBuffer: ArrayBuffer,
+): BigInt64Array | BigUint64Array {
+  if (publishedView instanceof BigInt64Array) {
+    return new BigInt64Array(snapshotBuffer, publishedView.byteOffset, publishedView.length)
+  }
+  return new BigUint64Array(snapshotBuffer, publishedView.byteOffset, publishedView.length)
 }
 
 function cloneArray(publishedArray: unknown[], clones: WeakMap<object, object>): unknown[] {
@@ -301,12 +374,14 @@ function cloneArray(publishedArray: unknown[], clones: WeakMap<object, object>):
   return snapshotArray
 }
 
-function clonePublishedObject<T extends object>(
-  publishedObject: T,
+function clonePublishedObject(
+  publishedObject: RiviereGraph,
   clones: WeakMap<object, object>,
-): T {
-  const snapshotObject = { ...publishedObject }
-  Object.setPrototypeOf(snapshotObject, Object.getPrototypeOf(publishedObject))
+): RiviereGraph
+function clonePublishedObject(publishedObject: object, clones: WeakMap<object, object>): object
+function clonePublishedObject(publishedObject: object, clones: WeakMap<object, object>): object {
+  const snapshotObject: object = {}
+  if (Reflect.getPrototypeOf(publishedObject) === null) Reflect.setPrototypeOf(snapshotObject, null)
   clones.set(publishedObject, snapshotObject)
   copyPublishedProperties(publishedObject, snapshotObject, clones)
   return snapshotObject
@@ -319,7 +394,9 @@ function copyPublishedProperties(
 ): void {
   for (const property of Reflect.ownKeys(publishedObject)) {
     const descriptor = Object.getOwnPropertyDescriptor(publishedObject, property)
-    if (descriptor === undefined) throw new MissingSnapshotPropertyDescriptorError(property)
+    if (descriptor === undefined) {
+      throw new SnapshotMetadataError(`property '${String(property)}' has no descriptor`)
+    }
     Object.defineProperty(snapshotObject, property, clonePropertyDescriptor(descriptor, clones))
   }
 }
@@ -328,7 +405,9 @@ function clonePropertyDescriptor(
   descriptor: PropertyDescriptor,
   clones: WeakMap<object, object>,
 ): PropertyDescriptor {
-  if (!Object.hasOwn(descriptor, 'value')) return descriptor
+  if (!Object.hasOwn(descriptor, 'value')) {
+    throw new SnapshotMetadataError('accessor properties are not supported')
+  }
   return {
     ...descriptor,
     value: clonePublishedValue(descriptor.value, clones),
