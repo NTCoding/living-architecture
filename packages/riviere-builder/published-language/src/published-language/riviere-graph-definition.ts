@@ -1,8 +1,12 @@
 import type {
   CustomTypeDefinition,
+  Component as PublishedComponent,
   DomainMetadata,
+  ExternalLink as PublishedExternalLink,
   GraphMetadata as PublishedGraphMetadata,
+  Link as PublishedLink,
   RelationshipTypeDefinition,
+  RiviereGraph,
   SourceInfo,
 } from '@living-architecture/riviere-schema-published-language/schema'
 import {
@@ -24,6 +28,13 @@ type CompleteRiviereGraphDefinition = Readonly<{
   domains: Readonly<Record<string, DomainMetadata>>
   customTypes: Readonly<Record<string, CustomTypeDefinition>>
   relationshipTypes: Readonly<Record<string, RelationshipTypeDefinition>>
+}>
+type InspectionGraph = Readonly<{
+  version: string
+  metadata: CompleteRiviereGraphDefinition
+  components: readonly PublishedComponent[]
+  links: readonly PublishedLink[]
+  externalLinks: readonly PublishedExternalLink[]
 }>
 
 /** @riviere-role value-object */
@@ -54,7 +65,12 @@ export class RiviereGraphDefinition {
   includingDomain(name: string, domain: DomainMetadata): RiviereGraphDefinition {
     const existing = this.value.domains[name]
     if (existing === undefined)
-      return this.changed({ domains: { ...this.value.domains, [name]: domain } })
+      return this.changed({
+        domains: {
+          ...this.value.domains,
+          [name]: domain,
+        },
+      })
     if (existing.description === domain.description && existing.systemType === domain.systemType)
       return this
     throw new DuplicateDomainError(name)
@@ -62,7 +78,12 @@ export class RiviereGraphDefinition {
 
   includingCustomType(name: string, definition: CustomTypeDefinition): RiviereGraphDefinition {
     if (Object.hasOwn(this.value.customTypes, name)) throw new CustomTypeAlreadyDefinedError(name)
-    return this.changed({ customTypes: { ...this.value.customTypes, [name]: definition } })
+    return this.changed({
+      customTypes: {
+        ...this.value.customTypes,
+        [name]: definition,
+      },
+    })
   }
 
   includingRelationshipType(
@@ -73,7 +94,10 @@ export class RiviereGraphDefinition {
       throw new RelationshipTypeAlreadyDefinedError(name)
     }
     return this.changed({
-      relationshipTypes: { ...this.value.relationshipTypes, [name]: definition },
+      relationshipTypes: {
+        ...this.value.relationshipTypes,
+        [name]: definition,
+      },
     })
   }
 
@@ -106,8 +130,50 @@ export class RiviereGraphDefinition {
     return this.value
   }
 
+  inspectionGraph(
+    version: string,
+    components: readonly PublishedComponent[],
+    links: readonly PublishedLink[],
+    externalLinks: readonly PublishedExternalLink[],
+  ): InspectionGraph {
+    return {
+      version,
+      metadata: this.published(),
+      components,
+      links,
+      externalLinks,
+    }
+  }
+
+  publishedGraph(
+    version: string,
+    components: readonly PublishedComponent[],
+    links: readonly PublishedLink[],
+    externalLinks: readonly PublishedExternalLink[],
+  ): RiviereGraph {
+    const customTypes = emptyRecord(this.value.customTypes)
+    const relationshipTypes = emptyRecord(this.value.relationshipTypes)
+    return {
+      version,
+      metadata: {
+        ...(this.value.name === undefined ? {} : { name: this.value.name }),
+        ...(this.value.description === undefined ? {} : { description: this.value.description }),
+        sources: [...this.value.sources],
+        domains: { ...this.value.domains },
+        ...(customTypes === undefined ? {} : { customTypes }),
+        ...(relationshipTypes === undefined ? {} : { relationshipTypes }),
+      },
+      components: [...components],
+      links: [...links],
+      ...(externalLinks.length === 0 ? {} : { externalLinks: [...externalLinks] }),
+    }
+  }
+
   private changed(change: Partial<CompleteRiviereGraphDefinition>): RiviereGraphDefinition {
-    return new RiviereGraphDefinition({ ...this.value, ...change })
+    return new RiviereGraphDefinition({
+      ...this.value,
+      ...change,
+    })
   }
 }
 
@@ -117,4 +183,10 @@ function sameSource(existing: SourceInfo, incoming: SourceInfo): boolean {
     existing.commit === incoming.commit &&
     existing.extractedAt === incoming.extractedAt
   )
+}
+
+function emptyRecord<T>(
+  record: Readonly<Record<string, T>>,
+): Readonly<Record<string, T>> | undefined {
+  return Object.keys(record).length === 0 ? undefined : { ...record }
 }

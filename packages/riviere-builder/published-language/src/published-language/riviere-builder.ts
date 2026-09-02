@@ -38,6 +38,8 @@ import {
 } from './riviere-graph-definition-input'
 import { type LinkExternalResult, type UpsertResult } from './riviere-builder-result'
 
+type Publishable<T> = { published(): T }
+
 type UpsertOptions = Readonly<{ noOverwrite?: boolean }>
 type UIInput = Parameters<typeof ComponentDefinition.parseUI>[0]
 type APIInput = Parameters<typeof ComponentDefinition.parseAPI>[0]
@@ -51,6 +53,7 @@ type EnrichmentInput = Readonly<
 >
 type LinkInput = Parameters<typeof Link.parseNew>[0]
 type ExternalLinkInput = Parameters<typeof ExternalLink.parseNew>[0]
+
 /** @riviere-role value-object */
 export class RiviereBuilder {
   declare private readonly brand: 'RiviereBuilder'
@@ -400,15 +403,15 @@ export class RiviereBuilder {
   }
 
   components(): readonly PublishedComponent[] {
-    return structuredClone(this.publishedComponents())
+    return publishedSnapshot(this.published(this.componentsById.values()))
   }
 
   links(): readonly PublishedLink[] {
-    return structuredClone(this.publishedLinks())
+    return publishedSnapshot(this.published(this.linksByStoredIdentity.values()))
   }
 
   externalLinks(): readonly PublishedExternalLink[] {
-    return structuredClone(this.publishedExternalLinks())
+    return publishedSnapshot(this.published(this.externalLinksByConnectionIdentity.values()))
   }
 
   /** @returns Non fatal issues found in the graph. */
@@ -423,7 +426,16 @@ export class RiviereBuilder {
 
   /** @returns The current graph encoded as JSON. */
   serialize(): string {
-    return JSON.stringify(this.inspectionGraph(), null, 2)
+    return JSON.stringify(
+      this.metadata.inspectionGraph(
+        this.version,
+        this.published(this.componentsById.values()),
+        this.published(this.linksByStoredIdentity.values()),
+        this.published(this.externalLinksByConnectionIdentity.values()),
+      ),
+      null,
+      2,
+    )
   }
 
   /** @returns The valid completed graph. */
@@ -516,46 +528,38 @@ export class RiviereBuilder {
     throw new ComponentNotFoundError(id, suggestions)
   }
 
-  private publishedComponents(): PublishedComponent[] {
-    return [...this.componentsById.values()].map((component) => component.published())
-  }
-  private publishedLinks(): PublishedLink[] {
-    return [...this.linksByStoredIdentity.values()].map((link) => link.published())
-  }
-  private publishedExternalLinks(): PublishedExternalLink[] {
-    return [...this.externalLinksByConnectionIdentity.values()].map((link) => link.published())
-  }
-  private inspectionGraph() {
-    return {
-      version: this.version,
-      metadata: this.metadata.published(),
-      components: this.publishedComponents(),
-      links: this.publishedLinks(),
-      externalLinks: this.publishedExternalLinks(),
-    }
+  private published<T>(values: Iterable<Publishable<T>>): T[] {
+    return [...values].map((value) => value.published())
   }
   private publishedGraph(): RiviereGraph {
-    const metadata = this.metadata.published()
-    const customTypes =
-      Object.keys(metadata.customTypes).length === 0 ? undefined : { ...metadata.customTypes }
-    const relationshipTypes =
-      Object.keys(metadata.relationshipTypes).length === 0
-        ? undefined
-        : { ...metadata.relationshipTypes }
-    const externalLinks = this.publishedExternalLinks()
-    return {
-      version: this.version,
-      metadata: {
-        ...(metadata.name === undefined ? {} : { name: metadata.name }),
-        ...(metadata.description === undefined ? {} : { description: metadata.description }),
-        sources: [...metadata.sources],
-        domains: { ...metadata.domains },
-        ...(customTypes === undefined ? {} : { customTypes }),
-        ...(relationshipTypes === undefined ? {} : { relationshipTypes }),
-      },
-      components: this.publishedComponents(),
-      links: this.publishedLinks(),
-      ...(externalLinks.length === 0 ? {} : { externalLinks }),
-    }
+    return this.metadata.publishedGraph(
+      this.version,
+      this.published(this.componentsById.values()),
+      this.published(this.linksByStoredIdentity.values()),
+      this.published(this.externalLinksByConnectionIdentity.values()),
+    )
   }
+}
+
+function publishedSnapshot<T extends object>(values: readonly T[]): readonly T[] {
+  return values.map((value) => ({
+    ...value,
+    ...clonePublishedRecord(value),
+  }))
+}
+
+function clonePublishedValue(value: unknown): unknown {
+  if (!Array.isArray(value) && !isPlainObject(value)) return value
+  return Array.isArray(value) ? value.map(clonePublishedValue) : clonePublishedRecord(value)
+}
+
+function clonePublishedRecord(value: object): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(value).map(([field, nestedValue]) => [field, clonePublishedValue(nestedValue)]),
+  )
+}
+
+function isPlainObject(value: unknown): value is object {
+  if (typeof value !== 'object' || value === null) return false
+  return Object.prototype.toString.call(value) === '[object Object]'
 }

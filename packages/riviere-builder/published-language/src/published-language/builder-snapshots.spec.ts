@@ -48,6 +48,29 @@ describe('RiviereBuilder snapshots', () => {
     expect(builder.components()).toStrictEqual([component])
   })
 
+  it('returns components with function metadata', () => {
+    const builder = createBuilder()
+    const behavior = () => 'accepted metadata'
+    builder.defineCustomType({ name: 'Policy' })
+
+    const component = builder.addCustom({
+      name: 'Order policy',
+      domain: 'orders',
+      module: 'checkout',
+      customTypeName: 'Policy',
+      sourceLocation: {
+        repository: 'test/repo',
+        filePath: 'src/order-policy.ts',
+      },
+      metadata: {
+        behavior,
+        steps: [{ name: 'authorize' }],
+      },
+    })
+
+    expect(builder.components()).toStrictEqual([component])
+  })
+
   it('returns exact Link occurrences when Links have accumulated', () => {
     const builder = createBuilder()
     const source = addSource(builder)
