@@ -2057,8 +2057,7 @@ export default {
           return (
             Array.isArray(role.allowedInputs) ||
             Array.isArray(role.allowedOutputs) ||
-            typeof role.outputMethodNameMatches === 'string' ||
-            typeof role.forbiddenOutputMethodNameMatches === 'string'
+            typeof role.outputMethodNameMatches === 'string'
           )
         }
 
@@ -2071,21 +2070,7 @@ export default {
           }
 
           const outputRoles = readOutputTypeRoles(callableMember.functionNode.returnType, filename)
-          if (
-            outputRoles === null ||
-            !outputRoles.some((outputRole) => role.allowedOutputs.includes(outputRole))
-          ) {
-            return
-          }
-
-          if (
-            typeof role.forbiddenOutputMethodNameMatches === 'string' &&
-            new RegExp(role.forbiddenOutputMethodNameMatches).test(callableMember.methodName)
-          ) {
-            report(
-              callableMember.member,
-              `Role '${role.name}' forbids aggregate-returning method '${callableMember.methodName}' to match '${role.forbiddenOutputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
-            )
+          if (outputRoles?.length === 0) {
             return
           }
 
@@ -2095,7 +2080,7 @@ export default {
 
           report(
             callableMember.member,
-            `Role '${role.name}' requires aggregate-returning method '${callableMember.methodName}' to match '${role.outputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
+            `Role '${role.name}' requires output method '${callableMember.methodName}' to match '${role.outputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
           )
         }
 

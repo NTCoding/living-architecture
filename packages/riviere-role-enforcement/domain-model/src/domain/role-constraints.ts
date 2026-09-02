@@ -47,7 +47,6 @@ interface RoleConstraintsInput<R extends string = string> {
   readonly allowedNames?: readonly string[]
   readonly allowedOutputs?: readonly R[]
   readonly outputMethodNameMatches?: string
-  readonly forbiddenOutputMethodNameMatches?: string
   readonly approvedInstances?: readonly ApprovedInstanceInput[]
   readonly forbiddenCallableDataMembers?: true
   readonly forbiddenInlineCallableMembers?: true
@@ -83,7 +82,6 @@ export class RoleConstraints<R extends string = string> {
   declare readonly allowedNames?: readonly string[]
   declare readonly allowedOutputs?: readonly R[]
   declare readonly outputMethodNameMatches?: string
-  declare readonly forbiddenOutputMethodNameMatches?: string
   declare readonly approvedInstances?: readonly ApprovedInstance[]
   declare readonly forbiddenCallableDataMembers?: true
   declare readonly forbiddenInlineCallableMembers?: true
@@ -123,18 +121,10 @@ export class RoleConstraints<R extends string = string> {
   }
 
   static parse<R extends string>(input: RoleConstraintsInput<R>): RoleConstraints<R> {
-    if (
-      (input.outputMethodNameMatches !== undefined ||
-        input.forbiddenOutputMethodNameMatches !== undefined) &&
-      input.allowedOutputs === undefined
-    ) {
+    if (input.outputMethodNameMatches !== undefined && input.allowedOutputs === undefined) {
       throw new InvalidRoleDefinitionError('Output method name constraints require allowedOutputs.')
     }
     validateRegularExpression(input.outputMethodNameMatches, 'outputMethodNameMatches')
-    validateRegularExpression(
-      input.forbiddenOutputMethodNameMatches,
-      'forbiddenOutputMethodNameMatches',
-    )
     return new RoleConstraints(input)
   }
 }
