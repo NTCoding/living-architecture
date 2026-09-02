@@ -2038,18 +2038,22 @@ export default {
           }
 
           for (const member of node.body.body) {
-            const callableMember = readPublicCallableMember(member)
-            if (callableMember === null) {
-              continue
-            }
+            for (const callableMember of readPublicCallableMembers(member)) {
+              if (validateForbiddenOutputMethodName(callableMember, role)) {
+                continue
+              }
 
-            const methodName = readMemberName(member.key)
-            if (methodName === null) {
-              continue
-            }
+              if (callableMember.functionNode === null) {
+                continue
+              }
 
-            validateFunctionContract(callableMember, role, `${name}.${methodName}`)
-            validateOutputMethodName(member, callableMember, role, methodName)
+              validateFunctionContract(
+                callableMember.functionNode,
+                role,
+                `${name}.${callableMember.methodName}`,
+              )
+              validateOutputMethodName(callableMember, role)
+            }
           }
         }
 
@@ -2062,7 +2066,22 @@ export default {
           )
         }
 
-        function validateOutputMethodName(member, callableMember, role, methodName) {
+        function validateForbiddenOutputMethodName(callableMember, role) {
+          if (
+            typeof role.forbiddenOutputMethodNameMatches !== 'string' ||
+            !new RegExp(role.forbiddenOutputMethodNameMatches).test(callableMember.methodName)
+          ) {
+            return false
+          }
+
+          report(
+            callableMember.member,
+            `Role '${role.name}' forbids method '${callableMember.methodName}' to match '${role.forbiddenOutputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
+          )
+          return true
+        }
+
+        function validateOutputMethodName(callableMember, role) {
           if (
             typeof role.outputMethodNameMatches !== 'string' ||
             !Array.isArray(role.allowedOutputs)
@@ -2070,43 +2089,96 @@ export default {
             return
           }
 
-          const outputRoles = readOutputTypeRoles(callableMember.returnType, filename)
+          const outputRoles = readOutputTypeRoles(callableMember.functionNode.returnType, filename)
           if (
             outputRoles === null ||
             !outputRoles.some((outputRole) => role.allowedOutputs.includes(outputRole)) ||
-            (new RegExp(role.outputMethodNameMatches).test(methodName) &&
-              (typeof role.forbiddenOutputMethodNameMatches !== 'string' ||
-                !new RegExp(role.forbiddenOutputMethodNameMatches).test(methodName)))
+            new RegExp(role.outputMethodNameMatches).test(callableMember.methodName)
           ) {
             return
           }
 
           report(
-            member,
-            `Role '${role.name}' requires aggregate-returning method '${methodName}' to match '${role.outputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
+            callableMember.member,
+            `Role '${role.name}' requires aggregate-returning method '${callableMember.methodName}' to match '${role.outputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
           )
         }
 
-        function readPublicCallableMember(member) {
-          if (isStaticMember(member) || isPrivateMember(member)) {
-            return null
+        function readPublicCallableMembers(member) {
+          if (isPrivateMember(member)) {
+            return []
           }
 
           if (member.accessibility !== 'public' && member.accessibility != null) {
-            return null
+            return []
           }
 
           if (member.type === 'MethodDefinition') {
-            return member.kind === 'constructor' ? null : member.value
+            if (member.kind === 'constructor') {
+              return member.value.params.flatMap(readPublicCallableConstructorParameterProperty)
+            }
+
+            return readMemberName(member.key) === null
+              ? []
+              : [{
+                  functionNode: member.value,
+                  member,
+                  methodName: readMemberName(member.key),
+                }]
           }
 
-          if (!isDataFieldMember(member) || !isCallableFieldMember(member)) {
-            return null
+          if (!isDataFieldMember(member) || !isPotentialCallableFieldMember(member)) {
+            return []
           }
 
-          return isFunctionExpression(member.value)
-            ? member.value
-            : member.typeAnnotation?.typeAnnotation
+          const methodName = readMemberName(member.key)
+          if (methodName === null) {
+            return []
+          }
+
+          return [{
+            functionNode: readCallableFieldFunctionNode(member),
+            member,
+            methodName,
+          }]
+        }
+
+        function readCallableFieldFunctionNode(member) {
+          if (isCallableTypeAnnotation(member.typeAnnotation)) {
+            return member.typeAnnotation.typeAnnotation
+          }
+
+          return isFunctionExpression(member.value) ? member.value : null
+        }
+
+        function readPublicCallableConstructorParameterProperty(parameterProperty) {
+          if (
+            parameterProperty.type !== 'TSParameterProperty' ||
+            parameterProperty.accessibility === 'private'
+          ) {
+            return []
+          }
+
+          const parameter = unwrapParameterProperty(parameterProperty.parameter)
+          if (
+            parameter?.type !== 'Identifier' ||
+            !isCallableTypeAnnotation(parameter.typeAnnotation)
+          ) {
+            return []
+          }
+
+          return [{
+            functionNode: parameter.typeAnnotation.typeAnnotation,
+            member: parameterProperty,
+            methodName: parameter.name,
+          }]
+        }
+
+        function isPotentialCallableFieldMember(member) {
+          return (
+            isCallableFieldMember(member) ||
+            member.value?.type === 'Identifier'
+          )
         }
 
         function validateCallableMemberConstraints(node, role, name) {
@@ -2302,6 +2374,10 @@ export default {
 
           if (key?.type === 'Literal' && typeof key.value === 'string') {
             return key.value
+          }
+
+          if (key?.type === 'TemplateLiteral' && key.expressions.length === 0) {
+            return key.quasis[0]?.value.cooked ?? null
           }
 
           return null
