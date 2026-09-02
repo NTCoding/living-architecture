@@ -375,6 +375,28 @@ Phase 13 lands as a repository-rule gate, three Project/Builder foundations, ind
   - Architecture: §§3.4 and 3.9.
   - Dogfooding: §3.5 D5.2.
 
+### M6: Customer verification completes the Phase 13 workstream
+
+#### D6.1: Verify the complete customer journey and close Phase 13
+
+- Value: users can run the complete documented Workflow against the realistic ecommerce demo and rely on the final graph, log, and deterministic evidence before the project moves on.
+- Acceptance criteria:
+  - The documented validate and normal-run journey succeeds against the pinned ecommerce demo revision.
+  - Exact ground-truth, transition, and deterministic idempotency gates remain passing.
+  - Any discrepancy found through the customer journey is recorded as a focused bugfix ticket. D6.1 remains open until every such ticket is complete and the customer journey passes again.
+  - A passing rerun with no unresolved discrepancy completes the Phase 13 PRD workstream and permits the next project to begin.
+- Verification:
+  - Execute the documented customer journey and the exact gates in `dogfooding.md` §§3.4-3.6 against the pinned checkout.
+  - If a discrepancy is found, create the focused bugfix ticket, complete it, and rerun this verification from the documented journey.
+- Dependencies:
+  - D5.1 and D5.2.
+- Out of scope:
+  - Combining unrelated future work into Phase 13 instead of creating a new project.
+- Source refs:
+  - PRD: §6.
+  - Architecture: §3.9.
+  - Dogfooding: §3.6 D6.1.
+
 ## 3. Parallelisation
 
 ```yaml
@@ -407,6 +429,10 @@ tracks:
     deliverables: [D0.3, D0.4, D5.1, D5.2]
     can_run_in_parallel_with: [none]
     coordination_risk: demo fixtures and immutable product pin require coordinated repositories
+  - name: final-customer-verification
+    deliverables: [D6.1]
+    can_run_in_parallel_with: [none]
+    coordination_risk: any discrepancy must become focused bugfix work before Phase 13 closes
 ```
 
 ## 4. Dependencies
@@ -418,6 +444,7 @@ tracks:
 - D1.5 precedes stage-specific adapters and canonical CLI loading.
 - D0.3 waits for executable product capabilities; D0.4 waits for approved generated fixtures.
 - D5.1 and D5.2 run only against the immutable D0.4 revision.
+- D6.1 runs only after D5.1 and D5.2 pass. Any focused bugfix work it identifies must complete before the customer journey is rerun and Phase 13 closes.
 
 ## 5. Task creation readiness
 

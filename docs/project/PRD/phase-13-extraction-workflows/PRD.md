@@ -59,6 +59,7 @@ Ship a purpose-built, sequential Riviere Workflow as the primary interface when 
 - Two unchanged `--skip-ai` demo runs produce byte-identical canonically serialized output.
 - The complete workflow log and summary identify stage timing, skips, overwrites, additions, diagnostics, and failures.
 - Existing demo extraction verification continues to pass unchanged.
+- Phase 13 completes only after a final issue verifies the complete documented `ecommerce-demo-app` customer journey. If that verification identifies a defect, it creates focused bugfix work and repeats the complete journey after the fixes before the Phase 13 PRD workstream closes.
 
 ## 7. Open Product Questions
 
