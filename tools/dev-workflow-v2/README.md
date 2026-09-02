@@ -218,6 +218,6 @@ Most of the workflow is automated. You interact at these points:
 
 | Problem                       | Where to look                                          |
 | ----------------------------- | ------------------------------------------------------ |
-| Workflow state seems wrong    | Event store: `~/.claude/workflow-events.db`            |
+| Workflow state seems wrong    | Event store: `$WORKFLOW_EVENTS_DB`, or `~/ai-workflow-database/.workflow-events.db` when it is unset |
 | Hook errors / silent failures | Error log: `~/.claude/dev-workflow-v2-hook-errors.log` |
 | Stale NX cache                | Run `pnpm nx reset`                                    |
