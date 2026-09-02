@@ -37,7 +37,7 @@ it('accepts aggregate repository load methods with access criteria', () => {
   loadById(): Project { return new Project() }
   loadByGraphPath(): Project { return new Project() }
   loadByExtractionConfigPath(): Project { return new Project() }
-  loadByDraftComponentsPath(): Project { return new Project() }
+  loadByExtractionConfigAndDraftComponentsPaths(): Project { return new Project() }
   loadByWorkflowName(): Project { return new Project() }
 `)
 

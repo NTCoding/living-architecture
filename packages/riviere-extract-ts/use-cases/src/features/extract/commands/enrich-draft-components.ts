@@ -19,12 +19,13 @@ export class EnrichDraftComponents {
 
   execute(enrichDraftComponentsInput: EnrichDraftComponentsInput): EnrichDraftComponentsResult {
     try {
-      const riviereProject = this.riviereProjectRepository.loadByDraftComponentsPath({
-        projectRoot: enrichDraftComponentsInput.projectRoot ?? process.cwd(),
-        configPath: enrichDraftComponentsInput.configPath,
-        draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,
-        useTsConfig: enrichDraftComponentsInput.useTsConfig,
-      })
+      const riviereProject =
+        this.riviereProjectRepository.loadByExtractionConfigAndDraftComponentsPaths({
+          projectRoot: enrichDraftComponentsInput.projectRoot ?? process.cwd(),
+          configPath: enrichDraftComponentsInput.configPath,
+          draftComponentsPath: enrichDraftComponentsInput.draftComponentsPath,
+          useTsConfig: enrichDraftComponentsInput.useTsConfig,
+        })
 
       const timing = measureConnectionDetection(this.now)
       const result = riviereProject.enrichDraftComponents({

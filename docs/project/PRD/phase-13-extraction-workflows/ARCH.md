@@ -141,7 +141,7 @@ The role-enforced lexical rule is `load` or `loadBy<AccessCriterion>`. The suffi
 class RiviereProjectRepository {
   loadByGraphPath(graphPath: string): RiviereProject
   loadByExtractionConfigPath(input: ExtractionConfigLoadInput): RiviereProject
-  loadByDraftComponentsPath(input: DraftComponentsLoadInput): RiviereProject
+  loadByExtractionConfigAndDraftComponentsPaths(input: DraftComponentsLoadInput): RiviereProject
   loadByWorkflowName(input: WorkflowNameLoadInput): RiviereProject
 }
 ```
@@ -161,7 +161,7 @@ D1.0 performs the current-state migration without aliases:
 | ------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------- |
 | `load(graphFileLocation)`                         | `loadByGraphPath(graphFileLocation)` | load an existing persisted graph                                                    |
 | `load({ projectRoot, configPath, useTsConfig })`  | `loadByExtractionConfigPath(...)`    | load direct extraction state                                                        |
-| `loadForEnrichment({ ..., draftComponentsPath })` | `loadByDraftComponentsPath(...)`     | load extraction state selected by persisted Draft Components path before enrichment |
+| `loadForEnrichment({ ..., draftComponentsPath })` | `loadByExtractionConfigAndDraftComponentsPaths(...)`     | load extraction state selected by persisted extraction configuration and Draft Components paths before enrichment |
 | `loadWorkflow({ projectRoot, workflowName })`     | `loadByWorkflowName(...)`            | temporarily load the fixed name-addressed Workflow                                  |
 
 D1.5 then replaces only the name-addressed Workflow path:

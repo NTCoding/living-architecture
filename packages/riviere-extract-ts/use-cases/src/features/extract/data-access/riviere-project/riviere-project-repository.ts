@@ -68,7 +68,7 @@ export class RiviereProjectRepository {
     writeFileSync(graphFileLocation, project.serialize(), 'utf-8')
   }
 
-  loadByDraftComponentsPath(
+  loadByExtractionConfigAndDraftComponentsPaths(
     params: LoadParameters & { readonly draftComponentsPath: string },
   ): RiviereProject {
     return this.loadProject(params, () => this.loadDraftComponents(params.draftComponentsPath))
