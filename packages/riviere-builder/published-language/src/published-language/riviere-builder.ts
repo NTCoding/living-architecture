@@ -549,6 +549,7 @@ function publishedSnapshot<T extends object>(values: readonly T[]): readonly T[]
 }
 
 function clonePublishedValue(value: unknown): unknown {
+  if (typeof value !== 'object' || value === null) return value
   if (value instanceof Date) return new Date(value)
   if (value instanceof Map)
     return new Map(
@@ -558,17 +559,12 @@ function clonePublishedValue(value: unknown): unknown {
       ]),
     )
   if (value instanceof Set) return new Set([...value].map(clonePublishedValue))
-  if (!Array.isArray(value) && !isPlainObject(value)) return value
-  return Array.isArray(value) ? value.map(clonePublishedValue) : clonePublishedRecord(value)
+  if (Array.isArray(value)) return value.map(clonePublishedValue)
+  return clonePublishedRecord(value)
 }
 
 function clonePublishedRecord(value: object): Record<string, unknown> {
   return Object.fromEntries(
     Object.entries(value).map(([field, nestedValue]) => [field, clonePublishedValue(nestedValue)]),
   )
-}
-
-function isPlainObject(value: unknown): value is object {
-  if (typeof value !== 'object' || value === null) return false
-  return Object.prototype.toString.call(value) === '[object Object]'
 }

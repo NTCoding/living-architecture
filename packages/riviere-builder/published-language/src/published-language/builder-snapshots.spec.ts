@@ -7,6 +7,12 @@ import { RiviereBuilder } from './riviere-builder'
 class ExpectedMapMetadataError extends Error {}
 class ExpectedCustomComponentError extends Error {}
 class ExpectedSetMetadataError extends Error {}
+class ExpectedDateMetadataError extends Error {}
+class ExpectedObjectMetadataError extends Error {}
+
+class PolicyConfiguration {
+  constructor(readonly enabled: boolean) {}
+}
 
 function mapMetadata(value: unknown): Map<unknown, unknown> {
   if (value instanceof Map) return value
@@ -18,9 +24,18 @@ function setMetadata(value: unknown): Set<unknown> {
   throw new ExpectedSetMetadataError()
 }
 
+function dateMetadata(value: unknown): Date {
+  if (value instanceof Date) return value
+  throw new ExpectedDateMetadataError()
+}
+
+function objectMetadata(value: unknown): object {
+  if (typeof value === 'object' && value !== null) return value
+  throw new ExpectedObjectMetadataError()
+}
+
 function policyRoles(value: unknown): Set<unknown> {
-  if (typeof value !== 'object' || value === null) throw new ExpectedSetMetadataError()
-  return setMetadata(Reflect.get(value, 'roles'))
+  return setMetadata(Reflect.get(objectMetadata(value), 'roles'))
 }
 
 function customComponent(components: readonly Component[]): CustomComponent {
@@ -46,7 +61,7 @@ function createBuilder(): RiviereBuilder {
   })
 }
 
-function addSource(builder: RiviereBuilder) {
+function addPlaceOrderUseCase(builder: RiviereBuilder) {
   return builder.addUseCase({
     name: 'Place Order',
     domain: 'orders',
@@ -61,14 +76,14 @@ function addSource(builder: RiviereBuilder) {
 describe('RiviereBuilder snapshots', () => {
   it('returns exact components when components have accumulated', () => {
     const builder = createBuilder()
-    const component = addSource(builder)
+    const component = addPlaceOrderUseCase(builder)
 
     expect(builder.components()).toStrictEqual([component])
   })
 
   it('preserves Builder component state when a returned component is changed', () => {
     const builder = createBuilder()
-    const component = addSource(builder)
+    const component = addPlaceOrderUseCase(builder)
     const snapshot = builder.components()
 
     for (const returnedComponent of snapshot)
@@ -114,21 +129,55 @@ describe('RiviereBuilder snapshots', () => {
       },
       metadata: {
         policies: new Map([
-          ['authorize', { enabled: true, roles: new Set(['admin']), reviewedAt: new Date(0) }],
+          [
+            'authorize',
+            {
+              enabled: true,
+              roles: new Set(['admin']),
+              reviewedAt: new Date(0),
+            },
+          ],
         ]),
       },
     })
     const policies = mapMetadata(customComponent(builder.components())['policies'])
-    const policy = policies.get('authorize')
+    const policy = objectMetadata(policies.get('authorize'))
     const roles = policyRoles(policy)
+    const reviewedAt = dateMetadata(Reflect.get(policy, 'reviewedAt'))
     roles.add('auditor')
+    reviewedAt.setTime(1)
 
     expect(builder.components()).toStrictEqual([component])
   })
 
+  it('preserves Builder component state when returned class metadata is changed', () => {
+    const builder = createBuilder()
+    builder.defineCustomType({ name: 'Policy' })
+    builder.addCustom({
+      name: 'Order policy',
+      domain: 'orders',
+      module: 'checkout',
+      customTypeName: 'Policy',
+      sourceLocation: {
+        repository: 'test/repo',
+        filePath: 'src/order-policy.ts',
+      },
+      metadata: {
+        policy: new PolicyConfiguration(true),
+      },
+    })
+    const policy = objectMetadata(customComponent(builder.components())['policy'])
+
+    Reflect.set(policy, 'enabled', false)
+
+    expect(Reflect.get(customComponent(builder.components()), 'policy')).toStrictEqual({
+      enabled: true,
+    })
+  })
+
   it('returns exact Link occurrences when Links have accumulated', () => {
     const builder = createBuilder()
-    const source = addSource(builder)
+    const source = addPlaceOrderUseCase(builder)
     const first = builder.link({
       from: source.id,
       to: 'orders:domain:domainop:place-order',
@@ -155,7 +204,7 @@ describe('RiviereBuilder snapshots', () => {
 
   it('preserves Builder Link state when a returned Link is changed', () => {
     const builder = createBuilder()
-    const source = addSource(builder)
+    const source = addPlaceOrderUseCase(builder)
     const link = builder.link({
       from: source.id,
       to: 'orders:domain:domainop:place-order',
@@ -173,7 +222,7 @@ describe('RiviereBuilder snapshots', () => {
 
   it('returns exact external Links when external Links have accumulated', () => {
     const builder = createBuilder()
-    const source = addSource(builder)
+    const source = addPlaceOrderUseCase(builder)
     const { link } = builder.linkExternal({
       from: source.id,
       target: {
@@ -188,7 +237,7 @@ describe('RiviereBuilder snapshots', () => {
 
   it('preserves Builder external Link state when a returned target is changed', () => {
     const builder = createBuilder()
-    const source = addSource(builder)
+    const source = addPlaceOrderUseCase(builder)
     const { link } = builder.linkExternal({
       from: source.id,
       target: {
