@@ -375,19 +375,19 @@ Phase 13 lands as a repository-rule gate, three Project/Builder foundations, ind
   - Architecture: §§3.4 and 3.9.
   - Dogfooding: §3.5 D5.2.
 
-### M6: Customer verification completes the Phase 13 workstream
+### M6: ecommerce-demo-app helps new users adopt Riviere Workflows
 
-#### D6.1: Verify the complete customer journey and close Phase 13
+#### D6.1: Show code extraction, EventCatalog, AsyncAPI, additive AI stages, and validation in ecommerce-demo-app
 
-- Value: users can run the complete documented Workflow against the realistic ecommerce demo and rely on the final graph, log, and deterministic evidence before the project moves on.
+- Value: people who have not used Riviere can learn how `riviere workflow run ./riviere-workflow.yaml` uses TypeScript code, EventCatalog, AsyncAPI, additive AI extraction, additive AI enrichment, and schema validation, understand how each input applies to their application, and get a first setup working by following `ecommerce-demo-app`.
 - Acceptance criteria:
-  - The documented validate and normal-run journey succeeds against the pinned ecommerce demo revision.
-  - Exact ground-truth, transition, and deterministic idempotency gates remain passing.
-  - Any discrepancy found through the customer journey is recorded as a focused bugfix ticket. D6.1 remains open until every such ticket is complete and the customer journey passes again.
+  - `riviere workflow validate ./riviere-workflow.yaml` and `riviere workflow run ./riviere-workflow.yaml` succeed against the pinned ecommerce demo revision and exercise TypeScript code extraction, EventCatalog import, AsyncAPI import, additive AI extraction, additive AI enrichment, and schema validation.
+  - The graph and NDJSON comparison in `dogfooding.md` §3.4, the seven public-stage-transition fixtures at `tests/workflow-transitions/00-initial.json` through `tests/workflow-transitions/06-after-validate.json`, and the two `riviere workflow run ./riviere-workflow.yaml --skip-ai` outputs compared in `dogfooding.md` §3.5 remain passing.
+  - Any discrepancy in source composition, `.riviere/ecommerce-architecture.json`, `.riviere/workflow.log.ndjson`, `tests/workflow-transitions/00-initial.json` through `tests/workflow-transitions/06-after-validate.json`, or the two AI-skipped outputs is recorded as a focused bugfix ticket. D6.1 remains open until every such ticket is complete and every command and comparison listed above passes again.
   - A passing rerun with no unresolved discrepancy completes the Phase 13 PRD workstream and permits the next project to begin.
 - Verification:
-  - Execute the documented customer journey and the exact gates in `dogfooding.md` §§3.4-3.6 against the pinned checkout.
-  - If a discrepancy is found, create the focused bugfix ticket, complete it, and rerun this verification from the documented journey.
+  - Execute `riviere workflow validate ./riviere-workflow.yaml`, `riviere workflow run ./riviere-workflow.yaml`, and two `riviere workflow run ./riviere-workflow.yaml --skip-ai` commands plus the graph, NDJSON, and seven transition-fixture comparisons in `dogfooding.md` §§3.4-3.6 against the pinned `ecommerce-demo-app` revision.
+  - If a discrepancy is found, create the focused bugfix ticket, complete it, and rerun every documented command and comparison.
 - Dependencies:
   - D5.1 and D5.2.
 - Out of scope:
