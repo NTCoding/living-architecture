@@ -172,9 +172,14 @@ describe('parsePullRequestDescriptionOptions', () => {
 
 describe('buildPullRequestCreationRequest', () => {
   it('returns standard PR body with linked issue when given structured input', () => {
-    const request = buildPullRequestCreationRequest(VALID_PULL_REQUEST_DESCRIPTION_INPUT, 42)
+    const request = buildPullRequestCreationRequest(
+      VALID_PULL_REQUEST_DESCRIPTION_INPUT,
+      42,
+      'issue-42',
+    )
 
     expect(request).toStrictEqual({
+      branch: 'issue-42',
       title: 'Ready PR',
       body: [
         '## Description\n\nCreates a ready PR.',

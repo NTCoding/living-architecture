@@ -8,6 +8,7 @@ const pullRequestSchema = z.object({
 
 /** @riviere-role external-client-model */
 export interface GithubPullRequestCreationInput {
+  readonly branch: string
   readonly body: string
   readonly title: string
 }
@@ -21,6 +22,7 @@ export type GithubPullRequest = {
 
 /** @riviere-role external-client-model */
 type GhRunner = (args: readonly string[]) => string
+type PushBranch = (branch: string) => void
 
 /** @riviere-role external-client-error */
 class PullRequestCreationOutputError extends Error {
@@ -33,8 +35,10 @@ class PullRequestCreationOutputError extends Error {
 /** @riviere-role external-client-service */
 export function createGithubPullRequestClient(
   runGh: GhRunner,
+  pushBranch: PushBranch,
 ): (request: GithubPullRequestCreationInput) => GithubPullRequest {
   return (request: GithubPullRequestCreationInput): GithubPullRequest => {
+    pushBranch(request.branch)
     const createOutput = runGh(['pr', 'create', '--title', request.title, '--body', request.body])
     const pullRequestUrl = readPullRequestUrl(createOutput)
     return readPullRequest(runGh, pullRequestUrl)

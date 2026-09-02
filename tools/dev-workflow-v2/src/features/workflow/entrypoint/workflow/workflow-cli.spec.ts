@@ -267,6 +267,7 @@ describe('workflow-cli commands', () => {
   describe('create-pr', () => {
     it('creates ready pull request and records number and URL', () => {
       const capturedRequests: {
+        readonly branch: string
         readonly title: string
         readonly body: string
       }[] = []
@@ -305,6 +306,7 @@ describe('workflow-cli commands', () => {
       expect(result.exitCode).toStrictEqual(0)
       expect(capturedRequests).toStrictEqual([
         expect.objectContaining({
+          branch: 'feat/test',
           title: 'Ready PR',
           body: expect.stringContaining('## Acceptance Criteria\n\n- PR is ready for review'),
         }),

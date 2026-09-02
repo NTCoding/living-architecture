@@ -211,6 +211,7 @@ describe('Workflow', () => {
 
     it('records ready pull request with structured body when create-pr succeeds', () => {
       const capturedRequests: {
+        readonly branch: string
         readonly title: string
         readonly body: string
       }[] = []
@@ -233,6 +234,7 @@ describe('Workflow', () => {
       expect(result).toStrictEqual({ pass: true })
       expect(capturedRequests).toStrictEqual([
         {
+          branch: 'issue-42',
           title: 'Add workflow create-pr',
           body: [
             '## Description\n\nCreates the PR through the workflow.',
@@ -265,6 +267,23 @@ describe('Workflow', () => {
 
       expect(result.pass).toBe(false)
       expect(workflow.getState().prNumber).toBeUndefined()
+    })
+
+    it('blocks create-pr when branch is not recorded', () => {
+      const workflow = rehydrateTestWorkflow(
+        {
+          ...WorkflowState.replay(eventsToSubmittingPr()),
+          featureBranch: undefined,
+        },
+        makeDeps(),
+      )
+
+      const result = workflow.createPr(CREATE_PR_OPTIONS)
+
+      expect(result).toStrictEqual({
+        pass: false,
+        reason: 'featureBranch not set. Record the branch before creating a PR.',
+      })
     })
 
     it('does not record pull request when create-pr returns draft pull request', () => {

@@ -251,6 +251,9 @@ export class MaintainerWorkflow {
     if (this.state.githubIssue === undefined) {
       return fail('githubIssue not set. Record the issue before creating a PR.')
     }
+    if (this.state.featureBranch === undefined) {
+      return fail('featureBranch not set. Record the branch before creating a PR.')
+    }
 
     const parsedDescription = parsePullRequestDescriptionOptions(rawArgs)
     if (!parsedDescription.ok) {
@@ -261,6 +264,7 @@ export class MaintainerWorkflow {
       const pullRequestRequest = buildPullRequestCreationRequest(
         parsedDescription.input,
         this.state.githubIssue,
+        this.state.featureBranch,
       )
       const pullRequest = this.deps.createPullRequest(pullRequestRequest)
       if (pullRequest.isDraft) {

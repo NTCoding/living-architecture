@@ -10,11 +10,13 @@ it('translates workflow pull request details into a GitHub request', () => {
   const createPullRequest = createWorkflowPullRequestCreator(client)
 
   const result = createPullRequest({
+    branch: 'issue-42',
     body: 'Description',
     title: 'Example change',
   })
 
   expect(client).toHaveBeenCalledWith({
+    branch: 'issue-42',
     body: 'Description',
     title: 'Example change',
   })

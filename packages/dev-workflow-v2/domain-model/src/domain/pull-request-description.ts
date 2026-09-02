@@ -138,8 +138,10 @@ function readSuccessfulOptionValue(optionValueResult: OptionValueResult): string
 export function buildPullRequestCreationRequest(
   input: PullRequestDescriptionInput,
   githubIssue: number,
+  branch: string,
 ): Parameters<import('./ports/create-pull-request').CreateWorkflowPullRequest>[0] {
   return {
+    branch,
     title: input.title,
     body: [
       formatSection('Description', input.description),
