@@ -2,8 +2,13 @@ import type {
   Component,
   CustomComponent,
 } from '@living-architecture/riviere-schema-published-language/schema'
+import {
+  addSnapshotPolicy,
+  addSnapshotUseCase,
+  createSnapshotBuilder,
+} from '../__fixtures__/builder-snapshot-fixtures'
 import { RiviereBuilder } from './riviere-builder'
-import { SnapshotMetadataError } from './riviere-graph-definition'
+import { SnapshotMetadataError } from './riviere-graph-snapshot'
 
 class ExpectedCustomComponentError extends Error {}
 class ExpectedSnapshotValueError extends Error {}
@@ -81,64 +86,25 @@ function firstSnapshotValue<T>(values: readonly T[]): T {
   return value
 }
 
-function createBuilder(): RiviereBuilder {
-  return RiviereBuilder.new({
-    sources: [{ repository: 'test/repo', commit: 'abc123' }],
-    domains: {
-      orders: {
-        description: 'Order domain',
-        systemType: 'domain',
-      },
-    },
-  })
-}
-
-function addPlaceOrderUseCase(builder: RiviereBuilder) {
-  return builder.addUseCase({
-    name: 'Place Order',
-    domain: 'orders',
-    module: 'checkout',
-    sourceLocation: {
-      repository: 'test/repo',
-      filePath: 'src/place-order.ts',
-    },
-  })
-}
-
-function addPolicy(builder: RiviereBuilder, metadata: Readonly<Record<string, unknown>>): void {
-  builder.defineCustomType({ name: 'Policy' })
-  builder.addCustom({
-    name: 'Order policy',
-    domain: 'orders',
-    module: 'checkout',
-    customTypeName: 'Policy',
-    sourceLocation: {
-      repository: 'test/repo',
-      filePath: 'src/order-policy.ts',
-    },
-    metadata,
-  })
-}
-
 function policyMetadata(builder: RiviereBuilder, property: string): unknown {
   return customComponent(builder.components())[property]
 }
 
 describe('RiviereBuilder snapshots', () => {
   it('returns an empty array when no external Links have accumulated', () => {
-    expect(createBuilder().externalLinks()).toStrictEqual([])
+    expect(createSnapshotBuilder().externalLinks()).toStrictEqual([])
   })
 
   it('returns exact components when components have accumulated', () => {
-    const builder = createBuilder()
-    const component = addPlaceOrderUseCase(builder)
+    const builder = createSnapshotBuilder()
+    const component = addSnapshotUseCase(builder)
 
     expect(builder.components()).toStrictEqual([component])
   })
 
   it('preserves Builder component state when a returned component is changed', () => {
-    const builder = createBuilder()
-    const component = addPlaceOrderUseCase(builder)
+    const builder = createSnapshotBuilder()
+    const component = addSnapshotUseCase(builder)
     const returnedComponent = firstSnapshotValue(builder.components())
 
     returnedComponent.sourceLocation.filePath = 'src/changed.ts'
@@ -148,13 +114,16 @@ describe('RiviereBuilder snapshots', () => {
   })
 
   it('preserves Builder state through reflective changes to returned plain metadata', () => {
-    const builder = createBuilder()
-    addPolicy(builder, { policy: { enabled: true } })
+    const builder = createSnapshotBuilder()
+    addSnapshotPolicy(builder, { policy: { enabled: true } })
     const returnedPolicy = objectMetadata(policyMetadata(builder, 'policy'))
 
     expect(Reflect.set(returnedPolicy, 'enabled', false)).toBe(true)
     expect(Reflect.defineProperty(returnedPolicy, 'owner', { value: 'security' })).toBe(true)
-    expect({ returnedPolicy, owner: Reflect.get(returnedPolicy, 'owner') }).toStrictEqual({
+    expect({
+      returnedPolicy,
+      owner: Reflect.get(returnedPolicy, 'owner'),
+    }).toStrictEqual({
       returnedPolicy: { enabled: false },
       owner: 'security',
     })
@@ -162,8 +131,8 @@ describe('RiviereBuilder snapshots', () => {
   })
 
   it('preserves nested Map metadata when a returned value is changed', () => {
-    const builder = createBuilder()
-    addPolicy(builder, {
+    const builder = createSnapshotBuilder()
+    addSnapshotPolicy(builder, {
       policies: new Map([['authorize', { owner: 'security' }]]),
     })
     const returnedPolicies = mapMetadata(policyMetadata(builder, 'policies'))
@@ -178,8 +147,8 @@ describe('RiviereBuilder snapshots', () => {
   })
 
   it('preserves nested Set metadata when a returned value is changed', () => {
-    const builder = createBuilder()
-    addPolicy(builder, { roles: new Set(['admin']) })
+    const builder = createSnapshotBuilder()
+    addSnapshotPolicy(builder, { roles: new Set(['admin']) })
     const returnedRoles = setMetadata(policyMetadata(builder, 'roles'))
 
     returnedRoles.add('auditor')
@@ -189,8 +158,8 @@ describe('RiviereBuilder snapshots', () => {
   })
 
   it('preserves nested Date metadata when a returned value is changed', () => {
-    const builder = createBuilder()
-    addPolicy(builder, { reviewedAt: new Date(0) })
+    const builder = createSnapshotBuilder()
+    addSnapshotPolicy(builder, { reviewedAt: new Date(0) })
     const returnedReview = dateMetadata(policyMetadata(builder, 'reviewedAt'))
 
     returnedReview.setTime(1)
@@ -202,10 +171,10 @@ describe('RiviereBuilder snapshots', () => {
   it.each(specialMetadataFactories)(
     'preserves own properties on %s metadata',
     (_type, createMetadata) => {
-      const builder = createBuilder()
+      const builder = createSnapshotBuilder()
       const metadata = createMetadata()
       Reflect.defineProperty(metadata, 'owner', { value: { name: 'security' } })
-      addPolicy(builder, { metadata })
+      addSnapshotPolicy(builder, { metadata })
       const snapshot = objectMetadata(policyMetadata(builder, 'metadata'))
       const descriptor = Object.getOwnPropertyDescriptor(snapshot, 'owner')
       const owner = objectMetadata(Reflect.get(snapshot, 'owner'))
@@ -229,10 +198,10 @@ describe('RiviereBuilder snapshots', () => {
   it.each(specialMetadataFactories)(
     'rejects unsupported own properties on %s metadata',
     (_type, createMetadata) => {
-      const builder = createBuilder()
+      const builder = createSnapshotBuilder()
       const metadata = createMetadata()
       Reflect.defineProperty(metadata, 'invalid', { value: () => 'metadata' })
-      addPolicy(builder, { metadata })
+      addSnapshotPolicy(builder, { metadata })
 
       expect(() => builder.components()).toThrow(SnapshotMetadataError)
       expect(() => builder.components()).toThrow('functions are not supported')
@@ -240,11 +209,15 @@ describe('RiviereBuilder snapshots', () => {
   )
 
   it('preserves circular null-prototype metadata and standalone buffers', () => {
-    const builder = createBuilder()
+    const builder = createSnapshotBuilder()
     const circularPolicy: object = {}
     Reflect.setPrototypeOf(circularPolicy, null)
     Reflect.set(circularPolicy, 'self', circularPolicy)
-    addPolicy(builder, { absent: null, circularPolicy, checksum: new ArrayBuffer(1) })
+    addSnapshotPolicy(builder, {
+      absent: null,
+      circularPolicy,
+      checksum: new ArrayBuffer(1),
+    })
     const returnedCircularPolicy = objectMetadata(policyMetadata(builder, 'circularPolicy'))
     const returnedChecksum = arrayBufferMetadata(policyMetadata(builder, 'checksum'))
 
@@ -256,12 +229,15 @@ describe('RiviereBuilder snapshots', () => {
     expect({
       absent: policyMetadata(builder, 'absent'),
       checksum: new Uint8Array(arrayBufferMetadata(policyMetadata(builder, 'checksum'))),
-    }).toStrictEqual({ absent: null, checksum: new Uint8Array([0]) })
+    }).toStrictEqual({
+      absent: null,
+      checksum: new Uint8Array([0]),
+    })
   })
 
   it('preserves regular expression metadata when a returned value is changed', () => {
-    const builder = createBuilder()
-    addPolicy(builder, { matcher: /order/gi })
+    const builder = createSnapshotBuilder()
+    addSnapshotPolicy(builder, { matcher: /order/gi })
     const matcher = regularExpressionMetadata(policyMetadata(builder, 'matcher'))
     matcher.lastIndex = 4
 
@@ -270,9 +246,9 @@ describe('RiviereBuilder snapshots', () => {
   })
 
   it('preserves ArrayBuffer view topology while isolating returned metadata', () => {
-    const builder = createBuilder()
+    const builder = createSnapshotBuilder()
     const buffer = new Uint8Array([1, 2]).buffer
-    addPolicy(builder, {
+    addSnapshotPolicy(builder, {
       first: new Uint8Array(buffer, 0, 1),
       second: new Uint8Array(buffer, 1, 1),
     })
@@ -300,8 +276,8 @@ describe('RiviereBuilder snapshots', () => {
   })
 
   it('preserves every supported ArrayBuffer view type in returned metadata', () => {
-    const builder = createBuilder()
-    addPolicy(builder, {
+    const builder = createSnapshotBuilder()
+    addSnapshotPolicy(builder, {
       views: [
         new DataView(new ArrayBuffer(1)),
         new Int8Array(1),
@@ -370,8 +346,8 @@ describe('RiviereBuilder snapshots', () => {
   ])(
     'throws SnapshotMetadataError when metadata contains %s',
     (_description, metadata, message) => {
-      const builder = createBuilder()
-      addPolicy(builder, { metadata })
+      const builder = createSnapshotBuilder()
+      addSnapshotPolicy(builder, { metadata })
 
       expect(() => builder.components()).toThrow(SnapshotMetadataError)
       expect(() => builder.components()).toThrow(message)
@@ -379,7 +355,7 @@ describe('RiviereBuilder snapshots', () => {
   )
 
   it('throws SnapshotMetadataError when metadata declares a property without a descriptor', () => {
-    const builder = createBuilder()
+    const builder = createSnapshotBuilder()
     const malformedMetadata = new Proxy(
       {},
       {
@@ -387,79 +363,9 @@ describe('RiviereBuilder snapshots', () => {
         getOwnPropertyDescriptor: () => undefined,
       },
     )
-    addPolicy(builder, { malformedMetadata })
+    addSnapshotPolicy(builder, { malformedMetadata })
 
     expect(() => builder.components()).toThrow(SnapshotMetadataError)
     expect(() => builder.components()).toThrow("property 'missing' has no descriptor")
-  })
-
-  it('returns exact Link occurrences when Links have accumulated', () => {
-    const builder = createBuilder()
-    const source = addPlaceOrderUseCase(builder)
-    const first = builder.link({
-      from: source.id,
-      to: 'orders:domain:domainop:place-order',
-      sourceLocation: {
-        repository: 'test/repo',
-        filePath: 'src/place-order.ts',
-        lineNumber: 10,
-        columnNumber: 1,
-      },
-    })
-    const second = builder.link({
-      from: source.id,
-      to: 'orders:domain:domainop:place-order',
-      sourceLocation: {
-        repository: 'test/repo',
-        filePath: 'src/place-order.ts',
-        lineNumber: 10,
-        columnNumber: 20,
-      },
-    })
-
-    expect(builder.links()).toStrictEqual([first, second])
-  })
-
-  it('preserves Builder Link state when a returned Link is changed', () => {
-    const builder = createBuilder()
-    const source = addPlaceOrderUseCase(builder)
-    const link = builder.link({
-      from: source.id,
-      to: 'orders:domain:domainop:place-order',
-      sourceLocation: { repository: 'test/repo', filePath: 'src/place-order.ts' },
-    })
-    const returnedLink = firstSnapshotValue(builder.links())
-
-    returnedLink.source = 'orders:checkout:usecase:changed'
-
-    expect(returnedLink.source).toBe('orders:checkout:usecase:changed')
-    expect(builder.links()).toStrictEqual([link])
-  })
-
-  it('returns exact external Links when external Links have accumulated', () => {
-    const builder = createBuilder()
-    const source = addPlaceOrderUseCase(builder)
-    const { link } = builder.linkExternal({
-      from: source.id,
-      target: { name: 'Payments API', repository: 'test/payments' },
-      type: 'async',
-    })
-
-    expect(builder.externalLinks()).toStrictEqual([link])
-  })
-
-  it('preserves Builder external Link state when a returned target is changed', () => {
-    const builder = createBuilder()
-    const source = addPlaceOrderUseCase(builder)
-    const { link } = builder.linkExternal({
-      from: source.id,
-      target: { name: 'Payments API', repository: 'test/payments' },
-    })
-    const returnedLink = firstSnapshotValue(builder.externalLinks())
-
-    returnedLink.target.name = 'Changed API'
-
-    expect(returnedLink.target.name).toBe('Changed API')
-    expect(builder.externalLinks()).toStrictEqual([link])
   })
 })

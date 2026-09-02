@@ -29,6 +29,7 @@ import { ExistingValuePreference } from './existing-value-preference'
 import { ExternalLink } from './external-link'
 import { GraphDiagnostics, type OperationWarning } from './graph-diagnostics'
 import { RiviereGraphDefinition } from './riviere-graph-definition'
+import { RiviereGraphSnapshot } from './riviere-graph-snapshot'
 import { Link } from './link'
 import {
   type BuilderOptions,
@@ -39,6 +40,13 @@ import {
 import { type LinkExternalResult, type UpsertResult } from './riviere-builder-result'
 
 type Publishable<T> = { published(): T }
+type InspectionGraph = Readonly<{
+  version: string
+  metadata: ReturnType<RiviereGraphDefinition['published']>
+  components: readonly PublishedComponent[]
+  links: readonly PublishedLink[]
+  externalLinks: readonly PublishedExternalLink[]
+}>
 
 type UpsertOptions = Readonly<{ noOverwrite?: boolean }>
 type UIInput = Parameters<typeof ComponentDefinition.parseUI>[0]
@@ -426,16 +434,7 @@ export class RiviereBuilder {
 
   /** @returns The current graph encoded as JSON. */
   serialize(): string {
-    return JSON.stringify(
-      this.metadata.inspectionGraph(
-        this.version,
-        this.published(this.componentsById.values()),
-        this.published(this.linksByStoredIdentity.values()),
-        this.published(this.externalLinksByConnectionIdentity.values()),
-      ),
-      null,
-      2,
-    )
+    return JSON.stringify(this.inspectionGraph(), null, 2)
   }
 
   /** @returns The valid completed graph. */
@@ -531,12 +530,44 @@ export class RiviereBuilder {
   private published<T>(values: Iterable<Publishable<T>>): T[] {
     return [...values].map((value) => value.published())
   }
+
+  private inspectionGraph(): InspectionGraph {
+    return {
+      version: this.version,
+      metadata: this.metadata.published(),
+      components: this.published(this.componentsById.values()),
+      links: this.published(this.linksByStoredIdentity.values()),
+      externalLinks: this.published(this.externalLinksByConnectionIdentity.values()),
+    }
+  }
+
   private publishedGraph(): RiviereGraph {
-    return this.metadata.publishedGraph(
-      this.version,
-      this.published(this.componentsById.values()),
-      this.published(this.linksByStoredIdentity.values()),
-      this.published(this.externalLinksByConnectionIdentity.values()),
-    )
+    return RiviereGraphSnapshot.from({
+      version: this.version,
+      metadata: this.publishedMetadata(),
+      components: this.published(this.componentsById.values()),
+      links: this.published(this.linksByStoredIdentity.values()),
+      ...(this.externalLinksByConnectionIdentity.size === 0
+        ? {}
+        : { externalLinks: this.published(this.externalLinksByConnectionIdentity.values()) }),
+    }).published()
+  }
+
+  private publishedMetadata(): RiviereGraph['metadata'] {
+    const metadata = this.metadata.published()
+    const customTypes =
+      Object.keys(metadata.customTypes).length === 0 ? undefined : { ...metadata.customTypes }
+    const relationshipTypes =
+      Object.keys(metadata.relationshipTypes).length === 0
+        ? undefined
+        : { ...metadata.relationshipTypes }
+    return {
+      ...(metadata.name === undefined ? {} : { name: metadata.name }),
+      ...(metadata.description === undefined ? {} : { description: metadata.description }),
+      sources: [...metadata.sources],
+      domains: { ...metadata.domains },
+      ...(customTypes === undefined ? {} : { customTypes }),
+      ...(relationshipTypes === undefined ? {} : { relationshipTypes }),
+    }
   }
 }
