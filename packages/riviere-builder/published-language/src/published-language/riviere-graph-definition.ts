@@ -250,6 +250,7 @@ function isPlainObject(value: object): boolean {
 function cloneDate(publishedDate: Date, clones: WeakMap<object, object>): Date {
   const snapshotDate = new Date(publishedDate)
   clones.set(publishedDate, snapshotDate)
+  copyPublishedProperties(publishedDate, snapshotDate, clones)
   return snapshotDate
 }
 
@@ -260,6 +261,7 @@ function cloneRegularExpression(
   const snapshotExpression = new RegExp(publishedExpression.source, publishedExpression.flags)
   snapshotExpression.lastIndex = publishedExpression.lastIndex
   clones.set(publishedExpression, snapshotExpression)
+  copyPublishedProperties(publishedExpression, snapshotExpression, clones)
   return snapshotExpression
 }
 
@@ -272,6 +274,7 @@ function cloneMap(
   for (const [key, nestedValue] of publishedMap) {
     snapshotMap.set(clonePublishedValue(key, clones), clonePublishedValue(nestedValue, clones))
   }
+  copyPublishedProperties(publishedMap, snapshotMap, clones)
   return snapshotMap
 }
 
@@ -279,6 +282,7 @@ function cloneSet(publishedSet: Set<unknown>, clones: WeakMap<object, object>): 
   const snapshotSet = new Set<unknown>()
   clones.set(publishedSet, snapshotSet)
   for (const nestedValue of publishedSet) snapshotSet.add(clonePublishedValue(nestedValue, clones))
+  copyPublishedProperties(publishedSet, snapshotSet, clones)
   return snapshotSet
 }
 
@@ -288,6 +292,7 @@ function cloneArrayBuffer(
 ): ArrayBuffer {
   const snapshotBuffer = publishedBuffer.slice(0)
   clones.set(publishedBuffer, snapshotBuffer)
+  copyPublishedProperties(publishedBuffer, snapshotBuffer, clones)
   return snapshotBuffer
 }
 
@@ -298,6 +303,7 @@ function cloneArrayBufferView(
   const snapshotBuffer = cloneViewBuffer(publishedView.buffer, clones)
   const snapshotView = cloneView(publishedView, snapshotBuffer)
   clones.set(publishedView, snapshotView)
+  copyPublishedProperties(publishedView, snapshotView, clones)
   return snapshotView
 }
 
