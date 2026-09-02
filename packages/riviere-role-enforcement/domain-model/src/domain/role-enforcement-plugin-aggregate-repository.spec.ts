@@ -132,6 +132,15 @@ it('does not constrain public property accessors', () => {
   expect(messages).toStrictEqual([])
 })
 
+it('ignores static initialization blocks', () => {
+  const messages = enforceAggregateRepository(`
+  static {}
+  loadByGraphPath(): Project { return new Project() }
+`)
+
+  expect(messages).toStrictEqual([])
+})
+
 it('rejects dynamically named public methods that cannot be validated', () => {
   const messages = enforceAggregateRepository(`
   [loadMethodName](): Project { return new Project() }
@@ -192,6 +201,18 @@ it('rejects initialized callable constructor parameter properties with invalid l
   expect(messages).toHaveLength(1)
   expect(messages[0]?.message).toContain("requires aggregate-returning method 'loadWorkflow'")
 })
+
+it.each(['private', 'protected'])(
+  'rejects public callable parameter properties in a %s constructor',
+  (constructorAccessibility) => {
+    const messages = enforceAggregateRepository(`
+  ${constructorAccessibility} constructor(public loadWorkflow: () => Project) {}
+`)
+
+    expect(messages).toHaveLength(1)
+    expect(messages[0]?.message).toContain("requires aggregate-returning method 'loadWorkflow'")
+  },
+)
 
 it('accepts abstract methods with lexically valid loading names', () => {
   const messages = enforceAggregateRepository(`

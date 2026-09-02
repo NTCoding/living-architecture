@@ -2092,12 +2092,12 @@ export default {
 
         function reportsDynamicPublicCallableName(member, role) {
           if (
+            !isPublicCallableMethodOrField(member) ||
             isPrivateMember(member) ||
             (member.accessibility !== 'public' && member.accessibility != null) ||
             (member.key.type === 'Identifier' && !member.computed) ||
             (member.key.type === 'Literal' && typeof member.key.value === 'string') ||
-            (member.key.type === 'TemplateLiteral' && member.key.expressions.length === 0) ||
-            !isPublicCallableMethodOrField(member)
+            (member.key.type === 'TemplateLiteral' && member.key.expressions.length === 0)
           ) {
             return false
           }
@@ -2130,6 +2130,13 @@ export default {
         }
 
         function readPublicCallableMembers(member) {
+          if (
+            (member.type === 'MethodDefinition' || member.type === 'TSAbstractMethodDefinition') &&
+            member.kind === 'constructor'
+          ) {
+            return member.value.params.flatMap(readPublicCallableConstructorParameterProperty)
+          }
+
           if (isPrivateMember(member)) {
             return []
           }
@@ -2139,10 +2146,6 @@ export default {
           }
 
           if (member.type === 'MethodDefinition' || member.type === 'TSAbstractMethodDefinition') {
-            if (member.kind === 'constructor') {
-              return member.value.params.flatMap(readPublicCallableConstructorParameterProperty)
-            }
-
             if (member.kind !== 'method') {
               return []
             }
