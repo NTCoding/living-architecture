@@ -118,15 +118,36 @@ Populate from:
 
 This section must:
 
-- quote the relevant PRD/problem-statement text verbatim
+- ground every claim in the relevant approved PRD or problem-definition text
 - explain the specific problem slice this ticket covers
 - explain the current workflow or failure mode using concrete details from the PRD or problem definition
 - explain the impact using numbers, examples, affected users, or named consequences from the PRD or problem definition
-- explain why this slice matters in the wider delivery sequence
+- explain how this specific problem fits into the wider problem described by the approved problem definition and PRD
+- describe the source-backed cost to affected users or the missed opportunity if the problem remains unresolved
 
-Do not use vague claims like "slow", "inconsistent", "unreliable", or "hard to repeat" unless the approved PRD/problem definition explains what that means. If the approved artefacts do not contain enough concrete problem detail to write this section, block task creation rather than padding with generic wording.
+Describe what users are trying to do, what makes that difficult or unreliable today, and the resulting consequence. Focus on the problem, not the proposed solution, project plan, delivery sequence, dependencies, or later tickets.
 
-Do not describe the implementation solution here.
+Do not define the problem as the absence of the proposed solution, deliverable, artefact, component, or implementation. For example, "users have no complete, executable reference" describes a missing solution rather than the underlying user problem.
+
+Use concrete, plain-language nouns and actions. Do not use umbrella terms or project jargon when the approved sources provide more specific language. For example, replace "architecture facts" with the actual information and sources involved: components, operations, events, and relationships obtained from source code, EventCatalog, AsyncAPI, and AI-assisted discovery.
+
+The problem must be understandable without ticket IDs, deliverable IDs, milestone names, or knowledge of the delivery plan. Never justify the problem by saying that another ticket depends on this ticket, that the ticket appears in an approved delivery sequence, or that delaying it would affect later implementation. Dependency information belongs only in `## Dependencies`.
+
+Bad:
+
+```text
+Product-level tests alone do not prove that a real multi-domain customer can author the complete Workflow or that exact accumulated state remains correct after each stage. This slice matters because D0.3 is an explicit dependency in the approved delivery sequence and an incomplete boundary would push design decisions into later implementation tickets.
+```
+
+This is project verification and delivery-sequence rationale, not the difficulty or consequence experienced by users.
+
+Good:
+
+```text
+Users trying to create one accurate architecture graph from multiple codebases, EventCatalog, AsyncAPI, and AI-assisted findings must determine for themselves how to combine those inputs, in what order, and whether each step produced the correct result. This makes Rivière difficult to learn, adapt, and trust. Users who cannot confidently apply it to their own systems are less likely to adopt it.
+```
+
+Do not use vague claims like "slow", "inconsistent", "unreliable", or "hard to repeat" unless the approved PRD/problem definition explains what that means. If the approved artefacts do not contain enough concrete problem detail and user or product consequence to write this section, block task creation rather than padding with generic wording or inventing an impact.
 
 ### Solution
 
@@ -471,6 +492,12 @@ Block task creation if any of these are true:
 24. a dogfooding ticket replaces the dogfooding artefact's workflow/config/README/CI/script/generated-output block with prose
 25. a dogfooding ticket omits the linked dogfooding deliverable's customer action, customer-visible result, existing dogfooding fit, final content, or acceptance criteria
 26. a dogfooding ticket weakens any acceptance criterion, dependency, exclusion, customer action, customer-visible result, or final artefact from `dogfoodingPath`
+27. `## Problem` justifies the ticket through dependencies, delivery sequencing, or effects on later tickets
+28. `## Problem` defines the problem as the absence of the proposed solution, deliverable, artefact, component, or implementation
+29. `## Problem` uses vague umbrella terms or project jargon where concrete source-backed language is available
+30. `## Problem` does not state a source-backed user or product consequence
+31. `## Problem` does not explain the concrete user task, difficulty, or failure mode covered by this ticket
+32. `## Problem` does not explain how the ticket's problem fits into the wider approved problem context
 
 If blocked, the current planning command must produce:
 

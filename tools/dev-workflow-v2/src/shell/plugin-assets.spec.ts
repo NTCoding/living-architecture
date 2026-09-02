@@ -149,3 +149,57 @@ describe('reviewer workflow preflight', () => {
     },
   )
 })
+
+describe('task creation planning guidance', () => {
+  it('keeps problem statements focused on concrete user problems and consequences', () => {
+    const taskCreation = readPluginFile('planning-stages/task-creation.md')
+    const badExample =
+      'Product-level tests alone do not prove that a real multi-domain customer can author the complete Workflow or that exact accumulated state remains correct after each stage. This slice matters because D0.3 is an explicit dependency in the approved delivery sequence and an incomplete boundary would push design decisions into later implementation tickets.'
+    const goodExample =
+      'Users trying to create one accurate architecture graph from multiple codebases, EventCatalog, AsyncAPI, and AI-assisted findings must determine for themselves how to combine those inputs, in what order, and whether each step produced the correct result. This makes Rivière difficult to learn, adapt, and trust. Users who cannot confidently apply it to their own systems are less likely to adopt it.'
+    const badLabelPosition = taskCreation.indexOf('Bad:')
+    const badExamplePosition = taskCreation.indexOf(badExample)
+    const goodLabelPosition = taskCreation.indexOf('Good:')
+    const goodExamplePosition = taskCreation.indexOf(goodExample)
+
+    expect({
+      connectsWiderProblem: taskCreation.includes(
+        'how this specific problem fits into the wider problem described',
+      ),
+      rejectsDeliveryRationale: taskCreation.includes(
+        '`## Problem` justifies the ticket through dependencies, delivery sequencing, or effects on later tickets',
+      ),
+      rejectsMissingSolution: taskCreation.includes(
+        '`## Problem` defines the problem as the absence of the proposed solution',
+      ),
+      requiresConcreteLanguage: taskCreation.includes(
+        '`## Problem` uses vague umbrella terms or project jargon where concrete source-backed language is available',
+      ),
+      requiresSourceBackedConsequence: taskCreation.includes(
+        'does not state a source-backed user or product consequence',
+      ),
+      requiresConcreteUserProblem: taskCreation.includes(
+        'does not explain the concrete user task, difficulty, or failure mode',
+      ),
+      requiresWiderProblemContext: taskCreation.includes(
+        "does not explain how the ticket's problem fits into the wider approved problem context",
+      ),
+      showsJargonReplacement: taskCreation.includes('replace "architecture facts"'),
+      showsCompleteOrderedExamples:
+        badLabelPosition > -1 &&
+        badLabelPosition < badExamplePosition &&
+        badExamplePosition < goodLabelPosition &&
+        goodLabelPosition < goodExamplePosition,
+    }).toStrictEqual({
+      connectsWiderProblem: true,
+      rejectsDeliveryRationale: true,
+      rejectsMissingSolution: true,
+      requiresConcreteLanguage: true,
+      requiresSourceBackedConsequence: true,
+      requiresConcreteUserProblem: true,
+      requiresWiderProblemContext: true,
+      showsJargonReplacement: true,
+      showsCompleteOrderedExamples: true,
+    })
+  })
+})
