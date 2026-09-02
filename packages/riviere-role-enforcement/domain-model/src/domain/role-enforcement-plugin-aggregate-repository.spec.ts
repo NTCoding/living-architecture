@@ -17,7 +17,7 @@ function enforceAggregateRepository(methods: string) {
       `import { Project } from './project'
 
 /** @riviere-role aggregate-repository */
-export class ProjectRepository {
+export abstract class ProjectRepository {
 ${methods}
 }
 `,
@@ -186,6 +186,16 @@ it('does not constrain persistence methods without aggregate outputs', () => {
   const messages = enforce(`/** @riviere-role aggregate-repository */
 export class ProjectRepository {
   save(): void {}
+}
+`)
+
+  expect(messages).toStrictEqual([])
+})
+
+it('does not constrain computed persistence methods without aggregate outputs', () => {
+  const messages = enforce(`/** @riviere-role aggregate-repository */
+export class ProjectRepository {
+  [saveMethodName](): void {}
 }
 `)
 

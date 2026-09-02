@@ -2102,6 +2102,19 @@ export default {
             return false
           }
 
+          const functionNode =
+            member.type === 'MethodDefinition' || member.type === 'TSAbstractMethodDefinition'
+              ? member.value
+              : readCallableFieldFunctionNode(member)
+          const outputRoles = readOutputTypeRoles(functionNode?.returnType, filename)
+          if (
+            outputRoles === null ||
+            !Array.isArray(role.allowedOutputs) ||
+            !outputRoles.some((outputRole) => role.allowedOutputs.includes(outputRole))
+          ) {
+            return false
+          }
+
           report(
             member,
             `Role '${role.name}' requires a statically named public callable member so its contract can be validated. ${referenceForKnownRole(options, role.name)}`,
