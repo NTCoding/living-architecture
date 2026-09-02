@@ -2039,10 +2039,6 @@ export default {
 
           for (const member of node.body.body) {
             for (const callableMember of readPublicCallableMembers(member)) {
-              if (validateForbiddenOutputMethodName(callableMember, role)) {
-                continue
-              }
-
               if (callableMember.functionNode === null) {
                 continue
               }
@@ -2066,21 +2062,6 @@ export default {
           )
         }
 
-        function validateForbiddenOutputMethodName(callableMember, role) {
-          if (
-            typeof role.forbiddenOutputMethodNameMatches !== 'string' ||
-            !new RegExp(role.forbiddenOutputMethodNameMatches).test(callableMember.methodName)
-          ) {
-            return false
-          }
-
-          report(
-            callableMember.member,
-            `Role '${role.name}' forbids method '${callableMember.methodName}' to match '${role.forbiddenOutputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
-          )
-          return true
-        }
-
         function validateOutputMethodName(callableMember, role) {
           if (
             typeof role.outputMethodNameMatches !== 'string' ||
@@ -2092,9 +2073,23 @@ export default {
           const outputRoles = readOutputTypeRoles(callableMember.functionNode.returnType, filename)
           if (
             outputRoles === null ||
-            !outputRoles.some((outputRole) => role.allowedOutputs.includes(outputRole)) ||
-            new RegExp(role.outputMethodNameMatches).test(callableMember.methodName)
+            !outputRoles.some((outputRole) => role.allowedOutputs.includes(outputRole))
           ) {
+            return
+          }
+
+          if (
+            typeof role.forbiddenOutputMethodNameMatches === 'string' &&
+            new RegExp(role.forbiddenOutputMethodNameMatches).test(callableMember.methodName)
+          ) {
+            report(
+              callableMember.member,
+              `Role '${role.name}' forbids aggregate-returning method '${callableMember.methodName}' to match '${role.forbiddenOutputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
+            )
+            return
+          }
+
+          if (new RegExp(role.outputMethodNameMatches).test(callableMember.methodName)) {
             return
           }
 
@@ -2113,7 +2108,7 @@ export default {
             return []
           }
 
-          if (member.type === 'MethodDefinition') {
+          if (member.type === 'MethodDefinition' || member.type === 'TSAbstractMethodDefinition') {
             if (member.kind === 'constructor') {
               return member.value.params.flatMap(readPublicCallableConstructorParameterProperty)
             }
@@ -2127,7 +2122,7 @@ export default {
                 }]
           }
 
-          if (!isDataFieldMember(member) || !isPotentialCallableFieldMember(member)) {
+          if (!isDataFieldMember(member) || !isCallableFieldMember(member)) {
             return []
           }
 
@@ -2154,7 +2149,8 @@ export default {
         function readPublicCallableConstructorParameterProperty(parameterProperty) {
           if (
             parameterProperty.type !== 'TSParameterProperty' ||
-            parameterProperty.accessibility === 'private'
+            (parameterProperty.accessibility !== 'public' &&
+              parameterProperty.accessibility != null)
           ) {
             return []
           }
@@ -2172,13 +2168,6 @@ export default {
             member: parameterProperty,
             methodName: parameter.name,
           }]
-        }
-
-        function isPotentialCallableFieldMember(member) {
-          return (
-            isCallableFieldMember(member) ||
-            member.value?.type === 'Identifier'
-          )
         }
 
         function validateCallableMemberConstraints(node, role, name) {

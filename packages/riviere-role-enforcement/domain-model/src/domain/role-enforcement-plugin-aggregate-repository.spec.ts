@@ -63,7 +63,7 @@ it.each(['loadByEnrichment', 'loadWorkflow', 'loadForEnrichment', 'loadFromPersi
     expect(messages).toHaveLength(1)
     expect(messages[0]?.message).toContain(
       methodName === 'loadByEnrichment'
-        ? `forbids method '${methodName}'`
+        ? `forbids aggregate-returning method '${methodName}'`
         : `aggregate-returning method '${methodName}'`,
     )
   },
@@ -101,7 +101,7 @@ it('rejects callable aggregate-returning fields with operation-labelled names', 
   `)
 
   expect(messages).toHaveLength(1)
-  expect(messages[0]?.message).toContain("forbids method 'loadByEnrichment'")
+  expect(messages[0]?.message).toContain("forbids aggregate-returning method 'loadByEnrichment'")
 })
 
 it('rejects static aggregate-returning methods with operation-labelled names', () => {
@@ -110,7 +110,7 @@ it('rejects static aggregate-returning methods with operation-labelled names', (
 `)
 
   expect(messages).toHaveLength(1)
-  expect(messages[0]?.message).toContain("forbids method 'loadByEnrichment'")
+  expect(messages[0]?.message).toContain("forbids aggregate-returning method 'loadByEnrichment'")
 })
 
 it('accepts callable fields with declared aggregate return types and access criteria', () => {
@@ -121,13 +121,12 @@ it('accepts callable fields with declared aggregate return types and access crit
   expect(messages).toStrictEqual([])
 })
 
-it('rejects identifier-backed callable fields with operation-labelled names', () => {
+it('does not constrain non-aggregate callable members with operation-labelled names', () => {
   const messages = enforceAggregateRepository(`
-  loadByEnrichment = createProject
+  loadByEnrichment(): void {}
 `)
 
-  expect(messages).toHaveLength(1)
-  expect(messages[0]?.message).toContain("forbids method 'loadByEnrichment'")
+  expect(messages).toStrictEqual([])
 })
 
 it('rejects aggregate-returning methods with template-literal operation labels', () => {
@@ -136,7 +135,7 @@ it('rejects aggregate-returning methods with template-literal operation labels',
 `)
 
   expect(messages).toHaveLength(1)
-  expect(messages[0]?.message).toContain("forbids method 'loadByEnrichment'")
+  expect(messages[0]?.message).toContain("forbids aggregate-returning method 'loadByEnrichment'")
 })
 
 it('rejects callable constructor parameter properties with operation-labelled names', () => {
@@ -145,7 +144,24 @@ it('rejects callable constructor parameter properties with operation-labelled na
 `)
 
   expect(messages).toHaveLength(1)
-  expect(messages[0]?.message).toContain("forbids method 'loadByEnrichment'")
+  expect(messages[0]?.message).toContain("forbids aggregate-returning method 'loadByEnrichment'")
+})
+
+it('rejects abstract aggregate-returning methods with operation-labelled names', () => {
+  const messages = enforceAggregateRepository(`
+  abstract loadByEnrichment(): Project
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("forbids aggregate-returning method 'loadByEnrichment'")
+})
+
+it('does not constrain protected callable constructor parameter properties', () => {
+  const messages = enforceAggregateRepository(`
+  constructor(protected loadByEnrichment: () => Project) {}
+`)
+
+  expect(messages).toStrictEqual([])
 })
 
 it('does not constrain persistence methods without aggregate outputs', () => {

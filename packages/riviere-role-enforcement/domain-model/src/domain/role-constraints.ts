@@ -123,6 +123,13 @@ export class RoleConstraints<R extends string = string> {
   }
 
   static parse<R extends string>(input: RoleConstraintsInput<R>): RoleConstraints<R> {
+    if (
+      (input.outputMethodNameMatches !== undefined ||
+        input.forbiddenOutputMethodNameMatches !== undefined) &&
+      input.allowedOutputs === undefined
+    ) {
+      throw new InvalidRoleDefinitionError('Output method name constraints require allowedOutputs.')
+    }
     validateRegularExpression(input.outputMethodNameMatches, 'outputMethodNameMatches')
     validateRegularExpression(
       input.forbiddenOutputMethodNameMatches,

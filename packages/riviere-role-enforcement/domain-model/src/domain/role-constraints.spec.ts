@@ -37,9 +37,18 @@ describe('role constraint value objects', () => {
   it.each(['outputMethodNameMatches', 'forbiddenOutputMethodNameMatches'] as const)(
     'rejects an invalid %s regular expression',
     (constraint) => {
-      expect(() => RoleConstraints.parse({ [constraint]: '[' })).toThrowError(
-        InvalidRoleDefinitionError,
-      )
+      expect(() =>
+        RoleConstraints.parse({
+          [constraint]: '[',
+          allowedOutputs: ['aggregate'],
+        }),
+      ).toThrowError(InvalidRoleDefinitionError)
     },
   )
+
+  it('requires output roles when configuring output method name constraints', () => {
+    expect(() => RoleConstraints.parse({ outputMethodNameMatches: '^load$' })).toThrowError(
+      InvalidRoleDefinitionError,
+    )
+  })
 })
