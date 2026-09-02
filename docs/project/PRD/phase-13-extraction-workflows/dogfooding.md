@@ -294,6 +294,21 @@ riviere workflow run ./riviere-workflow.yaml --skip-ai
 
 The gate makes no claim about AI-inclusive idempotency.
 
+### 3.6 D6.1: Show new users TypeScript, EventCatalog, AsyncAPI, additive AI stages, and validation in ecommerce-demo-app
+
+**Problem:** people who have not seen or used Riviere need to learn what it does with their code and other architecture information, understand how it applies to their application, and get a first working setup before they can adopt it.
+
+**Customer action:** after the three precondition gates pass—§3.4 ground truth, §3.5 transition, and §3.5 deterministic idempotency—in `ecommerce-demo-app`, run `riviere workflow validate ./riviere-workflow.yaml` and `riviere workflow run ./riviere-workflow.yaml` against the pinned demo revision. `riviere-workflow.yaml` combines TypeScript code extraction, EventCatalog import, AsyncAPI import, additive AI extraction, additive AI enrichment, and schema validation. Compare the graph and NDJSON output using §3.4, and compare the seven public transitions with `tests/workflow-transitions/00-initial.json` through `tests/workflow-transitions/06-after-validate.json`. Then run `riviere workflow run ./riviere-workflow.yaml --skip-ai` twice and compare the canonical graph bytes as described in §3.5.
+
+**Customer-visible result:** users can see TypeScript code extraction, EventCatalog import, AsyncAPI import, additive AI extraction, additive AI enrichment, and schema validation produce `.riviere/ecommerce-architecture.json` and `.riviere/workflow.log.ndjson` for a realistic multi-domain system. The graph and NDJSON comparison defined in §3.4, the seven public stage transition fixtures at `tests/workflow-transitions/00-initial.json` through `tests/workflow-transitions/06-after-validate.json`, and the two AI-skipped output comparison defined in §3.5 all pass.
+
+Acceptance criteria:
+
+- `riviere workflow validate ./riviere-workflow.yaml` and `riviere workflow run ./riviere-workflow.yaml` succeed against the pinned demo revision and exercise TypeScript code extraction, EventCatalog import, AsyncAPI import, additive AI extraction, additive AI enrichment, and schema validation.
+- The exact graph and NDJSON comparison in §3.4 plus the public-stage-transition and two-AI-skipped-run comparisons in §3.5 remain passing.
+- Any discrepancy in source composition, `.riviere/ecommerce-architecture.json`, `.riviere/workflow.log.ndjson`, `tests/workflow-transitions/00-initial.json` through `tests/workflow-transitions/06-after-validate.json`, or the two AI-skipped outputs becomes a focused bugfix ticket; the Phase 13 PRD workstream remains open until those tickets are complete and every command and comparison listed above passes again.
+- When the verification passes with no unresolved discrepancy, Phase 13 is ready to close and the next project may begin.
+
 ## 4. Blockers
 
 No planning blockers. Executable Workflow fixtures and the final immutable demo SHA cannot be produced until the corresponding product capabilities exist; the delivery plan models that dependency explicitly.

@@ -10,6 +10,8 @@
 
 Users composing architecture facts from multiple codebases, EventCatalog, AsyncAPI, and AI assistance currently coordinate five or more manual steps for every refresh. The sequence is error-prone, not a dependable CI boundary, and can leave users uncertain whether a failed run produced a complete, stale, or partial graph.
 
+People who have not seen or used Riviere cannot move from first encounter to using it in their own application. They do not understand what Riviere does with their code and other architecture information, struggle to get a first working setup, and therefore cannot adopt it.
+
 ## 2. Product Decision
 
 Ship a purpose-built, sequential Riviere Workflow as the primary interface when a graph has more than one source of truth. A file-addressed workflow composes strict built-in stages into one validated run, produces one final graph, and returns enough structured progress and state to diagnose every transition. Direct extraction remains the shortest path for one TypeScript codebase.
@@ -59,6 +61,7 @@ Ship a purpose-built, sequential Riviere Workflow as the primary interface when 
 - Two unchanged `--skip-ai` demo runs produce byte-identical canonically serialized output.
 - The complete workflow log and summary identify stage timing, skips, overwrites, additions, diagnostics, and failures.
 - Existing demo extraction verification continues to pass unchanged.
+- Phase 13 completes only after `ecommerce-demo-app` proves that a user can run `riviere workflow validate ./riviere-workflow.yaml` and `riviere workflow run ./riviere-workflow.yaml`. The workflow combines TypeScript code extraction, EventCatalog import, AsyncAPI import, additive AI extraction, additive AI enrichment, and schema validation, and writes `.riviere/ecommerce-architecture.json` plus `.riviere/workflow.log.ndjson`. The final issue compares those outputs using the graph and NDJSON gate in `dogfooding.md` §3.4, the seven transition fixtures in `dogfooding.md` §3.5, and two `riviere workflow run ./riviere-workflow.yaml --skip-ai` outputs. If it identifies a defect, it creates focused bugfix work and repeats those commands and comparisons after the fixes before the Phase 13 PRD workstream closes.
 
 ## 7. Open Product Questions
 
