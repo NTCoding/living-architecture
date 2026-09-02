@@ -40,15 +40,6 @@ export function readGitRepositoryStatus(
   }
 }
 
-/** @riviere-role external-client-service */
-export function pushGitBranch(
-  branch: string,
-  gitBinary = 'git',
-  executeGit: GitExecutor = defaultGitExecutor,
-): void {
-  executeGit(gitBinary, ['push', '--set-upstream', 'origin', branch])
-}
-
 function detectDefaultBranch(executeGit: GitExecutor, gitBinary: string): string {
   try {
     return runGit(executeGit, gitBinary, [

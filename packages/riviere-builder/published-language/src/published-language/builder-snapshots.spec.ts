@@ -351,6 +351,8 @@ describe('RiviereBuilder snapshots', () => {
 
       expect(() => builder.components()).toThrow(SnapshotMetadataError)
       expect(() => builder.components()).toThrow(message)
+      expect(() => builder.serialize()).toThrow(SnapshotMetadataError)
+      expect(() => builder.serialize()).toThrow(message)
     },
   )
 

@@ -40,13 +40,6 @@ import {
 import { type LinkExternalResult, type UpsertResult } from './riviere-builder-result'
 
 type Publishable<T> = { published(): T }
-type InspectionGraph = Readonly<{
-  version: string
-  metadata: ReturnType<RiviereGraphDefinition['published']>
-  components: readonly PublishedComponent[]
-  links: readonly PublishedLink[]
-  externalLinks: readonly PublishedExternalLink[]
-}>
 
 type UpsertOptions = Readonly<{ noOverwrite?: boolean }>
 type UIInput = Parameters<typeof ComponentDefinition.parseUI>[0]
@@ -434,7 +427,7 @@ export class RiviereBuilder {
 
   /** @returns The current graph encoded as JSON. */
   serialize(): string {
-    return JSON.stringify(this.inspectionGraph(), null, 2)
+    return JSON.stringify(this.publishedGraph(), null, 2)
   }
 
   /** @returns The valid completed graph. */
@@ -529,16 +522,6 @@ export class RiviereBuilder {
 
   private published<T>(values: Iterable<Publishable<T>>): T[] {
     return [...values].map((value) => value.published())
-  }
-
-  private inspectionGraph(): InspectionGraph {
-    return {
-      version: this.version,
-      metadata: this.metadata.published(),
-      components: this.published(this.componentsById.values()),
-      links: this.published(this.linksByStoredIdentity.values()),
-      externalLinks: this.published(this.externalLinksByConnectionIdentity.values()),
-    }
   }
 
   private publishedGraph(): RiviereGraph {

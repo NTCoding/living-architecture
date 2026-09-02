@@ -334,7 +334,7 @@ describe('RiviereBuilder', () => {
       expect(() => RiviereBuilder.resume(invalidGraph)).toThrow('Invalid graph: missing sources')
     })
 
-    it('normalizes graph without optional customTypes and externalLinks', () => {
+    it('preserves omitted optional graph collections when resuming', () => {
       const minimalGraph: RiviereGraph = {
         version: '1.0',
         metadata: {
@@ -357,10 +357,7 @@ describe('RiviereBuilder', () => {
 
       const resumed = RiviereBuilder.resume(minimalGraph)
 
-      expect(resumed.build().components).toHaveLength(0)
-      expect(resumed.serialize()).toContain('"customTypes": {}')
-      expect(resumed.serialize()).toContain('"relationshipTypes": {}')
-      expect(resumed.serialize()).toContain('"externalLinks": []')
+      expect(JSON.parse(resumed.serialize())).toStrictEqual(minimalGraph)
     })
   })
 
