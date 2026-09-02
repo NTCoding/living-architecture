@@ -2,8 +2,6 @@ import type {
   APIComponent,
   Component as PublishedComponent,
   CustomComponent,
-  CustomPropertyDefinition,
-  DomainMetadata,
   DomainOpComponent,
   EventComponent,
   EventHandlerComponent,
@@ -11,7 +9,6 @@ import type {
   Link as PublishedLink,
   RiviereGraph,
   SourceInfo,
-  SystemType,
   UIComponent,
   UseCaseComponent,
 } from '@living-architecture/riviere-schema-published-language/schema'
@@ -33,14 +30,14 @@ import { ExternalLink } from './external-link'
 import { GraphDiagnostics, type OperationWarning } from './graph-diagnostics'
 import { RiviereGraphDefinition } from './riviere-graph-definition'
 import { Link } from './link'
+import {
+  type BuilderOptions,
+  type CustomTypeInput,
+  type DomainInput,
+  type RelationshipTypeInput,
+} from './riviere-graph-definition-input'
+import { type LinkExternalResult, type UpsertResult } from './riviere-builder-result'
 
-type BuilderOptions = Readonly<{
-  name?: string
-  description?: string
-  sources: readonly SourceInfo[]
-  domains: Readonly<Record<string, DomainMetadata>>
-}>
-type DomainInput = Readonly<{ name: string; description: string; systemType: SystemType }>
 type UpsertOptions = Readonly<{ noOverwrite?: boolean }>
 type UIInput = Parameters<typeof ComponentDefinition.parseUI>[0]
 type APIInput = Parameters<typeof ComponentDefinition.parseAPI>[0]
@@ -49,42 +46,25 @@ type DomainOpInput = Parameters<typeof ComponentDefinition.parseDomainOp>[0]
 type EventInput = Parameters<typeof ComponentDefinition.parseEvent>[0]
 type EventHandlerInput = Parameters<typeof ComponentDefinition.parseEventHandler>[0]
 type CustomInput = Parameters<typeof ComponentDefinition.parseCustom>[0]
-type CustomTypeInput = Readonly<{
-  name: string
-  description?: string
-  requiredProperties?: Readonly<Record<string, CustomPropertyDefinition>>
-  optionalProperties?: Readonly<Record<string, CustomPropertyDefinition>>
-}>
-type RelationshipTypeInput = Readonly<{ name: string; description: string }>
 type EnrichmentInput = Readonly<
   Pick<DomainOpComponent, 'entity' | 'stateChanges' | 'businessRules' | 'behavior' | 'signature'>
 >
 type LinkInput = Parameters<typeof Link.parseNew>[0]
 type ExternalLinkInput = Parameters<typeof ExternalLink.parseNew>[0]
-type UpsertResult<T extends PublishedComponent = PublishedComponent> = Readonly<{
-  component: T
-  created: boolean
-  warnings: readonly OperationWarning[]
-}>
-type LinkExternalResult = Readonly<{
-  link: PublishedExternalLink
-  warnings: readonly OperationWarning[]
-}>
-
 /** @riviere-role value-object */
 export class RiviereBuilder {
   declare private readonly brand: 'RiviereBuilder'
-  private readonly components = new Map<string, Component>()
+  private readonly componentsById = new Map<string, Component>()
   private readonly linksByStoredIdentity = new Map<string, Link>()
   private readonly linksByOccurrenceIdentity = new Map<string, Link>()
-  private readonly externalLinks = new Map<string, ExternalLink>()
+  private readonly externalLinksByConnectionIdentity = new Map<string, ExternalLink>()
   private constructor(
     private readonly version: string,
     private metadata: RiviereGraphDefinition,
     graph?: RiviereGraph,
   ) {
     for (const component of graph?.components ?? [])
-      this.components.set(component.id, Component.fromState(component))
+      this.componentsById.set(component.id, Component.fromState(component))
     for (const published of graph?.links ?? []) {
       const link = Link.parse(published)
       this.linksByStoredIdentity.set(link.storedIdentity(), link)
@@ -92,7 +72,7 @@ export class RiviereBuilder {
     }
     for (const published of graph?.externalLinks ?? []) {
       const link = ExternalLink.parse(published)
-      this.externalLinks.set(link.connectionIdentity(), link)
+      this.externalLinksByConnectionIdentity.set(link.connectionIdentity(), link)
     }
   }
 
@@ -394,7 +374,7 @@ export class RiviereBuilder {
   linkExternal(input: ExternalLinkInput): LinkExternalResult {
     this.component(input.from)
     const link = ExternalLink.parseNew(input)
-    const existing = this.externalLinks.get(link.connectionIdentity())
+    const existing = this.externalLinksByConnectionIdentity.get(link.connectionIdentity())
     if (existing !== undefined) {
       const warning: OperationWarning = {
         code: 'DUPLICATE_LINK_SKIPPED',
@@ -407,10 +387,28 @@ export class RiviereBuilder {
           : { targetRepository: input.target.repository }),
         targetName: input.target.name,
       }
-      return { link: existing.published(), warnings: [warning] }
+      return {
+        link: existing.published(),
+        warnings: [warning],
+      }
     }
-    this.externalLinks.set(link.connectionIdentity(), link)
-    return { link: link.published(), warnings: [] }
+    this.externalLinksByConnectionIdentity.set(link.connectionIdentity(), link)
+    return {
+      link: link.published(),
+      warnings: [],
+    }
+  }
+
+  components(): readonly PublishedComponent[] {
+    return structuredClone(this.publishedComponents())
+  }
+
+  links(): readonly PublishedLink[] {
+    return structuredClone(this.publishedLinks())
+  }
+
+  externalLinks(): readonly PublishedExternalLink[] {
+    return structuredClone(this.publishedExternalLinks())
   }
 
   /** @returns Non fatal issues found in the graph. */
@@ -425,7 +423,7 @@ export class RiviereBuilder {
 
   /** @returns The current graph encoded as JSON. */
   serialize(): string {
-    return JSON.stringify(this.serializedGraph(), null, 2)
+    return JSON.stringify(this.inspectionGraph(), null, 2)
   }
 
   /** @returns The valid completed graph. */
@@ -438,9 +436,9 @@ export class RiviereBuilder {
 
   private add<T extends PublishedComponent>(published: T): T {
     this.ensureComponentCanBeAdded(published)
-    if (this.components.has(published.id)) throw new DuplicateComponentError(published.id)
+    if (this.componentsById.has(published.id)) throw new DuplicateComponentError(published.id)
     const component = Component.fromState(published)
-    this.components.set(component.id(), component)
+    this.componentsById.set(component.id(), component)
     return published
   }
 
@@ -475,11 +473,15 @@ export class RiviereBuilder {
     incomingCustomProperties?: Readonly<Record<string, unknown>>,
   ): UpsertResult {
     this.ensureComponentCanBeAdded(published)
-    const existing = this.components.get(published.id)
+    const existing = this.componentsById.get(published.id)
     if (existing === undefined) {
       const component = Component.fromState(published)
-      this.components.set(component.id(), component)
-      return { component: component.published(), created: true, warnings: [] }
+      this.componentsById.set(component.id(), component)
+      return {
+        component: component.published(),
+        created: true,
+        warnings: [],
+      }
     }
     const update = existing.update(
       published,
@@ -492,7 +494,11 @@ export class RiviereBuilder {
       componentId: published.id,
       ...overwrite,
     }))
-    return { component: update.component, created: false, warnings }
+    return {
+      component: update.component,
+      created: false,
+      warnings,
+    }
   }
 
   private ensureComponentCanBeAdded(published: PublishedComponent): void {
@@ -500,7 +506,7 @@ export class RiviereBuilder {
   }
 
   private component(id: string): Component {
-    const component = this.components.get(id)
+    const component = this.componentsById.get(id)
     if (component !== undefined) return component
     const parsed = ComponentId.parse(id)
     if (!parsed.success) throw new ComponentNotFoundError(id, [])
@@ -511,13 +517,13 @@ export class RiviereBuilder {
   }
 
   private publishedComponents(): PublishedComponent[] {
-    return [...this.components.values()].map((component) => component.published())
+    return [...this.componentsById.values()].map((component) => component.published())
   }
   private publishedLinks(): PublishedLink[] {
     return [...this.linksByStoredIdentity.values()].map((link) => link.published())
   }
   private publishedExternalLinks(): PublishedExternalLink[] {
-    return [...this.externalLinks.values()].map((link) => link.published())
+    return [...this.externalLinksByConnectionIdentity.values()].map((link) => link.published())
   }
   private inspectionGraph() {
     return {
@@ -528,10 +534,6 @@ export class RiviereBuilder {
       externalLinks: this.publishedExternalLinks(),
     }
   }
-  private serializedGraph() {
-    return this.inspectionGraph()
-  }
-
   private publishedGraph(): RiviereGraph {
     const metadata = this.metadata.published()
     const customTypes =
