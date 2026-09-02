@@ -138,7 +138,16 @@ it('rejects dynamically named public methods that cannot be validated', () => {
 `)
 
   expect(messages).toHaveLength(1)
-  expect(messages[0]?.message).toContain('requires a statically named public method')
+  expect(messages[0]?.message).toContain('requires a statically named public callable member')
+})
+
+it('rejects dynamically named public callable fields that cannot be validated', () => {
+  const messages = enforceAggregateRepository(`
+  [loadMethodName] = (): Project => new Project()
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain('requires a statically named public callable member')
 })
 
 it('accepts template-literal methods with lexically valid loading names', () => {

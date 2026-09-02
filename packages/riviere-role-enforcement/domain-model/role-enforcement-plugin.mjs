@@ -2038,7 +2038,7 @@ export default {
           }
 
           for (const member of node.body.body) {
-            if (reportsDynamicPublicMethodName(member, role)) {
+            if (reportsDynamicPublicCallableName(member, role)) {
               continue
             }
             for (const callableMember of readPublicCallableMembers(member)) {
@@ -2090,24 +2090,30 @@ export default {
           )
         }
 
-        function reportsDynamicPublicMethodName(member, role) {
+        function reportsDynamicPublicCallableName(member, role) {
           if (
             isPrivateMember(member) ||
             (member.accessibility !== 'public' && member.accessibility != null) ||
-            (member.type !== 'MethodDefinition' && member.type !== 'TSAbstractMethodDefinition') ||
-            member.kind !== 'method' ||
             !member.computed ||
             member.key.type === 'Literal' ||
-            (member.key.type === 'TemplateLiteral' && member.key.expressions.length === 0)
+            (member.key.type === 'TemplateLiteral' && member.key.expressions.length === 0) ||
+            !isPublicCallableMethodOrField(member)
           ) {
             return false
           }
 
           report(
             member,
-            `Role '${role.name}' requires a statically named public method so its contract can be validated. ${referenceForKnownRole(options, role.name)}`,
+            `Role '${role.name}' requires a statically named public callable member so its contract can be validated. ${referenceForKnownRole(options, role.name)}`,
           )
           return true
+        }
+
+        function isPublicCallableMethodOrField(member) {
+          if (member.type === 'MethodDefinition' || member.type === 'TSAbstractMethodDefinition') {
+            return member.kind === 'method'
+          }
+          return isDataFieldMember(member) && isCallableFieldMember(member)
         }
 
         function readPublicCallableMembers(member) {
