@@ -549,6 +549,13 @@ function publishedSnapshot<T extends object>(values: readonly T[]): readonly T[]
 }
 
 function clonePublishedValue(value: unknown): unknown {
+  if (value instanceof Map)
+    return new Map(
+      [...value].map(([key, nestedValue]) => [
+        clonePublishedValue(key),
+        clonePublishedValue(nestedValue),
+      ]),
+    )
   if (!Array.isArray(value) && !isPlainObject(value)) return value
   return Array.isArray(value) ? value.map(clonePublishedValue) : clonePublishedRecord(value)
 }

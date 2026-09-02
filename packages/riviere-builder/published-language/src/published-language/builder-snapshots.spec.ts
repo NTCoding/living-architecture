@@ -1,4 +1,22 @@
+import type {
+  Component,
+  CustomComponent,
+} from '@living-architecture/riviere-schema-published-language/schema'
 import { RiviereBuilder } from './riviere-builder'
+
+class ExpectedMapMetadataError extends Error {}
+class ExpectedCustomComponentError extends Error {}
+
+function mapMetadata(value: unknown): Map<unknown, unknown> {
+  if (value instanceof Map) return value
+  throw new ExpectedMapMetadataError()
+}
+
+function customComponent(components: readonly Component[]): CustomComponent {
+  const component = components.find((component) => component.type === 'Custom')
+  if (component === undefined) throw new ExpectedCustomComponentError()
+  return component
+}
 
 function createBuilder(): RiviereBuilder {
   return RiviereBuilder.new({
@@ -66,6 +84,28 @@ describe('RiviereBuilder snapshots', () => {
         behavior,
         steps: [{ name: 'authorize' }],
       },
+    })
+
+    expect(builder.components()).toStrictEqual([component])
+  })
+
+  it('preserves Builder component state when returned Map metadata is changed', () => {
+    const builder = createBuilder()
+    builder.defineCustomType({ name: 'Policy' })
+    const component = builder.addCustom({
+      name: 'Order policy',
+      domain: 'orders',
+      module: 'checkout',
+      customTypeName: 'Policy',
+      sourceLocation: {
+        repository: 'test/repo',
+        filePath: 'src/order-policy.ts',
+      },
+      metadata: { policies: new Map([['authorize', { enabled: true }]]) },
+    })
+    const policies = mapMetadata(customComponent(builder.components())['policies'])
+    policies.set('capture', {
+      enabled: true,
     })
 
     expect(builder.components()).toStrictEqual([component])
