@@ -14,7 +14,7 @@ export class DefineRelationshipType {
 
   execute(input: DefineRelationshipTypeInput): DefineRelationshipTypeResult {
     try {
-      const project = this.repository.load(input.graphFileLocation)
+      const project = this.repository.loadByGraphPath(input.graphFileLocation)
       project.defineRelationshipType({
         name: input.name,
         description: input.description,

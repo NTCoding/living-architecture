@@ -15,7 +15,7 @@ A class that handles loading and saving an aggregate — the boundary between do
 ```typescript
 /** @riviere-role aggregate-repository */
 export class RiviereProjectRepository {
-  load(input: LoadInput): RiviereProject {
+  loadByExtractionConfigPath(input: LoadInput): RiviereProject {
     const project = createConfiguredProject(input.configPath)
     const contexts = this.buildModuleContexts(project)
     return new RiviereProject(project, contexts)
@@ -28,7 +28,9 @@ export class RiviereProjectRepository {
 ```
 
 ### Edge Cases
-- A repository may have multiple load methods for different access patterns (e.g., loadFromProject vs loadFromPersistedState)
+- A public method returning an aggregate must be named `load` or `loadBy<AccessCriterion>`. The access criterion says how the aggregate is found, such as `loadByGraphPath` or `loadByExtractionConfigPath`.
+- Whether a `loadBy` suffix names a real access criterion is reviewed semantically; the role check enforces only the lexical loading-name contract.
+- Persistence methods such as `save` and private helper methods are not constrained by the loading-name rule.
 - Private helper methods inside the repository are implementation details, not separate roles
 
 ## Anti-Patterns

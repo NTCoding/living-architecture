@@ -105,7 +105,7 @@ function loadProjectFromInput(
   riviereProjectRepository: RiviereProjectRepository,
   extractDraftComponentsInput: ExtractDraftComponentsInput,
 ) {
-  return riviereProjectRepository.load({
+  return riviereProjectRepository.loadByExtractionConfigPath({
     projectRoot: extractDraftComponentsInput.projectRoot ?? process.cwd(),
     configPath: extractDraftComponentsInput.configPath,
     useTsConfig: extractDraftComponentsInput.useTsConfig,

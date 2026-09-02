@@ -10,7 +10,7 @@ export class FinalizeGraph {
 
   execute(input: FinalizeGraphInput): FinalizeGraphResult {
     try {
-      const project = this.repository.load(input.graphFileLocation)
+      const project = this.repository.loadByGraphPath(input.graphFileLocation)
       const validationResult = project.validate()
       if (!validationResult.valid) {
         return failure(

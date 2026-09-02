@@ -74,7 +74,7 @@ ${stages}
 }
 
 function completedGraph(
-  result: ReturnType<ReturnType<RiviereProjectRepository['loadWorkflow']>['rebuildGraph']>,
+  result: ReturnType<ReturnType<RiviereProjectRepository['loadByWorkflowName']>['rebuildGraph']>,
 ): RiviereGraph {
   if (!result.success) throw new UnexpectedWorkflowFailure(result.reason)
   return result.graph
@@ -96,7 +96,7 @@ describe('RiviereProjectRepository workflow loading', () => {
       '  name: Combined graph\n  description: Orders and shipping',
     )
 
-    const project = new RiviereProjectRepository().loadWorkflow({
+    const project = new RiviereProjectRepository().loadByWorkflowName({
       projectRoot: directory,
       workflowName: 'combined',
     })
@@ -125,13 +125,13 @@ describe('RiviereProjectRepository workflow loading', () => {
     const repository = new RiviereProjectRepository()
     const first = completedGraph(
       repository
-        .loadWorkflow({ projectRoot: directory, workflowName: 'combined' })
+        .loadByWorkflowName({ projectRoot: directory, workflowName: 'combined' })
         .rebuildGraph('combined'),
     )
     writeFileSync(join(directory, '.riviere', 'graph.json'), JSON.stringify(first))
 
     expect(
-      repository.loadWorkflow({ projectRoot: directory, workflowName: 'combined' }).build(),
+      repository.loadByWorkflowName({ projectRoot: directory, workflowName: 'combined' }).build(),
     ).toStrictEqual(first)
   })
 
@@ -141,7 +141,7 @@ describe('RiviereProjectRepository workflow loading', () => {
     writeWorkflow(directory, 'missing.yaml')
 
     expect(() =>
-      new RiviereProjectRepository().loadWorkflow({
+      new RiviereProjectRepository().loadByWorkflowName({
         projectRoot: directory,
         workflowName: 'combined',
       }),
@@ -153,12 +153,12 @@ describe('RiviereProjectRepository workflow loading', () => {
     const repository = new RiviereProjectRepository()
 
     expect(() =>
-      repository.loadWorkflow({ projectRoot: directory, workflowName: 'missing' }),
+      repository.loadByWorkflowName({ projectRoot: directory, workflowName: 'missing' }),
     ).toThrow('Workflow file not found')
 
     writeFileSync(join(directory, '.riviere', 'workflows', 'invalid.yaml'), 'version: 1')
     expect(() =>
-      repository.loadWorkflow({ projectRoot: directory, workflowName: 'invalid' }),
+      repository.loadByWorkflowName({ projectRoot: directory, workflowName: 'invalid' }),
     ).toThrow('Invalid workflow')
   })
 
@@ -166,7 +166,7 @@ describe('RiviereProjectRepository workflow loading', () => {
     const directory = workspace()
 
     expect(() =>
-      new RiviereProjectRepository().loadWorkflow({
+      new RiviereProjectRepository().loadByWorkflowName({
         projectRoot: directory,
         workflowName: '../combined',
       }),
@@ -180,7 +180,7 @@ describe('RiviereProjectRepository workflow loading', () => {
     writeWorkflow(directory, 'shipping.yaml', 'orders')
 
     expect(() =>
-      new RiviereProjectRepository().loadWorkflow({
+      new RiviereProjectRepository().loadByWorkflowName({
         projectRoot: directory,
         workflowName: 'combined',
       }),
@@ -228,7 +228,7 @@ describe('RiviereProjectRepository workflow loading', () => {
     writeWorkflow(directory, 'shipping.yaml', 'shipping', '', stages)
 
     expect(() =>
-      new RiviereProjectRepository().loadWorkflow({
+      new RiviereProjectRepository().loadByWorkflowName({
         projectRoot: directory,
         workflowName: 'combined',
       }),
@@ -243,7 +243,7 @@ describe('RiviereProjectRepository workflow loading', () => {
     })
 
     expect(() =>
-      new RiviereProjectRepository().loadWorkflow({
+      new RiviereProjectRepository().loadByWorkflowName({
         projectRoot: directory,
         workflowName: 'broken',
       }),
@@ -260,7 +260,7 @@ describe('RiviereProjectRepository workflow loading', () => {
     writeFileSync(join(directory, '.riviere', 'graph.json'), '{"invalid":true}')
 
     expect(() =>
-      new RiviereProjectRepository().loadWorkflow({
+      new RiviereProjectRepository().loadByWorkflowName({
         projectRoot: directory,
         workflowName: 'combined',
       }),

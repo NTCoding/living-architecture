@@ -21,7 +21,7 @@ export class LinkComponents {
     if (!parsedInput.success) return parsedInput.result
 
     try {
-      const project = this.repository.load(input.graphFileLocation)
+      const project = this.repository.loadByGraphPath(input.graphFileLocation)
       const linkInput: {
         from: string
         to: string

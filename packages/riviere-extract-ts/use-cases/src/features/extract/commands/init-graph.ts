@@ -47,7 +47,7 @@ export class InitGraph {
     }
 
     try {
-      this.repository.load(input.graphFileLocation)
+      this.repository.loadByGraphPath(input.graphFileLocation)
       return {
         result: {
           code: 'GRAPH_EXISTS',

@@ -2038,19 +2038,182 @@ export default {
           }
 
           for (const member of node.body.body) {
-            if (
-              member.type === 'MethodDefinition' &&
-              member.kind !== 'constructor' &&
-              (member.accessibility === 'public' || member.accessibility == null)
-            ) {
-              const methodName = member.key?.name ?? '?'
-              validateFunctionContract(member.value, role, `${name}.${methodName}`)
+            if (reportsDynamicPublicCallableName(member, role)) {
+              continue
+            }
+            for (const callableMember of readPublicCallableMembers(member)) {
+              if (callableMember.functionNode === null) {
+                continue
+              }
+
+              validateFunctionContract(
+                callableMember.functionNode,
+                role,
+                `${name}.${callableMember.methodName}`,
+              )
+              validateOutputMethodName(callableMember, role)
             }
           }
         }
 
         function hasClassMethodContracts(role) {
-          return Array.isArray(role.allowedInputs) || Array.isArray(role.allowedOutputs)
+          return (
+            Array.isArray(role.allowedInputs) ||
+            Array.isArray(role.allowedOutputs) ||
+            typeof role.outputMethodNameMatches === 'string'
+          )
+        }
+
+        function validateOutputMethodName(callableMember, role) {
+          if (
+            typeof role.outputMethodNameMatches !== 'string' ||
+            !Array.isArray(role.allowedOutputs)
+          ) {
+            return
+          }
+
+          const outputRoles = readOutputTypeRoles(callableMember.functionNode.returnType, filename)
+          if (
+            outputRoles === null ||
+            !outputRoles.some((outputRole) => role.allowedOutputs.includes(outputRole))
+          ) {
+            return
+          }
+
+          if (new RegExp(role.outputMethodNameMatches).test(callableMember.methodName)) {
+            return
+          }
+
+          report(
+            callableMember.member,
+            `Role '${role.name}' requires aggregate-returning method '${callableMember.methodName}' to match '${role.outputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
+          )
+        }
+
+        function reportsDynamicPublicCallableName(member, role) {
+          if (
+            !isPublicCallableMethodOrField(member) ||
+            isPrivateMember(member) ||
+            (member.accessibility !== 'public' && member.accessibility != null) ||
+            (member.key.type === 'Identifier' && !member.computed) ||
+            (member.key.type === 'Literal' && typeof member.key.value === 'string') ||
+            (member.key.type === 'TemplateLiteral' && member.key.expressions.length === 0)
+          ) {
+            return false
+          }
+
+          const functionNode =
+            member.type === 'MethodDefinition' || member.type === 'TSAbstractMethodDefinition'
+              ? member.value
+              : readCallableFieldFunctionNode(member)
+          const outputRoles = readOutputTypeRoles(functionNode?.returnType, filename)
+          if (
+            outputRoles === null ||
+            !Array.isArray(role.allowedOutputs) ||
+            !outputRoles.some((outputRole) => role.allowedOutputs.includes(outputRole))
+          ) {
+            return false
+          }
+
+          report(
+            member,
+            `Role '${role.name}' requires a statically named public callable member so its contract can be validated. ${referenceForKnownRole(options, role.name)}`,
+          )
+          return true
+        }
+
+        function isPublicCallableMethodOrField(member) {
+          if (member.type === 'MethodDefinition' || member.type === 'TSAbstractMethodDefinition') {
+            return member.kind === 'method'
+          }
+          return isDataFieldMember(member) && isCallableFieldMember(member)
+        }
+
+        function readPublicCallableMembers(member) {
+          if (
+            (member.type === 'MethodDefinition' || member.type === 'TSAbstractMethodDefinition') &&
+            member.kind === 'constructor'
+          ) {
+            return member.value.params.flatMap(readPublicCallableConstructorParameterProperty)
+          }
+
+          if (isPrivateMember(member)) {
+            return []
+          }
+
+          if (member.accessibility !== 'public' && member.accessibility != null) {
+            return []
+          }
+
+          if (member.type === 'MethodDefinition' || member.type === 'TSAbstractMethodDefinition') {
+            if (member.kind !== 'method') {
+              return []
+            }
+
+            return readMemberName(member.key) === null
+              ? []
+              : [{
+                  functionNode: member.value,
+                  member,
+                  methodName: readMemberName(member.key),
+                }]
+          }
+
+          if (!isDataFieldMember(member) || !isCallableFieldMember(member)) {
+            return []
+          }
+
+          const methodName = readMemberName(member.key)
+          if (methodName === null) {
+            return []
+          }
+
+          return [{
+            functionNode: readCallableFieldFunctionNode(member),
+            member,
+            methodName,
+          }]
+        }
+
+        function readCallableFieldFunctionNode(member) {
+          if (isCallableTypeAnnotation(member.typeAnnotation)) {
+            return member.typeAnnotation.typeAnnotation
+          }
+
+          return isFunctionExpression(member.value) ? member.value : null
+        }
+
+        function readPublicCallableConstructorParameterProperty(parameterProperty) {
+          if (
+            parameterProperty.type !== 'TSParameterProperty' ||
+            (parameterProperty.accessibility !== 'public' &&
+              parameterProperty.accessibility != null)
+          ) {
+            return []
+          }
+
+          const parameter = unwrapParameterProperty(parameterProperty.parameter)
+          if (parameter?.type !== 'Identifier') {
+            return []
+          }
+
+          if (isCallableTypeAnnotation(parameter.typeAnnotation)) {
+            return [{
+              functionNode: parameter.typeAnnotation.typeAnnotation,
+              member: parameterProperty,
+              methodName: parameter.name,
+            }]
+          }
+
+          if (!isFunctionExpression(parameterProperty.parameter?.right)) {
+            return []
+          }
+
+          return [{
+            functionNode: parameterProperty.parameter.right,
+            member: parameterProperty,
+            methodName: parameter.name,
+          }]
         }
 
         function validateCallableMemberConstraints(node, role, name) {
@@ -2246,6 +2409,10 @@ export default {
 
           if (key?.type === 'Literal' && typeof key.value === 'string') {
             return key.value
+          }
+
+          if (key?.type === 'TemplateLiteral' && key.expressions.length === 0) {
+            return key.quasis[0]?.value.cooked ?? null
           }
 
           return null

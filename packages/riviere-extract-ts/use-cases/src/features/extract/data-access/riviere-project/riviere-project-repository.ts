@@ -59,8 +59,7 @@ function formatExtractionConfigErrors(errors: readonly ValidationError[]): strin
 
 /** @riviere-role aggregate-repository */
 export class RiviereProjectRepository {
-  load(params: LoadParameters | string): RiviereProject {
-    if (typeof params === 'string') return this.loadGraph(params)
+  loadByExtractionConfigPath(params: LoadParameters): RiviereProject {
     return this.loadProject(params, () => [])
   }
 
@@ -69,13 +68,13 @@ export class RiviereProjectRepository {
     writeFileSync(graphFileLocation, project.serialize(), 'utf-8')
   }
 
-  loadForEnrichment(
+  loadByExtractionConfigAndDraftComponentsPaths(
     params: LoadParameters & { readonly draftComponentsPath: string },
   ): RiviereProject {
     return this.loadProject(params, () => this.loadDraftComponents(params.draftComponentsPath))
   }
 
-  loadWorkflow(params: WorkflowLoadParameters): RiviereProject {
+  loadByWorkflowName(params: WorkflowLoadParameters): RiviereProject {
     return this.translateDataAccessErrors(() => {
       const definition = this.loadWorkflowDefinition(params)
       const stages = definition.stages.map((stage) => {
@@ -181,7 +180,7 @@ export class RiviereProjectRepository {
     return RiviereProject.rehydrate(parsed.graph, graphDefinition)
   }
 
-  private loadGraph(graphFileLocation: string): RiviereProject {
+  loadByGraphPath(graphFileLocation: string): RiviereProject {
     if (!fileExists(graphFileLocation)) throw new GraphNotFoundError(graphFileLocation)
     try {
       const result = parseRiviereGraph(readJsonFile(graphFileLocation, 'Rivière graph'))

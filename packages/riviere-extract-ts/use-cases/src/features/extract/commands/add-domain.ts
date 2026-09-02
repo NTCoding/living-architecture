@@ -19,7 +19,7 @@ export class AddDomain {
     }
 
     try {
-      const project = this.repository.load(input.graphFileLocation)
+      const project = this.repository.loadByGraphPath(input.graphFileLocation)
       project.addDomain({
         description: input.description,
         name: input.name,

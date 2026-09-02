@@ -40,7 +40,7 @@ Phase 13 lands as a repository-rule gate, three Project/Builder foundations, ind
 - Acceptance criteria:
   - Role enforcement accepts `load` and `loadBy<AccessCriterion>` for public aggregate-returning repository methods and rejects bare or differently named loading methods.
   - Documentation requires a real access criterion and rejects operation-labelled `loadByEnrichment`.
-  - Existing calls migrate to `loadByGraphPath`, `loadByExtractionConfigPath`, `loadByDraftComponentsPath`, and temporary `loadByWorkflowName` with no aliases.
+  - Existing calls migrate to `loadByGraphPath`, `loadByExtractionConfigPath`, `loadByExtractionConfigAndDraftComponentsPaths`, and temporary `loadByWorkflowName` with no aliases.
 - Verification:
   - Role-enforcement tests cover every accepted and rejected name in `ARCH.md` §3.3.
   - `pnpm verify` passes with no repository loading-name violation.

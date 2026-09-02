@@ -45,8 +45,11 @@ function withWorkspace(run: (directory: string) => void): void {
   }
 }
 
-function loadForEnrichment(directory: string, draftComponentsPath: string) {
-  return new RiviereProjectRepository().loadForEnrichment({
+function loadByExtractionConfigAndDraftComponentsPaths(
+  directory: string,
+  draftComponentsPath: string,
+) {
+  return new RiviereProjectRepository().loadByExtractionConfigAndDraftComponentsPaths({
     configPath: 'extract.config.yml',
     draftComponentsPath,
     projectRoot: directory,
@@ -71,7 +74,7 @@ describe('RiviereProjectRepository draft component restoration', () => {
         ]),
       )
 
-      const project = loadForEnrichment(directory, draftComponentsPath)
+      const project = loadByExtractionConfigAndDraftComponentsPaths(directory, draftComponentsPath)
 
       expect(
         project.enrichDraftComponents({
@@ -90,7 +93,9 @@ describe('RiviereProjectRepository draft component restoration', () => {
       const draftComponentsPath = join(directory, 'drafts.json')
       writeFileSync(draftComponentsPath, '{}')
 
-      expect(() => loadForEnrichment(directory, draftComponentsPath)).toThrow(
+      expect(() =>
+        loadByExtractionConfigAndDraftComponentsPaths(directory, draftComponentsPath),
+      ).toThrow(
         new DraftComponentsLoadError(
           `Draft components file must contain an array: ${draftComponentsPath}`,
         ),
@@ -103,9 +108,9 @@ describe('RiviereProjectRepository draft component restoration', () => {
       const draftComponentsPath = join(directory, 'drafts.json')
       writeFileSync(draftComponentsPath, '[{}]')
 
-      expect(() => loadForEnrichment(directory, draftComponentsPath)).toThrow(
-        new DraftComponentsLoadError(`Invalid draft component: ${draftComponentsPath}`),
-      )
+      expect(() =>
+        loadByExtractionConfigAndDraftComponentsPaths(directory, draftComponentsPath),
+      ).toThrow(new DraftComponentsLoadError(`Invalid draft component: ${draftComponentsPath}`))
     })
   })
 
@@ -113,9 +118,9 @@ describe('RiviereProjectRepository draft component restoration', () => {
     withWorkspace((directory) => {
       const draftComponentsPath = join(directory, 'missing.json')
 
-      expect(() => loadForEnrichment(directory, draftComponentsPath)).toThrow(
-        new DraftComponentsLoadError(`Draft components not found: ${draftComponentsPath}`),
-      )
+      expect(() =>
+        loadByExtractionConfigAndDraftComponentsPaths(directory, draftComponentsPath),
+      ).toThrow(new DraftComponentsLoadError(`Draft components not found: ${draftComponentsPath}`))
     })
   })
 })

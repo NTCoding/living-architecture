@@ -7,12 +7,12 @@ const mocks = vi.hoisted(() => ({
     filePaths,
     missingFilePaths: [],
   })),
-  loadMock: vi.fn(),
+  loadByExtractionConfigPathMock: vi.fn(),
 }))
 
 vi.mock('../data-access/riviere-project/riviere-project-repository', () => ({
   RiviereProjectRepository: class {
-    load = mocks.loadMock
+    loadByExtractionConfigPath = mocks.loadByExtractionConfigPathMock
   },
 }))
 
@@ -44,7 +44,7 @@ describe('extractDraftComponents', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     mocks.findChangedSourceFilesMock.mockReturnValue({ filePaths: [], warnings: [] })
-    mocks.loadMock.mockReturnValue({
+    mocks.loadByExtractionConfigPathMock.mockReturnValue({
       extractDraftComponents: mocks.extractDraftComponentsMethodMock,
     })
     mocks.extractDraftComponentsMethodMock.mockReturnValue(DRAFT_ONLY_RESULT.result)
@@ -60,7 +60,7 @@ describe('extractDraftComponents', () => {
         useTsConfig: false,
       })
 
-      expect(mocks.loadMock).toHaveBeenCalledWith({
+      expect(mocks.loadByExtractionConfigPathMock).toHaveBeenCalledWith({
         projectRoot: process.cwd(),
         configPath: 'config.yml',
         useTsConfig: false,
@@ -76,7 +76,7 @@ describe('extractDraftComponents', () => {
         useTsConfig: false,
       })
 
-      expect(mocks.loadMock).toHaveBeenCalledWith({
+      expect(mocks.loadByExtractionConfigPathMock).toHaveBeenCalledWith({
         projectRoot: process.cwd(),
         configPath: 'config.yml',
         useTsConfig: false,
@@ -94,7 +94,7 @@ describe('extractDraftComponents', () => {
         useTsConfig: true,
       })
 
-      expect(mocks.loadMock).toHaveBeenCalledWith({
+      expect(mocks.loadByExtractionConfigPathMock).toHaveBeenCalledWith({
         projectRoot: process.cwd(),
         configPath: 'config.yml',
         useTsConfig: true,
@@ -110,7 +110,7 @@ describe('extractDraftComponents', () => {
         useTsConfig: true,
       })
 
-      expect(mocks.loadMock).toHaveBeenCalledWith({
+      expect(mocks.loadByExtractionConfigPathMock).toHaveBeenCalledWith({
         projectRoot: process.cwd(),
         configPath: 'config.yml',
         useTsConfig: true,
@@ -128,7 +128,7 @@ describe('extractDraftComponents', () => {
         useTsConfig: true,
       })
 
-      expect(mocks.loadMock).toHaveBeenCalledWith({
+      expect(mocks.loadByExtractionConfigPathMock).toHaveBeenCalledWith({
         projectRoot: process.cwd(),
         configPath: 'config.yml',
         useTsConfig: true,
@@ -265,7 +265,7 @@ describe('extractDraftComponents', () => {
     })
 
     it('returns config failure when loading the extraction config fails', () => {
-      mocks.loadMock.mockImplementation(() => {
+      mocks.loadByExtractionConfigPathMock.mockImplementation(() => {
         throw new ExtractionConfigError('CONFIG_NOT_FOUND', 'Config file not found')
       })
 
@@ -315,7 +315,7 @@ describe('extractDraftComponents', () => {
     })
 
     it('rethrows unexpected loading errors', () => {
-      mocks.loadMock.mockImplementation(() => {
+      mocks.loadByExtractionConfigPathMock.mockImplementation(() => {
         throw new UnexpectedLoadingError('Unexpected failure')
       })
 
@@ -332,7 +332,7 @@ describe('extractDraftComponents', () => {
   })
 
   it('returns data access failure when loading the project fails', () => {
-    mocks.loadMock.mockImplementation(() => {
+    mocks.loadByExtractionConfigPathMock.mockImplementation(() => {
       throw new ExtractionDataAccessError('FILE_READ_ERROR', 'Could not read project')
     })
 

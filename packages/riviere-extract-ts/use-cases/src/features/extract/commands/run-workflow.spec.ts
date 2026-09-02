@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ loadWorkflow: vi.fn(), rebuildGraph: vi.fn() }))
+const mocks = vi.hoisted(() => ({ loadByWorkflowName: vi.fn(), rebuildGraph: vi.fn() }))
 
 vi.mock('../data-access/riviere-project/riviere-project-repository', () => ({
   RiviereProjectRepository: class {
-    loadWorkflow = mocks.loadWorkflow
+    loadByWorkflowName = mocks.loadByWorkflowName
   },
 }))
 
@@ -18,7 +18,7 @@ class UnexpectedWorkflowError extends Error {}
 describe('RunWorkflow', () => {
   beforeEach(() => {
     vi.resetAllMocks()
-    mocks.loadWorkflow.mockReturnValue({ rebuildGraph: mocks.rebuildGraph })
+    mocks.loadByWorkflowName.mockReturnValue({ rebuildGraph: mocks.rebuildGraph })
     mocks.rebuildGraph.mockReturnValue({ success: true, graph: { metadata: {} } })
   })
 
@@ -26,7 +26,7 @@ describe('RunWorkflow', () => {
     const input = { projectRoot: '/project', workflowName: 'combined' }
     const result = new RunWorkflow(new RiviereProjectRepository()).execute(input)
 
-    expect(mocks.loadWorkflow).toHaveBeenCalledWith(input)
+    expect(mocks.loadByWorkflowName).toHaveBeenCalledWith(input)
     expect(mocks.rebuildGraph).toHaveBeenCalledWith('combined')
     expect(result).toStrictEqual({ result: { success: true, graph: { metadata: {} } } })
   })
@@ -35,7 +35,7 @@ describe('RunWorkflow', () => {
     new ExtractionConfigError('VALIDATION_ERROR', 'Invalid workflow'),
     new ExtractionDataAccessError('FILE_READ_ERROR', 'Cannot read workflow'),
   ])('returns typed loading failures', (error) => {
-    mocks.loadWorkflow.mockImplementation(() => {
+    mocks.loadByWorkflowName.mockImplementation(() => {
       throw error
     })
 
@@ -57,7 +57,7 @@ describe('RunWorkflow', () => {
   })
 
   it('does not hide unexpected failures', () => {
-    mocks.loadWorkflow.mockImplementation(() => {
+    mocks.loadByWorkflowName.mockImplementation(() => {
       throw new UnexpectedWorkflowError('unexpected')
     })
 

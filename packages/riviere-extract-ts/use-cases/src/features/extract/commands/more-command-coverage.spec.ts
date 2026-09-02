@@ -83,7 +83,7 @@ describe('additional builder command coverage', () => {
   it('returns duplicate custom type validation error', () => {
     const project = createProject()
     project.defineCustomType({ name: 'Queue' })
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
 
     expect(
       new DefineCustomType(new RiviereProjectRepository()).execute({
@@ -132,7 +132,7 @@ describe('additional builder command coverage', () => {
         },
       },
     })
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
     const command = new LinkComponents(new RiviereProjectRepository())
     const input = {
       from: sourceId,
@@ -213,7 +213,7 @@ describe('additional builder command coverage', () => {
   it('includes reads in enrichment behavior', () => {
     const project = createProject()
     const enrichSpy = vi.spyOn(project, 'enrichComponent').mockImplementation(() => undefined)
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
 
     new EnrichComponent(new RiviereProjectRepository()).execute({
       businessRules: [],
@@ -236,7 +236,7 @@ describe('additional builder command coverage', () => {
   it('includes validates in enrichment behavior', () => {
     const project = createProject()
     const enrichSpy = vi.spyOn(project, 'enrichComponent').mockImplementation(() => undefined)
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
 
     new EnrichComponent(new RiviereProjectRepository()).execute({
       businessRules: [],
@@ -297,7 +297,7 @@ describe('additional builder command coverage', () => {
   })
 
   it('rethrows unknown errors from finalize-graph and init-graph', () => {
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockImplementation(() => {
+    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockImplementation(() => {
       throw new UnexpectedError('unexpected')
     })
 
