@@ -50,7 +50,7 @@ it('rejects an aggregate repository method named loadBy without an access criter
 `)
 
   expect(messages).toHaveLength(1)
-  expect(messages[0]?.message).toContain("output method 'loadBy'")
+  expect(messages[0]?.message).toContain("aggregate-returning method 'loadBy'")
 })
 
 it.each(['loadWorkflow', 'loadForEnrichment', 'loadFromPersistedState'])(
@@ -61,7 +61,7 @@ it.each(['loadWorkflow', 'loadForEnrichment', 'loadFromPersistedState'])(
     `)
 
     expect(messages).toHaveLength(1)
-    expect(messages[0]?.message).toContain(`output method '${methodName}'`)
+    expect(messages[0]?.message).toContain(`aggregate-returning method '${methodName}'`)
   },
 )
 
@@ -115,12 +115,30 @@ it('accepts callable fields with declared aggregate return types and access crit
   expect(messages).toStrictEqual([])
 })
 
-it('does not constrain non-aggregate callable members with operation-labelled names', () => {
+it('does not constrain non-aggregate callable members with lexically invalid names', () => {
   const messages = enforceAggregateRepository(`
-  loadByEnrichment(): void {}
+  loadWorkflow(): void {}
 `)
 
   expect(messages).toStrictEqual([])
+})
+
+it('does not constrain public property accessors', () => {
+  const messages = enforceAggregateRepository(`
+  get current(): Project { return new Project() }
+  set current(project: Project) {}
+`)
+
+  expect(messages).toStrictEqual([])
+})
+
+it('rejects dynamically named public methods that cannot be validated', () => {
+  const messages = enforceAggregateRepository(`
+  [loadMethodName](): Project { return new Project() }
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain('requires a statically named public method')
 })
 
 it('accepts template-literal methods with lexically valid loading names', () => {

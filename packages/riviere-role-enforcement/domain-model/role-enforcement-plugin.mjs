@@ -2038,6 +2038,9 @@ export default {
           }
 
           for (const member of node.body.body) {
+            if (reportsDynamicPublicMethodName(member, role)) {
+              continue
+            }
             for (const callableMember of readPublicCallableMembers(member)) {
               if (callableMember.functionNode === null) {
                 continue
@@ -2070,7 +2073,10 @@ export default {
           }
 
           const outputRoles = readOutputTypeRoles(callableMember.functionNode.returnType, filename)
-          if (outputRoles?.length === 0) {
+          if (
+            outputRoles === null ||
+            !outputRoles.some((outputRole) => role.allowedOutputs.includes(outputRole))
+          ) {
             return
           }
 
@@ -2080,8 +2086,28 @@ export default {
 
           report(
             callableMember.member,
-            `Role '${role.name}' requires output method '${callableMember.methodName}' to match '${role.outputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
+            `Role '${role.name}' requires aggregate-returning method '${callableMember.methodName}' to match '${role.outputMethodNameMatches}'. ${referenceForKnownRole(options, role.name)}`,
           )
+        }
+
+        function reportsDynamicPublicMethodName(member, role) {
+          if (
+            isPrivateMember(member) ||
+            (member.accessibility !== 'public' && member.accessibility != null) ||
+            (member.type !== 'MethodDefinition' && member.type !== 'TSAbstractMethodDefinition') ||
+            member.kind !== 'method' ||
+            !member.computed ||
+            member.key.type === 'Literal' ||
+            (member.key.type === 'TemplateLiteral' && member.key.expressions.length === 0)
+          ) {
+            return false
+          }
+
+          report(
+            member,
+            `Role '${role.name}' requires a statically named public method so its contract can be validated. ${referenceForKnownRole(options, role.name)}`,
+          )
+          return true
         }
 
         function readPublicCallableMembers(member) {
@@ -2096,6 +2122,10 @@ export default {
           if (member.type === 'MethodDefinition' || member.type === 'TSAbstractMethodDefinition') {
             if (member.kind === 'constructor') {
               return member.value.params.flatMap(readPublicCallableConstructorParameterProperty)
+            }
+
+            if (member.kind !== 'method') {
+              return []
             }
 
             return readMemberName(member.key) === null
