@@ -141,6 +141,15 @@ it('rejects dynamically named public methods that cannot be validated', () => {
   expect(messages[0]?.message).toContain('requires a statically named public callable member')
 })
 
+it('rejects numeric computed public methods that cannot be validated', () => {
+  const messages = enforceAggregateRepository(`
+  [123](): Project { return new Project() }
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain('requires a statically named public callable member')
+})
+
 it('rejects dynamically named public callable fields that cannot be validated', () => {
   const messages = enforceAggregateRepository(`
   [loadMethodName] = (): Project => new Project()
@@ -164,6 +173,15 @@ it('accepts callable constructor parameter properties with lexically valid loadi
 `)
 
   expect(messages).toStrictEqual([])
+})
+
+it('rejects initialized callable constructor parameter properties with invalid loading names', () => {
+  const messages = enforceAggregateRepository(`
+  constructor(public loadWorkflow = (): Project => new Project()) {}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("requires aggregate-returning method 'loadWorkflow'")
 })
 
 it('accepts abstract methods with lexically valid loading names', () => {

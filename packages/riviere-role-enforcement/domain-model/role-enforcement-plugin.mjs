@@ -2095,7 +2095,7 @@ export default {
             isPrivateMember(member) ||
             (member.accessibility !== 'public' && member.accessibility != null) ||
             !member.computed ||
-            member.key.type === 'Literal' ||
+            (member.key.type === 'Literal' && typeof member.key.value === 'string') ||
             (member.key.type === 'TemplateLiteral' && member.key.expressions.length === 0) ||
             !isPublicCallableMethodOrField(member)
           ) {
@@ -2190,15 +2190,24 @@ export default {
           }
 
           const parameter = unwrapParameterProperty(parameterProperty.parameter)
-          if (
-            parameter?.type !== 'Identifier' ||
-            !isCallableTypeAnnotation(parameter.typeAnnotation)
-          ) {
+          if (parameter?.type !== 'Identifier') {
+            return []
+          }
+
+          if (isCallableTypeAnnotation(parameter.typeAnnotation)) {
+            return [{
+              functionNode: parameter.typeAnnotation.typeAnnotation,
+              member: parameterProperty,
+              methodName: parameter.name,
+            }]
+          }
+
+          if (!isFunctionExpression(parameterProperty.parameter?.right)) {
             return []
           }
 
           return [{
-            functionNode: parameter.typeAnnotation.typeAnnotation,
+            functionNode: parameterProperty.parameter.right,
             member: parameterProperty,
             methodName: parameter.name,
           }]
