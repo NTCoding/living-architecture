@@ -9,9 +9,20 @@ class ExpectedCustomComponentError extends Error {}
 class ExpectedSetMetadataError extends Error {}
 class ExpectedDateMetadataError extends Error {}
 class ExpectedObjectMetadataError extends Error {}
+class ExpectedRegularExpressionMetadataError extends Error {}
+class ExpectedTypedArrayMetadataError extends Error {}
+class ExpectedArrayBufferMetadataError extends Error {}
 
 class PolicyConfiguration {
-  constructor(readonly enabled: boolean) {}
+  readonly self: PolicyConfiguration
+
+  constructor(readonly enabled: boolean) {
+    this.self = this
+    Object.defineProperty(this, 'label', {
+      enumerable: true,
+      get: () => 'policy',
+    })
+  }
 }
 
 function mapMetadata(value: unknown): Map<unknown, unknown> {
@@ -29,8 +40,23 @@ function dateMetadata(value: unknown): Date {
   throw new ExpectedDateMetadataError()
 }
 
+function regularExpressionMetadata(value: unknown): RegExp {
+  if (value instanceof RegExp) return value
+  throw new ExpectedRegularExpressionMetadataError()
+}
+
+function typedArrayMetadata(value: unknown): Uint8Array {
+  if (value instanceof Uint8Array) return value
+  throw new ExpectedTypedArrayMetadataError()
+}
+
+function arrayBufferMetadata(value: unknown): ArrayBuffer {
+  if (value instanceof ArrayBuffer) return value
+  throw new ExpectedArrayBufferMetadataError()
+}
+
 function objectMetadata(value: unknown): object {
-  if (typeof value === 'object' && value !== null) return value
+  if ((typeof value === 'object' && value !== null) || typeof value === 'function') return value
   throw new ExpectedObjectMetadataError()
 }
 
@@ -74,6 +100,10 @@ function addPlaceOrderUseCase(builder: RiviereBuilder) {
 }
 
 describe('RiviereBuilder snapshots', () => {
+  it('returns an empty array when no external Links have accumulated', () => {
+    expect(createBuilder().externalLinks()).toStrictEqual([])
+  })
+
   it('returns exact components when components have accumulated', () => {
     const builder = createBuilder()
     const component = addPlaceOrderUseCase(builder)
@@ -92,12 +122,13 @@ describe('RiviereBuilder snapshots', () => {
     expect(builder.components()).toStrictEqual([component])
   })
 
-  it('returns components with function metadata', () => {
+  it('preserves Builder component state when returned function metadata is changed', () => {
     const builder = createBuilder()
     const behavior = () => 'accepted metadata'
+    Reflect.set(behavior, 'self', behavior)
     builder.defineCustomType({ name: 'Policy' })
 
-    const component = builder.addCustom({
+    builder.addCustom({
       name: 'Order policy',
       domain: 'orders',
       module: 'checkout',
@@ -109,10 +140,44 @@ describe('RiviereBuilder snapshots', () => {
       metadata: {
         behavior,
         steps: [{ name: 'authorize' }],
+        absent: null,
       },
     })
 
-    expect(builder.components()).toStrictEqual([component])
+    const returnedBehavior = objectMetadata(customComponent(builder.components())['behavior'])
+    Reflect.set(returnedBehavior, 'category', 'changed')
+
+    expect(Reflect.get(returnedBehavior, 'self')).toBe(returnedBehavior)
+    expect(
+      Reflect.get(objectMetadata(customComponent(builder.components())['behavior']), 'category'),
+    ).toBe(undefined)
+  })
+
+  it('throws when metadata declares a property without a descriptor', () => {
+    const builder = createBuilder()
+    const malformedMetadata = new Proxy(
+      {},
+      {
+        ownKeys: () => ['missing'],
+        getOwnPropertyDescriptor: () => undefined,
+      },
+    )
+    builder.defineCustomType({ name: 'Policy' })
+    builder.addCustom({
+      name: 'Order policy',
+      domain: 'orders',
+      module: 'checkout',
+      customTypeName: 'Policy',
+      sourceLocation: {
+        repository: 'test/repo',
+        filePath: 'src/order-policy.ts',
+      },
+      metadata: { malformedMetadata },
+    })
+
+    expect(() => builder.components()).toThrow(
+      `Expected property descriptor for 'missing'. Got undefined.`,
+    )
   })
 
   it('preserves Builder component state when returned Map metadata is changed', () => {
@@ -170,9 +235,76 @@ describe('RiviereBuilder snapshots', () => {
 
     Reflect.set(policy, 'enabled', false)
 
-    expect(Reflect.get(customComponent(builder.components()), 'policy')).toStrictEqual({
-      enabled: true,
+    const preservedPolicy = objectMetadata(customComponent(builder.components())['policy'])
+
+    expect(preservedPolicy).toBeInstanceOf(PolicyConfiguration)
+    expect(Reflect.get(preservedPolicy, 'enabled')).toBe(true)
+  })
+
+  it('preserves Builder component state when returned regular expression metadata is changed', () => {
+    const builder = createBuilder()
+    builder.defineCustomType({ name: 'Policy' })
+    builder.addCustom({
+      name: 'Order policy',
+      domain: 'orders',
+      module: 'checkout',
+      customTypeName: 'Policy',
+      sourceLocation: {
+        repository: 'test/repo',
+        filePath: 'src/order-policy.ts',
+      },
+      metadata: { matcher: /order/gi },
     })
+    const matcher = regularExpressionMetadata(customComponent(builder.components())['matcher'])
+    matcher.lastIndex = 4
+
+    expect(
+      regularExpressionMetadata(customComponent(builder.components())['matcher']),
+    ).toStrictEqual(/order/gi)
+  })
+
+  it('preserves Builder component state when returned typed array metadata is changed', () => {
+    const builder = createBuilder()
+    builder.defineCustomType({ name: 'Policy' })
+    builder.addCustom({
+      name: 'Order policy',
+      domain: 'orders',
+      module: 'checkout',
+      customTypeName: 'Policy',
+      sourceLocation: {
+        repository: 'test/repo',
+        filePath: 'src/order-policy.ts',
+      },
+      metadata: { priority: new Uint8Array([1]) },
+    })
+    const priority = typedArrayMetadata(customComponent(builder.components())['priority'])
+    priority[0] = 2
+
+    expect(typedArrayMetadata(customComponent(builder.components())['priority'])).toStrictEqual(
+      new Uint8Array([1]),
+    )
+  })
+
+  it('preserves Builder component state when returned array buffer metadata is changed', () => {
+    const builder = createBuilder()
+    builder.defineCustomType({ name: 'Policy' })
+    builder.addCustom({
+      name: 'Order policy',
+      domain: 'orders',
+      module: 'checkout',
+      customTypeName: 'Policy',
+      sourceLocation: {
+        repository: 'test/repo',
+        filePath: 'src/order-policy.ts',
+      },
+      metadata: { checksum: new Uint8Array([1]).buffer },
+    })
+    const checksum = arrayBufferMetadata(customComponent(builder.components())['checksum'])
+    new Uint8Array(checksum)[0] = 2
+
+    expect(
+      new Uint8Array(arrayBufferMetadata(customComponent(builder.components())['checksum'])),
+    ).toStrictEqual(new Uint8Array([1]))
   })
 
   it('returns exact Link occurrences when Links have accumulated', () => {

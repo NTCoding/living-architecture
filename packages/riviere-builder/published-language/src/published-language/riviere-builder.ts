@@ -403,15 +403,15 @@ export class RiviereBuilder {
   }
 
   components(): readonly PublishedComponent[] {
-    return publishedSnapshot(this.published(this.componentsById.values()))
+    return this.publishedGraph().components
   }
 
   links(): readonly PublishedLink[] {
-    return publishedSnapshot(this.published(this.linksByStoredIdentity.values()))
+    return this.publishedGraph().links
   }
 
   externalLinks(): readonly PublishedExternalLink[] {
-    return publishedSnapshot(this.published(this.externalLinksByConnectionIdentity.values()))
+    return this.publishedGraph().externalLinks ?? []
   }
 
   /** @returns Non fatal issues found in the graph. */
@@ -539,32 +539,4 @@ export class RiviereBuilder {
       this.published(this.externalLinksByConnectionIdentity.values()),
     )
   }
-}
-
-function publishedSnapshot<T extends object>(values: readonly T[]): readonly T[] {
-  return values.map((value) => ({
-    ...value,
-    ...clonePublishedRecord(value),
-  }))
-}
-
-function clonePublishedValue(value: unknown): unknown {
-  if (typeof value !== 'object' || value === null) return value
-  if (value instanceof Date) return new Date(value)
-  if (value instanceof Map)
-    return new Map(
-      [...value].map(([key, nestedValue]) => [
-        clonePublishedValue(key),
-        clonePublishedValue(nestedValue),
-      ]),
-    )
-  if (value instanceof Set) return new Set([...value].map(clonePublishedValue))
-  if (Array.isArray(value)) return value.map(clonePublishedValue)
-  return clonePublishedRecord(value)
-}
-
-function clonePublishedRecord(value: object): Record<string, unknown> {
-  return Object.fromEntries(
-    Object.entries(value).map(([field, nestedValue]) => [field, clonePublishedValue(nestedValue)]),
-  )
 }
