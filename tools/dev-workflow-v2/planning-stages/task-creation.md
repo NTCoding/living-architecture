@@ -173,12 +173,12 @@ Write the solution in this order:
 2. Add the relevant capability detail and clarification.
 3. Explain why the resulting capability matters to the user or customer.
 
-High-level purpose does not mean abstract wording. The first sentence must name the product capability, the action the user takes, and the result the user needs. Never use an undefined reference such as “the Workflow”, “the demo”, “the customer journey”, “the result”, “all capabilities”, “everything”, or “works together”. At the point of reference, name the file, stages, sources, commands, outputs, or decision involved, or link to the exact source that defines it. An agent must write `riviere-workflow.yaml` with its named stages, not “the Workflow”.
+High-level purpose does not mean abstract wording. The first sentence must name the product capability, the action the user takes, and the result the user needs. Never use an undefined reference such as “the Workflow”, “the demo”, “the customer journey”, “the result”, “all capabilities”, “everything”, or “works together”. At the point of reference, name the file, stages, sources, commands, outputs, or decision involved, or link to the exact source that defines it. For a Workflow deliverable, an agent must write `riviere-workflow.yaml` with its named stages, not “the Workflow”.
 
 For a dogfooding ticket, the first sentence may name the update to the named demo repository. It must then name the product capabilities, user actions, and outputs that the repository exercises. For example:
 
 ```text
-Update ecommerce-demo-app to help people new to Riviere learn how TypeScript code extraction, EventCatalog import, AsyncAPI import, AI assistance, and schema validation work. The README shows people how to run riviere-workflow.yaml and inspect its graph and log, so they can apply the same setup to their own application.
+Update ecommerce-demo-app to help people new to Riviere learn how TypeScript code extraction, EventCatalog import, AsyncAPI import, additive AI extraction, additive AI enrichment, and schema validation work. The README shows people how to run riviere-workflow.yaml and inspect its graph and log, so they can apply the same setup to their own application.
 ```
 
 The solution must never be only a to-do list or an artefact inventory, such as adding a root Workflow file, stage configs, fixtures, tooling, and README documentation. Those details belong in `## Agreed target architecture and design` after the purpose, capability, and user value are clear.

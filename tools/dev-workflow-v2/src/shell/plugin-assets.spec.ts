@@ -218,7 +218,7 @@ describe('task creation planning guidance', () => {
       'Never use an undefined reference such as “the Workflow”, “the demo”, “the customer journey”, “the result”, “all capabilities”, or “everything”.',
     )
     expect(dogfooding).toContain(
-      'An agent must write `riviere-workflow.yaml` with its named stages, not “the Workflow”.',
+      'For a Workflow deliverable, an agent must write `riviere-workflow.yaml` with its named stages, not “the Workflow”.',
     )
   })
 })
