@@ -24,7 +24,7 @@ Start by running `/dev-workflow-v2:workflow get-state` and extracting `prNumber`
     -f threadId='<THREAD_ID>'
   ```
 - [ ] Commit all fixes
-- [ ] Re-fetch the PR feedback from GitHub and confirm there are no unresolved actionable threads and no `CHANGES_REQUESTED` review decision
+- [ ] Re-fetch the PR feedback from GitHub and confirm there are no unresolved actionable threads and no `CHANGES_REQUESTED` review decision. If all threads are resolved but CodeRabbit still reports `CHANGES_REQUESTED`, it may be processing new commits: wait and periodically re-fetch the feedback. Do not transition to `BLOCKED` in this situation.
 - [ ] Record that feedback has been addressed (this also verifies live GitHub state — no unresolved threads and no `CHANGES_REQUESTED`): `/dev-workflow-v2:workflow verify-feedback-addressed`
 - [ ] Transition to REVIEWING: `/dev-workflow-v2:workflow transition REVIEWING`
 
@@ -40,7 +40,8 @@ Use a query that fetches this data for the current PR:
 
 - Cannot transition to REVIEWING unless `verify-feedback-addressed` succeeds
 - To leave this state, GitHub must show no unresolved actionable PR feedback and no `CHANGES_REQUESTED` review decision
+- When all threads are resolved but CodeRabbit remains `CHANGES_REQUESTED` while it processes new commits, stay in this state and periodically re-run `verify-feedback-addressed`; do not transition to `BLOCKED`.
 - Do not infer `prNumber` from branch state or prior messages. When workflow state values are needed, run `/dev-workflow-v2:workflow get-state` and extract the exact fields required from its JSON output.
 - Default to accepting feedback — reviewers know their codebase
 - Every rejection MUST include a specific technical reason
-- If the PR cannot be made mergeable, transition to BLOCKED and tell the user you were unable to make the PR mergeable
+- If the PR cannot be made mergeable for a reason other than CodeRabbit processing new commits after all threads were resolved, transition to BLOCKED and tell the user you were unable to make the PR mergeable

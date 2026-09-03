@@ -9,6 +9,14 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 
 describe('plugin Agent Skills', () => {
+  it('tells agents to wait for CodeRabbit when resolved feedback has a transient changes request', () => {
+    const addressingFeedback = readPluginFile('states/addressing_feedback.md')
+
+    expect(addressingFeedback).toContain(
+      'stay in this state and periodically re-run `verify-feedback-addressed`; do not transition to `BLOCKED`',
+    )
+  })
+
   it('provides an Agent Skill for every plugin command', () => {
     const commandNames = readdirSync(join(pluginRoot, 'commands'))
       .filter((filename) => filename.endsWith('.md'))

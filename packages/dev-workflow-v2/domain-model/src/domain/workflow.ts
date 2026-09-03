@@ -315,7 +315,7 @@ export class MaintainerWorkflow {
     }
     if (feedback.reviewDecision === 'CHANGES_REQUESTED') {
       return fail(
-        'PR still has CHANGES_REQUESTED review status. Resolve all feedback or transition to BLOCKED.',
+        'PR has no unresolved feedback threads, but CodeRabbit still reports CHANGES_REQUESTED while it processes new commits. Wait and periodically run verify-feedback-addressed again. Do not transition to BLOCKED.',
       )
     }
     if (feedback.unresolvedCount > 0) {

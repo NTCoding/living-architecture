@@ -106,7 +106,7 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
     })
     expect(changesRequestedOnly.result).toMatchObject({
       pass: false,
-      reason: expect.stringContaining('CHANGES_REQUESTED review status'),
+      reason: expect.stringContaining('Wait and periodically run verify-feedback-addressed again'),
     })
   })
 
