@@ -1,7 +1,7 @@
 {
   "name": "@living-architecture/riviere-builder-published-language",
   "description": "Defines the public domain interface for constructing Rivière architecture graphs.",
-  "version": "0.16.5",
+  "version": "0.16.6",
   "publishConfig": {
     "access": "public"
   },
