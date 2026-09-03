@@ -2,7 +2,7 @@ import {
   describe, expect, it, vi, beforeEach 
 } from 'vitest'
 import {
-  render, screen, fireEvent, act, waitFor
+  render, screen, fireEvent, act
 } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
@@ -525,13 +525,15 @@ describe('FullGraphPage', () => {
       expect(screen.getByTestId('graph-tooltip')).toBeInTheDocument()
 
       const tooltip = screen.getByTestId('graph-tooltip')
-      fireEvent.mouseOut(tooltip)
+      fireEvent.mouseLeave(tooltip)
 
       expect(screen.getByTestId('graph-tooltip')).toBeInTheDocument()
 
-      await waitFor(() => {
-        expect(screen.queryByTestId('graph-tooltip')).not.toBeInTheDocument()
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 250))
       })
+
+      expect(screen.queryByTestId('graph-tooltip')).not.toBeInTheDocument()
     })
 
     it('tooltip stays visible when mouse re-enters before debounce expires', async () => {
@@ -546,13 +548,13 @@ describe('FullGraphPage', () => {
       vi.useFakeTimers()
 
       const tooltip = screen.getByTestId('graph-tooltip')
-      fireEvent.mouseOut(tooltip)
+      fireEvent.mouseLeave(tooltip)
 
       await act(async () => {
         vi.advanceTimersByTime(100)
       })
 
-      fireEvent.mouseOver(tooltip)
+      fireEvent.mouseEnter(tooltip)
 
       await act(async () => {
         vi.advanceTimersByTime(150)
@@ -601,7 +603,7 @@ describe('FullGraphPage', () => {
       })
 
       const tooltip = screen.getByTestId('graph-tooltip')
-      fireEvent.mouseOut(tooltip)
+      fireEvent.mouseLeave(tooltip)
 
       const callCountBeforeUnmount = clearTimeoutSpy.mock.calls.length
 
