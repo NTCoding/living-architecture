@@ -13,7 +13,7 @@ class MissingRemoteHeadError extends Error {
     this.name = 'MissingRemoteHeadError'
   }
 }
-import { readGitRepositoryStatus } from './git-client'
+import { pushGitBranch, readGitRepositoryStatus } from './git-client'
 
 describe('readGitRepositoryStatus', () => {
   it('reads repository status using the remote default branch', () => {
@@ -69,5 +69,15 @@ describe('readGitRepositoryStatus', () => {
       workingTreeClean: false,
     })
     expect(executeGit).toHaveBeenCalledWith('git', ['diff', '--name-only', 'main', 'HEAD'])
+  })
+})
+
+describe('pushGitBranch', () => {
+  it('pushes the supplied branch to origin without force flags', () => {
+    const executeGit = vi.fn(() => '')
+
+    pushGitBranch('issue-42', 'custom-git', executeGit)
+
+    expect(executeGit).toHaveBeenCalledWith('custom-git', ['push', '-u', 'origin', 'issue-42'])
   })
 })

@@ -241,6 +241,8 @@ describe('RiviereBuilder snapshots', () => {
     matcher.lastIndex = 4
     addSnapshotPolicy(builder, { matcher })
     const returnedMatcher = regularExpressionMetadata(policyMetadata(builder, 'matcher'))
+
+    expect(returnedMatcher.lastIndex).toBe(4)
     returnedMatcher.lastIndex = 1
 
     expect(returnedMatcher.lastIndex).toBe(1)

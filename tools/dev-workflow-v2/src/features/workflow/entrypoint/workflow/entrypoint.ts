@@ -5,6 +5,7 @@ import { RecordCiFailed } from '@living-architecture/dev-workflow-v2-use-cases/c
 import { RecordCiPassed } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-ci-passed'
 import { RecordIssue } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-issue'
 import { RecordPullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-pull-request'
+import { PushFeedbackFixes } from '@living-architecture/dev-workflow-v2-use-cases/commands/push-feedback-fixes'
 import { VerifyFeedbackAddressed } from '@living-architecture/dev-workflow-v2-use-cases/commands/verify-feedback-addressed'
 import {
   parseNumberArgument,
@@ -33,9 +34,13 @@ export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypoin
       new RecordIssue(workflow).execute({ issueNumber }).result,
     recordBranch: (workflow, branch) => new RecordBranch(workflow).execute({ branch }).result,
     recordPullRequest: (workflow, number, url) =>
-      new RecordPullRequest(workflow).execute({ number, url }).result,
+      new RecordPullRequest(workflow).execute({
+        number,
+        url,
+      }).result,
     createPullRequest: (workflow, args) =>
       new CreatePullRequest(workflow).execute({ arguments: args }).result,
+    pushFeedbackFixes: (workflow) => new PushFeedbackFixes(workflow).execute({}).result,
     recordCiPassed: (workflow) => new RecordCiPassed(workflow).execute({}).result,
     recordCiFailed: (workflow, output) => new RecordCiFailed(workflow).execute({ output }).result,
     verifyFeedbackAddressed: (workflow) => new VerifyFeedbackAddressed(workflow).execute({}).result,

@@ -28,6 +28,7 @@ function makeWorkflowDeps(): WorkflowDeps {
       prUrl: 'https://github.com/example/repo/pull/1',
       isDraft: false,
     }),
+    pushFeatureBranch: () => undefined,
     listSessionReviews: () => [],
     sleepMs: () => undefined,
     now: () => '2026-01-01T00:00:00Z',

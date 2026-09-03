@@ -3,6 +3,7 @@ import type { TestContext } from './__fixtures__/workflow-cli-test-fixtures'
 import {
   buildTestContext,
   cleanupDb,
+  progressToState,
   runCommand,
   runHook,
 } from './__fixtures__/workflow-cli-test-fixtures'
@@ -236,9 +237,9 @@ describe('workflow-cli hooks', () => {
     expect(result.exitCode).toStrictEqual(2)
   })
 
-  it('allows pushing committed feedback fixes for active session', () => {
+  it('blocks direct pushes while addressing feedback', () => {
     const ctx = setup()
-    runCommand(ctx, ['init'])
+    progressToState(ctx, 'ADDRESSING_FEEDBACK')
 
     const result = runHook(
       ctx,
@@ -248,11 +249,11 @@ describe('workflow-cli hooks', () => {
         cwd: '/dir',
         hook_event_name: 'PreToolUse',
         tool_name: 'Bash',
-        tool_input: { command: 'git push origin issue-42' },
+        tool_input: { command: 'git push origin feat/test' },
         tool_use_id: 'tu-push',
       }),
     )
 
-    expect(result.exitCode).toStrictEqual(0)
+    expect(result.exitCode).toStrictEqual(2)
   })
 })

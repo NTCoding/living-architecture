@@ -60,6 +60,26 @@ describe('evaluateCodeRabbitFeedbackPoll', () => {
     })
   })
 
+  it('reports a timeout when only one clean poll has occurred on the final poll', () => {
+    expect(
+      evaluateCodeRabbitFeedbackPoll(
+        {
+          reviewDecision: 'APPROVED',
+          coderabbitReviewSeen: true,
+          unresolvedCount: 0,
+          threads: [],
+        },
+        42,
+        1,
+        0,
+      ),
+    ).toStrictEqual({
+      type: 'timed-out',
+      reason:
+        'CodeRabbit feedback was not clean for 2 consecutive polls within 300000ms for PR #42.',
+    })
+  })
+
   it('reports the final feedback result', () => {
     expect(
       evaluateCodeRabbitFeedbackPoll(

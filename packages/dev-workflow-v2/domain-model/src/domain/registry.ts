@@ -37,6 +37,7 @@ type WorkflowOperation =
   | 'record-ci-passed'
   | 'record-ci-failed'
   | 'create-pr'
+  | 'push-feedback-fixes'
   | 'verify-feedback-addressed'
 
 /** @riviere-role value-object */

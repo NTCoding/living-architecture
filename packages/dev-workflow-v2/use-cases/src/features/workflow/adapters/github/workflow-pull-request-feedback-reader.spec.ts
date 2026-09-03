@@ -56,3 +56,15 @@ it('translates GitHub feedback into workflow feedback', () => {
     unresolvedCount: 1,
   })
 })
+
+it('preserves CodeRabbit rate limiting', () => {
+  const readFeedback = createWorkflowPullRequestFeedbackReader(() => ({
+    coderabbitReviewSeen: true,
+    coderabbitRateLimited: true,
+    reviewDecision: null,
+    threads: [],
+    unresolvedCount: 0,
+  }))
+
+  expect(readFeedback(42).coderabbitRateLimited).toBe(true)
+})

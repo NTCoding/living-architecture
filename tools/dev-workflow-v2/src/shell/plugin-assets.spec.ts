@@ -9,10 +9,10 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 
 describe('plugin Agent Skills', () => {
-  it('tells agents to push fixes, wait for CodeRabbit, and reflect after clean verification', () => {
+  it('tells agents to push fixes through the workflow, wait for CodeRabbit, and reflect after clean verification', () => {
     const addressingFeedback = readPluginFile('states/addressing_feedback.md')
 
-    expect(addressingFeedback).toContain('git push -u origin "$featureBranch"')
+    expect(addressingFeedback).toContain('workflow push-feedback-fixes')
     expect(addressingFeedback).toContain('Wait for CodeRabbit to process the pushed commit')
     expect(addressingFeedback).toContain('transitions directly to `REFLECTING`')
   })
@@ -79,17 +79,15 @@ describe('plugin Agent Skills', () => {
     })
   })
 
-  it('validates and quotes the recorded branch before pushing', () => {
+  it('prohibits direct pushes while creating a pull request', () => {
     const skill = readPluginFile('skills/create-pr/SKILL.md')
-    const validationPosition = skill.indexOf('git check-ref-format --branch "$featureBranch"')
-    const pushPosition = skill.indexOf('git push -u origin "$featureBranch"')
 
     expect({
-      validatesBeforePush: validationPosition > -1 && validationPosition < pushPosition,
-      rejectsUnquotedInterpolation: skill.includes('never interpolate it into unquoted shell text'),
+      prohibitsDirectPush: skill.includes('Do not call `git push`'),
+      containsDirectPushCommand: skill.includes('git push -u origin'),
     }).toStrictEqual({
-      validatesBeforePush: true,
-      rejectsUnquotedInterpolation: true,
+      prohibitsDirectPush: true,
+      containsDirectPushCommand: false,
     })
   })
 

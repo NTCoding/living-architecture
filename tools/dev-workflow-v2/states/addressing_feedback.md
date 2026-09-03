@@ -24,7 +24,7 @@ Start by running `/dev-workflow-v2:workflow get-state` and extracting `prNumber`
     -f threadId='<THREAD_ID>'
   ```
 - [ ] Commit all fixes
-- [ ] Push the recorded feature branch: `git push -u origin "$featureBranch"`
+- [ ] Push the recorded feature branch through the workflow: `/dev-workflow-v2:workflow push-feedback-fixes`
 - [ ] Wait for CodeRabbit to process the pushed commit, then re-fetch the PR feedback from GitHub
 - [ ] If feedback remains unresolved, return to the fix loop above
 - [ ] Record that feedback has been addressed (this verifies live GitHub state has no unresolved threads and no `CHANGES_REQUESTED` review decision): `/dev-workflow-v2:workflow verify-feedback-addressed`. Successful verification transitions directly to `REFLECTING`.

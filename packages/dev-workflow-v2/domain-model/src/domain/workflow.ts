@@ -22,6 +22,7 @@ import {
 import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
 import type { ReadWorkflowGitStatus } from './ports/read-git-status'
 import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
+import type { PushWorkflowFeatureBranch } from './ports/push-workflow-feature-branch'
 import { evaluateCodeRabbitFeedbackPoll } from './coderabbit-feedback-verification'
 type StateName = WorkflowState['currentStateMachineState']
 type LivingArchitectureReviewType = StoredReview['reviewType']
@@ -59,11 +60,13 @@ type WorkflowOperation =
   | keyof typeof RECORDING_OPS_MAP
   | 'record-review'
   | 'create-pr'
+  | 'push-feedback-fixes'
   | 'verify-feedback-addressed'
 type WorkflowDeps = {
   readonly getGitInfo: ReadWorkflowGitStatus
   readonly getPrFeedback: ReadWorkflowPullRequestFeedback
   readonly createPullRequest: CreateWorkflowPullRequest
+  readonly pushFeatureBranch: PushWorkflowFeatureBranch
   readonly listSessionReviews: () => readonly StoredReview[]
   readonly sleepMs: (ms: number) => void
   readonly now: () => string
@@ -82,15 +85,15 @@ function diffStateOverrides(
   }
   return overrides
 }
-type PullRequestFeedbackReadResult =
-  | {
-      ok: true
-      feedback: ReturnType<ReadWorkflowPullRequestFeedback>
-    }
-  | {
-      ok: false
-      reason: string
-    }
+type PullRequestFeedbackReadSuccess = {
+  readonly ok: true
+  readonly feedback: ReturnType<ReadWorkflowPullRequestFeedback>
+}
+type PullRequestFeedbackReadFailure = {
+  readonly ok: false
+  readonly reason: string
+}
+type PullRequestFeedbackReadResult = PullRequestFeedbackReadSuccess | PullRequestFeedbackReadFailure
 function readPrFeedback(
   getPrFeedback: ReadWorkflowPullRequestFeedback,
   prNumber: number,
@@ -250,6 +253,21 @@ export class MaintainerWorkflow {
       return pass()
     } catch (error) {
       return fail(`Unable to create PR: ${String(error)}`)
+    }
+  }
+
+  pushFeedbackFixes(): PreconditionResult {
+    const gate = checkOperationGate('push-feedback-fixes', this.state, this.registryDefinition)
+    if (!gate.pass) return gate
+    if (this.state.featureBranch === undefined) {
+      return fail('featureBranch not set. Record the branch before pushing feedback fixes.')
+    }
+
+    try {
+      this.deps.pushFeatureBranch(this.state.featureBranch)
+      return pass()
+    } catch (error) {
+      return fail(`Unable to push feedback fixes: ${String(error)}`)
     }
   }
 
