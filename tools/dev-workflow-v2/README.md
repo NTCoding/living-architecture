@@ -36,6 +36,33 @@ Agent Skills are the canonical procedures. Provider-specific commands adapt thos
 
 The internal Codex workflow operation is `$dev-workflow-v2:workflow <operation> [args]`.
 
+### Pi
+
+Start Pi from the repository root and approve the repository when Pi asks to trust it:
+
+```bash
+pi
+```
+
+Install the Pi executable before starting the workflow. The committed `.pi/settings.json` then loads the local `dev-workflow-v2` package, so no separate extension installation step is needed.
+
+Pi exposes the same lifecycle commands as Claude Code:
+
+```text
+/dev-workflow-v2:start-planning <topic>
+/dev-workflow-v2:planning-status
+/dev-workflow-v2:continue-planning
+/dev-workflow-v2:choose-next-task
+/dev-workflow-v2:start-implementation <issue-number>
+/dev-workflow-v2:code-review
+/dev-workflow-v2:list-review-threads
+/dev-workflow-v2:create-pr
+/dev-workflow-v2:optimize-factory
+/dev-workflow-v2:workflow <operation> [args]
+```
+
+The Pi extension provides the `workflow` tool for the agent. It uses the same event-sourced workflow state, write policy, GitHub integration, and state instructions as the other providers.
+
 ### Planning lifecycle
 
 ### Claude Code

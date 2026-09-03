@@ -9,6 +9,13 @@ engineStrict: true
 minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
   - '@nt-ai-lab/*'
+  - '@earendil-works/pi-agent-core'
+  - '@earendil-works/pi-ai'
+  - '@earendil-works/pi-client'
+  - '@earendil-works/pi-coding-agent'
+  - '@earendil-works/pi-protocol'
+  - '@earendil-works/pi-telemetry'
+  - '@earendil-works/pi-tui'
 
 overrides:
   'eslint-plugin-sonarjs>typescript': npm:typescript@5.9.3
@@ -16,11 +23,13 @@ overrides:
   postcss: 8.5.25
 
 allowBuilds:
+  '@google/genai': false
   '@swc/core': true
   better-sqlite3: true
   esbuild: true
   msgpackr-extract: true
   nx: true
+  protobufjs: false
   unrs-resolver: true
 
 patchedDependencies:
