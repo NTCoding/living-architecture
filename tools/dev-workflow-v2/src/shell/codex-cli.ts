@@ -46,8 +46,14 @@ const processDeps = {
   readFile: (path: string) => {
     const input = defaultProcessDeps.readFile(path)
     const threadId = defaultProcessDeps.getEnv('CODEX_THREAD_ID')
+    const receivesWorkflowCommand = defaultProcessDeps.getArgv().slice(2).length > 0
 
-    if (path !== '/dev/stdin' || threadId === undefined || threadId === '') {
+    if (
+      path !== '/dev/stdin' ||
+      receivesWorkflowCommand ||
+      threadId === undefined ||
+      threadId === ''
+    ) {
       return input
     }
 
