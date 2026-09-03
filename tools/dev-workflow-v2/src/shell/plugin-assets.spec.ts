@@ -20,6 +20,7 @@ describe('plugin Agent Skills', () => {
   it('provides Pi with every dev-workflow-v2 command and skill', () => {
     const piExtension = readPluginFile('src/shell/pi-plugin.ts')
     const packageManifest = readPluginFile('package.json')
+    const piProjectSettings = readPluginFile('../../.pi/settings.json')
     const commandNames = [
       'choose-next-task',
       'code-review',
@@ -35,10 +36,12 @@ describe('plugin Agent Skills', () => {
 
     expect({
       extension: packageManifest.includes('"extensions": ["./src/shell/pi-plugin.ts"]'),
+      projectPackage: piProjectSettings.includes('"../tools/dev-workflow-v2"'),
       skills: packageManifest.includes('"skills": ["./skills"]'),
       commands: commandNames.every((commandName) => piExtension.includes(commandName)),
     }).toStrictEqual({
       extension: true,
+      projectPackage: true,
       skills: true,
       commands: true,
     })

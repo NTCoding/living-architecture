@@ -38,12 +38,13 @@ The internal Codex workflow operation is `$dev-workflow-v2:workflow <operation> 
 
 ### Pi
 
-Install the local package for the current repository, then start Pi from the repository root:
+Start Pi from the repository root and approve the repository when Pi asks to trust it:
 
 ```bash
-pi install -l ./tools/dev-workflow-v2
 pi
 ```
+
+The committed `.pi/settings.json` loads the local `dev-workflow-v2` package, so no separate Pi installation step is needed.
 
 Pi exposes the same lifecycle commands as Claude Code:
 
