@@ -1,6 +1,6 @@
 {
   "name": "@living-architecture/riviere-role-enforcement-use-cases",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "publishConfig": {
     "access": "public"
   },
