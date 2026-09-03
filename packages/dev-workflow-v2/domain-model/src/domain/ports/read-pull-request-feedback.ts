@@ -5,6 +5,7 @@
 export type ReadWorkflowPullRequestFeedback = (prNumber: number) => {
   readonly reviewDecision: string | null
   readonly coderabbitReviewSeen: boolean
+  readonly coderabbitRateLimited?: boolean
   readonly unresolvedCount: number
   readonly threads: readonly {
     readonly id: string

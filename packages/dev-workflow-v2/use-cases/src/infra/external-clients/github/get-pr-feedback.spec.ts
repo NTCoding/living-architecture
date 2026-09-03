@@ -6,11 +6,23 @@ const REPO_INFO = JSON.stringify({
   name: 'test-repo',
 })
 
+const NO_NEXT_PAGE = {
+  hasNextPage: false,
+  endCursor: null,
+}
+
+interface PageInfo {
+  readonly hasNextPage: boolean
+  readonly endCursor: string | null
+}
+
 function graphqlResponse(
   threads: readonly object[],
   overrides: Partial<{
     reviewDecision: string | null
     reviews: readonly object[]
+    reviewPageInfo: PageInfo
+    threadPageInfo: PageInfo
   }> = {},
 ): string {
   return JSON.stringify({
@@ -18,8 +30,14 @@ function graphqlResponse(
       repository: {
         pullRequest: {
           reviewDecision: overrides.reviewDecision ?? null,
-          reviews: { nodes: overrides.reviews ?? [] },
-          reviewThreads: { nodes: threads },
+          reviews: {
+            nodes: overrides.reviews ?? [],
+            pageInfo: overrides.reviewPageInfo ?? NO_NEXT_PAGE,
+          },
+          reviewThreads: {
+            nodes: threads,
+            pageInfo: overrides.threadPageInfo ?? NO_NEXT_PAGE,
+          },
         },
       },
     },
@@ -37,34 +55,42 @@ function makeThread(
       nodes: readonly {
         author: { login: string } | null
         body: string
+        createdAt: string
         url?: string
       }[]
+      pageInfo?: PageInfo
     }
   }> = {},
 ): object {
+  const comments = {
+    nodes: [
+      {
+        author: { login: 'reviewer' },
+        body: 'fix this',
+        createdAt: '2026-09-03T10:00:00Z',
+        url: 'https://github.com/test/repo/pull/1#discussion_r1',
+      },
+    ],
+    pageInfo: NO_NEXT_PAGE,
+    ...overrides.comments,
+  }
   return {
     id: 'thread-1',
     isResolved: false,
     isOutdated: false,
     path: 'src/foo.ts',
     line: 10,
-    comments: {
-      nodes: [
-        {
-          author: { login: 'reviewer' },
-          body: 'fix this',
-          url: 'https://github.com/test/repo/pull/1#discussion_r1',
-        },
-      ],
-    },
     ...overrides,
+    comments,
   }
 }
 
-function makeReview(login: string, state: string): object {
+function makeReview(login: string, state: string, body = ''): object {
   return {
     author: { login },
+    body,
     state,
+    submittedAt: '2026-09-03T10:00:00Z',
   }
 }
 
@@ -93,6 +119,7 @@ describe('createGithubPullRequestFeedbackClient', () => {
         'name: "test-repo"',
         'reviewDecision',
         'reviews(first: 100)',
+        'body',
         'reviewThreads(first: 100)',
       ].every((fragment) => graphqlCall.includes(fragment)),
     ).toBe(true)
@@ -183,6 +210,46 @@ describe('createGithubPullRequestFeedbackClient', () => {
     expect(result.coderabbitReviewSeen).toBe(true)
   })
 
+  it('detects a CodeRabbit review rate limit', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([], {
+          reviews: [
+            makeReview('coderabbitai[bot]', 'COMMENTED', 'Review rate limited. Try again later.'),
+          ],
+        }),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+
+    expect(getPrFeedback(1).coderabbitRateLimited).toBe(true)
+  })
+
+  it('detects a CodeRabbit rate limit in a review thread', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([
+          makeThread({
+            comments: {
+              nodes: [
+                {
+                  author: { login: 'coderabbitai[bot]' },
+                  body: 'Review rate limited. Try again later.',
+                  createdAt: '2026-09-03T10:00:00Z',
+                },
+              ],
+            },
+          }),
+        ]),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+
+    expect(getPrFeedback(1).coderabbitRateLimited).toBe(true)
+  })
+
   it('returns empty when no review threads exist', () => {
     const runGh = vi.fn().mockReturnValueOnce(REPO_INFO).mockReturnValueOnce(graphqlResponse([]))
     const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
@@ -223,6 +290,7 @@ describe('createGithubPullRequestFeedbackClient', () => {
                 {
                   author: { login: 'alice' },
                   body: 'needs refactor',
+                  createdAt: '2026-09-03T10:00:00Z',
                   url: 'https://github.com/test/repo/pull/1#discussion_r2',
                 },
               ],
@@ -242,6 +310,35 @@ describe('createGithubPullRequestFeedbackClient', () => {
         author: { login: 'alice' },
         body: 'needs refactor',
         url: 'https://github.com/test/repo/pull/1#discussion_r2',
+      },
+    ])
+  })
+
+  it('omits a missing comment URL', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([
+          makeThread({
+            comments: {
+              nodes: [
+                {
+                  author: { login: 'alice' },
+                  body: 'needs refactor',
+                  createdAt: '2026-09-03T10:00:00Z',
+                },
+              ],
+            },
+          }),
+        ]),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+
+    expect(getPrFeedback(1).threads[0]?.comments).toStrictEqual([
+      {
+        author: { login: 'alice' },
+        body: 'needs refactor',
       },
     ])
   })

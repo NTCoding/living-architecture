@@ -161,7 +161,10 @@ describe('CreateWorkflowRoutes', () => {
       valid: argument.parse(['IMPLEMENTING'], 0, 'transition'),
       invalid: argument.parse(['NOT_A_STATE'], 0, 'transition').ok,
     }).toStrictEqual({
-      valid: { ok: true, value: 'IMPLEMENTING' },
+      valid: {
+        ok: true,
+        value: 'IMPLEMENTING',
+      },
       invalid: false,
     })
   })

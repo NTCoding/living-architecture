@@ -36,6 +36,11 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
           clean: true,
         }),
         expect.objectContaining({ type: 'feedback-addressed' }),
+        expect.objectContaining({
+          type: 'transitioned',
+          from: 'ADDRESSING_FEEDBACK',
+          to: 'REFLECTING',
+        }),
       ]),
     )
     expect(outcome.state).toMatchObject({
@@ -106,8 +111,39 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
     })
     expect(changesRequestedOnly.result).toMatchObject({
       pass: false,
-      reason: expect.stringContaining('CHANGES_REQUESTED review status'),
+      reason: expect.stringContaining('Wait and periodically run verify-feedback-addressed again'),
     })
+  })
+
+  it('blocks when CodeRabbit reports that its review is rate limited', () => {
+    const outcome = spec
+      .given(...eventsToAddressingFeedback())
+      .withDeps({
+        getPrFeedback: () => ({
+          reviewDecision: null,
+          coderabbitReviewSeen: true,
+          coderabbitRateLimited: true,
+          unresolvedCount: 0,
+          threads: [],
+        }),
+      })
+      .when((wf) => wf.verifyFeedbackAddressed())
+
+    expect(outcome.result).toMatchObject({
+      pass: false,
+      reason: expect.stringContaining('CodeRabbit rate limited'),
+    })
+    expect(outcome.events.slice(-2)).toStrictEqual([
+      expect.objectContaining({
+        type: 'pr-feedback-verification-failed',
+        reason: expect.stringContaining('CodeRabbit rate limited'),
+      }),
+      expect.objectContaining({
+        type: 'transitioned',
+        from: 'ADDRESSING_FEEDBACK',
+        to: 'BLOCKED',
+      }),
+    ])
   })
 
   it('fails verification when run outside ADDRESSING_FEEDBACK, without a PR number, or when fetch throws', () => {
@@ -143,7 +179,7 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
     })
   })
 
-  it('resets feedback flags on entry and blocks REVIEWING when the PR is not yet clean', () => {
+  it('resets feedback flags on entry and blocks REFLECTING when the PR is not yet clean', () => {
     const guard = addressingTransitionGuard()
     const entered = spec.given(...eventsToAddressingFeedback()).when((wf) => wf.getState())
     const guardResult = guard({
@@ -165,7 +201,7 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
         hasCommitsVsDefault: true,
       },
       from: 'ADDRESSING_FEEDBACK',
-      to: 'REVIEWING',
+      to: 'REFLECTING',
     })
 
     expect(entered.state).toMatchObject({

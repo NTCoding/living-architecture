@@ -25,7 +25,7 @@ export const runner = createWorkflowRunner({
     parseStringArguments,
   }),
   bashForbidden: {
-    commands: ['git push', 'gh pr'],
+    commands: ['gh pr', 'git push'],
     flags: ['--no-verify', '--force', '--hard'],
   },
   isWriteAllowed: workflowConfiguration.isWriteAllowed,

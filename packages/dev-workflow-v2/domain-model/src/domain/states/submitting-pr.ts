@@ -17,7 +17,6 @@ export class SubmittingPrState {
   readonly canTransitionTo = ['AWAITING_CI', 'BLOCKED'] as const
   readonly allowedWorkflowOperations = ['record-pr', 'create-pr'] as const
   readonly forbidden = { write: true } as const
-  readonly allowForbidden = { bash: ['git push'] } as const
 
   private constructor(name: 'SUBMITTING_PR') {
     this.name = name
@@ -30,7 +29,10 @@ export class SubmittingPrState {
 
   transitionGuard(context: TransitionContext<WorkflowState, StateName>): PreconditionResult {
     if (!context.state.prNumber) {
-      return { pass: false, reason: 'prNumber not set. Run record-pr first.' }
+      return {
+        pass: false,
+        reason: 'prNumber not set. Run record-pr first.',
+      }
     }
     return { pass: true }
   }

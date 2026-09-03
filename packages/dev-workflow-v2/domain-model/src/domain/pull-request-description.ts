@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 const CREATE_PR_COMMAND_TOKENS_SCHEMA = z.array(z.string())
+const MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH = 100
 const OPTION_SUCCESS_SCHEMA = z.object({
   ok: z.literal(true),
   value: z.string(),
@@ -82,7 +83,7 @@ export function parsePullRequestDescriptionOptions(rawArgs: unknown): PullReques
   }
 
   const title = readRequiredOption(commandTokens, '--title')
-  const description = readRequiredOption(commandTokens, '--description')
+  const description = readRequiredDescription(commandTokens)
   const problem = readRequiredOption(commandTokens, '--problem')
   const acceptanceCriteria = readRequiredOption(commandTokens, '--acceptance-criteria')
   const keyChanges = readRequiredOption(commandTokens, '--key-changes')
@@ -138,8 +139,10 @@ function readSuccessfulOptionValue(optionValueResult: OptionValueResult): string
 export function buildPullRequestCreationRequest(
   input: PullRequestDescriptionInput,
   githubIssue: number,
+  branch: string,
 ): Parameters<import('./ports/create-pull-request').CreateWorkflowPullRequest>[0] {
   return {
+    branch,
     title: input.title,
     body: [
       formatSection('Description', input.description),
@@ -206,6 +209,20 @@ function readRequiredOption(
     ok: true,
     value: optionValue,
   }
+}
+
+function readRequiredDescription(commandTokens: readonly string[]): OptionValueResult {
+  const description = readRequiredOption(commandTokens, '--description')
+  if (!description.ok) {
+    return description
+  }
+  if (description.value.length < MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH) {
+    return {
+      ok: false,
+      reason: `Expected --description to be at least ${MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH} characters.`,
+    }
+  }
+  return description
 }
 
 function formatSection(heading: string, content: string): string {

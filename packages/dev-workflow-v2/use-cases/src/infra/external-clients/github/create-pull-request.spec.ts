@@ -17,6 +17,7 @@ describe('createGithubPullRequestClient', () => {
     })
 
     const pullRequest = createPullRequest({
+      branch: 'issue-42',
       title: 'Ready PR',
       body: '## Description\n\nCreates a ready PR.',
     })
@@ -27,7 +28,16 @@ describe('createGithubPullRequestClient', () => {
       isDraft: false,
     })
     expect(calls).toStrictEqual([
-      ['pr', 'create', '--title', 'Ready PR', '--body', '## Description\n\nCreates a ready PR.'],
+      [
+        'pr',
+        'create',
+        '--head',
+        'issue-42',
+        '--title',
+        'Ready PR',
+        '--body',
+        '## Description\n\nCreates a ready PR.',
+      ],
       ['pr', 'view', 'https://github.com/example/repo/pull/123', '--json', 'number,url,isDraft'],
     ])
   })
@@ -47,6 +57,7 @@ describe('createGithubPullRequestClient', () => {
     })
 
     const pullRequest = createPullRequest({
+      branch: 'issue-42',
       title: 'Ready PR',
       body: '## Description\n\nCreates a ready PR.',
     })
@@ -57,7 +68,16 @@ describe('createGithubPullRequestClient', () => {
       isDraft: true,
     })
     expect(calls).toStrictEqual([
-      ['pr', 'create', '--title', 'Ready PR', '--body', '## Description\n\nCreates a ready PR.'],
+      [
+        'pr',
+        'create',
+        '--head',
+        'issue-42',
+        '--title',
+        'Ready PR',
+        '--body',
+        '## Description\n\nCreates a ready PR.',
+      ],
       ['pr', 'view', 'https://github.com/example/repo/pull/123', '--json', 'number,url,isDraft'],
     ])
   })
@@ -67,6 +87,7 @@ describe('createGithubPullRequestClient', () => {
 
     expect(() =>
       createPullRequest({
+        branch: 'issue-42',
         title: 'Ready PR',
         body: '## Description\n\nCreates a ready PR.',
       }),
@@ -78,6 +99,7 @@ describe('createGithubPullRequestClient', () => {
 
     expect(() =>
       createPullRequest({
+        branch: 'issue-42',
         title: 'Ready PR',
         body: '## Description\n\nCreates a ready PR.',
       }),

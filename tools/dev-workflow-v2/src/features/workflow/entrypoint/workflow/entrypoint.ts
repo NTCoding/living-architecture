@@ -33,7 +33,10 @@ export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypoin
       new RecordIssue(workflow).execute({ issueNumber }).result,
     recordBranch: (workflow, branch) => new RecordBranch(workflow).execute({ branch }).result,
     recordPullRequest: (workflow, number, url) =>
-      new RecordPullRequest(workflow).execute({ number, url }).result,
+      new RecordPullRequest(workflow).execute({
+        number,
+        url,
+      }).result,
     createPullRequest: (workflow, args) =>
       new CreatePullRequest(workflow).execute({ arguments: args }).result,
     recordCiPassed: (workflow) => new RecordCiPassed(workflow).execute({}).result,

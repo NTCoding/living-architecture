@@ -89,7 +89,7 @@ describe('workflow-cli transitions', () => {
   })
 
   describe('addressing feedback cycle', () => {
-    it('transitions from ADDRESSING_FEEDBACK to REVIEWING after addressing all threads', () => {
+    it('transitions from ADDRESSING_FEEDBACK to REFLECTING after addressing all threads', () => {
       const ctx = setup({
         getPrFeedback: () => ({
           reviewDecision: 'CHANGES_REQUESTED',
@@ -107,9 +107,9 @@ describe('workflow-cli transitions', () => {
           threads: [],
         }),
       })
-      runCommand(ctx, ['verify-feedback-addressed'])
-      const result = runCommand(ctx, ['transition', 'REVIEWING'])
+      const result = runCommand(ctx, ['verify-feedback-addressed'])
       expect(result.exitCode).toStrictEqual(0)
+      expect(runCommand(ctx, ['get-state']).output).toContain('REFLECTING')
     })
   })
 
@@ -249,7 +249,7 @@ describe('workflow-cli transitions', () => {
       expect(result.exitCode).toStrictEqual(0)
     })
 
-    it('rejects ADDRESSING_FEEDBACK to REVIEWING without feedback addressed', () => {
+    it('rejects ADDRESSING_FEEDBACK to REFLECTING without feedback addressed', () => {
       const ctx = setup({
         getPrFeedback: () => ({
           reviewDecision: 'CHANGES_REQUESTED',
@@ -259,7 +259,7 @@ describe('workflow-cli transitions', () => {
         }),
       })
       progressToState(ctx, 'ADDRESSING_FEEDBACK')
-      const result = runCommand(ctx, ['transition', 'REVIEWING'])
+      const result = runCommand(ctx, ['transition', 'REFLECTING'])
       expect(result.exitCode).toStrictEqual(2)
       expect(result.output).toContain('Feedback not addressed')
     })
@@ -277,7 +277,7 @@ describe('workflow-cli transitions', () => {
       const verifyResult = runCommand(ctx, ['verify-feedback-addressed'])
       expect(verifyResult.exitCode).toStrictEqual(2)
       expect(verifyResult.output).toContain('CHANGES_REQUESTED')
-      const result = runCommand(ctx, ['transition', 'REVIEWING'])
+      const result = runCommand(ctx, ['transition', 'REFLECTING'])
       expect(result.exitCode).toStrictEqual(2)
       expect(result.output).toContain('Feedback not addressed')
     })

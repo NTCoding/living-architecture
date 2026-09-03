@@ -10,6 +10,8 @@ import {
   runReviewCommandWithJson,
 } from './__fixtures__/workflow-cli-test-fixtures'
 
+const CREATE_PR_DESCRIPTION = 'A'.repeat(100)
+
 describe('workflow-cli commands', () => {
   const dbPaths: string[] = []
 
@@ -267,6 +269,7 @@ describe('workflow-cli commands', () => {
   describe('create-pr', () => {
     it('creates ready pull request and records number and URL', () => {
       const capturedRequests: {
+        readonly branch: string
         readonly title: string
         readonly body: string
       }[] = []
@@ -287,7 +290,7 @@ describe('workflow-cli commands', () => {
         '--title',
         'Ready PR',
         '--description',
-        'Creates a workflow-owned PR.',
+        CREATE_PR_DESCRIPTION,
         '--problem',
         'Direct PR creation allowed draft PRs.',
         '--acceptance-criteria',
@@ -305,6 +308,7 @@ describe('workflow-cli commands', () => {
       expect(result.exitCode).toStrictEqual(0)
       expect(capturedRequests).toStrictEqual([
         expect.objectContaining({
+          branch: 'feat/test',
           title: 'Ready PR',
           body: expect.stringContaining('## Acceptance Criteria\n\n- PR is ready for review'),
         }),
@@ -334,6 +338,34 @@ describe('workflow-cli commands', () => {
           .map(flattenStoredEvent)
           .filter((event) => event.type === 'pr-recorded'),
       ).toStrictEqual([])
+    })
+
+    it('blocks when description is shorter than 100 characters', () => {
+      const ctx = setup()
+      progressToState(ctx, 'SUBMITTING_PR')
+
+      const result = runCommand(ctx, [
+        'create-pr',
+        '--title',
+        'Ready PR',
+        '--description',
+        'A'.repeat(99),
+        '--problem',
+        'Direct PR creation allowed draft PRs.',
+        '--acceptance-criteria',
+        '- PR is ready for review',
+        '--key-changes',
+        '- Add create-pr command',
+        '--architecture-impact',
+        'Workflow owns the body.',
+        '--validation',
+        '- pnpm test',
+        '--notes',
+        'None.',
+      ])
+
+      expect(result.exitCode).toStrictEqual(2)
+      expect(result.output).toContain('Expected --description to be at least 100 characters.')
     })
   })
 

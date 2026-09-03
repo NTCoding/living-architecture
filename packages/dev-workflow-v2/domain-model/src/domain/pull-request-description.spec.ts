@@ -3,11 +3,13 @@ import {
   parsePullRequestDescriptionOptions,
 } from './pull-request-description'
 
+const VALID_DESCRIPTION = 'A'.repeat(100)
+
 const VALID_CREATE_PR_OPTIONS = [
   '--title',
   'Ready PR',
   '--description',
-  'Creates a ready PR.',
+  VALID_DESCRIPTION,
   '--problem',
   'Direct PR creation could bypass workflow rules.',
   '--acceptance-criteria',
@@ -24,7 +26,7 @@ const VALID_CREATE_PR_OPTIONS = [
 
 const VALID_PULL_REQUEST_DESCRIPTION_INPUT = {
   title: 'Ready PR',
-  description: 'Creates a ready PR.',
+  description: VALID_DESCRIPTION,
   problem: 'Direct PR creation could bypass workflow rules.',
   acceptanceCriteria: '- PR body follows the standard structure.',
   keyChanges: '- Add structured PR creation.',
@@ -48,7 +50,7 @@ describe('parsePullRequestDescriptionOptions', () => {
       '--title',
       '--description',
       '--description',
-      'Creates a ready PR.',
+      VALID_DESCRIPTION,
       '--problem',
       'Direct PR creation could bypass workflow rules.',
       '--acceptance-criteria',
@@ -143,6 +145,30 @@ describe('parsePullRequestDescriptionOptions', () => {
     })
   })
 
+  it('returns failure when description is missing', () => {
+    const result = parsePullRequestDescriptionOptions([
+      '--title',
+      'Ready PR',
+      '--problem',
+      'Direct PR creation could bypass workflow rules.',
+      '--acceptance-criteria',
+      '- PR body follows the standard structure.',
+      '--key-changes',
+      '- Add structured PR creation.',
+      '--architecture-impact',
+      'Workflow owns PR body construction.',
+      '--validation',
+      '- pnpm test',
+      '--notes',
+      'None.',
+    ])
+
+    expect(result).toStrictEqual({
+      ok: false,
+      reason: 'Missing required create-pr option --description.',
+    })
+  })
+
   it('returns failure when required option value is empty', () => {
     const result = parsePullRequestDescriptionOptions([
       '--title',
@@ -168,16 +194,34 @@ describe('parsePullRequestDescriptionOptions', () => {
       reason: 'Expected non-empty value for --title.',
     })
   })
+
+  it('returns failure when description is shorter than 100 characters', () => {
+    const result = parsePullRequestDescriptionOptions([
+      ...VALID_CREATE_PR_OPTIONS.slice(0, 3),
+      'A'.repeat(99),
+      ...VALID_CREATE_PR_OPTIONS.slice(4),
+    ])
+
+    expect(result).toStrictEqual({
+      ok: false,
+      reason: 'Expected --description to be at least 100 characters.',
+    })
+  })
 })
 
 describe('buildPullRequestCreationRequest', () => {
   it('returns standard PR body with linked issue when given structured input', () => {
-    const request = buildPullRequestCreationRequest(VALID_PULL_REQUEST_DESCRIPTION_INPUT, 42)
+    const request = buildPullRequestCreationRequest(
+      VALID_PULL_REQUEST_DESCRIPTION_INPUT,
+      42,
+      'issue-42',
+    )
 
     expect(request).toStrictEqual({
+      branch: 'issue-42',
       title: 'Ready PR',
       body: [
-        '## Description\n\nCreates a ready PR.',
+        `## Description\n\n${VALID_DESCRIPTION}`,
         '## Linked Issue\n\nCloses #42',
         '## What Problem Does This PR Solve?\n\nDirect PR creation could bypass workflow rules.',
         '## Acceptance Criteria\n\n- PR body follows the standard structure.',

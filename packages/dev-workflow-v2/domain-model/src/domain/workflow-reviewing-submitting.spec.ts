@@ -14,12 +14,13 @@ import { ReviewingState } from './states/reviewing'
 import { WorkflowState } from './workflow-types'
 
 const reviewingState = ReviewingState.parse('REVIEWING')
+const CREATE_PR_DESCRIPTION = 'A'.repeat(100)
 
 const CREATE_PR_OPTIONS = [
   '--title',
   'Add workflow create-pr',
   '--description',
-  'Creates the PR through the workflow.',
+  CREATE_PR_DESCRIPTION,
   '--problem',
   'Agents could create draft PRs directly.',
   '--acceptance-criteria',
@@ -211,6 +212,7 @@ describe('Workflow', () => {
 
     it('records ready pull request with structured body when create-pr succeeds', () => {
       const capturedRequests: {
+        readonly branch: string
         readonly title: string
         readonly body: string
       }[] = []
@@ -233,9 +235,10 @@ describe('Workflow', () => {
       expect(result).toStrictEqual({ pass: true })
       expect(capturedRequests).toStrictEqual([
         {
+          branch: 'issue-42',
           title: 'Add workflow create-pr',
           body: [
-            '## Description\n\nCreates the PR through the workflow.',
+            `## Description\n\n${CREATE_PR_DESCRIPTION}`,
             '## Linked Issue\n\nCloses #42',
             '## What Problem Does This PR Solve?\n\nAgents could create draft PRs directly.',
             '## Acceptance Criteria\n\n- PR is ready for review\n- PR body follows the workflow structure',
@@ -265,6 +268,23 @@ describe('Workflow', () => {
 
       expect(result.pass).toBe(false)
       expect(workflow.getState().prNumber).toBeUndefined()
+    })
+
+    it('blocks create-pr when branch is not recorded', () => {
+      const workflow = rehydrateTestWorkflow(
+        {
+          ...WorkflowState.replay(eventsToSubmittingPr()),
+          featureBranch: undefined,
+        },
+        makeDeps(),
+      )
+
+      const result = workflow.createPr(CREATE_PR_OPTIONS)
+
+      expect(result).toStrictEqual({
+        pass: false,
+        reason: 'featureBranch not set. Record the branch before creating a PR.',
+      })
     })
 
     it('does not record pull request when create-pr returns draft pull request', () => {
@@ -308,7 +328,7 @@ describe('Workflow', () => {
         '--title',
         'Add workflow create-pr',
         '--description',
-        'Creates the PR through the workflow.',
+        CREATE_PR_DESCRIPTION,
         '--problem',
         'Agents could create draft PRs directly.',
         '--key-changes',

@@ -9,6 +9,9 @@ overrides:
   nanoid@: 3.3.17
   postcss: 8.5.25
 
+patchedDependencies:
+  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.6': b0c770fd30601be8f816de26f792d5aacce9392f3045f737f3c83ead8d5a68d7
+
 importers:
 
   .:
@@ -468,7 +471,7 @@ importers:
         version: 0.4.4
       '@nt-ai-lab/deterministic-agent-workflow-codex':
         specifier: 0.4.6
-        version: 0.4.6
+        version: 0.4.6(patch_hash=b0c770fd30601be8f816de26f792d5aacce9392f3045f737f3c83ead8d5a68d7)
       '@nt-ai-lab/deterministic-agent-workflow-engine':
         specifier: 0.4.4
         version: 0.4.4
@@ -10434,7 +10437,7 @@ snapshots:
       '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.4
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.6':
+  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.6(patch_hash=b0c770fd30601be8f816de26f792d5aacce9392f3045f737f3c83ead8d5a68d7)':
     dependencies:
       '@nt-ai-lab/deterministic-agent-workflow-cli': 0.4.4
       '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.4

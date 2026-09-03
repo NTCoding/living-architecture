@@ -25,7 +25,6 @@ type CompleteRiviereGraphDefinition = Readonly<{
   customTypes: Readonly<Record<string, CustomTypeDefinition>>
   relationshipTypes: Readonly<Record<string, RelationshipTypeDefinition>>
 }>
-
 /** @riviere-role value-object */
 export class RiviereGraphDefinition {
   declare private readonly brand: 'RiviereGraphDefinition'
@@ -54,7 +53,12 @@ export class RiviereGraphDefinition {
   includingDomain(name: string, domain: DomainMetadata): RiviereGraphDefinition {
     const existing = this.value.domains[name]
     if (existing === undefined)
-      return this.changed({ domains: { ...this.value.domains, [name]: domain } })
+      return this.changed({
+        domains: {
+          ...this.value.domains,
+          [name]: domain,
+        },
+      })
     if (existing.description === domain.description && existing.systemType === domain.systemType)
       return this
     throw new DuplicateDomainError(name)
@@ -62,7 +66,12 @@ export class RiviereGraphDefinition {
 
   includingCustomType(name: string, definition: CustomTypeDefinition): RiviereGraphDefinition {
     if (Object.hasOwn(this.value.customTypes, name)) throw new CustomTypeAlreadyDefinedError(name)
-    return this.changed({ customTypes: { ...this.value.customTypes, [name]: definition } })
+    return this.changed({
+      customTypes: {
+        ...this.value.customTypes,
+        [name]: definition,
+      },
+    })
   }
 
   includingRelationshipType(
@@ -73,7 +82,10 @@ export class RiviereGraphDefinition {
       throw new RelationshipTypeAlreadyDefinedError(name)
     }
     return this.changed({
-      relationshipTypes: { ...this.value.relationshipTypes, [name]: definition },
+      relationshipTypes: {
+        ...this.value.relationshipTypes,
+        [name]: definition,
+      },
     })
   }
 
@@ -107,7 +119,10 @@ export class RiviereGraphDefinition {
   }
 
   private changed(change: Partial<CompleteRiviereGraphDefinition>): RiviereGraphDefinition {
-    return new RiviereGraphDefinition({ ...this.value, ...change })
+    return new RiviereGraphDefinition({
+      ...this.value,
+      ...change,
+    })
   }
 }
 

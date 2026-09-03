@@ -8,6 +8,7 @@ const pullRequestSchema = z.object({
 
 /** @riviere-role external-client-model */
 export interface GithubPullRequestCreationInput {
+  readonly branch: string
   readonly body: string
   readonly title: string
 }
@@ -35,7 +36,16 @@ export function createGithubPullRequestClient(
   runGh: GhRunner,
 ): (request: GithubPullRequestCreationInput) => GithubPullRequest {
   return (request: GithubPullRequestCreationInput): GithubPullRequest => {
-    const createOutput = runGh(['pr', 'create', '--title', request.title, '--body', request.body])
+    const createOutput = runGh([
+      'pr',
+      'create',
+      '--head',
+      request.branch,
+      '--title',
+      request.title,
+      '--body',
+      request.body,
+    ])
     const pullRequestUrl = readPullRequestUrl(createOutput)
     return readPullRequest(runGh, pullRequestUrl)
   }

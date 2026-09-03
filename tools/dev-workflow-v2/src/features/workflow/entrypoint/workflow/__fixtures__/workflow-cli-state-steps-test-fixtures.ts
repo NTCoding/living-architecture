@@ -5,6 +5,7 @@ export const STATE_STEPS: Readonly<Record<string, readonly (readonly string[])[]
   ],
   SUBMITTING_PR: [
     ['record-issue', '1'],
+    ['record-branch', 'feat/test'],
     ['transition', 'REVIEWING'],
     ['record-review', 'architecture-review', 'PASS'],
     ['record-review', 'code-review', 'PASS'],
@@ -38,6 +39,7 @@ export const STATE_STEPS: Readonly<Record<string, readonly (readonly string[])[]
   ],
   ADDRESSING_FEEDBACK: [
     ['record-issue', '1'],
+    ['record-branch', 'feat/test'],
     ['transition', 'REVIEWING'],
     ['record-review', 'architecture-review', 'PASS'],
     ['record-review', 'code-review', 'PASS'],
