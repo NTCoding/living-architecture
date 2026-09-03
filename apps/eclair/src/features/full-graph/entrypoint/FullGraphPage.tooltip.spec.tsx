@@ -33,12 +33,12 @@ describe('FullGraphPage tooltip mouse interaction', () => {
     expect(screen.getByTestId('graph-tooltip')).not.toBeNull()
 
     await act(async () => {
-      vi.advanceTimersByTime(199)
+      await vi.advanceTimersByTimeAsync(199)
     })
     expect(screen.getByTestId('graph-tooltip')).not.toBeNull()
 
     await act(async () => {
-      vi.advanceTimersByTime(1)
+      await vi.advanceTimersByTimeAsync(1)
     })
     expect(screen.queryByTestId('graph-tooltip')).toBeNull()
   })
@@ -52,11 +52,11 @@ describe('FullGraphPage tooltip mouse interaction', () => {
     const tooltip = screen.getByTestId('graph-tooltip')
     fireEvent.mouseLeave(tooltip)
     await act(async () => {
-      vi.advanceTimersByTime(100)
+      await vi.advanceTimersByTimeAsync(100)
     })
     fireEvent.mouseEnter(tooltip)
     await act(async () => {
-      vi.advanceTimersByTime(150)
+      await vi.advanceTimersByTimeAsync(150)
     })
     expect(screen.getByTestId('graph-tooltip')).not.toBeNull()
   })
