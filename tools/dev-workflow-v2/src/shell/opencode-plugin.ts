@@ -34,7 +34,7 @@ const routes = createWorkflowRoutes({
   parseStringArguments,
 })
 const bashForbidden = {
-  commands: ['git push', 'gh pr'],
+  commands: ['gh pr'],
   flags: ['--no-verify', '--force', '--hard'],
 }
 

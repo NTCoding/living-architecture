@@ -14,7 +14,7 @@ export class AddressingFeedbackState {
   readonly name: 'ADDRESSING_FEEDBACK'
   readonly emoji = '🔧'
   readonly agentInstructions = 'states/addressing_feedback.md'
-  readonly canTransitionTo = ['REVIEWING', 'BLOCKED'] as const
+  readonly canTransitionTo = ['REFLECTING', 'BLOCKED'] as const
   readonly allowedWorkflowOperations = ['verify-feedback-addressed'] as const
   readonly forbidden = { write: true } as const
 

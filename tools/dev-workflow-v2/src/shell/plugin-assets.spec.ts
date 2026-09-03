@@ -9,12 +9,12 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 
 describe('plugin Agent Skills', () => {
-  it('tells agents to wait for CodeRabbit when resolved feedback has a transient changes request', () => {
+  it('tells agents to push fixes, wait for CodeRabbit, and reflect after clean verification', () => {
     const addressingFeedback = readPluginFile('states/addressing_feedback.md')
 
-    expect(addressingFeedback).toContain(
-      'stay in this state and periodically re-run `verify-feedback-addressed`; do not transition to `BLOCKED`',
-    )
+    expect(addressingFeedback).toContain('git push -u origin "$featureBranch"')
+    expect(addressingFeedback).toContain('Wait for CodeRabbit to process the pushed commit')
+    expect(addressingFeedback).toContain('transitions directly to `REFLECTING`')
   })
 
   it('provides an Agent Skill for every plugin command', () => {

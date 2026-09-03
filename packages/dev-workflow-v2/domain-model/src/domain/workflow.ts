@@ -302,6 +302,7 @@ export class MaintainerWorkflow {
       type: 'feedback-addressed',
       at: this.deps.now(),
     })
+    this.appendAutomaticTransition('REFLECTING')
     return pass()
   }
 

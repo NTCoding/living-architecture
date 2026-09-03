@@ -143,7 +143,10 @@ describe('workflow-cli hooks', () => {
       cwd: '/dir',
       hook_event_name: 'PreToolUse',
       tool_name: 'workflow',
-      tool_input: { operation: 'record-issue', args: ['410'] },
+      tool_input: {
+        operation: 'record-issue',
+        args: ['410'],
+      },
       tool_use_id: 'tu-workflow',
     })
     const result = runHook(ctx, stdinJson)
@@ -231,5 +234,25 @@ describe('workflow-cli hooks', () => {
     })
     const result = runHook(ctx, stdinJson)
     expect(result.exitCode).toStrictEqual(2)
+  })
+
+  it('allows pushing committed feedback fixes for active session', () => {
+    const ctx = setup()
+    runCommand(ctx, ['init'])
+
+    const result = runHook(
+      ctx,
+      JSON.stringify({
+        session_id: ctx.sessionId,
+        transcript_path: '/transcript',
+        cwd: '/dir',
+        hook_event_name: 'PreToolUse',
+        tool_name: 'Bash',
+        tool_input: { command: 'git push origin issue-42' },
+        tool_use_id: 'tu-push',
+      }),
+    )
+
+    expect(result.exitCode).toStrictEqual(0)
   })
 })

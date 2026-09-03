@@ -36,6 +36,11 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
           clean: true,
         }),
         expect.objectContaining({ type: 'feedback-addressed' }),
+        expect.objectContaining({
+          type: 'transitioned',
+          from: 'ADDRESSING_FEEDBACK',
+          to: 'REFLECTING',
+        }),
       ]),
     )
     expect(outcome.state).toMatchObject({
@@ -174,7 +179,7 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
     })
   })
 
-  it('resets feedback flags on entry and blocks REVIEWING when the PR is not yet clean', () => {
+  it('resets feedback flags on entry and blocks REFLECTING when the PR is not yet clean', () => {
     const guard = addressingTransitionGuard()
     const entered = spec.given(...eventsToAddressingFeedback()).when((wf) => wf.getState())
     const guardResult = guard({
@@ -196,7 +201,7 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
         hasCommitsVsDefault: true,
       },
       from: 'ADDRESSING_FEEDBACK',
-      to: 'REVIEWING',
+      to: 'REFLECTING',
     })
 
     expect(entered.state).toMatchObject({

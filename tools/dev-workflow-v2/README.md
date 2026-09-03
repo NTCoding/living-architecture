@@ -190,7 +190,7 @@ stateDiagram-v2
     AWAITING_CI --> IMPLEMENTING : CI failed
     AWAITING_PR_FEEDBACK --> REFLECTING : no feedback
     AWAITING_PR_FEEDBACK --> ADDRESSING_FEEDBACK : feedback exists
-    ADDRESSING_FEEDBACK --> REVIEWING
+    ADDRESSING_FEEDBACK --> REFLECTING : fixes pushed and feedback verified clean
     REFLECTING --> COMPLETE
     COMPLETE --> [*]
 
