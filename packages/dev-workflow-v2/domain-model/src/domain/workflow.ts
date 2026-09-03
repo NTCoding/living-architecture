@@ -22,28 +22,11 @@ import {
 import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
 import type { ReadWorkflowGitStatus } from './ports/read-git-status'
 import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
-
+import { evaluateCodeRabbitFeedbackPoll } from './coderabbit-feedback-verification'
 type StateName = WorkflowState['currentStateMachineState']
-type WorkflowOperation =
-  | 'record-issue'
-  | 'record-branch'
-  | 'record-review'
-  | 'record-pr'
-  | 'record-ci-passed'
-  | 'record-ci-failed'
-  | 'create-pr'
-  | 'verify-feedback-addressed'
-type LivingArchitectureReviewType =
-  | 'architecture-review'
-  | 'code-review'
-  | 'bug-scanner'
-  | 'task-check'
-
+type LivingArchitectureReviewType = StoredReview['reviewType']
 const PR_FEEDBACK_POLL_INTERVAL_MS = 15_000
-const PR_FEEDBACK_TIMEOUT_MS = 300_000
-const PR_FEEDBACK_MAX_ATTEMPTS =
-  Math.floor(PR_FEEDBACK_TIMEOUT_MS / PR_FEEDBACK_POLL_INTERVAL_MS) + 1
-const REQUIRED_CONSECUTIVE_CLEAN_CODERABBIT_POLLS = 2
+const PR_FEEDBACK_MAX_ATTEMPTS = Math.floor(300_000 / PR_FEEDBACK_POLL_INTERVAL_MS) + 1
 const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
   'record-issue': {
     event: 'issue-recorded',
@@ -72,7 +55,11 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
     }),
   },
 }
-
+type WorkflowOperation =
+  | keyof typeof RECORDING_OPS_MAP
+  | 'record-review'
+  | 'create-pr'
+  | 'verify-feedback-addressed'
 type WorkflowDeps = {
   readonly getGitInfo: ReadWorkflowGitStatus
   readonly getPrFeedback: ReadWorkflowPullRequestFeedback
@@ -81,7 +68,6 @@ type WorkflowDeps = {
   readonly sleepMs: (ms: number) => void
   readonly now: () => string
 }
-
 function diffStateOverrides(
   stateBefore: WorkflowState,
   stateAfter: WorkflowState,
@@ -96,15 +82,7 @@ function diffStateOverrides(
   }
   return overrides
 }
-
-function isFeedbackClear(feedback: ReturnType<ReadWorkflowPullRequestFeedback>): boolean {
-  return feedback.reviewDecision !== 'CHANGES_REQUESTED' && feedback.unresolvedCount === 0
-}
-
-function readPrFeedback(
-  getPrFeedback: ReadWorkflowPullRequestFeedback,
-  prNumber: number,
-):
+type PullRequestFeedbackReadResult =
   | {
       ok: true
       feedback: ReturnType<ReadWorkflowPullRequestFeedback>
@@ -112,7 +90,11 @@ function readPrFeedback(
   | {
       ok: false
       reason: string
-    } {
+    }
+function readPrFeedback(
+  getPrFeedback: ReadWorkflowPullRequestFeedback,
+  prNumber: number,
+): PullRequestFeedbackReadResult {
   try {
     return {
       ok: true,
@@ -125,7 +107,6 @@ function readPrFeedback(
     }
   }
 }
-
 /** @riviere-role aggregate */
 export class MaintainerWorkflow {
   private state: WorkflowState
@@ -142,7 +123,6 @@ export class MaintainerWorkflow {
     this.registryDefinition = registry
     this.deps = deps
   }
-
   static build(
     registry: MaintainerWorkflowRegistry,
     deps: WorkflowDeps,
@@ -150,7 +130,6 @@ export class MaintainerWorkflow {
   ): MaintainerWorkflow {
     return new MaintainerWorkflow(WorkflowState.parse(state), registry, deps)
   }
-
   getPendingEvents(): readonly WorkflowEvent[] {
     return this.pendingEvents
   }
@@ -158,7 +137,6 @@ export class MaintainerWorkflow {
   getState(): WorkflowState {
     return this.state
   }
-
   registry(): MaintainerWorkflowRegistry {
     return this.registryDefinition
   }
@@ -166,7 +144,6 @@ export class MaintainerWorkflow {
   getAgentInstructions(pluginRoot: string): string {
     return `${pluginRoot}/${this.registryDefinition.state(this.state.currentStateMachineState).agentInstructions}`
   }
-
   appendEvent(event: BaseEvent): void {
     const workflowEvent = parseWorkflowEvent(event)
     this.append(workflowEvent)
@@ -181,7 +158,6 @@ export class MaintainerWorkflow {
       this.awaitPrFeedback(this.state.prNumber)
     }
   }
-
   startSession(transcriptPath: string, repository: string | undefined): void {
     const event: WorkflowEvent = {
       type: 'session-started',
@@ -192,14 +168,12 @@ export class MaintainerWorkflow {
     this.pendingEvents = [...this.pendingEvents, event]
     this.state = this.state.apply(event)
   }
-
   getTranscriptPath(): string {
     if (this.state.transcriptPath === undefined) {
       throw new WorkflowStateError('Transcript path not set. Session has not been started.')
     }
     return this.state.transcriptPath
   }
-
   getRecordedReviews(): readonly StoredReview[] {
     return this.deps.listSessionReviews()
   }
@@ -213,7 +187,6 @@ export class MaintainerWorkflow {
     }
     return review
   }
-
   getLatestReviewByType(reviewType: LivingArchitectureReviewType): StoredReview | undefined {
     const reviewsOfType = this.getRecordedReviews()
       .filter((recordedReview) => recordedReview.reviewType === reviewType)
@@ -221,18 +194,15 @@ export class MaintainerWorkflow {
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     return reviewsOfType.at(-1)
   }
-
   registerAgent(agentType: string, agentId: string): PreconditionResult {
     void agentType
     void agentId
     return pass()
   }
-
   handleTeammateIdle(agentName: string): PreconditionResult {
     void agentName
     return pass()
   }
-
   executeRecording(op: WorkflowOperation, ...args: readonly unknown[]): PreconditionResult {
     const recordingOps = defineRecordingOps<StateName, WorkflowState, WorkflowOperation>(
       this.registryDefinition,
@@ -243,7 +213,6 @@ export class MaintainerWorkflow {
     this.appendEvent(result.event)
     return pass()
   }
-
   createPr(rawArgs: unknown): PreconditionResult {
     const gate = checkOperationGate('create-pr', this.state, this.registryDefinition)
     if (!gate.pass) return gate
@@ -298,8 +267,13 @@ export class MaintainerWorkflow {
     const feedbackResult = readPrFeedback(this.deps.getPrFeedback, this.state.prNumber)
     if (!feedbackResult.ok) return fail(feedbackResult.reason)
     const { feedback } = feedbackResult
+    if (feedback.coderabbitRateLimited === true) {
+      const reason = 'CodeRabbit rate limited. Wait, then resume AWAITING_PR_FEEDBACK.'
+      this.appendPrFeedbackVerificationFailure(reason)
+      return fail(reason)
+    }
 
-    const clean = isFeedbackClear(feedback)
+    const clean = feedback.reviewDecision !== 'CHANGES_REQUESTED' && feedback.unresolvedCount === 0
     this.append({
       type: 'feedback-checked',
       at: this.deps.now(),
@@ -341,29 +315,24 @@ export class MaintainerWorkflow {
     consecutiveCleanPolls: number,
   ): void {
     const feedbackResult = readPrFeedback(this.deps.getPrFeedback, prNumber)
-    if (!feedbackResult.ok) {
-      this.appendPrFeedbackVerificationFailure(feedbackResult.reason)
-      return
-    }
+    if (!feedbackResult.ok) return this.appendPrFeedbackVerificationFailure(feedbackResult.reason)
 
     const { feedback } = feedbackResult
-    if (!feedback.coderabbitReviewSeen) {
-      this.scheduleNextPrFeedbackPoll(prNumber, attemptsRemaining, 0)
-      return
-    }
-
-    const clean = isFeedbackClear(feedback)
-    const nextConsecutiveCleanPolls = clean ? consecutiveCleanPolls + 1 : 0
-    if (
-      clean &&
-      nextConsecutiveCleanPolls < REQUIRED_CONSECUTIVE_CLEAN_CODERABBIT_POLLS &&
-      attemptsRemaining > 1
-    ) {
+    const outcome = evaluateCodeRabbitFeedbackPoll(
+      feedback,
+      prNumber,
+      attemptsRemaining,
+      consecutiveCleanPolls,
+    )
+    if (outcome.type === 'rate-limited' || outcome.type === 'timed-out')
+      return this.appendPrFeedbackVerificationFailure(outcome.reason)
+    if (outcome.type === 'retry') {
       this.deps.sleepMs(PR_FEEDBACK_POLL_INTERVAL_MS)
-      this.pollPrFeedback(prNumber, attemptsRemaining - 1, nextConsecutiveCleanPolls)
+      this.pollPrFeedback(prNumber, attemptsRemaining - 1, outcome.consecutiveCleanPolls)
       return
     }
 
+    const { clean } = outcome
     this.append({
       type: 'feedback-checked',
       at: this.deps.now(),
@@ -372,22 +341,6 @@ export class MaintainerWorkflow {
       reviewDecision: feedback.reviewDecision,
     })
     this.appendAutomaticTransition(clean ? 'REFLECTING' : 'ADDRESSING_FEEDBACK')
-  }
-
-  private scheduleNextPrFeedbackPoll(
-    prNumber: number,
-    attemptsRemaining: number,
-    consecutiveCleanPolls: number,
-  ): void {
-    if (attemptsRemaining <= 1) {
-      this.appendPrFeedbackVerificationFailure(
-        `CodeRabbit feedback did not appear within ${PR_FEEDBACK_TIMEOUT_MS}ms for PR #${prNumber}.`,
-      )
-      return
-    }
-
-    this.deps.sleepMs(PR_FEEDBACK_POLL_INTERVAL_MS)
-    this.pollPrFeedback(prNumber, attemptsRemaining - 1, consecutiveCleanPolls)
   }
 
   private appendAutomaticTransition(to: StateName): void {

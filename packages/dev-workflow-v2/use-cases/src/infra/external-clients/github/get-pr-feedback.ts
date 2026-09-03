@@ -17,6 +17,7 @@ const graphqlThreadNodeSchema = z.object({
 
 const graphqlReviewNodeSchema = z.object({
   author: z.object({ login: z.string() }).nullable(),
+  body: z.string(),
   state: z.string(),
 })
 
@@ -43,19 +44,34 @@ interface GithubUnresolvedThread {
   readonly isOutdated: boolean
   readonly path: string | null
   readonly line: number | null
-  readonly comments: readonly z.infer<typeof threadCommentSchema>[]
+  readonly comments: readonly GithubThreadComment[]
+}
+
+interface GithubThreadComment {
+  readonly author: { readonly login: string } | null
+  readonly body: string
+  readonly url?: string
 }
 
 /** @riviere-role external-client-model */
 export interface GithubPullRequestFeedback {
   readonly reviewDecision: string | null
   readonly coderabbitReviewSeen: boolean
+  readonly coderabbitRateLimited: boolean
   readonly unresolvedCount: number
   readonly threads: readonly GithubUnresolvedThread[]
 }
 
 /** @riviere-role external-client-model */
 type GhRunner = (ghArguments: readonly string[]) => string
+
+function isCodeRabbitAuthor(login: string | undefined): boolean {
+  return login === 'coderabbitai' || login === 'coderabbitai[bot]'
+}
+
+function indicatesCodeRabbitRateLimit(body: string): boolean {
+  return /review rate limited/i.test(body)
+}
 
 /** @riviere-role external-client-service */
 export function createGithubPullRequestFeedbackClient(
@@ -71,22 +87,35 @@ export function createGithubPullRequestFeedbackClient(
       repo.name,
       '") { pullRequest(number: ',
       String(prNumber),
-      ') { reviewDecision reviews(first: 100) { nodes { author { login } state } } reviewThreads(first: 100) { nodes { id isResolved isOutdated path line comments(first: 100) { nodes { body url author { login } } } } } } } }',
+      ') { reviewDecision reviews(first: 100) { nodes { author { login } body state } } reviewThreads(first: 100) { nodes { id isResolved isOutdated path line comments(first: 100) { nodes { body url author { login } } } } } } } }',
     ].join('')
     const raw = runGh(['api', 'graphql', '-f', `query=${query}`])
     const response = graphqlResponseSchema.parse(JSON.parse(raw))
     const reviews = response.data.repository.pullRequest.reviews.nodes
     const threads = response.data.repository.pullRequest.reviewThreads.nodes.map((node) => ({
       ...node,
-      comments: node.comments.nodes,
+      comments: node.comments.nodes.map((comment) => ({
+        author: comment.author,
+        body: comment.body,
+        ...(comment.url === undefined ? {} : { url: comment.url }),
+      })),
     }))
     const unresolved = threads.filter((thread) => !thread.isResolved && !thread.isOutdated)
     return {
       reviewDecision: response.data.repository.pullRequest.reviewDecision,
-      coderabbitReviewSeen: reviews.some(
-        (review) =>
-          review.author?.login === 'coderabbitai' || review.author?.login === 'coderabbitai[bot]',
-      ),
+      coderabbitReviewSeen: reviews.some((review) => isCodeRabbitAuthor(review.author?.login)),
+      coderabbitRateLimited:
+        reviews.some(
+          (review) =>
+            isCodeRabbitAuthor(review.author?.login) && indicatesCodeRabbitRateLimit(review.body),
+        ) ||
+        threads.some((thread) =>
+          thread.comments.some(
+            (comment) =>
+              isCodeRabbitAuthor(comment.author?.login) &&
+              indicatesCodeRabbitRateLimit(comment.body),
+          ),
+        ),
       unresolvedCount: unresolved.length,
       threads: unresolved,
     }

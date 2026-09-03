@@ -99,6 +99,44 @@ describe('Workflow', () => {
       })
     })
 
+    it('immediately blocks when CodeRabbit is rate limited', () => {
+      const state = WorkflowState.replay([...eventsToAwaitingPrFeedback().slice(0, -1)])
+      const sleepMs = vi.fn()
+      const wf = rehydrateTestWorkflow(
+        state,
+        makeDeps({
+          getPrFeedback: () => ({
+            reviewDecision: null,
+            coderabbitReviewSeen: true,
+            coderabbitRateLimited: true,
+            unresolvedCount: 0,
+            threads: [],
+          }),
+          sleepMs,
+        }),
+      )
+
+      wf.appendEvent({
+        type: 'transitioned',
+        at: '2026-01-01T00:00:00Z',
+        from: 'AWAITING_CI',
+        to: 'AWAITING_PR_FEEDBACK',
+      })
+
+      expect(wf.getState().currentStateMachineState).toStrictEqual('BLOCKED')
+      expect(wf.getPendingEvents().slice(-2)).toStrictEqual([
+        expect.objectContaining({
+          type: 'pr-feedback-verification-failed',
+          reason: 'CodeRabbit rate limited. Wait, then resume AWAITING_PR_FEEDBACK.',
+        }),
+        expect.objectContaining({
+          type: 'transitioned',
+          to: 'BLOCKED',
+        }),
+      ])
+      expect(sleepMs).not.toHaveBeenCalled()
+    })
+
     it('applies ADDRESSING_FEEDBACK onEntry overrides during the automatic transition', () => {
       const state = WorkflowState.replay([
         ...eventsToAwaitingPrFeedback().slice(0, -1),

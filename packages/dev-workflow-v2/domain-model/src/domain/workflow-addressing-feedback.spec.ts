@@ -110,6 +110,37 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
     })
   })
 
+  it('blocks when CodeRabbit reports that its review is rate limited', () => {
+    const outcome = spec
+      .given(...eventsToAddressingFeedback())
+      .withDeps({
+        getPrFeedback: () => ({
+          reviewDecision: null,
+          coderabbitReviewSeen: true,
+          coderabbitRateLimited: true,
+          unresolvedCount: 0,
+          threads: [],
+        }),
+      })
+      .when((wf) => wf.verifyFeedbackAddressed())
+
+    expect(outcome.result).toMatchObject({
+      pass: false,
+      reason: expect.stringContaining('CodeRabbit rate limited'),
+    })
+    expect(outcome.events.slice(-2)).toStrictEqual([
+      expect.objectContaining({
+        type: 'pr-feedback-verification-failed',
+        reason: expect.stringContaining('CodeRabbit rate limited'),
+      }),
+      expect.objectContaining({
+        type: 'transitioned',
+        from: 'ADDRESSING_FEEDBACK',
+        to: 'BLOCKED',
+      }),
+    ])
+  })
+
   it('fails verification when run outside ADDRESSING_FEEDBACK, without a PR number, or when fetch throws', () => {
     const outsideState = spec.given().when((wf) => wf.verifyFeedbackAddressed())
     const noPrNumber = spec

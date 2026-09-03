@@ -4,6 +4,7 @@ import { createWorkflowPullRequestFeedbackReader } from './workflow-pull-request
 it('translates GitHub feedback into workflow feedback', () => {
   const readFeedback = createWorkflowPullRequestFeedbackReader(() => ({
     coderabbitReviewSeen: true,
+    coderabbitRateLimited: false,
     reviewDecision: 'CHANGES_REQUESTED',
     threads: [
       {
@@ -30,6 +31,7 @@ it('translates GitHub feedback into workflow feedback', () => {
 
   expect(readFeedback(42)).toStrictEqual({
     coderabbitReviewSeen: true,
+    coderabbitRateLimited: false,
     reviewDecision: 'CHANGES_REQUESTED',
     threads: [
       {

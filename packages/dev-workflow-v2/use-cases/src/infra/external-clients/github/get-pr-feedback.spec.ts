@@ -61,9 +61,10 @@ function makeThread(
   }
 }
 
-function makeReview(login: string, state: string): object {
+function makeReview(login: string, state: string, body = ''): object {
   return {
     author: { login },
+    body,
     state,
   }
 }
@@ -93,6 +94,7 @@ describe('createGithubPullRequestFeedbackClient', () => {
         'name: "test-repo"',
         'reviewDecision',
         'reviews(first: 100)',
+        'body',
         'reviewThreads(first: 100)',
       ].every((fragment) => graphqlCall.includes(fragment)),
     ).toBe(true)
@@ -183,6 +185,45 @@ describe('createGithubPullRequestFeedbackClient', () => {
     expect(result.coderabbitReviewSeen).toBe(true)
   })
 
+  it('detects a CodeRabbit review rate limit', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([], {
+          reviews: [
+            makeReview('coderabbitai[bot]', 'COMMENTED', 'Review rate limited. Try again later.'),
+          ],
+        }),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+
+    expect(getPrFeedback(1).coderabbitRateLimited).toBe(true)
+  })
+
+  it('detects a CodeRabbit rate limit in a review thread', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([
+          makeThread({
+            comments: {
+              nodes: [
+                {
+                  author: { login: 'coderabbitai[bot]' },
+                  body: 'Review rate limited. Try again later.',
+                },
+              ],
+            },
+          }),
+        ]),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+
+    expect(getPrFeedback(1).coderabbitRateLimited).toBe(true)
+  })
+
   it('returns empty when no review threads exist', () => {
     const runGh = vi.fn().mockReturnValueOnce(REPO_INFO).mockReturnValueOnce(graphqlResponse([]))
     const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
@@ -242,6 +283,34 @@ describe('createGithubPullRequestFeedbackClient', () => {
         author: { login: 'alice' },
         body: 'needs refactor',
         url: 'https://github.com/test/repo/pull/1#discussion_r2',
+      },
+    ])
+  })
+
+  it('omits a missing comment URL', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([
+          makeThread({
+            comments: {
+              nodes: [
+                {
+                  author: { login: 'alice' },
+                  body: 'needs refactor',
+                },
+              ],
+            },
+          }),
+        ]),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+
+    expect(getPrFeedback(1).threads[0]?.comments).toStrictEqual([
+      {
+        author: { login: 'alice' },
+        body: 'needs refactor',
       },
     ])
   })

@@ -14,12 +14,13 @@ import { ReviewingState } from './states/reviewing'
 import { WorkflowState } from './workflow-types'
 
 const reviewingState = ReviewingState.parse('REVIEWING')
+const CREATE_PR_DESCRIPTION = 'A'.repeat(100)
 
 const CREATE_PR_OPTIONS = [
   '--title',
   'Add workflow create-pr',
   '--description',
-  'Creates the PR through the workflow.',
+  CREATE_PR_DESCRIPTION,
   '--problem',
   'Agents could create draft PRs directly.',
   '--acceptance-criteria',
@@ -237,7 +238,7 @@ describe('Workflow', () => {
           branch: 'issue-42',
           title: 'Add workflow create-pr',
           body: [
-            '## Description\n\nCreates the PR through the workflow.',
+            `## Description\n\n${CREATE_PR_DESCRIPTION}`,
             '## Linked Issue\n\nCloses #42',
             '## What Problem Does This PR Solve?\n\nAgents could create draft PRs directly.',
             '## Acceptance Criteria\n\n- PR is ready for review\n- PR body follows the workflow structure',
@@ -327,7 +328,7 @@ describe('Workflow', () => {
         '--title',
         'Add workflow create-pr',
         '--description',
-        'Creates the PR through the workflow.',
+        CREATE_PR_DESCRIPTION,
         '--problem',
         'Agents could create draft PRs directly.',
         '--key-changes',
