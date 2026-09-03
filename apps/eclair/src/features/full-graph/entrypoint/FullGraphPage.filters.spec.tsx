@@ -75,7 +75,10 @@ describe('FullGraphPage filters', () => {
       renderFullGraphPage()
       await user.click(screen.getByTestId('filter-toggle'))
       await user.click(screen.getByTestId('domain-checkbox-orders'))
-      expect(screen.getByTestId('force-graph-container')).not.toBeNull()
+      expect(screen.getByTestId('force-graph-container')).toHaveAttribute(
+        'data-focused-domain',
+        'orders',
+      )
     })
   })
 

@@ -47,11 +47,18 @@ vi.mock('@/platform/infra/graph/ForceGraph/ForceGraph', () => ({
     onNodeHover?: (data: TooltipData | null) => void
     onBackgroundClick?: () => void
     highlightedNodeId?: string | null
+    focusedDomain?: string | null
   }) => {
     capturedGraph.current = props.graph
     capturedOnNodeHover.current = props.onNodeHover
     capturedOnBackgroundClick.current = props.onBackgroundClick
-    return <div data-testid="force-graph-container" data-highlighted-node={props.highlightedNodeId} />
+    return (
+      <div
+        data-testid="force-graph-container"
+        data-highlighted-node={props.highlightedNodeId}
+        data-focused-domain={props.focusedDomain}
+      />
+    )
   },
 }))
 

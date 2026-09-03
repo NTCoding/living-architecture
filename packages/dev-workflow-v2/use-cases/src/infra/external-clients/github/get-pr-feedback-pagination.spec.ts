@@ -161,15 +161,20 @@ it('reads every page of reviews, threads, and thread comments', () => {
 })
 
 it('clears a prior CodeRabbit rate limit when newer active feedback succeeds', () => {
-  const rateLimited = JSON.stringify({
+  const successful = JSON.stringify({
     data: {
       repository: {
         pullRequest: {
           reviewDecision: null,
           reviews: {
             nodes: [
-              review('coderabbitai[bot]', 'COMMENTED', 'Review rate limited. Try again later.'),
-              review('coderabbitai[bot]', 'COMMENTED', 'Review complete.', '2026-09-03T09:00:00Z'),
+              review(
+                'coderabbitai[bot]',
+                'COMMENTED',
+                'Review rate limited. Try again later.',
+                '2026-09-03T08:00:00Z',
+              ),
+              review('coderabbitai[bot]', 'APPROVED', 'Review complete.', '2026-09-03T09:00:00Z'),
             ],
             pageInfo: NO_NEXT_PAGE,
           },
@@ -181,13 +186,29 @@ it('clears a prior CodeRabbit rate limit when newer active feedback succeeds', (
       },
     },
   })
-  const successful = JSON.stringify({
+  const runGh = vi.fn().mockReturnValue(REPO_INFO)
+  runGh.mockReturnValueOnce(REPO_INFO).mockReturnValueOnce(successful)
+  const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+
+  expect(getPrFeedback(1).coderabbitRateLimited).toBe(false)
+})
+
+it('reports a rate limit when newer CodeRabbit feedback is rate limited', () => {
+  const rateLimited = JSON.stringify({
     data: {
       repository: {
         pullRequest: {
           reviewDecision: null,
           reviews: {
-            nodes: [review('coderabbitai[bot]', 'APPROVED', 'Review complete.')],
+            nodes: [
+              review(
+                'coderabbitai[bot]',
+                'COMMENTED',
+                'Review rate limited. Try again later.',
+                '2026-09-03T09:00:00Z',
+              ),
+              review('coderabbitai[bot]', 'APPROVED', 'Review complete.', '2026-09-03T08:00:00Z'),
+            ],
             pageInfo: NO_NEXT_PAGE,
           },
           reviewThreads: {
@@ -198,13 +219,10 @@ it('clears a prior CodeRabbit rate limit when newer active feedback succeeds', (
       },
     },
   })
-  const runGh = vi.fn().mockReturnValue(REPO_INFO)
-  runGh.mockReturnValueOnce(REPO_INFO).mockReturnValueOnce(rateLimited)
-  runGh.mockReturnValueOnce(REPO_INFO).mockReturnValueOnce(successful)
+  const runGh = vi.fn().mockReturnValueOnce(REPO_INFO).mockReturnValueOnce(rateLimited)
   const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
 
   expect(getPrFeedback(1).coderabbitRateLimited).toBe(true)
-  expect(getPrFeedback(1).coderabbitRateLimited).toBe(false)
 })
 
 it('rejects an incomplete GitHub pagination cursor', () => {
