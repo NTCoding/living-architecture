@@ -157,10 +157,10 @@ describe('reviewer workflow preflight', () => {
 })
 
 describe('task creation planning guidance', () => {
-  it('keeps problem statements focused on concrete user problems and consequences', () => {
+  it('requires concrete user problems and solution references', () => {
     const taskCreation = readPluginFile('planning-stages/task-creation.md')
     const badExample =
-      'Product-level tests alone do not prove that a real multi-domain customer can author the complete Workflow or that exact accumulated state remains correct after each stage. This slice matters because D0.3 is an explicit dependency in the approved delivery sequence and an incomplete boundary would push design decisions into later implementation tickets.'
+      'Product-level tests alone do not prove that a real multi-domain customer can use the product. This slice matters because D0.3 is an explicit dependency in the approved delivery sequence and an incomplete boundary would push design decisions into later implementation tickets.'
     const goodExample =
       'Users trying to create one accurate architecture graph from multiple codebases, EventCatalog, AsyncAPI, and AI-assisted findings must determine for themselves how to combine those inputs, in what order, and whether each step produced the correct result. This makes Rivière difficult to learn, adapt, and trust. Users who cannot confidently apply it to their own systems are less likely to adopt it.'
     const badLabelPosition = taskCreation.indexOf('Bad:')
@@ -187,10 +187,16 @@ describe('task creation planning guidance', () => {
       requiresConcreteUserProblem: taskCreation.includes(
         'does not explain the concrete user task, difficulty, or failure mode',
       ),
+      rejectsSolutionAsAdoptionProblem: taskCreation.includes(
+        'For a learning or adoption ticket, do not say that users lack a demo, example, guide, configuration, or documentation.',
+      ),
       requiresWiderProblemContext: taskCreation.includes(
         "does not explain how the ticket's problem fits into the wider approved problem context",
       ),
       showsJargonReplacement: taskCreation.includes('replace "architecture facts"'),
+      requiresConcreteSolutionReferences: taskCreation.includes(
+        'Never use an undefined reference such as “the Workflow”, “the demo”, “the customer journey”, “the result”, “all capabilities”, “everything”, or “works together”.',
+      ),
       showsCompleteOrderedExamples:
         badLabelPosition > -1 &&
         badLabelPosition < badExamplePosition &&
@@ -203,9 +209,22 @@ describe('task creation planning guidance', () => {
       requiresConcreteLanguage: true,
       requiresSourceBackedConsequence: true,
       requiresConcreteUserProblem: true,
+      rejectsSolutionAsAdoptionProblem: true,
       requiresWiderProblemContext: true,
       showsJargonReplacement: true,
+      requiresConcreteSolutionReferences: true,
       showsCompleteOrderedExamples: true,
     })
+  })
+
+  it('requires concrete references in dogfooding purposes', () => {
+    const dogfooding = readPluginFile('planning-stages/dogfooding.md')
+
+    expect(dogfooding).toContain(
+      'Never use an undefined reference such as “the Workflow”, “the demo”, “the customer journey”, “the result”, “all capabilities”, or “everything”.',
+    )
+    expect(dogfooding).toContain(
+      'For a Workflow deliverable, an agent must write `riviere-workflow.yaml` with its named stages, not “the Workflow”.',
+    )
   })
 })

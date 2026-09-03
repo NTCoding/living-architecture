@@ -375,6 +375,28 @@ Phase 13 lands as a repository-rule gate, three Project/Builder foundations, ind
   - Architecture: §§3.4 and 3.9.
   - Dogfooding: §3.5 D5.2.
 
+### M6: ecommerce-demo-app helps new users adopt Riviere Workflows
+
+#### D6.1: Show code extraction, EventCatalog, AsyncAPI, additive AI stages, and validation in ecommerce-demo-app
+
+- Value: people who have not used Riviere can learn how `riviere workflow run ./riviere-workflow.yaml` uses TypeScript code, EventCatalog, AsyncAPI, additive AI extraction, additive AI enrichment, and schema validation, understand how each input applies to their application, and get a first setup working by following `ecommerce-demo-app`.
+- Acceptance criteria:
+  - `riviere workflow validate ./riviere-workflow.yaml` and `riviere workflow run ./riviere-workflow.yaml` succeed against the pinned ecommerce demo revision and exercise TypeScript code extraction, EventCatalog import, AsyncAPI import, additive AI extraction, additive AI enrichment, and schema validation.
+  - The graph and NDJSON comparison in `dogfooding.md` §3.4, the seven public-stage-transition fixtures at `tests/workflow-transitions/00-initial.json` through `tests/workflow-transitions/06-after-validate.json`, and the two `riviere workflow run ./riviere-workflow.yaml --skip-ai` outputs compared in `dogfooding.md` §3.5 remain passing.
+  - Any discrepancy in source composition, `.riviere/ecommerce-architecture.json`, `.riviere/workflow.log.ndjson`, `tests/workflow-transitions/00-initial.json` through `tests/workflow-transitions/06-after-validate.json`, or the two AI-skipped outputs is recorded as a focused bugfix ticket. D6.1 remains open until every such ticket is complete and every command and comparison listed above passes again.
+  - A passing rerun with no unresolved discrepancy completes the Phase 13 PRD workstream and permits the next project to begin.
+- Verification:
+  - Execute `riviere workflow validate ./riviere-workflow.yaml`, `riviere workflow run ./riviere-workflow.yaml`, and two `riviere workflow run ./riviere-workflow.yaml --skip-ai` commands plus the graph, NDJSON, and seven transition-fixture comparisons in `dogfooding.md` §§3.4-3.6 against the pinned `ecommerce-demo-app` revision.
+  - If a discrepancy is found, create the focused bugfix ticket, complete it, and rerun every documented command and comparison.
+- Dependencies:
+  - D5.1 and D5.2.
+- Out of scope:
+  - Combining unrelated future work into Phase 13 instead of creating a new project.
+- Source refs:
+  - PRD: §6.
+  - Architecture: §3.9.
+  - Dogfooding: §3.6 D6.1.
+
 ## 3. Parallelisation
 
 ```yaml
@@ -407,6 +429,10 @@ tracks:
     deliverables: [D0.3, D0.4, D5.1, D5.2]
     can_run_in_parallel_with: [none]
     coordination_risk: demo fixtures and immutable product pin require coordinated repositories
+  - name: final-customer-verification
+    deliverables: [D6.1]
+    can_run_in_parallel_with: [none]
+    coordination_risk: any discrepancy must become focused bugfix work before Phase 13 closes
 ```
 
 ## 4. Dependencies
@@ -418,6 +444,7 @@ tracks:
 - D1.5 precedes stage-specific adapters and canonical CLI loading.
 - D0.3 waits for executable product capabilities; D0.4 waits for approved generated fixtures.
 - D5.1 and D5.2 run only against the immutable D0.4 revision.
+- D6.1 runs only after D5.1 and D5.2 pass. Any focused bugfix work it identifies must complete before the customer journey is rerun and Phase 13 closes.
 
 ## 5. Task creation readiness
 
