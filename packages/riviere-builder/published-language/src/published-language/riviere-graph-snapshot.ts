@@ -81,7 +81,7 @@ function cloneRegularExpression(
   publishedExpression: RegExp,
   clones: WeakMap<object, object>,
 ): RegExp {
-  const snapshotExpression = new RegExp(publishedExpression.source, publishedExpression.flags)
+  const snapshotExpression = structuredClone(publishedExpression)
   snapshotExpression.lastIndex = publishedExpression.lastIndex
   clones.set(publishedExpression, snapshotExpression)
   copyPublishedProperties(publishedExpression, snapshotExpression, clones)

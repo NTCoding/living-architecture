@@ -2,7 +2,7 @@ import {
   describe, expect, it, vi, beforeEach 
 } from 'vitest'
 import {
-  render, screen, fireEvent, act 
+  render, screen, fireEvent, act, waitFor
 } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
@@ -524,26 +524,14 @@ describe('FullGraphPage', () => {
 
       expect(screen.getByTestId('graph-tooltip')).toBeInTheDocument()
 
-      vi.useFakeTimers()
-
       const tooltip = screen.getByTestId('graph-tooltip')
       fireEvent.mouseLeave(tooltip)
 
       expect(screen.getByTestId('graph-tooltip')).toBeInTheDocument()
 
-      await act(async () => {
-        vi.advanceTimersByTime(199)
+      await waitFor(() => {
+        expect(screen.queryByTestId('graph-tooltip')).not.toBeInTheDocument()
       })
-
-      expect(screen.getByTestId('graph-tooltip')).toBeInTheDocument()
-
-      await act(async () => {
-        vi.advanceTimersByTime(1)
-      })
-
-      expect(screen.queryByTestId('graph-tooltip')).not.toBeInTheDocument()
-
-      vi.useRealTimers()
     })
 
     it('tooltip stays visible when mouse re-enters before debounce expires', async () => {

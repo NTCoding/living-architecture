@@ -237,12 +237,15 @@ describe('RiviereBuilder snapshots', () => {
 
   it('preserves regular expression metadata when a returned value is changed', () => {
     const builder = createSnapshotBuilder()
-    addSnapshotPolicy(builder, { matcher: /order/gi })
-    const matcher = regularExpressionMetadata(policyMetadata(builder, 'matcher'))
+    const matcher = /order/gi
     matcher.lastIndex = 4
+    addSnapshotPolicy(builder, { matcher })
+    const returnedMatcher = regularExpressionMetadata(policyMetadata(builder, 'matcher'))
+    returnedMatcher.lastIndex = 1
 
-    expect(matcher.lastIndex).toBe(4)
+    expect(returnedMatcher.lastIndex).toBe(1)
     expect(policyMetadata(builder, 'matcher')).toStrictEqual(/order/gi)
+    expect(policyMetadata(builder, 'matcher')).toHaveProperty('lastIndex', 4)
   })
 
   it('preserves ArrayBuffer view topology while isolating returned metadata', () => {
