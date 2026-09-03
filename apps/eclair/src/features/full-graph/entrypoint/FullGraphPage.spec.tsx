@@ -525,7 +525,7 @@ describe('FullGraphPage', () => {
       expect(screen.getByTestId('graph-tooltip')).toBeInTheDocument()
 
       const tooltip = screen.getByTestId('graph-tooltip')
-      fireEvent.mouseLeave(tooltip)
+      fireEvent.mouseOut(tooltip)
 
       expect(screen.getByTestId('graph-tooltip')).toBeInTheDocument()
 
@@ -546,13 +546,13 @@ describe('FullGraphPage', () => {
       vi.useFakeTimers()
 
       const tooltip = screen.getByTestId('graph-tooltip')
-      fireEvent.mouseLeave(tooltip)
+      fireEvent.mouseOut(tooltip)
 
       await act(async () => {
         vi.advanceTimersByTime(100)
       })
 
-      fireEvent.mouseEnter(tooltip)
+      fireEvent.mouseOver(tooltip)
 
       await act(async () => {
         vi.advanceTimersByTime(150)
@@ -601,7 +601,7 @@ describe('FullGraphPage', () => {
       })
 
       const tooltip = screen.getByTestId('graph-tooltip')
-      fireEvent.mouseLeave(tooltip)
+      fireEvent.mouseOut(tooltip)
 
       const callCountBeforeUnmount = clearTimeoutSpy.mock.calls.length
 
