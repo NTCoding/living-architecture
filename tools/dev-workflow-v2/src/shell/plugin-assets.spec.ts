@@ -2,7 +2,12 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { describe, expect, it } from 'vitest'
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('@nt-ai-lab/deterministic-agent-workflow-pi', () => ({
+  createPiWorkflowExtension: () => () => undefined,
+}))
 
 const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 
@@ -17,8 +22,7 @@ describe('plugin Agent Skills', () => {
     expect(addressingFeedback).toContain('transitions directly to `REFLECTING`')
   })
 
-  it('provides Pi with every dev-workflow-v2 command and skill', () => {
-    const piExtension = readPluginFile('src/shell/pi-plugin.ts')
+  it('registers Pi commands and loads their instruction assets', async () => {
     const packageManifest = readPluginFile('package.json')
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
     const commandNames = [
@@ -31,20 +35,54 @@ describe('plugin Agent Skills', () => {
       'planning-status',
       'start-implementation',
       'start-planning',
-      'workflow',
     ]
+    const registeredCommands = new Map<string, Parameters<ExtensionAPI['registerCommand']>[1]>()
+    const sentMessages = vi.fn()
+    function registerCommand(
+      name: string,
+      command: Parameters<ExtensionAPI['registerCommand']>[1],
+    ): void {
+      registeredCommands.set(name, command)
+    }
+    function sendUserMessage(...argumentsList: Parameters<ExtensionAPI['sendUserMessage']>): void {
+      sentMessages(...argumentsList)
+    }
+    const pi = Object.create({ registerCommand, sendUserMessage })
+    const extension = (await import('./pi-plugin')).default
+
+    extension(pi)
 
     expect({
       extension: packageManifest.includes('"extensions": ["./src/shell/pi-plugin.ts"]'),
       projectPackage: piProjectSettings.includes('"../tools/dev-workflow-v2"'),
       skills: packageManifest.includes('"skills": ["./skills"]'),
-      commands: commandNames.every((commandName) => piExtension.includes(commandName)),
+      commands: [...registeredCommands.keys()],
     }).toStrictEqual({
       extension: true,
       projectPackage: true,
       skills: true,
-      commands: true,
+      commands: commandNames.map((commandName) => `dev-workflow-v2:${commandName}`),
     })
+
+    for (const commandName of commandNames) {
+      const command = registeredCommands.get(`dev-workflow-v2:${commandName}`)
+      await command?.handler('example arguments', Object.create({ isIdle: () => true }))
+    }
+
+    expect(sentMessages).toHaveBeenCalledTimes(commandNames.length)
+    for (const [index, commandName] of commandNames.entries()) {
+      expect(sentMessages).toHaveBeenNthCalledWith(
+        index + 1,
+        expect.stringContaining(`# ${commandName}`),
+        undefined,
+      )
+    }
+
+    await registeredCommands
+      .get('dev-workflow-v2:code-review')
+      ?.handler('example arguments', Object.create({ isIdle: () => false }))
+
+    expect(sentMessages).toHaveBeenLastCalledWith(expect.any(String), { deliverAs: 'followUp' })
   })
 
   it('provides an Agent Skill for every plugin command', () => {

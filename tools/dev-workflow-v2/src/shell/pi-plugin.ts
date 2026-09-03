@@ -81,8 +81,9 @@ function registerPiCommands(pi: ExtensionAPI): void {
   for (const commandName of commandNames) {
     pi.registerCommand(`dev-workflow-v2:${commandName}`, {
       description: `Run dev-workflow-v2 ${commandName}.`,
-      handler: async (argumentsText) => {
-        pi.sendUserMessage(readPiCommandInstruction(commandName, argumentsText))
+      handler: async (argumentsText, context) => {
+        const instruction = readPiCommandInstruction(commandName, argumentsText)
+        pi.sendUserMessage(instruction, context.isIdle() ? undefined : { deliverAs: 'followUp' })
       },
     })
   }
