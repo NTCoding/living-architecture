@@ -9,6 +9,7 @@ engineStrict: true
 minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
   - '@nt-ai-lab/*'
+  - '@earendil-works/*'
 
 overrides:
   'eslint-plugin-sonarjs>typescript': npm:typescript@5.9.3
@@ -16,11 +17,13 @@ overrides:
   postcss: 8.5.25
 
 allowBuilds:
+  '@google/genai': false
   '@swc/core': true
   better-sqlite3: true
   esbuild: true
   msgpackr-extract: true
   nx: true
+  protobufjs: false
   unrs-resolver: true
 
 patchedDependencies:

@@ -17,6 +17,33 @@ describe('plugin Agent Skills', () => {
     expect(addressingFeedback).toContain('transitions directly to `REFLECTING`')
   })
 
+  it('provides Pi with every dev-workflow-v2 command and skill', () => {
+    const piExtension = readPluginFile('src/shell/pi-plugin.ts')
+    const packageManifest = readPluginFile('package.json')
+    const commandNames = [
+      'choose-next-task',
+      'code-review',
+      'continue-planning',
+      'create-pr',
+      'list-review-threads',
+      'optimize-factory',
+      'planning-status',
+      'start-implementation',
+      'start-planning',
+      'workflow',
+    ]
+
+    expect({
+      extension: packageManifest.includes('"extensions": ["./src/shell/pi-plugin.ts"]'),
+      skills: packageManifest.includes('"skills": ["./skills"]'),
+      commands: commandNames.every((commandName) => piExtension.includes(commandName)),
+    }).toStrictEqual({
+      extension: true,
+      skills: true,
+      commands: true,
+    })
+  })
+
   it('provides an Agent Skill for every plugin command', () => {
     const commandNames = readdirSync(join(pluginRoot, 'commands'))
       .filter((filename) => filename.endsWith('.md'))
