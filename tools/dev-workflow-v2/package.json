@@ -24,7 +24,7 @@
     "@nt-ai-lab/deterministic-agent-workflow-engine": "0.4.4",
     "@nt-ai-lab/deterministic-agent-workflow-event-store": "0.4.4",
     "@nt-ai-lab/deterministic-agent-workflow-opencode": "0.4.4",
-    "@nt-ai-lab/deterministic-agent-workflow-pi": "0.4.3",
+    "@nt-ai-lab/deterministic-agent-workflow-pi": "0.5.2",
     "esbuild": "0.27.2",
     "tsx": "4.21.0"
   },
