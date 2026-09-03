@@ -5,7 +5,6 @@ import { RecordCiFailed } from './record-ci-failed'
 import { RecordCiPassed } from './record-ci-passed'
 import { RecordIssue } from './record-issue'
 import { RecordPullRequest } from './record-pull-request'
-import { PushFeedbackFixes } from './push-feedback-fixes'
 import { VerifyFeedbackAddressed } from './verify-feedback-addressed'
 import { configureWorkflow } from './configure-workflow'
 
@@ -32,7 +31,6 @@ function workflow(): MaintainerWorkflow {
       prUrl: 'https://github.com/example/repo/pull/42',
       isDraft: false,
     }),
-    pushFeatureBranch: () => undefined,
     listSessionReviews: () => [],
     sleepMs: () => undefined,
     now: () => '2026-01-01T00:00:00Z',
@@ -82,12 +80,6 @@ describe('workflow commands', () => {
 
   it('verifies addressed feedback', () => {
     const result = new VerifyFeedbackAddressed(workflow()).execute({})
-    expect(result).toHaveProperty('result')
-    expect(typeof result.result.pass).toBe('boolean')
-  })
-
-  it('pushes feedback fixes', () => {
-    const result = new PushFeedbackFixes(workflow()).execute({})
     expect(result).toHaveProperty('result')
     expect(typeof result.result.pass).toBe('boolean')
   })

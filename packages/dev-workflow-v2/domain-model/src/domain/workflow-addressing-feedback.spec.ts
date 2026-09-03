@@ -10,13 +10,6 @@ import { AddressingFeedbackState } from './states/addressing-feedback'
 const addressingFeedbackState = AddressingFeedbackState.parse('ADDRESSING_FEEDBACK')
 import { WorkflowState } from './workflow-types'
 
-class GitPushUnavailableTestError extends Error {
-  constructor() {
-    super('remote unavailable')
-    this.name = 'GitPushUnavailableTestError'
-  }
-}
-
 function addressingTransitionGuard(): NonNullable<typeof addressingFeedbackState.transitionGuard> {
   return addressingFeedbackState.transitionGuard
 }
@@ -53,72 +46,6 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
     expect(outcome.state).toMatchObject({
       feedbackAddressed: true,
       feedbackClean: true,
-    })
-  })
-
-  it('pushes only the recorded feature branch while addressing feedback', () => {
-    const pushedBranches: string[] = []
-    const outcome = spec
-      .given(...eventsToAddressingFeedback())
-      .withDeps({
-        pushFeatureBranch: (branch) => pushedBranches.push(branch),
-      })
-      .when((wf) => wf.pushFeedbackFixes())
-
-    expect(outcome.result).toStrictEqual({ pass: true })
-    expect(pushedBranches).toStrictEqual(['issue-42'])
-  })
-
-  it('does not push feedback fixes outside ADDRESSING_FEEDBACK', () => {
-    const pushedBranches: string[] = []
-    const outcome = spec
-      .given()
-      .withDeps({
-        pushFeatureBranch: (branch) => pushedBranches.push(branch),
-      })
-      .when((wf) => wf.pushFeedbackFixes())
-
-    expect(outcome.result).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('push-feedback-fixes is not allowed in state'),
-    })
-    expect(pushedBranches).toStrictEqual([])
-  })
-
-  it('does not push feedback fixes without a recorded feature branch', () => {
-    const pushedBranches: string[] = []
-    const outcome = spec
-      .given({
-        type: 'transitioned',
-        at: '2026-01-01T00:00:00Z',
-        from: 'IMPLEMENTING',
-        to: 'ADDRESSING_FEEDBACK',
-      })
-      .withDeps({
-        pushFeatureBranch: (branch) => pushedBranches.push(branch),
-      })
-      .when((wf) => wf.pushFeedbackFixes())
-
-    expect(outcome.result).toStrictEqual({
-      pass: false,
-      reason: 'featureBranch not set. Record the branch before pushing feedback fixes.',
-    })
-    expect(pushedBranches).toStrictEqual([])
-  })
-
-  it('reports push failures while addressing feedback', () => {
-    const outcome = spec
-      .given(...eventsToAddressingFeedback())
-      .withDeps({
-        pushFeatureBranch: () => {
-          throw new GitPushUnavailableTestError()
-        },
-      })
-      .when((wf) => wf.pushFeedbackFixes())
-
-    expect(outcome.result).toStrictEqual({
-      pass: false,
-      reason: 'Unable to push feedback fixes: GitPushUnavailableTestError: remote unavailable',
     })
   })
 

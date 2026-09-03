@@ -33,7 +33,6 @@ export interface CreateWorkflowRoutesInput {
     url: string | undefined,
   ) => WorkflowResult
   readonly createPullRequest: (workflow: RoutedWorkflow, args: readonly string[]) => WorkflowResult
-  readonly pushFeedbackFixes: (workflow: RoutedWorkflow) => WorkflowResult
   readonly recordCiPassed: (workflow: RoutedWorkflow) => WorkflowResult
   readonly recordCiFailed: (workflow: RoutedWorkflow, output: string) => WorkflowResult
   readonly verifyFeedbackAddressed: (workflow: RoutedWorkflow) => WorkflowResult
@@ -82,11 +81,6 @@ export class CreateWorkflowRoutes {
           args: [arg.rest()],
           handler: (workflow, args) =>
             input.createPullRequest(workflow, input.parseStringArguments(args)),
-        },
-        'push-feedback-fixes': {
-          type: 'transaction',
-          args: [],
-          handler: (workflow) => input.pushFeedbackFixes(workflow),
         },
         'record-ci-passed': {
           type: 'transaction',

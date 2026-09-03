@@ -9,10 +9,10 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 
 describe('plugin Agent Skills', () => {
-  it('tells agents to push fixes through the workflow, wait for CodeRabbit, and reflect after clean verification', () => {
+  it('tells agents to push fixes directly, wait for CodeRabbit, and reflect after clean verification', () => {
     const addressingFeedback = readPluginFile('states/addressing_feedback.md')
 
-    expect(addressingFeedback).toContain('workflow push-feedback-fixes')
+    expect(addressingFeedback).toContain('Push the recorded feature branch: `git push`')
     expect(addressingFeedback).toContain('Wait for CodeRabbit to process the pushed commit')
     expect(addressingFeedback).toContain('transitions directly to `REFLECTING`')
   })

@@ -5,10 +5,7 @@ import { createWorkflowPullRequestCreator } from '@living-architecture/dev-workf
 import { createWorkflowPullRequestFeedbackReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-feedback-reader'
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
 import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
-import {
-  pushGitBranch,
-  readGitRepositoryStatus,
-} from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/git-client'
+import { readGitRepositoryStatus } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/git-client'
 import { createGithubPullRequestClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/create-pull-request'
 import { createGithubPullRequestFeedbackClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-pr-feedback'
 import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/github-cli'
@@ -151,7 +148,6 @@ const basePlugin = createOpenCodeWorkflowPlugin<
       createGithubPullRequestFeedbackClient(runGh),
     ),
     createPullRequest: createWorkflowPullRequestCreator(createGithubPullRequestClient(runGh)),
-    pushFeatureBranch: pushGitBranch,
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,

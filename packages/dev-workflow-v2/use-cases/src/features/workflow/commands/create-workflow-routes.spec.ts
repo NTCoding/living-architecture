@@ -18,7 +18,6 @@ interface RouteCalls {
   recordBranch: unknown[][]
   recordPullRequest: unknown[][]
   createPullRequest: unknown[][]
-  pushFeedbackFixes: unknown[][]
   recordCiPassed: unknown[][]
   recordCiFailed: unknown[][]
   verifyFeedbackAddressed: unknown[][]
@@ -33,7 +32,6 @@ function createInput(): {
     recordBranch: [],
     recordPullRequest: [],
     createPullRequest: [],
-    pushFeedbackFixes: [],
     recordCiPassed: [],
     recordCiFailed: [],
     verifyFeedbackAddressed: [],
@@ -58,10 +56,6 @@ function createInput(): {
       },
       createPullRequest: (workflow, args) => {
         calls.createPullRequest.push([workflow, args])
-        return workflowResult
-      },
-      pushFeedbackFixes: (workflow) => {
-        calls.pushFeedbackFixes.push([workflow])
         return workflowResult
       },
       recordCiPassed: (workflow) => {
@@ -101,7 +95,6 @@ function createWorkflow(definition: ReturnType<typeof configureWorkflow>) {
       prUrl: 'https://github.com/example/repo/pull/1',
       isDraft: false,
     }),
-    pushFeatureBranch: () => undefined,
     listSessionReviews: () => [],
     sleepMs: () => undefined,
     now: () => '2026-01-01T00:00:00Z',
@@ -144,7 +137,6 @@ describe('CreateWorkflowRoutes', () => {
       'record-branch',
       'record-pr',
       'create-pr',
-      'push-feedback-fixes',
       'record-ci-passed',
       'record-ci-failed',
       'verify-feedback-addressed',
@@ -192,7 +184,6 @@ describe('CreateWorkflowRoutes', () => {
     transactionHandler(routes, 'record-branch')(workflow, 'branch')
     transactionHandler(routes, 'record-pr')(workflow, 1, undefined)
     transactionHandler(routes, 'create-pr')(workflow, [])
-    transactionHandler(routes, 'push-feedback-fixes')(workflow, undefined, undefined)
     transactionHandler(routes, 'record-ci-passed')(workflow, undefined, undefined)
     transactionHandler(routes, 'record-ci-failed')(workflow, 'output')
     transactionHandler(routes, 'verify-feedback-addressed')(workflow, undefined, undefined)
@@ -202,7 +193,6 @@ describe('CreateWorkflowRoutes', () => {
       recordBranch: calls.recordBranch,
       recordPullRequest: calls.recordPullRequest,
       createPullRequest: calls.createPullRequest,
-      pushFeedbackFixes: calls.pushFeedbackFixes,
       recordCiPassed: calls.recordCiPassed,
       recordCiFailed: calls.recordCiFailed,
       verifyFeedbackAddressed: calls.verifyFeedbackAddressed,
@@ -211,7 +201,6 @@ describe('CreateWorkflowRoutes', () => {
       recordBranch: [[workflow, 'value']],
       recordPullRequest: [[workflow, 1, undefined]],
       createPullRequest: [[workflow, []]],
-      pushFeedbackFixes: [[workflow]],
       recordCiPassed: [[workflow]],
       recordCiFailed: [[workflow, 'value']],
       verifyFeedbackAddressed: [[workflow]],

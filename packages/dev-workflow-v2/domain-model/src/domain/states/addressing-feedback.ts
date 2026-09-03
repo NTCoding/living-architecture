@@ -15,8 +15,9 @@ export class AddressingFeedbackState {
   readonly emoji = '🔧'
   readonly agentInstructions = 'states/addressing_feedback.md'
   readonly canTransitionTo = ['REFLECTING', 'BLOCKED'] as const
-  readonly allowedWorkflowOperations = ['push-feedback-fixes', 'verify-feedback-addressed'] as const
+  readonly allowedWorkflowOperations = ['verify-feedback-addressed'] as const
   readonly forbidden = { write: true } as const
+  readonly allowForbidden = { bash: ['git push'] } as const
 
   private constructor(name: 'ADDRESSING_FEEDBACK') {
     this.name = name

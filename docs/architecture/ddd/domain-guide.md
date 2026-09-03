@@ -24,7 +24,7 @@ For shared domain language, use the [domain glossary](../domain-terminology/cont
 
 | Subdomain | Purpose | Domain packages | Aggregates | Command use cases | Query use cases | CLI use cases |
 | --- | --- | --- | --- | ---: | ---: | ---: |
-| [`dev-workflow-v2`](#dev-workflow-v2) | Models the maintainer delivery workflow, including its states, allowed transitions, recorded events, and pull request decisions. | domain model: `@living-architecture/dev-workflow-v2-domain-model` | `MaintainerWorkflow` | 10 | 0 | 10 |
+| [`dev-workflow-v2`](#dev-workflow-v2) | Models the maintainer delivery workflow, including its states, allowed transitions, recorded events, and pull request decisions. | domain model: `@living-architecture/dev-workflow-v2-domain-model` | `MaintainerWorkflow` | 9 | 0 | 9 |
 | [`living-documentation`](#living-documentation) | Models source architecture, extracted architecture, and architecture differences for living documentation. | domain model: `@living-architecture/living-documentation-domain-model` | _None declared_ | 0 | 2 | 2 |
 | [`riviere-builder`](#riviere-builder) | Models the construction, enrichment, validation, querying, and serialisation of Rivière architecture graphs. | domain model: `@living-architecture/riviere-builder-domain-model`<br>published language: `@living-architecture/riviere-builder-published-language` | _None declared_ | 0 | 8 | 8 |
 | [`riviere-extract-config`](#riviere-extract-config) | Defines the public configuration language used to describe how Rivière components and connections are extracted from source code. | published language: `@living-architecture/riviere-extract-config-published-language` | _None declared_ | 0 | 0 | 0 |
@@ -66,7 +66,6 @@ Domain model package: `@living-architecture/dev-workflow-v2-domain-model`
   - `handleTeammateIdle`
   - `executeRecording`
   - `createPr`
-  - `pushFeedbackFixes`
   - `verifyFeedbackAddressed`
 
 #### Supported use cases
@@ -79,8 +78,6 @@ Domain model package: `@living-architecture/dev-workflow-v2-domain-model`
 - `CreatePullRequest`
   - Invokes aggregate operation `MaintainerWorkflow.createPr`
 - `CreateWorkflowRoutes`
-- `PushFeedbackFixes`
-  - Invokes aggregate operation `MaintainerWorkflow.pushFeedbackFixes`
 - `RecordBranch`
   - Invokes aggregate operation `MaintainerWorkflow.executeRecording`
 - `RecordCiFailed`
@@ -103,7 +100,6 @@ _None._
 - `configureWorkflow`
 - `CreatePullRequest`
 - `CreateWorkflowRoutes`
-- `PushFeedbackFixes`
 - `RecordBranch`
 - `RecordCiFailed`
 - `RecordCiPassed`

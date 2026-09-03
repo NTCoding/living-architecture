@@ -56,7 +56,6 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
       prUrl: 'https://github.com/example/repo/pull/99',
       isDraft: false,
     }),
-    pushFeatureBranch: () => undefined,
     listSessionReviews: (): readonly StoredReview[] => [...recordedReviews],
     sleepMs: () => undefined,
     now: () => AT,

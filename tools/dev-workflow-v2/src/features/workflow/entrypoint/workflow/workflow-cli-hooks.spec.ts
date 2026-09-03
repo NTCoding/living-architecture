@@ -18,8 +18,8 @@ describe('workflow-cli hooks', () => {
     dbPaths.length = 0
   })
 
-  function setup(): TestContext {
-    const ctx = buildTestContext()
+  function setup(overrides?: Parameters<typeof buildTestContext>[0]): TestContext {
+    const ctx = buildTestContext(overrides)
     dbPaths.push(ctx.dbPath)
     return ctx
   }
@@ -237,8 +237,15 @@ describe('workflow-cli hooks', () => {
     expect(result.exitCode).toStrictEqual(2)
   })
 
-  it('blocks direct pushes while addressing feedback', () => {
-    const ctx = setup()
+  it('allows direct pushes while addressing feedback', () => {
+    const ctx = setup({
+      getPrFeedback: () => ({
+        reviewDecision: 'CHANGES_REQUESTED',
+        coderabbitReviewSeen: true,
+        unresolvedCount: 1,
+        threads: [],
+      }),
+    })
     progressToState(ctx, 'ADDRESSING_FEEDBACK')
 
     const result = runHook(
@@ -254,6 +261,56 @@ describe('workflow-cli hooks', () => {
       }),
     )
 
+    expect(result.exitCode).toStrictEqual(0)
+  })
+
+  it('blocks direct pushes outside ADDRESSING_FEEDBACK', () => {
+    const ctx = setup()
+    runCommand(ctx, ['init'])
+
+    const result = runHook(
+      ctx,
+      JSON.stringify({
+        session_id: ctx.sessionId,
+        transcript_path: '/transcript',
+        cwd: '/dir',
+        hook_event_name: 'PreToolUse',
+        tool_name: 'Bash',
+        tool_input: { command: 'git push origin feat/test' },
+        tool_use_id: 'tu-push-outside-feedback',
+      }),
+    )
+
     expect(result.exitCode).toStrictEqual(2)
   })
+
+  it.each(['git push --force', 'git push --force-with-lease'])(
+    'blocks %s while addressing feedback',
+    (command) => {
+      const ctx = setup({
+        getPrFeedback: () => ({
+          reviewDecision: 'CHANGES_REQUESTED',
+          coderabbitReviewSeen: true,
+          unresolvedCount: 1,
+          threads: [],
+        }),
+      })
+      progressToState(ctx, 'ADDRESSING_FEEDBACK')
+
+      const result = runHook(
+        ctx,
+        JSON.stringify({
+          session_id: ctx.sessionId,
+          transcript_path: '/transcript',
+          cwd: '/dir',
+          hook_event_name: 'PreToolUse',
+          tool_name: 'Bash',
+          tool_input: { command },
+          tool_use_id: 'tu-force-push',
+        }),
+      )
+
+      expect(result.exitCode).toStrictEqual(2)
+    },
+  )
 })

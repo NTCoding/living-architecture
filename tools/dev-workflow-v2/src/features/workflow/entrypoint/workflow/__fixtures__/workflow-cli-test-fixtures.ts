@@ -71,7 +71,6 @@ export function buildTestContext(
         prUrl: 'https://github.com/example/repo/pull/123',
         isDraft: false,
       })),
-    pushFeatureBranch: () => undefined,
     listSessionReviews: () => store.listSessionReviews(sessionId),
     sleepMs: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
