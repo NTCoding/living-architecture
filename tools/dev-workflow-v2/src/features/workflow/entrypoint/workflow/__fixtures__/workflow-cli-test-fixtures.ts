@@ -40,6 +40,7 @@ export function buildTestContext(
 
   const engineDeps: WorkflowEngineDeps = {
     store,
+    sessionContext: { getMainSessionId: () => sessionId },
     getPluginRoot: () => '/plugin',
     getEnvFilePath: () => '/env',
     readFile: () => '# instructions',

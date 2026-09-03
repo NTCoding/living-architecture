@@ -156,7 +156,7 @@ const basePlugin = createOpenCodeWorkflowPlugin<
 
 /** @riviere-role main */
 export default async (
-  input?: Parameters<typeof basePlugin>[0],
+  input: Parameters<typeof basePlugin>[0],
   options?: Parameters<typeof basePlugin>[1],
 ) => {
   const hooks = await basePlugin(input, options)
