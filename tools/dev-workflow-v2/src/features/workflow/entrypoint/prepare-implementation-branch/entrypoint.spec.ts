@@ -36,6 +36,35 @@ describe('prepare implementation branch entrypoint', () => {
     })
   })
 
+  it('prepares the requested branch when pnpm forwards its argument separator', () => {
+    const execute = vi.fn(() => ({
+      branch: 'issue-42-example',
+      remoteDefaultBranch: 'origin/trunk',
+      type: 'created' as const,
+    }))
+    const writeCliResponse = vi.fn()
+    const originalArguments = process.argv
+    process.argv = ['node', 'prepare-implementation-branch', '--', 'issue-42-example']
+
+    try {
+      runPrepareImplementationBranchEntrypoint({
+        formatPreparedImplementationBranch,
+        formatFailedCliResponse,
+        parseImplementationBranchTarget,
+        prepareImplementationBranch: { execute },
+        writeCliResponse,
+      })
+    } finally {
+      process.argv = originalArguments
+    }
+
+    expect(execute).toHaveBeenCalledWith({ targetBranch: 'issue-42-example' })
+    expect(writeCliResponse).toHaveBeenCalledWith({
+      message: 'Prepared issue-42-example from origin/trunk (created).\n',
+      stream: 'stdout',
+    })
+  })
+
   it('presents a missing target argument as a CLI failure', () => {
     const execute = vi.fn()
     const writeCliResponse = vi.fn()

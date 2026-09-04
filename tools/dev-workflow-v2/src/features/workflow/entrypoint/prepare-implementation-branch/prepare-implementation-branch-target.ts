@@ -2,5 +2,6 @@
 export function parseImplementationBranchTarget(
   cliArguments: readonly string[],
 ): string | undefined {
-  return cliArguments.length === 1 ? cliArguments[0] : undefined
+  const targetArguments = cliArguments[0] === '--' ? cliArguments.slice(1) : cliArguments
+  return targetArguments.length === 1 ? targetArguments[0] : undefined
 }
