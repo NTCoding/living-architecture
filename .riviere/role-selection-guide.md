@@ -125,7 +125,7 @@ Repositories and query-model loaders belong in `data-access/`, not `adapters/`. 
 
 ## 6. Processing the result
 
-Is this code used to process the result after a `command-use-case` has completed?
+Is this code used to process the result after a `command-use-case` or `query-model-use-case` has completed?
 
 If yes, keep presentation decisions separate from output side effects:
 
