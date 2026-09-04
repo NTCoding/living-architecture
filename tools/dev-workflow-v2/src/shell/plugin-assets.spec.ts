@@ -47,7 +47,10 @@ describe('plugin Agent Skills', () => {
     function sendUserMessage(...argumentsList: Parameters<ExtensionAPI['sendUserMessage']>): void {
       sentMessages(...argumentsList)
     }
-    const pi = Object.create({ registerCommand, sendUserMessage })
+    const pi = Object.create({
+      registerCommand,
+      sendUserMessage,
+    })
     const extension = (await import('./pi-plugin')).default
 
     extension(pi)
@@ -55,12 +58,12 @@ describe('plugin Agent Skills', () => {
     expect({
       extension: packageManifest.includes('"extensions": ["./src/shell/pi-plugin.ts"]'),
       projectPackage: piProjectSettings.includes('"../tools/dev-workflow-v2"'),
-      skills: packageManifest.includes('"skills": ["./skills"]'),
+      codexSkillsExcluded: !packageManifest.includes('"skills"'),
       commands: [...registeredCommands.keys()],
     }).toStrictEqual({
       extension: true,
       projectPackage: true,
-      skills: true,
+      codexSkillsExcluded: true,
       commands: commandNames.map((commandName) => `dev-workflow-v2:${commandName}`),
     })
 
@@ -83,6 +86,44 @@ describe('plugin Agent Skills', () => {
       ?.handler('example arguments', Object.create({ isIdle: () => false }))
 
     expect(sentMessages).toHaveBeenLastCalledWith(expect.any(String), { deliverAs: 'followUp' })
+  })
+
+  it('renders Pi branch preparation without Claude or Codex startup assumptions', async () => {
+    const registeredCommands = new Map<string, Parameters<ExtensionAPI['registerCommand']>[1]>()
+    const sentMessages = vi.fn()
+    function registerCommand(
+      name: string,
+      command: Parameters<ExtensionAPI['registerCommand']>[1],
+    ): void {
+      registeredCommands.set(name, command)
+    }
+    function sendUserMessage(...argumentsList: Parameters<ExtensionAPI['sendUserMessage']>): void {
+      sentMessages(...argumentsList)
+    }
+    const pi = Object.create({ registerCommand, sendUserMessage })
+    const extension = (await import('./pi-plugin')).default
+    extension(pi)
+
+    await registeredCommands
+      .get('dev-workflow-v2:start-implementation')
+      ?.handler('42', Object.create({ isIdle: () => true }))
+
+    const instruction = sentMessages.mock.calls[0]?.[0]
+    expect({
+      callCount: sentMessages.mock.calls.length,
+      instruction,
+      containsBranchRename: String(instruction).includes('git branch -m'),
+      containsClaudeStartup: String(instruction).includes('claude -w'),
+      containsCodexSession: String(instruction).includes('CODEX_THREAD_ID'),
+    }).toStrictEqual({
+      callCount: 1,
+      instruction: expect.stringMatching(
+        /prepare-implementation-branch[\s\S]*the `workflow` tool init/,
+      ),
+      containsBranchRename: false,
+      containsClaudeStartup: false,
+      containsCodexSession: false,
+    })
   })
 
   it('provides an Agent Skill for every plugin command', () => {
@@ -115,6 +156,9 @@ describe('plugin Agent Skills', () => {
     expect({
       detectsCodex: skill.includes('If `CODEX_THREAD_ID` is present'),
       usesCodexSubagents: skill.includes('Codex `spawn_agent`'),
+      detectsPi: skill.includes('if `PI_CODING_AGENT=true` is present'),
+      usesPiSubagents: skill.includes('Pi `Task`'),
+      usesPiWorkflowTool: skill.includes('with the `workflow` tool'),
       detectsOpenCode: skill.includes('if `OPENCODE=1` is present'),
       usesOpenCodeSubagents: skill.includes('OpenCode `Task`'),
       usesClaudeSubagents: skill.includes('Claude Code `Agent`'),
@@ -122,6 +166,9 @@ describe('plugin Agent Skills', () => {
     }).toStrictEqual({
       detectsCodex: true,
       usesCodexSubagents: true,
+      detectsPi: true,
+      usesPiSubagents: true,
+      usesPiWorkflowTool: true,
       detectsOpenCode: true,
       usesOpenCodeSubagents: true,
       usesClaudeSubagents: true,
@@ -181,12 +228,16 @@ describe('plugin Agent Skills', () => {
 
       expect({
         detectsCodex: skill.includes('If `CODEX_THREAD_ID` is present'),
+        detectsPi: skill.includes('if `PI_CODING_AGENT=true` is present'),
+        usesPiWorkflowTool: skill.includes('with the `workflow` tool'),
         usesCodexRunner: skill.includes(
           'pnpm --dir tools/dev-workflow-v2 run codex-workflow <operation> [args]',
         ),
         usesSlashCommand: skill.includes('/dev-workflow-v2:workflow <operation> [args]'),
       }).toStrictEqual({
         detectsCodex: true,
+        detectsPi: true,
+        usesPiWorkflowTool: true,
         usesCodexRunner: true,
         usesSlashCommand: true,
       })

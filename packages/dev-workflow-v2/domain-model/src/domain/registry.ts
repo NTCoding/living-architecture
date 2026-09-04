@@ -10,6 +10,7 @@ import { ReflectingState } from './states/reflecting'
 import { ReviewingState } from './states/reviewing'
 import { SubmittingPrState } from './states/submitting-pr'
 import type { WorkflowState } from './workflow-types'
+import type { WorkflowTransitionContext } from './workflow-transition-context'
 
 const MAINTAINER_WORKFLOW_REGISTRY_SCHEMA = z.object({
   IMPLEMENTING: z.custom<ImplementingState>((value) => value instanceof ImplementingState),
@@ -69,7 +70,14 @@ export class MaintainerWorkflowRegistry {
     return new MaintainerWorkflowRegistry(MAINTAINER_WORKFLOW_REGISTRY_SCHEMA.parse(value))
   }
 
-  state(name: StateName): WorkflowStateDefinition<WorkflowState, StateName, WorkflowOperation> {
+  state(
+    name: StateName,
+  ): WorkflowStateDefinition<
+    WorkflowState,
+    StateName,
+    WorkflowOperation,
+    WorkflowTransitionContext
+  > {
     return this[name]
   }
 }

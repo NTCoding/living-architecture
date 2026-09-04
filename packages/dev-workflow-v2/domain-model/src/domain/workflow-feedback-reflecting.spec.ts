@@ -5,7 +5,10 @@ import {
   unresolvedThread,
   rehydrateTestWorkflow,
 } from './__fixtures__/workflow-test-fixtures'
-import { GitHubUnavailableTestError } from './__fixtures__/workflow-test-errors'
+import {
+  GitHubUnavailableTestError,
+  GitUnavailableTestError,
+} from './__fixtures__/workflow-test-errors'
 import { WorkflowState } from './workflow-types'
 
 describe('Workflow', () => {
@@ -135,6 +138,34 @@ describe('Workflow', () => {
         }),
       ])
       expect(sleepMs).not.toHaveBeenCalled()
+    })
+
+    it('blocks without reading Git status when CodeRabbit is rate limited', () => {
+      const state = WorkflowState.replay([...eventsToAwaitingPrFeedback().slice(0, -1)])
+      const wf = rehydrateTestWorkflow(
+        state,
+        makeDeps({
+          getGitInfo: () => {
+            throw new GitUnavailableTestError()
+          },
+          getPrFeedback: () => ({
+            reviewDecision: null,
+            coderabbitReviewSeen: true,
+            coderabbitRateLimited: true,
+            unresolvedCount: 0,
+            threads: [],
+          }),
+        }),
+      )
+
+      wf.appendEvent({
+        type: 'transitioned',
+        at: '2026-01-01T00:00:00Z',
+        from: 'AWAITING_CI',
+        to: 'AWAITING_PR_FEEDBACK',
+      })
+
+      expect(wf.getState().currentStateMachineState).toStrictEqual('BLOCKED')
     })
 
     it('applies ADDRESSING_FEEDBACK onEntry overrides during the automatic transition', () => {

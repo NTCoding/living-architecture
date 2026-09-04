@@ -1,6 +1,5 @@
 import type { BaseEvent, WorkflowRegistry } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import type { TransitionContext } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import {
   getOperationBody,
   getTransitionTitle,
@@ -21,6 +20,7 @@ import {
   parseWorkflowEvent,
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-events'
 import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
+import { WorkflowTransitionContext } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-transition-context'
 import { isWriteAllowed } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-predicates'
 import type { ZodType } from 'zod'
 
@@ -33,13 +33,18 @@ export interface ConfigureWorkflowResult {
   buildWorkflow(state: WorkflowState, deps: WorkflowDeps): MaintainerWorkflow
   stateSchema: ZodType<StateName>
   initialState(): WorkflowState
-  getRegistry(): WorkflowRegistry<WorkflowState, StateName, WorkflowOperation>
+  getRegistry(): WorkflowRegistry<
+    WorkflowState,
+    StateName,
+    WorkflowOperation,
+    WorkflowTransitionContext
+  >
   buildTransitionContext(
     state: WorkflowState,
     from: StateName,
     to: StateName,
     deps: WorkflowDeps,
-  ): TransitionContext<WorkflowState, StateName>
+  ): WorkflowTransitionContext
   buildTransitionEvent(
     from: StateName,
     to: StateName,
@@ -105,8 +110,13 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
       from: StateName,
       to: StateName,
       deps: WorkflowDeps,
-    ): TransitionContext<WorkflowState, StateName> {
-      return { state, gitInfo: deps.getGitInfo(), from, to }
+    ): WorkflowTransitionContext {
+      return WorkflowTransitionContext.from({
+        state,
+        gitInfo: deps.getGitInfo(),
+        from,
+        to,
+      })
     },
     buildTransitionEvent(
       from: StateName,

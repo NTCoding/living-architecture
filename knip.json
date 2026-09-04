@@ -3,10 +3,7 @@
   "ignoreDependencies": ["tailwindcss", "oxlint", "tsx"],
   "workspaces": {
     ".": {
-      "entry": [
-        ".opencode/plugins/dev-workflow-v2.js",
-        "scripts/build-public-exports.mjs"
-      ]
+      "entry": [".opencode/plugins/dev-workflow-v2.js", "scripts/build-public-exports.mjs"]
     },
     "apps/eclair": {
       "entry": ["src/main.tsx"],
@@ -70,7 +67,14 @@
       "project": ["src/**/*.ts"]
     },
     "tools/dev-workflow-v2": {
-      "entry": ["src/shell/cli.ts", "src/shell/codex-cli.ts", "src/shell/codex-workflow-command.ts", "src/shell/opencode-plugin.ts", "src/shell/pi-plugin.ts"],
+      "entry": [
+        "src/shell/cli.ts",
+        "src/shell/codex-cli.ts",
+        "src/shell/codex-workflow-command.ts",
+        "src/shell/opencode-plugin.ts",
+        "src/shell/pi-plugin.ts",
+        "src/shell/prepare-implementation-branch.ts"
+      ],
       "project": ["src/**/*.ts"]
     },
     "tools/living-documentation": {

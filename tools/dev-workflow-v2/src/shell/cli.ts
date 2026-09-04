@@ -57,7 +57,6 @@ function sleepMs(ms: number): void {
 
 /** @riviere-role main */
 createClaudeCodeWorkflowCli({
-  // @ts-expect-error ClaudeCodeWorkflowCliConfig widens StateName and WorkflowOperation to string.
   workflowDefinition,
   routes,
   bashForbidden,

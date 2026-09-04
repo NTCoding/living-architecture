@@ -26,9 +26,8 @@
   },
   "dependencies": {
     "@living-architecture/dev-workflow-v2-domain-model": "workspace:*",
-    "@nt-ai-lab/deterministic-agent-workflow-cli": "0.4.4",
-    "@nt-ai-lab/deterministic-agent-workflow-dsl": "0.4.4",
-    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.4.4",
+    "@nt-ai-lab/deterministic-agent-workflow-cli": "0.4.6",
+    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.4.6",
     "zod": "^3.23.0"
   },
   "devDependencies": {

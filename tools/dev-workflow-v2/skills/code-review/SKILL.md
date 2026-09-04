@@ -7,6 +7,7 @@ description: Run and record the dev-workflow-v2 review bundle. Use only when the
 
 1. Detect the current harness before doing any review work:
    - If `CODEX_THREAD_ID` is present, use Codex `spawn_agent` for subagents. Run workflow operations with `pnpm --dir tools/dev-workflow-v2 run codex-workflow <operation> [args]`.
+   - Otherwise, if `PI_CODING_AGENT=true` is present, use Pi `Task` for subagents. Run workflow operations with the `workflow` tool.
    - Otherwise, if `OPENCODE=1` is present, use OpenCode `Task` for subagents. Run workflow operations with `/dev-workflow-v2:workflow <operation> [args]`.
    - Otherwise, use Claude Code `Agent` for subagents. Run workflow operations with `/dev-workflow-v2:workflow <operation> [args]`.
 1. Run the selected harness's `get-state` workflow operation. Extract `currentStateMachineState`, `taskCheckPassed`, and `githubIssue`. Stop unless `currentStateMachineState` is `REVIEWING`.

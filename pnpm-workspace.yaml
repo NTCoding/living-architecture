@@ -33,4 +33,4 @@ allowBuilds:
   unrs-resolver: true
 
 patchedDependencies:
-  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.6': patches/@nt-ai-lab__deterministic-agent-workflow-codex@0.4.6.patch
+  '@nt-ai-lab/deterministic-agent-workflow-codex@0.4.8': patches/@nt-ai-lab__deterministic-agent-workflow-codex@0.4.8.patch

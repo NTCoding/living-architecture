@@ -59,10 +59,17 @@ export const allRoles = [
     forbiddenSupertypes: true,
   }),
   role('cli-output-formatter', { targets: ['function'] }),
-  role('cli-response-formatter', { targets: ['function'] }),
+  role('cli-response', {
+    targets: ['interface', 'type-alias'],
+    mustBeDataStructure: true,
+  }),
+  role('cli-response-formatter', {
+    targets: ['function'],
+    allowedOutputs: ['cli-response'],
+  }),
   role('cli-response-writer', {
     targets: ['function'],
-    allowedInputs: ['command-use-case-result', 'query-model'],
+    allowedInputs: ['cli-response', 'command-use-case-result', 'query-model'],
   }),
   role('cli-error-handler', { targets: ['function'] }),
   role('command-input-factory', {
