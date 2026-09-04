@@ -25,24 +25,11 @@ class MissingCodexThreadIdError extends Error {
   }
 }
 
-class MissingEnvironmentVariableError extends Error {
-  constructor(name: string) {
-    super(`Missing required environment variable: ${name}`)
-    this.name = 'MissingEnvironmentVariableError'
-  }
-}
-
 class MissingCodexTranscriptError extends Error {
   constructor(sessionId: string) {
     super(`Unable to find Codex transcript for session ${sessionId}`)
     this.name = 'MissingCodexTranscriptError'
   }
-}
-
-function requiredEnvironmentVariable(name: string): string {
-  const value = process.env[name]
-  if (value === undefined || value === '') throw new MissingEnvironmentVariableError(name)
-  return value
 }
 
 const [operation, ...operationArgs] = process.argv.slice(2)
@@ -67,7 +54,7 @@ const now = () => new Date().toISOString()
 const configuredDatabasePath = runtime.processDeps.getEnv('WORKFLOW_EVENTS_DB')
 const databasePath =
   configuredDatabasePath === undefined || configuredDatabasePath === ''
-    ? join(requiredEnvironmentVariable('HOME'), 'ai-workflow-database', '.workflow-events.db')
+    ? join(homedir(), 'ai-workflow-database', '.workflow-events.db')
     : configuredDatabasePath
 const store = runtime.processDeps.buildStore(databasePath)
 const platform = {
