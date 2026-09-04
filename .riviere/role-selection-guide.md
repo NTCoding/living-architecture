@@ -125,9 +125,14 @@ Repositories and query-model loaders belong in `data-access/`, not `adapters/`. 
 
 ## 6. Processing the result
 
-Is this code used to process the result after a `command-use-case` has completed?
+Is this code used to process the result after a `command-use-case` or `query-model-use-case` has completed?
 
-If yes, then it is:
+If yes, keep presentation decisions separate from output side effects:
 
-- `cli-entrypoint`, or
-- a helper used by the `cli-entrypoint`, such as `cli-output-formatter`
+- `cli-entrypoint` orchestrates the result path.
+- `cli-output-formatter` decides how one command or query result is presented.
+- `cli-response-formatter` may wrap that content in a reusable response envelope.
+- `cli-output` is fully formatted data ready to emit. Its shape belongs to the application, not the role.
+- `cli-response-writer` emits `cli-output` consistently and makes no command-specific presentation decisions.
+
+New and changed code must not pass command results, query models, primitives, `unknown`, or unclassified data directly to a response writer. Existing cases are tracked for migration in GitHub issue #523.

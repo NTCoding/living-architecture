@@ -1,7 +1,6 @@
 import type {
   PreconditionResult,
   RecordingOpDefinition,
-  TransitionContext,
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import {
   pass,
@@ -12,6 +11,7 @@ import {
 import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from './workflow-types'
+import { WorkflowTransitionContext } from './workflow-transition-context'
 import { MaintainerWorkflowRegistry } from './registry'
 import type { WorkflowEvent } from './workflow-events'
 import { parseWorkflowEvent } from './workflow-events'
@@ -347,15 +347,11 @@ export class MaintainerWorkflow {
   private appendAutomaticTransition(to: StateName): void {
     const from = this.state.currentStateMachineState
     const stateBefore = this.state
-    const context: TransitionContext<WorkflowState, StateName> = {
-      state: stateBefore,
-      gitInfo: this.deps.getGitInfo(),
-      from,
-      to,
-    }
     const targetDef = this.registryDefinition.state(to)
     const stateAfter =
-      targetDef.onEntry === undefined ? stateBefore : targetDef.onEntry(stateBefore, context)
+      targetDef.onEntry === undefined
+        ? stateBefore
+        : targetDef.onEntry(stateBefore, this.buildTransitionContext(stateBefore, from, to))
     const stateOverrides = diffStateOverrides(stateBefore, stateAfter)
 
     this.append({
@@ -364,6 +360,19 @@ export class MaintainerWorkflow {
       from,
       to,
       ...(Object.keys(stateOverrides).length === 0 ? {} : { stateOverrides }),
+    })
+  }
+
+  private buildTransitionContext(
+    state: WorkflowState,
+    from: StateName,
+    to: StateName,
+  ): WorkflowTransitionContext {
+    return WorkflowTransitionContext.from({
+      state,
+      gitInfo: this.deps.getGitInfo(),
+      from,
+      to,
     })
   }
 

@@ -1,11 +1,6 @@
-import type {
-  PreconditionResult,
-  TransitionContext,
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { z } from 'zod'
-import type { WorkflowState } from '../workflow-types'
-
-type StateName = WorkflowState['currentStateMachineState']
+import type { WorkflowTransitionContext } from '../workflow-transition-context'
 
 /** @riviere-role value-object */
 export class ReviewingState {
@@ -27,7 +22,9 @@ export class ReviewingState {
     return new ReviewingState('REVIEWING')
   }
 
-  transitionGuard(context: TransitionContext<WorkflowState, StateName>): PreconditionResult {
+  transitionGuard(
+    context: Parameters<typeof WorkflowTransitionContext.from>[0],
+  ): PreconditionResult {
     const taskCheckRequired = context.state.githubIssue !== undefined
     const allPassed =
       context.state.architectureReviewPassed &&

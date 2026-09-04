@@ -5,26 +5,27 @@
   "type": "module",
   "keywords": ["pi-package"],
   "pi": {
-    "extensions": ["./src/shell/pi-plugin.ts"],
-    "skills": ["./skills"]
+    "extensions": ["./src/shell/pi-plugin.ts"]
   },
   "scripts": {
     "build": "node esbuild.config.mjs",
     "precodex-workflow": "pnpm --dir ../.. exec nx build dev-workflow-v2",
     "codex-workflow": "node dist/codex-workflow-command.js",
+    "preprepare-implementation-branch": "pnpm --dir ../.. exec nx build dev-workflow-v2",
+    "prepare-implementation-branch": "node dist/prepare-implementation-branch.js",
     "test": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "0.84.4",
     "@living-architecture/dev-workflow-v2-use-cases": "workspace:*",
-    "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.4.4",
-    "@nt-ai-lab/deterministic-agent-workflow-cli": "0.4.4",
-    "@nt-ai-lab/deterministic-agent-workflow-codex": "0.4.6",
-    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.4.4",
-    "@nt-ai-lab/deterministic-agent-workflow-event-store": "0.4.4",
-    "@nt-ai-lab/deterministic-agent-workflow-opencode": "0.4.4",
-    "@nt-ai-lab/deterministic-agent-workflow-pi": "0.5.2",
+    "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.4.6",
+    "@nt-ai-lab/deterministic-agent-workflow-cli": "0.4.6",
+    "@nt-ai-lab/deterministic-agent-workflow-codex": "0.4.8",
+    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.4.6",
+    "@nt-ai-lab/deterministic-agent-workflow-event-store": "0.4.6",
+    "@nt-ai-lab/deterministic-agent-workflow-opencode": "0.4.6",
+    "@nt-ai-lab/deterministic-agent-workflow-pi": "0.5.3",
     "esbuild": "0.27.2",
     "tsx": "4.21.0"
   },

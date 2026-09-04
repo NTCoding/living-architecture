@@ -1,11 +1,7 @@
-import type {
-  PreconditionResult,
-  TransitionContext,
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { z } from 'zod'
 import type { WorkflowState } from '../workflow-types'
-
-type StateName = WorkflowState['currentStateMachineState']
+import type { WorkflowTransitionContext } from '../workflow-transition-context'
 
 /** @riviere-role value-object */
 export class ImplementingState {
@@ -27,7 +23,9 @@ export class ImplementingState {
     return new ImplementingState('IMPLEMENTING')
   }
 
-  transitionGuard(context: TransitionContext<WorkflowState, StateName>): PreconditionResult {
+  transitionGuard(
+    context: Parameters<typeof WorkflowTransitionContext.from>[0],
+  ): PreconditionResult {
     if (context.to === 'BLOCKED') return { pass: true }
     if (!context.gitInfo.hasCommitsVsDefault) {
       return {
@@ -42,7 +40,10 @@ export class ImplementingState {
       }
     }
     if (!context.state.githubIssue) {
-      return { pass: false, reason: 'No issue recorded. Run record-issue first.' }
+      return {
+        pass: false,
+        reason: 'No issue recorded. Run record-issue first.',
+      }
     }
     return { pass: true }
   }

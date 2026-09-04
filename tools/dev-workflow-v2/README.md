@@ -1,8 +1,8 @@
 # dev-workflow-v2
 
-An event-sourced state machine plugin for Claude Code that enforces a structured task lifecycle: planning, implementation, verification, review, submit PR, await CI, await PR feedback, reflect, complete.
+An event-sourced state machine plugin for Claude Code, Codex, OpenCode, and Pi that enforces a structured task lifecycle: planning, implementation, verification, review, submit PR, await CI, await PR feedback, reflect, complete.
 
-## How to Start
+## How to Start with Claude Code
 
 Start a new session in a worktree:
 
@@ -61,7 +61,7 @@ Pi exposes the same lifecycle commands as Claude Code:
 /dev-workflow-v2:workflow <operation> [args]
 ```
 
-The Pi extension provides the `workflow` tool for the agent. It uses the same event-sourced workflow state, write policy, GitHub integration, and state instructions as the other providers.
+The Pi extension provides the `workflow` tool for the agent. It uses the same event-sourced workflow state, write policy, GitHub integration, and state instructions as the other providers. Pi loads the lifecycle commands but does not register the Codex-oriented Agent Skills as native Pi skills. Commands which use a shared procedure select Pi's `Task` and `workflow` tools explicitly.
 
 ### Planning lifecycle
 
@@ -166,7 +166,9 @@ Analyzes parallel work streams across approved delivery plans, including complet
 /dev-workflow-v2:start-implementation <issue-number>
 ```
 
-Renames the worktree branch to match the issue, reads the issue details, initializes the workflow state machine, and begins the IMPLEMENTING state.
+Prepares an issue branch from the refreshed remote default branch, reads the issue details, initializes the workflow state machine, and begins the IMPLEMENTING state.
+
+Branch preparation supports both a primary checkout and a linked worktree. It leaves the local default branch and any automatically created linked-worktree branch reference unchanged. It stops rather than overwriting work when the checkout is dirty or detached, the current branch contains commits absent from the remote default, the target branch is stale or contains commits, or another worktree already has the target branch checked out.
 
 ### Reusable workflow actions
 

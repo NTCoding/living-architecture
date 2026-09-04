@@ -7,6 +7,7 @@ description: Create the pull request for the recorded workflow branch. Use only 
 
 1. Detect the current harness before doing any pull-request work:
    - If `CODEX_THREAD_ID` is present, run workflow operations with `pnpm --dir tools/dev-workflow-v2 run codex-workflow <operation> [args]`.
+   - Otherwise, if `PI_CODING_AGENT=true` is present, run workflow operations with the `workflow` tool.
    - Otherwise, run workflow operations with `/dev-workflow-v2:workflow <operation> [args]`.
 1. Run the selected harness's `get-state` workflow operation. Extract `currentStateMachineState`, `githubIssue`, `featureBranch`, and `prNumber`. Stop unless `currentStateMachineState` is `SUBMITTING_PR`.
 1. Stop if `githubIssue` or `featureBranch` is missing. Do not infer either value from the branch name.
