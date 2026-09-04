@@ -1,6 +1,6 @@
 {
   "name": "dev-workflow-v2",
-  "version": "0.0.150",
+  "version": "0.0.151",
   "description": "Event-sourced workflow state machine for a structured task lifecycle.",
   "author": {
     "name": "NTCoding",
