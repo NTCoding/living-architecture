@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createDefaultProcessDeps } from '@nt-ai-lab/deterministic-agent-workflow-cli'
@@ -43,13 +44,14 @@ const workflowCommand = 'pnpm --dir "$PLUGIN_ROOT" run codex-workflow'
 const defaultProcessDeps = createDefaultProcessDeps()
 const processDeps = {
   ...defaultProcessDeps,
-  readFile: (path: string) => {
-    const input = defaultProcessDeps.readFile(path)
+  readFile: (path: string | number) => {
+    const input =
+      typeof path === 'number' ? readFileSync(path, 'utf8') : defaultProcessDeps.readFile(path)
     const threadId = defaultProcessDeps.getEnv('CODEX_THREAD_ID')
     const receivesWorkflowCommand = defaultProcessDeps.getArgv().slice(2).length > 0
 
     if (
-      path !== '/dev/stdin' ||
+      (path !== 0 && path !== '/dev/stdin') ||
       receivesWorkflowCommand ||
       threadId === undefined ||
       threadId === ''

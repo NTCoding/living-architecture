@@ -6,7 +6,7 @@ index 04199aea5e870a8e1583e4de397b9ab5e19bb491..d7ad6b8af286d8acf5f2a6dc787d3f12
      const engineDeps = buildEngineDeps(config, store, root, now, sessionId);
      const workflowDeps = buildWorkflowDeps(config, store, root, now, sessionId);
      return createWorkflowRunner(config)([operation, ...operationArgs], engineDeps, workflowDeps, {
-+        readStdin: () => config.processDeps.readFile('/dev/stdin'),
++        readStdin: () => config.processDeps.readFile(0),
          getSessionId: () => sessionId,
          getSessionTranscriptPath: () => resolveTranscriptPath(sessionId, null, now),
          getSessionRepository: () => getRepositoryName(process.cwd()),

@@ -72,6 +72,38 @@ describe('prepare implementation branch entrypoint', () => {
     })
   })
 
+  it('presents additional target arguments as a CLI failure', () => {
+    const execute = vi.fn()
+    const writeCliResponse = vi.fn()
+    const originalArguments = process.argv
+    process.argv = ['node', 'prepare-implementation-branch', 'issue-42-example', 'unexpected']
+
+    try {
+      runPrepareImplementationBranchEntrypoint({
+        formatPreparedImplementationBranch,
+        formatFailedCliResponse,
+        formatSuccessfulCliResponse,
+        parseImplementationBranchTarget,
+        prepareImplementationBranch: { execute },
+        writeCliResponse,
+      })
+    } finally {
+      process.argv = originalArguments
+    }
+
+    expect({
+      commandCalls: execute.mock.calls.length,
+      response: writeCliResponse.mock.calls[0]?.[0],
+    }).toStrictEqual({
+      commandCalls: 0,
+      response: {
+        exitCode: 1,
+        message: 'Expected one target branch argument.\n',
+        stream: 'stderr',
+      },
+    })
+  })
+
   it('presents a preparation exception as a CLI failure', () => {
     const writeCliResponse = vi.fn()
     const originalArguments = process.argv
