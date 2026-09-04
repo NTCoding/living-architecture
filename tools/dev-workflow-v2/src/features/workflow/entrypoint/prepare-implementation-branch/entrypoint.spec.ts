@@ -2,10 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { runPrepareImplementationBranchEntrypoint } from './entrypoint'
 import { formatPreparedImplementationBranch } from './prepare-implementation-branch-output'
 import { parseImplementationBranchTarget } from './prepare-implementation-branch-target'
-import {
-  formatFailedCliResponse,
-  formatSuccessfulCliResponse,
-} from '../../../../infra/cli/presentation/format-cli-response'
+import { formatFailedCliResponse } from '../../../../infra/cli/presentation/format-cli-response'
 
 class UnsafeBranchTestError extends Error {}
 
@@ -24,7 +21,6 @@ describe('prepare implementation branch entrypoint', () => {
       runPrepareImplementationBranchEntrypoint({
         formatPreparedImplementationBranch,
         formatFailedCliResponse,
-        formatSuccessfulCliResponse,
         parseImplementationBranchTarget,
         prepareImplementationBranch: { execute },
         writeCliResponse,
@@ -50,7 +46,6 @@ describe('prepare implementation branch entrypoint', () => {
       runPrepareImplementationBranchEntrypoint({
         formatPreparedImplementationBranch,
         formatFailedCliResponse,
-        formatSuccessfulCliResponse,
         parseImplementationBranchTarget,
         prepareImplementationBranch: { execute },
         writeCliResponse,
@@ -82,7 +77,6 @@ describe('prepare implementation branch entrypoint', () => {
       runPrepareImplementationBranchEntrypoint({
         formatPreparedImplementationBranch,
         formatFailedCliResponse,
-        formatSuccessfulCliResponse,
         parseImplementationBranchTarget,
         prepareImplementationBranch: { execute },
         writeCliResponse,
@@ -113,7 +107,6 @@ describe('prepare implementation branch entrypoint', () => {
       runPrepareImplementationBranchEntrypoint({
         formatPreparedImplementationBranch,
         formatFailedCliResponse,
-        formatSuccessfulCliResponse,
         parseImplementationBranchTarget,
         prepareImplementationBranch: {
           execute: () => {

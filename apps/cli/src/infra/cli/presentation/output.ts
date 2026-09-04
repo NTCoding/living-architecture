@@ -1,13 +1,13 @@
 import { CliErrorCode } from './error-codes'
 
-/** @riviere-role cli-response */
+/** @riviere-role cli-output */
 export interface SuccessOutput<T> {
   success: true
   data: T
   warnings: string[]
 }
 
-/** @riviere-role cli-response */
+/** @riviere-role cli-output */
 export interface ErrorOutput {
   success: false
   error: {

@@ -59,17 +59,23 @@ export const allRoles = [
     forbiddenSupertypes: true,
   }),
   role('cli-output-formatter', { targets: ['function'] }),
-  role('cli-response', {
-    targets: ['interface', 'type-alias'],
+  role('cli-output', {
+    allowedDependentRoles: [
+      'cli-output-formatter',
+      'cli-response-formatter',
+      'cli-response-writer',
+    ],
+    forbiddenSupertypes: true,
     mustBeDataStructure: true,
   }),
   role('cli-response-formatter', {
     targets: ['function'],
-    allowedOutputs: ['cli-response'],
+    allowedOutputs: ['cli-output'],
   }),
   role('cli-response-writer', {
     targets: ['function'],
-    allowedInputs: ['cli-response', 'command-use-case-result', 'query-model'],
+    // TODO(#523): Remove the legacy result roles after existing writers are migrated.
+    allowedInputs: ['cli-output', 'command-use-case-result', 'query-model'],
   }),
   role('cli-error-handler', { targets: ['function'] }),
   role('command-input-factory', {

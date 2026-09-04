@@ -4,17 +4,13 @@ import type {
 } from '@living-architecture/dev-workflow-v2-use-cases/commands/prepare-implementation-branch'
 import type { formatPreparedImplementationBranch } from './prepare-implementation-branch-output'
 import type { parseImplementationBranchTarget } from './prepare-implementation-branch-target'
-import type {
-  formatFailedCliResponse,
-  formatSuccessfulCliResponse,
-} from '../../../../infra/cli/presentation/format-cli-response'
+import type { formatFailedCliResponse } from '../../../../infra/cli/presentation/format-cli-response'
 import type { writeCliResponse } from '../../../../infra/cli/presentation/write-cli-response'
 
 /** @riviere-role cli-entrypoint-dependencies */
 export interface PrepareImplementationBranchEntrypointDependencies {
   readonly formatPreparedImplementationBranch: typeof formatPreparedImplementationBranch
   readonly formatFailedCliResponse: typeof formatFailedCliResponse
-  readonly formatSuccessfulCliResponse: typeof formatSuccessfulCliResponse
   readonly parseImplementationBranchTarget: typeof parseImplementationBranchTarget
   readonly prepareImplementationBranch: Pick<PrepareImplementationBranch, 'execute'>
   readonly writeCliResponse: typeof writeCliResponse
@@ -35,8 +31,7 @@ export function runPrepareImplementationBranchEntrypoint(
   try {
     const result: PrepareImplementationBranchResult =
       dependencies.prepareImplementationBranch.execute({ targetBranch })
-    const message = dependencies.formatPreparedImplementationBranch(result)
-    dependencies.writeCliResponse(dependencies.formatSuccessfulCliResponse(message))
+    dependencies.writeCliResponse(dependencies.formatPreparedImplementationBranch(result))
   } catch (error: unknown) {
     dependencies.writeCliResponse(dependencies.formatFailedCliResponse(`${String(error)}\n`))
   }

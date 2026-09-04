@@ -1,41 +1,43 @@
 # cli-output-formatter
 
 ## Purpose
-A function that transforms an entrypoint-specific command/query result into user-facing CLI output or a presentation-specific CLI output shape.
 
-## Behavioral Contract
-1. Accept a typed command/query result or entrypoint-specific presentation options
-2. Decide how that result is presented for the specific CLI entrypoint
-3. Delegate generic response-envelope formatting to `cli-response-formatter`
-4. Delegate writing stdout, stderr, file output, or process exit to `cli-response-writer`
-5. Does NOT handle uncaught exceptions or regular domain/application control flow
+A function that decides how an entrypoint-specific command or query result should be presented.
 
-## Examples
+## Behavioural Contract
 
-### Canonical Example
+1. Accept a typed command or query result, or entrypoint-specific presentation input.
+2. Decide what the result should look like for that CLI entrypoint.
+3. Produce `cli-output`, either directly or through a generic `cli-response-formatter`.
+4. Leave stdout, stderr, file output, and process exit to `cli-response-writer`.
+5. Perform no output side effects.
+6. Handle expected typed results, not uncaught exceptions.
+
+## Example
+
 ```typescript
 /** @riviere-role cli-output-formatter */
-export function presentExtractionResult(result: ExtractDraftComponentsResult): void {
-  console.log(formatTable(result.components))
-  console.log(`Extraction: ${result.extractionOutcome}`)
+export function formatPreparedBranch(result: PrepareBranchResult): TextOutput {
+  return formatSuccessfulResponse(`Prepared ${result.branch}.\n`)
 }
 ```
 
+`TextOutput` is merely the application's chosen `cli-output` shape. The role does not require that shape.
+
 ## Anti-Patterns
 
-### Common Misclassifications
-- **Not a command-use-case**: formatters do not load state or invoke domain behavior
-- **Not a domain-service**: formatters are infrastructure concerns, not domain logic
-- **Not a cli-response-formatter**: response formatters create generic success/error envelopes; output formatters decide entrypoint-specific presentation
-- **Not a cli-response-writer**: response writers write already-created CLI responses to stdout/stderr/files or terminate the process
-- **Not a cli-error-handler**: error handlers are only for uncaught CLI-boundary exceptions
-
-### Mixed Responsibility Signals
-- If the formatter makes decisions about WHAT to show based on business rules — domain logic leaking in
-- If the formatter loads additional data to enrich the output — command or repository responsibility leaking in
-- If the formatter accepts raw CLI options to decide formatting — should accept a result type instead
-- If the formatter imports domain errors — use-case failure handling is leaking into the CLI boundary
+- Calling `console`, writing to process streams, writing output files, or terminating the process.
+- Returning the original command result and relying on the writer to format it.
+- Loading more data to enrich the response.
+- Making business decisions about what the result means.
+- Handling unknown thrown errors.
 
 ## Decision Guidance
-- **vs external-client-service**: Is it formatting output for the user? → cli-output-formatter. Is it wrapping an external library? → external-client-service
-- **vs cli-response-formatter**: Is it creating the generic `success/error` CLI response envelope? → cli-response-formatter. Is it deciding how a specific entrypoint result should be presented? → cli-output-formatter
+
+- Does it decide how one command or query result appears? → `cli-output-formatter`.
+- Does it only create a reusable response envelope? → `cli-response-formatter`.
+- Does it perform the output side effect? → `cli-response-writer`.
+
+## Transitional Enforcement
+
+Some existing formatters still perform output side effects. GitHub issue #523 tracks their migration. New and changed code must not copy that legacy pattern.

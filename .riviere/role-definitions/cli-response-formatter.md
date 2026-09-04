@@ -1,36 +1,38 @@
 # cli-response-formatter
 
 ## Purpose
-A function that creates the generic CLI response envelope for success or error output.
 
-## Behavioral Contract
-1. Accept already-decided response content such as result data, warnings, error code, message, or suggestions
-2. Return the standard CLI response object shape
-3. Does NOT know about one specific CLI command result shape
-4. Does NOT write to stdout, stderr, files, or exit the process
-5. Does NOT handle thrown errors
+A function that creates a reusable CLI response envelope after entrypoint-specific presentation has been decided.
 
-## Examples
+## Behavioural Contract
 
-### Canonical Example
+1. Accept already-decided response content such as data, warnings, an error code, or a message.
+2. Return `cli-output` in the application's chosen response shape.
+3. Know nothing about one specific command or query result shape.
+4. Perform no output side effects.
+5. Leave stdout, stderr, file output, and process exit to `cli-response-writer`.
+6. Handle no thrown errors.
+
+## Example
+
+The response shape below is an application choice, not a role rule.
+
 ```typescript
 /** @riviere-role cli-response-formatter */
-export function formatSuccess<T>(data: T, warnings: string[] = []): SuccessOutput<T> {
-  return { success: true, data, warnings }
+export function formatSuccess<T>(data: T): JsonOutput<T> {
+  return { success: true, data }
 }
 ```
 
 ## Anti-Patterns
 
-### Common Misclassifications
-- **Not a cli-output-formatter**: output formatters decide entrypoint-specific presentation; response formatters only create the generic response envelope
-- **Not a cli-response-writer**: response writers perform output side effects
-
-### Mixed Responsibility Signals
-- If the function writes to stdout, stderr, or a file — response writing is leaking in
-- If the function switches on a specific command result — entrypoint output formatting is leaking in
+- Switching on a particular command result.
+- Calling `console`, writing to process streams or files, or terminating the process.
+- Returning an unclassified response object.
+- Passing the original command result through unchanged.
 
 ## Decision Guidance
-- Is it creating the shared CLI `success/error` response object shape? → cli-response-formatter
-- Is it writing that response anywhere? → cli-response-writer
-- Is it deciding how one command result appears to the user? → cli-output-formatter
+
+- Does it decide how one command result appears? → `cli-output-formatter`.
+- Does it create a reusable response envelope? → `cli-response-formatter`.
+- Does it perform the output side effect? → `cli-response-writer`.

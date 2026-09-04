@@ -23,8 +23,8 @@ const entrypointPlatformCliRoles: RoleName[] = [
 ]
 const cliPresentationRoles: RoleName[] = [
   'cli-error',
+  'cli-output',
   'cli-output-formatter',
-  'cli-response',
   'cli-response-formatter',
   'cli-response-writer',
   'cli-error-handler',

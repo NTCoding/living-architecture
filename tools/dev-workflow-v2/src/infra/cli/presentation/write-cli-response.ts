@@ -1,7 +1,7 @@
-import type { CliResponse } from './format-cli-response'
+import type { CliOutput } from './format-cli-response'
 
 /** @riviere-role cli-response-writer */
-export function writeCliResponse(response: CliResponse): void {
+export function writeCliResponse(response: CliOutput): void {
   if (response.stream === 'stdout') {
     process.stdout.write(response.message)
     return

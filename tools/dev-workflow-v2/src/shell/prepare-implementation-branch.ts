@@ -4,10 +4,7 @@ import { createGitBranchClient } from '@living-architecture/dev-workflow-v2-use-
 import { runPrepareImplementationBranchEntrypoint } from '../features/workflow/entrypoint/prepare-implementation-branch/entrypoint'
 import { formatPreparedImplementationBranch } from '../features/workflow/entrypoint/prepare-implementation-branch/prepare-implementation-branch-output'
 import { parseImplementationBranchTarget } from '../features/workflow/entrypoint/prepare-implementation-branch/prepare-implementation-branch-target'
-import {
-  formatFailedCliResponse,
-  formatSuccessfulCliResponse,
-} from '../infra/cli/presentation/format-cli-response'
+import { formatFailedCliResponse } from '../infra/cli/presentation/format-cli-response'
 import { writeCliResponse } from '../infra/cli/presentation/write-cli-response'
 
 const git = createGitBranchClient(process.cwd())
@@ -17,7 +14,6 @@ const workspace = createImplementationBranchWorkspace(git)
 runPrepareImplementationBranchEntrypoint({
   formatPreparedImplementationBranch,
   formatFailedCliResponse,
-  formatSuccessfulCliResponse,
   parseImplementationBranchTarget,
   prepareImplementationBranch: new PrepareImplementationBranch(workspace),
   writeCliResponse,

@@ -20,9 +20,15 @@ raw CLI args
      │ command-use-case-result
      ▼
 [cli-entrypoint]
-     ├── error → [cli-output-formatter] → exit
+     ├── error → [cli-output-formatter]
      │            uses [cli-error] for error codes
-     └── success → [cli-output-formatter] → CLI output
+     └── success → [cli-output-formatter]
+                       │
+                       ▼
+                   [cli-output]
+                       │
+                       ▼
+              [cli-response-writer] → CLI output
 ```text
 
 ### Who Calls Who
@@ -33,7 +39,8 @@ The [cli-entrypoint] orchestrates EVERYTHING. It is the only caller.
 [cli-entrypoint] calls [entrypoint-cli-input-parser] ← parses raw CLI args/options
 [cli-entrypoint] calls [command-input-factory]   ← builds typed input from validated args
 [cli-entrypoint] calls [command-use-case]        ← executes with typed input
-[cli-entrypoint] calls [cli-output-formatter]    ← formats result or error
+[cli-entrypoint] calls [cli-output-formatter]    ← creates cli-output from result or error
+[cli-entrypoint] calls [cli-response-writer]     ← writes the cli-output
 ````
 
 The [command-use-case] does NOT call any of the above. It receives input and returns a result. That's it.
@@ -77,9 +84,15 @@ raw CLI args
      │ query-model
      ▼
 [cli-entrypoint]
-     ├── error → [cli-output-formatter] → exit
+     ├── error → [cli-output-formatter]
      │            uses [cli-error] for error codes
-     └── success → [cli-output-formatter] → CLI output
+     └── success → [cli-output-formatter]
+                       │
+                       ▼
+                   [cli-output]
+                       │
+                       ▼
+              [cli-response-writer] → CLI output
 ```
 
 ### Who Calls Who
