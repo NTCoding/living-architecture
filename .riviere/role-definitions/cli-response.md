@@ -10,7 +10,7 @@ A generic CLI response envelope ready to be written to an output boundary.
 2. Uses a generic response shape shared by more than one command.
 3. May distinguish success from failure as structured data for serialisation.
 4. May identify the output stream and exit code when it represents an output instruction.
-5. Contains no command specific domain or application result.
+5. Contains no domain or application result specific to a command.
 6. Performs no formatting or output side effects.
 
 ## Examples
