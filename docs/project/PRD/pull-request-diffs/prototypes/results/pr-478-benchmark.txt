@@ -1,0 +1,30 @@
+# PR #478 architecture diff representation benchmark
+
+**Result:** Graph-derived Markdown is byte identical to the current snapshot-derived Markdown. Rendering the same graph-derived facts with PR #478's original format also matches the published PR comment, apart from trailing blank lines.
+
+| Measurement | Result |
+| --- | ---: |
+| TypeScript snapshot extraction | 747.01 ms |
+| Snapshot diff and Markdown mean (25 runs) | 3.59 ms |
+| Snapshot JSON size | 136,993 bytes |
+| Diff-specific graph creation | 12.08 ms |
+| Graph parse, projection, diff, and Markdown mean (25 runs) | 7.72 ms |
+| Diff-specific graph JSON size | 576,478 bytes |
+| Base graph components | 598 |
+| Head graph components | 626 |
+| Base graph semantic links | 152 |
+| Head graph semantic links | 158 |
+| Combined benchmark process maximum resident set size | 559,775,744 bytes |
+
+## Synthetic scaling of representation and comparison
+
+| PR #478 fact set | Snapshot size | Snapshot diff mean | Diff graph size | Graph parse and diff mean |
+| ---: | ---: | ---: | ---: | ---: |
+| 1× | 137,161 bytes | 3.24 ms | 628,354 bytes | 6.31 ms |
+| 2× | 274,273 bytes | 6.55 ms | 1,255,280 bytes | 14.06 ms |
+| 5× | 685,609 bytes | 15.91 ms | 3,136,058 bytes | 50.76 ms |
+| 10× | 1,371,183 bytes | 32.03 ms | 6,275,011 bytes | 148.13 ms |
+
+The scaling benchmark duplicates PR #478's architecture facts under distinct subdomains. It isolates representation and comparison costs; it does not simulate extraction time.
+
+The graph contains only architecture review elements and the semantic links required by the current diff. It is not the repository's main flow graph. Fixture generation uses the current TypeScript reader so this benchmark proves representation and output equivalence, not the future extraction path.

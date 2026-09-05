@@ -1,0 +1,921 @@
+<!-- pull-request-architecture-review -->
+# Architecture changes
+
+## Summary
+
+| Subdomain | Status | Added | Removed |
+| --- | --- | --- | --- |
+| 🌍 **`riviere-builder`** | Changed | 2 query use cases · 3 query model values · 46 domain items | 13 entry points · 15 command use cases · 1 aggregate · 38 domain items · `filesystem` external client with 1 component · 23 uncategorised changes |
+| 🌍 **`riviere-extract-config`** | Changed | 11 domain items | — |
+| 🌍 **`riviere-extract-ts`** | Changed | 13 entry points · 16 command use cases · 1 aggregate · 5 domain items · `glob` external client with 1 component · `ts-morph` external client with 1 component · `yaml` external client with 2 components · 18 uncategorised changes | 2 command use cases · 1 aggregate · 3 domain items |
+
+---
+
+<details open>
+<summary><h2>🌍 riviere-builder</h2></summary>
+
+### Entry points (13 removed)
+
+<details>
+<summary>createAddComponentCommand</summary>
+
+| Role | Component |
+| --- | --- |
+| `entrypoint-cli-input-parser` | `parseAddComponentInput` |
+
+</details>
+
+- <span>createAddDomainCommand</span>
+
+- <span>createAddSourceCommand</span>
+
+- <span>createCheckConsistencyCommand</span>
+
+<details>
+<summary>createDefineCustomTypeCommand</summary>
+
+| Role | Component |
+| --- | --- |
+| `entrypoint-cli-input-parser` | `parsePropertySpecs` |
+
+</details>
+
+- <span>createDefineRelationshipTypeCommand</span>
+
+<details>
+<summary>createEnrichCommand</summary>
+
+| Role | Component |
+| --- | --- |
+| `entrypoint-cli-input-parser` | `parseSignature` |
+| `entrypoint-cli-input-parser` | `parseStateChanges` |
+
+</details>
+
+<details>
+<summary>createFinalizeCommand</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-input-factory` | `createFinalizeGraphInput` |
+| `cli-response-writer` | `writeFinalizedGraph` |
+
+</details>
+
+<details>
+<summary>createInitCommand</summary>
+
+| Role | Component |
+| --- | --- |
+| `entrypoint-cli-input-parser` | `parseDomainJson` |
+
+</details>
+
+<details>
+<summary>createLinkCommand</summary>
+
+| Role | Component |
+| --- | --- |
+| `entrypoint-cli-input-parser` | `parseLinkSourceLocation` |
+
+</details>
+
+- <span>createLinkExternalCommand</span>
+
+- <span>createLinkHttpCommand</span>
+
+- <span>createValidateCommand</span>
+
+### Command use cases (15 removed)
+
+<details>
+<summary>AddComponent</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `AddComponentInput` |
+| `command-use-case-result` | `AddComponentResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>AddDomain</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `AddDomainInput` |
+| `command-use-case-result` | `AddDomainResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>AddSource</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `AddSourceInput` |
+| `command-use-case-result` | `AddSourceResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>CheckConsistency</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `CheckConsistencyInput` |
+| `command-use-case-result` | `CheckConsistencyResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>ComponentChecklist</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `ComponentChecklistInput` |
+| `command-use-case-result` | `ComponentChecklistResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>ComponentSummary</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `ComponentSummaryInput` |
+| `command-use-case-result` | `ComponentSummaryResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>DefineCustomType</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `DefineCustomTypeInput` |
+| `command-use-case-result` | `DefineCustomTypeResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>DefineRelationshipType</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `DefineRelationshipTypeInput` |
+| `command-use-case-result` | `DefineRelationshipTypeResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>EnrichComponent</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `EnrichComponentInput` |
+| `command-use-case-result` | `EnrichComponentResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>FinalizeGraph</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `FinalizeGraphInput` |
+| `command-use-case-result` | `FinalizeGraphResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>InitGraph</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `command-use-case-input` | `InitGraphInput` |
+| `command-use-case-result` | `InitGraphResult` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>LinkComponents</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `command-use-case-input` | `LinkComponentsInput` |
+| `command-use-case-result` | `LinkComponentsResult` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>LinkExternal</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `command-use-case-input` | `LinkExternalInput` |
+| `command-use-case-result` | `LinkExternalResult` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>LinkHttp</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `command-use-case-input` | `LinkHttpInput` |
+| `command-use-case-result` | `LinkHttpResult` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+
+</details>
+
+<details>
+<summary>ValidateGraph</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereBuilderRepository` |
+| `command-use-case-input` | `ValidateGraphInput` |
+| `command-use-case-result` | `ValidateGraphResult` |
+
+</details>
+
+### Query use cases (2 added)
+
+<details>
+<summary>ComponentChecklist</summary>
+
+| Role | Component |
+| --- | --- |
+| `query-model-use-case-input` | `ComponentChecklistInput` |
+| `query-model-loader` | `ComponentChecklistLoader` |
+| `query-model` | `ComponentChecklistResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+
+</details>
+
+<details>
+<summary>ComponentSummary</summary>
+
+| Role | Component |
+| --- | --- |
+| `query-model-use-case-input` | `ComponentSummaryInput` |
+| `query-model-loader` | `ComponentSummaryLoader` |
+| `query-model` | `ComponentSummaryResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+
+</details>
+
+### Query models (3 added)
+
+- <span>ChecklistComponent</span> (query-model-value)
+- <span>ComponentChecklistErrorCode</span> (query-model-value)
+- <span>ComponentSummaryErrorCode</span> (query-model-value)
+
+### Domain (46 added, 39 removed)
+
+#### Added
+
+- <span>ApiDefinition</span> (value-object)
+- <span>BuildValidationError</span> (domain-error)
+- <span>BusinessRules</span> (value-object)
+- <span>Component</span> (value-object)
+- <span>ComponentDefinition</span> (value-object)
+- <span>ComponentNotFoundError</span> (domain-error)
+- <span>ComponentType</span> (value-object)
+- <span>ComponentTypeMismatchError</span> (domain-error)
+- <span>CustomComponentDefinition</span> (value-object)
+- <span>CustomComponentProperties</span> (value-object)
+- <span>CustomTypeAlreadyDefinedError</span> (domain-error)
+- <span>CustomTypeNotFoundError</span> (domain-error)
+- <span>DomainNotFoundError</span> (domain-error)
+- <span>DomainOperationBehavior</span> (value-object)
+- <span>DuplicateComponentError</span> (domain-error)
+- <span>DuplicateDomainError</span> (domain-error)
+- <span>DuplicateLinkError</span> (domain-error)
+- <span>DuplicateLinkWarning</span> (published-language-data-structure)
+- <span>ExistingValuePreference</span> (value-object)
+- <span>ExternalLink</span> (value-object)
+- <span>GraphDiagnostics</span> (value-object)
+- <span>GraphWarning</span> (published-language-union)
+- <span>HttpMethod</span> (value-object)
+- <span>InvalidEnrichmentTargetError</span> (domain-error)
+- <span>InvalidGraphError</span> (domain-error)
+- <span>Link</span> (value-object)
+- <span>LinkType</span> (value-object)
+- <span>MissingDomainsError</span> (domain-error)
+- <span>MissingRequiredPropertiesError</span> (domain-error)
+- <span>MissingSourcesError</span> (domain-error)
+- <span>NearMatchMismatch</span> (published-language-data-structure)
+- <span>NearMatchOptions</span> (published-language-data-structure)
+- <span>NearMatchQuery</span> (published-language-data-structure)
+- <span>NearMatchResult</span> (published-language-data-structure)
+- <span>OperationWarning</span> (published-language-union)
+- <span>OrphanComponentWarning</span> (published-language-data-structure)
+- <span>RelationshipTypeAlreadyDefinedError</span> (domain-error)
+- <span>RelationshipTypeNotFoundError</span> (domain-error)
+- <span>RiviereBuilder</span> (value-object)
+- <span>RiviereGraphDefinition</span> (value-object)
+- <span>ScalarOverwriteWarning</span> (published-language-data-structure)
+- <span>SourceConflictError</span> (domain-error)
+- <span>StateTransitions</span> (value-object)
+- <span>SubscribedEvents</span> (value-object)
+- <span>SystemType</span> (value-object)
+- <span>UnusedDomainWarning</span> (published-language-data-structure)
+
+#### Removed
+
+- <span>RiviereBuilder</span> (aggregate, `domain-model`)
+    - Methods
+        - `addApi`
+        - `addCustom`
+        - `addDomain`
+        - `addDomainOp`
+        - `addEvent`
+        - `addEventHandler`
+        - `addSource`
+        - `addUI`
+        - `addUseCase`
+        - `build`
+        - `defineCustomType`
+        - `defineRelationshipType`
+        - `enrichComponent`
+        - `link`
+        - `linkExternal`
+        - `nearMatches`
+        - `new`
+        - `orphans`
+        - `resume`
+        - `serialize`
+        - `stats`
+        - `upsertApi`
+        - `upsertCustom`
+        - `upsertDomainOp`
+        - `upsertEvent`
+        - `upsertEventHandler`
+        - `upsertUI`
+        - `upsertUseCase`
+        - `validate`
+        - `warnings`
+- <span>ApiDefinition</span> (value-object)
+- <span>BuildValidationError</span> (domain-error)
+- <span>BusinessRules</span> (value-object)
+- <span>calculateStats</span> (domain-service)
+- <span>Component</span> (aggregate-entity)
+- <span>ComponentDefinition</span> (value-object)
+- <span>ComponentType</span> (value-object)
+- <span>ComponentTypeMismatchError</span> (domain-error)
+- <span>CustomComponentDefinition</span> (value-object)
+- <span>CustomComponentProperties</span> (value-object)
+- <span>CustomTypeAlreadyDefinedError</span> (domain-error)
+- <span>CustomTypeNotFoundError</span> (domain-error)
+- <span>detectOrphanComponents</span> (domain-service)
+- <span>DomainNotFoundError</span> (domain-error)
+- <span>DomainOperationBehavior</span> (value-object)
+- <span>DuplicateComponentError</span> (domain-error)
+- <span>DuplicateDomainError</span> (domain-error)
+- <span>DuplicateLinkError</span> (domain-error)
+- <span>ExistingValuePreference</span> (value-object)
+- <span>ExternalLink</span> (value-object)
+- <span>findNearMatches</span> (domain-service)
+- <span>findOrphans</span> (domain-service)
+- <span>findWarnings</span> (domain-service)
+- <span>HttpMethod</span> (value-object)
+- <span>InvalidEnrichmentTargetError</span> (domain-error)
+- <span>InvalidGraphError</span> (domain-error)
+- <span>Link</span> (value-object)
+- <span>LinkType</span> (value-object)
+- <span>MissingDomainsError</span> (domain-error)
+- <span>MissingRequiredPropertiesError</span> (domain-error)
+- <span>MissingSourcesError</span> (domain-error)
+- <span>RelationshipTypeAlreadyDefinedError</span> (domain-error)
+- <span>RelationshipTypeNotFoundError</span> (domain-error)
+- <span>RiviereGraphDefinition</span> (value-object)
+- <span>SourceConflictError</span> (domain-error)
+- <span>StateTransitions</span> (value-object)
+- <span>SubscribedEvents</span> (value-object)
+- <span>SystemType</span> (value-object)
+
+### External clients (1 removed)
+
+<details>
+<summary>filesystem — 1 component removed</summary>
+
+<details>
+<summary>external-client-service — 1 removed</summary>
+
+- `writeUtf8File`
+
+</details>
+
+</details>
+
+### Uncategorised changes (23 removed)
+
+- <span>AddComponentErrorCode</span> (command-use-case-result-value)
+- <span>AddDomainErrorCode</span> (command-use-case-result-value)
+- <span>AddSourceErrorCode</span> (command-use-case-result-value)
+- <span>BuilderWarnings</span> (command-use-case-result-value)
+- <span>CheckConsistencyErrorCode</span> (command-use-case-result-value)
+- <span>ChecklistComponent</span> (command-use-case-result-value)
+- <span>ComponentChecklistErrorCode</span> (command-use-case-result-value)
+- <span>ComponentSummaryErrorCode</span> (command-use-case-result-value)
+- <span>DefineCustomTypeErrorCode</span> (command-use-case-result-value)
+- <span>DefineRelationshipTypeErrorCode</span> (command-use-case-result-value)
+- <span>EnrichComponentErrorCode</span> (command-use-case-result-value)
+- <span>FinalizedGraph</span> (command-use-case-result-value)
+- <span>FinalizeGraphErrorCode</span> (command-use-case-result-value)
+- <span>GraphCorruptedError</span> (data-access-error)
+- <span>GraphNotFoundError</span> (data-access-error)
+- <span>InitDomainInput</span> (command-use-case-input)
+- <span>InitGraphErrorCode</span> (command-use-case-result-value)
+- <span>LinkComponentsErrorCode</span> (command-use-case-result-value)
+- <span>LinkExternalErrorCode</span> (command-use-case-result-value)
+- <span>LinkHttpErrorCode</span> (command-use-case-result-value)
+- <span>MatchedApi</span> (command-use-case-result-value)
+- <span>ValidateGraphErrorCode</span> (command-use-case-result-value)
+- <span>ValidationData</span> (command-use-case-result-value)
+
+</details>
+
+---
+
+<details open>
+<summary><h2>🌍 riviere-extract-config</h2></summary>
+
+### Domain (11 added)
+
+- <span>parseWorkflowDefinition</span> (published-language-parser)
+- <span>WorkflowDefinition</span> (published-language-schema)
+- <span>WorkflowDefinitionParseFailure</span> (published-language-data-structure)
+- <span>WorkflowDefinitionParseResult</span> (published-language-union)
+- <span>WorkflowDefinitionParseSuccess</span> (published-language-data-structure)
+- <span>WorkflowExtractStageDefinition</span> (published-language-data-structure)
+- <span>WorkflowGraphDefinition</span> (published-language-data-structure)
+- <span>WorkflowLinkStageDefinition</span> (published-language-data-structure)
+- <span>WorkflowRunLogDefinition</span> (published-language-data-structure)
+- <span>WorkflowStageDefinition</span> (published-language-union)
+- <span>WorkflowValidateStageDefinition</span> (published-language-data-structure)
+
+</details>
+
+---
+
+<details open>
+<summary><h2>🌍 riviere-extract-ts</h2></summary>
+
+### Entry points (13 added)
+
+<details>
+<summary>createAddComponentCommand</summary>
+
+| Role | Component |
+| --- | --- |
+| `entrypoint-cli-input-parser` | `parseAddComponentInput` |
+
+</details>
+
+- <span>createAddDomainCommand</span>
+
+- <span>createAddSourceCommand</span>
+
+- <span>createCheckConsistencyCommand</span>
+
+<details>
+<summary>createDefineCustomTypeCommand</summary>
+
+| Role | Component |
+| --- | --- |
+| `entrypoint-cli-input-parser` | `parsePropertySpecs` |
+
+</details>
+
+- <span>createDefineRelationshipTypeCommand</span>
+
+<details>
+<summary>createEnrichCommand</summary>
+
+| Role | Component |
+| --- | --- |
+| `entrypoint-cli-input-parser` | `parseSignature` |
+| `entrypoint-cli-input-parser` | `parseStateChanges` |
+
+</details>
+
+<details>
+<summary>createFinalizeCommand</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-input-factory` | `createFinalizeGraphInput` |
+| `cli-response-writer` | `writeFinalizedGraph` |
+
+</details>
+
+<details>
+<summary>createInitCommand</summary>
+
+| Role | Component |
+| --- | --- |
+| `entrypoint-cli-input-parser` | `parseDomainJson` |
+
+</details>
+
+<details>
+<summary>createLinkCommand</summary>
+
+| Role | Component |
+| --- | --- |
+| `entrypoint-cli-input-parser` | `parseLinkSourceLocation` |
+
+</details>
+
+- <span>createLinkExternalCommand</span>
+
+- <span>createLinkHttpCommand</span>
+
+- <span>createValidateCommand</span>
+
+### Command use cases (16 added, 2 removed)
+
+#### Added
+
+<details>
+<summary>AddComponent</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `AddComponentInput` |
+| `command-use-case-result` | `AddComponentResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>AddDomain</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `AddDomainInput` |
+| `command-use-case-result` | `AddDomainResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>AddSource</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `AddSourceInput` |
+| `command-use-case-result` | `AddSourceResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>CheckConsistency</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `CheckConsistencyInput` |
+| `command-use-case-result` | `CheckConsistencyResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>DefineCustomType</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `DefineCustomTypeInput` |
+| `command-use-case-result` | `DefineCustomTypeResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>DefineRelationshipType</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `DefineRelationshipTypeInput` |
+| `command-use-case-result` | `DefineRelationshipTypeResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>EnrichComponent</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `EnrichComponentInput` |
+| `command-use-case-result` | `EnrichComponentResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>EnrichDraftComponents</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `ExtractionConfigError` |
+| `data-access-error` | `ExtractionDataAccessError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>ExtractDraftComponents</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `ExtractionConfigError` |
+| `data-access-error` | `ExtractionDataAccessError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>FinalizeGraph</summary>
+
+| Role | Component |
+| --- | --- |
+| `command-use-case-input` | `FinalizeGraphInput` |
+| `command-use-case-result` | `FinalizeGraphResult` |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>InitGraph</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `command-use-case-input` | `InitGraphInput` |
+| `command-use-case-result` | `InitGraphResult` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>LinkComponents</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `command-use-case-input` | `LinkComponentsInput` |
+| `command-use-case-result` | `LinkComponentsResult` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>LinkExternal</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `command-use-case-input` | `LinkExternalInput` |
+| `command-use-case-result` | `LinkExternalResult` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>LinkHttp</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `command-use-case-input` | `LinkHttpInput` |
+| `command-use-case-result` | `LinkHttpResult` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>RunWorkflow</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `ExtractionConfigError` |
+| `data-access-error` | `ExtractionDataAccessError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+| `command-use-case-input` | `RunWorkflowInput` |
+| `command-use-case-result` | `RunWorkflowResult` |
+
+</details>
+
+<details>
+<summary>ValidateGraph</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `GraphCorruptedError` |
+| `data-access-error` | `GraphNotFoundError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+| `command-use-case-input` | `ValidateGraphInput` |
+| `command-use-case-result` | `ValidateGraphResult` |
+
+</details>
+
+#### Removed
+
+<details>
+<summary>EnrichDraftComponents</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `ExtractionConfigError` |
+| `data-access-error` | `ExtractionDataAccessError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+<details>
+<summary>ExtractDraftComponents</summary>
+
+| Role | Component |
+| --- | --- |
+| `data-access-error` | `ExtractionConfigError` |
+| `data-access-error` | `ExtractionDataAccessError` |
+| `aggregate-repository` | `RiviereProjectRepository` |
+
+</details>
+
+### Domain (6 added, 4 removed)
+
+#### Added
+
+- <span>RiviereProject</span> (aggregate, `domain-model`)
+    - Aggregate entities
+        - `Workflow`
+    - Methods
+        - `addComponent`
+        - `addDomain`
+        - `addSource`
+        - `addWorkflow`
+        - `build`
+        - `defineCustomType`
+        - `defineRelationshipType`
+        - `enrichComponent`
+        - `link`
+        - `linkExternal`
+        - `rebuildGraph`
+        - `rehydrate`
+        - `serialize`
+        - `start`
+        - `validate`
+        - `warnings`
+- <span>ExtractionConfigurationUnavailableError</span> (domain-error)
+- <span>GraphStateUnavailableError</span> (domain-error)
+- <span>WorkflowDefinitionFailure</span> (value-object)
+- <span>WorkflowRunEvent</span> (value-object)
+- <span>WorkflowStage</span> (value-object)
+
+#### Removed
+
+- <span>RiviereProject</span> (aggregate, `domain-model`)
+    - Methods
+        - `parse`
+- <span>detectCallsInCallable</span> (domain-service)
+- <span>locateComponentCallables</span> (domain-service)
+- <span>resolveCallTargets</span> (domain-service)
+
+### External clients (3 added)
+
+<details>
+<summary>glob — 1 component added</summary>
+
+<details>
+<summary>external-client-service — 1 added</summary>
+
+- `globSourceFiles`
+
+</details>
+
+</details>
+
+<details>
+<summary>ts-morph — 1 component added</summary>
+
+<details>
+<summary>external-client-service — 1 added</summary>
+
+- `createTypeScriptProjects`
+
+</details>
+
+</details>
+
+<details>
+<summary>yaml — 2 components added</summary>
+
+<details>
+<summary>external-client-error — 1 added</summary>
+
+- `YamlDocumentError`
+
+</details>
+
+<details>
+<summary>external-client-service — 1 added</summary>
+
+- `YamlDocumentReader`
+
+</details>
+
+</details>
+
+### Uncategorised changes (18 added)
+
+- <span>AddComponentErrorCode</span> (command-use-case-result-value)
+- <span>AddDomainErrorCode</span> (command-use-case-result-value)
+- <span>AddSourceErrorCode</span> (command-use-case-result-value)
+- <span>BuilderWarnings</span> (command-use-case-result-value)
+- <span>CheckConsistencyErrorCode</span> (command-use-case-result-value)
+- <span>DefineCustomTypeErrorCode</span> (command-use-case-result-value)
+- <span>DefineRelationshipTypeErrorCode</span> (command-use-case-result-value)
+- <span>EnrichComponentErrorCode</span> (command-use-case-result-value)
+- <span>FinalizedGraph</span> (command-use-case-result-value)
+- <span>FinalizeGraphErrorCode</span> (command-use-case-result-value)
+- <span>InitDomainInput</span> (command-use-case-input)
+- <span>InitGraphErrorCode</span> (command-use-case-result-value)
+- <span>LinkComponentsErrorCode</span> (command-use-case-result-value)
+- <span>LinkExternalErrorCode</span> (command-use-case-result-value)
+- <span>LinkHttpErrorCode</span> (command-use-case-result-value)
+- <span>MatchedApi</span> (command-use-case-result-value)
+- <span>ValidateGraphErrorCode</span> (command-use-case-result-value)
+- <span>ValidationData</span> (command-use-case-result-value)
+
+</details>
