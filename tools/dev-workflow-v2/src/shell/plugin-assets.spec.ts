@@ -24,7 +24,6 @@ describe('plugin Agent Skills', () => {
 
   it('registers Pi commands and loads their instruction assets', async () => {
     const packageManifest = readPluginFile('package.json')
-    const parsedPackageManifest: { pi: { extensions: string[] } } = JSON.parse(packageManifest)
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
     const commandNames = [
       'choose-next-task',
@@ -67,7 +66,7 @@ describe('plugin Agent Skills', () => {
     sentMessages.mockClear()
 
     expect({
-      extension: parsedPackageManifest.pi.extensions.includes('./src/shell/pi-plugin.ts'),
+      extension: packageManifest.includes('"extensions": ["./src/shell/pi-plugin.ts"]'),
       projectPackage: piProjectSettings.includes('"../tools/dev-workflow-v2"'),
       codexSkillsExcluded: !packageManifest.includes('"skills"'),
       commands: [...registeredCommands.keys()],
