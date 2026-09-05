@@ -36,7 +36,7 @@ createCodexWorkflowCli({
   isWriteAllowed: runtime.isWriteAllowed,
   workflowCommand,
   workflowRoot: runtime.workflowRoot,
-  stopPreventionMessage: ' If you are blocked, switch to the `BLOCKED` state.',
+  stopPreventionMessage: runtime.stopPreventionMessage,
   processDeps,
   buildWorkflowDeps: runtime.buildWorkflowDeps,
 })

@@ -15,6 +15,7 @@ import { createGithubPullRequestFeedbackClient } from '@living-architecture/dev-
 import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/github-cli'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { createWorkflowCliRuntime } from './workflow-cli-runtime'
 import {
   parseNumberArgument,
   parseOptionalStringArgument,
@@ -22,6 +23,7 @@ import {
   parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 
+const sharedWorkflowRuntime = createWorkflowCliRuntime()
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
@@ -96,7 +98,7 @@ const workflowExtension = createPiWorkflowExtension({
   isWriteAllowed: workflowConfiguration.isWriteAllowed,
   pluginRoot,
   commandName: workflowCommand,
-  stopPreventionMessage: ' If you are blocked, switch to the `BLOCKED` state.',
+  stopPreventionMessage: sharedWorkflowRuntime.stopPreventionMessage,
   buildWorkflowDeps: (platform) => ({
     getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),
     getPrFeedback: createWorkflowPullRequestFeedbackReader(

@@ -78,6 +78,7 @@ export function createWorkflowCliRuntime() {
     isWriteAllowed: workflowConfiguration.isWriteAllowed,
     workflowRoot,
     processDeps: createDefaultProcessDeps(),
+    stopPreventionMessage: ' If you are blocked, switch to the `BLOCKED` state.',
     buildWorkflowDeps,
   }
 }
