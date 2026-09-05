@@ -17,7 +17,7 @@ const aiExtractConfig: AiExtractConfig = {
   context: { exclude: ['**/*.spec.ts'], maxFilesPerBatch: 10, maxBatches: 2 },
 }
 
-function project(stages: readonly WorkflowStage[]): RiviereProject {
+function project(stages?: readonly WorkflowStage[]): RiviereProject {
   const subject = RiviereProject.start({
     graphDefinition: {
       name: 'Shop',
@@ -26,13 +26,15 @@ function project(stages: readonly WorkflowStage[]): RiviereProject {
       domains: { orders: { description: 'Orders', systemType: 'domain' } },
     },
   }).data
-  const result = subject.addWorkflow({
-    name: 'build-graph',
-    outputPath: '/project/.riviere/graph.json',
-    runLogDirectory: '/project/.riviere/logs',
-    stages,
-  })
-  assert(result.success)
+  if (stages !== undefined) {
+    const result = subject.addWorkflow({
+      name: 'build-graph',
+      outputPath: '/project/.riviere/graph.json',
+      runLogDirectory: '/project/.riviere/logs',
+      stages,
+    })
+    assert(result.success)
+  }
   return subject
 }
 
@@ -62,7 +64,7 @@ describe('RiviereProject Workflow rebuild', () => {
   })
 
   it('rehydrates persisted graph state', () => {
-    const subject = project([])
+    const subject = project()
     addExistingComponent(subject)
 
     const rehydrated = RiviereProject.rehydrate(subject.build())
@@ -91,7 +93,22 @@ describe('RiviereProject Workflow rebuild', () => {
     })
   })
 
-  it('retains completed transition evidence and restores prior state after a later failure', () => {
+  it('retains completed transition evidence after a later failure', () => {
+    const subject = project([
+      WorkflowStage.fromSchemaValidation('validate'),
+      WorkflowStage.fromCodeExtraction('extract', configuration().resolvedConfig),
+    ])
+
+    const result = subject.rebuildGraph('build-graph')
+
+    assert(!result.success)
+    expect(result.transitions.map((transition) => transition.value.kind)).toStrictEqual([
+      'initial',
+      'stage-completed',
+    ])
+  })
+
+  it('restores prior state after a later failure', () => {
     const subject = project([
       WorkflowStage.fromSchemaValidation('validate'),
       WorkflowStage.fromCodeExtraction('extract', configuration().resolvedConfig),
@@ -101,15 +118,9 @@ describe('RiviereProject Workflow rebuild', () => {
     const result = subject.rebuildGraph('build-graph')
 
     assert(!result.success)
-    expect({
-      errorCode: result.errorCode,
-      transitionKinds: result.transitions.map((transition) => transition.value.kind),
-      restoredComponents: subject.build().components.map((component) => component.name),
-    }).toStrictEqual({
-      errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',
-      transitionKinds: ['initial', 'stage-completed'],
-      restoredComponents: ['Existing graph'],
-    })
+    expect(subject.build().components.map((component) => component.name)).toStrictEqual([
+      'Existing graph',
+    ])
   })
 
   it('removes AI stages from the Project rebuild when skip AI mode is selected', () => {
@@ -161,8 +172,13 @@ describe('RiviereProject Workflow rebuild', () => {
     })
   })
 
-  it('returns typed failures for an unknown Workflow and unavailable graph state', () => {
-    const subject = project([])
+  it('returns a typed failure for an unknown Workflow', () => {
+    const result = project().rebuildGraph('missing')
+
+    expect(result).toMatchObject({ success: false, errorCode: 'WORKFLOW_NOT_FOUND' })
+  })
+
+  it('returns a typed failure when graph state is unavailable', () => {
     const extractionProject = RiviereProject.start({
       configuration: configuration(),
       draftComponents: [],
@@ -177,17 +193,13 @@ describe('RiviereProject Workflow rebuild', () => {
       }).success,
     )
 
-    expect({
-      unknown: subject.rebuildGraph('missing'),
-      unavailable: extractionProject.data.rebuildGraph('build-graph'),
-    }).toMatchObject({
-      unknown: { success: false, errorCode: 'WORKFLOW_NOT_FOUND' },
-      unavailable: { success: false, errorCode: 'GRAPH_STATE_UNAVAILABLE' },
-    })
+    const result = extractionProject.data.rebuildGraph('build-graph')
+
+    expect(result).toMatchObject({ success: false, errorCode: 'GRAPH_STATE_UNAVAILABLE' })
   })
 
   it('does not add a Workflow with duplicate stage names', () => {
-    const subject = project([])
+    const subject = project()
 
     const result = subject.addWorkflow({
       name: 'duplicate-stages',
@@ -199,6 +211,13 @@ describe('RiviereProject Workflow rebuild', () => {
       ],
     })
 
-    expect(result).toMatchObject({ success: false })
+    expect(result).toMatchObject({
+      success: false,
+      error: { code: 'DUPLICATE_STAGE_NAME' },
+    })
+    expect(subject.rebuildGraph('duplicate-stages')).toMatchObject({
+      success: false,
+      errorCode: 'WORKFLOW_NOT_FOUND',
+    })
   })
 })

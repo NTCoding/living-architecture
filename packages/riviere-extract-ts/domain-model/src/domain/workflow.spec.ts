@@ -72,20 +72,29 @@ const successfulStage = {
 describe('Workflow stage language', () => {
   it('retains every closed stage variant and its typed configuration', () => {
     const subject = workflow()
+    const retainedCodeExtractionConfig = {
+      modules: codeExtractionConfig.modules,
+      connections: codeExtractionConfig.connections,
+      schema: codeExtractionConfig.schema,
+    }
 
     expect({
       stages: allStages().map((stage) => stage.value),
       extractionConfigurations: subject.configurations(),
     }).toStrictEqual({
       stages: [
-        { kind: 'code-extraction', name: 'extract-code', config: codeExtractionConfig },
+        {
+          kind: 'code-extraction',
+          name: 'extract-code',
+          config: retainedCodeExtractionConfig,
+        },
         { kind: 'eventcatalog-import', name: 'import-eventcatalog', config: eventCatalogConfig },
         { kind: 'asyncapi-import', name: 'import-asyncapi', config: asyncApiConfig },
         { kind: 'ai-extract', name: 'discover-gaps', config: aiExtractConfig },
         { kind: 'ai-enrich', name: 'enrich-metadata', config: aiEnrichConfig },
         { kind: 'schema-validate', name: 'validate' },
       ],
-      extractionConfigurations: [codeExtractionConfig],
+      extractionConfigurations: [retainedCodeExtractionConfig],
     })
   })
 })
@@ -277,9 +286,16 @@ describe('Workflow transition snapshots', () => {
     })
 
     assert(result.value.success)
-    const importState = result.value.transitions[1]?.value.state
-    const validationState = result.value.transitions[2]?.value.state
-    expect(validationState).toStrictEqual(importState)
+    expect(result.value.transitions.map((transition) => transition.value.kind)).toStrictEqual([
+      'initial',
+      'stage-completed',
+      'stage-completed',
+    ])
+    const importTransition = result.value.transitions[1]
+    const validationTransition = result.value.transitions[2]
+    assert(importTransition)
+    assert(validationTransition)
+    expect(validationTransition.value.state).toStrictEqual(importTransition.value.state)
   })
 
   it('retains completed transitions when a later stage fails', () => {

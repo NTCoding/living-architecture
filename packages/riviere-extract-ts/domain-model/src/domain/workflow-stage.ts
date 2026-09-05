@@ -54,23 +54,27 @@ export class WorkflowStage {
   declare private readonly brand: 'WorkflowStage'
 
   static fromCodeExtraction(name: string, config: CodeExtractionConfig): WorkflowStage {
-    return new WorkflowStage({ kind: 'code-extraction', name, config })
+    return new WorkflowStage({
+      kind: 'code-extraction',
+      name,
+      config: copyCodeExtractionConfig(config),
+    })
   }
 
   static fromEventCatalogImport(name: string, config: EventCatalogImportConfig): WorkflowStage {
-    return new WorkflowStage({ kind: 'eventcatalog-import', name, config })
+    return new WorkflowStage({ kind: 'eventcatalog-import', name, config: { ...config } })
   }
 
   static fromAsyncApiImport(name: string, config: AsyncApiImportConfig): WorkflowStage {
-    return new WorkflowStage({ kind: 'asyncapi-import', name, config })
+    return new WorkflowStage({ kind: 'asyncapi-import', name, config: { ...config } })
   }
 
   static fromAiExtract(name: string, config: AiExtractConfig): WorkflowStage {
-    return new WorkflowStage({ kind: 'ai-extract', name, config })
+    return new WorkflowStage({ kind: 'ai-extract', name, config: copyAiExtractConfig(config) })
   }
 
   static fromAiEnrich(name: string, config: AiEnrichConfig): WorkflowStage {
-    return new WorkflowStage({ kind: 'ai-enrich', name, config })
+    return new WorkflowStage({ kind: 'ai-enrich', name, config: copyAiEnrichConfig(config) })
   }
 
   static fromSchemaValidation(name: string): WorkflowStage {
@@ -78,6 +82,62 @@ export class WorkflowStage {
   }
 
   private constructor(readonly value: WorkflowStageValue) {}
+}
+
+function copyCodeExtractionConfig(config: CodeExtractionConfig): CodeExtractionConfig {
+  return {
+    modules: [...config.modules],
+    ...(config.connections === undefined
+      ? { connections: undefined }
+      : {
+          connections: {
+            ...(config.connections.eventPublishers === undefined
+              ? {}
+              : {
+                  eventPublishers: config.connections.eventPublishers.map((publisher) => ({
+                    ...publisher,
+                  })),
+                }),
+            ...(config.connections.httpLinks === undefined
+              ? {}
+              : {
+                  httpLinks: config.connections.httpLinks.map((link) => ({
+                    ...link,
+                    matchApiBy: [...link.matchApiBy],
+                  })),
+                }),
+          },
+        }),
+    schema: config.schema,
+  }
+}
+
+function copyAiExtractConfig(config: AiExtractConfig): AiExtractConfig {
+  return {
+    ...config,
+    args: [...config.args],
+    sources: [...config.sources],
+    selection: {
+      from: [...config.selection.from],
+      componentTypes: [...config.selection.componentTypes],
+    },
+    outputs: { ...config.outputs },
+    context: { ...config.context, exclude: [...config.context.exclude] },
+  }
+}
+
+function copyAiEnrichConfig(config: AiEnrichConfig): AiEnrichConfig {
+  return {
+    ...config,
+    args: [...config.args],
+    sources: [...config.sources],
+    selection: {
+      componentTypes: [...config.selection.componentTypes],
+      missingFieldsOnly: config.selection.missingFieldsOnly,
+    },
+    fields: [...config.fields],
+    context: { ...config.context, exclude: [...config.context.exclude] },
+  }
 }
 
 export type { WorkflowStageValue }

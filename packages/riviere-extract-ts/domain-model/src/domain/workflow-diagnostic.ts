@@ -30,7 +30,9 @@ export class WorkflowDiagnostic {
       kind: 'uncertain-link',
       source: input.source,
       target: input.target,
-      ...(input.sourceLocation === undefined ? {} : { sourceLocation: input.sourceLocation }),
+      ...(input.sourceLocation === undefined
+        ? {}
+        : { sourceLocation: { ...input.sourceLocation } }),
     })
   }
 
