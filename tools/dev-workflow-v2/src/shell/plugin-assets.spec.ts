@@ -23,7 +23,9 @@ describe('plugin Agent Skills', () => {
   })
 
   it('registers Pi commands and loads their instruction assets', async () => {
-    const packageManifest = readPluginFile('package.json')
+    const packageManifest: { pi?: { extensions?: string[] }; skills?: unknown } = JSON.parse(
+      readPluginFile('package.json'),
+    )
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
     const commandNames = [
       'choose-next-task',
@@ -56,12 +58,12 @@ describe('plugin Agent Skills', () => {
     extension(pi)
 
     expect({
-      extension: packageManifest.includes('"extensions": ["./src/shell/pi-plugin.ts"]'),
+      extension: packageManifest.pi?.extensions,
       projectPackage: piProjectSettings.includes('"../tools/dev-workflow-v2"'),
-      codexSkillsExcluded: !packageManifest.includes('"skills"'),
+      codexSkillsExcluded: packageManifest.skills === undefined,
       commands: [...registeredCommands.keys()],
     }).toStrictEqual({
-      extension: true,
+      extension: expect.arrayContaining(['./src/shell/pi-plugin.ts']),
       projectPackage: true,
       codexSkillsExcluded: true,
       commands: commandNames.map((commandName) => `dev-workflow-v2:${commandName}`),

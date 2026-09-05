@@ -36,6 +36,7 @@ createCodexWorkflowCli({
   isWriteAllowed: runtime.isWriteAllowed,
   workflowCommand,
   workflowRoot: runtime.workflowRoot,
+  stopPreventionMessage: runtime.stopPreventionMessage,
   processDeps,
   buildWorkflowDeps: runtime.buildWorkflowDeps,
 })

@@ -18,7 +18,9 @@ import {
   parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
+import { createWorkflowCliRuntime } from './workflow-cli-runtime'
 
+const sharedWorkflowRuntime = createWorkflowCliRuntime()
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
@@ -62,6 +64,7 @@ createClaudeCodeWorkflowCli({
   bashForbidden,
   isWriteAllowed: workflowConfiguration.isWriteAllowed,
   processDeps: createDefaultProcessDeps(),
+  stopPreventionMessage: sharedWorkflowRuntime.stopPreventionMessage,
   buildWorkflowDeps: (platform) => ({
     getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),
     getPrFeedback: createWorkflowPullRequestFeedbackReader(

@@ -14,8 +14,8 @@
     }
   },
   "dependencies": {
-    "@nt-ai-lab/deterministic-agent-workflow-dsl": "0.4.6",
-    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.4.6",
+    "@nt-ai-lab/deterministic-agent-workflow-dsl": "0.4.7",
+    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.4.7",
     "zod": "^3.23.0"
   },
   "devDependencies": {
