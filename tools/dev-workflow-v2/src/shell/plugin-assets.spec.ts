@@ -108,6 +108,47 @@ describe('plugin Agent Skills', () => {
     },
   )
 
+  it('uses standardised domain message flows before detailed component design', () => {
+    const skill = readPluginFile('skills/domain-message-flow/SKILL.md')
+    const architectureDrafting = readPluginFile('planning-stages/architecture-drafting.md')
+    const boundaryStepPosition = architectureDrafting.indexOf(
+      '## Step 1: Shape interactions and decide top-level architecture boundaries',
+    )
+    const componentStepPosition = architectureDrafting.indexOf(
+      '## Step 2: Present detailed component design options',
+    )
+
+    expect({
+      hasSkillName: skill.includes('name: domain-message-flow'),
+      hasApprovedOptionOrder:
+        skill.indexOf('# Option 1:') < skill.indexOf('## Message details') &&
+        skill.indexOf('## Message details') < skill.indexOf('## Pros') &&
+        skill.indexOf('## Pros') < skill.indexOf('## Cons'),
+      keepsMessageDataOutOfDiagram: skill.includes(
+        'Do not put message data, return values, annotations, paths, role names, or explanatory prose inside message boxes or on connecting lines.',
+      ),
+      requiresDetailsTable: skill.includes(
+        '| # | Type | Message | Sender → recipient | Significant data |',
+      ),
+      invokesSkillDuringBoundaries: architectureDrafting.includes(
+        'Read and apply `skills/domain-message-flow/SKILL.md` completely',
+      ),
+      separatesBoundaryAndComponentDesign:
+        boundaryStepPosition > -1 &&
+        componentStepPosition > boundaryStepPosition &&
+        architectureDrafting.includes(
+          'proceed to detailed component design only on a later planning turn',
+        ),
+    }).toStrictEqual({
+      hasSkillName: true,
+      hasApprovedOptionOrder: true,
+      keepsMessageDataOutOfDiagram: true,
+      requiresDetailsTable: true,
+      invokesSkillDuringBoundaries: true,
+      separatesBoundaryAndComponentDesign: true,
+    })
+  })
+
   it('selects the code-review execution mechanism for all supported harnesses', () => {
     const skill = readPluginFile('skills/code-review/SKILL.md')
     const command = readPluginFile('commands/code-review.md')

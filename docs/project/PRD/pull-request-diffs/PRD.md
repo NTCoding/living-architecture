@@ -4,7 +4,7 @@
 
 **PRD approval:** Approved
 
-**Approval note:** The approved review experience remains unchanged. Reapproval confirms two independently generated Rivière graph outputs, the `fine-grained-role-graph` as the architecture diff source, retained outputs, and performance validation in the first delivery ticket.
+**Approval note:** Product discovery is complete enough for architecture drafting. This PRD records the approved product decision and intentionally excludes delivery milestones. Reapproval confirms public GitHub loading and private repository file upload containing the GitHub metadata unavailable in upload mode. The remaining approved review experience is unchanged, including two independently generated Rivière graph outputs, the `fine-grained-role-graph` as the architecture diff source, retained outputs, and performance validation. Ticket sequencing is left to delivery planning.
 
 ---
 
@@ -51,6 +51,9 @@ Rivière exposes changes and evidence. It does not judge whether the architectur
 - The `fine-grained-role-graph` must be retained as a normal workflow output for now. Future direct exploration of it in Éclair remains possible but is not required by this PRD.
 - Architecture diff generation approaches must be compared using exact output equivalence, elapsed time, peak memory, and generated input size. The selected approach must preserve the complete existing diff output and avoid unnecessary graph generation work.
 - A pull request comparison must retain the complete generated GitHub architecture diff and provide access to a focused Éclair review page.
+- Public repositories must support opening the review through a link identifying the repository and pull request ID. Éclair retrieves the generated diff through GitHub using the agreed file convention.
+- Private repositories must support reviewing a generated diff through file upload rather than authenticated GitHub loading. Éclair has no backend; uploaded files are processed in the browser.
+- The uploaded file must contain the extra GitHub metadata unavailable in upload mode: repository and pull request identity and link, pull request title and description, and revision-specific source links. Displaying the review must not depend on fetching private GitHub metadata.
 - GitHub architecture diff generation must not depend on the Éclair page being available.
 - The Éclair page must show the repository and pull request link, the real pull request title, and a pull request description which is collapsed by default.
 - The page must show concise totals for changed subdomains, changed packages, and affected aggregates.
@@ -76,6 +79,7 @@ Rivière exposes changes and evidence. It does not judge whether the architectur
 
 - Replacing the complete GitHub code diff or generated architecture diff.
 - Making Éclair availability a prerequisite for GitHub architecture diff generation.
+- Authenticated loading of private repository diffs through GitHub. Private repository review is supported through file upload instead.
 - Imposing one central merge policy on every repository.
 - Creating a TypeScript-specific product model.
 - Dropping, summarising away, or hiding facts from the authoritative generated diff.
@@ -101,9 +105,11 @@ Possible future exploration of the `fine-grained-role-graph` in Éclair does not
 - Every architecture fact in the generated diff remains available for review in both the complete GitHub baseline and the consistent Éclair representation.
 - Reviewers can navigate a large generated comparison by opening only the relevant levels and groups.
 - If the Éclair page is unavailable, reviewers can still use the complete generated GitHub architecture diff.
+- A public repository reviewer can open the generated diff from a repository and pull request link without selecting a file.
+- A private repository reviewer can upload a generated diff and see the approved review, including pull request context and revision-specific source links, without Éclair fetching private GitHub metadata.
 - Dogfooding with the real pull request #478 generated diff confirms that the approved hierarchy remains readable and usable with a substantial domain model change.
 - A `fine-grained-role-graph` generated for the base and head of pull request #478 reproduces the existing architecture diff facts and published output.
-- The first delivery validation directly generates the `fine-grained-role-graph` through a Rivière workflow, reproduces pull request #478 exactly, and records elapsed time, peak memory, and generated input size before later delivery work relies on that path.
+- Validation directly generates the `fine-grained-role-graph` through a Rivière workflow, reproduces pull request #478 exactly, and records elapsed time, peak memory, and generated input size.
 - The retained `high-level graph` remains selective and useful independently of the architecture diff.
 
 ## 7. Open Product Questions
@@ -113,10 +119,11 @@ No open product questions. Direct exploration of the `fine-grained-role-graph` i
 ## 8. Architecture Questions
 
 - How should the two independently named workflows generate and retain the `high-level graph` and `fine-grained-role-graph`?
-- How should the first delivery ticket validate direct `fine-grained-role-graph` workflow extraction, exact pull request #478 parity, and performance before later delivery work relies on that path?
+- How should direct `fine-grained-role-graph` workflow extraction be validated for exact pull request #478 parity and performance?
 - How should the reusable Rivière graph comparison represent application ownership, subdomain ownership, and changes in associations without inventing containment?
 - What repository and revision metadata must the comparison carry so base and head evidence can link to exact source lines?
 - How should the complete GitHub representation and Éclair representation be generated from consistent comparison facts?
+- How should the upload file contract carry the required GitHub metadata, and how is that metadata supplied during generation?
 - How should generated comparison pages be deployed, accessed, retained, and operationally owned?
 - How should Éclair failures be isolated so they cannot prevent generation of the complete GitHub architecture diff?
 

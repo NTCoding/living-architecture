@@ -40,7 +40,7 @@ TypeScript extraction remains outside `riviere-architecture`. This split does no
 
 ### Approved viewer hosting and diff file convention
 
-The review page uses the existing Éclair deployment at `https://living-architecture.dev/eclair/`. The reviewer clicks a link to view the diff in Éclair without downloading or selecting a file.
+The review page uses the existing Éclair deployment at `https://living-architecture.dev/eclair/`. For public repositories, the reviewer clicks a link to view the diff in Éclair without downloading or selecting a file. Private repositories use file upload as described below.
 
 The generated `ArchitectureDiff` is stored in one tracked file under the existing `.riviere` directory:
 
@@ -52,7 +52,27 @@ The file contains the architecture diff for the current commit. Users access an 
 
 The GitHub Action builds the GitHub report from the existing JSON file. It does not calculate the architecture diff.
 
-Generation timing and the exact URL-loading mechanism for Éclair remain undecided.
+### Approved pull request identity and diff resolution
+
+The Éclair link uses `pr-diff` to identify a repository and pull request ID, not a caller-supplied JSON URL. The tracked diff path above is a convention for the GitHub integration, not merely this repository's local storage choice.
+
+For public repositories, Éclair resolves the diff as follows:
+
+1. Fetch pull request metadata from `https://api.github.com/repos/{owner}/{repository}/pulls/{pullRequestId}`.
+2. Use the returned `head.repo.full_name` and `head.sha` to generate `https://raw.githubusercontent.com/{head.repo.full_name}/{head.sha}/.riviere/pr-diffs/riviere-architecture-diff.json`.
+3. Load and validate the generated `ArchitectureDiff` for presentation.
+
+For pull request #478, the metadata URL is `https://api.github.com/repos/NTCoding/living-architecture/pulls/478`. The raw file URL uses the actual head repository and commit SHA returned by that request. Using the head repository accommodates forks; pinning the file request to the returned SHA avoids following a moving branch during loading. Reopening the link resolves the pull request's current head again.
+
+The exact encoding of repository and pull request ID in the Éclair URL remains to be specified. Loading failure behaviour remains unresolved. Generation timing is a separate repository adoption decision and remains undecided.
+
+### Approved private repository file upload
+
+Private repositories use diff file upload instead of authenticated GitHub loading. Éclair has no backend; uploaded files are processed in the browser.
+
+The uploaded file must contain the extra GitHub metadata unavailable in this mode, including the pull request title, description, repository and pull request link, and revision-specific source links. The review must not depend on fetching private GitHub metadata. The exact file contract and the mechanism for supplying this metadata during generation remain to be designed.
+
+Private repository support is included through upload, not excluded or deferred. This qualifies the previously recorded link-based review path. The user approved revising the PRD and solution exploration to distinguish public GitHub loading from private file upload. Both documents now include that distinction; the revised PRD awaits review before architecture resumes.
 
 ## 3. Component design
 

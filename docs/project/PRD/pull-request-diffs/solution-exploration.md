@@ -80,6 +80,8 @@ The experience is designed to help a reviewer answer three questions:
 2. Has the change damaged the domain model?
 3. What code proves it?
 
+The approved review has two access paths. Public repositories use a link identifying the repository and pull request ID; Éclair retrieves the generated diff through GitHub using the agreed file convention. Private repositories use file upload instead of authenticated GitHub loading. Éclair has no backend, so uploaded files are processed in the browser. The uploaded file contains the extra GitHub metadata unavailable in this mode: repository and pull request identity and link, pull request title and description, and revision-specific source links. Displaying the uploaded review does not depend on fetching private GitHub metadata.
+
 The Éclair page begins with real pull request context. It shows one link identifying the repository and pull request, the real pull request title, and a pull request description which is collapsed by default.
 
 A global summary follows the GitHub diff convention. It keeps concise headline totals for changed subdomains, changed packages, and affected aggregates. Beneath those totals, one table is grouped by subdomain with columns for status, affected aggregates, additions, and removals. Each subdomain row names its affected aggregates and shows changes inside its `use-cases`, `domain-model`, and `published-language` packages where present. Published language remains immediately visible because it is a contract exposed to other subdomains. The headline numbers remain concise; their detail belongs in the table below.
@@ -124,6 +126,14 @@ The baseline may evolve, but its approved content hierarchy, ownership distincti
 7. The reviewer opens only the relevant subdomain, architecture layer, change direction, package, use case, aggregate, or supporting group.
 8. The reviewer follows exact base or head source links to inspect the code which proves each important architecture fact.
 9. The reviewer uses the complete GitHub code diff for the full implementation review and decides whether the pull request should be merged.
+
+### Private repository upload path
+
+1. The reviewer obtains a generated diff file containing the comparison and required GitHub metadata.
+2. The reviewer selects the file in Éclair; it is processed in the browser.
+3. Éclair presents the same approved review hierarchy, pull request context, and revision-specific source links without fetching private GitHub metadata.
+
+The exact file contract and mechanism for supplying metadata during generation remain architecture decisions.
 
 ### Unhappy paths
 
