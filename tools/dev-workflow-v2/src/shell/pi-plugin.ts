@@ -2,7 +2,10 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
-import { createPiWorkflowExtension } from '@nt-ai-lab/deterministic-agent-workflow-pi'
+import {
+  createPiWorkflowExtension,
+  PI_IDLE_RECOVERY_MESSAGE,
+} from '@nt-ai-lab/deterministic-agent-workflow-pi'
 import { defineWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
 import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
 import { createWorkflowPullRequestCreator } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-creator'
@@ -40,6 +43,17 @@ const bashForbidden = {
 }
 const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const workflowCommand = 'dev-workflow-v2:workflow'
+const STOP_MESSAGE_SUFFIX = ' If you are blocked, switch to the `BLOCKED` state.'
+
+function appendStopMessageSuffix(pi: ExtensionAPI): void {
+  const sendUserMessage = pi.sendUserMessage.bind(pi)
+  pi.sendUserMessage = (message, options) =>
+    sendUserMessage(
+      message === PI_IDLE_RECOVERY_MESSAGE ? `${message}${STOP_MESSAGE_SUFFIX}` : message,
+      options,
+    )
+}
+
 class InvalidSleepDurationError extends Error {
   constructor() {
     super('sleepMs requires a finite non-negative number')
@@ -110,6 +124,7 @@ const workflowExtension = createPiWorkflowExtension({
 
 /** @riviere-role main */
 export default (pi: ExtensionAPI): void => {
+  appendStopMessageSuffix(pi)
   void workflowExtension(pi)
   registerPiCommands(pi)
 }

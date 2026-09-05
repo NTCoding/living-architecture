@@ -6,6 +6,8 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@nt-ai-lab/deterministic-agent-workflow-pi', () => ({
+  PI_IDLE_RECOVERY_MESSAGE:
+    'You have stopped. You should never stop until the workflow is complete unless your current state permits stopping.',
   createPiWorkflowExtension: () => () => undefined,
 }))
 
@@ -47,16 +49,28 @@ describe('plugin Agent Skills', () => {
     function sendUserMessage(...argumentsList: Parameters<ExtensionAPI['sendUserMessage']>): void {
       sentMessages(...argumentsList)
     }
-    const pi = Object.create({
+    const pi: ExtensionAPI = Object.create({
       registerCommand,
       sendUserMessage,
     })
     const extension = (await import('./pi-plugin')).default
 
     extension(pi)
+    pi.sendUserMessage(
+      'You have stopped. You should never stop until the workflow is complete unless your current state permits stopping.',
+    )
+
+    expect(sentMessages).toHaveBeenNthCalledWith(
+      1,
+      'You have stopped. You should never stop until the workflow is complete unless your current state permits stopping. If you are blocked, switch to the `BLOCKED` state.',
+      undefined,
+    )
+    sentMessages.mockClear()
 
     expect({
-      extension: packageManifest.includes('"extensions": ["./src/shell/pi-plugin.ts"]'),
+      extension:
+        packageManifest.includes('"extensions"') &&
+        packageManifest.includes('./src/shell/pi-plugin.ts'),
       projectPackage: piProjectSettings.includes('"../tools/dev-workflow-v2"'),
       codexSkillsExcluded: !packageManifest.includes('"skills"'),
       commands: [...registeredCommands.keys()],

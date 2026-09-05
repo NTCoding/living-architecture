@@ -201,7 +201,7 @@ describe('PrepareImplementationBranch with Git', () => {
     const repository = createRepository()
     writeFileSync(join(repository.primary, 'dirty.txt'), 'dirty')
 
-    expect(() => prepare(repository.primary)).toThrowError(
+    expect(() => prepare(repository.primary)).toThrow(
       expect.objectContaining({ reason: 'dirty-checkout' }),
     )
     expect(runGit(repository.primary, ['rev-parse', '--abbrev-ref', 'HEAD'])).toBe('trunk')
@@ -211,7 +211,7 @@ describe('PrepareImplementationBranch with Git', () => {
     const repository = createRepository()
     runGit(repository.primary, ['switch', '--detach'])
 
-    expect(() => prepare(repository.primary)).toThrowError(
+    expect(() => prepare(repository.primary)).toThrow(
       expect.objectContaining({ reason: 'detached-head' }),
     )
   })
@@ -219,7 +219,7 @@ describe('PrepareImplementationBranch with Git', () => {
   it('rejects the remote default as the target without removing its upstream', () => {
     const repository = createRepository()
 
-    expect(() => prepare(repository.primary, 'trunk')).toThrowError(
+    expect(() => prepare(repository.primary, 'trunk')).toThrow(
       expect.objectContaining({ reason: 'target-branch-is-default' }),
     )
     expect(runGit(repository.primary, ['rev-parse', '--abbrev-ref', 'HEAD'])).toBe('trunk')
@@ -233,7 +233,7 @@ describe('PrepareImplementationBranch with Git', () => {
     runGit(repository.primary, ['switch', '--create', 'issue-42-example', 'origin/trunk'])
     commitFile(repository.primary, 'implementation.txt', 'implementation')
 
-    expect(() => prepare(repository.primary)).toThrowError(
+    expect(() => prepare(repository.primary)).toThrow(
       expect.objectContaining({ reason: 'target-branch-has-commits' }),
     )
   })
@@ -251,7 +251,7 @@ describe('PrepareImplementationBranch with Git', () => {
       'origin/trunk',
     ])
 
-    expect(() => prepare(repository.primary)).toThrowError(
+    expect(() => prepare(repository.primary)).toThrow(
       expect.objectContaining({ reason: 'target-branch-has-commits' }),
     )
   })
@@ -262,7 +262,7 @@ describe('PrepareImplementationBranch with Git', () => {
     commitFile(repository.source, 'remote.txt', 'remote')
     runGit(repository.source, ['push'])
 
-    expect(() => prepare(repository.primary)).toThrowError(
+    expect(() => prepare(repository.primary)).toThrow(
       expect.objectContaining({ reason: 'target-branch-is-stale' }),
     )
   })
@@ -275,7 +275,7 @@ describe('PrepareImplementationBranch with Git', () => {
     commitFile(repository.source, 'remote.txt', 'remote')
     runGit(repository.source, ['push'])
 
-    expect(() => prepare(repository.primary)).toThrowError(
+    expect(() => prepare(repository.primary)).toThrow(
       expect.objectContaining({ reason: 'target-branch-is-divergent' }),
     )
   })
@@ -286,7 +286,7 @@ describe('PrepareImplementationBranch with Git', () => {
     commitFile(repository.source, 'implementation.txt', 'implementation')
     runGit(repository.source, ['push', 'origin', 'issue-42-example'])
 
-    expect(() => prepare(repository.primary)).toThrowError(
+    expect(() => prepare(repository.primary)).toThrow(
       expect.objectContaining({ reason: 'target-branch-has-commits' }),
     )
     expect(runGit(repository.primary, ['branch', '--list', 'issue-42-example'])).toBe('')
@@ -330,7 +330,7 @@ describe('PrepareImplementationBranch with Git', () => {
       'origin/trunk',
     ])
 
-    expect(() => prepare(repository.primary)).toThrowError(
+    expect(() => prepare(repository.primary)).toThrow(
       expect.objectContaining({ reason: 'target-branch-is-in-another-worktree' }),
     )
   })
@@ -341,7 +341,7 @@ describe('PrepareImplementationBranch with Git', () => {
     const workspace = createImplementationBranchWorkspace(git)
     const command = new PrepareImplementationBranch(workspace)
 
-    expect(() => command.execute({ targetBranch: 'issue-42-example' })).toThrowError(
+    expect(() => command.execute({ targetBranch: 'issue-42-example' })).toThrow(
       /Git command failed: git check-ref-format --branch issue-42-example.*ENOENT/,
     )
   })
@@ -349,7 +349,7 @@ describe('PrepareImplementationBranch with Git', () => {
   it('reports invalid Git branch names before inspecting the checkout', () => {
     const repository = createRepository()
 
-    expect(() => prepare(repository.primary, 'invalid branch')).toThrowError(
+    expect(() => prepare(repository.primary, 'invalid branch')).toThrow(
       /check-ref-format --branch invalid branch/,
     )
   })
@@ -358,6 +358,6 @@ describe('PrepareImplementationBranch with Git', () => {
     const repository = createRepository()
     commitFile(repository.primary, 'local.txt', 'local')
 
-    expect(() => prepare(repository.primary)).toThrowError(ImplementationBranchPreparationError)
+    expect(() => prepare(repository.primary)).toThrow(ImplementationBranchPreparationError)
   })
 })

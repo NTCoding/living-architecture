@@ -47,13 +47,13 @@ describe('PreparatoryCheckout', () => {
         branch: { type: 'selected', name: 'trunk' },
         workingTree: 'dirty',
       }),
-    ).toThrowError(expect.objectContaining({ reason: 'dirty-checkout' }))
+    ).toThrow(expect.objectContaining({ reason: 'dirty-checkout' }))
   })
 
   it('rejects a detached checkout', () => {
     expect(() =>
       PreparatoryCheckout.from({ branch: { type: 'detached' }, workingTree: 'clean' }),
-    ).toThrowError(expect.objectContaining({ reason: 'detached-head' }))
+    ).toThrow(expect.objectContaining({ reason: 'detached-head' }))
   })
 })
 
@@ -93,14 +93,14 @@ describe('ImplementationBranchPreparation', () => {
     (relation) => {
       expect(() =>
         ImplementationBranchPreparation.from(cleanCheckout(), preparationFacts(relation)),
-      ).toThrowError(expect.objectContaining({ reason: 'current-branch-has-commits' }))
+      ).toThrow(expect.objectContaining({ reason: 'current-branch-has-commits' }))
     },
   )
 
   it('rejects the remote default as the target branch', () => {
     const facts = { ...preparationFacts(), targetBranchName: 'trunk' }
 
-    expect(() => ImplementationBranchPreparation.from(cleanCheckout(), facts)).toThrowError(
+    expect(() => ImplementationBranchPreparation.from(cleanCheckout(), facts)).toThrow(
       expect.objectContaining({ reason: 'target-branch-is-default' }),
     )
   })
@@ -156,7 +156,7 @@ describe('ImplementationBranchPreparation', () => {
         cleanCheckout('issue-42-example'),
         preparationFacts(relation),
       ),
-    ).toThrowError(expect.objectContaining({ reason }))
+    ).toThrow(expect.objectContaining({ reason }))
   })
 
   it('rejects a target checked out in another worktree', () => {
@@ -170,7 +170,7 @@ describe('ImplementationBranchPreparation', () => {
         cleanCheckout(),
         preparationFacts('at-default', targetBranch),
       ),
-    ).toThrowError(expect.objectContaining({ reason: 'target-branch-is-in-another-worktree' }))
+    ).toThrow(expect.objectContaining({ reason: 'target-branch-is-in-another-worktree' }))
   })
 
   it.each([
@@ -190,7 +190,7 @@ describe('ImplementationBranchPreparation', () => {
         cleanCheckout(),
         preparationFacts('at-default', targetBranch),
       ),
-    ).toThrowError(expect.objectContaining({ reason }))
+    ).toThrow(expect.objectContaining({ reason }))
   })
 
   it('selects an exact existing target and removes its default upstream', () => {
@@ -261,7 +261,7 @@ describe('ImplementationBranchPreparation', () => {
         cleanCheckout(),
         preparationFacts('at-default', { type: 'remote-only', relation }),
       ),
-    ).toThrowError(expect.objectContaining({ reason }))
+    ).toThrow(expect.objectContaining({ reason }))
   })
 
   it('rejects a remote target containing commits even when its local branch is exact', () => {
@@ -275,7 +275,7 @@ describe('ImplementationBranchPreparation', () => {
           upstream: { type: 'none' },
         }),
       ),
-    ).toThrowError(expect.objectContaining({ reason: 'target-branch-has-commits' }))
+    ).toThrow(expect.objectContaining({ reason: 'target-branch-has-commits' }))
   })
 
   it('rejects a remote target containing commits when its exact local branch is current', () => {
@@ -289,7 +289,7 @@ describe('ImplementationBranchPreparation', () => {
           upstream: { type: 'none' },
         }),
       ),
-    ).toThrowError(expect.objectContaining({ reason: 'target-branch-has-commits' }))
+    ).toThrow(expect.objectContaining({ reason: 'target-branch-has-commits' }))
   })
 
   it('rejects verification when the target branch was not selected', () => {
@@ -300,7 +300,7 @@ describe('ImplementationBranchPreparation', () => {
         branch: { type: 'selected', name: 'trunk' },
         commit: 'default-commit',
       }),
-    ).toThrowError(ImplementationBranchPreparationError)
+    ).toThrow(ImplementationBranchPreparationError)
   })
 
   it('rejects verification when the target commit differs from the remote default', () => {
@@ -311,7 +311,7 @@ describe('ImplementationBranchPreparation', () => {
         branch: { type: 'selected', name: 'issue-42-example' },
         commit: 'other-commit',
       }),
-    ).toThrowError(expect.objectContaining({ reason: 'verification-failed' }))
+    ).toThrow(expect.objectContaining({ reason: 'verification-failed' }))
   })
 
   it('rejects verification when checkout becomes detached', () => {
@@ -319,6 +319,6 @@ describe('ImplementationBranchPreparation', () => {
 
     expect(() =>
       preparation.verify({ branch: { type: 'detached' }, commit: 'default-commit' }),
-    ).toThrowError(expect.objectContaining({ reason: 'verification-failed' }))
+    ).toThrow(expect.objectContaining({ reason: 'verification-failed' }))
   })
 })
