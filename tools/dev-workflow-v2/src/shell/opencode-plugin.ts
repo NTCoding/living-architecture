@@ -59,35 +59,6 @@ const AGENT_NAMES = [
 ] as const
 
 const OPEN_CODE_WORKFLOW_COMMAND = 'dev-workflow-v2:workflow'
-const OPENCODE_IDLE_RECOVERY_MESSAGE =
-  'You have stopped. You should never stop until the workflow is complete unless your current state permits stopping.'
-const STOP_MESSAGE_SUFFIX = ' If you are blocked, switch to the `BLOCKED` state.'
-
-function appendStopMessageSuffix(
-  input: Parameters<typeof basePlugin>[0],
-): Parameters<typeof basePlugin>[0] {
-  const promptAsync = input.client.session.promptAsync
-
-  input.client.session.promptAsync = (options) => {
-    if (options.body === undefined) {
-      return promptAsync(options)
-    }
-
-    return promptAsync({
-      ...options,
-      body: {
-        ...options.body,
-        parts: options.body.parts.map((part) =>
-          part.type === 'text' && part.text === OPENCODE_IDLE_RECOVERY_MESSAGE
-            ? { ...part, text: `${part.text}${STOP_MESSAGE_SUFFIX}` }
-            : part,
-        ),
-      },
-    })
-  }
-
-  return input
-}
 
 const OPEN_CODE_WORKFLOW_TEMPLATE = [
   'Use the `workflow` tool.',
@@ -188,7 +159,7 @@ export default async (
   input: Parameters<typeof basePlugin>[0],
   options?: Parameters<typeof basePlugin>[1],
 ) => {
-  const hooks = await basePlugin(appendStopMessageSuffix(input), options)
+  const hooks = await basePlugin(input, options)
   const baseConfigHook = hooks.config
 
   return {
