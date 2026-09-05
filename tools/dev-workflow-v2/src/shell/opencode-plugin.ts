@@ -139,6 +139,7 @@ const basePlugin = createOpenCodeWorkflowPlugin<
 >({
   workflowDefinition,
   routes,
+  unknownCommandMessage: sharedWorkflowRuntime.unknownCommandMessage,
   bashForbidden,
   isWriteAllowed: workflowConfiguration.isWriteAllowed,
   pluginRoot,

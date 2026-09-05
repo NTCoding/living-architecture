@@ -28,11 +28,11 @@ describe('workflow-cli commands', () => {
     return ctx
   }
 
-  it('returns error for unknown command', () => {
+  it('returns configured error for unknown command', () => {
     const ctx = setup()
     const result = runCommand(ctx, ['bogus'])
     expect(result.exitCode).toStrictEqual(1)
-    expect(result.output).toContain('Unknown command: bogus')
+    expect(result.output).toStrictEqual('Unknown test workflow command.')
   })
 
   describe('init', () => {

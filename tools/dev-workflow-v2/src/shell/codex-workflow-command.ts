@@ -81,6 +81,7 @@ const getSessionTranscriptPath = () => {
 const result = createWorkflowRunner({
   workflowDefinition: runtime.workflowDefinition,
   routes: runtime.routes,
+  unknownCommandMessage: runtime.unknownCommandMessage,
   bashForbidden: runtime.bashForbidden,
   isWriteAllowed: runtime.isWriteAllowed,
 })([operation, ...args], engineDeps, runtime.buildWorkflowDeps(platform), {

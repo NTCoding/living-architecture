@@ -24,6 +24,7 @@ export const runner = createWorkflowRunner({
     parseOptionalStringArgument,
     parseStringArguments,
   }),
+  unknownCommandMessage: 'Unknown test workflow command.',
   bashForbidden: {
     commands: ['gh pr', 'git push'],
     flags: ['--no-verify', '--force', '--hard'],

@@ -94,6 +94,7 @@ function registerPiCommands(pi: ExtensionAPI): void {
 const workflowExtension = createPiWorkflowExtension({
   workflowDefinition,
   routes,
+  unknownCommandMessage: sharedWorkflowRuntime.unknownCommandMessage,
   bashForbidden,
   isWriteAllowed: workflowConfiguration.isWriteAllowed,
   pluginRoot,

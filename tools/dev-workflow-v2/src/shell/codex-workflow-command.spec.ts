@@ -9,6 +9,10 @@ import { describe, expect, it } from 'vitest'
 const shellDirectory = dirname(fileURLToPath(import.meta.url))
 const workflowCommandPath = join(shellDirectory, '../../dist/codex-workflow-command.js')
 const codexCliPath = join(shellDirectory, '../../dist/codex-cli.js')
+const unknownCommandMessage = [
+  '[dev-workflow-v2-automated-message]: Error: You tried to run a command that does not exist. STOP working immediately and switch to BLOCKED. Report this to the user along with a root cause analysis of why you tried to run a command that does not exist.',
+  'STOP and fix the workflow. It is broken. Do not attempt to create a workaround. YOU must immediately switch to blocked and stop.',
+].join('\n\n')
 
 describe('Codex workflow command', () => {
   it('loads the compiled workflow command without source resolution', () => {
@@ -19,6 +23,27 @@ describe('Codex workflow command', () => {
 
     expect(result.stderr).toContain('Codex workflow command requires <operation> [args]')
     expect(result.stderr).not.toContain('ERR_MODULE_NOT_FOUND')
+  })
+
+  it('returns the workflow recovery instructions when the operation does not exist', () => {
+    const home = mkdtempSync(join(tmpdir(), 'codex-workflow-command-'))
+    const result = spawnSync(process.execPath, [workflowCommandPath, 'missing-operation'], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        CODEX_THREAD_ID: 'test-session',
+        HOME: home,
+        NODE_OPTIONS: '',
+        WORKFLOW_EVENTS_DB: join(home, 'workflow-events.db'),
+      },
+    })
+
+    try {
+      expect(result.status).toBe(1)
+      expect(result.stdout).toBe(unknownCommandMessage)
+    } finally {
+      rmSync(home, { recursive: true, force: true })
+    }
   })
 
   it('provides stdin to reflection commands without patching the Codex package', () => {
