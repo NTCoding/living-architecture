@@ -8,20 +8,20 @@ Before submitting any PR that modifies files in `apps/docs/`.
 
 ## How It Works
 
-1. Read `apps/docs/CLAUDE.md` — this is the single source of truth for all rules
+1. Read `apps/docs/AGENTS.md` — this is the single source of truth for all rules
 2. Identify changed docs files: `git diff main --name-only -- apps/docs/`
 3. Spawn **parallel subagents by review dimension** (not per-file — each subagent reviews ALL changed files through its lens)
 
 ## Subagents
 
-Spawn these subagents in parallel. Each receives the list of ALL changed files, the full description of the current tasks, and reads `apps/docs/CLAUDE.md` for the rules.
+Spawn these subagents in parallel. Each receives the list of ALL changed files, the full description of the current tasks, and reads `apps/docs/AGENTS.md` for the rules.
 
 ### 1. User Journey Review
 
 Checks whether changed pages fit coherently into user journeys.
 
 ```text
-Read apps/docs/CLAUDE.md for the user journey definitions.
+Read apps/docs/AGENTS.md for the user journey definitions.
 Read apps/docs/.vitepress/config.ts for the sidebar structure.
 
 For ALL changed docs files: [list paths]
@@ -43,12 +43,12 @@ Report each finding with the specific page and journey affected.
 Checks whether pages match the established format for their type.
 
 ```text
-Read apps/docs/CLAUDE.md for the page format rules.
+Read apps/docs/AGENTS.md for the page format rules.
 
 For ALL changed docs files: [list paths]
 
 For each file, determine its type (reference, workflow step, overview/index)
-and compare against the canonical format in CLAUDE.md:
+and compare against the canonical format in AGENTS.md:
 - Reference pages: compare against apps/docs/reference/extraction-config/predicates.md
 - Workflow pages: compare against apps/docs/extract/deterministic/typescript/workflow/step-1-understand.md
 - Overview pages: compare against apps/docs/extract/index.md
@@ -64,7 +64,7 @@ Report each deviation with the specific file, line, and what the format should b
 Checks for invented terms, broken links, and factual errors.
 
 ```text
-Read apps/docs/CLAUDE.md for terminology rules.
+Read apps/docs/AGENTS.md for terminology rules.
 Read docs/architecture/domain-terminology/contextive/definitions.glossary.yml for valid terms.
 
 For ALL changed docs files: [list paths]

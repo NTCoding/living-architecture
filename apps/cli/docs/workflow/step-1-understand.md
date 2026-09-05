@@ -14,7 +14,7 @@ Analyze this codebase to understand its structure, conventions, and domain bound
 Check these locations in order:
 
 1. **AI instruction files** (highest signal)
-   - `CLAUDE.md`, `claude.md` in root and subdirectories
+   - `AGENTS.md`, `claude.md` in root and subdirectories
    - `AGENTS.md`, `agents.md`
 
 2. **Documentation**

@@ -403,7 +403,7 @@ Documentation should show version:
 - [ ] **Apps scaffolds** — Empty `apps/eclair`, `apps/docs` placeholders
 - [ ] **Production README** — Go-live quality README at root (see Section 4)
 - [ ] **CI/CD** — GitHub Actions for lint, test, build
-- [ ] **CLAUDE.md** — Monorepo commands, POC references, PRD organization
+- [ ] **AGENTS.md** — Monorepo commands, POC references, PRD organization
 - [ ] **Convention docs** — `docs/conventions/` from skill templates
 - [ ] **Documentation site** — Set up VitePress in `apps/docs`, migrate content from `~/code/riviere/riviere/client/docs/`
 
@@ -430,7 +430,7 @@ Documentation should show version:
 - [ ] Production README in place
 - [ ] Documentation site structure in place (content can be placeholder)
 - [ ] Existing functionality preserved (nothing breaks)
-- [ ] CLAUDE.md updated with new commands and structure
+- [ ] AGENTS.md updated with new commands and structure
 
 ## 9. Migration Guide (Fresh Repository)
 
@@ -450,7 +450,7 @@ Once the new repository is set up:
 1. **Create GitHub repo:** `living-architecture`
 2. **Clone locally**
 3. **Run NX-adapted typescript-backend-project-setup skill**
-4. Skill handles: NX init, package scaffold, configs, CLAUDE.md, hooks, CI/CD
+4. Skill handles: NX init, package scaffold, configs, AGENTS.md, hooks, CI/CD
 
 ### Phase 4.2: Project Scaffold
 
@@ -491,7 +491,7 @@ Following the TypeScript Backend Project Setup skill, configure:
 
 Create following the skill pattern:
 
-**CLAUDE.md** (adapted for monorepo):
+**AGENTS.md** (adapted for monorepo):
 ```markdown
 # Living Architecture
 
@@ -575,7 +575,7 @@ Follow `docs/conventions/software-design.md`.
 ```markdown
 # AGENTS.md
 
-Read and follow all instructions in `CLAUDE.md`.
+Read and follow all instructions in `AGENTS.md`.
 ```
 
 **.claude/settings.json:**
@@ -626,7 +626,7 @@ docs/
 - `riviere/poc/client/` — POC code (will rewrite in Phase 5/6)
 - `riviere/client/` — Old client structure
 - Old `node_modules`, `dist`, build artifacts
-- Old CLAUDE.md, package.json, configs
+- Old AGENTS.md, package.json, configs
 
 **Rewrite from scratch:**
 - Query package (Phase 5)
@@ -653,7 +653,7 @@ Create the production-ready README (see Section 4 of this PRD).
 - [ ] `nx run-many -t lint` passes
 - [ ] Schema validates correctly
 - [ ] Example graphs validate against schema
-- [ ] CLAUDE.md complete and accurate
+- [ ] AGENTS.md complete and accurate
 - [ ] All convention docs in place
 - [ ] CI pipeline green
 

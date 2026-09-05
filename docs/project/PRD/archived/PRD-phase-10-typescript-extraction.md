@@ -185,7 +185,7 @@ Draft components as JSON. Not a valid Riviere graph (no connections). Implementa
   - JSON Schema defining the DSL
   - Validates: modules, paths, component types, find targets, predicates
   - All 6 standard component types required (can be `notUsed`)
-  - Package CLAUDE.md with principles
+  - Package AGENTS.md with principles
   - Acceptance: Invalid configs rejected with clear errors
   - Verification: Unit tests for valid/invalid configs, 100% coverage
 
@@ -196,7 +196,7 @@ Draft components as JSON. Not a valid Riviere graph (no connections). Implementa
 **Deliverables:**
 - **D2.1:** `riviere-extract-conventions` package created
   - Decorators: `@API`, `@UseCase`, `@DomainOp`, `@Event`, `@EventHandler`, `@UI`
-  - Package CLAUDE.md with principles
+  - Package AGENTS.md with principles
   - Acceptance: Decorators can be applied to classes/methods
   - Verification: Unit tests, 100% coverage
 
@@ -225,7 +225,7 @@ Draft components as JSON. Not a valid Riviere graph (no connections). Implementa
 - **D3.1:** `riviere-extract-ts` package created
   - Uses ts-morph for AST parsing
   - Reads config file
-  - Package CLAUDE.md with principles
+  - Package AGENTS.md with principles
   - Acceptance: Package builds and exports extractor
   - Verification: Package compiles
 
@@ -270,9 +270,9 @@ Draft components as JSON. Not a valid Riviere graph (no connections). Implementa
   - Acceptance: Command documented with examples
   - Verification: Docs exist
 
-- **D4.4:** Root CLAUDE.md updated
+- **D4.4:** Root AGENTS.md updated
   - New packages added to package list
-  - Acceptance: CLAUDE.md is current
+  - Acceptance: AGENTS.md is current
   - Verification: Review file
 
 ---
