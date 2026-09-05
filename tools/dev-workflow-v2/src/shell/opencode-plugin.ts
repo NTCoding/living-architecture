@@ -20,7 +20,6 @@ import {
   parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
-
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
@@ -142,6 +141,7 @@ const basePlugin = createOpenCodeWorkflowPlugin<
   pluginRoot,
   commandDirectories: [join(pluginRoot, 'commands')],
   commandPrefix: 'dev-workflow-v2:',
+  stopPreventionMessage: ' If you are blocked, switch to the `BLOCKED` state.',
   buildWorkflowDeps: (platform) => ({
     getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),
     getPrFeedback: createWorkflowPullRequestFeedbackReader(

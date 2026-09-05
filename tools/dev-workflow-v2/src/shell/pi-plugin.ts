@@ -96,6 +96,7 @@ const workflowExtension = createPiWorkflowExtension({
   isWriteAllowed: workflowConfiguration.isWriteAllowed,
   pluginRoot,
   commandName: workflowCommand,
+  stopPreventionMessage: ' If you are blocked, switch to the `BLOCKED` state.',
   buildWorkflowDeps: (platform) => ({
     getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),
     getPrFeedback: createWorkflowPullRequestFeedbackReader(
