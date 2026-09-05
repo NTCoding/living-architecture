@@ -40,6 +40,19 @@ const bashForbidden = {
 }
 const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const workflowCommand = 'dev-workflow-v2:workflow'
+const PI_IDLE_RECOVERY_MESSAGE =
+  'You have stopped. You should never stop until the workflow is complete unless your current state permits stopping.'
+const STOP_MESSAGE_SUFFIX = ' If you are blocked, switch to the `BLOCKED` state.'
+
+function appendStopMessageSuffix(pi: ExtensionAPI): void {
+  const sendUserMessage = pi.sendUserMessage.bind(pi)
+  pi.sendUserMessage = (message, options) =>
+    sendUserMessage(
+      message === PI_IDLE_RECOVERY_MESSAGE ? `${message}${STOP_MESSAGE_SUFFIX}` : message,
+      options,
+    )
+}
+
 class InvalidSleepDurationError extends Error {
   constructor() {
     super('sleepMs requires a finite non-negative number')
@@ -110,6 +123,7 @@ const workflowExtension = createPiWorkflowExtension({
 
 /** @riviere-role main */
 export default (pi: ExtensionAPI): void => {
+  appendStopMessageSuffix(pi)
   void workflowExtension(pi)
   registerPiCommands(pi)
 }
