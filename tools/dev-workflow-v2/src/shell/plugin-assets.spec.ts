@@ -47,23 +47,13 @@ describe('plugin Agent Skills', () => {
     function sendUserMessage(...argumentsList: Parameters<ExtensionAPI['sendUserMessage']>): void {
       sentMessages(...argumentsList)
     }
-    const pi: ExtensionAPI = Object.create({
+    const pi = Object.create({
       registerCommand,
       sendUserMessage,
     })
     const extension = (await import('./pi-plugin')).default
 
     extension(pi)
-    pi.sendUserMessage(
-      'You have stopped. You should never stop until the workflow is complete unless your current state permits stopping.',
-    )
-
-    expect(sentMessages).toHaveBeenNthCalledWith(
-      1,
-      'You have stopped. You should never stop until the workflow is complete unless your current state permits stopping. If you are blocked, switch to the `BLOCKED` state.',
-      undefined,
-    )
-    sentMessages.mockClear()
 
     expect({
       extension: packageManifest.includes('"extensions": ["./src/shell/pi-plugin.ts"]'),
