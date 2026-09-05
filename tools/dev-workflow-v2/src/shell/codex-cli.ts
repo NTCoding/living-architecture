@@ -32,6 +32,7 @@ const processDeps = {
 createCodexWorkflowCli({
   workflowDefinition: runtime.workflowDefinition,
   routes: runtime.routes,
+  unknownCommandMessage: runtime.unknownCommandMessage,
   bashForbidden: runtime.bashForbidden,
   isWriteAllowed: runtime.isWriteAllowed,
   workflowCommand,

@@ -61,6 +61,7 @@ function sleepMs(ms: number): void {
 createClaudeCodeWorkflowCli({
   workflowDefinition,
   routes,
+  unknownCommandMessage: sharedWorkflowRuntime.unknownCommandMessage,
   bashForbidden,
   isWriteAllowed: workflowConfiguration.isWriteAllowed,
   processDeps: createDefaultProcessDeps(),

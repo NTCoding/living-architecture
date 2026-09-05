@@ -40,6 +40,10 @@ const bashForbidden = {
   flags: ['--no-verify', '--force', '--hard'],
 }
 const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
+const unknownCommandMessage = [
+  '[dev-workflow-v2-automated-message]: Error: You tried to run a command that does not exist. STOP working immediately and switch to BLOCKED. Report this to the user along with a root cause analysis of why you tried to run a command that does not exist.',
+  'STOP and fix the workflow. It is broken. Do not attempt to create a workaround. YOU must immediately switch to blocked and stop.',
+].join('\n\n')
 
 class InvalidSleepDurationError extends Error {
   constructor() {
@@ -78,6 +82,7 @@ export function createWorkflowCliRuntime() {
     isWriteAllowed: workflowConfiguration.isWriteAllowed,
     workflowRoot,
     processDeps: createDefaultProcessDeps(),
+    unknownCommandMessage,
     stopPreventionMessage:
       '[dev-workflow-v2-automated-response] If you are blocked, switch to the `BLOCKED` state.',
     buildWorkflowDeps,
