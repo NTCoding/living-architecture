@@ -19,7 +19,7 @@ describe('GitBranchClient', () => {
     )
     const git = createGitBranchClient('/repository', executeGit)
 
-    expect(() => git.refreshRemoteDefaultBranch()).toThrow(
+    expect(() => git.refreshRemoteDefaultBranch()).toThrowError(
       'Expected origin HEAD to identify one branch. Got: 123456\tHEAD',
     )
   })
@@ -28,7 +28,7 @@ describe('GitBranchClient', () => {
     const executeGit: GitProcessExecutor = vi.fn(() => result('', 2, 'lookup failed'))
     const git = createGitBranchClient('/repository', executeGit)
 
-    expect(() => git.branchExists('issue-42-example')).toThrow(
+    expect(() => git.branchExists('issue-42-example')).toThrowError(
       'Git command failed while checking branch issue-42-example. lookup failed',
     )
   })
@@ -42,7 +42,7 @@ describe('GitBranchClient', () => {
     )
     const git = createGitBranchClient('/repository', executeGit)
 
-    expect(() => git.branchCheckout('issue-42-example')).toThrow(
+    expect(() => git.branchCheckout('issue-42-example')).toThrowError(
       'Expected worktree path for branch refs/heads/issue-42-example.',
     )
   })
