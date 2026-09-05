@@ -85,8 +85,7 @@ export function workflow(stages = stagesFor(configuration())): Workflow {
 
 export function stagesFor(config: ExtractionConfiguration) {
   return [
-    WorkflowStage.fromExtraction('extract', config),
-    WorkflowStage.fromLink('link', config),
-    WorkflowStage.fromValidation('validate'),
+    WorkflowStage.fromCodeExtraction('extract', config.resolvedConfig),
+    WorkflowStage.fromSchemaValidation('validate'),
   ]
 }

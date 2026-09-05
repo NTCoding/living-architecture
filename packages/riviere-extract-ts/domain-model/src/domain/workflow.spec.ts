@@ -1,392 +1,357 @@
-import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
+import type {
+  AiEnrichConfig,
+  AiExtractConfig,
+  AsyncApiImportConfig,
+  EventCatalogImportConfig,
+} from '@living-architecture/riviere-extract-config-published-language'
 import { assert, describe, expect, it, vi } from 'vitest'
-import { ConnectionDetectionResult } from './connection-detection/connection-detection-result'
-import { ExtractedLink } from './connection-detection/extracted-link'
 import { TestFixtureError } from './value-extraction/literal-detection'
-import { Workflow } from './workflow'
-import {
-  builder,
-  component,
-  configuration,
-  stagesFor,
-  workflow,
-} from './__fixtures__/workflow-fixtures'
+import { Workflow, WorkflowRunMode } from './workflow'
+import { WorkflowDiagnostic } from './workflow-diagnostic'
 import { WorkflowStage } from './workflow-stage'
+import { builder, configuration } from './__fixtures__/workflow-fixtures'
 
-describe('Workflow definition', () => {
-  it('owns its identity, paths, ready state and configurations', () => {
-    const config = configuration()
-    const subject = workflow(stagesFor(config))
+const codeExtractionConfig = configuration().resolvedConfig
+const eventCatalogConfig: EventCatalogImportConfig = {
+  source: 'eventcatalog',
+  mappings: 'eventcatalog-mappings.yaml',
+  allowUnmapped: false,
+}
+const asyncApiConfig: AsyncApiImportConfig = {
+  source: 'asyncapi.yaml',
+  mappings: 'asyncapi-mappings.yaml',
+  allowUnmapped: false,
+}
+const aiExtractConfig: AiExtractConfig = {
+  command: 'claude',
+  args: ['-p'],
+  timeoutSeconds: 60,
+  sources: ['src'],
+  selection: { from: ['missing-events'], componentTypes: ['Event'] },
+  outputs: { addComponents: true, addLinks: true },
+  context: { exclude: ['**/*.spec.ts'], maxFilesPerBatch: 10, maxBatches: 2 },
+}
+const aiEnrichConfig: AiEnrichConfig = {
+  command: 'claude',
+  args: ['-p'],
+  timeoutSeconds: 60,
+  sources: ['src'],
+  selection: { componentTypes: ['Event'], missingFieldsOnly: true },
+  fields: ['eventName'],
+  context: { exclude: ['**/*.spec.ts'], maxFilesPerComponent: 10 },
+}
+
+function allStages() {
+  return [
+    WorkflowStage.fromCodeExtraction('extract-code', codeExtractionConfig),
+    WorkflowStage.fromEventCatalogImport('import-eventcatalog', eventCatalogConfig),
+    WorkflowStage.fromAsyncApiImport('import-asyncapi', asyncApiConfig),
+    WorkflowStage.fromAiExtract('discover-gaps', aiExtractConfig),
+    WorkflowStage.fromAiEnrich('enrich-metadata', aiEnrichConfig),
+    WorkflowStage.fromSchemaValidation('validate'),
+  ]
+}
+
+function workflow(stages = allStages()): Workflow {
+  const result = Workflow.start({
+    name: 'build-graph',
+    outputPath: '.riviere/graph.json',
+    runLogDirectory: '.riviere/logs',
+    stages,
+  })
+  assert(result.success)
+  return result.data
+}
+
+const successfulStage = {
+  success: true,
+  diagnostics: [],
+  warnings: [],
+} as const
+
+describe('Workflow stage language', () => {
+  it('retains every closed stage variant and its typed configuration', () => {
+    const subject = workflow()
 
     expect({
-      name: subject.name(),
-      outputPath: subject.outputPath(),
-      runLogDirectory: subject.runLogDirectory(),
-      status: subject.status(),
-      configurations: subject.configurations(),
+      stages: allStages().map((stage) => stage.value),
+      extractionConfigurations: subject.configurations(),
     }).toStrictEqual({
-      name: 'build-graph',
-      outputPath: '.riviere/graph.json',
-      runLogDirectory: '.riviere/logs/workflows',
-      status: 'ready',
-      configurations: [config, config],
-    })
-  })
-
-  it('rejects invalid identity, duplicate stage names and invalid stage order', () => {
-    const config = configuration()
-    const invalidName = Workflow.start({
-      name: 'Build Graph',
-      outputPath: 'graph.json',
-      runLogDirectory: 'logs',
-      stages: stagesFor(config),
-    })
-    const duplicate = Workflow.start({
-      name: 'build-graph',
-      outputPath: 'graph.json',
-      runLogDirectory: 'logs',
       stages: [
-        WorkflowStage.fromExtraction('same', config),
-        WorkflowStage.fromLink('same', config),
-        WorkflowStage.fromValidation('validate'),
+        { kind: 'code-extraction', name: 'extract-code', config: codeExtractionConfig },
+        { kind: 'eventcatalog-import', name: 'import-eventcatalog', config: eventCatalogConfig },
+        { kind: 'asyncapi-import', name: 'import-asyncapi', config: asyncApiConfig },
+        { kind: 'ai-extract', name: 'discover-gaps', config: aiExtractConfig },
+        { kind: 'ai-enrich', name: 'enrich-metadata', config: aiEnrichConfig },
+        { kind: 'schema-validate', name: 'validate' },
       ],
+      extractionConfigurations: [codeExtractionConfig],
     })
-    const invalidOrder = Workflow.start({
-      name: 'build-graph',
-      outputPath: 'graph.json',
-      runLogDirectory: 'logs',
-      stages: [
-        WorkflowStage.fromLink('link', config),
-        WorkflowStage.fromExtraction('extract', config),
-        WorkflowStage.fromValidation('validate'),
-      ],
-    })
-
-    assert(!invalidName.success)
-    assert(!duplicate.success)
-    assert(!invalidOrder.success)
-    expect(invalidName.error.code).toBe('INVALID_WORKFLOW_NAME')
-    expect(duplicate.error).toMatchObject({
-      code: 'DUPLICATE_STAGE_NAME',
-      message: "Duplicate workflow stage name 'same'",
-    })
-    expect(invalidOrder.error.code).toBe('INVALID_STAGE_ORDER')
-  })
-
-  it('rejects validate before link', () => {
-    const config = configuration()
-    const invalidOrder = Workflow.start({
-      name: 'build-graph',
-      outputPath: 'graph.json',
-      runLogDirectory: 'logs',
-      stages: [
-        WorkflowStage.fromExtraction('extract', config),
-        WorkflowStage.fromValidation('validate'),
-        WorkflowStage.fromLink('link', config),
-      ],
-    })
-
-    assert(!invalidOrder.success)
-    expect(invalidOrder.error.code).toBe('INVALID_STAGE_ORDER')
   })
 })
 
-describe('Workflow.run', () => {
-  it('applies all component types, links and warnings in stage order', () => {
-    const config = configuration('scheduledJob')
-    const subject = workflow(stagesFor(config))
-    const graphBuilder = builder()
-    const components = [
-      component('ui', 'Orders page', { route: '/orders' }),
-      component('api', 'Orders API', { apiType: 'REST', method: 'GET', route: '/orders' }),
-      component('useCase', 'Place order'),
-      component('domainOp', 'Create order', { operationName: 'createOrder' }),
-      component('event', 'Order placed', { eventName: 'OrderPlaced' }),
-      component('eventHandler', 'Notify customer', { subscribedEvents: ['OrderPlaced'] }),
-      component('scheduledJob', 'Expire orders', { schedule: 'daily' }),
-    ]
+describe('Workflow active stage plan', () => {
+  it.each([
+    [
+      'run',
+      [
+        'code-extraction',
+        'eventcatalog-import',
+        'asyncapi-import',
+        'ai-extract',
+        'ai-enrich',
+        'schema-validate',
+      ],
+    ],
+    [
+      'dry-run',
+      [
+        'code-extraction',
+        'eventcatalog-import',
+        'asyncapi-import',
+        'ai-extract',
+        'ai-enrich',
+        'schema-validate',
+      ],
+    ],
+    ['skip-ai', ['code-extraction', 'eventcatalog-import', 'asyncapi-import', 'schema-validate']],
+  ] as const)('executes the expected stages in %s mode', (mode, expectedKinds) => {
+    const executedKinds: string[] = []
 
-    const result = subject.run(graphBuilder, (stage, accumulated) => {
-      if (stage.kind === 'extract') {
-        return { success: true, kind: 'components', components, repository: 'shop' }
-      }
-      expect(accumulated).toStrictEqual(components)
-      const graph = graphBuilder.build()
-      const source = graph.components[0]
-      const target = graph.components[1]
-      assert(source)
-      assert(target)
-      return {
-        success: true,
-        kind: 'connections',
-        connections: ConnectionDetectionResult.parse({
-          links: [
-            ExtractedLink.parse({
-              source: source.id,
-              target: target.id,
-              type: 'sync',
-              sourceLocation: { repository: 'shop', filePath: 'orders.ts', lineNumber: 4 },
+    const result = workflow().run(builder(), WorkflowRunMode.from(mode), (stage) => {
+      executedKinds.push(stage.kind)
+      return successfulStage
+    })
+
+    expect(result.value.success).toBe(true)
+    expect(executedKinds).toStrictEqual(expectedKinds)
+  })
+})
+
+describe('Workflow transition snapshots', () => {
+  it('records initial and completed accumulated state after diagnostics are recorded', () => {
+    const graphBuilder = builder()
+    const subject = workflow([
+      WorkflowStage.fromEventCatalogImport('first', eventCatalogConfig),
+      WorkflowStage.fromAsyncApiImport('second', asyncApiConfig),
+    ])
+
+    const result = subject.run(graphBuilder, WorkflowRunMode.from('run'), (stage) => {
+      if (stage.kind === 'eventcatalog-import') {
+        graphBuilder.addUseCase({
+          name: 'Place order',
+          domain: 'orders',
+          module: 'checkout',
+          sourceLocation: { repository: 'shop', filePath: 'orders.ts' },
+        })
+        return {
+          success: true,
+          diagnostics: [
+            WorkflowDiagnostic.fromMissingField('place-order', 'description'),
+            WorkflowDiagnostic.fromUncertainLink({
+              source: 'place-order',
+              target: 'create-order',
+              sourceLocation: { repository: 'shop', filePath: 'orders.ts' },
             }),
-            ExtractedLink.parse({ source: target.id, target: source.id }),
+            WorkflowDiagnostic.fromUncertainLink({
+              source: 'place-order',
+              target: 'send-confirmation',
+            }),
           ],
-          externalLinks: [
-            {
-              source: source.id,
-              target: { name: 'Payments API', repository: 'payments' },
-              type: 'sync',
-              description: 'Charges the order',
-              sourceLocation: { repository: 'shop', filePath: 'orders.ts', lineNumber: 5 },
-            },
-            {
-              source: source.id,
-              target: { name: 'Payments API', repository: 'payments' },
-              type: 'sync',
-            },
-            {
-              source: target.id,
-              target: { name: 'Search API' },
-            },
-          ],
-        }),
-      }
-    })
-
-    assert(result.success)
-    expect(graphBuilder.build()).toMatchObject({
-      components: expect.arrayContaining([
-        expect.objectContaining({ type: 'UI' }),
-        expect.objectContaining({ type: 'API' }),
-        expect.objectContaining({ type: 'UseCase' }),
-        expect.objectContaining({ type: 'DomainOp' }),
-        expect.objectContaining({ type: 'Event' }),
-        expect.objectContaining({ type: 'EventHandler' }),
-        expect.objectContaining({ type: 'Custom', customTypeName: 'scheduledJob' }),
-      ]),
-      links: expect.arrayContaining([expect.objectContaining({ type: 'sync' })]),
-      externalLinks: expect.arrayContaining([
-        expect.objectContaining({ description: 'Charges the order' }),
-      ]),
-    })
-    expect(result.warnings).toStrictEqual([
-      expect.objectContaining({ code: 'DUPLICATE_LINK_SKIPPED' }),
-    ])
-    expect({
-      eventTypes: result.events.map((event) => event.type),
-      firstStage: result.events[1],
-      status: subject.status(),
-    }).toMatchObject({
-      eventTypes: [
-        'WorkflowStarted',
-        'StageStarted',
-        'StageCompleted',
-        'StageStarted',
-        'StageCompleted',
-        'StageStarted',
-        'StageCompleted',
-        'WorkflowCompleted',
-      ],
-      firstStage: { stageName: 'extract', stageType: 'extract', stageIndex: 0 },
-      status: 'completed',
-    })
-  })
-
-  it('records scalar overwrite diagnostics and resets run state', () => {
-    const config = configuration()
-    const subject = workflow([
-      WorkflowStage.fromExtraction('first', config),
-      WorkflowStage.fromExtraction('second', config),
-      WorkflowStage.fromLink('link', config),
-      WorkflowStage.fromValidation('validate'),
-    ])
-    const graphBuilder = builder()
-    const execute: Parameters<Workflow['run']>[1] = (stage) => {
-      if (stage.kind === 'link') {
-        return {
-          success: true as const,
-          kind: 'connections' as const,
-          connections: ConnectionDetectionResult.parse({ links: [], externalLinks: [] }),
+          warnings: [],
         }
       }
-      const description = stage.name === 'first' ? 'First' : 'Second'
-      const components = [component('useCase', 'Place order', { description })]
-      return {
-        success: true as const,
-        kind: 'components' as const,
-        components,
-        repository: 'shop',
-      }
-    }
+      const source = graphBuilder.components().find((component) => component.name === 'Place order')
+      assert(source)
+      const target = graphBuilder.addDomainOp({
+        name: 'Create order',
+        operationName: 'createOrder',
+        domain: 'orders',
+        module: 'checkout',
+        sourceLocation: { repository: 'shop', filePath: 'order.ts' },
+      })
+      graphBuilder.link({ from: source.id, to: target.id, type: 'sync' })
+      graphBuilder.linkExternal({
+        from: target.id,
+        target: { name: 'Payments API', repository: 'payments' },
+        type: 'async',
+      })
+      return successfulStage
+    })
 
-    const first = subject.run(graphBuilder, execute)
-    assert(first.success)
-    expect(first.warnings).toStrictEqual([expect.objectContaining({ code: 'SCALAR_OVERWRITE' })])
-
-    const second = subject.run(graphBuilder.fresh(), execute)
-    assert(second.success)
-    expect(second.events).toHaveLength(10)
-  })
-
-  it('passes components from every extraction stage to the link stage', () => {
-    const config = configuration()
-    const subject = workflow([
-      WorkflowStage.fromExtraction('extract-orders', config),
-      WorkflowStage.fromExtraction('extract-shipping', config),
-      WorkflowStage.fromLink('link', config),
-      WorkflowStage.fromValidation('validate'),
+    assert(result.value.success)
+    graphBuilder.addEvent({
+      name: 'Added after run',
+      eventName: 'AddedAfterRun',
+      domain: 'orders',
+      module: 'checkout',
+      sourceLocation: { repository: 'shop', filePath: 'later.ts' },
+    })
+    const transitions = result.value.transitions.map((transition) => transition.value)
+    expect(transitions.map((transition) => transition.kind)).toStrictEqual([
+      'initial',
+      'stage-completed',
+      'stage-completed',
     ])
-    const orderComponents = [component('useCase', 'Place order')]
-    const shippingComponents = [component('useCase', 'Ship order')]
-    const linkInputs = new Map<string, readonly ReturnType<typeof component>[]>()
-
-    const result = subject.run(builder(), (stage, accumulatedComponents) => {
-      if (stage.kind === 'extract' && stage.name === 'extract-orders') {
-        return {
-          success: true,
-          kind: 'components',
-          components: orderComponents,
-          repository: 'shop',
-        }
-      }
-      if (stage.kind === 'extract') {
-        return {
-          success: true,
-          kind: 'components',
-          components: shippingComponents,
-          repository: 'shop',
-        }
-      }
-      linkInputs.set(stage.name, accumulatedComponents)
-      return {
-        success: true,
-        kind: 'connections',
-        connections: ConnectionDetectionResult.parse({ links: [], externalLinks: [] }),
-      }
-    })
-
-    assert(result.success)
-    const componentsProvidedToLink = linkInputs.get('link')
-    assert(componentsProvidedToLink)
-    expect(componentsProvidedToLink).toStrictEqual([...orderComponents, ...shippingComponents])
-  })
-
-  it('stops after a typed stage failure', () => {
-    const subject = workflow()
-    const execute = vi.fn().mockReturnValue({
-      success: false,
-      errorCode: 'EXTRACTION_FAILED',
-      reason: 'Extraction failed',
-    })
-
-    const result = subject.run(builder(), execute)
-
-    assert(!result.success)
     expect({
-      status: subject.status(),
-      calls: execute.mock.calls.length,
-      result,
-      eventTypes: result.events.map((event) => event.type),
-      failure: result.events[2]?.failure,
-    }).toMatchObject({
-      status: 'failed',
-      calls: 1,
-      result: { errorCode: 'EXTRACTION_FAILED', reason: 'Extraction failed' },
-      eventTypes: ['WorkflowStarted', 'StageStarted', 'StageFailed', 'WorkflowFailed'],
-      failure: { reason: 'Extraction failed', errorCode: 'EXTRACTION_FAILED' },
-    })
-  })
-
-  it('does not validate after the link stage fails', () => {
-    const graphBuilder = builder()
-    const validate = vi.spyOn(graphBuilder, 'validate')
-
-    const result = workflow().run(graphBuilder, (stage) => {
-      if (stage.kind === 'extract') {
-        return { success: true, kind: 'components', components: [], repository: 'shop' }
-      }
-      return {
-        success: false,
-        errorCode: 'CONNECTION_DETECTION_FAILED',
-        reason: 'Connection detection failed',
-      }
-    })
-
-    expect({
-      result,
-      validationCalls: validate.mock.calls.length,
-      eventTypes: result.events.map((event) => event.type),
-    }).toMatchObject({
-      result: {
-        success: false,
-        errorCode: 'CONNECTION_DETECTION_FAILED',
-        reason: 'Connection detection failed',
+      initialState: {
+        components: transitions[0]?.state.components,
+        diagnostics: transitions[0]?.state.diagnostics,
+        externalLinks: transitions[0]?.state.externalLinks,
+        links: transitions[0]?.state.links,
       },
-      validationCalls: 0,
-      eventTypes: [
-        'WorkflowStarted',
-        'StageStarted',
-        'StageCompleted',
-        'StageStarted',
-        'StageFailed',
-        'WorkflowFailed',
+      firstComponents: transitions[1]?.state.components.map((component) => component.name),
+      firstDiagnostics: transitions[1]?.state.diagnostics.map((diagnostic) => diagnostic.value),
+      firstLinks: transitions[1]?.state.links,
+      firstExternalLinks: transitions[1]?.state.externalLinks,
+      finalComponents: transitions[2]?.state.components.map((component) => component.name),
+      finalLinks: transitions[2]?.state.links.map((link) => ({
+        source: link.source,
+        target: link.target,
+        type: link.type,
+      })),
+      finalExternalLinks: transitions[2]?.state.externalLinks.map((link) => ({
+        source: link.source,
+        target: link.target,
+        type: link.type,
+      })),
+    }).toStrictEqual({
+      initialState: {
+        components: [],
+        diagnostics: [],
+        externalLinks: [],
+        links: [],
+      },
+      firstComponents: ['Place order'],
+      firstDiagnostics: [
+        { kind: 'missing-field', componentId: 'place-order', field: 'description' },
+        {
+          kind: 'uncertain-link',
+          source: 'place-order',
+          target: 'create-order',
+          sourceLocation: { repository: 'shop', filePath: 'orders.ts' },
+        },
+        {
+          kind: 'uncertain-link',
+          source: 'place-order',
+          target: 'send-confirmation',
+        },
+      ],
+      firstLinks: [],
+      firstExternalLinks: [],
+      finalComponents: ['Place order', 'Create order'],
+      finalLinks: [
+        {
+          source: 'orders:checkout:usecase:place-order',
+          target: 'orders:checkout:domainop:create-order',
+          type: 'sync',
+        },
+      ],
+      finalExternalLinks: [
+        {
+          source: 'orders:checkout:domainop:create-order',
+          target: { name: 'Payments API', repository: 'payments' },
+          type: 'async',
+        },
       ],
     })
   })
 
-  it('turns thrown values and component mapping failures into typed failures', () => {
-    const thrownError = workflow().run(builder(), () => {
-      throw new TestFixtureError('boom')
+  it('records unchanged state after schema validation completes', () => {
+    const graphBuilder = builder()
+    const subject = workflow([
+      WorkflowStage.fromEventCatalogImport('import', eventCatalogConfig),
+      WorkflowStage.fromSchemaValidation('validate'),
+    ])
+
+    const result = subject.run(graphBuilder, WorkflowRunMode.from('run'), (stage) => {
+      if (stage.kind === 'eventcatalog-import') {
+        graphBuilder.addUseCase({
+          name: 'Place order',
+          domain: 'orders',
+          module: 'checkout',
+          sourceLocation: { repository: 'shop', filePath: 'orders.ts' },
+        })
+      }
+      return successfulStage
     })
-    const thrownString = workflow().run(builder(), () => {
-      throw 'broken'
+
+    assert(result.value.success)
+    const importState = result.value.transitions[1]?.value.state
+    const validationState = result.value.transitions[2]?.value.state
+    expect(validationState).toStrictEqual(importState)
+  })
+
+  it('retains completed transitions when a later stage fails', () => {
+    const execute = vi.fn().mockReturnValueOnce(successfulStage).mockReturnValueOnce({
+      success: false,
+      errorCode: 'IMPORT_FAILED',
+      reason: 'Import failed',
     })
-    const invalidComponent = workflow().run(builder(), (stage) =>
-      stage.kind === 'extract'
-        ? {
-            success: true,
-            kind: 'components',
-            components: [component('ui', 'Broken UI')],
-            repository: 'shop',
-          }
-        : {
-            success: true,
-            kind: 'connections',
-            connections: ConnectionDetectionResult.parse({ links: [], externalLinks: [] }),
-          },
+    const subject = workflow([
+      WorkflowStage.fromEventCatalogImport('first', eventCatalogConfig),
+      WorkflowStage.fromAsyncApiImport('second', asyncApiConfig),
+      WorkflowStage.fromSchemaValidation('not-reached'),
+    ])
+
+    const result = subject.run(builder(), WorkflowRunMode.from('run'), execute)
+
+    assert(!result.value.success)
+    expect(result.value.transitions.map((transition) => transition.value.kind)).toStrictEqual([
+      'initial',
+      'stage-completed',
+    ])
+    expect(execute).toHaveBeenCalledTimes(2)
+    expect(subject.status()).toBe('failed')
+  })
+
+  it('records no completed transition when the first stage fails', () => {
+    const result = workflow([WorkflowStage.fromAiExtract('fail', aiExtractConfig)]).run(
+      builder(),
+      WorkflowRunMode.from('run'),
+      () => ({ success: false, errorCode: 'AI_FAILED', reason: 'AI failed' }),
     )
 
-    expect(thrownError).toMatchObject({
-      success: false,
+    assert(!result.value.success)
+    expect(result.value.transitions.map((transition) => transition.value.kind)).toStrictEqual([
+      'initial',
+    ])
+  })
+})
+
+describe('Workflow failure events', () => {
+  it('turns a thrown Error into a typed stage and Workflow failure', () => {
+    const result = workflow([WorkflowStage.fromSchemaValidation('validate')]).run(
+      builder(),
+      WorkflowRunMode.from('run'),
+      () => {
+        throw new TestFixtureError('boom')
+      },
+    )
+
+    assert(!result.value.success)
+    expect(result.value).toMatchObject({
       errorCode: 'UNEXPECTED_STAGE_FAILURE',
       reason: 'boom',
     })
-    expect(thrownString).toMatchObject({ reason: 'broken' })
-    expect(invalidComponent).toMatchObject({
-      success: false,
-      errorCode: 'GRAPH_APPLICATION_FAILED',
-    })
+    expect(result.value.events.map((event) => event.type)).toStrictEqual([
+      'WorkflowStarted',
+      'StageStarted',
+      'StageFailed',
+      'WorkflowFailed',
+    ])
   })
 
-  it('stops when graph validation fails', () => {
-    const graphBuilder = builder()
-    const invalidGraph = {
-      ...graphBuilder.build(),
-      links: [{ source: 'missing', target: 'also-missing', type: 'sync' as const }],
-    }
-    vi.spyOn(graphBuilder, 'validate').mockReturnValue(ValidationResult.parse(invalidGraph))
-
-    const result = workflow().run(graphBuilder, (stage) =>
-      stage.kind === 'extract'
-        ? { success: true, kind: 'components', components: [], repository: 'shop' }
-        : {
-            success: true,
-            kind: 'connections',
-            connections: ConnectionDetectionResult.parse({ links: [], externalLinks: [] }),
-          },
+  it('turns a thrown primitive into a typed failure reason', () => {
+    const result = workflow([WorkflowStage.fromSchemaValidation('validate')]).run(
+      builder(),
+      WorkflowRunMode.from('run'),
+      () => {
+        throw 'broken'
+      },
     )
 
-    expect(result).toMatchObject({
-      success: false,
-      errorCode: 'GRAPH_VALIDATION_FAILED',
-    })
+    assert(!result.value.success)
+    expect(result.value.reason).toBe('broken')
   })
 })

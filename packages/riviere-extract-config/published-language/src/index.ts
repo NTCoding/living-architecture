@@ -88,6 +88,16 @@ export {
   parseExtractionConfig,
   type ValidationError,
 } from './published-language/validation'
+export type {
+  AiCliConfig,
+  AiEnrichableField,
+  AiEnrichConfig,
+  AiExtractionGap,
+  AiExtractConfig,
+  AsyncApiImportConfig,
+  CodeExtractionConfig,
+  EventCatalogImportConfig,
+} from './published-language/workflow-stage-config'
 export {
   parseWorkflowDefinition,
   type WorkflowDefinition,

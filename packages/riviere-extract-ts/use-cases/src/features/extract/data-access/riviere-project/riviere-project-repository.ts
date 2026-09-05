@@ -77,16 +77,15 @@ export class RiviereProjectRepository {
   loadByWorkflowName(params: WorkflowLoadParameters): RiviereProject {
     return this.translateDataAccessErrors(() => {
       const definition = this.loadWorkflowDefinition(params)
-      const stages = definition.stages.map((stage) => {
-        if (stage.kind === 'validate') return WorkflowStage.fromValidation(stage.name)
+      const stages = definition.stages.flatMap((stage) => {
+        if (stage.kind === 'validate') return [WorkflowStage.fromSchemaValidation(stage.name)]
+        if (stage.kind === 'link') return []
         const configuration = this.loadExtractionConfiguration({
           projectRoot: params.projectRoot,
           configPath: stage.configPath,
           useTsConfig: stage.useTsConfig,
         })
-        return stage.kind === 'extract'
-          ? WorkflowStage.fromExtraction(stage.name, configuration)
-          : WorkflowStage.fromLink(stage.name, configuration)
+        return [WorkflowStage.fromCodeExtraction(stage.name, configuration.resolvedConfig)]
       })
       const graphPath = resolve(params.projectRoot, definition.graph.outputPath)
       const project = this.loadWorkflowGraph(graphPath, {
