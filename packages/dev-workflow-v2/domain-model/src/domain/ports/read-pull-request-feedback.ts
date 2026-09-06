@@ -8,6 +8,16 @@ export type ReadWorkflowPullRequestFeedback = (
   prNumber: number,
   options: { readonly includeCodeRabbitStatus: boolean },
 ) => {
+  readonly repository?: string
+  readonly headRevision?: string
+  readonly codeRabbitReview?:
+    | { readonly type: 'pending' | 'not-requested' }
+    | { readonly type: 'unsupported'; readonly reason: string }
+    | {
+        readonly type: 'completed' | 'failed' | 'rate-limited'
+        readonly statusId: number
+        readonly evidenceUrl: string
+      }
   readonly reviewDecision: string | null
   readonly coderabbitReviewSeen: boolean
   readonly coderabbitRateLimited?: boolean

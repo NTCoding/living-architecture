@@ -39,6 +39,10 @@ export class PullRequestChecks {
     return new PullRequestChecks(checksSchema.parse(value))
   }
 
+  static snapshotSchema() {
+    return checksSchema
+  }
+
   assessFor(headRevision: string): CheckDecision {
     if (headRevision !== this.headRevision)
       return { status: 'blocked', reason: 'Required checks do not belong to the current PR head.' }

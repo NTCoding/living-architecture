@@ -1,3 +1,4 @@
+import { ReviewerSatisfaction } from './reviewer-satisfaction'
 import { z } from 'zod'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowEvent } from './workflow-events'
@@ -61,6 +62,7 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
   const stateNameSchema = z.enum(stateNames)
   return z.object({
     currentStateMachineState: stateNameSchema,
+    reviewerSatisfaction: ReviewerSatisfaction.snapshotSchema().default({}),
     localVerification: LOCAL_VERIFICATION_SCHEMA.default({ status: 'not-run' }),
     githubIssue: z.number().int().positive().optional(),
     featureBranch: z.string().optional(),
@@ -106,7 +108,7 @@ function applyRecordedReviewVerdict(
   }
 }
 
-function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState | undefined {
+function applyVerificationResult(state: WorkflowState, event: WorkflowEvent): WorkflowState | undefined {
   switch (event.type) {
     case 'architecture-review-completed':
       return state.with({ architectureReviewPassed: event.passed })
@@ -114,6 +116,8 @@ function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowS
       return state.with({ codeReviewPassed: event.passed })
     case 'bug-scanner-completed':
       return state.with({ bugScannerPassed: event.passed })
+    case 'local-verification-completed':
+      return state.with({ localVerification: event.result })
     case 'ci-completed':
       return state.with({ ciPassed: event.passed })
     case 'feedback-addressed':
@@ -131,6 +135,7 @@ export class WorkflowState {
   declare private readonly brand: 'WorkflowState'
 
   readonly currentStateMachineState: StateName
+  readonly reviewerSatisfaction: ReturnType<ReviewerSatisfaction['toJSON']>
   readonly localVerification: z.infer<typeof LOCAL_VERIFICATION_SCHEMA>
   readonly githubIssue?: number
   readonly featureBranch?: string
@@ -153,6 +158,7 @@ export class WorkflowState {
 
   private constructor(value: z.infer<typeof WORKFLOW_STATE_SCHEMA>) {
     this.currentStateMachineState = value.currentStateMachineState
+    this.reviewerSatisfaction = value.reviewerSatisfaction
     this.localVerification = value.localVerification
     this.architectureReviewPassed = value.architectureReviewPassed
     this.codeReviewPassed = value.codeReviewPassed
@@ -243,6 +249,11 @@ export class WorkflowState {
           event.pullRequestSnapshot.repository === this.coderabbitRateLimitEvidence.repository)
           ? this.coderabbitRateLimitEvidence
           : undefined,
+      reviewerSatisfaction:
+        event.prNumber === this.prNumber &&
+        event.pullRequestSnapshot?.repository === this.pullRequestSnapshot?.repository
+          ? this.reviewerSatisfaction
+          : ReviewerSatisfaction.initial().toJSON(),
       prNumber: event.prNumber,
       prUrl: event.prUrl,
       pullRequestSnapshot: event.pullRequestSnapshot,
@@ -268,9 +279,28 @@ export class WorkflowState {
     })
   }
 
+  private applyReviewerSatisfaction(
+    event: Extract<WorkflowEvent, { type: 'reviewer-satisfaction-recorded' }>,
+  ): WorkflowState {
+    if (
+      event.repository !== this.pullRequestSnapshot?.repository ||
+      event.prNumber !== this.pullRequestSnapshot.prNumber ||
+      event.completion.headRevision !== this.pullRequestSnapshot.headRevision
+    ) {
+      throw new WorkflowStateError(
+        'Reviewer satisfaction does not match the recorded PR and reviewed head.',
+      )
+    }
+    return this.with({
+      reviewerSatisfaction: ReviewerSatisfaction.parse(this.reviewerSatisfaction)
+        .recordCompletion(event.completion)
+        .toJSON(),
+    })
+  }
+
   apply(event: WorkflowEvent): WorkflowState {
-    if (event.type === 'local-verification-completed')
-      return this.with({ localVerification: event.result })
+    if (event.type === 'reviewer-satisfaction-recorded')
+      return this.applyReviewerSatisfaction(event)
     if (event.type === 'feedback-checked') return this.applyFeedbackChecked(event)
     if (event.type === 'transitioned') {
       return this.with({
@@ -280,7 +310,7 @@ export class WorkflowState {
       })
     }
 
-    const reviewResult = applyReviewEvent(this, event)
+    const reviewResult = applyVerificationResult(this, event)
     if (reviewResult !== undefined) return reviewResult
 
     switch (event.type) {

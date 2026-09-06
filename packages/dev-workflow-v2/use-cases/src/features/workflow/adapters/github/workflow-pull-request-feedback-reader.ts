@@ -27,6 +27,9 @@ export function createWorkflowPullRequestFeedbackReader(
   return (prNumber, options) => {
     const feedback = readGithubPullRequestFeedback(prNumber, options)
     return {
+      repository: feedback.repository,
+      headRevision: feedback.headRevision,
+      codeRabbitReview: feedback.codeRabbitStatus,
       ...codeRabbitFlags[feedback.codeRabbitStatus.type],
       ...(feedback.codeRabbitStatus.type === 'rate-limited'
         ? {

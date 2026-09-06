@@ -35,6 +35,13 @@ it('translates GitHub feedback into workflow feedback', () => {
   }))
 
   expect(readFeedback(42, { includeCodeRabbitStatus: true })).toStrictEqual({
+    repository: 'example/repo',
+    headRevision: 'a'.repeat(40),
+    codeRabbitReview: {
+      type: 'completed',
+      statusId: 1,
+      evidenceUrl: 'https://api.github.com/status/1',
+    },
     coderabbitReviewSeen: true,
     coderabbitRateLimited: false,
     reviewDecision: 'CHANGES_REQUESTED',
@@ -104,4 +111,24 @@ it('forwards the workflow decision not to poll CodeRabbit without claiming compl
   expect(readGithub).toHaveBeenCalledWith(42, { includeCodeRabbitStatus: false })
   expect(feedback).toMatchObject({ coderabbitReviewSeen: false, coderabbitRateLimited: false })
   expect(feedback.coderabbitRateLimitEvidence).toBeUndefined()
+})
+
+it.each([
+  { type: 'unsupported', reason: 'Unrecognised completion signal' },
+  { type: 'failed', statusId: 3, evidenceUrl: 'https://api.github.com/status/3' },
+] as const)('preserves failed or unverifiable review evidence: %j', (codeRabbitStatus) => {
+  const read = createWorkflowPullRequestFeedbackReader(() => ({
+    repository: 'example/repo',
+    headRevision: 'a'.repeat(40),
+    codeRabbitStatus,
+    reviewDecision: null,
+    threads: [],
+    unresolvedCount: 0,
+  }))
+  expect(read(42, { includeCodeRabbitStatus: true })).toMatchObject({
+    repository: 'example/repo',
+    headRevision: 'a'.repeat(40),
+    codeRabbitReview: codeRabbitStatus,
+    coderabbitReviewSeen: false,
+  })
 })
