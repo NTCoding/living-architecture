@@ -6,6 +6,7 @@ const STATE_NAME_SCHEMA = WorkflowState.stateNameSchema()
 
 const KNOWN_WORKFLOW_EVENT_TYPES = [
   'session-started',
+  'local-verification-completed',
   'transitioned',
   'issue-recorded',
   'branch-recorded',
@@ -19,6 +20,12 @@ const KNOWN_WORKFLOW_EVENT_TYPES = [
   'bash-checked',
   'write-checked',
 ] as const
+
+const LOCAL_VERIFICATION_COMPLETED_SCHEMA = z.object({
+  type: z.literal('local-verification-completed'),
+  at: z.string(),
+  result: WorkflowState.localVerificationResultSchema(),
+})
 
 const SESSION_STARTED_SCHEMA = z.object({
   type: z.literal('session-started'),
@@ -134,6 +141,7 @@ const WRITE_CHECKED_SCHEMA = z.object({
 
 const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
   SESSION_STARTED_SCHEMA,
+  LOCAL_VERIFICATION_COMPLETED_SCHEMA,
   TRANSITIONED_SCHEMA,
   ISSUE_RECORDED_SCHEMA,
   BRANCH_RECORDED_SCHEMA,

@@ -13,7 +13,7 @@ You are implementing the task. Write code, commit often.
 - [ ] Implement the task following project conventions.
 - [ ] Write tests — 100% coverage is mandatory
 - [ ] Commit your changes (working tree must be clean before transitioning)
-- [ ] Transition to REVIEWING: `/dev-workflow-v2:workflow transition REVIEWING`
+- [ ] Transition to VERIFYING: `/dev-workflow-v2:workflow transition VERIFYING`
 
 ## Constraints
 

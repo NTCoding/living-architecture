@@ -2,11 +2,13 @@ import { z } from 'zod'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowEvent } from './workflow-events'
 
+const COMMIT_REVISION_SCHEMA = z.string().regex(/^[0-9a-f]{40}$/)
+
 const CODERABBIT_RATE_LIMIT_EVIDENCE_SCHEMA = z
   .object({
     repository: z.string().min(1),
     prNumber: z.number().int().positive(),
-    headRevision: z.string().regex(/^[0-9a-f]{40}$/),
+    headRevision: COMMIT_REVISION_SCHEMA,
     statusId: z.number().int().positive(),
     evidenceUrl: z.string().url(),
   })
@@ -19,13 +21,24 @@ const PULL_REQUEST_SNAPSHOT_SCHEMA = z
     branch: z.string().min(1),
     prNumber: z.number().int().positive(),
     prUrl: z.string().url(),
-    baseRevision: z.string().regex(/^[0-9a-f]{40}$/),
-    headRevision: z.string().regex(/^[0-9a-f]{40}$/),
+    baseRevision: COMMIT_REVISION_SCHEMA,
+    headRevision: COMMIT_REVISION_SCHEMA,
   })
+  .readonly()
+
+const LOCAL_VERIFICATION_RESULT_SCHEMA = z
+  .discriminatedUnion('status', [
+    z.object({ status: z.literal('passed'), headCommit: COMMIT_REVISION_SCHEMA }),
+    z.object({ status: z.literal('failed'), reason: z.string().min(1) }),
+  ])
+  .readonly()
+const LOCAL_VERIFICATION_SCHEMA = z
+  .union([z.object({ status: z.literal('not-run') }), LOCAL_VERIFICATION_RESULT_SCHEMA])
   .readonly()
 
 const STATE_NAMES = [
   'IMPLEMENTING',
+  'VERIFYING',
   'REVIEWING',
   'SUBMITTING_PR',
   'AWAITING_CI',
@@ -48,6 +61,7 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
   const stateNameSchema = z.enum(stateNames)
   return z.object({
     currentStateMachineState: stateNameSchema,
+    localVerification: LOCAL_VERIFICATION_SCHEMA.default({ status: 'not-run' }),
     githubIssue: z.number().int().positive().optional(),
     featureBranch: z.string().optional(),
     prNumber: z.number().int().positive().optional(),
@@ -117,6 +131,7 @@ export class WorkflowState {
   declare private readonly brand: 'WorkflowState'
 
   readonly currentStateMachineState: StateName
+  readonly localVerification: z.infer<typeof LOCAL_VERIFICATION_SCHEMA>
   readonly githubIssue?: number
   readonly featureBranch?: string
   readonly prNumber?: number
@@ -138,6 +153,7 @@ export class WorkflowState {
 
   private constructor(value: z.infer<typeof WORKFLOW_STATE_SCHEMA>) {
     this.currentStateMachineState = value.currentStateMachineState
+    this.localVerification = value.localVerification
     this.architectureReviewPassed = value.architectureReviewPassed
     this.codeReviewPassed = value.codeReviewPassed
     this.bugScannerPassed = value.bugScannerPassed
@@ -169,6 +185,10 @@ export class WorkflowState {
     return new WorkflowState(WORKFLOW_STATE_SCHEMA.parse(value))
   }
 
+  static localVerificationResultSchema() {
+    return LOCAL_VERIFICATION_RESULT_SCHEMA
+  }
+
   static codeRabbitRateLimitEvidenceSchema() {
     return CODERABBIT_RATE_LIMIT_EVIDENCE_SCHEMA
   }
@@ -187,6 +207,22 @@ export class WorkflowState {
 
   static replay(events: readonly WorkflowEvent[]): WorkflowState {
     return events.reduce((state, event) => state.apply(event), WorkflowState.initial())
+  }
+
+  hasPassedVerificationFor(headCommit: string): boolean {
+    return (
+      this.localVerification.status === 'passed' && this.localVerification.headCommit === headCommit
+    )
+  }
+
+  transitionOverridesFrom(before: WorkflowState): Record<string, unknown> {
+    const overrides: Record<string, unknown> = {}
+    const previous = new Map(Object.entries(before))
+    for (const [key, value] of Object.entries(this)) {
+      if (key === 'currentStateMachineState') continue
+      if (JSON.stringify(value) !== JSON.stringify(previous.get(key))) overrides[key] = value
+    }
+    return overrides
   }
 
   with(changes: Partial<z.infer<typeof WORKFLOW_STATE_SCHEMA>>): WorkflowState {
@@ -233,6 +269,8 @@ export class WorkflowState {
   }
 
   apply(event: WorkflowEvent): WorkflowState {
+    if (event.type === 'local-verification-completed')
+      return this.with({ localVerification: event.result })
     if (event.type === 'feedback-checked') return this.applyFeedbackChecked(event)
     if (event.type === 'transitioned') {
       return this.with({

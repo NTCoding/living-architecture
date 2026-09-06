@@ -1,3 +1,5 @@
+import { createWorkflowVerificationRunner } from '@living-architecture/dev-workflow-v2-use-cases/adapters/process/workflow-verification-runner'
+import { runProcess } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/process/run-process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
@@ -63,6 +65,7 @@ function sleepMs(ms: number): void {
 function buildWorkflowDeps(platform: PlatformContext) {
   return {
     getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),
+    runLocalVerification: createWorkflowVerificationRunner(runProcess),
     getPrFeedback: createWorkflowPullRequestFeedbackReader(
       createGithubPullRequestFeedbackClient(runGh),
     ),

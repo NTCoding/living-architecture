@@ -8,6 +8,7 @@ import { AwaitingCiState } from './states/awaiting-ci'
 import { AwaitingPrFeedbackState } from './states/awaiting-pr-feedback'
 import { BlockedState } from './states/blocked'
 import { CompleteState } from './states/complete'
+import { VerifyingState } from './states/verifying'
 import { ImplementingState } from './states/implementing'
 import { ReflectingState } from './states/reflecting'
 import { ReviewingState } from './states/reviewing'
@@ -45,6 +46,7 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
 }
 
 const MAINTAINER_WORKFLOW_REGISTRY_SCHEMA = z.object({
+  VERIFYING: z.custom<VerifyingState>((value) => value instanceof VerifyingState),
   IMPLEMENTING: z.custom<ImplementingState>((value) => value instanceof ImplementingState),
   REVIEWING: z.custom<ReviewingState>((value) => value instanceof ReviewingState),
   SUBMITTING_PR: z.custom<SubmittingPrState>((value) => value instanceof SubmittingPrState),
@@ -63,6 +65,7 @@ const MAINTAINER_WORKFLOW_REGISTRY_SCHEMA = z.object({
 type MaintainerWorkflowRegistryValue = z.infer<typeof MAINTAINER_WORKFLOW_REGISTRY_SCHEMA>
 type StateName = WorkflowState['currentStateMachineState']
 type WorkflowOperation =
+  | 'verify-local'
   | 'record-issue'
   | 'record-branch'
   | 'record-review'
@@ -76,6 +79,7 @@ type WorkflowOperation =
 export class MaintainerWorkflowRegistry {
   declare private readonly brand: 'MaintainerWorkflowRegistry'
 
+  readonly VERIFYING: VerifyingState
   readonly IMPLEMENTING: ImplementingState
   readonly REVIEWING: ReviewingState
   readonly SUBMITTING_PR: SubmittingPrState
@@ -87,6 +91,7 @@ export class MaintainerWorkflowRegistry {
   readonly BLOCKED: BlockedState
 
   private constructor(value: MaintainerWorkflowRegistryValue) {
+    this.VERIFYING = value.VERIFYING
     this.IMPLEMENTING = value.IMPLEMENTING
     this.REVIEWING = value.REVIEWING
     this.SUBMITTING_PR = value.SUBMITTING_PR

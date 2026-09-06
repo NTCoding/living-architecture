@@ -28,6 +28,7 @@ export function buildTestContext(
   overrides: Partial<{
     readonly sessionId: string
     readonly transcriptPath: string
+    readonly runLocalVerification: WorkflowDeps['runLocalVerification']
     readonly getPrFeedback: WorkflowDeps['getPrFeedback']
     readonly createPullRequest: WorkflowDeps['createPullRequest']
   }> = {},
@@ -50,11 +51,12 @@ export function buildTestContext(
   }
 
   const workflowDeps: WorkflowDeps = {
+    runLocalVerification: overrides.runLocalVerification ?? (() => undefined),
     getGitInfo: () => ({
       currentBranch: 'feat/test',
       workingTreeClean: true,
       defaultBranch: 'main',
-      headCommit: 'abc123',
+      headCommit: 'b'.repeat(40),
       changedFilesVsDefault: ['src/test.ts'],
       hasCommitsVsDefault: true,
     }),

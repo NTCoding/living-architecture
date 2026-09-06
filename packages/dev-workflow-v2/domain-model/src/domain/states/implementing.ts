@@ -10,7 +10,7 @@ export class ImplementingState {
   readonly name: 'IMPLEMENTING'
   readonly emoji = '🔨'
   readonly agentInstructions = 'states/implementing.md'
-  readonly canTransitionTo = ['REVIEWING', 'BLOCKED'] as const
+  readonly canTransitionTo = ['VERIFYING', 'BLOCKED'] as const
   readonly allowedWorkflowOperations = ['record-issue', 'record-branch'] as const
   readonly forbidden = { write: true } as const
 
@@ -30,7 +30,7 @@ export class ImplementingState {
     if (!context.gitInfo.hasCommitsVsDefault) {
       return {
         pass: false,
-        reason: 'No commits beyond default branch. Write code and commit before reviewing.',
+        reason: 'No commits beyond default branch. Write code and commit before verification.',
       }
     }
     if (!context.gitInfo.workingTreeClean) {

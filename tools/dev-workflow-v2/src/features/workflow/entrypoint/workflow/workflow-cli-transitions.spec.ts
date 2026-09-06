@@ -126,28 +126,28 @@ describe('workflow-cli transitions', () => {
   })
 
   describe('guard failures', () => {
-    it('rejects IMPLEMENTING to REVIEWING without commits', () => {
+    it('rejects IMPLEMENTING to VERIFYING without commits', () => {
       const ctx = setup({ gitInfo: { hasCommitsVsDefault: false } })
       runCommand(ctx, ['init'])
       runCommand(ctx, ['record-issue', '1'])
-      const result = runCommand(ctx, ['transition', 'REVIEWING'])
+      const result = runCommand(ctx, ['transition', 'VERIFYING'])
       expect(result.exitCode).toStrictEqual(2)
       expect(result.output).toContain('No commits')
     })
 
-    it('rejects IMPLEMENTING to REVIEWING with unclean working tree', () => {
+    it('rejects IMPLEMENTING to VERIFYING with unclean working tree', () => {
       const ctx = setup({ gitInfo: { workingTreeClean: false } })
       runCommand(ctx, ['init'])
       runCommand(ctx, ['record-issue', '1'])
-      const result = runCommand(ctx, ['transition', 'REVIEWING'])
+      const result = runCommand(ctx, ['transition', 'VERIFYING'])
       expect(result.exitCode).toStrictEqual(2)
       expect(result.output).toContain('not clean')
     })
 
-    it('rejects IMPLEMENTING to REVIEWING without issue recorded', () => {
+    it('rejects IMPLEMENTING to VERIFYING without issue recorded', () => {
       const ctx = setup()
       runCommand(ctx, ['init'])
-      const result = runCommand(ctx, ['transition', 'REVIEWING'])
+      const result = runCommand(ctx, ['transition', 'VERIFYING'])
       expect(result.exitCode).toStrictEqual(2)
       expect(result.output).toContain('No issue recorded')
     })

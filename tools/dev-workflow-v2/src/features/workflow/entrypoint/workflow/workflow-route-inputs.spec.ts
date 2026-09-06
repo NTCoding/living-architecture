@@ -16,6 +16,7 @@ function buildWorkflow(
   definition: ReturnType<typeof configureWorkflow>,
 ): ReturnType<typeof definition.buildWorkflow> {
   const deps: WorkflowDeps = {
+    runLocalVerification: () => undefined,
     getGitInfo: () => ({
       currentBranch: 'main',
       workingTreeClean: true,

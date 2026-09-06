@@ -35,6 +35,7 @@ export interface CreateWorkflowRoutesInput {
   readonly createPullRequest: (workflow: RoutedWorkflow, args: readonly string[]) => WorkflowResult
   readonly recordCiPassed: (workflow: RoutedWorkflow) => WorkflowResult
   readonly recordCiFailed: (workflow: RoutedWorkflow, output: string) => WorkflowResult
+  readonly verifyLocal: (workflow: RoutedWorkflow) => WorkflowResult
   readonly verifyFeedbackAddressed: (workflow: RoutedWorkflow) => WorkflowResult
 }
 
@@ -92,6 +93,11 @@ export class CreateWorkflowRoutes {
           args: [arg.string('output')],
           handler: (workflow, output) =>
             input.recordCiFailed(workflow, input.parseStringArgument(output)),
+        },
+        'verify-local': {
+          type: 'transaction',
+          args: [],
+          handler: (workflow) => input.verifyLocal(workflow),
         },
         'verify-feedback-addressed': {
           type: 'transaction',

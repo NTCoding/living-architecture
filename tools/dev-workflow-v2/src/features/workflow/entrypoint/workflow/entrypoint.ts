@@ -1,3 +1,4 @@
+import { VerifyLocal } from '@living-architecture/dev-workflow-v2-use-cases/commands/verify-local'
 import type { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
 import { CreatePullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-pull-request'
 import { RecordBranch } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-branch'
@@ -41,6 +42,7 @@ export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypoin
       new CreatePullRequest(workflow).execute({ arguments: args }).result,
     recordCiPassed: (workflow) => new RecordCiPassed(workflow).execute({}).result,
     recordCiFailed: (workflow, output) => new RecordCiFailed(workflow).execute({ output }).result,
+    verifyLocal: (workflow) => new VerifyLocal(workflow).execute({}).result,
     verifyFeedbackAddressed: (workflow) => new VerifyFeedbackAddressed(workflow).execute({}).result,
   }).routes
 }

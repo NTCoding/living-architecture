@@ -1,3 +1,4 @@
+import { CREATE_PR_DESCRIPTION, CREATE_PR_OPTIONS } from './__fixtures__/pull-request-options'
 import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import {
@@ -14,26 +15,6 @@ import { ReviewingState } from './states/reviewing'
 import { WorkflowState } from './workflow-types'
 
 const reviewingState = ReviewingState.parse('REVIEWING')
-const CREATE_PR_DESCRIPTION = 'A'.repeat(100)
-
-const CREATE_PR_OPTIONS = [
-  '--title',
-  'Add workflow create-pr',
-  '--description',
-  CREATE_PR_DESCRIPTION,
-  '--problem',
-  'Agents could create draft PRs directly.',
-  '--acceptance-criteria',
-  '- PR is ready for review\n- PR body follows the workflow structure',
-  '--key-changes',
-  '- Add structured create-pr command',
-  '--architecture-impact',
-  'Workflow owns PR body creation.',
-  '--validation',
-  '- pnpm test',
-  '--notes',
-  'None.',
-] as const
 
 function getReviewingTransitionGuard(): NonNullable<typeof reviewingState.transitionGuard> {
   return reviewingState.transitionGuard

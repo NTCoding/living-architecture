@@ -1,3 +1,4 @@
+import type { RunLocalVerification } from './ports/run-local-verification'
 import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import {
   pass,
@@ -27,30 +28,18 @@ const PR_FEEDBACK_MAX_ATTEMPTS = Math.floor(300_000 / PR_FEEDBACK_POLL_INTERVAL_
 
 type WorkflowOperation =
   | keyof ReturnType<MaintainerWorkflowRegistry['recordingOperations']>
+  | 'verify-local'
   | 'record-review'
   | 'create-pr'
   | 'verify-feedback-addressed'
 type WorkflowDeps = {
+  readonly runLocalVerification: RunLocalVerification
   readonly getGitInfo: ReadWorkflowGitStatus
   readonly getPrFeedback: ReadWorkflowPullRequestFeedback
   readonly createPullRequest: CreateWorkflowPullRequest
   readonly listSessionReviews: () => readonly StoredReview[]
   readonly sleepMs: (ms: number) => void
   readonly now: () => string
-}
-function diffStateOverrides(
-  stateBefore: WorkflowState,
-  stateAfter: WorkflowState,
-): Record<string, unknown> {
-  const overrides: Record<string, unknown> = {}
-  const beforeEntries = new Map(Object.entries(stateBefore))
-  for (const [key, value] of Object.entries(stateAfter)) {
-    if (key === 'currentStateMachineState') continue
-    if (value !== beforeEntries.get(key)) {
-      overrides[key] = value
-    }
-  }
-  return overrides
 }
 type PullRequestFeedbackReadSuccess = {
   readonly ok: true
@@ -136,9 +125,7 @@ export class MaintainerWorkflow {
       transcriptPath,
       ...(repository === undefined ? {} : { repository }),
     }
-    const nextState = this.state.apply(event)
-    this.pendingEvents = [...this.pendingEvents, event]
-    this.state = nextState
+    this.append(event)
   }
   getTranscriptPath(): string {
     if (this.state.transcriptPath === undefined) {
@@ -185,6 +172,36 @@ export class MaintainerWorkflow {
     this.appendEvent(result.event)
     return pass()
   }
+  verifyLocal(): PreconditionResult {
+    const gate = checkOperationGate('verify-local', this.state, this.registryDefinition)
+    if (!gate.pass) return gate
+    try {
+      const before = this.deps.getGitInfo()
+      if (!before.workingTreeClean)
+        throw new WorkflowStateError('Local verification requires a clean worktree.')
+      this.deps.runLocalVerification()
+      const after = this.deps.getGitInfo()
+      if (!after.workingTreeClean || after.headCommit !== before.headCommit) {
+        throw new WorkflowStateError('The worktree changed during local verification.')
+      }
+      this.append({
+        type: 'local-verification-completed',
+        at: this.deps.now(),
+        result: { status: 'passed', headCommit: after.headCommit },
+      })
+      return pass()
+    } catch (error) {
+      const reason = `Local verification failed: ${String(error)}`
+      this.append({
+        type: 'local-verification-completed',
+        at: this.deps.now(),
+        result: { status: 'failed', reason },
+      })
+      this.appendAutomaticTransition('BLOCKED')
+      return fail(reason)
+    }
+  }
+
   createPr(rawArgs: unknown): PreconditionResult {
     const gate = checkOperationGate('create-pr', this.state, this.registryDefinition)
     if (!gate.pass) return gate
@@ -202,11 +219,17 @@ export class MaintainerWorkflow {
     }
 
     try {
+      const gitInfo = this.deps.getGitInfo()
+      if (!this.state.hasPassedVerificationFor(gitInfo.headCommit) || !gitInfo.workingTreeClean) {
+        return fail(
+          'Local verification must pass for the current clean commit before creating a PR.',
+        )
+      }
       const pullRequestRequest = buildPullRequestCreationRequest(
         parsedDescription.input,
         this.state.githubIssue,
         this.state.featureBranch,
-        this.deps.getGitInfo().defaultBranch,
+        gitInfo.defaultBranch,
       )
       const pullRequest = this.deps.createPullRequest(pullRequestRequest)
       if (pullRequest.isDraft) {
@@ -260,16 +283,7 @@ export class MaintainerWorkflow {
       this.state.coderabbitRateLimitEvidence !== undefined,
     )
     const clean = assessment.type === 'verified' && assessment.clean
-    this.append({
-      type: 'feedback-checked',
-      at: this.deps.now(),
-      clean,
-      ...(feedback.coderabbitRateLimitEvidence === undefined
-        ? {}
-        : { coderabbitRateLimitEvidence: feedback.coderabbitRateLimitEvidence }),
-      unresolvedCount: feedback.unresolvedCount,
-      reviewDecision: feedback.reviewDecision,
-    })
+    this.appendFeedbackChecked(feedback, clean)
 
     if (feedback.reviewDecision === 'CHANGES_REQUESTED' && feedback.unresolvedCount > 0) {
       return fail(
@@ -300,6 +314,22 @@ export class MaintainerWorkflow {
     return pass()
   }
 
+  private appendFeedbackChecked(
+    feedback: ReturnType<ReadWorkflowPullRequestFeedback>,
+    clean: boolean,
+  ): void {
+    this.append({
+      type: 'feedback-checked',
+      at: this.deps.now(),
+      clean,
+      ...(feedback.coderabbitRateLimitEvidence === undefined
+        ? {}
+        : { coderabbitRateLimitEvidence: feedback.coderabbitRateLimitEvidence }),
+      unresolvedCount: feedback.unresolvedCount,
+      reviewDecision: feedback.reviewDecision,
+    })
+  }
+
   private awaitPrFeedback(prNumber: number): void {
     this.pollPrFeedback(prNumber, PR_FEEDBACK_MAX_ATTEMPTS)
   }
@@ -328,16 +358,7 @@ export class MaintainerWorkflow {
     }
 
     const { clean } = outcome
-    this.append({
-      type: 'feedback-checked',
-      at: this.deps.now(),
-      clean,
-      ...(feedback.coderabbitRateLimitEvidence === undefined
-        ? {}
-        : { coderabbitRateLimitEvidence: feedback.coderabbitRateLimitEvidence }),
-      unresolvedCount: feedback.unresolvedCount,
-      reviewDecision: feedback.reviewDecision,
-    })
+    this.appendFeedbackChecked(feedback, clean)
     this.appendAutomaticTransition(clean ? 'REFLECTING' : 'ADDRESSING_FEEDBACK')
   }
 
@@ -349,7 +370,7 @@ export class MaintainerWorkflow {
       targetDef.onEntry === undefined
         ? stateBefore
         : targetDef.onEntry(stateBefore, this.buildTransitionContext(stateBefore, from, to))
-    const stateOverrides = diffStateOverrides(stateBefore, stateAfter)
+    const stateOverrides = stateAfter.transitionOverridesFrom(stateBefore)
 
     this.append({
       type: 'transitioned',

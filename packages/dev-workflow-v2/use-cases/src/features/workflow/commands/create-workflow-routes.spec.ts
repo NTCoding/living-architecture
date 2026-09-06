@@ -1,3 +1,4 @@
+import { makeWorkflowDeps } from './__fixtures__/workflow-dependencies'
 import { defineWorkflowRoutes } from '../../../infra/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
 import { ZodSchemaProvider } from '../../../infra/external-clients/zod/zod-schema-provider'
 import { configureWorkflow } from './configure-workflow'
@@ -66,6 +67,7 @@ function createInput(): {
         calls.recordCiFailed.push([workflow, output])
         return workflowResult
       },
+      verifyLocal: (workflow) => workflow.verifyLocal(),
       verifyFeedbackAddressed: (workflow) => {
         calls.verifyFeedbackAddressed.push([workflow])
         return workflowResult
@@ -76,33 +78,7 @@ function createInput(): {
 }
 
 function createWorkflow(definition: ReturnType<typeof configureWorkflow>) {
-  return definition.buildWorkflow(definition.initialState(), {
-    getGitInfo: () => ({
-      currentBranch: 'main',
-      workingTreeClean: true,
-      defaultBranch: 'main',
-      headCommit: 'abc123',
-      changedFilesVsDefault: [],
-      hasCommitsVsDefault: false,
-    }),
-    getPrFeedback: () => ({
-      reviewDecision: null,
-      coderabbitReviewSeen: true,
-      unresolvedCount: 0,
-      threads: [],
-    }),
-    createPullRequest: () => ({
-      prNumber: 1,
-      prUrl: 'https://github.com/example/repo/pull/1',
-      isDraft: false,
-      repository: 'example/repo',
-      baseRevision: 'a'.repeat(40),
-      headRevision: 'b'.repeat(40),
-    }),
-    listSessionReviews: () => [],
-    sleepMs: () => undefined,
-    now: () => '2026-01-01T00:00:00Z',
-  })
+  return definition.buildWorkflow(definition.initialState(), makeWorkflowDeps())
 }
 
 function transactionHandler(routes: CreateWorkflowRoutesResult['routes'], name: string) {
@@ -143,6 +119,7 @@ describe('CreateWorkflowRoutes', () => {
       'create-pr',
       'record-ci-passed',
       'record-ci-failed',
+      'verify-local',
       'verify-feedback-addressed',
     ])
 
@@ -184,6 +161,9 @@ describe('CreateWorkflowRoutes', () => {
 
     const workflow = createWorkflow(workflowDefinition)
 
+    expect(
+      transactionHandler(routes, 'verify-local')(workflow, undefined, undefined),
+    ).toMatchObject({ pass: false })
     transactionHandler(routes, 'record-issue')(workflow, 1)
     transactionHandler(routes, 'record-branch')(workflow, 'branch')
     transactionHandler(routes, 'record-pr')(workflow, 1, undefined)

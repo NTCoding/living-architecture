@@ -1,3 +1,4 @@
+import { VerifyingState } from '../states/verifying'
 import { workflowSpec } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowEvent } from '../workflow-events'
 import { WorkflowState } from '../workflow-types'
@@ -23,6 +24,7 @@ const recordedReviews: StoredReview[] = []
 
 export const TEST_WORKFLOW_REGISTRY = MaintainerWorkflowRegistry.parse({
   IMPLEMENTING: ImplementingState.parse('IMPLEMENTING'),
+  VERIFYING: VerifyingState.parse('VERIFYING'),
   REVIEWING: ReviewingState.parse('REVIEWING'),
   SUBMITTING_PR: SubmittingPrState.parse('SUBMITTING_PR'),
   AWAITING_CI: AwaitingCiState.parse('AWAITING_CI'),
@@ -37,7 +39,7 @@ const cleanGit: ReturnType<WorkflowDeps['getGitInfo']> = {
   defaultBranch: 'main',
   currentBranch: 'issue-42',
   workingTreeClean: true,
-  headCommit: 'abc123',
+  headCommit: 'b'.repeat(40),
   changedFilesVsDefault: [],
   hasCommitsVsDefault: false,
 }
@@ -45,6 +47,7 @@ const cleanGit: ReturnType<WorkflowDeps['getGitInfo']> = {
 export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
   return {
     getGitInfo: () => cleanGit,
+    runLocalVerification: () => undefined,
     getPrFeedback: () => ({
       reviewDecision: null,
       coderabbitReviewSeen: true,
@@ -201,7 +204,16 @@ export function eventsToReviewing(): readonly WorkflowEvent[] {
 }
 
 export function eventsToSubmittingPr(): readonly WorkflowEvent[] {
-  return [...eventsToReviewing(), ...allReviewsPassed(), transitioned('REVIEWING', 'SUBMITTING_PR')]
+  return [
+    ...eventsToReviewing(),
+    ...allReviewsPassed(),
+    {
+      type: 'local-verification-completed',
+      result: { status: 'passed', headCommit: 'b'.repeat(40) },
+      at: AT,
+    },
+    transitioned('REVIEWING', 'SUBMITTING_PR'),
+  ]
 }
 
 export function eventsToAwaitingCi(): readonly WorkflowEvent[] {
