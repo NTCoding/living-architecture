@@ -221,6 +221,7 @@ describe('buildPullRequestCreationRequest', () => {
       branch: 'issue-42',
       title: 'Ready PR',
       body: [
+        '[main-agent]',
         `## Description\n\n${VALID_DESCRIPTION}`,
         '## Linked Issue\n\nCloses #42',
         '## What Problem Does This PR Solve?\n\nDirect PR creation could bypass workflow rules.',

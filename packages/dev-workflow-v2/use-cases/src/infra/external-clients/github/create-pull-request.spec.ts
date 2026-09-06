@@ -1,108 +1,134 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createGithubPullRequestClient } from './create-pull-request'
 
+class GithubFailure extends Error {}
+
+const creationRequest = {
+  branch: 'issue-42',
+  title: 'Ready PR',
+  body: '## Description\n\nCreates a ready PR.',
+}
+const existingPullRequest = {
+  number: 123,
+  url: 'https://github.com/example/repo/pull/123',
+  isDraft: false,
+}
+const lookupArguments = [
+  'pr',
+  'list',
+  '--head',
+  'issue-42',
+  '--state',
+  'open',
+  '--limit',
+  '2',
+  '--json',
+  'number,url,isDraft',
+]
+const createArguments = [
+  'pr',
+  'create',
+  '--head',
+  'issue-42',
+  '--title',
+  creationRequest.title,
+  '--body',
+  creationRequest.body,
+]
+
 describe('createGithubPullRequestClient', () => {
-  it('creates pull request from the URL returned by gh', () => {
-    const calls: Array<readonly string[]> = []
-    const createPullRequest = createGithubPullRequestClient((args) => {
-      calls.push(args)
-      if (args[1] === 'create') {
-        return 'https://github.com/example/repo/pull/123\n'
-      }
-      return JSON.stringify({
-        number: 123,
-        url: 'https://github.com/example/repo/pull/123',
-        isDraft: false,
+  it.each([false, true])(
+    'returns created PR draft status %s without changing readiness',
+    (isDraft) => {
+      const runGh = vi
+        .fn<(args: readonly string[]) => string>()
+        .mockReturnValueOnce('[]')
+        .mockReturnValueOnce(`${existingPullRequest.url}\n`)
+        .mockReturnValueOnce(JSON.stringify({ ...existingPullRequest, isDraft }))
+
+      expect(createGithubPullRequestClient(runGh)(creationRequest)).toStrictEqual({
+        prNumber: 123,
+        prUrl: existingPullRequest.url,
+        isDraft,
       })
-    })
+      expect(runGh.mock.calls).toStrictEqual([
+        [lookupArguments],
+        [createArguments],
+        [['pr', 'view', existingPullRequest.url, '--json', 'number,url,isDraft']],
+      ])
+    },
+  )
 
-    const pullRequest = createPullRequest({
-      branch: 'issue-42',
-      title: 'Ready PR',
-      body: '## Description\n\nCreates a ready PR.',
-    })
+  it('returns the existing PR without creating another one', () => {
+    const runGh = vi
+      .fn<(args: readonly string[]) => string>()
+      .mockReturnValue(JSON.stringify([existingPullRequest]))
 
-    expect(pullRequest).toStrictEqual({
+    expect(createGithubPullRequestClient(runGh)(creationRequest)).toStrictEqual({
       prNumber: 123,
-      prUrl: 'https://github.com/example/repo/pull/123',
+      prUrl: existingPullRequest.url,
       isDraft: false,
     })
-    expect(calls).toStrictEqual([
-      [
-        'pr',
-        'create',
-        '--head',
-        'issue-42',
-        '--title',
-        'Ready PR',
-        '--body',
-        '## Description\n\nCreates a ready PR.',
-      ],
-      ['pr', 'view', 'https://github.com/example/repo/pull/123', '--json', 'number,url,isDraft'],
-    ])
+    expect(runGh.mock.calls).toStrictEqual([[lookupArguments]])
   })
 
-  it('returns draft status without changing pull request readiness', () => {
-    const calls: Array<readonly string[]> = []
-    const createPullRequest = createGithubPullRequestClient((args) => {
-      calls.push(args)
-      if (args[1] === 'create') {
-        return 'https://github.com/example/repo/pull/123\n'
-      }
-      return JSON.stringify({
-        number: 123,
-        url: 'https://github.com/example/repo/pull/123',
-        isDraft: true,
+  it('reconciles a retry after the create response was lost', () => {
+    const runGh = vi
+      .fn<(args: readonly string[]) => string>()
+      .mockReturnValueOnce('[]')
+      .mockImplementationOnce(() => {
+        throw new GithubFailure('network response lost')
       })
-    })
+      .mockReturnValueOnce(JSON.stringify([existingPullRequest]))
+    const createPullRequest = createGithubPullRequestClient(runGh)
 
-    const pullRequest = createPullRequest({
-      branch: 'issue-42',
-      title: 'Ready PR',
-      body: '## Description\n\nCreates a ready PR.',
-    })
-
-    expect(pullRequest).toStrictEqual({
+    expect(() => createPullRequest(creationRequest)).toThrow('network response lost')
+    expect(createPullRequest(creationRequest)).toStrictEqual({
       prNumber: 123,
-      prUrl: 'https://github.com/example/repo/pull/123',
-      isDraft: true,
+      prUrl: existingPullRequest.url,
+      isDraft: false,
     })
-    expect(calls).toStrictEqual([
-      [
-        'pr',
-        'create',
-        '--head',
-        'issue-42',
-        '--title',
-        'Ready PR',
-        '--body',
-        '## Description\n\nCreates a ready PR.',
-      ],
-      ['pr', 'view', 'https://github.com/example/repo/pull/123', '--json', 'number,url,isDraft'],
+    expect(runGh.mock.calls).toStrictEqual([
+      [lookupArguments],
+      [createArguments],
+      [lookupArguments],
     ])
   })
 
-  it('throws when create command returns empty output', () => {
-    const createPullRequest = createGithubPullRequestClient(() => '')
+  it('rejects ambiguous open PRs before creating anything', () => {
+    const runGh = vi
+      .fn<(args: readonly string[]) => string>()
+      .mockReturnValue(
+        JSON.stringify([existingPullRequest, { ...existingPullRequest, number: 456 }]),
+      )
 
-    expect(() =>
-      createPullRequest({
-        branch: 'issue-42',
-        title: 'Ready PR',
-        body: '## Description\n\nCreates a ready PR.',
-      }),
-    ).toThrow('Expected gh pr create to return a URL. Got empty output.')
+    expect(() => createGithubPullRequestClient(runGh)(creationRequest)).toThrow(
+      'Expected at most one open PR for branch issue-42. Got multiple PRs.',
+    )
+    expect(runGh.mock.calls).toStrictEqual([[lookupArguments]])
   })
 
-  it('throws when create command returns an invalid URL', () => {
-    const createPullRequest = createGithubPullRequestClient(() => 'not-json')
+  it('propagates lookup failures without attempting creation', () => {
+    const runGh = vi.fn<(args: readonly string[]) => string>().mockImplementation(() => {
+      throw new GithubFailure('GitHub authentication failed')
+    })
 
-    expect(() =>
-      createPullRequest({
-        branch: 'issue-42',
-        title: 'Ready PR',
-        body: '## Description\n\nCreates a ready PR.',
-      }),
-    ).toThrow('Expected gh pr create to return a URL. Got: not-json')
+    expect(() => createGithubPullRequestClient(runGh)(creationRequest)).toThrow(
+      'GitHub authentication failed',
+    )
+    expect(runGh.mock.calls).toStrictEqual([[lookupArguments]])
+  })
+
+  it.each([
+    ['', 'Expected gh pr create to return a URL. Got empty output.'],
+    ['not-json', 'Expected gh pr create to return a URL. Got: not-json'],
+  ])('rejects invalid create output %j', (output, reason) => {
+    const runGh = vi
+      .fn<(args: readonly string[]) => string>()
+      .mockReturnValueOnce('[]')
+      .mockReturnValueOnce(output)
+
+    expect(() => createGithubPullRequestClient(runGh)(creationRequest)).toThrow(reason)
+    expect(runGh.mock.calls).toStrictEqual([[lookupArguments], [createArguments]])
   })
 })

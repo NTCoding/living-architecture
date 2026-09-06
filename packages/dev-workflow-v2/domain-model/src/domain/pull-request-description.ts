@@ -145,6 +145,7 @@ export function buildPullRequestCreationRequest(
     branch,
     title: input.title,
     body: [
+      '[main-agent]',
       formatSection('Description', input.description),
       formatSection('Linked Issue', `Closes #${githubIssue}`),
       formatSection('What Problem Does This PR Solve?', input.problem),

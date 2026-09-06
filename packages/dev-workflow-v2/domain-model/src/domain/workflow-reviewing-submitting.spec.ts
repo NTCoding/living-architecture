@@ -238,6 +238,7 @@ describe('Workflow', () => {
           branch: 'issue-42',
           title: 'Add workflow create-pr',
           body: [
+            '[main-agent]',
             `## Description\n\n${CREATE_PR_DESCRIPTION}`,
             '## Linked Issue\n\nCloses #42',
             '## What Problem Does This PR Solve?\n\nAgents could create draft PRs directly.',

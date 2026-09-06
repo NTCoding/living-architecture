@@ -36,6 +36,8 @@ export function createGithubPullRequestClient(
   runGh: GhRunner,
 ): (request: GithubPullRequestCreationInput) => GithubPullRequest {
   return (request: GithubPullRequestCreationInput): GithubPullRequest => {
+    const existing = findOpenPullRequest(runGh, request.branch)
+    if (existing !== undefined) return existing
     const createOutput = runGh([
       'pr',
       'create',
@@ -49,6 +51,30 @@ export function createGithubPullRequestClient(
     const pullRequestUrl = readPullRequestUrl(createOutput)
     return readPullRequest(runGh, pullRequestUrl)
   }
+}
+
+function findOpenPullRequest(runGh: GhRunner, branch: string): GithubPullRequest | undefined {
+  const output = runGh([
+    'pr',
+    'list',
+    '--head',
+    branch,
+    '--state',
+    'open',
+    '--limit',
+    '2',
+    '--json',
+    'number,url,isDraft',
+  ])
+  const matches = z.array(pullRequestSchema).parse(JSON.parse(output))
+  if (matches.length > 1) {
+    throw new PullRequestCreationOutputError(
+      `Expected at most one open PR for branch ${branch}. Got multiple PRs.`,
+    )
+  }
+  const existing = matches.at(0)
+  if (existing === undefined) return undefined
+  return { prNumber: existing.number, prUrl: existing.url, isDraft: existing.isDraft }
 }
 
 function readPullRequestUrl(createOutput: string): string {
