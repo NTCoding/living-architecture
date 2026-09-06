@@ -1,38 +1,11 @@
 import { configureWorkflow } from './configure-workflow'
-import { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
+import { makeWorkflowDeps } from './__fixtures__/workflow-dependencies'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
 
-type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
 type StateName = WorkflowState['currentStateMachineState']
 const WORKFLOW_DEFINITION = configureWorkflow({})
-
-function makeWorkflowDeps(): WorkflowDeps {
-  return {
-    getGitInfo: () => ({
-      currentBranch: 'main',
-      workingTreeClean: true,
-      headCommit: 'abc123',
-      changedFilesVsDefault: [],
-      hasCommitsVsDefault: false,
-    }),
-    getPrFeedback: () => ({
-      reviewDecision: null,
-      coderabbitReviewSeen: true,
-      unresolvedCount: 0,
-      threads: [],
-    }),
-    createPullRequest: () => ({
-      prNumber: 1,
-      prUrl: 'https://github.com/example/repo/pull/1',
-      isDraft: false,
-    }),
-    listSessionReviews: () => [],
-    sleepMs: () => undefined,
-    now: () => '2026-01-01T00:00:00Z',
-  }
-}
 
 function buildTransitionEvent(
   from: StateName,

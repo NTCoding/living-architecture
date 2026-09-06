@@ -336,6 +336,10 @@ describe('workflow state definitions', () => {
       submittingPrGuard({
         state: state.with({
           prNumber: 42,
+          architectureReviewPassed: true,
+          codeReviewPassed: true,
+          bugScannerPassed: true,
+          taskCheckPassed: true,
         }),
         gitInfo: cleanGit,
         from: 'SUBMITTING_PR',

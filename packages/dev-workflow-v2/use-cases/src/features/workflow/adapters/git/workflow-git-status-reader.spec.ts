@@ -6,6 +6,7 @@ it('translates Git repository status into workflow status', () => {
     changedFilesVsDefault: ['src/example.ts'],
     currentBranch: 'feature/example',
     hasCommitsVsDefault: true,
+    defaultBranch: 'main',
     headCommit: 'abc123',
     workingTreeClean: false,
   }))
@@ -14,6 +15,7 @@ it('translates Git repository status into workflow status', () => {
     changedFilesVsDefault: ['src/example.ts'],
     currentBranch: 'feature/example',
     hasCommitsVsDefault: true,
+    defaultBranch: 'main',
     headCommit: 'abc123',
     workingTreeClean: false,
   })

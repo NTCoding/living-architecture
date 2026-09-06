@@ -16,12 +16,18 @@ function buildWorkflow(
   definition: ReturnType<typeof configureWorkflow>,
 ): ReturnType<typeof definition.buildWorkflow> {
   const deps: WorkflowDeps = {
+    runLocalVerification: () => undefined,
     getGitInfo: () => ({
       currentBranch: 'main',
       workingTreeClean: true,
+      defaultBranch: 'main',
       headCommit: 'abc123',
       changedFilesVsDefault: [],
       hasCommitsVsDefault: false,
+    }),
+    getRequiredPullRequestChecks: () => ({
+      headRevision: 'b'.repeat(40),
+      checks: [{ name: 'main', status: 'passed' as const, detailsUrl: null }],
     }),
     getPrFeedback: () => ({
       reviewDecision: null,
@@ -33,6 +39,9 @@ function buildWorkflow(
       prNumber: 1,
       prUrl: 'https://github.com/example/repo/pull/1',
       isDraft: false,
+      repository: 'example/repo',
+      baseRevision: 'a'.repeat(40),
+      headRevision: 'b'.repeat(40),
     }),
     listSessionReviews: () => [],
     sleepMs: () => undefined,

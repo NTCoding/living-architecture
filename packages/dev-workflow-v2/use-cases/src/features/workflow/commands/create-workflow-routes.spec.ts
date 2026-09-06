@@ -1,3 +1,4 @@
+import { makeWorkflowDeps } from './__fixtures__/workflow-dependencies'
 import { defineWorkflowRoutes } from '../../../infra/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
 import { ZodSchemaProvider } from '../../../infra/external-clients/zod/zod-schema-provider'
 import { configureWorkflow } from './configure-workflow'
@@ -21,6 +22,7 @@ interface RouteCalls {
   recordCiPassed: unknown[][]
   recordCiFailed: unknown[][]
   verifyFeedbackAddressed: unknown[][]
+  verifyPrReviewGate: unknown[][]
 }
 
 function createInput(): {
@@ -35,6 +37,7 @@ function createInput(): {
     recordCiPassed: [],
     recordCiFailed: [],
     verifyFeedbackAddressed: [],
+    verifyPrReviewGate: [],
   }
   return {
     input: {
@@ -66,8 +69,13 @@ function createInput(): {
         calls.recordCiFailed.push([workflow, output])
         return workflowResult
       },
+      verifyLocal: (workflow) => workflow.verifyLocal(),
       verifyFeedbackAddressed: (workflow) => {
         calls.verifyFeedbackAddressed.push([workflow])
+        return workflowResult
+      },
+      verifyPrReviewGate: (workflow) => {
+        calls.verifyPrReviewGate.push([workflow])
         return workflowResult
       },
     },
@@ -76,29 +84,7 @@ function createInput(): {
 }
 
 function createWorkflow(definition: ReturnType<typeof configureWorkflow>) {
-  return definition.buildWorkflow(definition.initialState(), {
-    getGitInfo: () => ({
-      currentBranch: 'main',
-      workingTreeClean: true,
-      headCommit: 'abc123',
-      changedFilesVsDefault: [],
-      hasCommitsVsDefault: false,
-    }),
-    getPrFeedback: () => ({
-      reviewDecision: null,
-      coderabbitReviewSeen: true,
-      unresolvedCount: 0,
-      threads: [],
-    }),
-    createPullRequest: () => ({
-      prNumber: 1,
-      prUrl: 'https://github.com/example/repo/pull/1',
-      isDraft: false,
-    }),
-    listSessionReviews: () => [],
-    sleepMs: () => undefined,
-    now: () => '2026-01-01T00:00:00Z',
-  })
+  return definition.buildWorkflow(definition.initialState(), makeWorkflowDeps())
 }
 
 function transactionHandler(routes: CreateWorkflowRoutesResult['routes'], name: string) {
@@ -139,7 +125,9 @@ describe('CreateWorkflowRoutes', () => {
       'create-pr',
       'record-ci-passed',
       'record-ci-failed',
+      'verify-local',
       'verify-feedback-addressed',
+      'verify-pr-review-gate',
     ])
 
     expect(routes['init']).toStrictEqual({ type: 'session-start' })
@@ -180,6 +168,9 @@ describe('CreateWorkflowRoutes', () => {
 
     const workflow = createWorkflow(workflowDefinition)
 
+    expect(
+      transactionHandler(routes, 'verify-local')(workflow, undefined, undefined),
+    ).toMatchObject({ pass: false })
     transactionHandler(routes, 'record-issue')(workflow, 1)
     transactionHandler(routes, 'record-branch')(workflow, 'branch')
     transactionHandler(routes, 'record-pr')(workflow, 1, undefined)
@@ -187,6 +178,7 @@ describe('CreateWorkflowRoutes', () => {
     transactionHandler(routes, 'record-ci-passed')(workflow, undefined, undefined)
     transactionHandler(routes, 'record-ci-failed')(workflow, 'output')
     transactionHandler(routes, 'verify-feedback-addressed')(workflow, undefined, undefined)
+    transactionHandler(routes, 'verify-pr-review-gate')(workflow, undefined, undefined)
 
     expect({
       recordIssue: calls.recordIssue,
@@ -196,6 +188,7 @@ describe('CreateWorkflowRoutes', () => {
       recordCiPassed: calls.recordCiPassed,
       recordCiFailed: calls.recordCiFailed,
       verifyFeedbackAddressed: calls.verifyFeedbackAddressed,
+      verifyPrReviewGate: calls.verifyPrReviewGate,
     }).toStrictEqual({
       recordIssue: [[workflow, 1]],
       recordBranch: [[workflow, 'value']],
@@ -204,6 +197,7 @@ describe('CreateWorkflowRoutes', () => {
       recordCiPassed: [[workflow]],
       recordCiFailed: [[workflow, 'value']],
       verifyFeedbackAddressed: [[workflow]],
+      verifyPrReviewGate: [[workflow]],
     })
   })
 })

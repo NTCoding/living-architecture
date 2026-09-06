@@ -13,6 +13,7 @@ export class BlockedState {
   readonly forbidden = { write: true } as const
   readonly canTransitionTo = [
     'IMPLEMENTING',
+    'VERIFYING',
     'REVIEWING',
     'SUBMITTING_PR',
     'AWAITING_CI',

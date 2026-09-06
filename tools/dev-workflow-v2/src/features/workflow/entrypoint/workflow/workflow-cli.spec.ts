@@ -280,6 +280,9 @@ describe('workflow-cli commands', () => {
             prNumber: 456,
             prUrl: 'https://github.com/example/repo/pull/456',
             isDraft: false,
+            repository: 'example/repo',
+            baseRevision: 'a'.repeat(40),
+            headRevision: 'b'.repeat(40),
           }
         },
       })

@@ -140,11 +140,14 @@ export function buildPullRequestCreationRequest(
   input: PullRequestDescriptionInput,
   githubIssue: number,
   branch: string,
+  baseBranch: string,
 ): Parameters<import('./ports/create-pull-request').CreateWorkflowPullRequest>[0] {
   return {
     branch,
+    baseBranch,
     title: input.title,
     body: [
+      '[main-agent]',
       formatSection('Description', input.description),
       formatSection('Linked Issue', `Closes #${githubIssue}`),
       formatSection('What Problem Does This PR Solve?', input.problem),

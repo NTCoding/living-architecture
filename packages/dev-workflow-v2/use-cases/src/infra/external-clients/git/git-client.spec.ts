@@ -36,6 +36,7 @@ describe('readGitRepositoryStatus', () => {
     expect(readGitRepositoryStatus('custom-git', executeGit)).toStrictEqual({
       changedFilesVsDefault: ['src/a.ts', 'src/b.ts'],
       currentBranch: 'feature/example',
+      defaultBranch: 'trunk',
       hasCommitsVsDefault: true,
       headCommit: 'abc123',
       workingTreeClean: true,
@@ -69,4 +70,10 @@ describe('readGitRepositoryStatus', () => {
 
     expect(() => readGitRepositoryStatus('git', executeGit)).toThrow(MissingRemoteHeadError)
   })
+})
+
+it('rejects an unexpected remote default reference instead of inventing a target branch', () => {
+  const executeGit = vi.fn().mockReturnValueOnce('other/trunk').mockReturnValueOnce('default123')
+  expect(() => readGitRepositoryStatus('git', executeGit)).toThrow('Invalid')
+  expect(executeGit).toHaveBeenCalledTimes(2)
 })

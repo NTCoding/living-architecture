@@ -1,101 +1,78 @@
 import { describe, expect, it } from 'vitest'
 import { evaluateCodeRabbitFeedbackPoll } from './coderabbit-feedback-verification'
+import { rateLimitEvidence } from './__fixtures__/coderabbit-rate-limit-evidence'
+
+const pendingFeedback = {
+  reviewDecision: null,
+  coderabbitReviewSeen: false,
+  unresolvedCount: 0,
+  threads: [],
+}
 
 describe('evaluateCodeRabbitFeedbackPoll', () => {
-  it('reports a rate-limit failure', () => {
+  it('accepts demonstrated completion without counting repeated empty polls', () => {
     expect(
       evaluateCodeRabbitFeedbackPoll(
-        {
-          reviewDecision: null,
-          coderabbitReviewSeen: true,
-          coderabbitRateLimited: true,
-          unresolvedCount: 0,
-          threads: [],
-        },
-        42,
-        2,
-        0,
+        { ...pendingFeedback, coderabbitReviewSeen: true },
+        99,
+        1,
+        false,
       ),
-    ).toStrictEqual({
-      type: 'rate-limited',
-      reason: 'CodeRabbit rate limited. Wait, then resume AWAITING_PR_FEEDBACK.',
-    })
+    ).toStrictEqual({ type: 'verified', clean: true })
   })
 
-  it('plans a retry until a second clean feedback result is observed', () => {
-    expect(
-      evaluateCodeRabbitFeedbackPoll(
-        {
-          reviewDecision: 'APPROVED',
-          coderabbitReviewSeen: true,
-          unresolvedCount: 0,
-          threads: [],
-        },
-        42,
-        2,
-        0,
-      ),
-    ).toStrictEqual({
+  it('retries pending review work even when no threads exist', () => {
+    expect(evaluateCodeRabbitFeedbackPoll(pendingFeedback, 99, 2, false)).toStrictEqual({
       type: 'retry',
-      consecutiveCleanPolls: 1,
     })
   })
 
-  it('reports a timeout when CodeRabbit feedback is still absent on the final poll', () => {
-    expect(
-      evaluateCodeRabbitFeedbackPoll(
-        {
-          reviewDecision: null,
-          coderabbitReviewSeen: false,
-          unresolvedCount: 0,
-          threads: [],
-        },
-        42,
-        1,
-        0,
-      ),
-    ).toStrictEqual({
+  it('fails closed when the final poll still lacks completion evidence', () => {
+    expect(evaluateCodeRabbitFeedbackPoll(pendingFeedback, 99, 1, false)).toStrictEqual({
       type: 'timed-out',
-      reason: 'CodeRabbit feedback did not appear within 300000ms for PR #42.',
+      reason: 'CodeRabbit feedback did not appear within 300000ms for PR #99.',
     })
   })
 
-  it('reports a timeout when only one clean poll has occurred on the final poll', () => {
+  it('allows the approved skip when verified rate-limit evidence is present', () => {
     expect(
       evaluateCodeRabbitFeedbackPoll(
         {
-          reviewDecision: 'APPROVED',
-          coderabbitReviewSeen: true,
-          unresolvedCount: 0,
-          threads: [],
+          ...pendingFeedback,
+          coderabbitRateLimited: true,
+          coderabbitRateLimitEvidence: rateLimitEvidence,
         },
-        42,
+        99,
         1,
-        0,
+        false,
       ),
-    ).toStrictEqual({
-      type: 'timed-out',
-      reason:
-        'CodeRabbit feedback was not clean for 2 consecutive polls within 300000ms for PR #42.',
-    })
+    ).toStrictEqual({ type: 'verified', clean: true })
   })
 
-  it('reports the final feedback result', () => {
+  it('does not allow an unsupported rate-limit claim to establish readiness', () => {
     expect(
       evaluateCodeRabbitFeedbackPoll(
-        {
-          reviewDecision: 'CHANGES_REQUESTED',
-          coderabbitReviewSeen: true,
-          unresolvedCount: 1,
-          threads: [],
-        },
-        42,
+        { ...pendingFeedback, coderabbitReviewSeen: true, coderabbitRateLimited: true },
+        99,
         2,
-        0,
+        false,
       ),
-    ).toStrictEqual({
+    ).toStrictEqual({ type: 'retry' })
+  })
+
+  it('preserves an earlier PR-wide skip while a later head is pending', () => {
+    expect(evaluateCodeRabbitFeedbackPoll(pendingFeedback, 99, 1, true)).toStrictEqual({
       type: 'verified',
-      clean: false,
+      clean: true,
     })
+  })
+
+  it.each([
+    { reviewDecision: 'CHANGES_REQUESTED', unresolvedCount: 0 },
+    { reviewDecision: null, unresolvedCount: 1 },
+  ])('does not let a rate-limit skip dismiss outstanding feedback %j', (feedback) => {
+    expect(
+      evaluateCodeRabbitFeedbackPoll({ ...pendingFeedback, ...feedback }, 99, 1, true),
+    ).toStrictEqual({ type: 'verified', clean: false })
   })
 })

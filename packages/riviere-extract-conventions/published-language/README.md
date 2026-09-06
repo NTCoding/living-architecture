@@ -71,4 +71,4 @@ nx build riviere-extract-conventions-published-language
 
 ## Documentation
 
-- [CLAUDE.md](./CLAUDE.md) - Package principles and design decisions
+- [AGENTS.md](./AGENTS.md) - Package principles and design decisions

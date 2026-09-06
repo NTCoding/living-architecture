@@ -1,6 +1,6 @@
 # dev-workflow-v2
 
-An event-sourced state machine plugin for Claude Code, Codex, OpenCode, and Pi that enforces a structured task lifecycle: planning, implementation, verification, review, submit PR, await CI, await PR feedback, reflect, complete.
+An event-sourced state machine plugin for Claude Code, Codex, OpenCode, and Pi that enforces a structured task lifecycle: planning, implementation, verification, submit PR, review, await CI, await PR feedback, reflect, complete.
 
 ## How to Start with Claude Code
 
@@ -170,6 +170,12 @@ Prepares an issue branch from the refreshed remote default branch, reads the iss
 
 Branch preparation supports both a primary checkout and a linked worktree. It leaves the local default branch and any automatically created linked-worktree branch reference unchanged. It stops rather than overwriting work when the checkout is dirty or detached, the current branch contains commits absent from the remote default, the target branch is stale or contains commits, or another worktree already has the target branch checked out.
 
+### Local verification
+
+After implementation is committed, enter `VERIFYING` and run `workflow verify-local`. The workflow runs `CI=true NX_SKIP_NX_CACHE=true pnpm verify`, records the exact verified commit, and rejects a worktree that changes during verification. Failures are recorded before entering `BLOCKED`.
+
+PR creation requires that verification still matches the current clean commit. Entry to `REVIEWING` also requires a complete recorded PR snapshot with that same head SHA. Legacy CI transitions cannot bypass outstanding reviews.
+
 ### Reusable workflow actions
 
 ```bash
@@ -188,7 +194,7 @@ Lists unresolved review threads for the pull request recorded in workflow state.
 /dev-workflow-v2:create-pr
 ```
 
-Pushes the recorded feature branch, then delegates standard PR creation and recording to the workflow.
+Pushes the recorded feature branch, then delegates standard PR creation and recording to the workflow. The target is the remote default branch used for the local change comparison. Creation and retry reconciliation both bind the head and base branches; a returned PR with a different base is rejected.
 
 ### Workflow (internal)
 
@@ -211,7 +217,9 @@ This returns the current workflow state as JSON so state instructions can extrac
 ```mermaid
 stateDiagram-v2
     [*] --> IMPLEMENTING
-    IMPLEMENTING --> REVIEWING
+    IMPLEMENTING --> VERIFYING
+    VERIFYING --> SUBMITTING_PR : verified current clean commit
+    SUBMITTING_PR --> REVIEWING : recorded PR matches verified commit
     REVIEWING --> SUBMITTING_PR : all reviews passed
     REVIEWING --> IMPLEMENTING : review failed
     SUBMITTING_PR --> AWAITING_CI
@@ -224,6 +232,7 @@ stateDiagram-v2
     COMPLETE --> [*]
 
     IMPLEMENTING --> BLOCKED
+    VERIFYING --> BLOCKED
     REVIEWING --> BLOCKED
     SUBMITTING_PR --> BLOCKED
     AWAITING_CI --> BLOCKED
@@ -245,8 +254,8 @@ Most of the workflow is automated. You interact at these points:
 
 ## Troubleshooting
 
-| Problem                       | Where to look                                          |
-| ----------------------------- | ------------------------------------------------------ |
+| Problem                       | Where to look                                                                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Workflow state seems wrong    | Event store: `$WORKFLOW_EVENTS_DB`, or `~/ai-workflow-database/.workflow-events.db` when it is unset |
-| Hook errors / silent failures | Error log: `~/.claude/dev-workflow-v2-hook-errors.log` |
-| Stale NX cache                | Run `pnpm nx reset`                                    |
+| Hook errors / silent failures | Error log: `~/.claude/dev-workflow-v2-hook-errors.log`                                               |
+| Stale NX cache                | Run `pnpm nx reset`                                                                                  |

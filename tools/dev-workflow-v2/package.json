@@ -3,9 +3,13 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "keywords": ["pi-package"],
+  "keywords": [
+    "pi-package"
+  ],
   "pi": {
-    "extensions": ["./src/shell/pi-plugin.ts"]
+    "extensions": [
+      "./src/shell/pi-plugin.ts"
+    ]
   },
   "scripts": {
     "build": "node esbuild.config.mjs",
@@ -19,13 +23,14 @@
   "dependencies": {
     "@earendil-works/pi-coding-agent": "0.84.4",
     "@living-architecture/dev-workflow-v2-use-cases": "workspace:*",
-    "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.4.8",
-    "@nt-ai-lab/deterministic-agent-workflow-cli": "0.4.8",
-    "@nt-ai-lab/deterministic-agent-workflow-codex": "0.4.10",
-    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.4.7",
-    "@nt-ai-lab/deterministic-agent-workflow-event-store": "0.4.7",
-    "@nt-ai-lab/deterministic-agent-workflow-opencode": "0.4.8",
-    "@nt-ai-lab/deterministic-agent-workflow-pi": "0.5.5",
+    "@nt-ai-lab/deterministic-agent-workflow-acp": "0.3.0",
+    "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.6.0",
+    "@nt-ai-lab/deterministic-agent-workflow-cli": "0.6.0",
+    "@nt-ai-lab/deterministic-agent-workflow-codex": "0.6.0",
+    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.6.0",
+    "@nt-ai-lab/deterministic-agent-workflow-event-store": "0.6.0",
+    "@nt-ai-lab/deterministic-agent-workflow-opencode": "0.6.0",
+    "@nt-ai-lab/deterministic-agent-workflow-pi": "0.7.0",
     "esbuild": "0.27.2",
     "tsx": "4.21.0"
   },
@@ -33,6 +38,7 @@
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^2.0.0",
     "typescript": "npm:typescript@^7.0.2",
-    "vitest": "^2.0.0"
+    "vitest": "^2.0.0",
+    "zod": "^3.23.0"
   }
 }

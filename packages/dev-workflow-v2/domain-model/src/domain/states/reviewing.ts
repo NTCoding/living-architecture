@@ -9,9 +9,15 @@ export class ReviewingState {
   readonly name: 'REVIEWING'
   readonly emoji = '📋'
   readonly agentInstructions = 'states/reviewing.md'
-  readonly canTransitionTo = ['SUBMITTING_PR', 'IMPLEMENTING', 'BLOCKED'] as const
+  readonly canTransitionTo = [
+    'SUBMITTING_PR',
+    'IMPLEMENTING',
+    'ADDRESSING_FEEDBACK',
+    'REFLECTING',
+    'BLOCKED',
+  ] as const
   readonly forbidden = { write: true } as const
-  readonly allowedWorkflowOperations = ['record-review'] as const
+  readonly allowedWorkflowOperations = ['record-review', 'verify-pr-review-gate'] as const
 
   private constructor(name: 'REVIEWING') {
     this.name = name

@@ -215,12 +215,15 @@ describe('buildPullRequestCreationRequest', () => {
       VALID_PULL_REQUEST_DESCRIPTION_INPUT,
       42,
       'issue-42',
+      'trunk',
     )
 
     expect(request).toStrictEqual({
       branch: 'issue-42',
+      baseBranch: 'trunk',
       title: 'Ready PR',
       body: [
+        '[main-agent]',
         `## Description\n\n${VALID_DESCRIPTION}`,
         '## Linked Issue\n\nCloses #42',
         '## What Problem Does This PR Solve?\n\nDirect PR creation could bypass workflow rules.',

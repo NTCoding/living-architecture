@@ -11,6 +11,7 @@ export function createWorkflowPullRequestCreator(
   return (request) => {
     const pullRequest = createGithubPullRequest({
       branch: request.branch,
+      baseBranch: request.baseBranch,
       body: request.body,
       title: request.title,
     })
@@ -18,6 +19,9 @@ export function createWorkflowPullRequestCreator(
       isDraft: pullRequest.isDraft,
       prNumber: pullRequest.prNumber,
       prUrl: pullRequest.prUrl,
+      repository: pullRequest.repository,
+      baseRevision: pullRequest.baseRevision,
+      headRevision: pullRequest.headRevision,
     }
   }
 }

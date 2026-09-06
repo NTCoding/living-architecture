@@ -1,3 +1,4 @@
+import { ReviewerSatisfaction } from './reviewer-satisfaction'
 import { z } from 'zod'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from './workflow-types'
@@ -6,6 +7,8 @@ const STATE_NAME_SCHEMA = WorkflowState.stateNameSchema()
 
 const KNOWN_WORKFLOW_EVENT_TYPES = [
   'session-started',
+  'local-verification-completed',
+  'reviewer-satisfaction-recorded',
   'transitioned',
   'issue-recorded',
   'branch-recorded',
@@ -19,6 +22,20 @@ const KNOWN_WORKFLOW_EVENT_TYPES = [
   'bash-checked',
   'write-checked',
 ] as const
+
+const REVIEWER_SATISFACTION_RECORDED_SCHEMA = z.object({
+  type: z.literal('reviewer-satisfaction-recorded'),
+  at: z.string(),
+  repository: z.string().min(1),
+  prNumber: z.number().int().positive(),
+  completion: ReviewerSatisfaction.completionSchema(),
+})
+
+const LOCAL_VERIFICATION_COMPLETED_SCHEMA = z.object({
+  type: z.literal('local-verification-completed'),
+  at: z.string(),
+  result: WorkflowState.localVerificationResultSchema(),
+})
 
 const SESSION_STARTED_SCHEMA = z.object({
   type: z.literal('session-started'),
@@ -71,6 +88,7 @@ const PR_RECORDED_SCHEMA = z.object({
   at: z.string(),
   prNumber: z.number(),
   prUrl: z.string().optional(),
+  pullRequestSnapshot: WorkflowState.pullRequestSnapshotSchema().optional(),
 })
 
 const CI_COMPLETED_SCHEMA = z.object({
@@ -84,6 +102,7 @@ const FEEDBACK_CHECKED_SCHEMA = z.object({
   type: z.literal('feedback-checked'),
   at: z.string(),
   clean: z.boolean(),
+  coderabbitRateLimitEvidence: WorkflowState.codeRabbitRateLimitEvidenceSchema().optional(),
   unresolvedCount: z.number().optional(),
   reviewDecision: z.string().nullable().optional(),
 })
@@ -132,6 +151,8 @@ const WRITE_CHECKED_SCHEMA = z.object({
 
 const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
   SESSION_STARTED_SCHEMA,
+  LOCAL_VERIFICATION_COMPLETED_SCHEMA,
+  REVIEWER_SATISFACTION_RECORDED_SCHEMA,
   TRANSITIONED_SCHEMA,
   ISSUE_RECORDED_SCHEMA,
   BRANCH_RECORDED_SCHEMA,

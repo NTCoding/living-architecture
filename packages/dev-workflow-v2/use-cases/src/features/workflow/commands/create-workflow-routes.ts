@@ -35,7 +35,9 @@ export interface CreateWorkflowRoutesInput {
   readonly createPullRequest: (workflow: RoutedWorkflow, args: readonly string[]) => WorkflowResult
   readonly recordCiPassed: (workflow: RoutedWorkflow) => WorkflowResult
   readonly recordCiFailed: (workflow: RoutedWorkflow, output: string) => WorkflowResult
+  readonly verifyLocal: (workflow: RoutedWorkflow) => WorkflowResult
   readonly verifyFeedbackAddressed: (workflow: RoutedWorkflow) => WorkflowResult
+  readonly verifyPrReviewGate: (workflow: RoutedWorkflow) => WorkflowResult
 }
 
 /** @riviere-role command-use-case */
@@ -93,10 +95,20 @@ export class CreateWorkflowRoutes {
           handler: (workflow, output) =>
             input.recordCiFailed(workflow, input.parseStringArgument(output)),
         },
+        'verify-local': {
+          type: 'transaction',
+          args: [],
+          handler: (workflow) => input.verifyLocal(workflow),
+        },
         'verify-feedback-addressed': {
           type: 'transaction',
           args: [],
           handler: (workflow) => input.verifyFeedbackAddressed(workflow),
+        },
+        'verify-pr-review-gate': {
+          type: 'transaction',
+          args: [],
+          handler: (workflow) => input.verifyPrReviewGate(workflow),
         },
       }),
     }

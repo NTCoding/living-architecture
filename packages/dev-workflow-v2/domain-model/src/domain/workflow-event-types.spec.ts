@@ -4,6 +4,8 @@ describe('getKnownWorkflowEventTypes', () => {
   it('returns the expected workflow event discriminators', () => {
     expect(getKnownWorkflowEventTypes()).toStrictEqual([
       'session-started',
+      'local-verification-completed',
+      'reviewer-satisfaction-recorded',
       'transitioned',
       'issue-recorded',
       'branch-recorded',

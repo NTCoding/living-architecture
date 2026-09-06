@@ -1,3 +1,4 @@
+import { rateLimitEvidence } from './__fixtures__/coderabbit-rate-limit-evidence'
 import { describe, it, expect, vi } from 'vitest'
 import {
   makeDeps,
@@ -57,8 +58,8 @@ describe('Workflow', () => {
         currentStateMachineState: 'REFLECTING',
         feedbackClean: true,
       })
-      expect(getPrFeedback).toHaveBeenCalledTimes(2)
-      expect(sleepMs).toHaveBeenCalledTimes(1)
+      expect(getPrFeedback).toHaveBeenCalledTimes(1)
+      expect(sleepMs).not.toHaveBeenCalled()
     })
 
     it('awaits CodeRabbit feedback and auto-transitions to ADDRESSING_FEEDBACK when feedback exists', () => {
@@ -102,7 +103,7 @@ describe('Workflow', () => {
       })
     })
 
-    it('immediately blocks when CodeRabbit is rate limited', () => {
+    it('records the approved PR-wide skip when CodeRabbit is rate limited', () => {
       const state = WorkflowState.replay([...eventsToAwaitingPrFeedback().slice(0, -1)])
       const sleepMs = vi.fn()
       const wf = rehydrateTestWorkflow(
@@ -112,6 +113,7 @@ describe('Workflow', () => {
             reviewDecision: null,
             coderabbitReviewSeen: true,
             coderabbitRateLimited: true,
+            coderabbitRateLimitEvidence: rateLimitEvidence,
             unresolvedCount: 0,
             threads: [],
           }),
@@ -126,21 +128,22 @@ describe('Workflow', () => {
         to: 'AWAITING_PR_FEEDBACK',
       })
 
-      expect(wf.getState().currentStateMachineState).toStrictEqual('BLOCKED')
+      expect(wf.getState().currentStateMachineState).toStrictEqual('REFLECTING')
       expect(wf.getPendingEvents().slice(-2)).toStrictEqual([
         expect.objectContaining({
-          type: 'pr-feedback-verification-failed',
-          reason: 'CodeRabbit rate limited. Wait, then resume AWAITING_PR_FEEDBACK.',
+          type: 'feedback-checked',
+          coderabbitRateLimitEvidence: rateLimitEvidence,
+          clean: true,
         }),
         expect.objectContaining({
           type: 'transitioned',
-          to: 'BLOCKED',
+          to: 'REFLECTING',
         }),
       ])
       expect(sleepMs).not.toHaveBeenCalled()
     })
 
-    it('blocks without reading Git status when CodeRabbit is rate limited', () => {
+    it('applies the CodeRabbit skip without an unnecessary Git lookup', () => {
       const state = WorkflowState.replay([...eventsToAwaitingPrFeedback().slice(0, -1)])
       const wf = rehydrateTestWorkflow(
         state,
@@ -152,6 +155,7 @@ describe('Workflow', () => {
             reviewDecision: null,
             coderabbitReviewSeen: true,
             coderabbitRateLimited: true,
+            coderabbitRateLimitEvidence: rateLimitEvidence,
             unresolvedCount: 0,
             threads: [],
           }),
@@ -165,7 +169,7 @@ describe('Workflow', () => {
         to: 'AWAITING_PR_FEEDBACK',
       })
 
-      expect(wf.getState().currentStateMachineState).toStrictEqual('BLOCKED')
+      expect(wf.getState().currentStateMachineState).toStrictEqual('REFLECTING')
     })
 
     it('applies ADDRESSING_FEEDBACK onEntry overrides during the automatic transition', () => {

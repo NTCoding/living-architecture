@@ -1,8 +1,10 @@
+import { z } from 'zod'
 import { execFileSync } from 'node:child_process'
 
 /** @riviere-role external-client-model */
 export interface GitRepositoryStatus {
   changedFilesVsDefault: readonly string[]
+  defaultBranch: string
   currentBranch: string
   hasCommitsVsDefault: boolean
   headCommit: string
@@ -24,6 +26,11 @@ export function readGitRepositoryStatus(
 ): GitRepositoryStatus {
   const defaultBranch = detectDefaultBranch(executeGit, gitBinary)
   return {
+    defaultBranch: z
+      .string()
+      .regex(/^origin\/.+$/)
+      .parse(defaultBranch)
+      .slice('origin/'.length),
     currentBranch: runGit(executeGit, gitBinary, ['rev-parse', '--abbrev-ref', 'HEAD']),
     workingTreeClean: runGit(executeGit, gitBinary, ['status', '--porcelain']).length === 0,
     headCommit: runGit(executeGit, gitBinary, ['rev-parse', 'HEAD']),

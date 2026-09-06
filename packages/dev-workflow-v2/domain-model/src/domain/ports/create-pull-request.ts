@@ -3,6 +3,7 @@
  * @riviere-role-justification MaintainerWorkflow invokes this capability to perform the current external action of creating a pull request. Its result is the outcome of that action, not restored workflow state.
  */
 export type CreateWorkflowPullRequest = (request: {
+  readonly baseBranch: string
   readonly branch: string
   readonly title: string
   readonly body: string
@@ -10,4 +11,7 @@ export type CreateWorkflowPullRequest = (request: {
   readonly prNumber: number
   readonly prUrl: string
   readonly isDraft: boolean
+  readonly repository: string
+  readonly baseRevision: string
+  readonly headRevision: string
 }

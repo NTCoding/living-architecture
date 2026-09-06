@@ -1,3 +1,4 @@
+import { VerifyingState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/verifying'
 import type { BaseEvent, WorkflowRegistry } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import {
@@ -61,24 +62,12 @@ const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(getKnownWorkflowEventType
 /** @riviere-role command-use-case-input */
 export type ConfigureWorkflowInput = Readonly<Record<string, never>>
 
-function diffStateOverrides(
-  stateBefore: WorkflowState,
-  stateAfter: WorkflowState,
-): Record<string, unknown> {
-  const overrides: Record<string, unknown> = {}
-  const beforeEntries = new Map(Object.entries(stateBefore))
-  for (const [key, value] of Object.entries(stateAfter)) {
-    if (key === 'currentStateMachineState') continue
-    if (value !== beforeEntries.get(key)) overrides[key] = value
-  }
-  return overrides
-}
-
 /** @riviere-role command-use-case */
 export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkflowResult {
   void input
   const registry = MaintainerWorkflowRegistry.parse({
     IMPLEMENTING: ImplementingState.parse('IMPLEMENTING'),
+    VERIFYING: VerifyingState.parse('VERIFYING'),
     REVIEWING: ReviewingState.parse('REVIEWING'),
     SUBMITTING_PR: SubmittingPrState.parse('SUBMITTING_PR'),
     AWAITING_CI: AwaitingCiState.parse('AWAITING_CI'),
@@ -125,7 +114,7 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
       stateAfter: WorkflowState,
       now: string,
     ): BaseEvent {
-      const overrides = diffStateOverrides(stateBefore, stateAfter)
+      const overrides = stateAfter.transitionOverridesFrom(stateBefore)
       return {
         type: 'transitioned',
         at: now,

@@ -1,3 +1,4 @@
+import { VerifyingState } from '../states/verifying'
 import { workflowSpec } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowEvent } from '../workflow-events'
 import { WorkflowState } from '../workflow-types'
@@ -12,18 +13,15 @@ import { ImplementingState } from '../states/implementing'
 import { ReflectingState } from '../states/reflecting'
 import { ReviewingState } from '../states/reviewing'
 import { SubmittingPrState } from '../states/submitting-pr'
-import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
-import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 
 type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
 type StateName = WorkflowState['currentStateMachineState']
-type LivingArchitectureReviewType = Parameters<MaintainerWorkflow['getLatestReviewByType']>[0]
 
 const AT = '2026-01-01T00:00:00Z'
-const recordedReviews: StoredReview[] = []
 
 export const TEST_WORKFLOW_REGISTRY = MaintainerWorkflowRegistry.parse({
   IMPLEMENTING: ImplementingState.parse('IMPLEMENTING'),
+  VERIFYING: VerifyingState.parse('VERIFYING'),
   REVIEWING: ReviewingState.parse('REVIEWING'),
   SUBMITTING_PR: SubmittingPrState.parse('SUBMITTING_PR'),
   AWAITING_CI: AwaitingCiState.parse('AWAITING_CI'),
@@ -34,10 +32,11 @@ export const TEST_WORKFLOW_REGISTRY = MaintainerWorkflowRegistry.parse({
   BLOCKED: BlockedState.parse('BLOCKED'),
 })
 
-const cleanGit: GitInfo = {
+const cleanGit: ReturnType<WorkflowDeps['getGitInfo']> = {
+  defaultBranch: 'main',
   currentBranch: 'issue-42',
   workingTreeClean: true,
-  headCommit: 'abc123',
+  headCommit: 'b'.repeat(40),
   changedFilesVsDefault: [],
   hasCommitsVsDefault: false,
 }
@@ -45,6 +44,11 @@ const cleanGit: GitInfo = {
 export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
   return {
     getGitInfo: () => cleanGit,
+    runLocalVerification: () => undefined,
+    getRequiredPullRequestChecks: () => ({
+      headRevision: 'b'.repeat(40),
+      checks: [{ name: 'main', status: 'passed', detailsUrl: null }],
+    }),
     getPrFeedback: () => ({
       reviewDecision: null,
       coderabbitReviewSeen: true,
@@ -55,8 +59,11 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
       prNumber: 99,
       prUrl: 'https://github.com/example/repo/pull/99',
       isDraft: false,
+      repository: 'example/repo',
+      baseRevision: 'a'.repeat(40),
+      headRevision: 'b'.repeat(40),
     }),
-    listSessionReviews: (): readonly StoredReview[] => [...recordedReviews],
+    listSessionReviews: () => [],
     sleepMs: () => undefined,
     now: () => AT,
     ...overrides,
@@ -126,27 +133,10 @@ export function unresolvedThread(id: string): {
 }
 
 export function reviewRecorded(
-  reviewType: LivingArchitectureReviewType,
+  reviewType: 'architecture-review' | 'code-review' | 'bug-scanner' | 'task-check',
   verdict: 'PASS' | 'FAIL',
 ): WorkflowEvent {
-  const reviewId = Number(process.hrtime.bigint() % BigInt(Number.MAX_SAFE_INTEGER)) + 1
-  recordedReviews.push({
-    id: reviewId,
-    sessionId: 'test-session',
-    createdAt: AT,
-    reviewType,
-    sourceState: 'REVIEWING',
-    verdict,
-    summary: `${reviewType} ${verdict}`,
-    findings: [],
-  })
-  return {
-    type: 'review-recorded',
-    at: AT,
-    reviewId,
-    reviewType,
-    verdict,
-  }
+  return { type: 'review-recorded', at: AT, reviewId: 1, reviewType, verdict }
 }
 
 export function codeReviewFailed(): WorkflowEvent {
@@ -193,12 +183,20 @@ function feedbackExists(count: number): WorkflowEvent {
 }
 
 export function eventsToReviewing(): readonly WorkflowEvent[] {
-  recordedReviews.length = 0
   return [issueRecorded(42), branchRecorded('issue-42'), transitioned('IMPLEMENTING', 'REVIEWING')]
 }
 
 export function eventsToSubmittingPr(): readonly WorkflowEvent[] {
-  return [...eventsToReviewing(), ...allReviewsPassed(), transitioned('REVIEWING', 'SUBMITTING_PR')]
+  return [
+    ...eventsToReviewing(),
+    ...allReviewsPassed(),
+    {
+      type: 'local-verification-completed',
+      result: { status: 'passed', headCommit: 'b'.repeat(40) },
+      at: AT,
+    },
+    transitioned('REVIEWING', 'SUBMITTING_PR'),
+  ]
 }
 
 export function eventsToAwaitingCi(): readonly WorkflowEvent[] {

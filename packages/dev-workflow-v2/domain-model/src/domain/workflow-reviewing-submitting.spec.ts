@@ -1,4 +1,4 @@
-import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { CREATE_PR_DESCRIPTION, CREATE_PR_OPTIONS } from './__fixtures__/pull-request-options'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import {
   spec,
@@ -14,26 +14,6 @@ import { ReviewingState } from './states/reviewing'
 import { WorkflowState } from './workflow-types'
 
 const reviewingState = ReviewingState.parse('REVIEWING')
-const CREATE_PR_DESCRIPTION = 'A'.repeat(100)
-
-const CREATE_PR_OPTIONS = [
-  '--title',
-  'Add workflow create-pr',
-  '--description',
-  CREATE_PR_DESCRIPTION,
-  '--problem',
-  'Agents could create draft PRs directly.',
-  '--acceptance-criteria',
-  '- PR is ready for review\n- PR body follows the workflow structure',
-  '--key-changes',
-  '- Add structured create-pr command',
-  '--architecture-impact',
-  'Workflow owns PR body creation.',
-  '--validation',
-  '- pnpm test',
-  '--notes',
-  'None.',
-] as const
 
 function getReviewingTransitionGuard(): NonNullable<typeof reviewingState.transitionGuard> {
   return reviewingState.transitionGuard
@@ -46,56 +26,7 @@ function getFailureReason(result: { readonly pass: boolean; readonly reason?: st
   return result.reason
 }
 
-function createStoredReview(
-  id: number,
-  reviewType: StoredReview['reviewType'],
-  verdict: StoredReview['verdict'],
-): StoredReview {
-  return {
-    id,
-    sessionId: 'test-session',
-    createdAt: new Date(Date.UTC(2026, 0, 1, 0, 0, 0) + id * 1000).toISOString(),
-    reviewType,
-    sourceState: 'REVIEWING',
-    verdict,
-    summary: `${reviewType} ${verdict}`,
-    findings: [],
-  }
-}
-
 describe('Workflow', () => {
-  describe('review details', () => {
-    it('returns recorded reviews from platform review storage', () => {
-      const reviews = [createStoredReview(1, 'task-check', 'PASS')]
-      const workflow = buildTestWorkflow(makeDeps({ listSessionReviews: () => reviews }))
-
-      expect(workflow.getRecordedReviews()).toStrictEqual(reviews)
-    })
-
-    it('returns review details when review id exists', () => {
-      const reviews = [createStoredReview(1, 'task-check', 'FAIL')]
-      const workflow = buildTestWorkflow(makeDeps({ listSessionReviews: () => reviews }))
-
-      expect(workflow.getReviewDetails(1)).toStrictEqual(reviews[0])
-    })
-
-    it('returns latest review when review type has multiple attempts', () => {
-      const reviews = [
-        createStoredReview(1, 'task-check', 'FAIL'),
-        createStoredReview(2, 'task-check', 'PASS'),
-      ]
-      const workflow = buildTestWorkflow(makeDeps({ listSessionReviews: () => reviews }))
-
-      expect(workflow.getLatestReviewByType('task-check')).toStrictEqual(reviews[1])
-    })
-
-    it('throws when requested review id does not exist', () => {
-      const workflow = buildTestWorkflow(makeDeps({ listSessionReviews: () => [] }))
-
-      expect(() => workflow.getReviewDetails(99)).toThrow('Review 99 not found in current session.')
-    })
-  })
-
   describe('REVIEWING state', () => {
     it('marks architecture review as passed when latest architecture review verdict passed', () => {
       const workflow = rehydrateTestWorkflow(WorkflowState.replay(eventsToReviewing()), makeDeps())
@@ -210,7 +141,7 @@ describe('Workflow', () => {
       expect(workflow.getState().prNumber).toBeUndefined()
     })
 
-    it('records ready pull request with structured body when create-pr succeeds', () => {
+    it('records a ready pull request targeting the discovered default branch', () => {
       const capturedRequests: {
         readonly branch: string
         readonly title: string
@@ -219,12 +150,16 @@ describe('Workflow', () => {
       const workflow = rehydrateTestWorkflow(
         WorkflowState.replay(eventsToSubmittingPr()),
         makeDeps({
+          getGitInfo: () => ({ ...makeDeps().getGitInfo(), defaultBranch: 'release/current' }),
           createPullRequest: (request) => {
             capturedRequests.push(request)
             return {
               prNumber: 123,
               prUrl: 'https://github.com/x/y/pull/123',
               isDraft: false,
+              repository: 'x/y',
+              baseRevision: 'a'.repeat(40),
+              headRevision: 'b'.repeat(40),
             }
           },
         }),
@@ -236,8 +171,10 @@ describe('Workflow', () => {
       expect(capturedRequests).toStrictEqual([
         {
           branch: 'issue-42',
+          baseBranch: 'release/current',
           title: 'Add workflow create-pr',
           body: [
+            '[main-agent]',
             `## Description\n\n${CREATE_PR_DESCRIPTION}`,
             '## Linked Issue\n\nCloses #42',
             '## What Problem Does This PR Solve?\n\nAgents could create draft PRs directly.',
@@ -253,6 +190,53 @@ describe('Workflow', () => {
         prNumber: 123,
         prUrl: 'https://github.com/x/y/pull/123',
       })
+    })
+
+    it('preserves the exact PR snapshot through recording and replay', () => {
+      const workflow = rehydrateTestWorkflow(
+        WorkflowState.replay(eventsToSubmittingPr()),
+        makeDeps(),
+      )
+      expect(workflow.createPr(CREATE_PR_OPTIONS)).toStrictEqual({ pass: true })
+      const snapshot = {
+        repository: 'example/repo',
+        issue: 42,
+        branch: 'issue-42',
+        prNumber: 99,
+        prUrl: 'https://github.com/example/repo/pull/99',
+        baseRevision: 'a'.repeat(40),
+        headRevision: 'b'.repeat(40),
+      }
+      expect(workflow.getState().pullRequestSnapshot).toStrictEqual(snapshot)
+      expect(WorkflowState.replay(workflow.getPendingEvents()).pullRequestSnapshot).toStrictEqual(
+        snapshot,
+      )
+      expect(
+        WorkflowState.parse(JSON.parse(JSON.stringify(workflow.getState()))).pullRequestSnapshot,
+      ).toStrictEqual(snapshot)
+    })
+
+    it('does not queue an event when returned revisions are invalid', () => {
+      const workflow = rehydrateTestWorkflow(
+        WorkflowState.replay(eventsToSubmittingPr()),
+        makeDeps({
+          createPullRequest: () => ({
+            prNumber: 99,
+            prUrl: 'https://github.com/example/repo/pull/99',
+            isDraft: false,
+            repository: 'example/repo',
+            baseRevision: 'missing-revision',
+            headRevision: 'b'.repeat(40),
+          }),
+        }),
+      )
+      const previous = workflow.getState()
+      expect(workflow.createPr(CREATE_PR_OPTIONS)).toMatchObject({
+        pass: false,
+        reason: expect.stringContaining('baseRevision'),
+      })
+      expect(workflow.getPendingEvents()).toStrictEqual([])
+      expect(workflow.getState()).toStrictEqual(previous)
     })
 
     it('blocks create-pr when issue is not recorded', () => {
@@ -295,6 +279,9 @@ describe('Workflow', () => {
             prNumber: 123,
             prUrl: 'https://github.com/x/y/pull/123',
             isDraft: true,
+            repository: 'x/y',
+            baseRevision: 'a'.repeat(40),
+            headRevision: 'b'.repeat(40),
           }),
         }),
       )

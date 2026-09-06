@@ -830,7 +830,7 @@ Update riviere-extract-conventions with decorators, enforcement, and default con
   - Acceptance: Config passes validation, extracts all required fields
   - Verification: Integration tests
 
-- **D3.4:** Package CLAUDE.md updated
+- **D3.4:** Package AGENTS.md updated
   - Documents decorators and enforcement approach
   - Acceptance: Developer understands usage
   - Verification: Review doc content
