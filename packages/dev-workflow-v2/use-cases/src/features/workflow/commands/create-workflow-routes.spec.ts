@@ -80,6 +80,7 @@ function createWorkflow(definition: ReturnType<typeof configureWorkflow>) {
     getGitInfo: () => ({
       currentBranch: 'main',
       workingTreeClean: true,
+      defaultBranch: 'main',
       headCommit: 'abc123',
       changedFilesVsDefault: [],
       hasCommitsVsDefault: false,

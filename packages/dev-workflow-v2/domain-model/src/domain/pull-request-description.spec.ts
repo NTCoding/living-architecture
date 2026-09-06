@@ -215,10 +215,12 @@ describe('buildPullRequestCreationRequest', () => {
       VALID_PULL_REQUEST_DESCRIPTION_INPUT,
       42,
       'issue-42',
+      'trunk',
     )
 
     expect(request).toStrictEqual({
       branch: 'issue-42',
+      baseBranch: 'trunk',
       title: 'Ready PR',
       body: [
         '[main-agent]',

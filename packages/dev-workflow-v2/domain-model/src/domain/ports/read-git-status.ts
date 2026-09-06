@@ -4,6 +4,7 @@
  */
 export type ReadWorkflowGitStatus = () => {
   readonly changedFilesVsDefault: readonly string[]
+  readonly defaultBranch: string
   readonly currentBranch: string
   readonly hasCommitsVsDefault: boolean
   readonly headCommit: string

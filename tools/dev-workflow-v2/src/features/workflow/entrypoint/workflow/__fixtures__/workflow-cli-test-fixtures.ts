@@ -53,6 +53,7 @@ export function buildTestContext(
     getGitInfo: () => ({
       currentBranch: 'feat/test',
       workingTreeClean: true,
+      defaultBranch: 'main',
       headCommit: 'abc123',
       changedFilesVsDefault: ['src/test.ts'],
       hasCommitsVsDefault: true,

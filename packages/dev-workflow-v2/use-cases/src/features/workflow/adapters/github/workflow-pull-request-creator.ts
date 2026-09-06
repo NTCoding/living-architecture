@@ -11,6 +11,7 @@ export function createWorkflowPullRequestCreator(
   return (request) => {
     const pullRequest = createGithubPullRequest({
       branch: request.branch,
+      baseBranch: request.baseBranch,
       body: request.body,
       title: request.title,
     })

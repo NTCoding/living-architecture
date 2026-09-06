@@ -12,7 +12,6 @@ import { ImplementingState } from '../states/implementing'
 import { ReflectingState } from '../states/reflecting'
 import { ReviewingState } from '../states/reviewing'
 import { SubmittingPrState } from '../states/submitting-pr'
-import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 
 type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
@@ -34,7 +33,8 @@ export const TEST_WORKFLOW_REGISTRY = MaintainerWorkflowRegistry.parse({
   BLOCKED: BlockedState.parse('BLOCKED'),
 })
 
-const cleanGit: GitInfo = {
+const cleanGit: ReturnType<WorkflowDeps['getGitInfo']> = {
+  defaultBranch: 'main',
   currentBranch: 'issue-42',
   workingTreeClean: true,
   headCommit: 'abc123',

@@ -206,6 +206,7 @@ export class MaintainerWorkflow {
         parsedDescription.input,
         this.state.githubIssue,
         this.state.featureBranch,
+        this.deps.getGitInfo().defaultBranch,
       )
       const pullRequest = this.deps.createPullRequest(pullRequestRequest)
       if (pullRequest.isDraft) {

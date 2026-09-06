@@ -10,6 +10,7 @@ const pullRequest = {
   baseRefOid: 'a'.repeat(40),
   headRefOid: 'b'.repeat(40),
   headRefName: 'issue-42',
+  baseRefName: 'main',
   number: 123,
   url: 'https://github.com/example/repo/pull/123',
   isDraft: false,
@@ -44,6 +45,7 @@ function runGh(arguments_) {
 
 const result = createGithubPullRequestClient(runGh)({
   branch: 'issue-42',
+  baseBranch: 'main',
   title: 'Ready PR',
   body: '[main-agent]\n\nConcurrent creation regression.',
 })

@@ -140,9 +140,11 @@ export function buildPullRequestCreationRequest(
   input: PullRequestDescriptionInput,
   githubIssue: number,
   branch: string,
+  baseBranch: string,
 ): Parameters<import('./ports/create-pull-request').CreateWorkflowPullRequest>[0] {
   return {
     branch,
+    baseBranch,
     title: input.title,
     body: [
       '[main-agent]',

@@ -5,6 +5,7 @@ class GithubFailure extends Error {}
 
 const creationRequest = {
   branch: 'issue-42',
+  baseBranch: 'main',
   title: 'Ready PR',
   body: '## Description\n\nCreates a ready PR.',
 }
@@ -13,6 +14,7 @@ const existingPullRequest = {
   baseRefOid: 'a'.repeat(40),
   headRefOid: 'b'.repeat(40),
   headRefName: 'issue-42',
+  baseRefName: 'main',
   url: 'https://github.com/example/repo/pull/123',
   isDraft: false,
 }
@@ -21,18 +23,22 @@ const lookupArguments = [
   'list',
   '--head',
   'issue-42',
+  '--base',
+  'main',
   '--state',
   'open',
   '--limit',
   '2',
   '--json',
-  'number,url,isDraft,baseRefOid,headRefOid,headRefName',
+  'number,url,isDraft,baseRefOid,headRefOid,headRefName,baseRefName',
 ]
 const createArguments = [
   'pr',
   'create',
   '--head',
   'issue-42',
+  '--base',
+  'main',
   '--title',
   creationRequest.title,
   '--body',
@@ -66,7 +72,7 @@ describe('createGithubPullRequestClient', () => {
             'view',
             existingPullRequest.url,
             '--json',
-            'number,url,isDraft,baseRefOid,headRefOid,headRefName',
+            'number,url,isDraft,baseRefOid,headRefOid,headRefName,baseRefName',
           ],
         ],
       ])
@@ -142,6 +148,8 @@ describe('createGithubPullRequestClient', () => {
   })
 
   it.each([
+    [{ baseRefName: 'maintenance' }, 'Returned PR does not match the intended base branch.'],
+    [{ baseRefName: undefined }, 'Required'],
     [{ headRefName: 'another-branch' }, 'Returned PR does not match the recorded feature branch.'],
     [
       { url: 'https://github.com/example/repo/pull/999' },

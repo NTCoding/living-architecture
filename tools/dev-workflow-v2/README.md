@@ -188,7 +188,7 @@ Lists unresolved review threads for the pull request recorded in workflow state.
 /dev-workflow-v2:create-pr
 ```
 
-Pushes the recorded feature branch, then delegates standard PR creation and recording to the workflow.
+Pushes the recorded feature branch, then delegates standard PR creation and recording to the workflow. The target is the remote default branch used for the local change comparison. Creation and retry reconciliation both bind the head and base branches; a returned PR with a different base is rejected.
 
 ### Workflow (internal)
 
@@ -245,8 +245,8 @@ Most of the workflow is automated. You interact at these points:
 
 ## Troubleshooting
 
-| Problem                       | Where to look                                          |
-| ----------------------------- | ------------------------------------------------------ |
+| Problem                       | Where to look                                                                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Workflow state seems wrong    | Event store: `$WORKFLOW_EVENTS_DB`, or `~/ai-workflow-database/.workflow-events.db` when it is unset |
-| Hook errors / silent failures | Error log: `~/.claude/dev-workflow-v2-hook-errors.log` |
-| Stale NX cache                | Run `pnpm nx reset`                                    |
+| Hook errors / silent failures | Error log: `~/.claude/dev-workflow-v2-hook-errors.log`                                               |
+| Stale NX cache                | Run `pnpm nx reset`                                                                                  |

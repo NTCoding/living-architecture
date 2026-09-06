@@ -7,12 +7,14 @@ const pullRequestSchema = z.object({
   baseRefOid: z.string().regex(/^[0-9a-f]{40}$/),
   headRefOid: z.string().regex(/^[0-9a-f]{40}$/),
   headRefName: z.string().min(1),
+  baseRefName: z.string().min(1),
 })
 
 const pullRequestFields = pullRequestSchema.keyof().options.join(',')
 
 /** @riviere-role external-client-model */
 export interface GithubPullRequestCreationInput {
+  readonly baseBranch: string
   readonly branch: string
   readonly body: string
   readonly title: string
@@ -54,7 +56,7 @@ export function createGithubPullRequestClient(
   runGh: GhRunner,
 ): (request: GithubPullRequestCreationInput) => GithubPullRequest {
   return (request: GithubPullRequestCreationInput): GithubPullRequest => {
-    const existing = findOpenPullRequest(runGh, request.branch)
+    const existing = findOpenPullRequest(runGh, request.branch, request.baseBranch)
     if (existing !== undefined) return existing
     try {
       const createOutput = runGh([
@@ -62,14 +64,21 @@ export function createGithubPullRequestClient(
         'create',
         '--head',
         request.branch,
+        '--base',
+        request.baseBranch,
         '--title',
         request.title,
         '--body',
         request.body,
       ])
-      return readPullRequest(runGh, readPullRequestUrl(createOutput), request.branch)
+      return readPullRequest(
+        runGh,
+        readPullRequestUrl(createOutput),
+        request.branch,
+        request.baseBranch,
+      )
     } catch (creationError) {
-      return reconcileCreationFailure(runGh, request.branch, creationError)
+      return reconcileCreationFailure(runGh, request.branch, request.baseBranch, creationError)
     }
   }
 }
@@ -77,10 +86,11 @@ export function createGithubPullRequestClient(
 function reconcileCreationFailure(
   runGh: GhRunner,
   branch: string,
+  baseBranch: string,
   creationError: unknown,
 ): GithubPullRequest {
   try {
-    const existing = findOpenPullRequest(runGh, branch)
+    const existing = findOpenPullRequest(runGh, branch, baseBranch)
     if (existing !== undefined) return existing
   } catch (reconciliationError) {
     throw new PullRequestReconciliationError(creationError, reconciliationError)
@@ -88,12 +98,18 @@ function reconcileCreationFailure(
   throw creationError
 }
 
-function findOpenPullRequest(runGh: GhRunner, branch: string): GithubPullRequest | undefined {
+function findOpenPullRequest(
+  runGh: GhRunner,
+  branch: string,
+  baseBranch: string,
+): GithubPullRequest | undefined {
   const output = runGh([
     'pr',
     'list',
     '--head',
     branch,
+    '--base',
+    baseBranch,
     '--state',
     'open',
     '--limit',
@@ -109,7 +125,7 @@ function findOpenPullRequest(runGh: GhRunner, branch: string): GithubPullRequest
   }
   const existing = matches.at(0)
   if (existing === undefined) return undefined
-  return formatPullRequest(existing, branch)
+  return formatPullRequest(existing, branch, baseBranch)
 }
 
 function readPullRequestUrl(createOutput: string): string {
@@ -133,20 +149,24 @@ function readPullRequest(
   runGh: GhRunner,
   pullRequestReference: string,
   branch: string,
+  baseBranch: string,
 ): GithubPullRequest {
   const rawPullRequest = runGh(['pr', 'view', pullRequestReference, '--json', pullRequestFields])
   const pullRequest = pullRequestSchema.parse(JSON.parse(rawPullRequest))
-  return formatPullRequest(pullRequest, branch)
+  return formatPullRequest(pullRequest, branch, baseBranch)
 }
 
 function formatPullRequest(
   pullRequest: z.infer<typeof pullRequestSchema>,
   branch: string,
+  baseBranch: string,
 ): GithubPullRequest {
   if (pullRequest.headRefName !== branch)
     throw new PullRequestCreationOutputError(
       'Returned PR does not match the recorded feature branch.',
     )
+  if (pullRequest.baseRefName !== baseBranch)
+    throw new PullRequestCreationOutputError('Returned PR does not match the intended base branch.')
   const pathname = z
     .string()
     .regex(/^\/[^/]+\/[^/]+\/pull\/[1-9]\d*$/)

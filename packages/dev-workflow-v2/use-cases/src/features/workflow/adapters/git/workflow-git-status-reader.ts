@@ -10,6 +10,7 @@ export function createWorkflowGitStatusReader(
     return {
       changedFilesVsDefault: status.changedFilesVsDefault,
       currentBranch: status.currentBranch,
+      defaultBranch: status.defaultBranch,
       hasCommitsVsDefault: status.hasCommitsVsDefault,
       headCommit: status.headCommit,
       workingTreeClean: status.workingTreeClean,

@@ -16,6 +16,7 @@ function workflow(): MaintainerWorkflow {
     getGitInfo: () => ({
       currentBranch: 'feature/test',
       workingTreeClean: true,
+      defaultBranch: 'main',
       headCommit: 'abc123',
       changedFilesVsDefault: [],
       hasCommitsVsDefault: true,

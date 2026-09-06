@@ -210,7 +210,7 @@ describe('Workflow', () => {
       expect(workflow.getState().prNumber).toBeUndefined()
     })
 
-    it('records ready pull request with structured body when create-pr succeeds', () => {
+    it('records a ready pull request targeting the discovered default branch', () => {
       const capturedRequests: {
         readonly branch: string
         readonly title: string
@@ -219,6 +219,7 @@ describe('Workflow', () => {
       const workflow = rehydrateTestWorkflow(
         WorkflowState.replay(eventsToSubmittingPr()),
         makeDeps({
+          getGitInfo: () => ({ ...makeDeps().getGitInfo(), defaultBranch: 'release/current' }),
           createPullRequest: (request) => {
             capturedRequests.push(request)
             return {
@@ -239,6 +240,7 @@ describe('Workflow', () => {
       expect(capturedRequests).toStrictEqual([
         {
           branch: 'issue-42',
+          baseBranch: 'release/current',
           title: 'Add workflow create-pr',
           body: [
             '[main-agent]',
