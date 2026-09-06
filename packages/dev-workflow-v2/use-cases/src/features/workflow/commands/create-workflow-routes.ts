@@ -37,6 +37,7 @@ export interface CreateWorkflowRoutesInput {
   readonly recordCiFailed: (workflow: RoutedWorkflow, output: string) => WorkflowResult
   readonly verifyLocal: (workflow: RoutedWorkflow) => WorkflowResult
   readonly verifyFeedbackAddressed: (workflow: RoutedWorkflow) => WorkflowResult
+  readonly verifyPrReviewGate: (workflow: RoutedWorkflow) => WorkflowResult
 }
 
 /** @riviere-role command-use-case */
@@ -103,6 +104,11 @@ export class CreateWorkflowRoutes {
           type: 'transaction',
           args: [],
           handler: (workflow) => input.verifyFeedbackAddressed(workflow),
+        },
+        'verify-pr-review-gate': {
+          type: 'transaction',
+          args: [],
+          handler: (workflow) => input.verifyPrReviewGate(workflow),
         },
       }),
     }

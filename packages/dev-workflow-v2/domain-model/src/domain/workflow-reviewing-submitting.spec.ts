@@ -1,5 +1,4 @@
 import { CREATE_PR_DESCRIPTION, CREATE_PR_OPTIONS } from './__fixtures__/pull-request-options'
-import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import {
   spec,
@@ -27,56 +26,7 @@ function getFailureReason(result: { readonly pass: boolean; readonly reason?: st
   return result.reason
 }
 
-function createStoredReview(
-  id: number,
-  reviewType: StoredReview['reviewType'],
-  verdict: StoredReview['verdict'],
-): StoredReview {
-  return {
-    id,
-    sessionId: 'test-session',
-    createdAt: new Date(Date.UTC(2026, 0, 1, 0, 0, 0) + id * 1000).toISOString(),
-    reviewType,
-    sourceState: 'REVIEWING',
-    verdict,
-    summary: `${reviewType} ${verdict}`,
-    findings: [],
-  }
-}
-
 describe('Workflow', () => {
-  describe('review details', () => {
-    it('returns recorded reviews from platform review storage', () => {
-      const reviews = [createStoredReview(1, 'task-check', 'PASS')]
-      const workflow = buildTestWorkflow(makeDeps({ listSessionReviews: () => reviews }))
-
-      expect(workflow.getRecordedReviews()).toStrictEqual(reviews)
-    })
-
-    it('returns review details when review id exists', () => {
-      const reviews = [createStoredReview(1, 'task-check', 'FAIL')]
-      const workflow = buildTestWorkflow(makeDeps({ listSessionReviews: () => reviews }))
-
-      expect(workflow.getReviewDetails(1)).toStrictEqual(reviews[0])
-    })
-
-    it('returns latest review when review type has multiple attempts', () => {
-      const reviews = [
-        createStoredReview(1, 'task-check', 'FAIL'),
-        createStoredReview(2, 'task-check', 'PASS'),
-      ]
-      const workflow = buildTestWorkflow(makeDeps({ listSessionReviews: () => reviews }))
-
-      expect(workflow.getLatestReviewByType('task-check')).toStrictEqual(reviews[1])
-    })
-
-    it('throws when requested review id does not exist', () => {
-      const workflow = buildTestWorkflow(makeDeps({ listSessionReviews: () => [] }))
-
-      expect(() => workflow.getReviewDetails(99)).toThrow('Review 99 not found in current session.')
-    })
-  })
-
   describe('REVIEWING state', () => {
     it('marks architecture review as passed when latest architecture review verdict passed', () => {
       const workflow = rehydrateTestWorkflow(WorkflowState.replay(eventsToReviewing()), makeDeps())

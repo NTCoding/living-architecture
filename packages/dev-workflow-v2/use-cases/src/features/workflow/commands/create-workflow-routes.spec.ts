@@ -22,6 +22,7 @@ interface RouteCalls {
   recordCiPassed: unknown[][]
   recordCiFailed: unknown[][]
   verifyFeedbackAddressed: unknown[][]
+  verifyPrReviewGate: unknown[][]
 }
 
 function createInput(): {
@@ -36,6 +37,7 @@ function createInput(): {
     recordCiPassed: [],
     recordCiFailed: [],
     verifyFeedbackAddressed: [],
+    verifyPrReviewGate: [],
   }
   return {
     input: {
@@ -70,6 +72,10 @@ function createInput(): {
       verifyLocal: (workflow) => workflow.verifyLocal(),
       verifyFeedbackAddressed: (workflow) => {
         calls.verifyFeedbackAddressed.push([workflow])
+        return workflowResult
+      },
+      verifyPrReviewGate: (workflow) => {
+        calls.verifyPrReviewGate.push([workflow])
         return workflowResult
       },
     },
@@ -121,6 +127,7 @@ describe('CreateWorkflowRoutes', () => {
       'record-ci-failed',
       'verify-local',
       'verify-feedback-addressed',
+      'verify-pr-review-gate',
     ])
 
     expect(routes['init']).toStrictEqual({ type: 'session-start' })
@@ -171,6 +178,7 @@ describe('CreateWorkflowRoutes', () => {
     transactionHandler(routes, 'record-ci-passed')(workflow, undefined, undefined)
     transactionHandler(routes, 'record-ci-failed')(workflow, 'output')
     transactionHandler(routes, 'verify-feedback-addressed')(workflow, undefined, undefined)
+    transactionHandler(routes, 'verify-pr-review-gate')(workflow, undefined, undefined)
 
     expect({
       recordIssue: calls.recordIssue,
@@ -180,6 +188,7 @@ describe('CreateWorkflowRoutes', () => {
       recordCiPassed: calls.recordCiPassed,
       recordCiFailed: calls.recordCiFailed,
       verifyFeedbackAddressed: calls.verifyFeedbackAddressed,
+      verifyPrReviewGate: calls.verifyPrReviewGate,
     }).toStrictEqual({
       recordIssue: [[workflow, 1]],
       recordBranch: [[workflow, 'value']],
@@ -188,6 +197,7 @@ describe('CreateWorkflowRoutes', () => {
       recordCiPassed: [[workflow]],
       recordCiFailed: [[workflow, 'value']],
       verifyFeedbackAddressed: [[workflow]],
+      verifyPrReviewGate: [[workflow]],
     })
   })
 })

@@ -9,6 +9,8 @@ import {
 import { defineWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
 import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
 import { createWorkflowPullRequestCreator } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-creator'
+import { createWorkflowRequiredChecksReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-required-checks-reader'
+import { readGithubRequiredChecks } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-required-checks'
 import { createWorkflowPullRequestFeedbackReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-feedback-reader'
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
 import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
@@ -66,6 +68,9 @@ function buildWorkflowDeps(platform: PlatformContext) {
   return {
     getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),
     runLocalVerification: createWorkflowVerificationRunner(runProcess),
+    getRequiredPullRequestChecks: createWorkflowRequiredChecksReader((request) =>
+      readGithubRequiredChecks(runGh, request),
+    ),
     getPrFeedback: createWorkflowPullRequestFeedbackReader(
       createGithubPullRequestFeedbackClient(runGh),
     ),

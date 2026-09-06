@@ -25,6 +25,10 @@ function buildWorkflow(
       changedFilesVsDefault: [],
       hasCommitsVsDefault: false,
     }),
+    getRequiredPullRequestChecks: () => ({
+      headRevision: 'b'.repeat(40),
+      checks: [{ name: 'main', status: 'passed' as const, detailsUrl: null }],
+    }),
     getPrFeedback: () => ({
       reviewDecision: null,
       coderabbitReviewSeen: true,

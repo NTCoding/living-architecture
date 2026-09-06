@@ -20,6 +20,12 @@ export function makeWorkflowDeps(): WorkflowDeps {
       unresolvedCount: 0,
       threads: [],
     }),
+    getRequiredPullRequestChecks: vi
+      .fn<WorkflowDeps['getRequiredPullRequestChecks']>()
+      .mockReturnValue({
+        headRevision: 'b'.repeat(40),
+        checks: [{ name: 'main', status: 'passed', detailsUrl: null }],
+      }),
     createPullRequest: vi.fn<WorkflowDeps['createPullRequest']>().mockReturnValue({
       prNumber: 1,
       prUrl: 'https://github.com/example/repo/pull/1',

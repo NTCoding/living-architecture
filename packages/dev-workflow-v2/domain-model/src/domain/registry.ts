@@ -74,6 +74,7 @@ type WorkflowOperation =
   | 'record-ci-failed'
   | 'create-pr'
   | 'verify-feedback-addressed'
+  | 'verify-pr-review-gate'
 
 /** @riviere-role value-object */
 export class MaintainerWorkflowRegistry {

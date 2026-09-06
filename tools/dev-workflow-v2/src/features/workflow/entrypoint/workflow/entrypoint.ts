@@ -1,3 +1,4 @@
+import { VerifyPrReviewGate } from '@living-architecture/dev-workflow-v2-use-cases/commands/verify-pr-review-gate'
 import { VerifyLocal } from '@living-architecture/dev-workflow-v2-use-cases/commands/verify-local'
 import type { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
 import { CreatePullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-pull-request'
@@ -44,5 +45,6 @@ export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypoin
     recordCiFailed: (workflow, output) => new RecordCiFailed(workflow).execute({ output }).result,
     verifyLocal: (workflow) => new VerifyLocal(workflow).execute({}).result,
     verifyFeedbackAddressed: (workflow) => new VerifyFeedbackAddressed(workflow).execute({}).result,
+    verifyPrReviewGate: (workflow) => new VerifyPrReviewGate(workflow).execute({}).result,
   }).routes
 }

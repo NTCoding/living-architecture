@@ -112,3 +112,16 @@ it('does not retry verification or create a PR while BLOCKED', () => {
   expect(runLocalVerification).toHaveBeenCalledOnce()
   expect(createPullRequest).not.toHaveBeenCalled()
 })
+
+it('routes review-gate verification through the workflow-owned command', () => {
+  const context = buildTestContext()
+  databases.push(context.dbPath)
+  progressToState(context, 'SUBMITTING_PR')
+  runCommand(context, CREATE_PR_COMMAND)
+  runCommand(context, ['transition', 'REVIEWING'])
+  const result = runCommand(context, ['verify-pr-review-gate'])
+  expect(result.exitCode).toBe(2)
+  expect(JSON.parse(runCommand(context, ['get-state']).output)).toMatchObject({
+    currentStateMachineState: 'BLOCKED',
+  })
+})

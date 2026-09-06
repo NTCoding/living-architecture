@@ -13,14 +13,11 @@ import { ImplementingState } from '../states/implementing'
 import { ReflectingState } from '../states/reflecting'
 import { ReviewingState } from '../states/reviewing'
 import { SubmittingPrState } from '../states/submitting-pr'
-import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 
 type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
 type StateName = WorkflowState['currentStateMachineState']
-type LivingArchitectureReviewType = Parameters<MaintainerWorkflow['getLatestReviewByType']>[0]
 
 const AT = '2026-01-01T00:00:00Z'
-const recordedReviews: StoredReview[] = []
 
 export const TEST_WORKFLOW_REGISTRY = MaintainerWorkflowRegistry.parse({
   IMPLEMENTING: ImplementingState.parse('IMPLEMENTING'),
@@ -48,6 +45,10 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
   return {
     getGitInfo: () => cleanGit,
     runLocalVerification: () => undefined,
+    getRequiredPullRequestChecks: () => ({
+      headRevision: 'b'.repeat(40),
+      checks: [{ name: 'main', status: 'passed', detailsUrl: null }],
+    }),
     getPrFeedback: () => ({
       reviewDecision: null,
       coderabbitReviewSeen: true,
@@ -62,7 +63,7 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
       baseRevision: 'a'.repeat(40),
       headRevision: 'b'.repeat(40),
     }),
-    listSessionReviews: (): readonly StoredReview[] => [...recordedReviews],
+    listSessionReviews: () => [],
     sleepMs: () => undefined,
     now: () => AT,
     ...overrides,
@@ -132,27 +133,10 @@ export function unresolvedThread(id: string): {
 }
 
 export function reviewRecorded(
-  reviewType: LivingArchitectureReviewType,
+  reviewType: 'architecture-review' | 'code-review' | 'bug-scanner' | 'task-check',
   verdict: 'PASS' | 'FAIL',
 ): WorkflowEvent {
-  const reviewId = Number(process.hrtime.bigint() % BigInt(Number.MAX_SAFE_INTEGER)) + 1
-  recordedReviews.push({
-    id: reviewId,
-    sessionId: 'test-session',
-    createdAt: AT,
-    reviewType,
-    sourceState: 'REVIEWING',
-    verdict,
-    summary: `${reviewType} ${verdict}`,
-    findings: [],
-  })
-  return {
-    type: 'review-recorded',
-    at: AT,
-    reviewId,
-    reviewType,
-    verdict,
-  }
+  return { type: 'review-recorded', at: AT, reviewId: 1, reviewType, verdict }
 }
 
 export function codeReviewFailed(): WorkflowEvent {
@@ -199,7 +183,6 @@ function feedbackExists(count: number): WorkflowEvent {
 }
 
 export function eventsToReviewing(): readonly WorkflowEvent[] {
-  recordedReviews.length = 0
   return [issueRecorded(42), branchRecorded('issue-42'), transitioned('IMPLEMENTING', 'REVIEWING')]
 }
 

@@ -289,9 +289,6 @@ importers:
       '@living-architecture/dev-workflow-v2-domain-model':
         specifier: workspace:*
         version: link:../domain-model
-      '@modelcontextprotocol/sdk':
-        specifier: 1.30.0
-        version: 1.30.0(supports-color@8.1.1)(zod@3.25.76)
       '@nt-ai-lab/deterministic-agent-workflow-cli':
         specifier: 0.6.0
         version: 0.6.0
