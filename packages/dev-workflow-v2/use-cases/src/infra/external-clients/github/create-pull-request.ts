@@ -31,6 +31,16 @@ class PullRequestCreationOutputError extends Error {
   }
 }
 
+/** @riviere-role external-client-error */
+class PullRequestReconciliationError extends Error {
+  constructor(creationError: unknown, reconciliationError: unknown) {
+    super('PR creation failed and the subsequent reconciliation failed.', {
+      cause: { creationError, reconciliationError },
+    })
+    this.name = 'PullRequestReconciliationError'
+  }
+}
+
 /** @riviere-role external-client-service */
 export function createGithubPullRequestClient(
   runGh: GhRunner,
@@ -38,19 +48,36 @@ export function createGithubPullRequestClient(
   return (request: GithubPullRequestCreationInput): GithubPullRequest => {
     const existing = findOpenPullRequest(runGh, request.branch)
     if (existing !== undefined) return existing
-    const createOutput = runGh([
-      'pr',
-      'create',
-      '--head',
-      request.branch,
-      '--title',
-      request.title,
-      '--body',
-      request.body,
-    ])
-    const pullRequestUrl = readPullRequestUrl(createOutput)
-    return readPullRequest(runGh, pullRequestUrl)
+    try {
+      const createOutput = runGh([
+        'pr',
+        'create',
+        '--head',
+        request.branch,
+        '--title',
+        request.title,
+        '--body',
+        request.body,
+      ])
+      return readPullRequest(runGh, readPullRequestUrl(createOutput))
+    } catch (creationError) {
+      return reconcileCreationFailure(runGh, request.branch, creationError)
+    }
   }
+}
+
+function reconcileCreationFailure(
+  runGh: GhRunner,
+  branch: string,
+  creationError: unknown,
+): GithubPullRequest {
+  try {
+    const existing = findOpenPullRequest(runGh, branch)
+    if (existing !== undefined) return existing
+  } catch (reconciliationError) {
+    throw new PullRequestReconciliationError(creationError, reconciliationError)
+  }
+  throw creationError
 }
 
 function findOpenPullRequest(runGh: GhRunner, branch: string): GithubPullRequest | undefined {

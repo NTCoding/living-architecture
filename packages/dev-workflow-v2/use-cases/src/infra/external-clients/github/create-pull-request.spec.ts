@@ -72,7 +72,7 @@ describe('createGithubPullRequestClient', () => {
     expect(runGh.mock.calls).toStrictEqual([[lookupArguments]])
   })
 
-  it('reconciles a retry after the create response was lost', () => {
+  it('reconciles a lost create response without requiring another operation', () => {
     const runGh = vi
       .fn<(args: readonly string[]) => string>()
       .mockReturnValueOnce('[]')
@@ -82,12 +82,38 @@ describe('createGithubPullRequestClient', () => {
       .mockReturnValueOnce(JSON.stringify([existingPullRequest]))
     const createPullRequest = createGithubPullRequestClient(runGh)
 
-    expect(() => createPullRequest(creationRequest)).toThrow('network response lost')
     expect(createPullRequest(creationRequest)).toStrictEqual({
       prNumber: 123,
       prUrl: existingPullRequest.url,
       isDraft: false,
     })
+    expect(runGh.mock.calls).toStrictEqual([
+      [lookupArguments],
+      [createArguments],
+      [lookupArguments],
+    ])
+  })
+
+  it('preserves both creation and reconciliation errors', () => {
+    const creationError = new GithubFailure('creation failed')
+    const reconciliationError = new GithubFailure('lookup failed')
+    const runGh = vi
+      .fn<(args: readonly string[]) => string>()
+      .mockReturnValueOnce('[]')
+      .mockImplementationOnce(() => {
+        throw creationError
+      })
+      .mockImplementationOnce(() => {
+        throw reconciliationError
+      })
+
+    expect(() => createGithubPullRequestClient(runGh)(creationRequest)).toThrowError(
+      expect.objectContaining({
+        name: 'PullRequestReconciliationError',
+        message: 'PR creation failed and the subsequent reconciliation failed.',
+        cause: { creationError, reconciliationError },
+      }),
+    )
     expect(runGh.mock.calls).toStrictEqual([
       [lookupArguments],
       [createArguments],
@@ -127,8 +153,13 @@ describe('createGithubPullRequestClient', () => {
       .fn<(args: readonly string[]) => string>()
       .mockReturnValueOnce('[]')
       .mockReturnValueOnce(output)
+      .mockReturnValueOnce('[]')
 
     expect(() => createGithubPullRequestClient(runGh)(creationRequest)).toThrow(reason)
-    expect(runGh.mock.calls).toStrictEqual([[lookupArguments], [createArguments]])
+    expect(runGh.mock.calls).toStrictEqual([
+      [lookupArguments],
+      [createArguments],
+      [lookupArguments],
+    ])
   })
 })

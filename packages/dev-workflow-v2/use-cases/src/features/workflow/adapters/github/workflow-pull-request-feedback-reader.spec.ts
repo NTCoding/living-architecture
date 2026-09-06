@@ -3,8 +3,12 @@ import { createWorkflowPullRequestFeedbackReader } from './workflow-pull-request
 
 it('translates GitHub feedback into workflow feedback', () => {
   const readFeedback = createWorkflowPullRequestFeedbackReader(() => ({
-    coderabbitReviewSeen: true,
-    coderabbitRateLimited: false,
+    headRevision: 'a'.repeat(40),
+    codeRabbitStatus: {
+      type: 'completed',
+      statusId: 1,
+      evidenceUrl: 'https://api.github.com/status/1',
+    },
     reviewDecision: 'CHANGES_REQUESTED',
     threads: [
       {
@@ -59,8 +63,12 @@ it('translates GitHub feedback into workflow feedback', () => {
 
 it('preserves CodeRabbit rate limiting', () => {
   const readFeedback = createWorkflowPullRequestFeedbackReader(() => ({
-    coderabbitReviewSeen: true,
-    coderabbitRateLimited: true,
+    headRevision: 'a'.repeat(40),
+    codeRabbitStatus: {
+      type: 'rate-limited',
+      statusId: 2,
+      evidenceUrl: 'https://api.github.com/status/2',
+    },
     reviewDecision: null,
     threads: [],
     unresolvedCount: 0,

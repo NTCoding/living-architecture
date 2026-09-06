@@ -14,8 +14,7 @@ Analyze this codebase to understand its structure, conventions, and domain bound
 Check these locations in order:
 
 1. **AI instruction files** (highest signal)
-   - `AGENTS.md`, `claude.md` in root and subdirectories
-   - `AGENTS.md`, `agents.md`
+   - `AGENTS.md` in root and subdirectories
 
 2. **Documentation**
    - `/docs` folder
@@ -45,6 +44,7 @@ Create `.riviere/config/` directory. Save analysis as `.riviere/config/metadata.
 # Codebase Analysis
 
 ## Structure
+
 - Root: [absolute path]
 - Source code: [e.g., src/, lib/, app/]
 - Tests: [e.g., tests/, __tests__]
@@ -52,9 +52,11 @@ Create `.riviere/config/` directory. Save analysis as `.riviere/config/metadata.
 ## Domains
 
 List each domain with:
+
 - **[domain-name]** ([type]: domain|bff|ui|other) — [description]
 
 Domain types:
+
 - `domain` — Core business domain (orders, inventory, shipping)
 - `bff` — Backend-for-frontend, aggregates calls
 - `ui` — User interface layer
@@ -63,17 +65,20 @@ Domain types:
 ## Module Inference
 
 How to derive module from file path:
+
 - Rule: [e.g., "second folder level under src/"]
 - Example: `src/orders/checkout/PlaceOrder.ts` → domain: orders, module: checkout
 
 ## Frameworks
-| Category | Name | Version |
-|----------|------|---------|
-| Web framework | | |
-| Event/messaging | | |
-| Database | | |
+
+| Category        | Name | Version |
+| --------------- | ---- | ------- |
+| Web framework   |      |         |
+| Event/messaging |      |         |
+| Database        |      |         |
 
 ## Conventions
+
 - File naming: [pattern]
 - Class naming: [pattern]
 - API pattern: [how to recognize]
@@ -82,13 +87,15 @@ How to derive module from file path:
 - Event pattern: [how to recognize]
 
 ## Entry Points
-| Type | Location | Pattern |
-|------|----------|---------|
-| API routes | | |
-| Event handlers | | |
-| UI pages | | |
+
+| Type           | Location | Pattern |
+| -------------- | -------- | ------- |
+| API routes     |          |         |
+| Event handlers |          |         |
+| UI pages       |          |         |
 
 ## Notes
+
 [Any other observations]
 ```
 

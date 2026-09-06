@@ -33,6 +33,7 @@ tools/      - Standalone app packages; their subdomain packages live under packa
 ```
 
 Current packages:
+
 - `packages/living-documentation/domain-model` - Living documentation architecture model and comparison
 - `packages/living-documentation/use-cases` - Architecture summary and pull request architecture diff queries
 - `packages/dev-workflow-v2/domain-model` - Maintainer workflow domain model
@@ -48,15 +49,18 @@ Current packages:
 - `packages/riviere-role-enforcement/use-cases` - Role-enforcement command, repository, adapter and external clients
 
 Apps:
+
 - `apps/cli` - CLI entrypoints and composition shell
 - `apps/eclair` - Web app for viewing your software architecture via a Rivière schema
 - `apps/docs` - Living architecture documentation website
 
 Tools:
+
 - `tools/dev-workflow-v2` - Maintainer workflow app and plugin entrypoints
 - `tools/living-documentation` - CLI for generating architecture summaries and pull request architecture diffs
 
 Key documents:
+
 - `docs/project/PRD/` - Current PRD folders
 - `project-memory/` - Cross-PRD planning memory for deferred ideas, priorities, and future-work context
 - `docs/architecture/overview.md` - System design
@@ -108,10 +112,13 @@ pnpm nx graph
 pnpm nx g @nx/node:application apps/[app-name]
 
 # Add a subdomain package
-pnpm nx g @nx/js:library packages/[subdomain]/[domain-model|use-cases|published-language] --publishable --importPath=@living-architecture/[package-name]
+pnpm nx g @nx/js:library packages/SUBDOMAIN/PACKAGE_LAYER --publishable --importPath=@living-architecture/PACKAGE_NAME
 ```
 
+Replace `SUBDOMAIN` and `PACKAGE_NAME` with the chosen names. Set `PACKAGE_LAYER` to `domain-model`, `use-cases`, or `published-language`.
+
 After generating a new project:
+
 1. Update the project's package.json with the correct published package name
 2. Create the 3-file tsconfig structure (tsconfig.json, tsconfig.lib.json, tsconfig.spec.json)
 3. Add vitest.config.ts if tests are needed with 100% coverage as the default
@@ -172,11 +179,13 @@ All UI and UX design must conform to global brand guidelines: `/docs/brand/` (lo
 The CLI (`riviere-cli`) bundles several packages via esbuild. To ensure users always get the latest bundled content, we use NX's `updateDependents: "auto"` configuration.
 
 **How it works:**
+
 - When a bundled package (e.g., `riviere-extract-config`) gets released, NX automatically triggers a patch bump for `riviere-cli`
 - This ensures CLI users receive updated schemas and features without manual intervention
 - Only packages within the release group are updated (not external dependencies)
 
 **Example:**
+
 1. `riviere-extract-config` v0.2.0 → v0.2.1 (bug fix or feature)
 2. NX detects that `riviere-cli` bundles `riviere-extract-config`
 3. `riviere-cli` v0.7.16 → v0.7.17 automatically (with latest config schema bundled)
