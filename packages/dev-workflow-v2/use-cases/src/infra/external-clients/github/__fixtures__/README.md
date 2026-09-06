@@ -21,3 +21,9 @@ Only the demonstrated terminal description `Review completed` counts as completi
 Verified rate-limit evidence is retained even if a later status on the same head reports completion. The workflow still needs to persist the PR-wide skip decision across subsequent heads; that lifecycle policy is separate from this client.
 
 This contract is specific to the observed GitHub.com installation. A different installation or changed provider identity/protocol requires new verified evidence rather than fallback to login matching.
+
+## Required-check evidence
+
+`required-checks-rules.json` and `required-checks-rollup.json` were captured from `NTCoding/living-architecture` #528 at head `693704806dd233247def5af3e220e9fea8580b4f`. The rules endpoint is `GET /repos/NTCoding/living-architecture/rules/branches/main`.
+
+The GraphQL response records `RequiredStatusCheckDescription.app`, `CheckRun.checkSuite.app`, and `isRequired(pullRequestNumber: 528)` for checks on the exact commit. The branch has no classic protection rule; the required checks come from repository rulesets. CodeRabbit appears as a `StatusContext`, not a `CheckRun`. GitHub's required-status result is distinct from verified CodeRabbit review completion or its durable rate-limit skip.
