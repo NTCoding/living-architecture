@@ -85,6 +85,7 @@ const FEEDBACK_CHECKED_SCHEMA = z.object({
   type: z.literal('feedback-checked'),
   at: z.string(),
   clean: z.boolean(),
+  coderabbitRateLimitEvidence: WorkflowState.codeRabbitRateLimitEvidenceSchema().optional(),
   unresolvedCount: z.number().optional(),
   reviewDecision: z.string().nullable().optional(),
 })

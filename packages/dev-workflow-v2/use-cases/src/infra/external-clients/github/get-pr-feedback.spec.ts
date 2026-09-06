@@ -49,6 +49,7 @@ describe('createGithubPullRequestFeedbackClient', () => {
   it('does not infer review completion from an empty thread list', () => {
     const runGh = createRunner([])
     expect(createGithubPullRequestFeedbackClient(runGh)(525)).toStrictEqual({
+      repository: 'NTCoding/living-architecture',
       headRevision,
       reviewDecision: 'CHANGES_REQUESTED',
       codeRabbitStatus: { type: 'pending' },
@@ -255,4 +256,19 @@ describe('createGithubPullRequestFeedbackClient', () => {
       expect(runGh).toHaveBeenCalledTimes(3)
     },
   )
+})
+
+it('does not poll CodeRabbit when only current-head threads were requested', () => {
+  const runGh = vi
+    .fn<(arguments_: readonly string[]) => string>()
+    .mockReturnValueOnce(JSON.stringify(repository))
+    .mockReturnValueOnce(JSON.stringify(initialResponse([thread])))
+    .mockReturnValueOnce(JSON.stringify({ headRefOid: headRevision }))
+  const feedback = createGithubPullRequestFeedbackClient(runGh)(525, {
+    includeCodeRabbitStatus: false,
+  })
+  expect(feedback.codeRabbitStatus).toStrictEqual({ type: 'not-requested' })
+  expect(feedback.unresolvedCount).toBe(1)
+  expect(runGh).toHaveBeenCalledTimes(3)
+  expect(runGh).toHaveBeenLastCalledWith(['pr', 'view', '525', '--json', 'headRefOid'])
 })

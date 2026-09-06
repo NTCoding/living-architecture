@@ -1,5 +1,16 @@
 import { z } from 'zod'
+import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowEvent } from './workflow-events'
+
+const CODERABBIT_RATE_LIMIT_EVIDENCE_SCHEMA = z
+  .object({
+    repository: z.string().min(1),
+    prNumber: z.number().int().positive(),
+    headRevision: z.string().regex(/^[0-9a-f]{40}$/),
+    statusId: z.number().int().positive(),
+    evidenceUrl: z.string().url(),
+  })
+  .readonly()
 
 const PULL_REQUEST_SNAPSHOT_SCHEMA = z
   .object({
@@ -48,6 +59,7 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
     taskCheckPassed: z.boolean(),
     ciPassed: z.boolean(),
     feedbackClean: z.boolean(),
+    coderabbitRateLimitEvidence: CODERABBIT_RATE_LIMIT_EVIDENCE_SCHEMA.optional(),
     feedbackAddressed: z.boolean(),
     feedbackUnresolvedCount: z.number().optional(),
     prFeedbackVerificationFailedReason: z.string().optional(),
@@ -90,11 +102,6 @@ function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowS
       return state.with({ bugScannerPassed: event.passed })
     case 'ci-completed':
       return state.with({ ciPassed: event.passed })
-    case 'feedback-checked':
-      return state.with({
-        feedbackClean: event.clean,
-        feedbackUnresolvedCount: event.unresolvedCount,
-      })
     case 'feedback-addressed':
       return state.with({ feedbackAddressed: true })
     case 'pr-feedback-verification-failed':
@@ -121,6 +128,8 @@ export class WorkflowState {
   readonly taskCheckPassed: boolean
   readonly ciPassed: boolean
   readonly feedbackClean: boolean
+  readonly coderabbitSkipReason?: 'SKIPPED_RATE_LIMIT'
+  readonly coderabbitRateLimitEvidence?: z.infer<typeof CODERABBIT_RATE_LIMIT_EVIDENCE_SCHEMA>
   readonly feedbackAddressed: boolean
   readonly feedbackUnresolvedCount?: number
   readonly prFeedbackVerificationFailedReason?: string
@@ -135,6 +144,10 @@ export class WorkflowState {
     this.taskCheckPassed = value.taskCheckPassed
     this.ciPassed = value.ciPassed
     this.feedbackClean = value.feedbackClean
+    if (value.coderabbitRateLimitEvidence !== undefined) {
+      this.coderabbitRateLimitEvidence = value.coderabbitRateLimitEvidence
+      this.coderabbitSkipReason = 'SKIPPED_RATE_LIMIT'
+    }
     this.feedbackAddressed = value.feedbackAddressed
     if (value.githubIssue !== undefined) this.githubIssue = value.githubIssue
     if (value.featureBranch !== undefined) this.featureBranch = value.featureBranch
@@ -154,6 +167,10 @@ export class WorkflowState {
 
   static parse(value: unknown): WorkflowState {
     return new WorkflowState(WORKFLOW_STATE_SCHEMA.parse(value))
+  }
+
+  static codeRabbitRateLimitEvidenceSchema() {
+    return CODERABBIT_RATE_LIMIT_EVIDENCE_SCHEMA
   }
 
   static pullRequestSnapshotSchema() {
@@ -179,7 +196,44 @@ export class WorkflowState {
     })
   }
 
+  private applyPullRequestRecorded(
+    event: Extract<WorkflowEvent, { type: 'pr-recorded' }>,
+  ): WorkflowState {
+    return this.with({
+      coderabbitRateLimitEvidence:
+        event.prNumber === this.prNumber &&
+        (event.pullRequestSnapshot === undefined ||
+          this.coderabbitRateLimitEvidence === undefined ||
+          event.pullRequestSnapshot.repository === this.coderabbitRateLimitEvidence.repository)
+          ? this.coderabbitRateLimitEvidence
+          : undefined,
+      prNumber: event.prNumber,
+      prUrl: event.prUrl,
+      pullRequestSnapshot: event.pullRequestSnapshot,
+    })
+  }
+
+  private applyFeedbackChecked(
+    event: Extract<WorkflowEvent, { type: 'feedback-checked' }>,
+  ): WorkflowState {
+    const evidence = event.coderabbitRateLimitEvidence
+    if (
+      evidence !== undefined &&
+      (evidence.prNumber !== this.prNumber ||
+        (this.pullRequestSnapshot !== undefined &&
+          evidence.repository !== this.pullRequestSnapshot.repository))
+    ) {
+      throw new WorkflowStateError('CodeRabbit rate-limit evidence does not match the recorded PR.')
+    }
+    return this.with({
+      coderabbitRateLimitEvidence: this.coderabbitRateLimitEvidence ?? evidence,
+      feedbackClean: event.clean,
+      feedbackUnresolvedCount: event.unresolvedCount,
+    })
+  }
+
   apply(event: WorkflowEvent): WorkflowState {
+    if (event.type === 'feedback-checked') return this.applyFeedbackChecked(event)
     if (event.type === 'transitioned') {
       return this.with({
         ...event.stateOverrides,
@@ -197,11 +251,7 @@ export class WorkflowState {
       case 'branch-recorded':
         return this.with({ featureBranch: event.branch })
       case 'pr-recorded':
-        return this.with({
-          prNumber: event.prNumber,
-          prUrl: event.prUrl,
-          pullRequestSnapshot: event.pullRequestSnapshot,
-        })
+        return this.applyPullRequestRecorded(event)
       case 'task-check-passed':
         return this.with({ taskCheckPassed: true })
       case 'session-started':

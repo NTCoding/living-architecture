@@ -1,3 +1,4 @@
+import { rateLimitEvidence } from './__fixtures__/coderabbit-rate-limit-evidence'
 import { describe, it, expect } from 'vitest'
 import {
   spec,
@@ -115,35 +116,49 @@ describe('ADDRESSING_FEEDBACK workflow behavior', () => {
     })
   })
 
-  it('blocks when CodeRabbit reports that its review is rate limited', () => {
+  it('records the rate-limit skip instead of blocking clean feedback', () => {
     const outcome = spec
       .given(...eventsToAddressingFeedback())
       .withDeps({
         getPrFeedback: () => ({
           reviewDecision: null,
-          coderabbitReviewSeen: true,
+          coderabbitReviewSeen: false,
           coderabbitRateLimited: true,
+          coderabbitRateLimitEvidence: rateLimitEvidence,
           unresolvedCount: 0,
           threads: [],
         }),
       })
-      .when((wf) => wf.verifyFeedbackAddressed())
+      .when((workflow) => workflow.verifyFeedbackAddressed())
+    expect(outcome.result).toStrictEqual({ pass: true })
+    expect(outcome.state.currentStateMachineState).toBe('REFLECTING')
+    expect(outcome.state.coderabbitRateLimitEvidence).toStrictEqual(rateLimitEvidence)
+    expect(outcome.events).toContainEqual(
+      expect.objectContaining({
+        type: 'feedback-checked',
+        coderabbitRateLimitEvidence: rateLimitEvidence,
+      }),
+    )
+  })
 
+  it('does not reflect while CodeRabbit is pending despite empty threads', () => {
+    const outcome = spec
+      .given(...eventsToAddressingFeedback())
+      .withDeps({
+        getPrFeedback: () => ({
+          reviewDecision: null,
+          coderabbitReviewSeen: false,
+          unresolvedCount: 0,
+          threads: [],
+        }),
+      })
+      .when((workflow) => workflow.verifyFeedbackAddressed())
     expect(outcome.result).toMatchObject({
       pass: false,
-      reason: expect.stringContaining('CodeRabbit rate limited'),
+      reason: expect.stringContaining('has not completed a verified review'),
     })
-    expect(outcome.events.slice(-2)).toStrictEqual([
-      expect.objectContaining({
-        type: 'pr-feedback-verification-failed',
-        reason: expect.stringContaining('CodeRabbit rate limited'),
-      }),
-      expect.objectContaining({
-        type: 'transitioned',
-        from: 'ADDRESSING_FEEDBACK',
-        to: 'BLOCKED',
-      }),
-    ])
+    expect(outcome.state.currentStateMachineState).toBe('ADDRESSING_FEEDBACK')
+    expect(outcome.state.feedbackClean).toBe(false)
   })
 
   it('fails verification when run outside ADDRESSING_FEEDBACK, without a PR number, or when fetch throws', () => {

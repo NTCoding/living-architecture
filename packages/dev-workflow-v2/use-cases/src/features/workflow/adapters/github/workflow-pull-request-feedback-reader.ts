@@ -4,6 +4,7 @@ import type { GithubPullRequestFeedback } from '../../../../infra/external-clien
 const incompleteReview = { coderabbitReviewSeen: false, coderabbitRateLimited: false }
 const codeRabbitFlags = {
   pending: incompleteReview,
+  'not-requested': incompleteReview,
   unsupported: incompleteReview,
   failed: incompleteReview,
   completed: { coderabbitReviewSeen: true, coderabbitRateLimited: false },
@@ -18,12 +19,26 @@ const codeRabbitFlags = {
 
 /** @riviere-role domain-port-adapter */
 export function createWorkflowPullRequestFeedbackReader(
-  readGithubPullRequestFeedback: (prNumber: number) => GithubPullRequestFeedback,
+  readGithubPullRequestFeedback: (
+    prNumber: number,
+    options: { readonly includeCodeRabbitStatus: boolean },
+  ) => GithubPullRequestFeedback,
 ): ReadWorkflowPullRequestFeedback {
-  return (prNumber) => {
-    const feedback = readGithubPullRequestFeedback(prNumber)
+  return (prNumber, options) => {
+    const feedback = readGithubPullRequestFeedback(prNumber, options)
     return {
       ...codeRabbitFlags[feedback.codeRabbitStatus.type],
+      ...(feedback.codeRabbitStatus.type === 'rate-limited'
+        ? {
+            coderabbitRateLimitEvidence: {
+              repository: feedback.repository,
+              prNumber,
+              headRevision: feedback.headRevision,
+              statusId: feedback.codeRabbitStatus.statusId,
+              evidenceUrl: feedback.codeRabbitStatus.evidenceUrl,
+            },
+          }
+        : {}),
       reviewDecision: feedback.reviewDecision,
       threads: feedback.threads.map((thread) => ({
         comments: thread.comments.map((comment) => ({

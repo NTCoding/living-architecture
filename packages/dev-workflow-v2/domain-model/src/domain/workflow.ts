@@ -64,11 +64,12 @@ type PullRequestFeedbackReadResult = PullRequestFeedbackReadSuccess | PullReques
 function readPrFeedback(
   getPrFeedback: ReadWorkflowPullRequestFeedback,
   prNumber: number,
+  includeCodeRabbitStatus: boolean,
 ): PullRequestFeedbackReadResult {
   try {
     return {
       ok: true,
-      feedback: getPrFeedback(prNumber),
+      feedback: getPrFeedback(prNumber, { includeCodeRabbitStatus }),
     }
   } catch (error) {
     return {
@@ -244,20 +245,27 @@ export class MaintainerWorkflow {
       return fail('prNumber not set. Record the PR before verifying feedback.')
     }
 
-    const feedbackResult = readPrFeedback(this.deps.getPrFeedback, this.state.prNumber)
+    const feedbackResult = readPrFeedback(
+      this.deps.getPrFeedback,
+      this.state.prNumber,
+      this.state.coderabbitRateLimitEvidence === undefined,
+    )
     if (!feedbackResult.ok) return fail(feedbackResult.reason)
     const { feedback } = feedbackResult
-    if (feedback.coderabbitRateLimited === true) {
-      const reason = 'CodeRabbit rate limited. Wait, then resume AWAITING_PR_FEEDBACK.'
-      this.appendPrFeedbackVerificationFailure(reason)
-      return fail(reason)
-    }
-
-    const clean = feedback.reviewDecision !== 'CHANGES_REQUESTED' && feedback.unresolvedCount === 0
+    const assessment = evaluateCodeRabbitFeedbackPoll(
+      feedback,
+      this.state.prNumber,
+      1,
+      this.state.coderabbitRateLimitEvidence !== undefined,
+    )
+    const clean = assessment.type === 'verified' && assessment.clean
     this.append({
       type: 'feedback-checked',
       at: this.deps.now(),
       clean,
+      ...(feedback.coderabbitRateLimitEvidence === undefined
+        ? {}
+        : { coderabbitRateLimitEvidence: feedback.coderabbitRateLimitEvidence }),
       unresolvedCount: feedback.unresolvedCount,
       reviewDecision: feedback.reviewDecision,
     })
@@ -278,6 +286,11 @@ export class MaintainerWorkflow {
       )
     }
 
+    if (assessment.type !== 'verified')
+      return fail(
+        'CodeRabbit has not completed a verified review for the current head. Wait and retry verification.',
+      )
+
     this.append({
       type: 'feedback-addressed',
       at: this.deps.now(),
@@ -287,15 +300,15 @@ export class MaintainerWorkflow {
   }
 
   private awaitPrFeedback(prNumber: number): void {
-    this.pollPrFeedback(prNumber, PR_FEEDBACK_MAX_ATTEMPTS, 0)
+    this.pollPrFeedback(prNumber, PR_FEEDBACK_MAX_ATTEMPTS)
   }
 
-  private pollPrFeedback(
-    prNumber: number,
-    attemptsRemaining: number,
-    consecutiveCleanPolls: number,
-  ): void {
-    const feedbackResult = readPrFeedback(this.deps.getPrFeedback, prNumber)
+  private pollPrFeedback(prNumber: number, attemptsRemaining: number): void {
+    const feedbackResult = readPrFeedback(
+      this.deps.getPrFeedback,
+      prNumber,
+      this.state.coderabbitRateLimitEvidence === undefined,
+    )
     if (!feedbackResult.ok) return this.appendPrFeedbackVerificationFailure(feedbackResult.reason)
 
     const { feedback } = feedbackResult
@@ -303,13 +316,13 @@ export class MaintainerWorkflow {
       feedback,
       prNumber,
       attemptsRemaining,
-      consecutiveCleanPolls,
+      this.state.coderabbitRateLimitEvidence !== undefined,
     )
-    if (outcome.type === 'rate-limited' || outcome.type === 'timed-out')
+    if (outcome.type === 'timed-out')
       return this.appendPrFeedbackVerificationFailure(outcome.reason)
     if (outcome.type === 'retry') {
       this.deps.sleepMs(PR_FEEDBACK_POLL_INTERVAL_MS)
-      this.pollPrFeedback(prNumber, attemptsRemaining - 1, outcome.consecutiveCleanPolls)
+      this.pollPrFeedback(prNumber, attemptsRemaining - 1)
       return
     }
 
@@ -318,6 +331,9 @@ export class MaintainerWorkflow {
       type: 'feedback-checked',
       at: this.deps.now(),
       clean,
+      ...(feedback.coderabbitRateLimitEvidence === undefined
+        ? {}
+        : { coderabbitRateLimitEvidence: feedback.coderabbitRateLimitEvidence }),
       unresolvedCount: feedback.unresolvedCount,
       reviewDecision: feedback.reviewDecision,
     })

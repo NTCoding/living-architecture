@@ -55,9 +55,10 @@ class GithubPullRequestChangedError extends Error {}
 
 /** @riviere-role external-client-model */
 export interface GithubPullRequestFeedback {
+  readonly repository: string
   readonly headRevision: string
   readonly reviewDecision: string | null
-  readonly codeRabbitStatus: GithubCodeRabbitStatus
+  readonly codeRabbitStatus: GithubCodeRabbitStatus | { readonly type: 'not-requested' }
   readonly unresolvedCount: number
   readonly threads: readonly {
     readonly id: string
@@ -134,8 +135,11 @@ function readAllThreads(
 /** @riviere-role external-client-service */
 export function createGithubPullRequestFeedbackClient(
   runGh: GhRunner,
-): (prNumber: number) => GithubPullRequestFeedback {
-  return (prNumber) => {
+): (
+  prNumber: number,
+  options?: { readonly includeCodeRabbitStatus: boolean },
+) => GithubPullRequestFeedback {
+  return (prNumber, options = { includeCodeRabbitStatus: true }) => {
     const repository = repoInfoSchema.parse(
       JSON.parse(runGh(['repo', 'view', '--json', 'owner,name'])),
     )
@@ -166,17 +170,20 @@ export function createGithubPullRequestFeedbackClient(
           [],
         ),
       }))
-    const codeRabbitStatus = readGithubCodeRabbitStatus(
-      runGh,
-      `${repository.owner.login}/${repository.name}`,
-      pullRequest.headRefOid,
-    )
+    const codeRabbitStatus = options.includeCodeRabbitStatus
+      ? readGithubCodeRabbitStatus(
+          runGh,
+          `${repository.owner.login}/${repository.name}`,
+          pullRequest.headRefOid,
+        )
+      : ({ type: 'not-requested' } as const)
     const latestHead = headResponseSchema.parse(
       JSON.parse(runGh(['pr', 'view', String(prNumber), '--json', 'headRefOid'])),
     )
     if (latestHead.headRefOid !== pullRequest.headRefOid)
       throw new GithubPullRequestChangedError('PR head changed while reading feedback.')
     return {
+      repository: `${repository.owner.login}/${repository.name}`,
       headRevision: pullRequest.headRefOid,
       reviewDecision: pullRequest.reviewDecision,
       codeRabbitStatus,
