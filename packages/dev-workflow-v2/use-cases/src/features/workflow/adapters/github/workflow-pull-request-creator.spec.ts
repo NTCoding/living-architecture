@@ -4,6 +4,9 @@ import { createWorkflowPullRequestCreator } from './workflow-pull-request-creato
 it('translates workflow pull request details into a GitHub request', () => {
   const client = vi.fn(() => ({
     isDraft: false,
+    repository: 'example/repository',
+    baseRevision: 'a'.repeat(40),
+    headRevision: 'b'.repeat(40),
     prNumber: 42,
     prUrl: 'https://github.com/example/repository/pull/42',
   }))
@@ -22,6 +25,9 @@ it('translates workflow pull request details into a GitHub request', () => {
   })
   expect(result).toStrictEqual({
     isDraft: false,
+    repository: 'example/repository',
+    baseRevision: 'a'.repeat(40),
+    headRevision: 'b'.repeat(40),
     prNumber: 42,
     prUrl: 'https://github.com/example/repository/pull/42',
   })

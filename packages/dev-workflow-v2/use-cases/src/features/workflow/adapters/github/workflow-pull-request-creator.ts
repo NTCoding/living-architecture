@@ -18,6 +18,9 @@ export function createWorkflowPullRequestCreator(
       isDraft: pullRequest.isDraft,
       prNumber: pullRequest.prNumber,
       prUrl: pullRequest.prUrl,
+      repository: pullRequest.repository,
+      baseRevision: pullRequest.baseRevision,
+      headRevision: pullRequest.headRevision,
     }
   }
 }

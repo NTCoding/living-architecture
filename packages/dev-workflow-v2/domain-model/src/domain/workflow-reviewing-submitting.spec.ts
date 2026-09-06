@@ -225,6 +225,9 @@ describe('Workflow', () => {
               prNumber: 123,
               prUrl: 'https://github.com/x/y/pull/123',
               isDraft: false,
+              repository: 'x/y',
+              baseRevision: 'a'.repeat(40),
+              headRevision: 'b'.repeat(40),
             }
           },
         }),
@@ -254,6 +257,53 @@ describe('Workflow', () => {
         prNumber: 123,
         prUrl: 'https://github.com/x/y/pull/123',
       })
+    })
+
+    it('preserves the exact PR snapshot through recording and replay', () => {
+      const workflow = rehydrateTestWorkflow(
+        WorkflowState.replay(eventsToSubmittingPr()),
+        makeDeps(),
+      )
+      expect(workflow.createPr(CREATE_PR_OPTIONS)).toStrictEqual({ pass: true })
+      const snapshot = {
+        repository: 'example/repo',
+        issue: 42,
+        branch: 'issue-42',
+        prNumber: 99,
+        prUrl: 'https://github.com/example/repo/pull/99',
+        baseRevision: 'a'.repeat(40),
+        headRevision: 'b'.repeat(40),
+      }
+      expect(workflow.getState().pullRequestSnapshot).toStrictEqual(snapshot)
+      expect(WorkflowState.replay(workflow.getPendingEvents()).pullRequestSnapshot).toStrictEqual(
+        snapshot,
+      )
+      expect(
+        WorkflowState.parse(JSON.parse(JSON.stringify(workflow.getState()))).pullRequestSnapshot,
+      ).toStrictEqual(snapshot)
+    })
+
+    it('does not queue an event when returned revisions are invalid', () => {
+      const workflow = rehydrateTestWorkflow(
+        WorkflowState.replay(eventsToSubmittingPr()),
+        makeDeps({
+          createPullRequest: () => ({
+            prNumber: 99,
+            prUrl: 'https://github.com/example/repo/pull/99',
+            isDraft: false,
+            repository: 'example/repo',
+            baseRevision: 'missing-revision',
+            headRevision: 'b'.repeat(40),
+          }),
+        }),
+      )
+      const previous = workflow.getState()
+      expect(workflow.createPr(CREATE_PR_OPTIONS)).toMatchObject({
+        pass: false,
+        reason: expect.stringContaining('baseRevision'),
+      })
+      expect(workflow.getPendingEvents()).toStrictEqual([])
+      expect(workflow.getState()).toStrictEqual(previous)
     })
 
     it('blocks create-pr when issue is not recorded', () => {
@@ -296,6 +346,9 @@ describe('Workflow', () => {
             prNumber: 123,
             prUrl: 'https://github.com/x/y/pull/123',
             isDraft: true,
+            repository: 'x/y',
+            baseRevision: 'a'.repeat(40),
+            headRevision: 'b'.repeat(40),
           }),
         }),
       )

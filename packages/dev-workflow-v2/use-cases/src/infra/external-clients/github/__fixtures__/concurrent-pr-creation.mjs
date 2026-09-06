@@ -6,7 +6,14 @@ class ConcurrentCreationFixtureError extends Error {}
 
 const input = z.object({ coordination: z.instanceof(SharedArrayBuffer) }).parse(workerData)
 const coordination = new Int32Array(input.coordination)
-const pullRequest = { number: 123, url: 'https://github.com/example/repo/pull/123', isDraft: false }
+const pullRequest = {
+  baseRefOid: 'a'.repeat(40),
+  headRefOid: 'b'.repeat(40),
+  headRefName: 'issue-42',
+  number: 123,
+  url: 'https://github.com/example/repo/pull/123',
+  isDraft: false,
+}
 let initialLookup = true
 
 function runGh(arguments_) {

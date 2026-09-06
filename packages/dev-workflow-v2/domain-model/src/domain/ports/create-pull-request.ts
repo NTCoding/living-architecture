@@ -10,4 +10,7 @@ export type CreateWorkflowPullRequest = (request: {
   readonly prNumber: number
   readonly prUrl: string
   readonly isDraft: boolean
+  readonly repository: string
+  readonly baseRevision: string
+  readonly headRevision: string
 }

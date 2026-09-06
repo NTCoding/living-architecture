@@ -10,6 +10,9 @@ const creationRequest = {
 }
 const existingPullRequest = {
   number: 123,
+  baseRefOid: 'a'.repeat(40),
+  headRefOid: 'b'.repeat(40),
+  headRefName: 'issue-42',
   url: 'https://github.com/example/repo/pull/123',
   isDraft: false,
 }
@@ -23,7 +26,7 @@ const lookupArguments = [
   '--limit',
   '2',
   '--json',
-  'number,url,isDraft',
+  'number,url,isDraft,baseRefOid,headRefOid,headRefName',
 ]
 const createArguments = [
   'pr',
@@ -47,6 +50,9 @@ describe('createGithubPullRequestClient', () => {
         .mockReturnValueOnce(JSON.stringify({ ...existingPullRequest, isDraft }))
 
       expect(createGithubPullRequestClient(runGh)(creationRequest)).toStrictEqual({
+        repository: 'example/repo',
+        baseRevision: 'a'.repeat(40),
+        headRevision: 'b'.repeat(40),
         prNumber: 123,
         prUrl: existingPullRequest.url,
         isDraft,
@@ -54,7 +60,15 @@ describe('createGithubPullRequestClient', () => {
       expect(runGh.mock.calls).toStrictEqual([
         [lookupArguments],
         [createArguments],
-        [['pr', 'view', existingPullRequest.url, '--json', 'number,url,isDraft']],
+        [
+          [
+            'pr',
+            'view',
+            existingPullRequest.url,
+            '--json',
+            'number,url,isDraft,baseRefOid,headRefOid,headRefName',
+          ],
+        ],
       ])
     },
   )
@@ -65,6 +79,9 @@ describe('createGithubPullRequestClient', () => {
       .mockReturnValue(JSON.stringify([existingPullRequest]))
 
     expect(createGithubPullRequestClient(runGh)(creationRequest)).toStrictEqual({
+      repository: 'example/repo',
+      baseRevision: 'a'.repeat(40),
+      headRevision: 'b'.repeat(40),
       prNumber: 123,
       prUrl: existingPullRequest.url,
       isDraft: false,
@@ -83,6 +100,9 @@ describe('createGithubPullRequestClient', () => {
     const createPullRequest = createGithubPullRequestClient(runGh)
 
     expect(createPullRequest(creationRequest)).toStrictEqual({
+      repository: 'example/repo',
+      baseRevision: 'a'.repeat(40),
+      headRevision: 'b'.repeat(40),
       prNumber: 123,
       prUrl: existingPullRequest.url,
       isDraft: false,
@@ -119,6 +139,23 @@ describe('createGithubPullRequestClient', () => {
       [createArguments],
       [lookupArguments],
     ])
+  })
+
+  it.each([
+    [{ headRefName: 'another-branch' }, 'Returned PR does not match the recorded feature branch.'],
+    [
+      { url: 'https://github.com/example/repo/pull/999' },
+      'Returned PR URL does not match its number.',
+    ],
+    [{ url: 'https://github.com/example/repo/issues/123' }, 'Invalid'],
+    [{ baseRefOid: undefined }, 'Required'],
+    [{ headRefOid: 'short-sha' }, 'Invalid'],
+  ])('rejects inconsistent or incomplete PR identity %j before any write', (overrides, reason) => {
+    const runGh = vi
+      .fn<(args: readonly string[]) => string>()
+      .mockReturnValue(JSON.stringify([{ ...existingPullRequest, ...overrides }]))
+    expect(() => createGithubPullRequestClient(runGh)(creationRequest)).toThrow(reason)
+    expect(runGh.mock.calls).toStrictEqual([[lookupArguments]])
   })
 
   it('rejects ambiguous open PRs before creating anything', () => {

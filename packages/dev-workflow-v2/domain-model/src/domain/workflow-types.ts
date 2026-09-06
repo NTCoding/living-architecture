@@ -1,6 +1,18 @@
 import { z } from 'zod'
 import type { WorkflowEvent } from './workflow-events'
 
+const PULL_REQUEST_SNAPSHOT_SCHEMA = z
+  .object({
+    repository: z.string().min(1),
+    issue: z.number().int().positive(),
+    branch: z.string().min(1),
+    prNumber: z.number().int().positive(),
+    prUrl: z.string().url(),
+    baseRevision: z.string().regex(/^[0-9a-f]{40}$/),
+    headRevision: z.string().regex(/^[0-9a-f]{40}$/),
+  })
+  .readonly()
+
 const STATE_NAMES = [
   'IMPLEMENTING',
   'REVIEWING',
@@ -29,6 +41,7 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
     featureBranch: z.string().optional(),
     prNumber: z.number().int().positive().optional(),
     prUrl: z.string().optional(),
+    pullRequestSnapshot: PULL_REQUEST_SNAPSHOT_SCHEMA.optional(),
     architectureReviewPassed: z.boolean(),
     codeReviewPassed: z.boolean(),
     bugScannerPassed: z.boolean(),
@@ -101,6 +114,7 @@ export class WorkflowState {
   readonly featureBranch?: string
   readonly prNumber?: number
   readonly prUrl?: string
+  readonly pullRequestSnapshot?: z.infer<typeof PULL_REQUEST_SNAPSHOT_SCHEMA>
   readonly architectureReviewPassed: boolean
   readonly codeReviewPassed: boolean
   readonly bugScannerPassed: boolean
@@ -126,6 +140,8 @@ export class WorkflowState {
     if (value.featureBranch !== undefined) this.featureBranch = value.featureBranch
     if (value.prNumber !== undefined) this.prNumber = value.prNumber
     if (value.prUrl !== undefined) this.prUrl = value.prUrl
+    if (value.pullRequestSnapshot !== undefined)
+      this.pullRequestSnapshot = value.pullRequestSnapshot
     if (value.feedbackUnresolvedCount !== undefined) {
       this.feedbackUnresolvedCount = value.feedbackUnresolvedCount
     }
@@ -138,6 +154,10 @@ export class WorkflowState {
 
   static parse(value: unknown): WorkflowState {
     return new WorkflowState(WORKFLOW_STATE_SCHEMA.parse(value))
+  }
+
+  static pullRequestSnapshotSchema() {
+    return PULL_REQUEST_SNAPSHOT_SCHEMA
   }
 
   static stateNameSchema() {
@@ -177,7 +197,11 @@ export class WorkflowState {
       case 'branch-recorded':
         return this.with({ featureBranch: event.branch })
       case 'pr-recorded':
-        return this.with({ prNumber: event.prNumber, prUrl: event.prUrl })
+        return this.with({
+          prNumber: event.prNumber,
+          prUrl: event.prUrl,
+          pullRequestSnapshot: event.pullRequestSnapshot,
+        })
       case 'task-check-passed':
         return this.with({ taskCheckPassed: true })
       case 'session-started':

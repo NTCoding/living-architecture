@@ -4,7 +4,12 @@ const pullRequestSchema = z.object({
   number: z.number().int().positive(),
   url: z.string().url(),
   isDraft: z.boolean(),
+  baseRefOid: z.string().regex(/^[0-9a-f]{40}$/),
+  headRefOid: z.string().regex(/^[0-9a-f]{40}$/),
+  headRefName: z.string().min(1),
 })
+
+const pullRequestFields = pullRequestSchema.keyof().options.join(',')
 
 /** @riviere-role external-client-model */
 export interface GithubPullRequestCreationInput {
@@ -18,6 +23,9 @@ export type GithubPullRequest = {
   readonly prNumber: number
   readonly prUrl: string
   readonly isDraft: boolean
+  readonly repository: string
+  readonly baseRevision: string
+  readonly headRevision: string
 }
 
 /** @riviere-role external-client-model */
@@ -59,7 +67,7 @@ export function createGithubPullRequestClient(
         '--body',
         request.body,
       ])
-      return readPullRequest(runGh, readPullRequestUrl(createOutput))
+      return readPullRequest(runGh, readPullRequestUrl(createOutput), request.branch)
     } catch (creationError) {
       return reconcileCreationFailure(runGh, request.branch, creationError)
     }
@@ -91,7 +99,7 @@ function findOpenPullRequest(runGh: GhRunner, branch: string): GithubPullRequest
     '--limit',
     '2',
     '--json',
-    'number,url,isDraft',
+    pullRequestFields,
   ])
   const matches = z.array(pullRequestSchema).parse(JSON.parse(output))
   if (matches.length > 1) {
@@ -101,7 +109,7 @@ function findOpenPullRequest(runGh: GhRunner, branch: string): GithubPullRequest
   }
   const existing = matches.at(0)
   if (existing === undefined) return undefined
-  return { prNumber: existing.number, prUrl: existing.url, isDraft: existing.isDraft }
+  return formatPullRequest(existing, branch)
 }
 
 function readPullRequestUrl(createOutput: string): string {
@@ -121,10 +129,34 @@ function readPullRequestUrl(createOutput: string): string {
   }
 }
 
-function readPullRequest(runGh: GhRunner, pullRequestReference: string): GithubPullRequest {
-  const rawPullRequest = runGh(['pr', 'view', pullRequestReference, '--json', 'number,url,isDraft'])
+function readPullRequest(
+  runGh: GhRunner,
+  pullRequestReference: string,
+  branch: string,
+): GithubPullRequest {
+  const rawPullRequest = runGh(['pr', 'view', pullRequestReference, '--json', pullRequestFields])
   const pullRequest = pullRequestSchema.parse(JSON.parse(rawPullRequest))
+  return formatPullRequest(pullRequest, branch)
+}
+
+function formatPullRequest(
+  pullRequest: z.infer<typeof pullRequestSchema>,
+  branch: string,
+): GithubPullRequest {
+  if (pullRequest.headRefName !== branch)
+    throw new PullRequestCreationOutputError(
+      'Returned PR does not match the recorded feature branch.',
+    )
+  const pathname = z
+    .string()
+    .regex(/^\/[^/]+\/[^/]+\/pull\/[1-9]\d*$/)
+    .parse(new URL(pullRequest.url).pathname)
+  if (!pathname.endsWith(`/pull/${String(pullRequest.number)}`))
+    throw new PullRequestCreationOutputError('Returned PR URL does not match its number.')
   return {
+    repository: pathname.split('/').slice(1, 3).join('/'),
+    baseRevision: pullRequest.baseRefOid,
+    headRevision: pullRequest.headRefOid,
     prNumber: pullRequest.number,
     prUrl: pullRequest.url,
     isDraft: pullRequest.isDraft,

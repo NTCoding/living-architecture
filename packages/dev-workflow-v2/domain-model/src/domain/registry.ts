@@ -1,5 +1,8 @@
 import { z } from 'zod'
-import type { WorkflowStateDefinition } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type {
+  WorkflowStateDefinition,
+  RecordingOpDefinition,
+} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { AddressingFeedbackState } from './states/addressing-feedback'
 import { AwaitingCiState } from './states/awaiting-ci'
 import { AwaitingPrFeedbackState } from './states/awaiting-pr-feedback'
@@ -11,6 +14,35 @@ import { ReviewingState } from './states/reviewing'
 import { SubmittingPrState } from './states/submitting-pr'
 import type { WorkflowState } from './workflow-types'
 import type { WorkflowTransitionContext } from './workflow-transition-context'
+
+const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
+  'record-issue': {
+    event: 'issue-recorded',
+    payload: (n: number) => ({ issueNumber: n }),
+  },
+  'record-branch': {
+    event: 'branch-recorded',
+    payload: (b: string) => ({ branch: b }),
+  },
+  'record-pr': {
+    event: 'pr-recorded',
+    payload: (n: number, url?: string) => ({
+      prNumber: n,
+      ...(url ? { prUrl: url } : {}),
+    }),
+  },
+  'record-ci-passed': {
+    event: 'ci-completed',
+    payload: () => ({ passed: true }),
+  },
+  'record-ci-failed': {
+    event: 'ci-completed',
+    payload: (output: string) => ({
+      passed: false,
+      output,
+    }),
+  },
+}
 
 const MAINTAINER_WORKFLOW_REGISTRY_SCHEMA = z.object({
   IMPLEMENTING: z.custom<ImplementingState>((value) => value instanceof ImplementingState),
@@ -68,6 +100,10 @@ export class MaintainerWorkflowRegistry {
 
   static parse(value: unknown): MaintainerWorkflowRegistry {
     return new MaintainerWorkflowRegistry(MAINTAINER_WORKFLOW_REGISTRY_SCHEMA.parse(value))
+  }
+
+  recordingOperations(): typeof RECORDING_OPS_MAP {
+    return RECORDING_OPS_MAP
   }
 
   state(

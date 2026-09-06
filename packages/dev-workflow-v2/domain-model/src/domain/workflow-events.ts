@@ -71,6 +71,7 @@ const PR_RECORDED_SCHEMA = z.object({
   at: z.string(),
   prNumber: z.number(),
   prUrl: z.string().optional(),
+  pullRequestSnapshot: WorkflowState.pullRequestSnapshotSchema().optional(),
 })
 
 const CI_COMPLETED_SCHEMA = z.object({

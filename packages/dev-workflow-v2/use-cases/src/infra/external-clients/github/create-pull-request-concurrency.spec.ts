@@ -8,6 +8,9 @@ const resultSchema = z.object({
   prNumber: z.number().int().positive(),
   prUrl: z.string().url(),
   isDraft: z.boolean(),
+  repository: z.string(),
+  baseRevision: z.string(),
+  headRevision: z.string(),
 })
 
 function receiveResult(worker: Worker): Promise<z.infer<typeof resultSchema>> {
@@ -40,8 +43,22 @@ it('reconciles two simultaneous clients to one PR after both initial lookups ret
   try {
     const results = await Promise.all(workers.map(receiveResult))
     expect(results).toStrictEqual([
-      { prNumber: 123, prUrl: 'https://github.com/example/repo/pull/123', isDraft: false },
-      { prNumber: 123, prUrl: 'https://github.com/example/repo/pull/123', isDraft: false },
+      {
+        prNumber: 123,
+        prUrl: 'https://github.com/example/repo/pull/123',
+        isDraft: false,
+        repository: 'example/repo',
+        baseRevision: 'a'.repeat(40),
+        headRevision: 'b'.repeat(40),
+      },
+      {
+        prNumber: 123,
+        prUrl: 'https://github.com/example/repo/pull/123',
+        isDraft: false,
+        repository: 'example/repo',
+        baseRevision: 'a'.repeat(40),
+        headRevision: 'b'.repeat(40),
+      },
     ])
     expect(Array.from(new Int32Array(coordination))).toStrictEqual([2, 1, 1])
   } finally {

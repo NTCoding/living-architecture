@@ -1,7 +1,4 @@
-import type {
-  PreconditionResult,
-  RecordingOpDefinition,
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import {
   pass,
   fail,
@@ -27,36 +24,9 @@ type StateName = WorkflowState['currentStateMachineState']
 type LivingArchitectureReviewType = StoredReview['reviewType']
 const PR_FEEDBACK_POLL_INTERVAL_MS = 15_000
 const PR_FEEDBACK_MAX_ATTEMPTS = Math.floor(300_000 / PR_FEEDBACK_POLL_INTERVAL_MS) + 1
-const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
-  'record-issue': {
-    event: 'issue-recorded',
-    payload: (n: number) => ({ issueNumber: n }),
-  },
-  'record-branch': {
-    event: 'branch-recorded',
-    payload: (b: string) => ({ branch: b }),
-  },
-  'record-pr': {
-    event: 'pr-recorded',
-    payload: (n: number, url?: string) => ({
-      prNumber: n,
-      ...(url ? { prUrl: url } : {}),
-    }),
-  },
-  'record-ci-passed': {
-    event: 'ci-completed',
-    payload: () => ({ passed: true }),
-  },
-  'record-ci-failed': {
-    event: 'ci-completed',
-    payload: (output: string) => ({
-      passed: false,
-      output,
-    }),
-  },
-}
+
 type WorkflowOperation =
-  | keyof typeof RECORDING_OPS_MAP
+  | keyof ReturnType<MaintainerWorkflowRegistry['recordingOperations']>
   | 'record-review'
   | 'create-pr'
   | 'verify-feedback-addressed'
@@ -165,8 +135,9 @@ export class MaintainerWorkflow {
       transcriptPath,
       ...(repository === undefined ? {} : { repository }),
     }
+    const nextState = this.state.apply(event)
     this.pendingEvents = [...this.pendingEvents, event]
-    this.state = this.state.apply(event)
+    this.state = nextState
   }
   getTranscriptPath(): string {
     if (this.state.transcriptPath === undefined) {
@@ -206,7 +177,7 @@ export class MaintainerWorkflow {
   executeRecording(op: WorkflowOperation, ...args: readonly unknown[]): PreconditionResult {
     const recordingOps = defineRecordingOps<StateName, WorkflowState, WorkflowOperation>(
       this.registryDefinition,
-      RECORDING_OPS_MAP,
+      this.registryDefinition.recordingOperations(),
     )
     const result = recordingOps.executeOp(op, this.state, this.deps.now(), args)
     if (!result.pass) return fail(result.reason)
@@ -246,6 +217,15 @@ export class MaintainerWorkflow {
         at: this.deps.now(),
         prNumber: pullRequest.prNumber,
         prUrl: pullRequest.prUrl,
+        pullRequestSnapshot: {
+          repository: pullRequest.repository,
+          issue: this.state.githubIssue,
+          branch: this.state.featureBranch,
+          prNumber: pullRequest.prNumber,
+          prUrl: pullRequest.prUrl,
+          baseRevision: pullRequest.baseRevision,
+          headRevision: pullRequest.headRevision,
+        },
       })
       return pass()
     } catch (error) {
@@ -391,8 +371,9 @@ export class MaintainerWorkflow {
         'Expected pr-feedback-verification-failed event before AWAITING_PR_FEEDBACK can transition to BLOCKED.',
       )
     }
+    const nextState = this.state.apply(event)
     this.pendingEvents = [...this.pendingEvents, event]
-    this.state = this.state.apply(event)
+    this.state = nextState
   }
 
   private isPrFeedbackBlockedWithoutFailureEvent(event: WorkflowEvent): boolean {
