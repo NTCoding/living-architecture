@@ -178,7 +178,9 @@ export type WorkflowEvent = z.infer<typeof WORKFLOW_EVENT_SCHEMA>
  * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function parseWorkflowEvent(event: BaseEvent): WorkflowEvent {
-  return WORKFLOW_EVENT_SCHEMA.parse(event)
+  const parsed = WORKFLOW_EVENT_SCHEMA.parse(event)
+  if (parsed.type === 'pr-recorded') WorkflowState.validatePullRequestIdentity(parsed)
+  return parsed
 }
 
 /**

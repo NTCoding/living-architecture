@@ -78,7 +78,13 @@ it('preserves the skip at the review gate on a later pending head', () => {
       }),
     }),
   )
-  workflow.appendEvent({ type: 'pr-recorded', at, prNumber: 99, pullRequestSnapshot: snapshot })
+  workflow.appendEvent({
+    type: 'pr-recorded',
+    at,
+    prNumber: 99,
+    prUrl: snapshot.prUrl,
+    pullRequestSnapshot: snapshot,
+  })
   workflow.appendEvent(recordedEvidence)
   recordSatisfiedReviewers(workflow)
 
@@ -101,7 +107,13 @@ it('uses persisted evidence to skip CodeRabbit status checks at the review gate'
       }),
     }),
   )
-  workflow.appendEvent({ type: 'pr-recorded', at, prNumber: 99, pullRequestSnapshot: snapshot })
+  workflow.appendEvent({
+    type: 'pr-recorded',
+    at,
+    prNumber: 99,
+    prUrl: snapshot.prUrl,
+    pullRequestSnapshot: snapshot,
+  })
   workflow.appendEvent(recordedEvidence)
   recordSatisfiedReviewers(workflow)
 
@@ -122,8 +134,13 @@ it('does not discard demonstrated rate limiting when the same legacy PR is recor
 it('does not invent a skip when legacy PR metadata is upgraded', () => {
   const state = WorkflowState.replay(eventsToAddressingFeedback())
   expect(
-    state.apply({ type: 'pr-recorded', at, prNumber: 99, pullRequestSnapshot: snapshot })
-      .coderabbitRateLimitEvidence,
+    state.apply({
+      type: 'pr-recorded',
+      at,
+      prNumber: 99,
+      prUrl: snapshot.prUrl,
+      pullRequestSnapshot: snapshot,
+    }).coderabbitRateLimitEvidence,
   ).toBeUndefined()
 })
 
@@ -141,6 +158,7 @@ it('clears the skip when the same PR number belongs to a different repository', 
       type: 'pr-recorded',
       at,
       prNumber: 99,
+      prUrl: 'https://github.com/example/other/pull/99',
       pullRequestSnapshot: {
         ...snapshot,
         repository: 'example/other',
@@ -156,7 +174,7 @@ it.each([
 ])('fails the review gate closed when feedback evidence belongs to another PR: %j', (evidence) => {
   const state = WorkflowState.replay([
     ...eventsToReviewing(),
-    { type: 'pr-recorded', at, prNumber: 99, pullRequestSnapshot: snapshot },
+    { type: 'pr-recorded', at, prNumber: 99, prUrl: snapshot.prUrl, pullRequestSnapshot: snapshot },
   ])
   const workflow = rehydrateTestWorkflow(
     state,
@@ -180,7 +198,7 @@ it.each([
 it('accepts evidence for the recorded repository', () => {
   const state = WorkflowState.replay([
     ...eventsToAddressingFeedback(),
-    { type: 'pr-recorded', at, prNumber: 99, pullRequestSnapshot: snapshot },
+    { type: 'pr-recorded', at, prNumber: 99, prUrl: snapshot.prUrl, pullRequestSnapshot: snapshot },
     recordedEvidence,
   ])
   expect(state.coderabbitRateLimitEvidence).toStrictEqual(rateLimitEvidence)

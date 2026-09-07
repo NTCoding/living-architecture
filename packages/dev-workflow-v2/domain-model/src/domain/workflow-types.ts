@@ -189,7 +189,21 @@ export class WorkflowState {
   }
 
   static parse(value: unknown): WorkflowState {
-    return new WorkflowState(WORKFLOW_STATE_SCHEMA.parse(value))
+    const state = WORKFLOW_STATE_SCHEMA.parse(value)
+    WorkflowState.validatePullRequestIdentity(state)
+    return new WorkflowState(state)
+  }
+
+  static validatePullRequestIdentity(input: {
+    readonly prNumber?: number | undefined
+    readonly prUrl?: string | undefined
+    readonly pullRequestSnapshot?: { readonly prNumber: number; readonly prUrl: string } | undefined
+  }): void {
+    const snapshot = input.pullRequestSnapshot
+    if (snapshot === undefined) return
+    if (input.prNumber !== snapshot.prNumber || input.prUrl !== snapshot.prUrl) {
+      throw new WorkflowStateError('PR identity does not match the recorded pull request snapshot.')
+    }
   }
 
   static localVerificationResultSchema() {

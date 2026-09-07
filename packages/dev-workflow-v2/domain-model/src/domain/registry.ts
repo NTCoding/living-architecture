@@ -14,7 +14,7 @@ import { SubmittingPrState } from './states/submitting-pr'
 import type { WorkflowState } from './workflow-types'
 import type { WorkflowTransitionContext } from './workflow-transition-context'
 
-const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
+const RECORDING_OPS_MAP = {
   'record-issue': {
     event: 'issue-recorded',
     payload: (n: number) => ({ issueNumber: n }),
@@ -30,7 +30,12 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
       ...(url ? { prUrl: url } : {}),
     }),
   },
-}
+} satisfies Record<string, RecordingOpDefinition<readonly never[]>>
+
+const assertLiteralRecordingOperations: string extends keyof typeof RECORDING_OPS_MAP
+  ? false
+  : true = true
+void assertLiteralRecordingOperations
 
 const MAINTAINER_WORKFLOW_REGISTRY_SCHEMA = z.object({
   VERIFYING: z.custom<VerifyingState>((value) => value instanceof VerifyingState),

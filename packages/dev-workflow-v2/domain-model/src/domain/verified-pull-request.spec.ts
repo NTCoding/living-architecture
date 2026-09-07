@@ -15,6 +15,8 @@ const verified = submitting.with({
   localVerification: { status: 'passed', headCommit: gitInfo.headCommit },
 })
 const recorded = verified.with({
+  prNumber: 99,
+  prUrl: 'https://github.com/example/repo/pull/99',
   pullRequestSnapshot: {
     repository: 'example/repo',
     issue: 42,

@@ -213,6 +213,7 @@ describe('workflow state definitions', () => {
     const state = getInitialWorkflowState().with({
       currentStateMachineState: 'SUBMITTING_PR',
       prNumber: 42,
+      prUrl: 'https://github.com/example/repo/pull/42',
       pullRequestSnapshot: {
         repository: 'example/repo',
         issue: 42,
