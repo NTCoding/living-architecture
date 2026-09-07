@@ -3,8 +3,18 @@ import { makeWorkflowDeps } from './__fixtures__/workflow-dependencies'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
-import { REVIEWER_DEFINITIONS } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviewer-definitions'
 import { describe, expect, it, vi } from 'vitest'
+
+const REVIEWER_DEFINITIONS = [
+  {
+    reviewType: 'architecture-review',
+    agentInstructions: 'agents/architecture-review.md',
+    version: '1',
+  },
+  { reviewType: 'code-review', agentInstructions: 'agents/code-review.md', version: '1' },
+  { reviewType: 'bug-scanner', agentInstructions: 'agents/bug-scanner.md', version: '1' },
+  { reviewType: 'task-check', agentInstructions: 'agents/task-check.md', version: '1' },
+]
 
 type StateName = WorkflowState['currentStateMachineState']
 const WORKFLOW_DEFINITION = configureWorkflow({ runCodeReview: () => undefined })
@@ -19,6 +29,12 @@ function buildTransitionEvent(
   const fn = WORKFLOW_DEFINITION.buildTransitionEvent
   if (!fn) throw new WorkflowStateError('buildTransitionEvent not defined')
   return fn(from, to, stateBefore, stateAfter, now)
+}
+
+function runAfterEntry(state: { readonly afterEntry?: () => void }): void {
+  const afterEntry = state.afterEntry
+  if (!afterEntry) throw new WorkflowStateError('afterEntry hook not defined')
+  afterEntry.call(state)
 }
 
 describe('WORKFLOW_DEFINITION', () => {
@@ -115,61 +131,11 @@ describe('WORKFLOW_DEFINITION', () => {
       const definition = configureWorkflow({ runCodeReview })
       const workflow = definition.buildWorkflow(definition.initialState(), makeWorkflowDeps())
 
-      definition.getRegistry().REVIEWING.afterEntry()
+      runAfterEntry(definition.getRegistry().REVIEWING)
 
       expect(runCodeReview).toHaveBeenCalledOnce()
       expect(runCodeReview).toHaveBeenCalledWith(REVIEWER_DEFINITIONS)
       expect(workflow.getState().currentStateMachineState).toStrictEqual('IMPLEMENTING')
-    })
-
-    it('awaits PR feedback on the built workflow when AWAITING_PR_FEEDBACK is entered', () => {
-      const definition = configureWorkflow({ runCodeReview: () => undefined })
-      const state = WorkflowState.replay([
-        {
-          type: 'issue-recorded',
-          at: '2026-01-01T00:00:00Z',
-          issueNumber: 42,
-        },
-        {
-          type: 'transitioned',
-          at: '2026-01-01T00:00:00Z',
-          from: 'IMPLEMENTING',
-          to: 'REVIEWING',
-        },
-        {
-          type: 'transitioned',
-          at: '2026-01-01T00:00:00Z',
-          from: 'REVIEWING',
-          to: 'SUBMITTING_PR',
-        },
-        {
-          type: 'pr-recorded',
-          at: '2026-01-01T00:00:00Z',
-          prNumber: 99,
-        },
-        {
-          type: 'transitioned',
-          at: '2026-01-01T00:00:00Z',
-          from: 'SUBMITTING_PR',
-          to: 'AWAITING_CI',
-        },
-        {
-          type: 'ci-completed',
-          at: '2026-01-01T00:00:00Z',
-          passed: true,
-        },
-        {
-          type: 'transitioned',
-          at: '2026-01-01T00:00:00Z',
-          from: 'AWAITING_CI',
-          to: 'AWAITING_PR_FEEDBACK',
-        },
-      ] as const)
-      const workflow = definition.buildWorkflow(state, makeWorkflowDeps())
-
-      definition.getRegistry().AWAITING_PR_FEEDBACK.afterEntry()
-
-      expect(workflow.getState().currentStateMachineState).toStrictEqual('REFLECTING')
     })
   })
 

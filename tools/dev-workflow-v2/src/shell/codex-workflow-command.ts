@@ -60,7 +60,8 @@ const store = runtime.processDeps.buildStore(databasePath)
 const platform = {
   getPluginRoot: () => runtime.workflowRoot,
   getSessionId: () => workflowSessionId,
-  store,
+  workflowEventStore: store,
+  reviewStore: store,
   now,
 }
 const engineDeps = {

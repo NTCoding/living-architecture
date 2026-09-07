@@ -4,7 +4,6 @@ import {
   spec,
   eventsToReviewing,
   eventsToSubmittingPr,
-  eventsToAwaitingCi,
   makeDeps,
   reviewRecorded,
   buildTestWorkflow,
@@ -72,23 +71,18 @@ describe('Workflow', () => {
       expect(workflow.getState().taskCheckPassed).toBe(true)
     })
 
-    it('rejects SUBMITTING_PR without task check when no issue is recorded and required reviews failed', () => {
+    it('refuses manual REVIEWING transitions because the review gate owns the exit', () => {
       const result = getReviewingTransitionGuard()({
-        state: buildTestWorkflow(makeDeps()).getState().with({
-          currentStateMachineState: 'REVIEWING',
-          architectureReviewPassed: false,
-          codeReviewPassed: false,
-          bugScannerPassed: false,
-        }),
+        state: buildTestWorkflow(makeDeps())
+          .getState()
+          .with({ currentStateMachineState: 'REVIEWING' }),
         gitInfo: makeDeps().getGitInfo(),
         from: 'REVIEWING',
-        to: 'SUBMITTING_PR',
+        to: 'REFLECTING',
       })
 
       expect(result.pass).toStrictEqual(false)
-      expect(getFailureReason(result)).toContain('architecture-review')
-      expect(getFailureReason(result)).toContain('code-review')
-      expect(getFailureReason(result)).toContain('bug-scanner')
+      expect(getFailureReason(result)).toContain('verify-pr-review-gate')
     })
   })
 
@@ -359,34 +353,6 @@ describe('Workflow', () => {
       expect(result.pass).toBe(false)
       expect(workflow.getState().prNumber).toBeUndefined()
       expect(workflow.getPendingEvents()).toStrictEqual([])
-    })
-  })
-
-  describe('AWAITING_CI state', () => {
-    it('records CI passed', () => {
-      const { result, state } = spec
-        .given(...eventsToAwaitingCi())
-        .when((wf) => wf.executeRecording('record-ci-passed'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.ciPassed).toBe(true)
-    })
-
-    it('records CI failed', () => {
-      const { result, state } = spec
-        .given(...eventsToAwaitingCi())
-        .when((wf) => wf.executeRecording('record-ci-failed', 'test failures'))
-      expect(result).toStrictEqual({ pass: true })
-      expect(state.ciPassed).toBe(false)
-    })
-
-    it('fails record-ci-passed in non-AWAITING_CI states', () => {
-      const { result } = spec.given().when((wf) => wf.executeRecording('record-ci-passed'))
-      expect(result.pass).toBe(false)
-    })
-
-    it('fails record-ci-failed in non-AWAITING_CI states', () => {
-      const { result } = spec.given().when((wf) => wf.executeRecording('record-ci-failed', 'err'))
-      expect(result.pass).toBe(false)
     })
   })
 })

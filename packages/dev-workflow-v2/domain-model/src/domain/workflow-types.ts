@@ -42,8 +42,6 @@ const STATE_NAMES = [
   'VERIFYING',
   'REVIEWING',
   'SUBMITTING_PR',
-  'AWAITING_CI',
-  'AWAITING_PR_FEEDBACK',
   'ADDRESSING_FEEDBACK',
   'REFLECTING',
   'COMPLETE',
@@ -108,7 +106,10 @@ function applyRecordedReviewVerdict(
   }
 }
 
-function applyVerificationResult(state: WorkflowState, event: WorkflowEvent): WorkflowState | undefined {
+function applyVerificationResult(
+  state: WorkflowState,
+  event: WorkflowEvent,
+): WorkflowState | undefined {
   switch (event.type) {
     case 'architecture-review-completed':
       return state.with({ architectureReviewPassed: event.passed })

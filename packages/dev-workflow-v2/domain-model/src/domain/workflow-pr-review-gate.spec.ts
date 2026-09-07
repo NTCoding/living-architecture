@@ -58,6 +58,36 @@ it('records observed feedback and enters REFLECTING only through the complete re
   ])
 })
 
+it('enters ADDRESSING_FEEDBACK with entry overrides when unresolved feedback exists', () => {
+  const subject = buildTestWorkflow(
+    makeDeps({
+      getPrFeedback: () => ({
+        ...feedback,
+        reviewDecision: 'CHANGES_REQUESTED',
+        unresolvedCount: 2,
+        threads: [],
+      }),
+    }),
+    WorkflowState.initial().with({
+      currentStateMachineState: 'REVIEWING',
+      prNumber: snapshot.prNumber,
+      prUrl: snapshot.prUrl,
+      pullRequestSnapshot: snapshot,
+      reviewerSatisfaction: reviewers,
+      feedbackAddressed: true,
+      feedbackClean: true,
+    }),
+  )
+  expect(subject.verifyPrReviewGate()).toStrictEqual({ pass: true })
+  expect(subject.getState().currentStateMachineState).toBe('ADDRESSING_FEEDBACK')
+  expect(subject.getPendingEvents().at(-1)).toMatchObject({
+    type: 'transitioned',
+    from: 'REVIEWING',
+    to: 'ADDRESSING_FEEDBACK',
+    stateOverrides: { feedbackAddressed: false },
+  })
+})
+
 it.each([
   {
     checks: [{ name: 'main', status: 'pending' as const, detailsUrl: null }],

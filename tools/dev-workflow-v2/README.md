@@ -212,14 +212,9 @@ stateDiagram-v2
     IMPLEMENTING --> VERIFYING
     VERIFYING --> SUBMITTING_PR : verified current clean commit
     SUBMITTING_PR --> REVIEWING : recorded PR matches verified commit
-    REVIEWING --> SUBMITTING_PR : all reviews passed
-    REVIEWING --> IMPLEMENTING : review failed
-    SUBMITTING_PR --> AWAITING_CI
-    AWAITING_CI --> AWAITING_PR_FEEDBACK : CI passed
-    AWAITING_CI --> IMPLEMENTING : CI failed
-    AWAITING_PR_FEEDBACK --> REFLECTING : no feedback
-    AWAITING_PR_FEEDBACK --> ADDRESSING_FEEDBACK : feedback exists
-    ADDRESSING_FEEDBACK --> REFLECTING : fixes pushed and feedback verified clean
+    REVIEWING --> ADDRESSING_FEEDBACK : review gate finds feedback or failed checks
+    REVIEWING --> REFLECTING : review gate satisfied
+    ADDRESSING_FEEDBACK --> VERIFYING : fixes pushed, follow-up review pending
     REFLECTING --> COMPLETE
     COMPLETE --> [*]
 
@@ -227,8 +222,6 @@ stateDiagram-v2
     VERIFYING --> BLOCKED
     REVIEWING --> BLOCKED
     SUBMITTING_PR --> BLOCKED
-    AWAITING_CI --> BLOCKED
-    AWAITING_PR_FEEDBACK --> BLOCKED
     ADDRESSING_FEEDBACK --> BLOCKED
     REFLECTING --> BLOCKED
     BLOCKED --> IMPLEMENTING : returns to pre-blocked state

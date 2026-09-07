@@ -14,12 +14,14 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 
 describe('plugin Agent Skills', () => {
-  it('tells agents to push fixes directly, wait for CodeRabbit, and reflect after clean verification', () => {
+  it('tells agents to push fixes directly, wait for CodeRabbit, and return through verification', () => {
     const addressingFeedback = readPluginFile('states/addressing_feedback.md')
 
     expect(addressingFeedback).toContain('Push the recorded feature branch: `git push`')
     expect(addressingFeedback).toContain('Wait for CodeRabbit to process the pushed commit')
-    expect(addressingFeedback).toContain('transitions directly to `REFLECTING`')
+    expect(addressingFeedback).toContain(
+      'return to verification for a follow-up review: `/dev-workflow-v2:workflow transition VERIFYING`',
+    )
   })
 
   it('registers Pi commands and loads their instruction assets', async () => {

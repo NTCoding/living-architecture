@@ -19,9 +19,6 @@ interface RouteCalls {
   recordBranch: unknown[][]
   recordPullRequest: unknown[][]
   createPullRequest: unknown[][]
-  recordCiPassed: unknown[][]
-  recordCiFailed: unknown[][]
-  verifyFeedbackAddressed: unknown[][]
   verifyPrReviewGate: unknown[][]
   syncReviewerSatisfaction: unknown[][]
 }
@@ -35,9 +32,6 @@ function createInput(): {
     recordBranch: [],
     recordPullRequest: [],
     createPullRequest: [],
-    recordCiPassed: [],
-    recordCiFailed: [],
-    verifyFeedbackAddressed: [],
     verifyPrReviewGate: [],
     syncReviewerSatisfaction: [],
   }
@@ -63,19 +57,7 @@ function createInput(): {
         calls.createPullRequest.push([workflow, args])
         return workflowResult
       },
-      recordCiPassed: (workflow) => {
-        calls.recordCiPassed.push([workflow])
-        return workflowResult
-      },
-      recordCiFailed: (workflow, output) => {
-        calls.recordCiFailed.push([workflow, output])
-        return workflowResult
-      },
       verifyLocal: (workflow) => workflow.verifyLocal(),
-      verifyFeedbackAddressed: (workflow) => {
-        calls.verifyFeedbackAddressed.push([workflow])
-        return workflowResult
-      },
       verifyPrReviewGate: (workflow) => {
         calls.verifyPrReviewGate.push([workflow])
         return workflowResult
@@ -129,10 +111,7 @@ describe('CreateWorkflowRoutes', () => {
       'record-branch',
       'record-pr',
       'create-pr',
-      'record-ci-passed',
-      'record-ci-failed',
       'verify-local',
-      'verify-feedback-addressed',
       'verify-pr-review-gate',
       'sync-reviewer-satisfaction',
     ])
@@ -182,9 +161,6 @@ describe('CreateWorkflowRoutes', () => {
     transactionHandler(routes, 'record-branch')(workflow, 'branch')
     transactionHandler(routes, 'record-pr')(workflow, 1, undefined)
     transactionHandler(routes, 'create-pr')(workflow, [])
-    transactionHandler(routes, 'record-ci-passed')(workflow, undefined, undefined)
-    transactionHandler(routes, 'record-ci-failed')(workflow, 'output')
-    transactionHandler(routes, 'verify-feedback-addressed')(workflow, undefined, undefined)
     transactionHandler(routes, 'verify-pr-review-gate')(workflow, undefined, undefined)
     transactionHandler(routes, 'sync-reviewer-satisfaction')(workflow, undefined, undefined)
 
@@ -193,9 +169,6 @@ describe('CreateWorkflowRoutes', () => {
       recordBranch: calls.recordBranch,
       recordPullRequest: calls.recordPullRequest,
       createPullRequest: calls.createPullRequest,
-      recordCiPassed: calls.recordCiPassed,
-      recordCiFailed: calls.recordCiFailed,
-      verifyFeedbackAddressed: calls.verifyFeedbackAddressed,
       verifyPrReviewGate: calls.verifyPrReviewGate,
       syncReviewerSatisfaction: calls.syncReviewerSatisfaction,
     }).toStrictEqual({
@@ -203,9 +176,6 @@ describe('CreateWorkflowRoutes', () => {
       recordBranch: [[workflow, 'value']],
       recordPullRequest: [[workflow, 1, undefined]],
       createPullRequest: [[workflow, []]],
-      recordCiPassed: [[workflow]],
-      recordCiFailed: [[workflow, 'value']],
-      verifyFeedbackAddressed: [[workflow]],
       verifyPrReviewGate: [[workflow]],
       syncReviewerSatisfaction: [[workflow]],
     })

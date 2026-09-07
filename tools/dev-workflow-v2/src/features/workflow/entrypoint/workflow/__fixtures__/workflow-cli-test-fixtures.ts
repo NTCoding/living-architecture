@@ -6,8 +6,8 @@ import type {
   ReviewPayload,
   ReviewType,
 } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { createStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store'
+import type { SqliteEventStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store'
 import type { RunnerResult } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
 import { STATE_STEPS } from './workflow-cli-state-steps-test-fixtures'
@@ -18,6 +18,7 @@ type WorkflowDeps = Parameters<WorkflowDefinition['buildWorkflow']>[1]
 export type TestContext = {
   readonly engineDeps: WorkflowEngineDeps
   readonly workflowDeps: WorkflowDeps
+  readonly store: SqliteEventStore
   readonly dbPath: string
   readonly sessionId: string
   readonly transcriptPath: string
@@ -77,12 +78,12 @@ export function buildTestContext(
         headRevision: 'b'.repeat(40),
       })),
     listSessionReviews: () => store.listSessionReviews(sessionId),
-    sleepMs: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
   }
   return {
     engineDeps,
     workflowDeps,
+    store,
     dbPath,
     sessionId,
     transcriptPath,
@@ -95,21 +96,19 @@ export function runCommand(ctx: TestContext, args: readonly string[]): RunnerRes
     getSessionRepository: () => '/repository',
   })
 }
-export function runReviewCommandWithJson(
-  ctx: TestContext,
-  reviewType: ReviewType,
-  reviewJson: string,
-): RunnerResult {
-  return runner(['record-review', reviewType, reviewJson], ctx.engineDeps, ctx.workflowDeps, {
-    getSessionId: () => ctx.sessionId,
-  })
-}
 export function runReviewCommand(
   ctx: TestContext,
   reviewType: ReviewType,
   payload: ReviewPayload,
 ): RunnerResult {
-  return runReviewCommandWithJson(ctx, reviewType, JSON.stringify(payload))
+  return runner(
+    ['record-review', reviewType, JSON.stringify(payload)],
+    ctx.engineDeps,
+    ctx.workflowDeps,
+    {
+      getSessionId: () => ctx.sessionId,
+    },
+  )
 }
 export function runHook(ctx: TestContext, stdinJson: string): RunnerResult {
   return runner([], ctx.engineDeps, ctx.workflowDeps, { readStdin: () => stdinJson })
@@ -120,29 +119,69 @@ export function cleanupDb(dbPath: string): void {
     if (existsSync(path)) unlinkSync(path)
   }
 }
+
+const REVIEWER_TYPES = ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
+
+function boundFeedback(reviewDecision: 'APPROVED' | 'CHANGES_REQUESTED', unresolvedCount: number) {
+  return {
+    repository: 'example/repo',
+    headRevision: 'b'.repeat(40),
+    reviewDecision,
+    coderabbitReviewSeen: true,
+    codeRabbitReview: {
+      type: 'completed' as const,
+      statusId: 1,
+      evidenceUrl: 'https://github.com/example/repo/actions/runs/1',
+    },
+    unresolvedCount,
+    threads: [],
+  }
+}
+
+export function setPrFeedback(ctx: TestContext, kind: 'actionable' | 'clean'): void {
+  const feedback =
+    kind === 'clean' ? boundFeedback('APPROVED', 0) : boundFeedback('CHANGES_REQUESTED', 2)
+  Object.defineProperty(ctx.workflowDeps, 'getPrFeedback', {
+    value: () => feedback,
+  })
+}
+
+function seedReviewerSatisfaction(ctx: TestContext): void {
+  const reviews = REVIEWER_TYPES.map((reviewType, index) => ({
+    id: index + 1,
+    sessionId: ctx.sessionId,
+    createdAt: '2024-01-01T00:00:00Z',
+    reviewType,
+    verdict: 'PASS' as const,
+    findings: [],
+    pullRequestNumber: 123,
+    completionProvenance: {
+      bundleId: 'review-example/repo-123',
+      providerSessionId: 'provider-session',
+      providerRunId: `provider-run-${index}`,
+      baseRevision: 'a'.repeat(40),
+      headRevision: 'b'.repeat(40),
+      exactFilesDigest: 'digest',
+      exactFiles: ['src/test.ts'],
+      reviewerDefinitionVersion: '1',
+    },
+  }))
+  Object.defineProperty(ctx.workflowDeps, 'listSessionReviews', {
+    value: () => reviews,
+  })
+}
+
 export function progressToState(ctx: TestContext, targetState: string): void {
   runCommand(ctx, ['init'])
   const steps = STATE_STEPS[targetState]
   if (!steps) return
   for (const step of steps) {
-    if (step[0] === 'record-review') {
-      if (step[1] === undefined) {
-        throw new WorkflowStateError(
-          "Expected record-review test step shape ['record-review', <reviewType>].",
-        )
-      }
-      const reviewType = step[1],
-        verdict = step[2]
-      if (verdict !== 'PASS' && verdict !== 'FAIL') {
-        throw new WorkflowStateError(
-          "Expected record-review test step shape ['record-review', <reviewType>, <PASS|FAIL>].",
-        )
-      }
-      runReviewCommand(ctx, reviewType, {
-        verdict,
-        summary: verdict === 'PASS' ? `${reviewType} passed` : `${reviewType} failed`,
-        findings: [],
-      })
+    if (step[0] === 'set-pr-feedback') {
+      setPrFeedback(ctx, step[1] === 'clean' ? 'clean' : 'actionable')
+      continue
+    }
+    if (step[0] === 'seed-reviewer-satisfaction') {
+      seedReviewerSatisfaction(ctx)
       continue
     }
     runCommand(ctx, step)

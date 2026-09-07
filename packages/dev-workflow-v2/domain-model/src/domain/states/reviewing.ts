@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { ReviewerDefinition } from '../reviewer-definitions'
 import type { WorkflowTransitionContext } from '../workflow-transition-context'
 
-export type ReviewingStateDeps = {
+type ReviewingStateDeps = {
   readonly reviewers: readonly ReviewerDefinition[]
   readonly runCodeReview: (reviewers: readonly ReviewerDefinition[]) => void
 }
@@ -20,55 +20,38 @@ export class ReviewingState {
   readonly name: 'REVIEWING'
   readonly emoji = '📋'
   readonly agentInstructions = 'states/reviewing.md'
-  readonly canTransitionTo = [
-    'SUBMITTING_PR',
-    'IMPLEMENTING',
-    'ADDRESSING_FEEDBACK',
-    'REFLECTING',
-    'BLOCKED',
-  ] as const
+  readonly canTransitionTo = ['ADDRESSING_FEEDBACK', 'REFLECTING', 'BLOCKED'] as const
   readonly forbidden = { write: true } as const
   readonly allowedWorkflowOperations = [
-    'record-review',
     'verify-pr-review-gate',
     'sync-reviewer-satisfaction',
   ] as const
-  readonly afterEntry: () => void
+
+  private readonly deps: ReviewingStateDeps
 
   private constructor(name: 'REVIEWING', deps: ReviewingStateDeps) {
     this.name = name
-    this.afterEntry = () => deps.runCodeReview(deps.reviewers)
+    this.deps = deps
   }
 
-  static parse(value: unknown, deps: ReviewingStateDeps = DEFAULT_REVIEWING_STATE_DEPS): ReviewingState {
+  static parse(
+    value: unknown,
+    deps: ReviewingStateDeps = DEFAULT_REVIEWING_STATE_DEPS,
+  ): ReviewingState {
     z.literal('REVIEWING').parse(value)
     return new ReviewingState('REVIEWING', deps)
+  }
+
+  afterEntry(): void {
+    this.deps.runCodeReview(this.deps.reviewers)
   }
 
   transitionGuard(
     context: Parameters<typeof WorkflowTransitionContext.from>[0],
   ): PreconditionResult {
-    const taskCheckRequired = context.state.githubIssue !== undefined
-    const allPassed =
-      context.state.architectureReviewPassed &&
-      context.state.codeReviewPassed &&
-      context.state.bugScannerPassed &&
-      (!taskCheckRequired || context.state.taskCheckPassed)
-
-    if (context.to === 'SUBMITTING_PR' && !allPassed) {
-      return {
-        pass: false,
-        reason: taskCheckRequired
-          ? 'Not all reviews passed. Each of architecture-review, code-review, bug-scanner, and task-check must pass.'
-          : 'Not all reviews passed. Each of architecture-review, code-review, and bug-scanner must pass.',
-      }
+    return {
+      pass: false,
+      reason: `The review gate owns transitions out of REVIEWING. Run verify-pr-review-gate instead of transitioning manually to ${context.to}.`,
     }
-    if (context.to === 'IMPLEMENTING' && allPassed) {
-      return {
-        pass: false,
-        reason: 'All reviews passed. Transition to SUBMITTING_PR, not IMPLEMENTING.',
-      }
-    }
-    return { pass: true }
   }
 }

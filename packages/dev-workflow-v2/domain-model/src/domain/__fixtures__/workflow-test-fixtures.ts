@@ -5,8 +5,6 @@ import { WorkflowState } from '../workflow-types'
 import { MaintainerWorkflow } from '../workflow'
 import { MaintainerWorkflowRegistry } from '../registry'
 import { AddressingFeedbackState } from '../states/addressing-feedback'
-import { AwaitingCiState } from '../states/awaiting-ci'
-import { AwaitingPrFeedbackState } from '../states/awaiting-pr-feedback'
 import { BlockedState } from '../states/blocked'
 import { CompleteState } from '../states/complete'
 import { ImplementingState } from '../states/implementing'
@@ -24,8 +22,6 @@ export const TEST_WORKFLOW_REGISTRY = MaintainerWorkflowRegistry.parse({
   VERIFYING: VerifyingState.parse('VERIFYING'),
   REVIEWING: ReviewingState.parse('REVIEWING'),
   SUBMITTING_PR: SubmittingPrState.parse('SUBMITTING_PR'),
-  AWAITING_CI: AwaitingCiState.parse('AWAITING_CI'),
-  AWAITING_PR_FEEDBACK: AwaitingPrFeedbackState.parse('AWAITING_PR_FEEDBACK'),
   ADDRESSING_FEEDBACK: AddressingFeedbackState.parse('ADDRESSING_FEEDBACK'),
   REFLECTING: ReflectingState.parse('REFLECTING'),
   COMPLETE: CompleteState.parse('COMPLETE'),
@@ -64,7 +60,6 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
       headRevision: 'b'.repeat(40),
     }),
     listSessionReviews: () => [],
-    sleepMs: () => undefined,
     now: () => AT,
     ...overrides,
   }
@@ -147,29 +142,12 @@ export function codeReviewFailed(): WorkflowEvent {
   }
 }
 
-function allReviewsPassed(): readonly WorkflowEvent[] {
-  return [
-    reviewRecorded('architecture-review', 'PASS'),
-    reviewRecorded('code-review', 'PASS'),
-    reviewRecorded('bug-scanner', 'PASS'),
-    reviewRecorded('task-check', 'PASS'),
-  ]
-}
-
 function prRecorded(n: number, url?: string): WorkflowEvent {
   return {
     type: 'pr-recorded',
     at: AT,
     prNumber: n,
     ...(url === undefined ? {} : { prUrl: url }),
-  }
-}
-
-function ciPassed(): WorkflowEvent {
-  return {
-    type: 'ci-completed',
-    at: AT,
-    passed: true,
   }
 }
 
@@ -182,36 +160,38 @@ function feedbackExists(count: number): WorkflowEvent {
   }
 }
 
-export function eventsToReviewing(): readonly WorkflowEvent[] {
-  return [issueRecorded(42), branchRecorded('issue-42'), transitioned('IMPLEMENTING', 'REVIEWING')]
-}
-
-export function eventsToSubmittingPr(): readonly WorkflowEvent[] {
+function eventsToVerified(): readonly WorkflowEvent[] {
   return [
-    ...eventsToReviewing(),
-    ...allReviewsPassed(),
+    issueRecorded(42),
+    branchRecorded('issue-42'),
+    transitioned('IMPLEMENTING', 'VERIFYING'),
     {
       type: 'local-verification-completed',
       result: { status: 'passed', headCommit: 'b'.repeat(40) },
       at: AT,
     },
-    transitioned('REVIEWING', 'SUBMITTING_PR'),
+    transitioned('VERIFYING', 'SUBMITTING_PR'),
   ]
 }
 
-export function eventsToAwaitingCi(): readonly WorkflowEvent[] {
-  return [...eventsToSubmittingPr(), prRecorded(99), transitioned('SUBMITTING_PR', 'AWAITING_CI')]
+export function eventsToReviewing(): readonly WorkflowEvent[] {
+  return [...eventsToVerified(), transitioned('SUBMITTING_PR', 'REVIEWING')]
 }
 
-export function eventsToAwaitingPrFeedback(): readonly WorkflowEvent[] {
-  return [...eventsToAwaitingCi(), ciPassed(), transitioned('AWAITING_CI', 'AWAITING_PR_FEEDBACK')]
+export function eventsToSubmittingPr(): readonly WorkflowEvent[] {
+  return eventsToVerified()
+}
+
+export function recordedPullRequest(): WorkflowEvent {
+  return prRecorded(99, 'https://github.com/example/repo/pull/99')
 }
 
 export function eventsToAddressingFeedback(): readonly WorkflowEvent[] {
   return [
-    ...eventsToAwaitingPrFeedback(),
+    ...eventsToReviewing(),
+    recordedPullRequest(),
     feedbackExists(3),
-    transitioned('AWAITING_PR_FEEDBACK', 'ADDRESSING_FEEDBACK', {
+    transitioned('REVIEWING', 'ADDRESSING_FEEDBACK', {
       feedbackAddressed: false,
       feedbackClean: false,
     }),

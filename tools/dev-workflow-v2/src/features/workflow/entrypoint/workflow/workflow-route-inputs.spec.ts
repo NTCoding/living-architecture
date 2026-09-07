@@ -44,7 +44,6 @@ function buildWorkflow(
       headRevision: 'b'.repeat(40),
     }),
     listSessionReviews: () => [],
-    sleepMs: () => undefined,
     now: () => '2026-01-01T00:00:00Z',
   }
   return definition.buildWorkflow(definition.initialState(), deps)

@@ -33,28 +33,23 @@ const REVIEWING_STEPS = [
   CREATE_PR_COMMAND,
   ['transition', 'REVIEWING'],
 ] as const
-const AWAITING_CI_STEPS = [
+const ADDRESSING_FEEDBACK_STEPS = [
   ...REVIEWING_STEPS,
-  ['record-review', 'architecture-review', 'PASS'],
-  ['record-review', 'code-review', 'PASS'],
-  ['record-review', 'bug-scanner', 'PASS'],
-  ['record-review', 'task-check', 'PASS'],
-  ['transition', 'SUBMITTING_PR'],
-  ['record-pr', '1'],
-  ['transition', 'AWAITING_CI'],
+  ['set-pr-feedback', 'actionable'],
+  ['verify-pr-review-gate'],
 ] as const
-const AWAITING_FEEDBACK_STEPS = [
-  ...AWAITING_CI_STEPS,
-  ['record-ci-passed'],
-  ['transition', 'AWAITING_PR_FEEDBACK'],
+const REFLECTING_STEPS = [
+  ...REVIEWING_STEPS,
+  ['seed-reviewer-satisfaction'],
+  ['sync-reviewer-satisfaction'],
+  ['set-pr-feedback', 'clean'],
+  ['verify-pr-review-gate'],
 ] as const
 
 export const STATE_STEPS: Readonly<Record<string, readonly (readonly string[])[]>> = {
   VERIFYING: VERIFYING_STEPS,
   REVIEWING: REVIEWING_STEPS,
   SUBMITTING_PR: SUBMITTING_PR_STEPS,
-  AWAITING_CI: AWAITING_CI_STEPS,
-  AWAITING_PR_FEEDBACK: AWAITING_FEEDBACK_STEPS,
-  ADDRESSING_FEEDBACK: AWAITING_FEEDBACK_STEPS,
-  REFLECTING: AWAITING_FEEDBACK_STEPS,
+  ADDRESSING_FEEDBACK: ADDRESSING_FEEDBACK_STEPS,
+  REFLECTING: REFLECTING_STEPS,
 }

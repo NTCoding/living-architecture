@@ -2,11 +2,11 @@ import { expect, it, vi } from 'vitest'
 import { rateLimitEvidence } from './__fixtures__/coderabbit-rate-limit-evidence'
 import {
   eventsToAddressingFeedback,
-  eventsToAwaitingPrFeedback,
+  eventsToReviewing,
   makeDeps,
   rehydrateTestWorkflow,
-  spec,
 } from './__fixtures__/workflow-test-fixtures'
+import type { MaintainerWorkflow } from './workflow'
 import { parseWorkflowEvent } from './workflow-events'
 import { WorkflowState } from './workflow-types'
 
@@ -27,10 +27,34 @@ const recordedEvidence = parseWorkflowEvent({
   coderabbitRateLimitEvidence: rateLimitEvidence,
 })
 const pendingFeedback = {
+  repository: snapshot.repository,
+  headRevision: snapshot.headRevision,
   reviewDecision: null,
   coderabbitReviewSeen: false,
   unresolvedCount: 0,
   threads: [],
+}
+
+function recordSatisfiedReviewers(workflow: MaintainerWorkflow): void {
+  for (const reviewType of [
+    'architecture-review',
+    'code-review',
+    'bug-scanner',
+    'task-check',
+  ] as const) {
+    workflow.appendEvent({
+      type: 'reviewer-satisfaction-recorded',
+      at,
+      repository: snapshot.repository,
+      prNumber: snapshot.prNumber,
+      completion: {
+        reviewType,
+        verdict: 'PASS',
+        reviewId: 1,
+        headRevision: snapshot.headRevision,
+      },
+    })
+  }
 }
 
 it('replays immutable rate-limit evidence without claiming that the review completed', () => {
@@ -43,38 +67,49 @@ it('replays immutable rate-limit evidence without claiming that the review compl
   ).toStrictEqual(rateLimitEvidence)
 })
 
-it('preserves the skip after restart and a new head, even when the next review is pending', () => {
-  const outcome = spec
-    .given(...eventsToAddressingFeedback(), recordedEvidence, {
-      type: 'pr-recorded',
-      at,
-      prNumber: 99,
-      pullRequestSnapshot: snapshot,
-    })
-    .withDeps({ getPrFeedback: () => pendingFeedback })
-    .when((workflow) => workflow.verifyFeedbackAddressed())
-  expect(outcome.result).toStrictEqual({ pass: true })
-  expect(outcome.state.currentStateMachineState).toBe('REFLECTING')
-  expect(outcome.state.coderabbitRateLimitEvidence).toStrictEqual(rateLimitEvidence)
+it('preserves the skip at the review gate on a later pending head', () => {
+  const workflow = rehydrateTestWorkflow(
+    WorkflowState.replay(eventsToReviewing()),
+    makeDeps({
+      getPrFeedback: () => pendingFeedback,
+      getRequiredPullRequestChecks: () => ({
+        headRevision: snapshot.headRevision,
+        checks: [{ name: 'main', status: 'passed', detailsUrl: null }],
+      }),
+    }),
+  )
+  workflow.appendEvent({ type: 'pr-recorded', at, prNumber: 99, pullRequestSnapshot: snapshot })
+  workflow.appendEvent(recordedEvidence)
+  recordSatisfiedReviewers(workflow)
+
+  const result = workflow.verifyPrReviewGate()
+
+  expect(result).toStrictEqual({ pass: true })
+  expect(workflow.getState().currentStateMachineState).toBe('REFLECTING')
+  expect(workflow.getState().coderabbitRateLimitEvidence).toStrictEqual(rateLimitEvidence)
 })
 
-it('uses persisted evidence when automatic feedback polling resumes', () => {
-  const state = WorkflowState.replay([
-    ...eventsToAwaitingPrFeedback().slice(0, -1),
-    recordedEvidence,
-  ])
+it('uses persisted evidence to skip CodeRabbit status checks at the review gate', () => {
   const getPrFeedback = vi.fn(() => pendingFeedback)
-  const workflow = rehydrateTestWorkflow(state, makeDeps({ getPrFeedback }))
-  workflow.appendEvent({
-    type: 'transitioned',
-    at,
-    from: 'AWAITING_CI',
-    to: 'AWAITING_PR_FEEDBACK',
-  })
-  workflow.awaitPrFeedback()
-  expect(workflow.getState().currentStateMachineState).toBe('REFLECTING')
+  const workflow = rehydrateTestWorkflow(
+    WorkflowState.replay(eventsToReviewing()),
+    makeDeps({
+      getPrFeedback,
+      getRequiredPullRequestChecks: () => ({
+        headRevision: snapshot.headRevision,
+        checks: [{ name: 'main', status: 'passed', detailsUrl: null }],
+      }),
+    }),
+  )
+  workflow.appendEvent({ type: 'pr-recorded', at, prNumber: 99, pullRequestSnapshot: snapshot })
+  workflow.appendEvent(recordedEvidence)
+  recordSatisfiedReviewers(workflow)
+
+  const result = workflow.verifyPrReviewGate()
+
+  expect(result).toStrictEqual({ pass: true })
   expect(getPrFeedback).toHaveBeenCalledWith(99, { includeCodeRabbitStatus: false })
-  expect(workflow.getState().coderabbitRateLimitEvidence).toStrictEqual(rateLimitEvidence)
+  expect(workflow.getState().currentStateMachineState).toBe('REFLECTING')
 })
 
 it('does not discard demonstrated rate limiting when the same legacy PR is recorded again', () => {
@@ -118,20 +153,28 @@ it('clears the skip when the same PR number belongs to a different repository', 
 it.each([
   { ...rateLimitEvidence, prNumber: 100 },
   { ...rateLimitEvidence, repository: 'example/other' },
-])('rejects feedback evidence for another PR before queuing any event: %j', (evidence) => {
+])('fails the review gate closed when feedback evidence belongs to another PR: %j', (evidence) => {
   const state = WorkflowState.replay([
-    ...eventsToAddressingFeedback(),
+    ...eventsToReviewing(),
     { type: 'pr-recorded', at, prNumber: 99, pullRequestSnapshot: snapshot },
   ])
   const workflow = rehydrateTestWorkflow(
     state,
     makeDeps({
       getPrFeedback: () => ({ ...pendingFeedback, coderabbitRateLimitEvidence: evidence }),
+      getRequiredPullRequestChecks: () => ({
+        headRevision: snapshot.headRevision,
+        checks: [{ name: 'main', status: 'passed', detailsUrl: null }],
+      }),
     }),
   )
-  expect(() => workflow.verifyFeedbackAddressed()).toThrow('does not match the recorded PR')
-  expect(workflow.getPendingEvents()).toStrictEqual([])
-  expect(workflow.getState()).toStrictEqual(state)
+  recordSatisfiedReviewers(workflow)
+
+  const result = workflow.verifyPrReviewGate()
+
+  expect(result).toMatchObject({ pass: false })
+  expect(workflow.getState().currentStateMachineState).toBe('BLOCKED')
+  expect(workflow.getPendingEvents().at(-1)).toMatchObject({ type: 'transitioned', to: 'BLOCKED' })
 })
 
 it('accepts evidence for the recorded repository', () => {

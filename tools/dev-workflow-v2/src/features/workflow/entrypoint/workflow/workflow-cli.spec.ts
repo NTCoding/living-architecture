@@ -7,7 +7,6 @@ import {
   progressToState,
   runCommand,
   runReviewCommand,
-  runReviewCommandWithJson,
 } from './__fixtures__/workflow-cli-test-fixtures'
 
 const CREATE_PR_DESCRIPTION = 'A'.repeat(100)
@@ -108,7 +107,7 @@ describe('workflow-cli commands', () => {
   })
 
   describe('record-review', () => {
-    it('records task-check review when reviewer returns pass verdict', () => {
+    it('refuses conversational review recording because the workflow owns reviewers', () => {
       const ctx = setup()
       progressToState(ctx, 'REVIEWING')
 
@@ -118,128 +117,29 @@ describe('workflow-cli commands', () => {
         findings: [],
       })
 
-      expect(result.exitCode).toStrictEqual(0)
-      expect(JSON.parse(result.output)).toStrictEqual({
-        ok: true,
-        id: 1,
-        sessionId: 'test-sess',
-        createdAt: '2024-01-01T00:00:00Z',
-        reviewType: 'task-check',
-        verdict: 'PASS',
-      })
-      expect(ctx.engineDeps.store.listSessionReviews(ctx.sessionId)).toStrictEqual([
-        {
-          id: 1,
-          sessionId: 'test-sess',
-          createdAt: '2024-01-01T00:00:00Z',
-          reviewType: 'task-check',
-          sourceState: 'REVIEWING',
-          verdict: 'PASS',
-          summary: 'The implementation satisfies the task requirements.',
-          findings: [],
-        },
-      ])
-      expect(ctx.engineDeps.store.readEvents(ctx.sessionId).map(flattenStoredEvent)).toStrictEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            type: 'review-recorded',
-            reviewType: 'task-check',
-            verdict: 'PASS',
-          }),
-        ]),
-      )
+      expect(result.exitCode).toStrictEqual(2)
+      expect(result.output).toContain('record-review is not allowed in state REVIEWING.')
+      expect(ctx.engineDeps.store.listSessionReviews(ctx.sessionId)).toStrictEqual([])
+      expect(
+        ctx.engineDeps.store
+          .readEvents(ctx.sessionId)
+          .map(flattenStoredEvent)
+          .filter((event) => event.type === 'review-recorded'),
+      ).toStrictEqual([])
     })
 
-    it('records task-check review when reviewer returns fail verdict', () => {
+    it('refuses conversational review recording in every other state too', () => {
       const ctx = setup()
-      progressToState(ctx, 'REVIEWING')
+      runCommand(ctx, ['init'])
 
       const result = runReviewCommand(ctx, 'task-check', {
-        verdict: 'FAIL',
-        summary: 'The implementation violates an architecture boundary.',
-        findings: [
-          {
-            severity: 'major',
-            title: 'Domain layer imports infrastructure module',
-            details: 'The domain service imports a SQLite adapter directly.',
-            rule: 'dependency-direction',
-            file: 'src/domain/example.ts',
-            startLine: 12,
-            endLine: 12,
-          },
-        ],
+        verdict: 'PASS',
+        summary: 'The implementation satisfies the task requirements.',
+        findings: [],
       })
 
-      expect(result.exitCode).toStrictEqual(0)
-      expect(ctx.engineDeps.store.listSessionReviews(ctx.sessionId)).toStrictEqual([
-        {
-          id: 1,
-          sessionId: 'test-sess',
-          createdAt: '2024-01-01T00:00:00Z',
-          reviewType: 'task-check',
-          sourceState: 'REVIEWING',
-          verdict: 'FAIL',
-          summary: 'The implementation violates an architecture boundary.',
-          findings: [
-            {
-              severity: 'major',
-              title: 'Domain layer imports infrastructure module',
-              details: 'The domain service imports a SQLite adapter directly.',
-              rule: 'dependency-direction',
-              file: 'src/domain/example.ts',
-              startLine: 12,
-              endLine: 12,
-            },
-          ],
-        },
-      ])
-      expect(ctx.engineDeps.store.readEvents(ctx.sessionId).map(flattenStoredEvent)).toStrictEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            type: 'review-recorded',
-            reviewType: 'task-check',
-            verdict: 'FAIL',
-          }),
-        ]),
-      )
-    })
-
-    it('blocks workflow without recording review when reviewer returns invalid json', () => {
-      const ctx = setup()
-      progressToState(ctx, 'REVIEWING')
-
-      const result = runReviewCommandWithJson(ctx, 'task-check', '{')
-
-      expect(result.exitCode).toStrictEqual(1)
-      expect(result.output).toContain('Invalid review JSON')
-      expect(ctx.engineDeps.store.listSessionReviews(ctx.sessionId)).toStrictEqual([])
-      expect(
-        ctx.engineDeps.store
-          .readEvents(ctx.sessionId)
-          .map(flattenStoredEvent)
-          .filter((event) => event.type === 'review-recorded'),
-      ).toStrictEqual([])
-    })
-
-    it('blocks workflow without recording review when reviewer omits required fields', () => {
-      const ctx = setup()
-      progressToState(ctx, 'REVIEWING')
-
-      const result = runReviewCommandWithJson(
-        ctx,
-        'task-check',
-        JSON.stringify({ verdict: 'PASS' }),
-      )
-
-      expect(result.exitCode).toStrictEqual(1)
-      expect(result.output).toContain('Invalid review payload')
-      expect(ctx.engineDeps.store.listSessionReviews(ctx.sessionId)).toStrictEqual([])
-      expect(
-        ctx.engineDeps.store
-          .readEvents(ctx.sessionId)
-          .map(flattenStoredEvent)
-          .filter((event) => event.type === 'review-recorded'),
-      ).toStrictEqual([])
+      expect(result.exitCode).toStrictEqual(2)
+      expect(result.output).toContain('record-review is not allowed in state IMPLEMENTING.')
     })
   })
 
@@ -372,73 +272,29 @@ describe('workflow-cli commands', () => {
     })
   })
 
-  describe('record-ci-passed', () => {
-    it('records CI passed in AWAITING_CI state', () => {
+  describe('removed legacy routes', () => {
+    it('no longer exposes record-ci-passed now that PR checks gate REVIEWING', () => {
       const ctx = setup()
-      progressToState(ctx, 'AWAITING_CI')
+      runCommand(ctx, ['init'])
       const result = runCommand(ctx, ['record-ci-passed'])
-      expect(result.exitCode).toStrictEqual(0)
-    })
-  })
-
-  describe('record-ci-failed', () => {
-    it('records with output', () => {
-      const ctx = setup()
-      progressToState(ctx, 'AWAITING_CI')
-      const result = runCommand(ctx, ['record-ci-failed', 'build failed'])
-      expect(result.exitCode).toStrictEqual(0)
-    })
-
-    it('returns error when output is missing', () => {
-      const ctx = setup()
-      progressToState(ctx, 'AWAITING_CI')
-      const result = runCommand(ctx, ['record-ci-failed'])
       expect(result.exitCode).toStrictEqual(1)
-    })
-  })
-
-  describe('verify-feedback-addressed', () => {
-    it('verifies live feedback in ADDRESSING_FEEDBACK state', () => {
-      const ctx = setup({
-        getPrFeedback: () => ({
-          reviewDecision: 'CHANGES_REQUESTED',
-          coderabbitReviewSeen: true,
-          unresolvedCount: 2,
-          threads: [],
-        }),
-      })
-      progressToState(ctx, 'ADDRESSING_FEEDBACK')
-      Object.defineProperty(ctx.workflowDeps, 'getPrFeedback', {
-        value: () => ({
-          reviewDecision: 'APPROVED',
-          coderabbitReviewSeen: true,
-          unresolvedCount: 0,
-          threads: [],
-        }),
-      })
-      const result = runCommand(ctx, ['verify-feedback-addressed'])
-      expect(result.exitCode).toStrictEqual(0)
+      expect(result.output).toContain('Unknown test workflow command.')
     })
 
-    it('blocks when current PR feedback is still unresolved', () => {
-      const ctx = setup({
-        getPrFeedback: () => ({
-          reviewDecision: 'CHANGES_REQUESTED',
-          coderabbitReviewSeen: true,
-          unresolvedCount: 1,
-          threads: [],
-        }),
-      })
-      progressToState(ctx, 'ADDRESSING_FEEDBACK')
-      const result = runCommand(ctx, ['verify-feedback-addressed'])
-      expect(result.exitCode).toStrictEqual(2)
+    it('no longer exposes record-ci-failed', () => {
+      const ctx = setup()
+      runCommand(ctx, ['init'])
+      const result = runCommand(ctx, ['record-ci-failed', 'build failed'])
+      expect(result.exitCode).toStrictEqual(1)
+      expect(result.output).toContain('Unknown test workflow command.')
     })
 
-    it('is blocked outside ADDRESSING_FEEDBACK state', () => {
+    it('no longer exposes verify-feedback-addressed now that the review gate verifies feedback', () => {
       const ctx = setup()
       runCommand(ctx, ['init'])
       const result = runCommand(ctx, ['verify-feedback-addressed'])
-      expect(result.exitCode).toStrictEqual(2)
+      expect(result.exitCode).toStrictEqual(1)
+      expect(result.output).toContain('Unknown test workflow command.')
     })
   })
 })

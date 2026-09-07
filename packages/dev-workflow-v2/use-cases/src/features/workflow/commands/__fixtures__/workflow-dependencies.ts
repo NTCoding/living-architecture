@@ -35,7 +35,6 @@ export function makeWorkflowDeps(): WorkflowDeps {
       headRevision: 'b'.repeat(40),
     }),
     listSessionReviews: vi.fn<WorkflowDeps['listSessionReviews']>().mockReturnValue([]),
-    sleepMs: vi.fn<WorkflowDeps['sleepMs']>(),
     now: vi.fn<WorkflowDeps['now']>().mockReturnValue('2026-01-01T00:00:00Z'),
   }
 }

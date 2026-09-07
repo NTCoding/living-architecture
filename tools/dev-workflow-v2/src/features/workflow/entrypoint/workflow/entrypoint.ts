@@ -3,11 +3,8 @@ import { VerifyLocal } from '@living-architecture/dev-workflow-v2-use-cases/comm
 import type { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
 import { CreatePullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-pull-request'
 import { RecordBranch } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-branch'
-import { RecordCiFailed } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-ci-failed'
-import { RecordCiPassed } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-ci-passed'
 import { RecordIssue } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-issue'
 import { RecordPullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-pull-request'
-import { VerifyFeedbackAddressed } from '@living-architecture/dev-workflow-v2-use-cases/commands/verify-feedback-addressed'
 import { SyncReviewerSatisfaction } from '@living-architecture/dev-workflow-v2-use-cases/commands/sync-reviewer-satisfaction'
 import {
   parseNumberArgument,
@@ -42,10 +39,7 @@ export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypoin
       }).result,
     createPullRequest: (workflow, args) =>
       new CreatePullRequest(workflow).execute({ arguments: args }).result,
-    recordCiPassed: (workflow) => new RecordCiPassed(workflow).execute({}).result,
-    recordCiFailed: (workflow, output) => new RecordCiFailed(workflow).execute({ output }).result,
     verifyLocal: (workflow) => new VerifyLocal(workflow).execute({}).result,
-    verifyFeedbackAddressed: (workflow) => new VerifyFeedbackAddressed(workflow).execute({}).result,
     verifyPrReviewGate: (workflow) => new VerifyPrReviewGate(workflow).execute({}).result,
     syncReviewerSatisfaction: (workflow) =>
       new SyncReviewerSatisfaction(workflow).execute({}).result,

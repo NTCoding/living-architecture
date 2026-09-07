@@ -4,8 +4,6 @@ import type {
   RecordingOpDefinition,
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { AddressingFeedbackState } from './states/addressing-feedback'
-import { AwaitingCiState } from './states/awaiting-ci'
-import { AwaitingPrFeedbackState } from './states/awaiting-pr-feedback'
 import { BlockedState } from './states/blocked'
 import { CompleteState } from './states/complete'
 import { VerifyingState } from './states/verifying'
@@ -32,17 +30,6 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
       ...(url ? { prUrl: url } : {}),
     }),
   },
-  'record-ci-passed': {
-    event: 'ci-completed',
-    payload: () => ({ passed: true }),
-  },
-  'record-ci-failed': {
-    event: 'ci-completed',
-    payload: (output: string) => ({
-      passed: false,
-      output,
-    }),
-  },
 }
 
 const MAINTAINER_WORKFLOW_REGISTRY_SCHEMA = z.object({
@@ -50,10 +37,6 @@ const MAINTAINER_WORKFLOW_REGISTRY_SCHEMA = z.object({
   IMPLEMENTING: z.custom<ImplementingState>((value) => value instanceof ImplementingState),
   REVIEWING: z.custom<ReviewingState>((value) => value instanceof ReviewingState),
   SUBMITTING_PR: z.custom<SubmittingPrState>((value) => value instanceof SubmittingPrState),
-  AWAITING_CI: z.custom<AwaitingCiState>((value) => value instanceof AwaitingCiState),
-  AWAITING_PR_FEEDBACK: z.custom<AwaitingPrFeedbackState>(
-    (value) => value instanceof AwaitingPrFeedbackState,
-  ),
   ADDRESSING_FEEDBACK: z.custom<AddressingFeedbackState>(
     (value) => value instanceof AddressingFeedbackState,
   ),
@@ -68,12 +51,8 @@ type WorkflowOperation =
   | 'verify-local'
   | 'record-issue'
   | 'record-branch'
-  | 'record-review'
   | 'record-pr'
-  | 'record-ci-passed'
-  | 'record-ci-failed'
   | 'create-pr'
-  | 'verify-feedback-addressed'
   | 'verify-pr-review-gate'
   | 'sync-reviewer-satisfaction'
 
@@ -85,8 +64,6 @@ export class MaintainerWorkflowRegistry {
   readonly IMPLEMENTING: ImplementingState
   readonly REVIEWING: ReviewingState
   readonly SUBMITTING_PR: SubmittingPrState
-  readonly AWAITING_CI: AwaitingCiState
-  readonly AWAITING_PR_FEEDBACK: AwaitingPrFeedbackState
   readonly ADDRESSING_FEEDBACK: AddressingFeedbackState
   readonly REFLECTING: ReflectingState
   readonly COMPLETE: CompleteState
@@ -97,8 +74,6 @@ export class MaintainerWorkflowRegistry {
     this.IMPLEMENTING = value.IMPLEMENTING
     this.REVIEWING = value.REVIEWING
     this.SUBMITTING_PR = value.SUBMITTING_PR
-    this.AWAITING_CI = value.AWAITING_CI
-    this.AWAITING_PR_FEEDBACK = value.AWAITING_PR_FEEDBACK
     this.ADDRESSING_FEEDBACK = value.ADDRESSING_FEEDBACK
     this.REFLECTING = value.REFLECTING
     this.COMPLETE = value.COMPLETE

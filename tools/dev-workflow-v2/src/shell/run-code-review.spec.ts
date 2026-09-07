@@ -3,8 +3,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PlatformContext } from '@nt-ai-lab/deterministic-agent-workflow-cli'
-import type { ReviewerDefinition } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviewer-definitions'
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
+import { ReviewerDefinition } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviewer-definitions'
 import { createRunCodeReview } from './run-code-review'
 import {
   buildTestContext,
@@ -15,10 +15,13 @@ import {
 const runMock = vi.fn()
 
 vi.mock('@nt-ai-lab/deterministic-agent-workflow-cli', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@nt-ai-lab/deterministic-agent-workflow-cli')>()
+  const actual =
+    await importOriginal<typeof import('@nt-ai-lab/deterministic-agent-workflow-cli')>()
   return {
     ...actual,
-    ReviewCoordinator: vi.fn().mockImplementation(() => ({ run: runMock })),
+    ReviewCoordinator: vi.fn().mockImplementation(function () {
+      return { run: runMock }
+    }),
   }
 })
 
@@ -32,9 +35,9 @@ import { ReviewCoordinator } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 const mockedReadGit = vi.mocked(readGitRepositoryStatus)
 const mockedCoordinator = vi.mocked(ReviewCoordinator)
 
-const REVIEWERS: readonly ReviewerDefinition[] = [
+const REVIEWERS = ReviewerDefinition.parseAll([
   { reviewType: 'code-review', agentInstructions: 'agents/code-review.md', version: '1' },
-]
+])
 
 const databases: string[] = []
 afterEach(() => {
@@ -54,7 +57,8 @@ describe('createRunCodeReview', () => {
         getPluginRoot: () => '/plugin-root',
         now: () => '2024-01-01T00:00:00Z',
         getSessionId: () => context.sessionId,
-        store: context.engineDeps.store,
+        workflowEventStore: context.store,
+        reviewStore: context.store,
       }
       const runCodeReview = createRunCodeReview({
         getWorkflowDefinition: () => configureWorkflow({ runCodeReview: () => undefined }),
@@ -87,7 +91,8 @@ describe('createRunCodeReview', () => {
         getPluginRoot: () => '/plugin-root',
         now: () => '2024-01-01T00:00:00Z',
         getSessionId: () => context.sessionId,
-        store: context.engineDeps.store,
+        workflowEventStore: context.store,
+        reviewStore: context.store,
       }
       const runCodeReview = createRunCodeReview({
         getWorkflowDefinition: () => configureWorkflow({ runCodeReview: () => undefined }),
@@ -102,7 +107,7 @@ describe('createRunCodeReview', () => {
       runCodeReview(REVIEWERS)
       expect(mockedReadGit).toHaveBeenCalledWith()
       expect(mockedCoordinator).toHaveBeenCalledWith({
-        store: context.engineDeps.store,
+        store: context.store,
         client: expect.any(Object),
         now: platform.now,
       })

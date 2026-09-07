@@ -16,8 +16,6 @@ export class BlockedState {
     'VERIFYING',
     'REVIEWING',
     'SUBMITTING_PR',
-    'AWAITING_CI',
-    'AWAITING_PR_FEEDBACK',
     'ADDRESSING_FEEDBACK',
     'REFLECTING',
   ] as const

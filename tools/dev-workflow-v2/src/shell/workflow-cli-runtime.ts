@@ -68,26 +68,11 @@ const unknownCommandMessage = [
   'STOP and fix the workflow. It is broken. Do not attempt to create a workaround. YOU must immediately switch to blocked and stop.',
 ].join('\n\n')
 
-class InvalidSleepDurationError extends Error {
-  constructor() {
-    super('sleepMs requires a finite non-negative number')
-    this.name = 'InvalidSleepDurationError'
-  }
-}
-
 class PlatformNotInitialisedError extends Error {
   constructor() {
     super('runCodeReview invoked before the platform was initialised')
     this.name = 'PlatformNotInitialisedError'
   }
-}
-
-function sleepMs(ms: number): void {
-  if (!Number.isFinite(ms) || ms < 0) {
-    throw new InvalidSleepDurationError()
-  }
-
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
 }
 
 function buildWorkflowDeps(platform: PlatformContext) {
@@ -102,8 +87,8 @@ function buildWorkflowDeps(platform: PlatformContext) {
       createGithubPullRequestFeedbackClient(runGh),
     ),
     createPullRequest: createWorkflowPullRequestCreator(createGithubPullRequestClient(runGh)),
-    listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
-    sleepMs,
+    listSessionReviews: () =>
+      platform.workflowEventStore.listSessionReviews(platform.getSessionId()),
     now: platform.now,
   }
 }

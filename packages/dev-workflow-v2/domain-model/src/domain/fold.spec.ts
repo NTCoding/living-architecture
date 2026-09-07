@@ -309,14 +309,14 @@ describe('applyEvent — transitioned', () => {
 
   it('applies ADDRESSING_FEEDBACK stateOverrides resets', () => {
     const state = makeState({
-      currentStateMachineState: 'AWAITING_PR_FEEDBACK',
+      currentStateMachineState: 'REVIEWING',
       feedbackAddressed: true,
       feedbackClean: true,
     })
     const result = state.apply({
       type: 'transitioned',
       at: AT,
-      from: 'AWAITING_PR_FEEDBACK',
+      from: 'REVIEWING',
       to: 'ADDRESSING_FEEDBACK',
       stateOverrides: {
         feedbackAddressed: false,

@@ -7,11 +7,8 @@ import {
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/output-messages'
 import { MaintainerWorkflowRegistry } from '@living-architecture/dev-workflow-v2-domain-model/domain/registry'
 import { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
-import type { ReviewerDefinition } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviewer-definitions'
-import { REVIEWER_DEFINITIONS } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviewer-definitions'
+import { ReviewerDefinition } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviewer-definitions'
 import { AddressingFeedbackState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/addressing-feedback'
-import { AwaitingCiState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/awaiting-ci'
-import { AwaitingPrFeedbackState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/awaiting-pr-feedback'
 import { BlockedState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/blocked'
 import { CompleteState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/complete'
 import { ImplementingState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/implementing'
@@ -61,6 +58,17 @@ export interface ConfigureWorkflowResult {
 }
 const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(getKnownWorkflowEventTypes())
 
+const REVIEWER_DEFINITIONS: readonly ReviewerDefinition[] = ReviewerDefinition.parseAll([
+  {
+    reviewType: 'architecture-review',
+    agentInstructions: 'agents/architecture-review.md',
+    version: '1',
+  },
+  { reviewType: 'code-review', agentInstructions: 'agents/code-review.md', version: '1' },
+  { reviewType: 'bug-scanner', agentInstructions: 'agents/bug-scanner.md', version: '1' },
+  { reviewType: 'task-check', agentInstructions: 'agents/task-check.md', version: '1' },
+])
+
 /** @riviere-role command-use-case-input */
 export type ConfigureWorkflowInput = Readonly<{
   runCodeReview: (reviewers: readonly ReviewerDefinition[]) => void
@@ -68,7 +76,6 @@ export type ConfigureWorkflowInput = Readonly<{
 
 /** @riviere-role command-use-case */
 export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkflowResult {
-  const workflowHolder: { workflow?: MaintainerWorkflow } = {}
   const registry = MaintainerWorkflowRegistry.parse({
     IMPLEMENTING: ImplementingState.parse('IMPLEMENTING'),
     VERIFYING: VerifyingState.parse('VERIFYING'),
@@ -77,10 +84,6 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
       runCodeReview: input.runCodeReview,
     }),
     SUBMITTING_PR: SubmittingPrState.parse('SUBMITTING_PR'),
-    AWAITING_CI: AwaitingCiState.parse('AWAITING_CI'),
-    AWAITING_PR_FEEDBACK: AwaitingPrFeedbackState.parse('AWAITING_PR_FEEDBACK', {
-      awaitPrFeedback: () => workflowHolder.workflow?.awaitPrFeedback(),
-    }),
     ADDRESSING_FEEDBACK: AddressingFeedbackState.parse('ADDRESSING_FEEDBACK'),
     REFLECTING: ReflectingState.parse('REFLECTING'),
     COMPLETE: CompleteState.parse('COMPLETE'),
@@ -98,9 +101,7 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
       }
     },
     buildWorkflow(state: WorkflowState, deps: WorkflowDeps): MaintainerWorkflow {
-      const wf = MaintainerWorkflow.build(registry, deps, state)
-      workflowHolder.workflow = wf
-      return wf
+      return MaintainerWorkflow.build(registry, deps, state)
     },
     stateSchema: WorkflowState.stateNameSchema(),
     initialState: WorkflowState.initial,

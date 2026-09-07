@@ -21,11 +21,6 @@ import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
 import type { ReadWorkflowGitStatus } from './ports/read-git-status'
 import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
 import type { ReadRequiredPullRequestChecks } from './ports/read-required-pull-request-checks'
-import { pollCodeRabbitFeedback } from './coderabbit-feedback-polling'
-import {
-  assessFeedbackAddressed,
-  evaluateCodeRabbitFeedbackPoll,
-} from './coderabbit-feedback-verification'
 import { PullRequestReviewGate } from './pull-request-review-gate'
 import { readWorkflowPullRequestFeedback } from './pull-request-feedback-reader'
 import { computeReviewerSatisfactionSync } from './reviewer-satisfaction-sync'
@@ -33,9 +28,7 @@ type StateName = WorkflowState['currentStateMachineState']
 type WorkflowOperation =
   | keyof ReturnType<MaintainerWorkflowRegistry['recordingOperations']>
   | 'verify-local'
-  | 'record-review'
   | 'create-pr'
-  | 'verify-feedback-addressed'
   | 'verify-pr-review-gate'
   | 'sync-reviewer-satisfaction'
 type WorkflowDeps = {
@@ -45,7 +38,6 @@ type WorkflowDeps = {
   readonly getRequiredPullRequestChecks: ReadRequiredPullRequestChecks
   readonly createPullRequest: CreateWorkflowPullRequest
   readonly listSessionReviews: () => readonly StoredReview[]
-  readonly sleepMs: (ms: number) => void
   readonly now: () => string
 }
 /** @riviere-role aggregate */
@@ -245,35 +237,6 @@ export class MaintainerWorkflow {
       return this.blockReviewGate(`Unable to evaluate the PR review gate: ${String(error)}`)
     }
   }
-  verifyFeedbackAddressed(): PreconditionResult {
-    const gate = this.checkOperation('verify-feedback-addressed')
-    if (!gate.pass) return gate
-    if (this.state.prNumber === undefined) {
-      return fail('prNumber not set. Record the PR before verifying feedback.')
-    }
-    const feedbackResult = readWorkflowPullRequestFeedback(
-      this.deps.getPrFeedback,
-      this.state.prNumber,
-      this.state.coderabbitRateLimitEvidence === undefined,
-    )
-    if (!feedbackResult.ok) return fail(feedbackResult.reason)
-    const { feedback } = feedbackResult
-    const poll = evaluateCodeRabbitFeedbackPoll(
-      feedback,
-      this.state.prNumber,
-      1,
-      this.state.coderabbitRateLimitEvidence !== undefined,
-    )
-    const assessment = assessFeedbackAddressed(feedback, poll)
-    this.appendFeedbackChecked(feedback, assessment.status === 'clean')
-    if (assessment.status !== 'clean') return fail(assessment.reason)
-    this.append({
-      type: 'feedback-addressed',
-      at: this.deps.now(),
-    })
-    this.appendAutomaticTransition('REFLECTING')
-    return pass()
-  }
   syncReviewerSatisfaction(): PreconditionResult {
     const operation = this.checkOperation('sync-reviewer-satisfaction')
     if (!operation.pass) return operation
@@ -319,24 +282,6 @@ export class MaintainerWorkflow {
       reviewDecision: feedback.reviewDecision,
     })
   }
-  awaitPrFeedback(): void {
-    if (this.state.prNumber === undefined) {
-      this.appendPrFeedbackVerificationFailure(
-        'prNumber not set. Record the PR before awaiting PR feedback.',
-      )
-      return
-    }
-    pollCodeRabbitFeedback({
-      prNumber: this.state.prNumber,
-      alreadyRateLimited: this.state.coderabbitRateLimitEvidence !== undefined,
-      getFeedback: this.deps.getPrFeedback,
-      sleepMs: this.deps.sleepMs,
-      onFeedback: (feedback, clean) => this.appendFeedbackChecked(feedback, clean),
-      onClean: () => this.appendAutomaticTransition('REFLECTING'),
-      onActionableFeedback: () => this.appendAutomaticTransition('ADDRESSING_FEEDBACK'),
-      onFailure: (reason) => this.appendPrFeedbackVerificationFailure(reason),
-    })
-  }
   private appendAutomaticTransition(to: StateName): void {
     const from = this.state.currentStateMachineState
     const stateBefore = this.state
@@ -375,21 +320,8 @@ export class MaintainerWorkflow {
     this.appendAutomaticTransition('BLOCKED')
   }
   private append(event: WorkflowEvent): void {
-    if (this.isPrFeedbackBlockedWithoutFailureEvent(event)) {
-      throw new WorkflowStateError(
-        'Expected pr-feedback-verification-failed event before AWAITING_PR_FEEDBACK can transition to BLOCKED.',
-      )
-    }
     const nextState = this.state.apply(event)
     this.pendingEvents = [...this.pendingEvents, event]
     this.state = nextState
-  }
-  private isPrFeedbackBlockedWithoutFailureEvent(event: WorkflowEvent): boolean {
-    if (event.type !== 'transitioned') return false
-    if (event.from !== 'AWAITING_PR_FEEDBACK') return false
-    if (event.to !== 'BLOCKED') return false
-    const previousEvent = this.pendingEvents.at(-1)
-    if (previousEvent === undefined) return true
-    return previousEvent.type !== 'pr-feedback-verification-failed'
   }
 }

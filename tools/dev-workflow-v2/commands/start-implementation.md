@@ -49,10 +49,10 @@ Record the issue immediately:
 After init, read the state instruction file that the workflow loads. It will guide you through:
 
 1. **IMPLEMENTING** — Read requirements, plan, implement, test, commit
-2. **REVIEWING** — Spawn review agents, record each verdict individually
-3. **SUBMITTING_PR** — Push branch, create PR, record PR number
-4. **AWAITING_CI** — Wait for CI, record result
-5. **AWAITING_PR_FEEDBACK** — Wait for CodeRabbit review and auto-route based on PR feedback
+2. **VERIFYING** — Run local verification for the current clean commit
+3. **SUBMITTING_PR** — Create a normal, non-draft PR and record it
+4. **REVIEWING** — The workflow launches the review agents automatically; sync satisfaction and evaluate the review gate
+5. **ADDRESSING_FEEDBACK** — Fix or reject review findings, then return through verification for a follow-up review
 6. **REFLECTING** — Write a reflection on the work
 7. **COMPLETE** — Done
 

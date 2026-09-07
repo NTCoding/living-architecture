@@ -76,22 +76,3 @@ it('allows a submission failure to be blocked', () => {
     }),
   ).toStrictEqual({ pass: true })
 })
-
-it.each([
-  { architectureReviewPassed: false },
-  { codeReviewPassed: false },
-  { bugScannerPassed: false },
-  { taskCheckPassed: false },
-])('does not allow the legacy CI path to bypass an outstanding review: %j', (pendingReview) => {
-  const state = recorded.with({
-    prNumber: 99,
-    architectureReviewPassed: true,
-    codeReviewPassed: true,
-    bugScannerPassed: true,
-    taskCheckPassed: true,
-    ...pendingReview,
-  })
-  expect(
-    definition.transitionGuard({ state, gitInfo, from: 'SUBMITTING_PR', to: 'AWAITING_CI' }),
-  ).toStrictEqual({ pass: false, reason: 'Complete the workflow review before awaiting CI.' })
-})
