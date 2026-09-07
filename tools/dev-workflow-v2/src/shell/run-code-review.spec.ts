@@ -10,6 +10,8 @@ import {
   buildTestContext,
   cleanupDb,
   progressToState,
+  runCommand,
+  seedReviewerSatisfaction,
 } from '../features/workflow/entrypoint/workflow/__fixtures__/workflow-cli-test-fixtures'
 
 const runMock = vi.fn()
@@ -131,6 +133,43 @@ describe('createRunCodeReview', () => {
         }),
         'REVIEWING',
       )
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  })
+
+  it('launches nothing when every requested reviewer is already satisfied', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'run-code-review-'))
+    try {
+      mkdirSync(join(directory, 'states'), { recursive: true })
+      writeFileSync(join(directory, 'states', 'reviewing.md'), 'state instructions')
+      mkdirSync(join(directory, 'agents'), { recursive: true })
+      writeFileSync(join(directory, 'agents', 'code-review.md'), 'agent instructions')
+      const context = buildTestContext()
+      databases.push(context.dbPath)
+      progressToState(context, 'REVIEWING')
+      seedReviewerSatisfaction(context)
+      runCommand(context, ['sync-reviewer-satisfaction'])
+      const platform: PlatformContext = {
+        getPluginRoot: () => '/plugin-root',
+        now: () => '2024-01-01T00:00:00Z',
+        getSessionId: () => context.sessionId,
+        workflowEventStore: context.store,
+        reviewStore: context.store,
+      }
+      const runCodeReview = createRunCodeReview({
+        getWorkflowDefinition: () => configureWorkflow({ runCodeReview: () => undefined }),
+        getPlatform: () => platform,
+        pluginRoot: directory,
+        acpClient: {
+          start: vi.fn(),
+          load: vi.fn(),
+          cancel: vi.fn(),
+        },
+      })
+      runCodeReview(REVIEWERS)
+      expect(mockedCoordinator).not.toHaveBeenCalled()
+      expect(runMock).not.toHaveBeenCalled()
     } finally {
       rmSync(directory, { recursive: true, force: true })
     }

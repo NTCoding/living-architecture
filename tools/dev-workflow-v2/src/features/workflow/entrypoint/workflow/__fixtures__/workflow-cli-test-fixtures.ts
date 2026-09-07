@@ -146,7 +146,7 @@ export function setPrFeedback(ctx: TestContext, kind: 'actionable' | 'clean'): v
   })
 }
 
-function seedReviewerSatisfaction(ctx: TestContext): void {
+export function seedReviewerSatisfaction(ctx: TestContext): void {
   const reviews = REVIEWER_TYPES.map((reviewType, index) => ({
     id: index + 1,
     sessionId: ctx.sessionId,

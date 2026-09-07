@@ -3,6 +3,7 @@ import { makeWorkflowDeps } from './__fixtures__/workflow-dependencies'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
+import { ReviewerDefinition } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviewer-definitions'
 import { describe, expect, it, vi } from 'vitest'
 
 const REVIEWER_DEFINITIONS = [
@@ -14,7 +15,7 @@ const REVIEWER_DEFINITIONS = [
   { reviewType: 'code-review', agentInstructions: 'agents/code-review.md', version: '1' },
   { reviewType: 'bug-scanner', agentInstructions: 'agents/bug-scanner.md', version: '1' },
   { reviewType: 'task-check', agentInstructions: 'agents/task-check.md', version: '1' },
-]
+] as const
 
 type StateName = WorkflowState['currentStateMachineState']
 const WORKFLOW_DEFINITION = configureWorkflow({ runCodeReview: () => undefined })
@@ -122,6 +123,44 @@ describe('WORKFLOW_DEFINITION', () => {
       const registry = WORKFLOW_DEFINITION.getRegistry()
       expect(registry.BLOCKED.forbidden).toStrictEqual({ write: true })
       expect(registry.COMPLETE.forbidden).toStrictEqual({ write: true })
+    })
+  })
+
+  describe('pendingReviewers', () => {
+    const reviewers = ReviewerDefinition.parseAll([...REVIEWER_DEFINITIONS])
+    const satisfied = { status: 'satisfied' as const, reviewId: 1, headRevision: 'b'.repeat(40) }
+    const notRun = { status: 'not-run' as const }
+    const satisfiedFor = (reviewType: string) => ({
+      'architecture-review': reviewType === 'architecture-review' ? satisfied : notRun,
+      'code-review': reviewType === 'code-review' ? satisfied : notRun,
+      'bug-scanner': reviewType === 'bug-scanner' ? satisfied : notRun,
+      'task-check': reviewType === 'task-check' ? satisfied : notRun,
+    })
+
+    it('returns every reviewer when none has recorded satisfaction', () => {
+      const state = WORKFLOW_DEFINITION.initialState()
+      expect(WORKFLOW_DEFINITION.pendingReviewers(reviewers, state)).toStrictEqual(reviewers)
+    })
+
+    it('excludes reviewers that already recorded satisfaction once', () => {
+      const state = WORKFLOW_DEFINITION.initialState().with({
+        reviewerSatisfaction: satisfiedFor('code-review'),
+      })
+      expect(WORKFLOW_DEFINITION.pendingReviewers(reviewers, state)).toStrictEqual(
+        reviewers.filter((reviewer) => reviewer.reviewType !== 'code-review'),
+      )
+    })
+
+    it('returns no reviewers once all four are satisfied', () => {
+      const state = WORKFLOW_DEFINITION.initialState().with({
+        reviewerSatisfaction: {
+          'architecture-review': satisfied,
+          'code-review': satisfied,
+          'bug-scanner': satisfied,
+          'task-check': satisfied,
+        },
+      })
+      expect(WORKFLOW_DEFINITION.pendingReviewers(reviewers, state)).toStrictEqual([])
     })
   })
 

@@ -7,6 +7,7 @@ import {
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/output-messages'
 import { MaintainerWorkflowRegistry } from '@living-architecture/dev-workflow-v2-domain-model/domain/registry'
 import { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
+import { ReviewerSatisfaction } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviewer-satisfaction'
 import { ReviewerDefinition } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviewer-definitions'
 import { AddressingFeedbackState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/addressing-feedback'
 import { BlockedState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/blocked'
@@ -54,6 +55,10 @@ export interface ConfigureWorkflowResult {
   ): BaseEvent
   getOperationBody(op: string, state: WorkflowState): string
   getTransitionTitle(to: StateName, state: WorkflowState): string
+  pendingReviewers(
+    reviewers: readonly ReviewerDefinition[],
+    state: WorkflowState,
+  ): readonly ReviewerDefinition[]
   isWriteAllowed: typeof isWriteAllowed
 }
 const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(getKnownWorkflowEventTypes())
@@ -137,6 +142,12 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
     },
     getOperationBody,
     getTransitionTitle,
+    pendingReviewers(reviewers, state) {
+      const needing = ReviewerSatisfaction.parse(
+        state.reviewerSatisfaction,
+      ).reviewersNeedingReview()
+      return reviewers.filter((reviewer) => needing.includes(reviewer.reviewType))
+    },
     isWriteAllowed,
   }
 }

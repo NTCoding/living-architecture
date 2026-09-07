@@ -36,6 +36,10 @@ export function createRunCodeReview(deps: {
     if (snapshot === undefined) {
       return
     }
+    const pendingReviewers = definition.pendingReviewers(reviewers, state)
+    if (pendingReviewers.length === 0) {
+      return
+    }
     const repositoryStatus = readGitRepositoryStatus()
     const request: ReviewBundleRequest = {
       bundleId: `review-${snapshot.repository}-${snapshot.prNumber}`,
@@ -47,7 +51,7 @@ export function createRunCodeReview(deps: {
       headRevision: snapshot.headRevision,
       changedFiles: [...repositoryStatus.changedFilesVsDefault],
       stateInstructions: readFileSync(join(deps.pluginRoot, 'states', 'reviewing.md'), 'utf8'),
-      reviews: reviewers.map((reviewer) => ({
+      reviews: pendingReviewers.map((reviewer) => ({
         reviewType: reviewer.reviewType,
         instructions: readFileSync(join(deps.pluginRoot, reviewer.agentInstructions), 'utf8'),
         version: reviewer.version,
