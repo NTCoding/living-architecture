@@ -1,10 +1,13 @@
 import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import { describe, expect, it, vi } from 'vitest'
 import { AddressingFeedbackState } from './states/addressing-feedback'
 import { AwaitingCiState } from './states/awaiting-ci'
+import { AwaitingPrFeedbackState } from './states/awaiting-pr-feedback'
 import { BlockedState } from './states/blocked'
 import { ImplementingState } from './states/implementing'
 import { ReviewingState } from './states/reviewing'
 import { SubmittingPrState } from './states/submitting-pr'
+import { REVIEWER_DEFINITIONS } from './reviewer-definitions'
 import { getInitialWorkflowState } from './workflow-types'
 
 const cleanGit: GitInfo = {
@@ -348,5 +351,72 @@ describe('workflow state definitions', () => {
     ).toStrictEqual({
       pass: true,
     })
+  })
+
+  it('requires a recorded pull request before leaving AWAITING_PR_FEEDBACK', () => {
+    const state = getInitialWorkflowState().with({
+      currentStateMachineState: 'AWAITING_PR_FEEDBACK',
+    })
+    const awaitingPrFeedback = AwaitingPrFeedbackState.parse('AWAITING_PR_FEEDBACK')
+
+    expect(
+      awaitingPrFeedback.transitionGuard({
+        state,
+        gitInfo: cleanGit,
+        from: 'AWAITING_PR_FEEDBACK',
+        to: 'ADDRESSING_FEEDBACK',
+      }),
+    ).toMatchObject({
+      pass: false,
+      reason: expect.stringContaining('prNumber not set'),
+    })
+    expect(
+      awaitingPrFeedback.transitionGuard({
+        state: state.with({
+          prNumber: 42,
+        }),
+        gitInfo: cleanGit,
+        from: 'AWAITING_PR_FEEDBACK',
+        to: 'REFLECTING',
+      }),
+    ).toStrictEqual({
+      pass: true,
+    })
+  })
+
+  it('runs the code review when REVIEWING is entered', () => {
+    const runCodeReview = vi.fn()
+    const reviewing = ReviewingState.parse('REVIEWING', {
+      reviewers: REVIEWER_DEFINITIONS,
+      runCodeReview,
+    })
+
+    reviewing.afterEntry()
+
+    expect(runCodeReview).toHaveBeenCalledOnce()
+    expect(runCodeReview).toHaveBeenCalledWith(REVIEWER_DEFINITIONS)
+  })
+
+  it('does not run a code review when REVIEWING is entered without deps', () => {
+    const reviewing = ReviewingState.parse('REVIEWING')
+
+    expect(() => reviewing.afterEntry()).not.toThrow()
+  })
+
+  it('awaits PR feedback when AWAITING_PR_FEEDBACK is entered', () => {
+    const awaitPrFeedback = vi.fn()
+    const awaitingPrFeedback = AwaitingPrFeedbackState.parse('AWAITING_PR_FEEDBACK', {
+      awaitPrFeedback,
+    })
+
+    awaitingPrFeedback.afterEntry()
+
+    expect(awaitPrFeedback).toHaveBeenCalledOnce()
+  })
+
+  it('does not await PR feedback when AWAITING_PR_FEEDBACK is entered without deps', () => {
+    const awaitingPrFeedback = AwaitingPrFeedbackState.parse('AWAITING_PR_FEEDBACK')
+
+    expect(() => awaitingPrFeedback.afterEntry()).not.toThrow()
   })
 })

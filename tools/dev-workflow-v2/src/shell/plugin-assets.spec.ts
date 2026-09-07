@@ -29,7 +29,6 @@ describe('plugin Agent Skills', () => {
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
     const commandNames = [
       'choose-next-task',
-      'code-review',
       'continue-planning',
       'create-pr',
       'list-review-threads',
@@ -82,12 +81,6 @@ describe('plugin Agent Skills', () => {
         undefined,
       )
     }
-
-    await registeredCommands
-      .get('dev-workflow-v2:code-review')
-      ?.handler('example arguments', Object.create({ isIdle: () => false }))
-
-    expect(sentMessages).toHaveBeenLastCalledWith(expect.any(String), { deliverAs: 'followUp' })
   })
 
   it('renders Pi branch preparation without Claude or Codex startup assumptions', async () => {
@@ -141,7 +134,7 @@ describe('plugin Agent Skills', () => {
     )
   })
 
-  it.each(['workflow', 'code-review', 'create-pr', 'list-review-threads'])(
+  it.each(['workflow', 'create-pr', 'list-review-threads'])(
     'contains a complete %s skill',
     (skillName) => {
       const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
@@ -150,51 +143,6 @@ describe('plugin Agent Skills', () => {
       expect(skill).not.toContain('TODO')
     },
   )
-
-  it('selects the code-review execution mechanism for all supported harnesses', () => {
-    const skill = readPluginFile('skills/code-review/SKILL.md')
-    const command = readPluginFile('commands/code-review.md')
-
-    expect({
-      detectsCodex: skill.includes('If `CODEX_THREAD_ID` is present'),
-      usesCodexSubagents: skill.includes('Codex `spawn_agent`'),
-      detectsPi: skill.includes('if `PI_CODING_AGENT=true` is present'),
-      usesPiSubagents: skill.includes('Pi `Task`'),
-      usesPiWorkflowTool: skill.includes('with the `workflow` tool'),
-      detectsOpenCode: skill.includes('if `OPENCODE=1` is present'),
-      usesOpenCodeSubagents: skill.includes('OpenCode `Task`'),
-      usesClaudeSubagents: skill.includes('Claude Code `Agent`'),
-      commandDoesNotOverrideHarness: !command.includes("Use Claude's Agent tool"),
-    }).toStrictEqual({
-      detectsCodex: true,
-      usesCodexSubagents: true,
-      detectsPi: true,
-      usesPiSubagents: true,
-      usesPiWorkflowTool: true,
-      detectsOpenCode: true,
-      usesOpenCodeSubagents: true,
-      usesClaudeSubagents: true,
-      commandDoesNotOverrideHarness: true,
-    })
-  })
-
-  it('validates reviewer result types before recording them', () => {
-    const skill = readPluginFile('skills/code-review/SKILL.md')
-    const validationPosition = skill.indexOf('`verdict` equal to `PASS` or `FAIL`')
-    const recordingPosition = skill.indexOf('`record-review` workflow operation')
-
-    expect({
-      validatesSummary: skill.includes('`summary` as a string'),
-      validatesFindings: skill.includes('`findings` as an array'),
-      blocksInvalidResults: skill.includes('stop before recording any invalid result'),
-      validatesBeforeRecording: validationPosition > -1 && validationPosition < recordingPosition,
-    }).toStrictEqual({
-      validatesSummary: true,
-      validatesFindings: true,
-      blocksInvalidResults: true,
-      validatesBeforeRecording: true,
-    })
-  })
 
   it('prohibits direct pushes while creating a pull request', () => {
     const skill = readPluginFile('skills/create-pr/SKILL.md')
@@ -208,7 +156,7 @@ describe('plugin Agent Skills', () => {
     })
   })
 
-  it.each(['code-review', 'create-pr', 'list-review-threads'])(
+  it.each(['create-pr', 'list-review-threads'])(
     'does not translate Codex skill syntax in the %s command adapter',
     (commandName) => {
       const command = readPluginFile(`commands/${commandName}.md`)
@@ -249,29 +197,20 @@ describe('plugin Agent Skills', () => {
 
 describe('reviewer workflow preflight', () => {
   it.each(['architecture-review', 'code-review', 'bug-scanner', 'task-check'])(
-    'checks REVIEWING state before %s reads project files',
+    'does not require %s to check REVIEWING state (the workflow auto-launches reviews)',
     (reviewerName) => {
       const reviewer = readPluginFile(`agents/${reviewerName}.md`)
-      const codexPreflightPosition = reviewer.indexOf('$dev-workflow-v2:workflow get-state')
-      const slashPreflightPosition = reviewer.indexOf('/dev-workflow-v2:workflow get-state')
-      const projectReadPosition = reviewer.indexOf('You will return structured JSON')
 
       expect({
-        hasCodexInvocation: codexPreflightPosition > -1,
-        hasSlashInvocation: slashPreflightPosition > -1,
-        hasStateField: reviewer.includes('currentStateMachineState'),
+        hasCodexInvocation: reviewer.includes('$dev-workflow-v2:workflow get-state'),
+        hasSlashInvocation: reviewer.includes('/dev-workflow-v2:workflow get-state'),
         hasReviewingGuard: reviewer.includes('is not `REVIEWING`'),
         hasRefusal: reviewer.includes('{"refused":true,"reason":"Workflow is not in REVIEWING."}'),
-        preflightBeforeReview:
-          codexPreflightPosition < projectReadPosition &&
-          slashPreflightPosition < projectReadPosition,
       }).toStrictEqual({
-        hasCodexInvocation: true,
-        hasSlashInvocation: true,
-        hasStateField: true,
-        hasReviewingGuard: true,
-        hasRefusal: true,
-        preflightBeforeReview: true,
+        hasCodexInvocation: false,
+        hasSlashInvocation: false,
+        hasReviewingGuard: false,
+        hasRefusal: false,
       })
     },
   )

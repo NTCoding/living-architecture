@@ -113,7 +113,7 @@ function stateArgument(routes: CreateWorkflowRoutesResult['routes']) {
 
 describe('CreateWorkflowRoutes', () => {
   it('creates the complete workflow route map', () => {
-    const workflowDefinition = configureWorkflow({})
+    const workflowDefinition = configureWorkflow({ runCodeReview: () => undefined })
     const createWorkflowRoutes = new CreateWorkflowRoutes(
       new ZodSchemaProvider(workflowDefinition.stateSchema),
       defineWorkflowRoutes,
@@ -142,7 +142,7 @@ describe('CreateWorkflowRoutes', () => {
   })
 
   it('binds the authoritative workflow state schema to the transition argument', () => {
-    const workflowDefinition = configureWorkflow({})
+    const workflowDefinition = configureWorkflow({ runCodeReview: () => undefined })
     const createWorkflowRoutes = new CreateWorkflowRoutes(
       new ZodSchemaProvider(workflowDefinition.stateSchema),
       defineWorkflowRoutes,
@@ -165,7 +165,7 @@ describe('CreateWorkflowRoutes', () => {
   })
 
   it('delegates every transaction route to its corresponding callback', () => {
-    const workflowDefinition = configureWorkflow({})
+    const workflowDefinition = configureWorkflow({ runCodeReview: () => undefined })
     const createWorkflowRoutes = new CreateWorkflowRoutes(
       new ZodSchemaProvider(workflowDefinition.stateSchema),
       defineWorkflowRoutes,

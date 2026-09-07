@@ -4,7 +4,7 @@ import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model
 import { vi } from 'vitest'
 
 it('delegates review gate verification to the workflow aggregate', () => {
-  const workflow = configureWorkflow({}).buildWorkflow(WorkflowState.initial(), {
+  const workflow = configureWorkflow({ runCodeReview: () => undefined }).buildWorkflow(WorkflowState.initial(), {
     runLocalVerification: () => undefined,
     getGitInfo: () => ({
       currentBranch: 'main',

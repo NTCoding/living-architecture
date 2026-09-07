@@ -13,7 +13,7 @@ import {
 import { WorkflowState } from './workflow-types'
 
 describe('Workflow', () => {
-  describe('appendEvent — AWAITING_PR_FEEDBACK side effect', () => {
+  describe('awaitPrFeedback', () => {
     it('awaits CodeRabbit feedback and auto-transitions to REFLECTING when clean', () => {
       const state = WorkflowState.replay([...eventsToAwaitingPrFeedback().slice(0, -1)])
       const sleepMs = vi.fn()
@@ -37,6 +37,7 @@ describe('Workflow', () => {
         from: 'AWAITING_CI',
         to: 'AWAITING_PR_FEEDBACK',
       })
+      wf.awaitPrFeedback()
 
       expect(wf.getPendingEvents()).toStrictEqual(
         expect.arrayContaining([
@@ -82,6 +83,7 @@ describe('Workflow', () => {
         from: 'AWAITING_CI',
         to: 'AWAITING_PR_FEEDBACK',
       })
+      wf.awaitPrFeedback()
 
       expect(wf.getPendingEvents()).toStrictEqual(
         expect.arrayContaining([
@@ -127,6 +129,7 @@ describe('Workflow', () => {
         from: 'AWAITING_CI',
         to: 'AWAITING_PR_FEEDBACK',
       })
+      wf.awaitPrFeedback()
 
       expect(wf.getState().currentStateMachineState).toStrictEqual('REFLECTING')
       expect(wf.getPendingEvents().slice(-2)).toStrictEqual([
@@ -168,6 +171,7 @@ describe('Workflow', () => {
         from: 'AWAITING_CI',
         to: 'AWAITING_PR_FEEDBACK',
       })
+      wf.awaitPrFeedback()
 
       expect(wf.getState().currentStateMachineState).toStrictEqual('REFLECTING')
     })
@@ -203,6 +207,7 @@ describe('Workflow', () => {
         from: 'AWAITING_CI',
         to: 'AWAITING_PR_FEEDBACK',
       })
+      wf.awaitPrFeedback()
 
       expect(wf.getPendingEvents()).toStrictEqual(
         expect.arrayContaining([
@@ -237,6 +242,7 @@ describe('Workflow', () => {
         from: 'AWAITING_CI',
         to: 'AWAITING_PR_FEEDBACK',
       })
+      wf.awaitPrFeedback()
 
       expect(wf.getState().currentStateMachineState).toStrictEqual('BLOCKED')
       expect(wf.getPendingEvents().slice(-2)).toStrictEqual([
@@ -268,6 +274,7 @@ describe('Workflow', () => {
         from: 'AWAITING_CI',
         to: 'AWAITING_PR_FEEDBACK',
       })
+      withPr.awaitPrFeedback()
 
       expect(withPr.getState().currentStateMachineState).toStrictEqual('BLOCKED')
       expect(withPr.getPendingEvents().slice(-2)).toStrictEqual([
@@ -318,6 +325,7 @@ describe('Workflow', () => {
         from: 'AWAITING_CI',
         to: 'AWAITING_PR_FEEDBACK',
       })
+      withoutPr.awaitPrFeedback()
 
       expect(withoutPr.getState().currentStateMachineState).toStrictEqual('BLOCKED')
       expect(withoutPr.getPendingEvents().slice(-2)).toStrictEqual([

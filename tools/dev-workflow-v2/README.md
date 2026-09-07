@@ -27,7 +27,6 @@ $dev-workflow-continue-planning
 $dev-workflow-choose-next-task
 $dev-workflow-start-implementation <issue-number>
 $dev-workflow-optimize-factory
-$dev-workflow-v2:code-review
 $dev-workflow-v2:list-review-threads
 $dev-workflow-v2:create-pr
 ```
@@ -54,7 +53,6 @@ Pi exposes the same lifecycle commands as Claude Code:
 /dev-workflow-v2:continue-planning
 /dev-workflow-v2:choose-next-task
 /dev-workflow-v2:start-implementation <issue-number>
-/dev-workflow-v2:code-review
 /dev-workflow-v2:list-review-threads
 /dev-workflow-v2:create-pr
 /dev-workflow-v2:optimize-factory
@@ -177,12 +175,6 @@ After implementation is committed, enter `VERIFYING` and run `workflow verify-lo
 PR creation requires that verification still matches the current clean commit. Entry to `REVIEWING` also requires a complete recorded PR snapshot with that same head SHA. Legacy CI transitions cannot bypass outstanding reviews.
 
 ### Reusable workflow actions
-
-```bash
-/dev-workflow-v2:code-review
-```
-
-Runs the required workflow review bundle and records each valid verdict.
 
 ```bash
 /dev-workflow-v2:list-review-threads

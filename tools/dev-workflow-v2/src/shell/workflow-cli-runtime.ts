@@ -26,8 +26,28 @@ import {
   parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
+import { createAcpReviewAgentClient } from '@nt-ai-lab/deterministic-agent-workflow-acp'
+import { createRunCodeReview } from './run-code-review'
 
-const workflowConfiguration = configureWorkflow({})
+const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
+const currentPlatform: { platform?: PlatformContext } = {}
+const runCodeReview = createRunCodeReview({
+  getWorkflowDefinition: () => workflowDefinition,
+  getPlatform: () => {
+    if (currentPlatform.platform === undefined) {
+      throw new PlatformNotInitialisedError()
+    }
+    return currentPlatform.platform
+  },
+  pluginRoot: workflowRoot,
+  acpClient: createAcpReviewAgentClient({
+    command: 'npx',
+    args: ['@agentclientprotocol/claude-agent-acp@^0.24.2'],
+    timeoutMs: 120_000,
+    cancellationGraceMs: 1_000,
+  }),
+})
+const workflowConfiguration = configureWorkflow({ runCodeReview })
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
   createWorkflowRoutes: new CreateWorkflowRoutes(
@@ -43,7 +63,6 @@ const bashForbidden = {
   commands: ['gh pr', 'git push'],
   flags: ['--no-verify', '--force', '--hard'],
 }
-const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const unknownCommandMessage = [
   '[dev-workflow-v2-automated-message]: Error: You tried to run a command that does not exist. STOP working immediately and switch to BLOCKED. Report this to the user along with a root cause analysis of why you tried to run a command that does not exist.',
   'STOP and fix the workflow. It is broken. Do not attempt to create a workaround. YOU must immediately switch to blocked and stop.',
@@ -56,6 +75,13 @@ class InvalidSleepDurationError extends Error {
   }
 }
 
+class PlatformNotInitialisedError extends Error {
+  constructor() {
+    super('runCodeReview invoked before the platform was initialised')
+    this.name = 'PlatformNotInitialisedError'
+  }
+}
+
 function sleepMs(ms: number): void {
   if (!Number.isFinite(ms) || ms < 0) {
     throw new InvalidSleepDurationError()
@@ -65,6 +91,7 @@ function sleepMs(ms: number): void {
 }
 
 function buildWorkflowDeps(platform: PlatformContext) {
+  currentPlatform.platform = platform
   return {
     getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),
     runLocalVerification: createWorkflowVerificationRunner(runProcess),

@@ -3,9 +3,11 @@ import { makeWorkflowDeps } from './__fixtures__/workflow-dependencies'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
+import { REVIEWER_DEFINITIONS } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviewer-definitions'
+import { describe, expect, it, vi } from 'vitest'
 
 type StateName = WorkflowState['currentStateMachineState']
-const WORKFLOW_DEFINITION = configureWorkflow({})
+const WORKFLOW_DEFINITION = configureWorkflow({ runCodeReview: () => undefined })
 
 function buildTransitionEvent(
   from: StateName,
@@ -104,6 +106,70 @@ describe('WORKFLOW_DEFINITION', () => {
       const registry = WORKFLOW_DEFINITION.getRegistry()
       expect(registry.BLOCKED.forbidden).toStrictEqual({ write: true })
       expect(registry.COMPLETE.forbidden).toStrictEqual({ write: true })
+    })
+  })
+
+  describe('afterEntry wiring', () => {
+    it('runs the code review with the reviewer definitions when REVIEWING is entered', () => {
+      const runCodeReview = vi.fn()
+      const definition = configureWorkflow({ runCodeReview })
+      const workflow = definition.buildWorkflow(definition.initialState(), makeWorkflowDeps())
+
+      definition.getRegistry().REVIEWING.afterEntry()
+
+      expect(runCodeReview).toHaveBeenCalledOnce()
+      expect(runCodeReview).toHaveBeenCalledWith(REVIEWER_DEFINITIONS)
+      expect(workflow.getState().currentStateMachineState).toStrictEqual('IMPLEMENTING')
+    })
+
+    it('awaits PR feedback on the built workflow when AWAITING_PR_FEEDBACK is entered', () => {
+      const definition = configureWorkflow({ runCodeReview: () => undefined })
+      const state = WorkflowState.replay([
+        {
+          type: 'issue-recorded',
+          at: '2026-01-01T00:00:00Z',
+          issueNumber: 42,
+        },
+        {
+          type: 'transitioned',
+          at: '2026-01-01T00:00:00Z',
+          from: 'IMPLEMENTING',
+          to: 'REVIEWING',
+        },
+        {
+          type: 'transitioned',
+          at: '2026-01-01T00:00:00Z',
+          from: 'REVIEWING',
+          to: 'SUBMITTING_PR',
+        },
+        {
+          type: 'pr-recorded',
+          at: '2026-01-01T00:00:00Z',
+          prNumber: 99,
+        },
+        {
+          type: 'transitioned',
+          at: '2026-01-01T00:00:00Z',
+          from: 'SUBMITTING_PR',
+          to: 'AWAITING_CI',
+        },
+        {
+          type: 'ci-completed',
+          at: '2026-01-01T00:00:00Z',
+          passed: true,
+        },
+        {
+          type: 'transitioned',
+          at: '2026-01-01T00:00:00Z',
+          from: 'AWAITING_CI',
+          to: 'AWAITING_PR_FEEDBACK',
+        },
+      ] as const)
+      const workflow = definition.buildWorkflow(state, makeWorkflowDeps())
+
+      definition.getRegistry().AWAITING_PR_FEEDBACK.afterEntry()
+
+      expect(workflow.getState().currentStateMachineState).toStrictEqual('REFLECTING')
     })
   })
 

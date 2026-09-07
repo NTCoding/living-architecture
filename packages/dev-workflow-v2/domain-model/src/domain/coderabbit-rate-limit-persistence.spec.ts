@@ -71,6 +71,7 @@ it('uses persisted evidence when automatic feedback polling resumes', () => {
     from: 'AWAITING_CI',
     to: 'AWAITING_PR_FEEDBACK',
   })
+  workflow.awaitPrFeedback()
   expect(workflow.getState().currentStateMachineState).toBe('REFLECTING')
   expect(getPrFeedback).toHaveBeenCalledWith(99, { includeCodeRabbitStatus: false })
   expect(workflow.getState().coderabbitRateLimitEvidence).toStrictEqual(rateLimitEvidence)

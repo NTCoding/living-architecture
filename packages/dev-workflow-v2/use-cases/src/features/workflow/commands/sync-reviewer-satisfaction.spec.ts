@@ -14,7 +14,7 @@ const snapshot = {
 }
 
 it('delegates reviewer satisfaction sync to the workflow aggregate', () => {
-  const workflow = configureWorkflow({}).buildWorkflow(
+  const workflow = configureWorkflow({ runCodeReview: () => undefined }).buildWorkflow(
     WorkflowState.initial().with({
       currentStateMachineState: 'REVIEWING',
       prNumber: snapshot.prNumber,

@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "0.84.4",
+    "@living-architecture/dev-workflow-v2-domain-model": "workspace:*",
     "@living-architecture/dev-workflow-v2-use-cases": "workspace:*",
     "@nt-ai-lab/deterministic-agent-workflow-acp": "0.3.0",
     "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.6.0",

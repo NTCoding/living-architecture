@@ -66,7 +66,7 @@ function transactionHandler(definition: ReturnType<typeof configureWorkflow>, ro
 }
 
 describe('workflow route input boundary', () => {
-  const definition = configureWorkflow({})
+  const definition = configureWorkflow({ runCodeReview: () => undefined })
   const workflow = buildWorkflow(definition)
 
   it('rejects a non-number received for a numeric argument', () => {

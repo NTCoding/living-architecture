@@ -1,37 +1,13 @@
 import { createOpenCodeWorkflowPlugin } from '@nt-ai-lab/deterministic-agent-workflow-opencode'
-import { defineWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
-import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
-import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
-import {
-  parseNumberArgument,
-  parseOptionalStringArgument,
-  parseStringArgument,
-  parseStringArguments,
-} from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
-import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 import { createWorkflowCliRuntime } from './workflow-cli-runtime'
 
 const workflowRuntime = createWorkflowCliRuntime()
-const workflowConfiguration = configureWorkflow({})
-const workflowDefinition = workflowConfiguration
-const routes = createWorkflowRoutes({
-  createWorkflowRoutes: new CreateWorkflowRoutes(
-    new ZodSchemaProvider(workflowDefinition.stateSchema),
-    defineWorkflowRoutes,
-  ),
-  parseNumberArgument,
-  parseStringArgument,
-  parseOptionalStringArgument,
-  parseStringArguments,
-})
-const bashForbidden = {
-  commands: ['gh pr', 'git push'],
-  flags: ['--no-verify', '--force', '--hard'],
-}
+const workflowDefinition = workflowRuntime.workflowDefinition
+const routes = workflowRuntime.routes
+const bashForbidden = workflowRuntime.bashForbidden
 
 type Workflow = ReturnType<typeof workflowDefinition.buildWorkflow>
 type WorkflowState = ReturnType<typeof workflowDefinition.initialState>
@@ -130,7 +106,7 @@ const basePlugin = createOpenCodeWorkflowPlugin<
   routes,
   unknownCommandMessage: workflowRuntime.unknownCommandMessage,
   bashForbidden,
-  isWriteAllowed: workflowConfiguration.isWriteAllowed,
+  isWriteAllowed: workflowRuntime.isWriteAllowed,
   pluginRoot,
   commandDirectories: [join(pluginRoot, 'commands')],
   commandPrefix: 'dev-workflow-v2:',

@@ -10,7 +10,7 @@ import {
 } from '../workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 
-const workflowConfiguration = configureWorkflow({})
+const workflowConfiguration = configureWorkflow({ runCodeReview: () => undefined })
 
 export const runner = createWorkflowRunner({
   workflowDefinition: workflowConfiguration,

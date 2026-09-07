@@ -1,6 +1,17 @@
 import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { z } from 'zod'
+import type { ReviewerDefinition } from '../reviewer-definitions'
 import type { WorkflowTransitionContext } from '../workflow-transition-context'
+
+export type ReviewingStateDeps = {
+  readonly reviewers: readonly ReviewerDefinition[]
+  readonly runCodeReview: (reviewers: readonly ReviewerDefinition[]) => void
+}
+
+const DEFAULT_REVIEWING_STATE_DEPS: ReviewingStateDeps = {
+  reviewers: [],
+  runCodeReview: () => undefined,
+}
 
 /** @riviere-role value-object */
 export class ReviewingState {
@@ -22,14 +33,16 @@ export class ReviewingState {
     'verify-pr-review-gate',
     'sync-reviewer-satisfaction',
   ] as const
+  readonly afterEntry: () => void
 
-  private constructor(name: 'REVIEWING') {
+  private constructor(name: 'REVIEWING', deps: ReviewingStateDeps) {
     this.name = name
+    this.afterEntry = () => deps.runCodeReview(deps.reviewers)
   }
 
-  static parse(value: unknown): ReviewingState {
+  static parse(value: unknown, deps: ReviewingStateDeps = DEFAULT_REVIEWING_STATE_DEPS): ReviewingState {
     z.literal('REVIEWING').parse(value)
-    return new ReviewingState('REVIEWING')
+    return new ReviewingState('REVIEWING', deps)
   }
 
   transitionGuard(

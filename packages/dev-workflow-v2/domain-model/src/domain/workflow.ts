@@ -83,17 +83,7 @@ export class MaintainerWorkflow {
     return `${pluginRoot}/${this.registryDefinition.state(this.state.currentStateMachineState).agentInstructions}`
   }
   appendEvent(event: BaseEvent): void {
-    const workflowEvent = parseWorkflowEvent(event)
-    this.append(workflowEvent)
-    if (workflowEvent.type === 'transitioned' && workflowEvent.to === 'AWAITING_PR_FEEDBACK') {
-      if (this.state.prNumber === undefined) {
-        this.appendPrFeedbackVerificationFailure(
-          'prNumber not set. Record the PR before awaiting PR feedback.',
-        )
-        return
-      }
-      this.awaitPrFeedback(this.state.prNumber)
-    }
+    this.append(parseWorkflowEvent(event))
   }
   startSession(transcriptPath: string, repository: string | undefined): void {
     const event: WorkflowEvent = {
@@ -329,9 +319,15 @@ export class MaintainerWorkflow {
       reviewDecision: feedback.reviewDecision,
     })
   }
-  private awaitPrFeedback(prNumber: number): void {
+  awaitPrFeedback(): void {
+    if (this.state.prNumber === undefined) {
+      this.appendPrFeedbackVerificationFailure(
+        'prNumber not set. Record the PR before awaiting PR feedback.',
+      )
+      return
+    }
     pollCodeRabbitFeedback({
-      prNumber,
+      prNumber: this.state.prNumber,
       alreadyRateLimited: this.state.coderabbitRateLimitEvidence !== undefined,
       getFeedback: this.deps.getPrFeedback,
       sleepMs: this.deps.sleepMs,

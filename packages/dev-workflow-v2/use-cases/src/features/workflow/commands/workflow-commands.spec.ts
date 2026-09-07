@@ -9,7 +9,7 @@ import { VerifyFeedbackAddressed } from './verify-feedback-addressed'
 import { VerifyLocal } from './verify-local'
 import { configureWorkflow } from './configure-workflow'
 
-const definition = configureWorkflow({})
+const definition = configureWorkflow({ runCodeReview: () => undefined })
 const deps = makeWorkflowDeps()
 const initial = definition.initialState()
 

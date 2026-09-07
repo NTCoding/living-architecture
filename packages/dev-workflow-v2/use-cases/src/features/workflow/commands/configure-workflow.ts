@@ -7,6 +7,8 @@ import {
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/output-messages'
 import { MaintainerWorkflowRegistry } from '@living-architecture/dev-workflow-v2-domain-model/domain/registry'
 import { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
+import type { ReviewerDefinition } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviewer-definitions'
+import { REVIEWER_DEFINITIONS } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviewer-definitions'
 import { AddressingFeedbackState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/addressing-feedback'
 import { AwaitingCiState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/awaiting-ci'
 import { AwaitingPrFeedbackState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/awaiting-pr-feedback'
@@ -60,18 +62,25 @@ export interface ConfigureWorkflowResult {
 const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(getKnownWorkflowEventTypes())
 
 /** @riviere-role command-use-case-input */
-export type ConfigureWorkflowInput = Readonly<Record<string, never>>
+export type ConfigureWorkflowInput = Readonly<{
+  runCodeReview: (reviewers: readonly ReviewerDefinition[]) => void
+}>
 
 /** @riviere-role command-use-case */
 export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkflowResult {
-  void input
+  const workflowHolder: { workflow?: MaintainerWorkflow } = {}
   const registry = MaintainerWorkflowRegistry.parse({
     IMPLEMENTING: ImplementingState.parse('IMPLEMENTING'),
     VERIFYING: VerifyingState.parse('VERIFYING'),
-    REVIEWING: ReviewingState.parse('REVIEWING'),
+    REVIEWING: ReviewingState.parse('REVIEWING', {
+      reviewers: REVIEWER_DEFINITIONS,
+      runCodeReview: input.runCodeReview,
+    }),
     SUBMITTING_PR: SubmittingPrState.parse('SUBMITTING_PR'),
     AWAITING_CI: AwaitingCiState.parse('AWAITING_CI'),
-    AWAITING_PR_FEEDBACK: AwaitingPrFeedbackState.parse('AWAITING_PR_FEEDBACK'),
+    AWAITING_PR_FEEDBACK: AwaitingPrFeedbackState.parse('AWAITING_PR_FEEDBACK', {
+      awaitPrFeedback: () => workflowHolder.workflow?.awaitPrFeedback(),
+    }),
     ADDRESSING_FEEDBACK: AddressingFeedbackState.parse('ADDRESSING_FEEDBACK'),
     REFLECTING: ReflectingState.parse('REFLECTING'),
     COMPLETE: CompleteState.parse('COMPLETE'),
@@ -89,7 +98,9 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
       }
     },
     buildWorkflow(state: WorkflowState, deps: WorkflowDeps): MaintainerWorkflow {
-      return MaintainerWorkflow.build(registry, deps, state)
+      const wf = MaintainerWorkflow.build(registry, deps, state)
+      workflowHolder.workflow = wf
+      return wf
     },
     stateSchema: WorkflowState.stateNameSchema(),
     initialState: WorkflowState.initial,
