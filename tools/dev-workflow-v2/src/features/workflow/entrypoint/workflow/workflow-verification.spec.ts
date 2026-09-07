@@ -35,7 +35,12 @@ it('persists local verification before recording a normal PR and entering REVIEW
     creationCalls: createPullRequest.mock.calls.length,
     creationExit: creation.exitCode,
     reviewExit: reviewEntry.exitCode,
-  }).toStrictEqual({ verificationCalls: 1, creationCalls: 1, creationExit: 0, reviewExit: 0 })
+  }).toStrictEqual({
+    verificationCalls: 1,
+    creationCalls: 1,
+    creationExit: 0,
+    reviewExit: 0,
+  })
   const events = context.engineDeps.store.readEvents(context.sessionId).map(flattenStoredEvent)
   expect(
     events.flatMap((event) => {
@@ -47,7 +52,10 @@ it('persists local verification before recording a normal PR and entering REVIEW
   ).toStrictEqual(['verified', 'created', 'reviewing'])
   expect(JSON.parse(runCommand(context, ['get-state']).output)).toMatchObject({
     currentStateMachineState: 'REVIEWING',
-    localVerification: { status: 'passed', headCommit: 'b'.repeat(40) },
+    localVerification: {
+      status: 'passed',
+      headCommit: 'b'.repeat(40),
+    },
     pullRequestSnapshot: {
       repository: 'example/repo',
       prNumber: 123,
@@ -68,7 +76,10 @@ it('reopens the recorded verification failure in BLOCKED', () => {
   expect(result.output).toContain('Required check exited with status 7')
   const reopened = {
     ...context,
-    engineDeps: { ...context.engineDeps, store: createStore(context.dbPath) },
+    engineDeps: {
+      ...context.engineDeps,
+      store: createStore(context.dbPath),
+    },
   }
   expect(JSON.parse(runCommand(reopened, ['get-state']).output)).toMatchObject({
     currentStateMachineState: 'BLOCKED',
@@ -79,7 +90,7 @@ it('reopens the recorded verification failure in BLOCKED', () => {
         'Local verification failed: LocalCheckFixtureError: Required check exited with status 7',
     },
   })
-  expect(runLocalVerification).toHaveBeenCalledOnce()
+  expect(runLocalVerification.mock.calls).toHaveLength(1)
 })
 
 it('does not enter REVIEWING before the verified PR is recorded', () => {
@@ -105,11 +116,14 @@ it('does not retry verification or create a PR while BLOCKED', () => {
   runCommand(context, ['verify-local'])
   const reopened = {
     ...context,
-    engineDeps: { ...context.engineDeps, store: createStore(context.dbPath) },
+    engineDeps: {
+      ...context.engineDeps,
+      store: createStore(context.dbPath),
+    },
   }
   expect(runCommand(reopened, ['verify-local']).exitCode).toBe(2)
   expect(runCommand(reopened, CREATE_PR_COMMAND).exitCode).toBe(2)
-  expect(runLocalVerification).toHaveBeenCalledOnce()
+  expect(runLocalVerification.mock.calls).toHaveLength(1)
   expect(createPullRequest).not.toHaveBeenCalled()
 })
 
@@ -123,5 +137,47 @@ it('routes review-gate verification through the workflow-owned command', () => {
   expect(result.exitCode).toBe(2)
   expect(JSON.parse(runCommand(context, ['get-state']).output)).toMatchObject({
     currentStateMachineState: 'BLOCKED',
+  })
+})
+
+it('syncs reviewer satisfaction from platform reviews through the workflow-owned command', () => {
+  const context = buildTestContext()
+  databases.push(context.dbPath)
+  progressToState(context, 'SUBMITTING_PR')
+  runCommand(context, CREATE_PR_COMMAND)
+  runCommand(context, ['transition', 'REVIEWING'])
+  const listSessionReviews = vi.spyOn(context.workflowDeps, 'listSessionReviews')
+  listSessionReviews.mockReturnValue([
+    {
+      id: 1,
+      sessionId: context.sessionId,
+      createdAt: '2024-01-01T00:00:00Z',
+      reviewType: 'architecture-review',
+      verdict: 'PASS',
+      findings: [],
+      pullRequestNumber: 123,
+      completionProvenance: {
+        bundleId: 'bundle',
+        providerSessionId: 'provider-session',
+        providerRunId: 'provider-run',
+        baseRevision: 'a'.repeat(40),
+        headRevision: 'b'.repeat(40),
+        exactFilesDigest: 'digest',
+        exactFiles: ['src/test.ts'],
+        reviewerDefinitionVersion: 'v1',
+      },
+    },
+  ])
+  const result = runCommand(context, ['sync-reviewer-satisfaction'])
+  expect(result.exitCode).toBe(0)
+  expect(JSON.parse(runCommand(context, ['get-state']).output)).toMatchObject({
+    currentStateMachineState: 'REVIEWING',
+    reviewerSatisfaction: {
+      'architecture-review': {
+        status: 'satisfied',
+        reviewId: 1,
+        headRevision: 'b'.repeat(40),
+      },
+    },
   })
 })

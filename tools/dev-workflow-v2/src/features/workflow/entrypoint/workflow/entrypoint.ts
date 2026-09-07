@@ -8,6 +8,7 @@ import { RecordCiPassed } from '@living-architecture/dev-workflow-v2-use-cases/c
 import { RecordIssue } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-issue'
 import { RecordPullRequest } from '@living-architecture/dev-workflow-v2-use-cases/commands/record-pull-request'
 import { VerifyFeedbackAddressed } from '@living-architecture/dev-workflow-v2-use-cases/commands/verify-feedback-addressed'
+import { SyncReviewerSatisfaction } from '@living-architecture/dev-workflow-v2-use-cases/commands/sync-reviewer-satisfaction'
 import {
   parseNumberArgument,
   parseOptionalStringArgument,
@@ -46,5 +47,7 @@ export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypoin
     verifyLocal: (workflow) => new VerifyLocal(workflow).execute({}).result,
     verifyFeedbackAddressed: (workflow) => new VerifyFeedbackAddressed(workflow).execute({}).result,
     verifyPrReviewGate: (workflow) => new VerifyPrReviewGate(workflow).execute({}).result,
+    syncReviewerSatisfaction: (workflow) =>
+      new SyncReviewerSatisfaction(workflow).execute({}).result,
   }).routes
 }

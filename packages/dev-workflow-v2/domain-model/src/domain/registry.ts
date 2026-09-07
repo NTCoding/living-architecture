@@ -75,6 +75,7 @@ type WorkflowOperation =
   | 'create-pr'
   | 'verify-feedback-addressed'
   | 'verify-pr-review-gate'
+  | 'sync-reviewer-satisfaction'
 
 /** @riviere-role value-object */
 export class MaintainerWorkflowRegistry {

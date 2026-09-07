@@ -17,7 +17,11 @@ export class ReviewingState {
     'BLOCKED',
   ] as const
   readonly forbidden = { write: true } as const
-  readonly allowedWorkflowOperations = ['record-review', 'verify-pr-review-gate'] as const
+  readonly allowedWorkflowOperations = [
+    'record-review',
+    'verify-pr-review-gate',
+    'sync-reviewer-satisfaction',
+  ] as const
 
   private constructor(name: 'REVIEWING') {
     this.name = name

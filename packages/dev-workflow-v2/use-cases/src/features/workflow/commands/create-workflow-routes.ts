@@ -38,6 +38,7 @@ export interface CreateWorkflowRoutesInput {
   readonly verifyLocal: (workflow: RoutedWorkflow) => WorkflowResult
   readonly verifyFeedbackAddressed: (workflow: RoutedWorkflow) => WorkflowResult
   readonly verifyPrReviewGate: (workflow: RoutedWorkflow) => WorkflowResult
+  readonly syncReviewerSatisfaction: (workflow: RoutedWorkflow) => WorkflowResult
 }
 
 /** @riviere-role command-use-case */
@@ -109,6 +110,11 @@ export class CreateWorkflowRoutes {
           type: 'transaction',
           args: [],
           handler: (workflow) => input.verifyPrReviewGate(workflow),
+        },
+        'sync-reviewer-satisfaction': {
+          type: 'transaction',
+          args: [],
+          handler: (workflow) => input.syncReviewerSatisfaction(workflow),
         },
       }),
     }

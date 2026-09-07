@@ -21,10 +21,14 @@ import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
 import type { ReadWorkflowGitStatus } from './ports/read-git-status'
 import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
 import type { ReadRequiredPullRequestChecks } from './ports/read-required-pull-request-checks'
-import { evaluateCodeRabbitFeedbackPoll } from './coderabbit-feedback-verification'
 import { pollCodeRabbitFeedback } from './coderabbit-feedback-polling'
+import {
+  assessFeedbackAddressed,
+  evaluateCodeRabbitFeedbackPoll,
+} from './coderabbit-feedback-verification'
 import { PullRequestReviewGate } from './pull-request-review-gate'
 import { readWorkflowPullRequestFeedback } from './pull-request-feedback-reader'
+import { computeReviewerSatisfactionSync } from './reviewer-satisfaction-sync'
 type StateName = WorkflowState['currentStateMachineState']
 type WorkflowOperation =
   | keyof ReturnType<MaintainerWorkflowRegistry['recordingOperations']>
@@ -33,6 +37,7 @@ type WorkflowOperation =
   | 'create-pr'
   | 'verify-feedback-addressed'
   | 'verify-pr-review-gate'
+  | 'sync-reviewer-satisfaction'
 type WorkflowDeps = {
   readonly runLocalVerification: RunLocalVerification
   readonly getGitInfo: ReadWorkflowGitStatus
@@ -139,7 +144,10 @@ export class MaintainerWorkflow {
       this.append({
         type: 'local-verification-completed',
         at: this.deps.now(),
-        result: { status: 'passed', headCommit: after.headCommit },
+        result: {
+          status: 'passed',
+          headCommit: after.headCommit,
+        },
       })
       return pass()
     } catch (error) {
@@ -147,7 +155,10 @@ export class MaintainerWorkflow {
       this.append({
         type: 'local-verification-completed',
         at: this.deps.now(),
-        result: { status: 'failed', reason },
+        result: {
+          status: 'failed',
+          reason,
+        },
       })
       this.appendAutomaticTransition('BLOCKED')
       return fail(reason)
@@ -206,11 +217,7 @@ export class MaintainerWorkflow {
     }
   }
   verifyPrReviewGate(): PreconditionResult {
-    const operation = checkOperationGate(
-      'verify-pr-review-gate',
-      this.state,
-      this.registryDefinition,
-    )
+    const operation = this.checkOperation('verify-pr-review-gate')
     if (!operation.pass) return operation
     const snapshot = this.state.pullRequestSnapshot
     if (snapshot === undefined)
@@ -249,11 +256,7 @@ export class MaintainerWorkflow {
     }
   }
   verifyFeedbackAddressed(): PreconditionResult {
-    const gate = checkOperationGate(
-      'verify-feedback-addressed',
-      this.state,
-      this.registryDefinition,
-    )
+    const gate = this.checkOperation('verify-feedback-addressed')
     if (!gate.pass) return gate
     if (this.state.prNumber === undefined) {
       return fail('prNumber not set. Record the PR before verifying feedback.')
@@ -265,33 +268,15 @@ export class MaintainerWorkflow {
     )
     if (!feedbackResult.ok) return fail(feedbackResult.reason)
     const { feedback } = feedbackResult
-    const assessment = evaluateCodeRabbitFeedbackPoll(
+    const poll = evaluateCodeRabbitFeedbackPoll(
       feedback,
       this.state.prNumber,
       1,
       this.state.coderabbitRateLimitEvidence !== undefined,
     )
-    const clean = assessment.type === 'verified' && assessment.clean
-    this.appendFeedbackChecked(feedback, clean)
-    if (feedback.reviewDecision === 'CHANGES_REQUESTED' && feedback.unresolvedCount > 0) {
-      return fail(
-        `PR still has CHANGES_REQUESTED review status and ${feedback.unresolvedCount} unresolved feedback threads. Resolve all feedback or transition to BLOCKED.`,
-      )
-    }
-    if (feedback.reviewDecision === 'CHANGES_REQUESTED') {
-      return fail(
-        'PR has no unresolved feedback threads, but CodeRabbit still reports CHANGES_REQUESTED while it processes new commits. Wait and periodically run verify-feedback-addressed again. Do not transition to BLOCKED.',
-      )
-    }
-    if (feedback.unresolvedCount > 0) {
-      return fail(
-        `PR still has ${feedback.unresolvedCount} unresolved feedback threads. Resolve all feedback or transition to BLOCKED.`,
-      )
-    }
-    if (assessment.type !== 'verified')
-      return fail(
-        'CodeRabbit has not completed a verified review for the current head. Wait and retry verification.',
-      )
+    const assessment = assessFeedbackAddressed(feedback, poll)
+    this.appendFeedbackChecked(feedback, assessment.status === 'clean')
+    if (assessment.status !== 'clean') return fail(assessment.reason)
     this.append({
       type: 'feedback-addressed',
       at: this.deps.now(),
@@ -299,9 +284,35 @@ export class MaintainerWorkflow {
     this.appendAutomaticTransition('REFLECTING')
     return pass()
   }
+  syncReviewerSatisfaction(): PreconditionResult {
+    const operation = this.checkOperation('sync-reviewer-satisfaction')
+    if (!operation.pass) return operation
+    const snapshot = this.state.pullRequestSnapshot
+    if (snapshot === undefined)
+      return fail('A complete PR snapshot is required before syncing reviewer satisfaction.')
+    const sync = computeReviewerSatisfactionSync(
+      this.deps.listSessionReviews(),
+      snapshot,
+      this.state.reviewerSatisfaction,
+    )
+    if (!sync.ok) return fail(sync.reason)
+    for (const completion of sync.completions) {
+      this.append({
+        type: 'reviewer-satisfaction-recorded',
+        at: this.deps.now(),
+        repository: snapshot.repository,
+        prNumber: snapshot.prNumber,
+        completion,
+      })
+    }
+    return pass()
+  }
   private blockReviewGate(reason: string): PreconditionResult {
     this.appendPrFeedbackVerificationFailure(reason)
     return fail(reason)
+  }
+  private checkOperation(op: WorkflowOperation): PreconditionResult {
+    return checkOperationGate(op, this.state, this.registryDefinition)
   }
   private appendFeedbackChecked(
     feedback: ReturnType<ReadWorkflowPullRequestFeedback>,

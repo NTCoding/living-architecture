@@ -23,6 +23,7 @@ interface RouteCalls {
   recordCiFailed: unknown[][]
   verifyFeedbackAddressed: unknown[][]
   verifyPrReviewGate: unknown[][]
+  syncReviewerSatisfaction: unknown[][]
 }
 
 function createInput(): {
@@ -38,6 +39,7 @@ function createInput(): {
     recordCiFailed: [],
     verifyFeedbackAddressed: [],
     verifyPrReviewGate: [],
+    syncReviewerSatisfaction: [],
   }
   return {
     input: {
@@ -76,6 +78,10 @@ function createInput(): {
       },
       verifyPrReviewGate: (workflow) => {
         calls.verifyPrReviewGate.push([workflow])
+        return workflowResult
+      },
+      syncReviewerSatisfaction: (workflow) => {
+        calls.syncReviewerSatisfaction.push([workflow])
         return workflowResult
       },
     },
@@ -128,6 +134,7 @@ describe('CreateWorkflowRoutes', () => {
       'verify-local',
       'verify-feedback-addressed',
       'verify-pr-review-gate',
+      'sync-reviewer-satisfaction',
     ])
 
     expect(routes['init']).toStrictEqual({ type: 'session-start' })
@@ -179,6 +186,7 @@ describe('CreateWorkflowRoutes', () => {
     transactionHandler(routes, 'record-ci-failed')(workflow, 'output')
     transactionHandler(routes, 'verify-feedback-addressed')(workflow, undefined, undefined)
     transactionHandler(routes, 'verify-pr-review-gate')(workflow, undefined, undefined)
+    transactionHandler(routes, 'sync-reviewer-satisfaction')(workflow, undefined, undefined)
 
     expect({
       recordIssue: calls.recordIssue,
@@ -189,6 +197,7 @@ describe('CreateWorkflowRoutes', () => {
       recordCiFailed: calls.recordCiFailed,
       verifyFeedbackAddressed: calls.verifyFeedbackAddressed,
       verifyPrReviewGate: calls.verifyPrReviewGate,
+      syncReviewerSatisfaction: calls.syncReviewerSatisfaction,
     }).toStrictEqual({
       recordIssue: [[workflow, 1]],
       recordBranch: [[workflow, 'value']],
@@ -198,6 +207,7 @@ describe('CreateWorkflowRoutes', () => {
       recordCiFailed: [[workflow, 'value']],
       verifyFeedbackAddressed: [[workflow]],
       verifyPrReviewGate: [[workflow]],
+      syncReviewerSatisfaction: [[workflow]],
     })
   })
 })
