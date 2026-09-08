@@ -454,6 +454,9 @@ importers:
 
   tools/dev-workflow-v2:
     dependencies:
+      '@agentclientprotocol/sdk':
+        specifier: 1.4.0
+        version: 1.4.0(zod@3.25.76)
       '@earendil-works/pi-coding-agent':
         specifier: 0.84.4
         version: 0.84.4(@modelcontextprotocol/sdk@1.30.0(supports-color@8.1.1)(zod@3.25.76))(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76)
@@ -463,30 +466,27 @@ importers:
       '@living-architecture/dev-workflow-v2-use-cases':
         specifier: workspace:*
         version: link:../../packages/dev-workflow-v2/use-cases
-      '@nt-ai-lab/deterministic-agent-workflow-acp':
-        specifier: 0.3.0
-        version: 0.3.0(zod@3.25.76)
       '@nt-ai-lab/deterministic-agent-workflow-claude-code':
-        specifier: 0.6.1
-        version: 0.6.1
+        specifier: 0.6.2
+        version: 0.6.2
       '@nt-ai-lab/deterministic-agent-workflow-cli':
-        specifier: 0.6.1
-        version: 0.6.1
+        specifier: 0.6.2
+        version: 0.6.2
       '@nt-ai-lab/deterministic-agent-workflow-codex':
-        specifier: 0.6.1
-        version: 0.6.1
+        specifier: 0.6.2
+        version: 0.6.2
       '@nt-ai-lab/deterministic-agent-workflow-engine':
-        specifier: 0.6.0
-        version: 0.6.0
-      '@nt-ai-lab/deterministic-agent-workflow-event-store':
-        specifier: 0.6.0
-        version: 0.6.0
-      '@nt-ai-lab/deterministic-agent-workflow-opencode':
         specifier: 0.6.1
         version: 0.6.1
+      '@nt-ai-lab/deterministic-agent-workflow-event-store':
+        specifier: 0.6.1
+        version: 0.6.1
+      '@nt-ai-lab/deterministic-agent-workflow-opencode':
+        specifier: 0.6.2
+        version: 0.6.2
       '@nt-ai-lab/deterministic-agent-workflow-pi':
-        specifier: 0.7.1
-        version: 0.7.1(@earendil-works/pi-coding-agent@0.84.4(@modelcontextprotocol/sdk@1.30.0(supports-color@8.1.1)(zod@3.25.76))(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76))
+        specifier: 0.7.2
+        version: 0.7.2(@earendil-works/pi-coding-agent@0.84.4(@modelcontextprotocol/sdk@1.30.0(supports-color@8.1.1)(zod@3.25.76))(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76))
       esbuild:
         specifier: 0.27.2
         version: 0.27.2
@@ -2379,36 +2379,41 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nt-ai-lab/deterministic-agent-workflow-acp@0.3.0':
-    resolution: {integrity: sha512-W7ucTakSmPfnHQ3QmAgGXLP9uUiLrPlAtR4JRMcEVVLpD0KQ3X3w26BoGOUiemDQNwXI0oXK4i0BLX673jcwow==}
-    engines: {node: '>=22.19.0'}
-
-  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.6.1':
-    resolution: {integrity: sha512-K/00s8mhgNmQTDnP91+wKTtDxsnIj4R4RvAI+zcYgsk5KusGYVSJzZjmVaROHtQiT3i4/NZz2rEvwaRZ7VjqwA==}
+  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.6.2':
+    resolution: {integrity: sha512-DRIfTXslsLECZYa6q39AHKZUdZt1BPni7B6xx8y56KCRbD04kjyATP1JVigxlBUnsG/hDPVUq7cxVXtTvNC8mA==}
 
   '@nt-ai-lab/deterministic-agent-workflow-cli@0.6.0':
     resolution: {integrity: sha512-+Qu+4vqZKHpnQoMsUYDuE0Sb8h0kdQ807ojCuqi4eH/NOciKIYVhA+G4DEv1oYRD1nXapmXUU4qkV3N1H7z4GA==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-cli@0.6.1':
-    resolution: {integrity: sha512-IVXBZyGzN6oilDH72u2WBckwnjJ5dBexRRGbeSkvxT+xxdn+DaeBfbD6l/MEXVePufNp6aJQTjMrcEyKDUkGNA==}
+  '@nt-ai-lab/deterministic-agent-workflow-cli@0.6.2':
+    resolution: {integrity: sha512-nWxZC0X3Qw2AINwOYQGtvSkfljr+dDl8B1j3hOKAmC8om6ARn0nGu+wsGUYFumCqHjCGYn9hz5/rmyWVTfHlIg==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-codex@0.6.1':
-    resolution: {integrity: sha512-2ehH12Z25g/L/gkfp+fh5s++4MWLiUBi3P9Z3QtfB7EzDQpxeIDSejEpOau29MQdXKvX+4NsAxVJcldjlq7qKw==}
+  '@nt-ai-lab/deterministic-agent-workflow-codex@0.6.2':
+    resolution: {integrity: sha512-glutrsZvlWX8M4y757CCR6mpPE97fMikHujOK3bPmCNEJgM7hU6uA+qhk3Zd4UsrSlnM4S7gGpNA3gRQhX0ygQ==}
 
   '@nt-ai-lab/deterministic-agent-workflow-dsl@0.6.0':
     resolution: {integrity: sha512-rJ1t4JB9Gt4iSk+88wzBl8VjhVrYUwBS0Hm25U+moaPkUbkw9DXU4y5p6iWqXlB4MdAUBuZqJntoVLP7I41xyw==}
 
+  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.6.1':
+    resolution: {integrity: sha512-sHZLMl3AXex7bWmhTG60nd22A2BTB9jS8N+Lr+jnJ/0nRgT1nnmh2edTtV1qggEobQmy0DWQpmdKTT2+ryB9ww==}
+
   '@nt-ai-lab/deterministic-agent-workflow-engine@0.6.0':
     resolution: {integrity: sha512-ZmVN72+w2nvkjh0UB9JA9p22kHQfa27otmPxQOIDuZ303Id+By018mVwveFk1rcka/RbbR/f/I3AGWfYQThe0w==}
+
+  '@nt-ai-lab/deterministic-agent-workflow-engine@0.6.1':
+    resolution: {integrity: sha512-PSvoiBuOIVnSniiaGOs6WuCDEMNQW0UMbxDpgTDb2EaY/m8i/tUkn7RgC6rWhp4uJ2LhYG2VI++f2O4/V/ayhA==}
 
   '@nt-ai-lab/deterministic-agent-workflow-event-store@0.6.0':
     resolution: {integrity: sha512-aL/W9fwCfTLwgtT8bbZc5sYl/Kkq20fVUMyuMC/ov2fa0jcrQVagpRZei4m/GEOsf15Vi3HDnMZTS2UtODtnqA==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.6.1':
-    resolution: {integrity: sha512-jmmRVc4/rX2L/wjAPrLFmDvzAZ6ZJQKWGAUFRclpcGho4jOcuunI8hdsAeRRaiBQjGUAqxrAMqbcbCdIFiLjow==}
+  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.6.1':
+    resolution: {integrity: sha512-BvhFlSEoddpfITSXUcAnBe5JacPqG+hqQu5cUVWz24QGizhMm/kFCBZbuJWHpqiWJPdnV9gg1Ah1MS54nUu4eA==}
 
-  '@nt-ai-lab/deterministic-agent-workflow-pi@0.7.1':
-    resolution: {integrity: sha512-78XF2OUJ2Vo11KjXuZ+fdIrii3YBRHeThhUZ+q6ZQh37+k+YeNlyFXW5sKeKxtJMADBobXAWqeezRQWmyhvuZw==}
+  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.6.2':
+    resolution: {integrity: sha512-yoFl/2rHBj5MVkX5bBedaipC+y3sR/tQr4rU/9w5I3A1YJBVlSXEnVanSqZfIXTGWcA+VkT08p+rvi5hfGX2Kg==}
+
+  '@nt-ai-lab/deterministic-agent-workflow-pi@0.7.2':
+    resolution: {integrity: sha512-m6j50Hr3wrwbyMInRSLAwgJ9kKQqyuJgZPt8CiCDhmj4IIEP+dJsRKj5d9XxlrT6zcqyoNDcrgMibB6CeouxWA==}
     engines: {node: '>=22.19.0'}
     peerDependencies:
       '@earendil-works/pi-coding-agent': ^0.84.4
@@ -11396,18 +11401,10 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@nt-ai-lab/deterministic-agent-workflow-acp@0.3.0(zod@3.25.76)':
+  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.6.2':
     dependencies:
-      '@agentclientprotocol/sdk': 1.4.0(zod@3.25.76)
-      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.6.0
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.0
-    transitivePeerDependencies:
-      - zod
-
-  '@nt-ai-lab/deterministic-agent-workflow-claude-code@0.6.1':
-    dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.6.1
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.0
+      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.6.2
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.1
       zod: 3.25.76
 
   '@nt-ai-lab/deterministic-agent-workflow-cli@0.6.0':
@@ -11417,25 +11414,33 @@ snapshots:
       '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.6.0
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-cli@0.6.1':
+  '@nt-ai-lab/deterministic-agent-workflow-cli@0.6.2':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-dsl': 0.6.0
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.0
-      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.6.0
+      '@nt-ai-lab/deterministic-agent-workflow-dsl': 0.6.1
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.1
+      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.6.1
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-codex@0.6.1':
+  '@nt-ai-lab/deterministic-agent-workflow-codex@0.6.2':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.6.1
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.0
-      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.6.0
+      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.6.2
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.1
+      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.6.1
       zod: 3.25.76
 
   '@nt-ai-lab/deterministic-agent-workflow-dsl@0.6.0':
     dependencies:
       '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.0
 
+  '@nt-ai-lab/deterministic-agent-workflow-dsl@0.6.1':
+    dependencies:
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.1
+
   '@nt-ai-lab/deterministic-agent-workflow-engine@0.6.0':
+    dependencies:
+      zod: 3.25.76
+
+  '@nt-ai-lab/deterministic-agent-workflow-engine@0.6.1':
     dependencies:
       zod: 3.25.76
 
@@ -11444,11 +11449,16 @@ snapshots:
       '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.0
       zod: 3.25.76
 
-  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.6.1':
+  '@nt-ai-lab/deterministic-agent-workflow-event-store@0.6.1':
     dependencies:
-      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.6.1
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.0
-      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.6.0
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.1
+      zod: 3.25.76
+
+  '@nt-ai-lab/deterministic-agent-workflow-opencode@0.6.2':
+    dependencies:
+      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.6.2
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.1
+      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.6.1
       '@opencode-ai/plugin': 1.18.23
       zod: 3.25.76
     transitivePeerDependencies:
@@ -11456,12 +11466,12 @@ snapshots:
       - '@opentui/keymap'
       - '@opentui/solid'
 
-  '@nt-ai-lab/deterministic-agent-workflow-pi@0.7.1(@earendil-works/pi-coding-agent@0.84.4(@modelcontextprotocol/sdk@1.30.0(supports-color@8.1.1)(zod@3.25.76))(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76))':
+  '@nt-ai-lab/deterministic-agent-workflow-pi@0.7.2(@earendil-works/pi-coding-agent@0.84.4(@modelcontextprotocol/sdk@1.30.0(supports-color@8.1.1)(zod@3.25.76))(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76))':
     dependencies:
       '@earendil-works/pi-coding-agent': 0.84.4(@modelcontextprotocol/sdk@1.30.0(supports-color@8.1.1)(zod@3.25.76))(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76)
-      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.6.1
-      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.0
-      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.6.0
+      '@nt-ai-lab/deterministic-agent-workflow-cli': 0.6.2
+      '@nt-ai-lab/deterministic-agent-workflow-engine': 0.6.1
+      '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.6.1
       typebox: 1.3.19
 
   '@nx/devkit@23.1.1(nx@23.1.1(@swc-node/register@1.11.1(@swc/core@1.15.33(@swc/helpers@0.5.23))(@swc/types@0.1.26)(supports-color@7.2.0)(typescript@5.9.3))(@swc/core@1.15.33(@swc/helpers@0.5.23)))':

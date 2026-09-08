@@ -1,6 +1,8 @@
+/compact
+
 # REFLECTING State
 
-You are writing a reflection on the completed work before finishing.
+You are writing a reflection on the completed work before finishing. Re-read this file (`${CLAUDE_PLUGIN_ROOT}/states/reflecting.md`) after the compaction and follow it completely.
 
 ## TODO
 

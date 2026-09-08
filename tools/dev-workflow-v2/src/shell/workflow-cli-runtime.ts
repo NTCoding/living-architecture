@@ -13,6 +13,7 @@ import { createWorkflowRequiredChecksReader } from '@living-architecture/dev-wor
 import { readGithubRequiredChecks } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-required-checks'
 import { createWorkflowPullRequestFeedbackReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-feedback-reader'
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
+import { listSessionReviewRecords } from '@living-architecture/dev-workflow-v2-use-cases/queries/session-review-records'
 import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
 import { readGitRepositoryStatus } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/git-client'
 import { createGithubPullRequestClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/create-pull-request'
@@ -26,7 +27,7 @@ import {
   parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
-import { createAcpReviewAgentClient } from '@nt-ai-lab/deterministic-agent-workflow-acp'
+import { createAcpReviewRunner } from './acp-review-runner'
 import { createRunCodeReview } from './run-code-review'
 
 const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -40,7 +41,7 @@ const runCodeReview = createRunCodeReview({
     return currentPlatform.platform
   },
   pluginRoot: workflowRoot,
-  acpClient: createAcpReviewAgentClient({
+  runReviewer: createAcpReviewRunner({
     command: 'npx',
     args: ['@agentclientprotocol/claude-agent-acp@^0.24.2'],
     timeoutMs: 120_000,
@@ -88,7 +89,7 @@ function buildWorkflowDeps(platform: PlatformContext) {
     ),
     createPullRequest: createWorkflowPullRequestCreator(createGithubPullRequestClient(runGh)),
     listSessionReviews: () =>
-      platform.workflowEventStore.listSessionReviews(platform.getSessionId()),
+      listSessionReviewRecords(platform.workflowEventStore.readEvents(platform.getSessionId())),
     now: platform.now,
   }
 }

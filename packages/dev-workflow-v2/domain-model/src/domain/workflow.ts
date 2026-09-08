@@ -6,9 +6,10 @@ import {
   defineRecordingOps,
   checkOperationGate,
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
-import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from './workflow-types'
+import type { ReviewRecord } from './review-record'
 import { WorkflowTransitionContext } from './workflow-transition-context'
 import { MaintainerWorkflowRegistry } from './registry'
 import type { WorkflowEvent } from './workflow-events'
@@ -37,7 +38,7 @@ type WorkflowDeps = {
   readonly getPrFeedback: ReadWorkflowPullRequestFeedback
   readonly getRequiredPullRequestChecks: ReadRequiredPullRequestChecks
   readonly createPullRequest: CreateWorkflowPullRequest
-  readonly listSessionReviews: () => readonly StoredReview[]
+  readonly listSessionReviews: () => readonly ReviewRecord[]
   readonly now: () => string
 }
 /** @riviere-role aggregate */

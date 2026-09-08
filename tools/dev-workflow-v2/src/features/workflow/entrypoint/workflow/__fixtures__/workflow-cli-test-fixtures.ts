@@ -10,6 +10,10 @@ import { createStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store
 import type { SqliteEventStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store'
 import type { RunnerResult } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
+import {
+  createSessionReviewRecordedEvent,
+  listSessionReviewRecords,
+} from '@living-architecture/dev-workflow-v2-use-cases/queries/session-review-records'
 import { STATE_STEPS } from './workflow-cli-state-steps-test-fixtures'
 import { defaultRequiredPullRequestChecks } from './workflow-required-checks-test-fixtures'
 import { runner } from './workflow-cli-test-runner'
@@ -77,7 +81,7 @@ export function buildTestContext(
         baseRevision: 'a'.repeat(40),
         headRevision: 'b'.repeat(40),
       })),
-    listSessionReviews: () => store.listSessionReviews(sessionId),
+    listSessionReviews: () => listSessionReviewRecords(store.readEvents(sessionId)),
     now: () => '2024-01-01T00:00:00Z',
   }
   return {
@@ -147,27 +151,31 @@ export function setPrFeedback(ctx: TestContext, kind: 'actionable' | 'clean'): v
 }
 
 export function seedReviewerSatisfaction(ctx: TestContext): void {
-  const reviews = REVIEWER_TYPES.map((reviewType, index) => ({
-    id: index + 1,
-    sessionId: ctx.sessionId,
-    createdAt: '2024-01-01T00:00:00Z',
-    reviewType,
-    verdict: 'PASS' as const,
-    findings: [],
-    pullRequestNumber: 123,
-    completionProvenance: {
-      bundleId: 'review-example/repo-123',
-      providerSessionId: 'provider-session',
-      providerRunId: `provider-run-${index}`,
-      baseRevision: 'a'.repeat(40),
-      headRevision: 'b'.repeat(40),
-      exactFilesDigest: 'digest',
-      exactFiles: ['src/test.ts'],
-      reviewerDefinitionVersion: '1',
-    },
-  }))
+  const events = REVIEWER_TYPES.map((reviewType, index) =>
+    createSessionReviewRecordedEvent(
+      {
+        reviewId: index + 1,
+        createdAt: '2024-01-01T00:00:00Z',
+        reviewType,
+        verdict: 'PASS',
+        findings: [],
+        pullRequestNumber: 123,
+        completionProvenance: {
+          bundleId: 'review-example/repo-123',
+          providerSessionId: 'provider-session',
+          providerRunId: `provider-run-${index}`,
+          baseRevision: 'a'.repeat(40),
+          headRevision: 'b'.repeat(40),
+          exactFilesDigest: 'c'.repeat(64),
+          exactFiles: ['src/test.ts'],
+          reviewerDefinitionVersion: '1',
+        },
+      },
+      'REVIEWING',
+    ),
+  )
   Object.defineProperty(ctx.workflowDeps, 'listSessionReviews', {
-    value: () => reviews,
+    value: () => listSessionReviewRecords(events),
   })
 }
 

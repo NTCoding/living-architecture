@@ -8,6 +8,10 @@ import {
   runCommand,
 } from './__fixtures__/workflow-cli-test-fixtures'
 import { CREATE_PR_COMMAND } from './__fixtures__/workflow-cli-state-steps-test-fixtures'
+import {
+  createSessionReviewRecordedEvent,
+  listSessionReviewRecords,
+} from '@living-architecture/dev-workflow-v2-use-cases/queries/session-review-records'
 
 class LocalCheckFixtureError extends Error {
   constructor() {
@@ -147,10 +151,9 @@ it('syncs reviewer satisfaction from platform reviews through the workflow-owned
   runCommand(context, CREATE_PR_COMMAND)
   runCommand(context, ['transition', 'REVIEWING'])
   const listSessionReviews = vi.spyOn(context.workflowDeps, 'listSessionReviews')
-  listSessionReviews.mockReturnValue([
+  const reviewEvent = createSessionReviewRecordedEvent(
     {
-      id: 1,
-      sessionId: context.sessionId,
+      reviewId: 1,
       createdAt: '2024-01-01T00:00:00Z',
       reviewType: 'architecture-review',
       verdict: 'PASS',
@@ -162,12 +165,14 @@ it('syncs reviewer satisfaction from platform reviews through the workflow-owned
         providerRunId: 'provider-run',
         baseRevision: 'a'.repeat(40),
         headRevision: 'b'.repeat(40),
-        exactFilesDigest: 'digest',
+        exactFilesDigest: 'c'.repeat(64),
         exactFiles: ['src/test.ts'],
         reviewerDefinitionVersion: 'v1',
       },
     },
-  ])
+    'REVIEWING',
+  )
+  listSessionReviews.mockReturnValue(listSessionReviewRecords([reviewEvent]))
   const result = runCommand(context, ['sync-reviewer-satisfaction'])
   expect(result.exitCode).toBe(0)
   expect(JSON.parse(runCommand(context, ['get-state']).output)).toMatchObject({

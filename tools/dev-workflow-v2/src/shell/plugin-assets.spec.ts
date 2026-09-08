@@ -14,6 +14,25 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 
 describe('plugin Agent Skills', () => {
+  it.each(['addressing_feedback', 'reflecting'])(
+    '%s state instructions begin with /compact and re-seed the agent without an AI handover',
+    (stateName) => {
+      const state = readPluginFile(`states/${stateName}.md`)
+
+      expect({
+        beginsWithCompact: state.startsWith('/compact\n'),
+        reReadsInstructions: state.includes(
+          `Re-read this file (\`\${CLAUDE_PLUGIN_ROOT}/states/${stateName}.md\`) after the compaction and follow it completely`,
+        ),
+        hasNoHandover: state.includes('handover') === false,
+      }).toStrictEqual({
+        beginsWithCompact: true,
+        reReadsInstructions: true,
+        hasNoHandover: true,
+      })
+    },
+  )
+
   it('tells agents to push fixes directly, wait for CodeRabbit, and return through verification', () => {
     const addressingFeedback = readPluginFile('states/addressing_feedback.md')
 
@@ -25,9 +44,10 @@ describe('plugin Agent Skills', () => {
   })
 
   it('registers Pi commands and loads their instruction assets', async () => {
-    const packageManifest: { pi?: { extensions?: string[] }; skills?: unknown } = JSON.parse(
-      readPluginFile('package.json'),
-    )
+    const packageManifest: {
+      pi?: { extensions?: string[] }
+      skills?: unknown
+    } = JSON.parse(readPluginFile('package.json'))
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
     const commandNames = [
       'choose-next-task',
@@ -97,7 +117,10 @@ describe('plugin Agent Skills', () => {
     function sendUserMessage(...argumentsList: Parameters<ExtensionAPI['sendUserMessage']>): void {
       sentMessages(...argumentsList)
     }
-    const pi = Object.create({ registerCommand, sendUserMessage })
+    const pi = Object.create({
+      registerCommand,
+      sendUserMessage,
+    })
     const extension = (await import('./pi-plugin')).default
     extension(pi)
 

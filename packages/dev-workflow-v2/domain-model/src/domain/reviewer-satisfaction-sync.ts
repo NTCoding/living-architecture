@@ -1,4 +1,4 @@
-import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import type { ReviewRecord } from './review-record'
 import { ReviewerSatisfaction } from './reviewer-satisfaction'
 import type { WorkflowState } from './workflow-types'
 
@@ -21,10 +21,10 @@ type SyncResult =
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification Computes reviewer-satisfaction completions from stored platform reviews so the workflow can persist them without coupling to the event store.
+ * @riviere-role-justification Computes reviewer-satisfaction completions from consumer-owned review records so the workflow can persist them without coupling to the event store.
  */
 export function computeReviewerSatisfactionSync(
-  reviews: readonly StoredReview[],
+  reviews: readonly ReviewRecord[],
   snapshot: NonNullable<WorkflowState['pullRequestSnapshot']>,
   current: ReturnType<ReviewerSatisfaction['toJSON']>,
 ): SyncResult {
@@ -39,7 +39,7 @@ export function computeReviewerSatisfactionSync(
       {
         reviewType: parsedReviewType.data,
         verdict: review.verdict,
-        reviewId: review.id,
+        reviewId: review.reviewId,
         headRevision: snapshot.headRevision,
       },
     ]

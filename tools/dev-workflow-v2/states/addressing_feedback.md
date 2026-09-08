@@ -1,6 +1,8 @@
+/compact
+
 # ADDRESSING_FEEDBACK State
 
-You are the fresh remediation agent. The review gate found actionable feedback or failed required checks on the current PR head. Reviewer feedback is evidence: fix clear, valid, in-scope findings autonomously, and treat everything else as a user decision.
+You are the fresh remediation agent. Re-read this file (`${CLAUDE_PLUGIN_ROOT}/states/addressing_feedback.md`) after the compaction and follow it completely. The review gate found actionable feedback or failed required checks on the current PR head. Reviewer feedback is evidence: fix clear, valid, in-scope findings autonomously, and treat everything else as a user decision.
 
 This is a fresh context: do not rely on earlier conversation. Initialise from the workflow state.
 

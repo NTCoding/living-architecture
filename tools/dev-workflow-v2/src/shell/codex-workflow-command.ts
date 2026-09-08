@@ -10,6 +10,7 @@ import {
   readCodexParentThreadId,
 } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/codex/codex-session'
 import { createWorkflowCliRuntime } from './workflow-cli-runtime'
+import { noopReviewStore } from './noop-review-store'
 
 class InvalidWorkflowCommandError extends Error {
   constructor() {
@@ -61,7 +62,7 @@ const platform = {
   getPluginRoot: () => runtime.workflowRoot,
   getSessionId: () => workflowSessionId,
   workflowEventStore: store,
-  reviewStore: store,
+  reviewStore: noopReviewStore(),
   now,
 }
 const engineDeps = {

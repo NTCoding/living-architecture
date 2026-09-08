@@ -1,6 +1,6 @@
 import { WorkflowState } from './workflow-types'
 import { buildTestWorkflow, makeDeps } from './__fixtures__/workflow-test-fixtures'
-import type { StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { ReviewRecord } from './review-record'
 
 const headRevision = 'b'.repeat(40)
 const snapshot = {
@@ -13,10 +13,9 @@ const snapshot = {
   headRevision,
 }
 
-function storedReview(overrides?: Partial<StoredReview>): StoredReview {
-  return {
-    id: 1,
-    sessionId: 'session',
+function storedReview(overrides: Record<string, unknown> = {}): ReviewRecord {
+  return ReviewRecord.parse({
+    reviewId: 1,
     createdAt: '2026-01-01T00:00:00Z',
     reviewType: 'architecture-review',
     verdict: 'PASS',
@@ -28,12 +27,12 @@ function storedReview(overrides?: Partial<StoredReview>): StoredReview {
       providerRunId: 'provider-run',
       baseRevision: snapshot.baseRevision,
       headRevision,
-      exactFilesDigest: 'digest',
+      exactFilesDigest: 'c'.repeat(64),
       exactFiles: ['file.ts'],
       reviewerDefinitionVersion: 'v1',
     },
     ...overrides,
-  }
+  })
 }
 
 function workflow(overrides: Parameters<typeof makeDeps>[0] = {}) {
@@ -52,22 +51,22 @@ it('syncs reviewer completions from the event store into reviewer satisfaction',
   const subject = workflow({
     listSessionReviews: () => [
       storedReview({
-        id: 1,
+        reviewId: 1,
         reviewType: 'architecture-review',
         verdict: 'PASS',
       }),
       storedReview({
-        id: 2,
+        reviewId: 2,
         reviewType: 'code-review',
         verdict: 'FAIL',
       }),
       storedReview({
-        id: 3,
+        reviewId: 3,
         reviewType: 'bug-scanner',
         verdict: 'PASS',
       }),
       storedReview({
-        id: 4,
+        reviewId: 4,
         reviewType: 'task-check',
         verdict: 'PASS',
       }),
@@ -114,17 +113,13 @@ it('ignores reviews for a different pull request', () => {
 })
 
 it('ignores reviews for a different head revision', () => {
-  const provenance = storedReview().completionProvenance
   const subject = workflow({
     listSessionReviews: () => [
       storedReview({
-        completionProvenance:
-          provenance === undefined
-            ? undefined
-            : {
-                ...provenance,
-                headRevision: 'c'.repeat(40),
-              },
+        completionProvenance: {
+          ...storedReview().completionProvenance,
+          headRevision: 'c'.repeat(40),
+        },
       }),
     ],
   })
@@ -156,12 +151,12 @@ it('is idempotent and does not re-emit events for already-synced reviewers', () 
   const subject = workflow({
     listSessionReviews: () => [
       storedReview({
-        id: 1,
+        reviewId: 1,
         reviewType: 'architecture-review',
         verdict: 'PASS',
       }),
       storedReview({
-        id: 2,
+        reviewId: 2,
         reviewType: 'code-review',
         verdict: 'PASS',
       }),

@@ -1,6 +1,7 @@
 import { SyncReviewerSatisfaction } from './sync-reviewer-satisfaction'
 import { configureWorkflow } from './configure-workflow'
 import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
+import { ReviewRecord } from '@living-architecture/dev-workflow-v2-domain-model/domain/review-record'
 
 const headRevision = 'b'.repeat(40)
 const snapshot = {
@@ -50,9 +51,8 @@ it('delegates reviewer satisfaction sync to the workflow aggregate', () => {
         headRevision,
       }),
       listSessionReviews: () => [
-        {
-          id: 1,
-          sessionId: 'session',
+        ReviewRecord.parse({
+          reviewId: 1,
           createdAt: '2026-01-01T00:00:00Z',
           reviewType: 'architecture-review',
           verdict: 'PASS',
@@ -64,11 +64,11 @@ it('delegates reviewer satisfaction sync to the workflow aggregate', () => {
             providerRunId: 'provider-run',
             baseRevision: snapshot.baseRevision,
             headRevision,
-            exactFilesDigest: 'digest',
+            exactFilesDigest: 'c'.repeat(64),
             exactFiles: ['file.ts'],
             reviewerDefinitionVersion: 'v1',
           },
-        },
+        }),
       ],
       now: () => '2026-01-01T00:00:00Z',
     },

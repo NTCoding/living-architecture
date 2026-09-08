@@ -11,6 +11,12 @@
       "import": "./dist/features/workflow/commands/*.js",
       "default": "./dist/features/workflow/commands/*.js"
     },
+    "./queries/*": {
+      "@living-architecture/source": "./src/features/workflow/queries/*.ts",
+      "types": "./dist/features/workflow/queries/*.d.ts",
+      "import": "./dist/features/workflow/queries/*.js",
+      "default": "./dist/features/workflow/queries/*.js"
+    },
     "./adapters/*": {
       "@living-architecture/source": "./src/features/workflow/adapters/*.ts",
       "types": "./dist/features/workflow/adapters/*.d.ts",
