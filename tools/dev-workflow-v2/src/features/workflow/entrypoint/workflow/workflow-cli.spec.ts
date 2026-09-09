@@ -22,7 +22,7 @@ describe('workflow-cli commands', () => {
     })
   })
 
-  it('records only reviewer status while REVIEWING', () => {
+  it('records reviewer statuses as events while REVIEWING', () => {
     const context = setup()
     runCommand(context, ['init'])
     runCommand(context, ['record-issue', '42'])
@@ -30,15 +30,15 @@ describe('workflow-cli commands', () => {
     runCommand(context, ['transition', 'SUBMITTING_PR'])
     runCommand(context, ['transition', 'REVIEWING'])
 
-    const result = runCommand(context, ['record-reviewer-status', 'code-review', 'OPEN_FEEDBACK'])
+    const statusEvents = context.engineDeps.store
+      .readEvents(context.sessionId)
+      .map(flattenStoredEvent)
+      .filter((event) => event.type === 'reviewer-status-recorded')
 
-    expect(result.exitCode).toBe(0)
-    expect(
-      context.engineDeps.store
-        .readEvents(context.sessionId)
-        .map(flattenStoredEvent)
-        .filter((event) => event.type === 'reviewer-status-recorded'),
-    ).toStrictEqual([expect.objectContaining({ reviewer: 'code-review', status: 'OPEN_FEEDBACK' })])
+    expect(statusEvents).toHaveLength(5)
+    expect(statusEvents).toContainEqual(
+      expect.objectContaining({ reviewer: 'code-review', status: 'APPROVED' }),
+    )
     expect(context.engineDeps.store.listSessionReviews(context.sessionId)).toStrictEqual([])
   })
 
@@ -48,5 +48,14 @@ describe('workflow-cli commands', () => {
 
     expect(runCommand(context, ['create-pr']).exitCode).toBe(1)
     expect(runCommand(context, ['record-pr', '1']).exitCode).toBe(1)
+  })
+
+  it('rejects recording reviewer status outside REVIEWING', () => {
+    const context = setup()
+    runCommand(context, ['init'])
+
+    const result = runCommand(context, ['record-reviewer-status', 'code-review', 'APPROVED'])
+    expect(result.exitCode).toStrictEqual(2)
+    expect(result.output).toContain('record-reviewer-status')
   })
 })

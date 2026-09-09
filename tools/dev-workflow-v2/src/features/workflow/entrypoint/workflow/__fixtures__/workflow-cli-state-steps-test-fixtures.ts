@@ -15,7 +15,5 @@ export const STATE_STEPS: Readonly<Record<string, readonly (readonly string[])[]
     ['record-branch', 'feat/test'],
     ['transition', 'SUBMITTING_PR'],
     ['transition', 'REVIEWING'],
-    ['record-reviewer-status', 'code-review', 'OPEN_FEEDBACK'],
-    ['transition', 'REVIEWING'],
   ],
 }
