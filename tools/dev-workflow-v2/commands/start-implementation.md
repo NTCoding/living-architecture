@@ -49,8 +49,9 @@ Record the issue immediately:
 After init, read the state instruction file that the workflow loads. It will guide you through:
 
 1. **IMPLEMENTING** — Read requirements, plan, implement, test, commit
-2. **REVIEWING** — Spawn review agents, record each verdict individually
-3. **SUBMITTING_PR** — Push branch, create PR, record PR number
-4. **HUMAN_REVIEWING** — All reviewers approve; wait for the human to review or merge
+2. **SUBMITTING_PR** — Push branch, create PR, record PR number
+3. **REVIEWING** — Spawn review agents, record each verdict individually
+4. **ADDRESSING_FEEDBACK** — Fix open feedback, commit, push, and return to reviewing
+5. **HUMAN_REVIEWING** — All reviewers approve; wait for the human to review or merge
 
 Each state's instruction file tells you exactly what to do and which workflow commands to run. Follow them.

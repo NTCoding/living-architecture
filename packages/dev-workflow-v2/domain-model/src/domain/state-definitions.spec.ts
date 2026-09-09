@@ -22,9 +22,13 @@ describe('workflow state definitions', () => {
     expect(
       reviewing.transitionGuard({ state, gitInfo, from: 'REVIEWING', to: 'HUMAN_REVIEWING' }).pass,
     ).toBe(false)
-    const reviewerStatuses = Object.keys(state.reviewerStatuses).reduce<
-      WorkflowState['reviewerStatuses']
-    >((statuses, reviewer) => ({ ...statuses, [reviewer]: 'APPROVED' }), {})
+    const reviewerStatuses = {
+      'architecture-review': 'APPROVED',
+      'code-review': 'APPROVED',
+      'bug-scanner': 'APPROVED',
+      'task-check': 'APPROVED',
+      coderabbit: 'APPROVED',
+    } satisfies WorkflowState['reviewerStatuses']
     expect(
       reviewing.transitionGuard({
         state: state.with({ reviewerStatuses }),
@@ -130,13 +134,26 @@ describe('workflow state definitions', () => {
     expect(result).toMatchObject({ pass: false, reason: expect.stringContaining('unknown') })
   })
 
-  it('allows the feedback state to return to reviewing or block', () => {
+  it('requires a clean tree before returning to reviewing but allows blocking', () => {
     const addressing = AddressingFeedbackState.parse('ADDRESSING_FEEDBACK')
     const state = getInitialWorkflowState().with({
       currentStateMachineState: 'ADDRESSING_FEEDBACK',
     })
     expect(
-      addressing.transitionGuard({ state, gitInfo, from: 'ADDRESSING_FEEDBACK', to: 'REVIEWING' }),
+      addressing.transitionGuard({
+        state,
+        gitInfo: { ...gitInfo, workingTreeClean: false },
+        from: 'ADDRESSING_FEEDBACK',
+        to: 'REVIEWING',
+      }),
+    ).toMatchObject({ pass: false, reason: expect.stringContaining('clean') })
+    expect(
+      addressing.transitionGuard({
+        state,
+        gitInfo,
+        from: 'ADDRESSING_FEEDBACK',
+        to: 'REVIEWING',
+      }),
     ).toStrictEqual({ pass: true })
     expect(
       addressing.transitionGuard({ state, gitInfo, from: 'ADDRESSING_FEEDBACK', to: 'BLOCKED' }),
@@ -148,7 +165,7 @@ describe('workflow state definitions', () => {
     expect(
       WorkflowTransitionContext.from({ state, gitInfo, from: 'IMPLEMENTING', to: 'SUBMITTING_PR' }),
     ).toMatchObject({ state, gitInfo, from: 'IMPLEMENTING', to: 'SUBMITTING_PR' })
-    expect(AddressingFeedbackState.parse('ADDRESSING_FEEDBACK').onEntry(state)).not.toBe(state)
+    expect(AddressingFeedbackState.parse('ADDRESSING_FEEDBACK')).toBeDefined()
   })
 
   it('allows any state to enter blocked', () => {

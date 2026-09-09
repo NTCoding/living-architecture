@@ -12,7 +12,10 @@ export type SubmittingPrDependencies = {
   readonly workflow: {
     getState(): WorkflowState
     getSubmissionDetails(): { readonly githubIssue: number; readonly featureBranch: string }
-    recordPullRequest(prNumber: number, prUrl: string): { readonly pass: boolean; readonly reason?: string }
+    recordPullRequest(
+      prNumber: number,
+      prUrl: string,
+    ): { readonly pass: boolean; readonly reason?: string }
   }
   readonly deps: {
     readonly createPullRequest: CreateWorkflowPullRequest
@@ -59,6 +62,7 @@ export class SubmittingPrState {
     if (this.dependencies === undefined)
       throw new WorkflowStateError('Submitting PR entry dependencies have not been configured.')
     const context = this.dependencies
+    if (context.workflow.getState().prNumber !== undefined) return
     const { githubIssue, featureBranch } = context.workflow.getSubmissionDetails()
 
     const pullRequest = context.deps.createPullRequest({

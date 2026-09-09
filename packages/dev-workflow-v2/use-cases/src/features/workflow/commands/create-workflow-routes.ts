@@ -15,18 +15,18 @@ type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
 type WorkflowResult = ReturnType<Workflow['executeRecording']>
 type Reviewer = Parameters<Workflow['recordReviewerStatus']>[0]
 type ReviewerStatus = Parameters<Workflow['recordReviewerStatus']>[1]
+const REVIEWER_KEYS = [
+  'architecture-review',
+  'code-review',
+  'bug-scanner',
+  'task-check',
+  'coderabbit',
+] as const
 
 class InvalidReviewerStatusError extends Error {}
 
 function parseReviewer(value: string): Reviewer {
-  if (
-    value === 'architecture-review' ||
-    value === 'code-review' ||
-    value === 'bug-scanner' ||
-    value === 'task-check' ||
-    value === 'coderabbit'
-  )
-    return value
+  for (const reviewer of REVIEWER_KEYS) if (reviewer === value) return reviewer
   throw new InvalidReviewerStatusError(`Unknown reviewer: ${value}`)
 }
 

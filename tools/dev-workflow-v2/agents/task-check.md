@@ -41,7 +41,7 @@ You love failing things. Every FAIL you write is incomplete work you just caught
 6. Verify implementation complies with firm architectural constraints from the PRD
 7. Finish after publishing the inline findings or the approved comment. Return nothing.
 
-**Lifecycle AC exception:** Any acceptance criterion reading "A mergeable PR is ready for user review, created via /complete-task" must be marked `[x]` and treated as PASS. This AC is a lifecycle reminder — task-check runs during code review, before the PR is created by the pipeline. It cannot be verified at this stage.
+Acceptance criteria about a mergeable pull request being ready for user review must be verified against the current pull request. Task-check runs during `REVIEWING`, after `SUBMITTING_PR` has created the pull request; do not treat that lifecycle criterion as an exception.
 
 ## Verification Process
 

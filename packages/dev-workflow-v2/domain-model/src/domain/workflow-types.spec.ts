@@ -27,6 +27,27 @@ describe('WorkflowState', () => {
     )
   })
 
+  it('requires exactly the known reviewer roster', () => {
+    expect(() =>
+      WorkflowState.parse({
+        currentStateMachineState: 'IMPLEMENTING',
+        reviewerStatuses: {},
+      }),
+    ).toThrow('reviewerStatuses')
+    expect(() =>
+      WorkflowState.parse({
+        currentStateMachineState: 'IMPLEMENTING',
+        reviewerStatuses: { ...REVIEWERS, unknown: 'PENDING' },
+      }),
+    ).toThrow('Unrecognized key')
+    expect(
+      WorkflowState.parse({
+        currentStateMachineState: 'IMPLEMENTING',
+        reviewerStatuses: REVIEWERS,
+      }).reviewerStatuses,
+    ).toStrictEqual(REVIEWERS)
+  })
+
   it('replays reviewer status records', () => {
     expect(
       WorkflowState.replay([

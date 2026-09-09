@@ -15,8 +15,8 @@ export type ReviewingDependencies = {
     getState(): WorkflowState
     getPullRequestNumber(): number
     recordReviewerStatus(
-      reviewer: 'architecture-review' | 'code-review' | 'bug-scanner' | 'task-check' | 'coderabbit',
-      status: 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED',
+      reviewer: keyof WorkflowState['reviewerStatuses'],
+      status: WorkflowState['reviewerStatuses'][keyof WorkflowState['reviewerStatuses']],
     ): { readonly pass: boolean; readonly reason?: string }
     transition(target: 'ADDRESSING_FEEDBACK' | 'HUMAN_REVIEWING' | 'BLOCKED'): {
       readonly pass: boolean
@@ -33,6 +33,7 @@ export type ReviewingDependencies = {
 }
 
 const CODERABBIT_POLL_INTERVAL_MS = 15_000
+const MAX_REVIEW_COMPLETION_POLLS = 120
 
 /** @riviere-role value-object */
 export class ReviewingState {
@@ -90,7 +91,7 @@ export class ReviewingState {
       'bug-scanner',
       'task-check',
     ]
-    const outstandingReviewers = reviewers.filter(
+    const outstandingReviewers: readonly ReviewAgentName[] = reviewers.filter(
       (reviewer) => state.reviewerStatuses[reviewer] !== 'APPROVED',
     )
     context.deps.reviewLauncher.run(
@@ -104,7 +105,7 @@ export class ReviewingState {
     const feedback = waitForReviewCompletion(context.deps, pullRequestNumber, state)
     const skipCodeRabbit = feedback.coderabbitRateLimited === true
     for (const reviewer of reviewers) {
-      const status = feedback.reviewerStatuses[reviewer]
+      const status = reviewerStatus(feedback, reviewer)
       if (context.workflow.getState().reviewerStatuses[reviewer] !== status)
         context.workflow.recordReviewerStatus(reviewer, status)
     }
@@ -129,24 +130,41 @@ export class ReviewingState {
   }
 }
 
+function reviewerStatus(
+  feedback: ReturnType<ReadWorkflowPullRequestFeedback>,
+  reviewer: ReviewAgentName,
+): WorkflowState['reviewerStatuses'][keyof WorkflowState['reviewerStatuses']] {
+  switch (reviewer) {
+    case 'architecture-review':
+      return feedback.reviewerStatuses['architecture-review']
+    case 'code-review':
+      return feedback.reviewerStatuses['code-review']
+    case 'bug-scanner':
+      return feedback.reviewerStatuses['bug-scanner']
+    case 'task-check':
+      return feedback.reviewerStatuses['task-check']
+  }
+}
+
 function waitForReviewCompletion(
   deps: ReviewingDependencies['deps'],
   prNumber: number,
   state: WorkflowState,
+  remainingPolls: number = MAX_REVIEW_COMPLETION_POLLS,
 ): ReturnType<ReadWorkflowPullRequestFeedback> {
-  for (;;) {
-    const feedback = deps.getPrFeedback(prNumber)
-    const localReviewersComplete = (
-      ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
-    ).every(
-      (reviewer) =>
-        state.reviewerStatuses[reviewer] === 'APPROVED' ||
-        feedback.reviewerStatuses[reviewer] !== 'PENDING',
-    )
-    if (localReviewersComplete && (feedback.coderabbitReviewSeen || feedback.coderabbitRateLimited))
-      return feedback
-    deps.sleepMs(CODERABBIT_POLL_INTERVAL_MS)
-  }
+  const feedback = deps.getPrFeedback(prNumber)
+  const localReviewersComplete = (
+    ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
+  ).every(
+    (reviewer) =>
+      state.reviewerStatuses[reviewer] === 'APPROVED' ||
+      feedback.reviewerStatuses[reviewer] !== 'PENDING',
+  )
+  if (localReviewersComplete && (feedback.coderabbitReviewSeen || feedback.coderabbitRateLimited))
+    return feedback
+  if (remainingPolls === 1) return feedback
+  deps.sleepMs(CODERABBIT_POLL_INTERVAL_MS)
+  return waitForReviewCompletion(deps, prNumber, state, remainingPolls - 1)
 }
 
 function getCodeRabbitStatus(feedback: {

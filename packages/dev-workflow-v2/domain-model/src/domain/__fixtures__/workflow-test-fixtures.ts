@@ -30,7 +30,7 @@ const cleanGit: GitInfo = {
   workingTreeClean: true,
   headCommit: 'abc123',
   changedFilesVsDefault: [],
-  hasCommitsVsDefault: false,
+  hasCommitsVsDefault: true,
 }
 
 export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {

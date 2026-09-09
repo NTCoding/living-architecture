@@ -1,6 +1,5 @@
 import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { z } from 'zod'
-import type { WorkflowState } from '../workflow-types'
 import type { WorkflowTransitionContext } from '../workflow-transition-context'
 
 /** @riviere-role value-object */
@@ -28,10 +27,12 @@ export class AddressingFeedbackState {
     context: Parameters<typeof WorkflowTransitionContext.from>[0],
   ): PreconditionResult {
     if (context.to === 'BLOCKED') return { pass: true }
+    if (!context.gitInfo.workingTreeClean) {
+      return {
+        pass: false,
+        reason: 'Working tree is not clean. Commit all changes before returning to review.',
+      }
+    }
     return { pass: true }
-  }
-
-  onEntry(state: WorkflowState): WorkflowState {
-    return state.with({})
   }
 }

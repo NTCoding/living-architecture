@@ -236,7 +236,21 @@ describe('Workflow', () => {
 
   describe('transition', () => {
     it('transitions to a legal target state', () => {
-      const { result, state, events } = spec.given().when((wf) => wf.transition('SUBMITTING_PR'))
+      const { result, state, events } = spec
+        .given(
+          ...eventsToReviewing().slice(0, 0),
+          {
+            type: 'issue-recorded',
+            at: '2026-01-01T00:00:00Z',
+            issueNumber: 42,
+          },
+          {
+            type: 'branch-recorded',
+            at: '2026-01-01T00:00:00Z',
+            branch: 'issue-42',
+          },
+        )
+        .when((wf) => wf.transition('SUBMITTING_PR'))
       expect(result).toStrictEqual({ pass: true })
       expect(state.currentStateMachineState).toBe('SUBMITTING_PR')
       expect(events).toStrictEqual(
@@ -256,6 +270,48 @@ describe('Workflow', () => {
         pass: false,
         reason: 'Illegal transition IMPLEMENTING -> REVIEWING.',
       })
+    })
+
+    it('rejects a legal transition when its guard fails before recording an event', () => {
+      const workflow = buildTestWorkflow(
+        makeDeps({
+          getGitInfo: () => ({
+            currentBranch: 'issue-42',
+            workingTreeClean: false,
+            headCommit: 'abc123',
+            changedFilesVsDefault: ['src/test.ts'],
+            hasCommitsVsDefault: true,
+          }),
+        }),
+      )
+      workflow.executeRecording('record-issue', 42)
+      workflow.executeRecording('record-branch', 'issue-42')
+      const result = workflow.transition('SUBMITTING_PR')
+      expect(result).toStrictEqual({
+        pass: false,
+        reason: 'Working tree is not clean. Commit all changes before transitioning.',
+      })
+      expect(workflow.getPendingEvents()).toHaveLength(2)
+      expect(workflow.getState().currentStateMachineState).toBe('IMPLEMENTING')
+    })
+
+    it('records a legal transition for a state without a guard', () => {
+      const workflow = buildTestWorkflow(makeDeps())
+      workflow.executeRecording('record-issue', 42)
+      workflow.executeRecording('record-branch', 'issue-42')
+      expect(workflow.transition('SUBMITTING_PR')).toStrictEqual({ pass: true })
+      workflow.recordPullRequest(99, 'https://example.test/pr/99')
+      expect(workflow.transition('REVIEWING')).toStrictEqual({ pass: true })
+      for (const reviewer of [
+        'architecture-review',
+        'code-review',
+        'bug-scanner',
+        'task-check',
+        'coderabbit',
+      ] as const)
+        workflow.recordReviewerStatus(reviewer, 'APPROVED')
+      expect(workflow.transition('HUMAN_REVIEWING')).toStrictEqual({ pass: true })
+      expect(workflow.transition('BLOCKED')).toStrictEqual({ pass: true })
     })
   })
 

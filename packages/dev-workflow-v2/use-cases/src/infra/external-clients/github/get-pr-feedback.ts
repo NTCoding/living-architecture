@@ -1,5 +1,4 @@
 import { z } from 'zod'
-
 const pageInfoSchema = z.object({
   hasNextPage: z.boolean(),
   endCursor: z.string().nullable(),
@@ -95,6 +94,19 @@ const commentsResponseSchema = z.object({
       comments: z.object({
         nodes: z.array(threadCommentSchema),
         pageInfo: pageInfoSchema,
+      }),
+    }),
+  }),
+})
+
+const pullRequestCommentsResponseSchema = z.object({
+  data: z.object({
+    repository: z.object({
+      pullRequest: z.object({
+        comments: z.object({
+          nodes: z.array(pullRequestCommentSchema),
+          pageInfo: pageInfoSchema,
+        }),
       }),
     }),
   }),
@@ -235,6 +247,29 @@ function readAllThreadComments(
   )
 }
 
+function readAllPullRequestComments(
+  runGh: GhRunner,
+  repositoryOwner: string,
+  repositoryName: string,
+  prNumber: number,
+  comments: readonly z.infer<typeof pullRequestCommentSchema>[],
+  pageInfo: z.infer<typeof pageInfoSchema>,
+): readonly z.infer<typeof pullRequestCommentSchema>[] {
+  const cursor = nextPageCursor(pageInfo)
+  if (cursor === undefined) return comments
+  const query = `{ repository(owner: "${repositoryOwner}", name: "${repositoryName}") { pullRequest(number: ${String(prNumber)}) { comments(first: 100${afterCursor(cursor)}) { nodes { author { login } body createdAt } pageInfo { hasNextPage endCursor } } } } }`
+  const response = pullRequestCommentsResponseSchema.parse(JSON.parse(queryGithub(runGh, query)))
+  const commentPage = response.data.repository.pullRequest.comments
+  return readAllPullRequestComments(
+    runGh,
+    repositoryOwner,
+    repositoryName,
+    prNumber,
+    [...comments, ...commentPage.nodes],
+    commentPage.pageInfo,
+  )
+}
+
 function readAllThreads(
   runGh: GhRunner,
   repositoryOwner: string,
@@ -333,7 +368,17 @@ export function createGithubPullRequestFeedbackClient(
       },
     }))
     const unresolved = threads.filter((thread) => !thread.isResolved && !thread.isOutdated)
-    const pullRequestComments = pullRequest.comments?.nodes ?? []
+    const pullRequestComments =
+      pullRequest.comments === undefined
+        ? []
+        : readAllPullRequestComments(
+            runGh,
+            repo.owner.login,
+            repo.name,
+            prNumber,
+            pullRequest.comments.nodes,
+            pullRequest.comments.pageInfo,
+          )
     const currentCodeRabbitFeedback = mostRecentCodeRabbitFeedback(reviews, unresolved)
     return {
       reviewerStatuses: {

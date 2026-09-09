@@ -11,6 +11,8 @@ import { runner } from './workflow-cli-test-runner'
 type WorkflowDefinition = ReturnType<typeof configureWorkflow>
 type WorkflowDeps = Parameters<WorkflowDefinition['buildWorkflow']>[1]
 
+class WorkflowProgressionTestError extends Error {}
+
 export type TestContext = {
   readonly engineDeps: WorkflowEngineDeps
   readonly workflowDeps: WorkflowDeps
@@ -111,8 +113,16 @@ export function cleanupDb(dbPath: string): void {
 }
 
 export function progressToState(ctx: TestContext, targetState: string): void {
-  runCommand(ctx, ['init'])
+  const initResult = runCommand(ctx, ['init'])
+  if (initResult.exitCode !== 0)
+    throw new WorkflowProgressionTestError(`Failed to initialise workflow: ${initResult.output}`)
   const steps = STATE_STEPS[targetState]
   if (!steps) return
-  for (const step of steps) runCommand(ctx, step)
+  for (const step of steps) {
+    const result = runCommand(ctx, step)
+    if (result.exitCode !== 0)
+      throw new WorkflowProgressionTestError(
+        `Failed to progress workflow with ${step.join(' ')}: ${result.output}`,
+      )
+  }
 }

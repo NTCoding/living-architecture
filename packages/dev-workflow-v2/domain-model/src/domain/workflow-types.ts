@@ -1,6 +1,32 @@
 import { z } from 'zod'
 import type { WorkflowEvent } from './workflow-events'
 
+type ReviewerKey =
+  | 'architecture-review'
+  | 'code-review'
+  | 'bug-scanner'
+  | 'task-check'
+  | 'coderabbit'
+
+type ReviewerStatus = 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED'
+type ReviewerStatuses = {
+  readonly 'architecture-review': ReviewerStatus
+  readonly 'code-review': ReviewerStatus
+  readonly 'bug-scanner': ReviewerStatus
+  readonly 'task-check': ReviewerStatus
+  readonly coderabbit: ReviewerStatus
+}
+
+function pendingReviewerStatuses(): ReviewerStatuses {
+  return {
+    'architecture-review': 'PENDING',
+    'code-review': 'PENDING',
+    'bug-scanner': 'PENDING',
+    'task-check': 'PENDING',
+    coderabbit: 'PENDING',
+  }
+}
+
 const STATE_NAMES = [
   'IMPLEMENTING',
   'SUBMITTING_PR',
@@ -13,6 +39,16 @@ const STATE_NAMES = [
 type StateName = (typeof STATE_NAMES)[number]
 
 const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
+const REVIEWER_STATUS_SCHEMA = z.enum(['PENDING', 'OPEN_FEEDBACK', 'APPROVED'])
+const REVIEWER_STATUSES_SCHEMA = z
+  .object({
+    'architecture-review': REVIEWER_STATUS_SCHEMA,
+    'code-review': REVIEWER_STATUS_SCHEMA,
+    'bug-scanner': REVIEWER_STATUS_SCHEMA,
+    'task-check': REVIEWER_STATUS_SCHEMA,
+    coderabbit: REVIEWER_STATUS_SCHEMA,
+  })
+  .strict()
 
 /**
  * @riviere-role domain-service
@@ -26,7 +62,7 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
     featureBranch: z.string().optional(),
     prNumber: z.number().int().positive().optional(),
     prUrl: z.string().optional(),
-    reviewerStatuses: z.record(z.enum(['PENDING', 'OPEN_FEEDBACK', 'APPROVED'])),
+    reviewerStatuses: REVIEWER_STATUSES_SCHEMA,
     preBlockedState: z.string().optional(),
     transcriptPath: z.string().optional(),
   })
@@ -36,10 +72,29 @@ const WORKFLOW_STATE_SCHEMA = createWorkflowStateSchema(STATE_NAMES)
 
 function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState | undefined {
   if (event.type === 'reviewer-status-recorded')
-    return state.with({
-      reviewerStatuses: { ...state.reviewerStatuses, [event.reviewer]: event.status },
-    })
+    return applyReviewerStatus(state, event.reviewer, event.status)
   return undefined
+}
+
+function applyReviewerStatus(
+  state: WorkflowState,
+  reviewer: ReviewerKey,
+  status: ReviewerStatus,
+): WorkflowState {
+  switch (reviewer) {
+    case 'architecture-review':
+      return state.with({
+        reviewerStatuses: { ...state.reviewerStatuses, 'architecture-review': status },
+      })
+    case 'code-review':
+      return state.with({ reviewerStatuses: { ...state.reviewerStatuses, 'code-review': status } })
+    case 'bug-scanner':
+      return state.with({ reviewerStatuses: { ...state.reviewerStatuses, 'bug-scanner': status } })
+    case 'task-check':
+      return state.with({ reviewerStatuses: { ...state.reviewerStatuses, 'task-check': status } })
+    case 'coderabbit':
+      return state.with({ reviewerStatuses: { ...state.reviewerStatuses, coderabbit: status } })
+  }
 }
 
 /** @riviere-role value-object */
@@ -51,7 +106,7 @@ export class WorkflowState {
   readonly featureBranch?: string
   readonly prNumber?: number
   readonly prUrl?: string
-  readonly reviewerStatuses: Record<string, 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED'>
+  readonly reviewerStatuses: ReviewerStatuses
   readonly preBlockedState?: string
   readonly transcriptPath?: string
 
@@ -120,13 +175,7 @@ export class WorkflowState {
 
 const INITIAL_STATE = WorkflowState.parse({
   currentStateMachineState: 'IMPLEMENTING',
-  reviewerStatuses: {
-    'architecture-review': 'PENDING',
-    'code-review': 'PENDING',
-    'bug-scanner': 'PENDING',
-    'task-check': 'PENDING',
-    coderabbit: 'PENDING',
-  },
+  reviewerStatuses: pendingReviewerStatuses(),
 })
 
 /**

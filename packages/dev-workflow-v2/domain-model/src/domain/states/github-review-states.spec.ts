@@ -55,6 +55,7 @@ function stateContext(
   depsOverrides: Partial<{
     getPrFeedback: () => PullRequestFeedback
     sleepMs: (milliseconds: number) => void
+    runReviewers: (requests: readonly { readonly reviewer: ReviewAgentName }[]) => void
   }> = {},
 ) {
   const events: unknown[] = []
@@ -75,7 +76,7 @@ function stateContext(
         },
         recordReviewerStatus: (
           reviewer: keyof WorkflowState['reviewerStatuses'],
-          status: WorkflowState['reviewerStatuses'][string],
+          status: 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED',
         ) => {
           events.push({ reviewer, status })
           stateBox.value = stateBox.value.with({
@@ -113,7 +114,7 @@ function stateContext(
         now: () => AT,
         reviewLauncher: {
           run: (requests: readonly { readonly reviewer: ReviewAgentName }[]) => {
-            void requests
+            depsOverrides.runReviewers?.(requests)
           },
         },
       },
@@ -140,6 +141,22 @@ describe('GitHub review states', () => {
         prUrl: 'https://example.test/pr/9',
       },
     ])
+  })
+
+  it('does not create a second pull request when one is already recorded', () => {
+    const createPullRequest = vi.fn(() => ({
+      prNumber: 10,
+      prUrl: 'https://example.test/pr/10',
+      isDraft: false,
+    }))
+    const { context, events } = stateContext(
+      WorkflowState.initial().with({ githubIssue: 42, featureBranch: 'issue-42', prNumber: 9 }),
+      undefined,
+      createPullRequest,
+    )
+    SubmittingPrState.parse('SUBMITTING_PR', context).afterEntry()
+    expect(createPullRequest).not.toHaveBeenCalled()
+    expect(events).toStrictEqual([])
   })
 
   it('requests a ready pull request during submitting entry', () => {
@@ -211,6 +228,34 @@ describe('GitHub review states', () => {
     )
   })
 
+  it('does not launch reviewers that have already approved', () => {
+    const launched: ReviewAgentName[] = []
+    const { context } = stateContext(
+      WorkflowState.initial().with({
+        currentStateMachineState: 'REVIEWING',
+        prNumber: 9,
+        reviewerStatuses: reviewerStatuses({ 'code-review': 'APPROVED' }),
+      }),
+      githubFeedback({ coderabbitReviewSeen: true }),
+      undefined,
+      { runReviewers: (requests) => launched.push(...requests.map((request) => request.reviewer)) },
+    )
+    ReviewingState.parse('REVIEWING', context).afterEntry()
+    expect(launched).not.toContain('code-review')
+    expect(launched).toStrictEqual(['architecture-review', 'bug-scanner', 'task-check'])
+  })
+
+  it('does not treat a non-CodeRabbit thread author as CodeRabbit feedback', () => {
+    const { context, events } = stateContext(
+      WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
+      githubFeedback({ coderabbitReviewSeen: true, threads: [codeRabbitThread('reviewer')] }),
+    )
+    ReviewingState.parse('REVIEWING', context).afterEntry()
+    expect(events).toContainEqual(
+      expect.objectContaining({ type: 'transitioned', to: 'HUMAN_REVIEWING' }),
+    )
+  })
+
   it('moves to human review only after every reviewer is approved', () => {
     const { context, events } = stateContext(
       WorkflowState.initial().with({
@@ -256,6 +301,33 @@ describe('GitHub review states', () => {
     expect(() => ReviewingState.parse('REVIEWING', context).afterEntry()).toThrow(
       'Reviewing completion was evaluated before every reviewer returned a result.',
     )
+  })
+
+  it('stops polling after the finite completion limit', () => {
+    const sleepMs = vi.fn()
+    const getPrFeedback = vi.fn(() =>
+      githubFeedback({
+        coderabbitReviewSeen: true,
+        reviewerStatuses: {
+          'architecture-review': 'APPROVED',
+          'code-review': 'PENDING',
+          'bug-scanner': 'APPROVED',
+          'task-check': 'APPROVED',
+          coderabbit: 'APPROVED',
+        },
+      }),
+    )
+    const { context } = stateContext(
+      WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
+      undefined,
+      undefined,
+      { getPrFeedback, sleepMs },
+    )
+    expect(() => ReviewingState.parse('REVIEWING', context).afterEntry()).toThrow(
+      'Reviewing completion was evaluated before every reviewer returned a result.',
+    )
+    expect(getPrFeedback).toHaveBeenCalledTimes(120)
+    expect(sleepMs).toHaveBeenCalledTimes(119)
   })
 
   it('polls for CodeRabbit completion before finishing reviewing', () => {

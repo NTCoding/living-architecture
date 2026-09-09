@@ -18,7 +18,7 @@ describe('plugin Agent Skills', () => {
     const addressingFeedback = readPluginFile('states/addressing_feedback.md')
 
     expect(addressingFeedback).toContain('Push the recorded feature branch: `git push`')
-    expect(addressingFeedback).toContain('Run `/compact`')
+    expect(addressingFeedback).toContain('/compact ignore all previous information')
     expect(addressingFeedback).toContain('transition to `REVIEWING`')
   })
 

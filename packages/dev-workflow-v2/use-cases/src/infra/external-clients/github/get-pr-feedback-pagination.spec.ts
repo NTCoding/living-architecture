@@ -29,6 +29,10 @@ function initialResponse(): string {
               endCursor: 'review-page-1',
             },
           },
+          comments: {
+            nodes: [],
+            pageInfo: { hasNextPage: true, endCursor: 'comment-page-1' },
+          },
           reviewThreads: {
             nodes: [
               thread('thread-1', {
@@ -152,6 +156,26 @@ it('reads every page of reviews, threads, and thread comments', () => {
         },
       })
     }
+    if (query?.includes('comments(first: 100, after: "comment-page-1")')) {
+      return JSON.stringify({
+        data: {
+          repository: {
+            pullRequest: {
+              comments: {
+                nodes: [
+                  {
+                    author: { login: 'reviewer' },
+                    body: '[code-review] APPROVED',
+                    createdAt: '2026-09-03T10:02:00Z',
+                  },
+                ],
+                pageInfo: NO_NEXT_PAGE,
+              },
+            },
+          },
+        },
+      })
+    }
     return initialResponse()
   })
 
@@ -160,6 +184,7 @@ it('reads every page of reviews, threads, and thread comments', () => {
   expect(feedback.coderabbitReviewSeen).toBe(true)
   expect(feedback.threads.map((value) => value.id)).toStrictEqual(['thread-1', 'thread-2'])
   expect(feedback.threads[0]?.comments).toHaveLength(2)
+  expect(feedback.reviewerStatuses['code-review']).toBe('APPROVED')
 })
 
 it('clears a prior CodeRabbit rate limit when newer active feedback succeeds', () => {

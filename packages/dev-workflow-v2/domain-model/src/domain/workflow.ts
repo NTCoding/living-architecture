@@ -20,6 +20,7 @@ import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-
 import type { ReviewLauncher } from './ports/review-launcher'
 import type { WorkflowEvent } from './workflow-events'
 import { parseWorkflowEvent } from './workflow-events'
+import { WorkflowTransitionContext } from './workflow-transition-context'
 type StateName = WorkflowState['currentStateMachineState']
 type LivingArchitectureReviewType = StoredReview['reviewType']
 const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
@@ -32,7 +33,7 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
     payload: (b: string) => ({ branch: b }),
   },
 }
-type WorkflowOperation = keyof typeof RECORDING_OPS_MAP | 'record-reviewer-status'
+type RecordingOperation = keyof typeof RECORDING_OPS_MAP
 /** @riviere-role domain-port
  * @riviere-role-justification Review outcome is the aggregate's contract for the result of evaluating external reviewer statuses.
  */
@@ -151,8 +152,8 @@ export class MaintainerWorkflow {
     void agentName
     return pass()
   }
-  executeRecording(op: WorkflowOperation, ...args: readonly unknown[]): PreconditionResult {
-    const recordingOps = defineRecordingOps<StateName, WorkflowState, WorkflowOperation>(
+  executeRecording(op: RecordingOperation, ...args: readonly unknown[]): PreconditionResult {
+    const recordingOps = defineRecordingOps<StateName, WorkflowState, RecordingOperation>(
       this.registryDefinition,
       RECORDING_OPS_MAP,
     )
@@ -163,8 +164,8 @@ export class MaintainerWorkflow {
   }
 
   recordReviewerStatus(
-    reviewer: 'architecture-review' | 'code-review' | 'bug-scanner' | 'task-check' | 'coderabbit',
-    status: 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED',
+    reviewer: keyof WorkflowState['reviewerStatuses'],
+    status: WorkflowState['reviewerStatuses'][keyof WorkflowState['reviewerStatuses']],
   ): PreconditionResult {
     const gate = checkOperationGate('record-reviewer-status', this.state, this.registryDefinition)
     if (!gate.pass) return gate
@@ -182,6 +183,17 @@ export class MaintainerWorkflow {
     const definition = this.registryDefinition.state(current)
     if (!definition.canTransitionTo.includes(target))
       return fail(`Illegal transition ${current} -> ${target}.`)
+    if (definition.transitionGuard !== undefined) {
+      const guard = definition.transitionGuard(
+        WorkflowTransitionContext.from({
+          state: this.state,
+          from: current,
+          to: target,
+          gitInfo: this.deps.getGitInfo(),
+        }),
+      )
+      if (!guard.pass) return guard
+    }
     this.append({ type: 'transitioned', at: this.deps.now(), from: current, to: target })
     return pass()
   }
