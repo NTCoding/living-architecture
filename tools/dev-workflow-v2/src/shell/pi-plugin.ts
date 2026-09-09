@@ -33,7 +33,6 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const workflowCommand = 'dev-workflow-v2:workflow'
 const commandNames = [
   'choose-next-task',
-  'code-review',
   'continue-planning',
   'list-review-threads',
   'optimize-factory',

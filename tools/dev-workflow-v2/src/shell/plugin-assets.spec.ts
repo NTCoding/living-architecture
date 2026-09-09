@@ -29,7 +29,6 @@ describe('plugin Agent Skills', () => {
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
     const commandNames = [
       'choose-next-task',
-      'code-review',
       'continue-planning',
       'list-review-threads',
       'optimize-factory',
@@ -81,12 +80,6 @@ describe('plugin Agent Skills', () => {
         undefined,
       )
     }
-
-    await registeredCommands
-      .get('dev-workflow-v2:code-review')
-      ?.handler('example arguments', Object.create({ isIdle: () => false }))
-
-    expect(sentMessages).toHaveBeenLastCalledWith(expect.any(String), { deliverAs: 'followUp' })
   })
 
   it('renders Pi branch preparation without Claude or Codex startup assumptions', async () => {
@@ -140,62 +133,14 @@ describe('plugin Agent Skills', () => {
     )
   })
 
-  it.each(['workflow', 'code-review', 'list-review-threads'])(
-    'contains a complete %s skill',
-    (skillName) => {
-      const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
+  it.each(['workflow', 'list-review-threads'])('contains a complete %s skill', (skillName) => {
+    const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
 
-      expect(skill).toContain(`name: ${skillName}`)
-      expect(skill).not.toContain('TODO')
-    },
-  )
-
-  it('selects the code-review execution mechanism for all supported harnesses', () => {
-    const skill = readPluginFile('skills/code-review/SKILL.md')
-    const command = readPluginFile('commands/code-review.md')
-
-    expect({
-      detectsCodex: skill.includes('If `CODEX_THREAD_ID` is present'),
-      usesCodexSubagents: skill.includes('Codex `spawn_agent`'),
-      detectsPi: skill.includes('if `PI_CODING_AGENT=true` is present'),
-      usesPiSubagents: skill.includes('Pi `Task`'),
-      usesPiWorkflowTool: skill.includes('with the `workflow` tool'),
-      detectsOpenCode: skill.includes('if `OPENCODE=1` is present'),
-      usesOpenCodeSubagents: skill.includes('OpenCode `Task`'),
-      usesClaudeSubagents: skill.includes('Claude Code `Agent`'),
-      commandDoesNotOverrideHarness: !command.includes("Use Claude's Agent tool"),
-    }).toStrictEqual({
-      detectsCodex: true,
-      usesCodexSubagents: true,
-      detectsPi: true,
-      usesPiSubagents: true,
-      usesPiWorkflowTool: true,
-      detectsOpenCode: true,
-      usesOpenCodeSubagents: true,
-      usesClaudeSubagents: true,
-      commandDoesNotOverrideHarness: true,
-    })
+    expect(skill).toContain(`name: ${skillName}`)
+    expect(skill).not.toContain('TODO')
   })
 
-  it('keeps review findings and reviewer status on GitHub', () => {
-    const skill = readPluginFile('skills/code-review/SKILL.md')
-
-    expect({
-      publishesInlineFeedback: skill.includes('GitHub inline comments'),
-      recordsReviewerStatus: skill.includes('`record-reviewer-status`'),
-      recordsOpenFeedback: skill.includes('`OPEN_FEEDBACK`'),
-      recordsApproval: skill.includes('`APPROVED`'),
-      doesNotRecordFindings: skill.includes('Do not copy findings into workflow events'),
-    }).toStrictEqual({
-      publishesInlineFeedback: true,
-      recordsReviewerStatus: false,
-      recordsOpenFeedback: false,
-      recordsApproval: true,
-      doesNotRecordFindings: true,
-    })
-  })
-
-  it.each(['code-review', 'list-review-threads'])(
+  it.each(['list-review-threads'])(
     'does not translate Codex skill syntax in the %s command adapter',
     (commandName) => {
       const command = readPluginFile(`commands/${commandName}.md`)

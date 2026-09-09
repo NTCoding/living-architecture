@@ -27,7 +27,6 @@ $dev-workflow-continue-planning
 $dev-workflow-choose-next-task
 $dev-workflow-start-implementation <issue-number>
 $dev-workflow-optimize-factory
-$dev-workflow-v2:code-review
 $dev-workflow-v2:list-review-threads
 ```
 
@@ -53,7 +52,6 @@ Pi exposes the same lifecycle commands as Claude Code:
 /dev-workflow-v2:continue-planning
 /dev-workflow-v2:choose-next-task
 /dev-workflow-v2:start-implementation <issue-number>
-/dev-workflow-v2:code-review
 /dev-workflow-v2:list-review-threads
 /dev-workflow-v2:optimize-factory
 /dev-workflow-v2:workflow <operation> [args]
@@ -169,12 +167,6 @@ Prepares an issue branch from the refreshed remote default branch, reads the iss
 Branch preparation supports both a primary checkout and a linked worktree. It leaves the local default branch and any automatically created linked-worktree branch reference unchanged. It stops rather than overwriting work when the checkout is dirty or detached, the current branch contains commits absent from the remote default, the target branch is stale or contains commits, or another worktree already has the target branch checked out.
 
 ### Reusable workflow actions
-
-```bash
-/dev-workflow-v2:code-review
-```
-
-Runs the required workflow review bundle and records each valid verdict.
 
 ```bash
 /dev-workflow-v2:list-review-threads
