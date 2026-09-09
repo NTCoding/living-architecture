@@ -461,9 +461,6 @@ importers:
       '@earendil-works/pi-coding-agent':
         specifier: 0.84.4
         version: 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76)
-      '@living-architecture/dev-workflow-v2-domain-model':
-        specifier: workspace:*
-        version: link:../../packages/dev-workflow-v2/domain-model
       '@living-architecture/dev-workflow-v2-use-cases':
         specifier: workspace:*
         version: link:../../packages/dev-workflow-v2/use-cases

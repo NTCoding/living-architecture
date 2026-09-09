@@ -23,7 +23,6 @@
   "dependencies": {
     "@agentclientprotocol/sdk": "1.4.0",
     "@earendil-works/pi-coding-agent": "0.84.4",
-    "@living-architecture/dev-workflow-v2-domain-model": "workspace:*",
     "@living-architecture/dev-workflow-v2-use-cases": "workspace:*",
     "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.4.8",
     "@nt-ai-lab/deterministic-agent-workflow-cli": "0.4.8",
