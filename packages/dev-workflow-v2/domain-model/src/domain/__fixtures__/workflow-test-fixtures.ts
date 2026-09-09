@@ -37,6 +37,13 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
   return {
     getGitInfo: () => cleanGit,
     getPrFeedback: () => ({
+      reviewerStatuses: {
+        'architecture-review': 'APPROVED',
+        'code-review': 'APPROVED',
+        'bug-scanner': 'APPROVED',
+        'task-check': 'APPROVED',
+        coderabbit: 'APPROVED',
+      },
       reviewDecision: null,
       coderabbitReviewSeen: true,
       unresolvedCount: 0,
@@ -50,7 +57,9 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
     listSessionReviews: () => [],
     sleepMs: () => undefined,
     now: () => AT,
-    emitEvent: () => undefined,
+    reviewLauncher: {
+      run: () => undefined,
+    },
     ...overrides,
   }
 }

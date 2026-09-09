@@ -12,9 +12,12 @@ import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-wor
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from './workflow-types'
 import { MaintainerWorkflowRegistry } from './registry'
+import { ReviewingState } from './states/reviewing'
+import { SubmittingPrState } from './states/submitting-pr'
 import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
 import type { ReadWorkflowGitStatus } from './ports/read-git-status'
 import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
+import type { ReviewLauncher } from './ports/review-launcher'
 import type { WorkflowEvent } from './workflow-events'
 import { parseWorkflowEvent } from './workflow-events'
 type StateName = WorkflowState['currentStateMachineState']
@@ -30,6 +33,7 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
   },
 }
 type WorkflowOperation = keyof typeof RECORDING_OPS_MAP | 'record-reviewer-status'
+export type ReviewOutcome = 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED'
 /** @riviere-role domain-port
  * @riviere-role-justification The aggregate receives current Git and GitHub capabilities at construction time; they are external observations and effects, not previously created workflow state.
  */
@@ -40,7 +44,7 @@ export type WorkflowDeps = {
   readonly listSessionReviews: () => readonly StoredReview[]
   readonly sleepMs: (milliseconds: number) => void
   readonly now: () => string
-  readonly emitEvent: (event: WorkflowEvent, state: WorkflowState) => void
+  readonly reviewLauncher: ReviewLauncher
 }
 /** @riviere-role aggregate */
 export class MaintainerWorkflow {
@@ -58,8 +62,8 @@ export class MaintainerWorkflow {
     this.deps = deps
     this.registryDefinition = MaintainerWorkflowRegistry.parse({
       ...registry,
-      REVIEWING: registry.REVIEWING.withEntryContext({ workflow: this, deps }),
-      SUBMITTING_PR: registry.SUBMITTING_PR.withEntryContext({ workflow: this, deps }),
+      REVIEWING: ReviewingState.parse('REVIEWING', { workflow: this, deps }),
+      SUBMITTING_PR: SubmittingPrState.parse('SUBMITTING_PR', { workflow: this, deps }),
     })
   }
   static build(
@@ -75,6 +79,18 @@ export class MaintainerWorkflow {
 
   getState(): WorkflowState {
     return this.state
+  }
+
+  getPullRequestNumber(): number {
+    if (this.state.prNumber === undefined)
+      throw new WorkflowStateError('Workflow has no recorded pull request.')
+    return this.state.prNumber
+  }
+
+  getSubmissionDetails(): { readonly githubIssue: number; readonly featureBranch: string } {
+    if (this.state.githubIssue === undefined || this.state.featureBranch === undefined)
+      throw new WorkflowStateError('Workflow is not ready to submit a pull request.')
+    return { githubIssue: this.state.githubIssue, featureBranch: this.state.featureBranch }
   }
   registry(): MaintainerWorkflowRegistry {
     return this.registryDefinition
@@ -151,6 +167,29 @@ export class MaintainerWorkflow {
     if (!gate.pass) return gate
     this.append({ type: 'reviewer-status-recorded', at: this.deps.now(), reviewer, status })
     return pass()
+  }
+
+  recordPullRequest(prNumber: number, prUrl: string): PreconditionResult {
+    this.append({ type: 'pr-recorded', at: this.deps.now(), prNumber, prUrl })
+    return pass()
+  }
+
+  transition(target: StateName): PreconditionResult {
+    const current = this.state.currentStateMachineState
+    const definition = this.registryDefinition.state(current)
+    if (!definition.canTransitionTo.includes(target))
+      return fail(`Illegal transition ${current} -> ${target}.`)
+    this.append({ type: 'transitioned', at: this.deps.now(), from: current, to: target })
+    return pass()
+  }
+
+  reviewOutcome(options: { readonly ignoreCodeRabbit?: boolean } = {}): ReviewOutcome {
+    const statuses = Object.entries(this.state.reviewerStatuses)
+      .filter(([reviewer]) => !(options.ignoreCodeRabbit === true && reviewer === 'coderabbit'))
+      .map(([, status]) => status)
+    if (statuses.some((status) => status === 'OPEN_FEEDBACK')) return 'OPEN_FEEDBACK'
+    if (statuses.some((status) => status === 'PENDING')) return 'PENDING'
+    return 'APPROVED'
   }
   private append(event: WorkflowEvent): void {
     this.pendingEvents = [...this.pendingEvents, event]

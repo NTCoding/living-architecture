@@ -2,16 +2,18 @@ import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow
 import { z } from 'zod'
 import type { WorkflowTransitionContext } from '../workflow-transition-context'
 import type { WorkflowState } from '../workflow-types'
-import type { WorkflowEvent } from '../workflow-events'
 import type { CreateWorkflowPullRequest } from '../ports/create-pull-request'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 
-type SubmittingPrEntryContext = {
-  readonly workflow: { getState(): WorkflowState; appendEvent(event: WorkflowEvent): void }
+export type SubmittingPrDependencies = {
+  readonly workflow: {
+    getState(): WorkflowState
+    getSubmissionDetails(): { readonly githubIssue: number; readonly featureBranch: string }
+    recordPullRequest(prNumber: number, prUrl: string): { readonly pass: boolean; readonly reason?: string }
+  }
   readonly deps: {
     readonly createPullRequest: CreateWorkflowPullRequest
     readonly now: () => string
-    readonly emitEvent: (event: WorkflowEvent, state: WorkflowState) => void
   }
 }
 
@@ -26,26 +28,22 @@ export class SubmittingPrState {
   readonly allowedWorkflowOperations = [] as const
   readonly forbidden = { write: true } as const
 
-  private readonly entryContext: SubmittingPrEntryContext | undefined
+  private readonly dependencies: SubmittingPrDependencies | undefined
 
-  private constructor(name: 'SUBMITTING_PR', entryContext?: SubmittingPrEntryContext) {
+  private constructor(name: 'SUBMITTING_PR', dependencies?: SubmittingPrDependencies) {
     this.name = name
-    this.entryContext = entryContext
+    this.dependencies = dependencies
   }
 
-  static parse(value: unknown): SubmittingPrState {
+  static parse(value: unknown, dependencies?: SubmittingPrDependencies): SubmittingPrState {
     z.literal('SUBMITTING_PR').parse(value)
-    return new SubmittingPrState('SUBMITTING_PR')
-  }
-
-  withEntryContext(entryContext: SubmittingPrEntryContext): SubmittingPrState {
-    return new SubmittingPrState(this.name, entryContext)
+    return new SubmittingPrState('SUBMITTING_PR', dependencies)
   }
 
   transitionGuard(
     context: Parameters<typeof WorkflowTransitionContext.from>[0],
   ): PreconditionResult {
-    if (!context.state.prNumber) {
+    if (context.to === 'REVIEWING' && context.state.prNumber === undefined) {
       return {
         pass: false,
         reason: 'Pull request creation did not record a pull request.',
@@ -55,39 +53,17 @@ export class SubmittingPrState {
   }
 
   afterEntry(): void {
-    if (this.entryContext === undefined)
+    if (this.dependencies === undefined)
       throw new WorkflowStateError('Submitting PR entry dependencies have not been configured.')
-    const context = this.entryContext
-    const state = context.workflow.getState()
-    if (state.githubIssue === undefined) {
-      throw new WorkflowStateError(
-        'githubIssue not set. Record the issue before submitting the pull request.',
-      )
-    }
-    if (state.featureBranch === undefined) {
-      throw new WorkflowStateError(
-        'featureBranch not set. Record the branch before submitting the pull request.',
-      )
-    }
+    const context = this.dependencies
+    const { githubIssue, featureBranch } = context.workflow.getSubmissionDetails()
 
     const pullRequest = context.deps.createPullRequest({
-      branch: state.featureBranch,
-      title: `Implement #${String(state.githubIssue)}`,
-      body: `Closes #${String(state.githubIssue)}`,
+      branch: featureBranch,
+      title: `Implement #${String(githubIssue)}`,
+      body: `Closes #${String(githubIssue)}`,
+      draft: false,
     })
-    if (pullRequest.isDraft) {
-      throw new WorkflowStateError(
-        `Expected workflow-created PR #${String(pullRequest.prNumber)} to be ready for review.`,
-      )
-    }
-    context.deps.emitEvent(
-      {
-        type: 'pr-recorded',
-        at: context.deps.now(),
-        prNumber: pullRequest.prNumber,
-        prUrl: pullRequest.prUrl,
-      },
-      state,
-    )
+    context.workflow.recordPullRequest(pullRequest.prNumber, pullRequest.prUrl)
   }
 }
