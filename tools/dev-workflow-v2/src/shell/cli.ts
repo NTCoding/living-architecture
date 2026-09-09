@@ -1,4 +1,5 @@
 import { createDefaultProcessDeps } from '@nt-ai-lab/deterministic-agent-workflow-cli'
+import { toPayload, type BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { defineWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
 import { createClaudeCodeWorkflowCli } from '@nt-ai-lab/deterministic-agent-workflow-claude-code'
 import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
@@ -71,5 +72,12 @@ createClaudeCodeWorkflowCli({
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,
+    emitEvent: (event: BaseEvent, state: { readonly currentStateMachineState: string }) =>
+      platform.store.appendEvents(platform.getSessionId(), [
+        {
+          envelope: { type: event.type, at: event.at, state: state.currentStateMachineState },
+          payload: toPayload(event),
+        },
+      ]),
   }),
 })

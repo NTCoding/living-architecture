@@ -12,7 +12,8 @@ describe('Workflow', () => {
       const wf = buildTestWorkflow(makeDeps())
       expect(wf.getState().currentStateMachineState).toBe('IMPLEMENTING')
       expect(wf.getPendingEvents()).toHaveLength(0)
-      expect(wf.registry()).toBe(TEST_WORKFLOW_REGISTRY)
+      expect(wf.registry()).not.toBe(TEST_WORKFLOW_REGISTRY)
+      expect(wf.registry().IMPLEMENTING).toBe(TEST_WORKFLOW_REGISTRY.IMPLEMENTING)
     })
   })
 

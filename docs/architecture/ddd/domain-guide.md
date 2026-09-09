@@ -74,6 +74,7 @@ Domain model package: `@living-architecture/dev-workflow-v2-domain-model`
 - `configureWorkflow`
   - Invokes domain service operation `parseWorkflowEvent`
   - Invokes aggregate operation `MaintainerWorkflow.build`
+  - Invokes aggregate operation `MaintainerWorkflow.registry`
 - `CreateWorkflowRoutes`
 - `PrepareImplementationBranch`
 

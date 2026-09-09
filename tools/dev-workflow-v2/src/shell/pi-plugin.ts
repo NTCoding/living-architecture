@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
+import { toPayload, type BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { createPiWorkflowExtension } from '@nt-ai-lab/deterministic-agent-workflow-pi'
 import { defineWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
 import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
@@ -97,6 +98,13 @@ const workflowExtension = createPiWorkflowExtension({
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,
+    emitEvent: (event: BaseEvent, state: { readonly currentStateMachineState: string }) =>
+      platform.store.appendEvents(platform.getSessionId(), [
+        {
+          envelope: { type: event.type, at: event.at, state: state.currentStateMachineState },
+          payload: toPayload(event),
+        },
+      ]),
   }),
 })
 

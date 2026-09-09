@@ -40,6 +40,7 @@ export type WorkflowDeps = {
   readonly listSessionReviews: () => readonly StoredReview[]
   readonly sleepMs: (milliseconds: number) => void
   readonly now: () => string
+  readonly emitEvent: (event: WorkflowEvent, state: WorkflowState) => void
 }
 /** @riviere-role aggregate */
 export class MaintainerWorkflow {
@@ -54,8 +55,12 @@ export class MaintainerWorkflow {
     deps: WorkflowDeps,
   ) {
     this.state = state
-    this.registryDefinition = registry
     this.deps = deps
+    this.registryDefinition = MaintainerWorkflowRegistry.parse({
+      ...registry,
+      REVIEWING: registry.REVIEWING.withEntryContext({ workflow: this, deps }),
+      SUBMITTING_PR: registry.SUBMITTING_PR.withEntryContext({ workflow: this, deps }),
+    })
   }
   static build(
     registry: MaintainerWorkflowRegistry,

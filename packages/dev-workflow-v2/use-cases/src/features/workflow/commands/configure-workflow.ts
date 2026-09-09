@@ -36,9 +36,7 @@ export interface ConfigureWorkflowResult {
     WorkflowState,
     StateName,
     WorkflowOperation,
-    WorkflowTransitionContext,
-    MaintainerWorkflow,
-    WorkflowDeps
+    WorkflowTransitionContext
   >
   buildTransitionContext(
     state: WorkflowState,
@@ -86,6 +84,7 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
     HUMAN_REVIEWING: HumanReviewingState.parse('HUMAN_REVIEWING'),
     BLOCKED: BlockedState.parse('BLOCKED'),
   })
+  const activeRegistry = { value: registry }
   return {
     fold(state: WorkflowState, event: BaseEvent): WorkflowState {
       try {
@@ -98,11 +97,13 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
       }
     },
     buildWorkflow(state: WorkflowState, deps: WorkflowDeps): MaintainerWorkflow {
-      return MaintainerWorkflow.build(registry, deps, state)
+      const workflow = MaintainerWorkflow.build(registry, deps, state)
+      activeRegistry.value = workflow.registry()
+      return workflow
     },
     stateSchema: WorkflowState.stateNameSchema(),
     initialState: WorkflowState.initial,
-    getRegistry: () => registry,
+    getRegistry: () => activeRegistry.value,
     buildTransitionContext(
       state: WorkflowState,
       from: StateName,

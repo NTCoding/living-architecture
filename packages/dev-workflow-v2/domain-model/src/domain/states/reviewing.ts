@@ -1,26 +1,27 @@
 import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { z } from 'zod'
 import type { WorkflowTransitionContext } from '../workflow-transition-context'
-import type { StateEntryContext } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowState } from '../workflow-types'
 import type { WorkflowEvent } from '../workflow-events'
 import type { ReadWorkflowPullRequestFeedback } from '../ports/read-pull-request-feedback'
+import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 
-type ReviewingEntryContext = StateEntryContext<
-  {
+type ReviewingEntryContext = {
+  readonly workflow: {
     getState(): WorkflowState
     appendEvent(event: WorkflowEvent): void
     recordReviewerStatus(
       reviewer: 'architecture-review' | 'code-review' | 'bug-scanner' | 'task-check' | 'coderabbit',
       status: 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED',
     ): { readonly pass: boolean; readonly reason?: string }
-  },
-  {
+  }
+  readonly deps: {
     readonly getPrFeedback: ReadWorkflowPullRequestFeedback
     readonly sleepMs: (milliseconds: number) => void
     readonly now: () => string
+    readonly emitEvent: (event: WorkflowEvent, state: WorkflowState) => void
   }
->
+}
 
 const CODERABBIT_POLL_INTERVAL_MS = 15_000
 const CODERABBIT_MAX_POLLS = 20
@@ -41,13 +42,20 @@ export class ReviewingState {
   readonly forbidden = { write: true } as const
   readonly allowedWorkflowOperations = ['record-reviewer-status'] as const
 
-  private constructor(name: 'REVIEWING') {
+  private readonly entryContext: ReviewingEntryContext | undefined
+
+  private constructor(name: 'REVIEWING', entryContext?: ReviewingEntryContext) {
     this.name = name
+    this.entryContext = entryContext
   }
 
   static parse(value: unknown): ReviewingState {
     z.literal('REVIEWING').parse(value)
     return new ReviewingState('REVIEWING')
+  }
+
+  withEntryContext(entryContext: ReviewingEntryContext): ReviewingState {
+    return new ReviewingState(this.name, entryContext)
   }
 
   transitionGuard(
@@ -66,42 +74,63 @@ export class ReviewingState {
     return { pass: true }
   }
 
-  afterEntry(context: ReviewingEntryContext): void {
+  afterEntry(): void {
+    if (this.entryContext === undefined)
+      throw new WorkflowStateError('Reviewing entry dependencies have not been configured.')
+    const context = this.entryContext
     const state = context.workflow.getState()
     if (state.prNumber === undefined) return
 
     const feedback = waitForCodeRabbit(context.deps, state.prNumber)
     if (feedback.coderabbitRateLimited === true) {
-      context.workflow.appendEvent({
-        type: 'transitioned',
-        at: context.deps.now(),
-        from: 'REVIEWING',
-        to: 'BLOCKED',
-      })
+      context.deps.emitEvent(
+        {
+          type: 'transitioned',
+          at: context.deps.now(),
+          from: 'REVIEWING',
+          to: 'BLOCKED',
+        },
+        state,
+      )
       return
     }
     const coderabbitStatus = getCodeRabbitStatus(feedback)
     if (state.reviewerStatuses['coderabbit'] !== coderabbitStatus) {
       context.workflow.recordReviewerStatus('coderabbit', coderabbitStatus)
+      context.deps.emitEvent(
+        {
+          type: 'reviewer-status-recorded',
+          at: context.deps.now(),
+          reviewer: 'coderabbit',
+          status: coderabbitStatus,
+        },
+        state,
+      )
     }
 
     const statuses = context.workflow.getState().reviewerStatuses
     if (Object.values(statuses).some((status) => status === 'OPEN_FEEDBACK')) {
-      context.workflow.appendEvent({
-        type: 'transitioned',
-        at: context.deps.now(),
-        from: 'REVIEWING',
-        to: 'ADDRESSING_FEEDBACK',
-      })
+      context.deps.emitEvent(
+        {
+          type: 'transitioned',
+          at: context.deps.now(),
+          from: 'REVIEWING',
+          to: 'ADDRESSING_FEEDBACK',
+        },
+        context.workflow.getState(),
+      )
       return
     }
     if (Object.values(statuses).every((status) => status === 'APPROVED')) {
-      context.workflow.appendEvent({
-        type: 'transitioned',
-        at: context.deps.now(),
-        from: 'REVIEWING',
-        to: 'HUMAN_REVIEWING',
-      })
+      context.deps.emitEvent(
+        {
+          type: 'transitioned',
+          at: context.deps.now(),
+          from: 'REVIEWING',
+          to: 'HUMAN_REVIEWING',
+        },
+        context.workflow.getState(),
+      )
     }
   }
 }

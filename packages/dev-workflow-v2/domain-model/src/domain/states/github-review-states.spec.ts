@@ -71,17 +71,26 @@ function stateContext(
         sleepMs: () => undefined,
         createPullRequest,
         now: () => AT,
+        emitEvent: (event: WorkflowEvent) => {
+          events.push(event)
+          stateBox.value = stateBox.value.apply(event)
+        },
       },
     },
   }
 }
 
 describe('GitHub review states', () => {
+  it('requires bound dependencies before a state entry effect runs', () => {
+    expect(() => SubmittingPrState.parse('SUBMITTING_PR').afterEntry()).toThrow('dependencies')
+    expect(() => ReviewingState.parse('REVIEWING').afterEntry()).toThrow('dependencies')
+  })
+
   it('creates and records a ready pull request during submitting entry', () => {
     const { context, events } = stateContext(
       WorkflowState.initial().with({ githubIssue: 42, featureBranch: 'issue-42' }),
     )
-    SubmittingPrState.parse('SUBMITTING_PR').afterEntry(context)
+    SubmittingPrState.parse('SUBMITTING_PR').withEntryContext(context).afterEntry()
     expect(events).toStrictEqual([
       {
         type: 'pr-recorded',
@@ -98,20 +107,20 @@ describe('GitHub review states', () => {
       undefined,
       () => ({ prNumber: 9, prUrl: 'https://example.test/pr/9', isDraft: true }),
     )
-    expect(() => SubmittingPrState.parse('SUBMITTING_PR').afterEntry(context)).toThrow(
-      'ready for review',
-    )
+    expect(() =>
+      SubmittingPrState.parse('SUBMITTING_PR').withEntryContext(context).afterEntry(),
+    ).toThrow('ready for review')
   })
 
   it('requires the issue and branch before submitting entry creates a pull request', () => {
     const noIssue = stateContext(WorkflowState.initial().with({ featureBranch: 'issue-42' }))
-    expect(() => SubmittingPrState.parse('SUBMITTING_PR').afterEntry(noIssue.context)).toThrow(
-      'githubIssue',
-    )
+    expect(() =>
+      SubmittingPrState.parse('SUBMITTING_PR').withEntryContext(noIssue.context).afterEntry(),
+    ).toThrow('githubIssue')
     const noBranch = stateContext(WorkflowState.initial().with({ githubIssue: 42 }))
-    expect(() => SubmittingPrState.parse('SUBMITTING_PR').afterEntry(noBranch.context)).toThrow(
-      'featureBranch',
-    )
+    expect(() =>
+      SubmittingPrState.parse('SUBMITTING_PR').withEntryContext(noBranch.context).afterEntry(),
+    ).toThrow('featureBranch')
   })
 
   it('blocks on CodeRabbit rate limiting', () => {
@@ -119,7 +128,7 @@ describe('GitHub review states', () => {
       WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
       githubFeedback({ coderabbitRateLimited: true }),
     )
-    ReviewingState.parse('REVIEWING').afterEntry(context)
+    ReviewingState.parse('REVIEWING').withEntryContext(context).afterEntry()
     expect(events).toContainEqual(expect.objectContaining({ type: 'transitioned', to: 'BLOCKED' }))
   })
 
@@ -131,7 +140,7 @@ describe('GitHub review states', () => {
         threads: [codeRabbitThread('coderabbitai')],
       }),
     )
-    ReviewingState.parse('REVIEWING').afterEntry(context)
+    ReviewingState.parse('REVIEWING').withEntryContext(context).afterEntry()
     expect(events).toContainEqual(
       expect.objectContaining({ reviewer: 'coderabbit', status: 'OPEN_FEEDBACK' }),
     )
@@ -144,13 +153,13 @@ describe('GitHub review states', () => {
     const noPullRequest = stateContext(
       WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING' }),
     )
-    ReviewingState.parse('REVIEWING').afterEntry(noPullRequest.context)
+    ReviewingState.parse('REVIEWING').withEntryContext(noPullRequest.context).afterEntry()
     expect(noPullRequest.events).toStrictEqual([])
 
     const pendingCodeRabbit = stateContext(
       WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
     )
-    ReviewingState.parse('REVIEWING').afterEntry(pendingCodeRabbit.context)
+    ReviewingState.parse('REVIEWING').withEntryContext(pendingCodeRabbit.context).afterEntry()
     expect(pendingCodeRabbit.events).toStrictEqual([])
   })
 
@@ -166,7 +175,7 @@ describe('GitHub review states', () => {
         threads: [codeRabbitThread('coderabbitai[bot]')],
       }),
     )
-    ReviewingState.parse('REVIEWING').afterEntry(context)
+    ReviewingState.parse('REVIEWING').withEntryContext(context).afterEntry()
     expect(events).not.toContainEqual(expect.objectContaining({ reviewer: 'coderabbit' }))
     expect(events).toContainEqual(
       expect.objectContaining({ type: 'transitioned', to: 'ADDRESSING_FEEDBACK' }),
@@ -188,7 +197,7 @@ describe('GitHub review states', () => {
       }),
       githubFeedback({ coderabbitReviewSeen: true }),
     )
-    ReviewingState.parse('REVIEWING').afterEntry(context)
+    ReviewingState.parse('REVIEWING').withEntryContext(context).afterEntry()
     expect(events).toContainEqual(
       expect.objectContaining({ reviewer: 'coderabbit', status: 'APPROVED' }),
     )
