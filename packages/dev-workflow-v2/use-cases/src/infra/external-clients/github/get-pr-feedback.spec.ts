@@ -29,6 +29,7 @@ function graphqlResponse(
     data: {
       repository: {
         pullRequest: {
+          headRefOid: 'head-oid',
           reviewDecision: overrides.reviewDecision ?? null,
           reviews: {
             nodes: overrides.reviews ?? [],
@@ -85,10 +86,11 @@ function makeThread(
   }
 }
 
-function makeReview(login: string, state: string, body = ''): object {
+function makeReview(login: string, state: string, body = '', commitOid = 'head-oid'): object {
   return {
     author: { login },
     body,
+    commit: { oid: commitOid },
     state,
     submittedAt: '2026-09-03T10:00:00Z',
   }
@@ -208,6 +210,20 @@ describe('createGithubPullRequestFeedbackClient', () => {
     const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
     const result = getPrFeedback(1)
     expect(result.coderabbitReviewSeen).toBe(true)
+  })
+
+  it('does not treat a CodeRabbit review of an earlier head as current feedback', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([], {
+          reviews: [makeReview('coderabbitai[bot]', 'APPROVED', '', 'old-oid')],
+        }),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+
+    expect(getPrFeedback(1).coderabbitReviewSeen).toBe(false)
   })
 
   it('detects a CodeRabbit review rate limit', () => {

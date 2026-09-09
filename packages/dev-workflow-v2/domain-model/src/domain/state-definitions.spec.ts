@@ -1,348 +1,164 @@
 import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
-import { AddressingFeedbackState } from './states/addressing-feedback'
-import { AwaitingCiState } from './states/awaiting-ci'
-import { BlockedState } from './states/blocked'
 import { ImplementingState } from './states/implementing'
 import { ReviewingState } from './states/reviewing'
 import { SubmittingPrState } from './states/submitting-pr'
-import { getInitialWorkflowState } from './workflow-types'
+import { AddressingFeedbackState } from './states/addressing-feedback'
+import { BlockedState } from './states/blocked'
+import { WorkflowTransitionContext } from './workflow-transition-context'
+import { getInitialWorkflowState, WorkflowState } from './workflow-types'
 
-const cleanGit: GitInfo = {
-  currentBranch: 'issue-42',
+const gitInfo: GitInfo = {
+  currentBranch: 'branch',
   workingTreeClean: true,
-  headCommit: 'abc123',
+  headCommit: 'abc',
   changedFilesVsDefault: [],
   hasCommitsVsDefault: true,
 }
 
-const addressingFeedback = AddressingFeedbackState.parse('ADDRESSING_FEEDBACK')
-const awaitingCi = AwaitingCiState.parse('AWAITING_CI')
-const blocked = BlockedState.parse('BLOCKED')
-const implementing = ImplementingState.parse('IMPLEMENTING')
-const reviewing = ReviewingState.parse('REVIEWING')
-const submittingPr = SubmittingPrState.parse('SUBMITTING_PR')
-
-const addressingFeedbackGuard = addressingFeedback.transitionGuard
-const awaitingCiGuard = awaitingCi.transitionGuard
-const blockedGuard = blocked.transitionGuard
-const implementingGuard = implementing.transitionGuard
-const reviewingGuard = reviewing.transitionGuard
-const submittingPrGuard = submittingPr.transitionGuard
-const addressingFeedbackOnEntry = addressingFeedback.onEntry
-const implementingOnEntry = implementing.onEntry
-
 describe('workflow state definitions', () => {
-  it('requires clean, addressed feedback before reflecting', () => {
-    const baseState = getInitialWorkflowState().with({
-      currentStateMachineState: 'ADDRESSING_FEEDBACK',
-    })
-    const context = {
-      from: 'ADDRESSING_FEEDBACK' as const,
-      to: 'REFLECTING' as const,
-      gitInfo: cleanGit,
-    }
-
+  it('requires approval from every reviewer before human review', () => {
+    const state = getInitialWorkflowState().with({ currentStateMachineState: 'REVIEWING' })
+    const reviewing = ReviewingState.parse('REVIEWING')
     expect(
-      addressingFeedbackGuard({
-        ...context,
-        state: baseState,
-      }),
-    ).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('Feedback not addressed'),
-    })
+      reviewing.transitionGuard({ state, gitInfo, from: 'REVIEWING', to: 'HUMAN_REVIEWING' }).pass,
+    ).toBe(false)
+    const reviewerStatuses = Object.keys(state.reviewerStatuses).reduce<
+      WorkflowState['reviewerStatuses']
+    >((statuses, reviewer) => ({ ...statuses, [reviewer]: 'APPROVED' }), {})
     expect(
-      addressingFeedbackGuard({
-        ...context,
-        state: baseState.with({
-          feedbackAddressed: true,
-          feedbackClean: false,
-        }),
+      reviewing.transitionGuard({
+        state: state.with({ reviewerStatuses }),
+        gitInfo,
+        from: 'REVIEWING',
+        to: 'HUMAN_REVIEWING',
       }),
-    ).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('not yet clear'),
-    })
-    expect(
-      addressingFeedbackGuard({
-        ...context,
-        state: baseState.with({
-          feedbackAddressed: true,
-          feedbackClean: true,
-        }),
-      }),
-    ).toStrictEqual({
-      pass: true,
-    })
+    ).toStrictEqual({ pass: true })
   })
 
-  it('resets feedback status when feedback addressing begins', () => {
-    const state = getInitialWorkflowState().with({
-      feedbackAddressed: true,
-      feedbackClean: true,
-    })
-
-    expect(addressingFeedbackOnEntry(state)).toMatchObject({
-      feedbackAddressed: false,
-      feedbackClean: false,
-    })
+  it('resets reviewer status when implementation begins', () => {
+    const state = ImplementingState.parse('IMPLEMENTING').onEntry(getInitialWorkflowState())
+    expect(state.reviewerStatuses).toMatchObject({ coderabbit: 'PENDING' })
   })
 
-  it('routes the awaiting-CI state according to the recorded CI result', () => {
-    const state = getInitialWorkflowState().with({
-      currentStateMachineState: 'AWAITING_CI',
-    })
-
+  it('requires a committed, clean issue branch before submitting', () => {
+    const state = getInitialWorkflowState()
+    const implementing = ImplementingState.parse('IMPLEMENTING')
     expect(
-      awaitingCiGuard({
+      implementing.transitionGuard({
         state,
-        gitInfo: cleanGit,
-        from: 'AWAITING_CI',
-        to: 'AWAITING_PR_FEEDBACK',
-      }),
-    ).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('CI not passed'),
-    })
+        gitInfo: { ...gitInfo, hasCommitsVsDefault: false },
+        from: 'IMPLEMENTING',
+        to: 'SUBMITTING_PR',
+      }).pass,
+    ).toBe(false)
     expect(
-      awaitingCiGuard({
-        state: state.with({
-          ciPassed: true,
-        }),
-        gitInfo: cleanGit,
-        from: 'AWAITING_CI',
-        to: 'IMPLEMENTING',
-      }),
-    ).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('CI passed'),
-    })
+      implementing.transitionGuard({
+        state,
+        gitInfo: { ...gitInfo, workingTreeClean: false },
+        from: 'IMPLEMENTING',
+        to: 'SUBMITTING_PR',
+      }).pass,
+    ).toBe(false)
     expect(
-      awaitingCiGuard({
-        state: state.with({
-          ciPassed: true,
-        }),
-        gitInfo: cleanGit,
-        from: 'AWAITING_CI',
-        to: 'AWAITING_PR_FEEDBACK',
+      implementing.transitionGuard({ state, gitInfo, from: 'IMPLEMENTING', to: 'SUBMITTING_PR' })
+        .pass,
+    ).toBe(false)
+    expect(
+      implementing.transitionGuard({
+        state: state.with({ githubIssue: 42 }),
+        gitInfo,
+        from: 'IMPLEMENTING',
+        to: 'SUBMITTING_PR',
       }),
-    ).toStrictEqual({
-      pass: true,
-    })
+    ).toStrictEqual({ pass: true })
   })
 
-  it('only leaves BLOCKED by returning to the pre-blocked state', () => {
-    const state = getInitialWorkflowState().with({
-      currentStateMachineState: 'BLOCKED',
-      preBlockedState: 'REVIEWING',
-    })
-
+  it('requires a recorded pull request before reviewing', () => {
+    const submitting = SubmittingPrState.parse('SUBMITTING_PR')
     expect(
-      blockedGuard({
-        state,
-        gitInfo: cleanGit,
-        from: 'BLOCKED',
-        to: 'IMPLEMENTING',
-      }),
-    ).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('Must return'),
-    })
+      submitting.transitionGuard({
+        state: getInitialWorkflowState(),
+        gitInfo,
+        from: 'SUBMITTING_PR',
+        to: 'REVIEWING',
+      }).pass,
+    ).toBe(false)
     expect(
-      blockedGuard({
-        state,
-        gitInfo: cleanGit,
-        from: 'BLOCKED',
+      submitting.transitionGuard({
+        state: getInitialWorkflowState().with({ prNumber: 1 }),
+        gitInfo,
+        from: 'SUBMITTING_PR',
         to: 'REVIEWING',
       }),
-    ).toStrictEqual({
-      pass: true,
-    })
+    ).toStrictEqual({ pass: true })
   })
 
-  it('requires committed work and a recorded issue before review', () => {
+  it('allows addressing feedback only when a reviewer has an open finding', () => {
+    const reviewing = ReviewingState.parse('REVIEWING')
     const state = getInitialWorkflowState()
-    const context = {
-      from: 'IMPLEMENTING' as const,
-      to: 'REVIEWING' as const,
-    }
-
     expect(
-      implementingGuard({
-        ...context,
-        state,
-        gitInfo: {
-          ...cleanGit,
-          hasCommitsVsDefault: false,
-        },
-      }),
-    ).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('No commits'),
-    })
+      reviewing.transitionGuard({ state, gitInfo, from: 'REVIEWING', to: 'ADDRESSING_FEEDBACK' })
+        .pass,
+    ).toBe(false)
     expect(
-      implementingGuard({
-        ...context,
-        state,
-        gitInfo: {
-          ...cleanGit,
-          workingTreeClean: false,
-        },
-      }),
-    ).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('not clean'),
-    })
-    expect(
-      implementingGuard({
-        ...context,
-        state,
-        gitInfo: cleanGit,
-      }),
-    ).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('No issue recorded'),
-    })
-    expect(
-      implementingGuard({
-        ...context,
+      reviewing.transitionGuard({
         state: state.with({
-          githubIssue: 42,
+          reviewerStatuses: { ...state.reviewerStatuses, coderabbit: 'OPEN_FEEDBACK' },
         }),
-        gitInfo: cleanGit,
+        gitInfo,
+        from: 'REVIEWING',
+        to: 'ADDRESSING_FEEDBACK',
       }),
-    ).toStrictEqual({
-      pass: true,
-    })
+    ).toStrictEqual({ pass: true })
   })
 
-  it('allows implementation to transition directly to BLOCKED', () => {
+  it('requires blocked state to return to the recorded state', () => {
+    const state = getInitialWorkflowState().with({ preBlockedState: 'REVIEWING' })
+    const blocked = BlockedState.parse('BLOCKED')
     expect(
-      implementingGuard({
+      blocked.transitionGuard({ state, gitInfo, from: 'BLOCKED', to: 'IMPLEMENTING' }).pass,
+    ).toBe(false)
+    expect(
+      blocked.transitionGuard({ state, gitInfo, from: 'BLOCKED', to: 'REVIEWING' }),
+    ).toStrictEqual({ pass: true })
+    const result = blocked.transitionGuard({
+      state: getInitialWorkflowState(),
+      gitInfo,
+      from: 'BLOCKED',
+      to: 'IMPLEMENTING',
+    })
+    expect(result).toMatchObject({ pass: false, reason: expect.stringContaining('unknown') })
+  })
+
+  it('allows the feedback state to return to reviewing or block', () => {
+    const addressing = AddressingFeedbackState.parse('ADDRESSING_FEEDBACK')
+    const state = getInitialWorkflowState().with({
+      currentStateMachineState: 'ADDRESSING_FEEDBACK',
+    })
+    expect(
+      addressing.transitionGuard({ state, gitInfo, from: 'ADDRESSING_FEEDBACK', to: 'REVIEWING' }),
+    ).toStrictEqual({ pass: true })
+    expect(
+      addressing.transitionGuard({ state, gitInfo, from: 'ADDRESSING_FEEDBACK', to: 'BLOCKED' }),
+    ).toStrictEqual({ pass: true })
+  })
+
+  it('builds a transition context and runs feedback entry', () => {
+    const state = getInitialWorkflowState()
+    expect(
+      WorkflowTransitionContext.from({ state, gitInfo, from: 'IMPLEMENTING', to: 'SUBMITTING_PR' }),
+    ).toMatchObject({ state, gitInfo, from: 'IMPLEMENTING', to: 'SUBMITTING_PR' })
+    expect(AddressingFeedbackState.parse('ADDRESSING_FEEDBACK').onEntry(state)).not.toBe(state)
+  })
+
+  it('allows any state to enter blocked', () => {
+    expect(
+      ImplementingState.parse('IMPLEMENTING').transitionGuard({
         state: getInitialWorkflowState(),
-        gitInfo: {
-          ...cleanGit,
-          hasCommitsVsDefault: false,
-        },
+        gitInfo: { ...gitInfo, hasCommitsVsDefault: false },
         from: 'IMPLEMENTING',
         to: 'BLOCKED',
       }),
-    ).toStrictEqual({
-      pass: true,
-    })
-  })
-
-  it('reports an unknown prior state when BLOCKED was entered without one', () => {
-    const state = getInitialWorkflowState().with({
-      currentStateMachineState: 'BLOCKED',
-    })
-
-    expect(
-      blockedGuard({
-        state,
-        gitInfo: cleanGit,
-        from: 'BLOCKED',
-        to: 'IMPLEMENTING',
-      }),
-    ).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('unknown'),
-    })
-  })
-
-  it('resets delivery checks when implementation resumes', () => {
-    const state = getInitialWorkflowState().with({
-      architectureReviewPassed: true,
-      codeReviewPassed: true,
-      bugScannerPassed: true,
-      taskCheckPassed: true,
-      ciPassed: true,
-      feedbackClean: true,
-      feedbackAddressed: true,
-    })
-
-    expect(implementingOnEntry(state)).toMatchObject({
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
-    })
-  })
-
-  it('requires every applicable review before submitting a pull request', () => {
-    const reviewed = getInitialWorkflowState().with({
-      currentStateMachineState: 'REVIEWING',
-      architectureReviewPassed: true,
-      codeReviewPassed: true,
-      bugScannerPassed: true,
-    })
-
-    expect(
-      reviewingGuard({
-        state: reviewed.with({
-          githubIssue: 42,
-        }),
-        gitInfo: cleanGit,
-        from: 'REVIEWING',
-        to: 'SUBMITTING_PR',
-      }),
-    ).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('task-check'),
-    })
-    expect(
-      reviewingGuard({
-        state: reviewed,
-        gitInfo: cleanGit,
-        from: 'REVIEWING',
-        to: 'SUBMITTING_PR',
-      }),
-    ).toStrictEqual({
-      pass: true,
-    })
-    expect(
-      reviewingGuard({
-        state: reviewed,
-        gitInfo: cleanGit,
-        from: 'REVIEWING',
-        to: 'IMPLEMENTING',
-      }),
-    ).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('All reviews passed'),
-    })
-  })
-
-  it('requires a recorded pull request before awaiting CI', () => {
-    const state = getInitialWorkflowState().with({
-      currentStateMachineState: 'SUBMITTING_PR',
-    })
-
-    expect(
-      submittingPrGuard({
-        state,
-        gitInfo: cleanGit,
-        from: 'SUBMITTING_PR',
-        to: 'AWAITING_CI',
-      }),
-    ).toMatchObject({
-      pass: false,
-      reason: expect.stringContaining('prNumber not set'),
-    })
-    expect(
-      submittingPrGuard({
-        state: state.with({
-          prNumber: 42,
-        }),
-        gitInfo: cleanGit,
-        from: 'SUBMITTING_PR',
-        to: 'AWAITING_CI',
-      }),
-    ).toStrictEqual({
-      pass: true,
-    })
+    ).toStrictEqual({ pass: true })
   })
 })

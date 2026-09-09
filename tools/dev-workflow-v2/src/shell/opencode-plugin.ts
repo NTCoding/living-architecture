@@ -15,9 +15,7 @@ import { dirname, join } from 'node:path'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
 import {
   parseNumberArgument,
-  parseOptionalStringArgument,
   parseStringArgument,
-  parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 import { createWorkflowCliRuntime } from './workflow-cli-runtime'
@@ -32,8 +30,6 @@ const routes = createWorkflowRoutes({
   ),
   parseNumberArgument,
   parseStringArgument,
-  parseOptionalStringArgument,
-  parseStringArguments,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],

@@ -1,285 +1,64 @@
-import { describe, it, expect, afterEach } from 'vitest'
-import type { TestContext } from './__fixtures__/workflow-cli-test-fixtures'
-import {
-  buildTestContext,
-  cleanupDb,
-  progressToState,
-  runCommand,
-  runReviewCommand,
-} from './__fixtures__/workflow-cli-test-fixtures'
-import {
-  recordPassingPreReviews,
-  recordTaskCheck,
-} from './__fixtures__/review-command-test-fixtures'
+import { afterEach, describe, expect, it } from 'vitest'
+import { flattenStoredEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { buildTestContext, cleanupDb, runCommand } from './__fixtures__/workflow-cli-test-fixtures'
 
-describe('workflow-cli transitions', () => {
+describe('workflow lifecycle', () => {
   const dbPaths: string[] = []
+  afterEach(() => dbPaths.splice(0).forEach(cleanupDb))
 
-  afterEach(() => {
-    for (const path of dbPaths) {
-      cleanupDb(path)
-    }
-    dbPaths.length = 0
-  })
-
-  function setup(overrides?: {
-    readonly gitInfo?: Partial<{
-      readonly hasCommitsVsDefault: boolean
-      readonly workingTreeClean: boolean
-    }>
-    readonly getPrFeedback?: TestContext['workflowDeps']['getPrFeedback']
-  }): TestContext {
-    const ctx = buildTestContext(
-      overrides?.getPrFeedback === undefined ? {} : { getPrFeedback: overrides.getPrFeedback },
-    )
-    if (overrides?.gitInfo) {
-      const original = ctx.workflowDeps.getGitInfo
-      const gitOverrides = overrides.gitInfo
-      Object.defineProperty(ctx.workflowDeps, 'getGitInfo', {
-        value: () => ({
-          ...original(),
-          ...gitOverrides,
-        }),
-      })
-    }
-    dbPaths.push(ctx.dbPath)
-    return ctx
+  function setup(overrides?: Parameters<typeof buildTestContext>[0]) {
+    const context = buildTestContext(overrides)
+    dbPaths.push(context.dbPath)
+    runCommand(context, ['init'])
+    runCommand(context, ['record-issue', '1'])
+    runCommand(context, ['record-branch', 'feat/test'])
+    return context
   }
 
-  describe('full happy path to COMPLETE', () => {
-    it('transitions from REFLECTING to COMPLETE', () => {
-      const ctx = setup({
-        getPrFeedback: () => ({
-          reviewDecision: 'APPROVED',
-          coderabbitReviewSeen: true,
-          unresolvedCount: 0,
-          threads: [],
-        }),
-      })
-      progressToState(ctx, 'REFLECTING')
-      const result = runCommand(ctx, ['transition', 'COMPLETE'])
-      expect(result.exitCode).toStrictEqual(0)
+  it('creates and records a ready pull request on SUBMITTING_PR entry', () => {
+    const context = setup({
+      createPullRequest: () => ({
+        prNumber: 78,
+        prUrl: 'https://github.com/example/repo/pull/78',
+        isDraft: false,
+      }),
     })
+
+    expect(runCommand(context, ['transition', 'SUBMITTING_PR']).exitCode).toBe(0)
+    expect(
+      context.engineDeps.store.readEvents(context.sessionId).map(flattenStoredEvent),
+    ).toContainEqual(expect.objectContaining({ type: 'pr-recorded', prNumber: 78 }))
   })
 
-  describe('rework: REVIEWING back to IMPLEMENTING', () => {
-    it('transitions to IMPLEMENTING when a review fails and resets flags', () => {
-      const ctx = setup()
-      progressToState(ctx, 'REVIEWING')
-      runReviewCommand(ctx, 'code-review', {
-        verdict: 'FAIL',
-        summary: 'Code review found a blocking problem.',
-        findings: [],
-      })
-      const result = runCommand(ctx, ['transition', 'IMPLEMENTING'])
-      expect(result.exitCode).toStrictEqual(0)
+  it('automatically enters feedback work when CodeRabbit has an unresolved thread', () => {
+    const context = setup({
+      getPrFeedback: () => ({
+        reviewDecision: 'CHANGES_REQUESTED',
+        coderabbitReviewSeen: true,
+        unresolvedCount: 1,
+        threads: [
+          {
+            id: 'thread',
+            isResolved: false,
+            isOutdated: false,
+            path: 'src/a.ts',
+            line: 1,
+            comments: [{ author: { login: 'coderabbitai' }, body: 'Fix this.' }],
+          },
+        ],
+      }),
     })
-  })
+    runCommand(context, ['transition', 'SUBMITTING_PR'])
 
-  describe('block and unblock', () => {
-    it('transitions to BLOCKED and back to pre-blocked state', () => {
-      const ctx = setup()
-      runCommand(ctx, ['init'])
-      runCommand(ctx, ['record-issue', '1'])
-      const blockResult = runCommand(ctx, ['transition', 'BLOCKED'])
-      expect(blockResult.exitCode).toStrictEqual(0)
-      const unblockResult = runCommand(ctx, ['transition', 'IMPLEMENTING'])
-      expect(unblockResult.exitCode).toStrictEqual(0)
-    })
-  })
-
-  describe('addressing feedback cycle', () => {
-    it('transitions from ADDRESSING_FEEDBACK to REFLECTING after addressing all threads', () => {
-      const ctx = setup({
-        getPrFeedback: () => ({
-          reviewDecision: 'CHANGES_REQUESTED',
-          coderabbitReviewSeen: true,
-          unresolvedCount: 2,
-          threads: [],
-        }),
-      })
-      progressToState(ctx, 'ADDRESSING_FEEDBACK')
-      Object.defineProperty(ctx.workflowDeps, 'getPrFeedback', {
-        value: () => ({
-          reviewDecision: 'APPROVED',
-          coderabbitReviewSeen: true,
-          unresolvedCount: 0,
-          threads: [],
-        }),
-      })
-      const result = runCommand(ctx, ['verify-feedback-addressed'])
-      expect(result.exitCode).toStrictEqual(0)
-      expect(runCommand(ctx, ['get-state']).output).toContain('REFLECTING')
-    })
-  })
-
-  describe('block to wrong state', () => {
-    it('rejects transition from BLOCKED to a state other than pre-blocked', () => {
-      const ctx = setup()
-      runCommand(ctx, ['init'])
-      runCommand(ctx, ['record-issue', '1'])
-      runCommand(ctx, ['transition', 'BLOCKED'])
-      const result = runCommand(ctx, ['transition', 'REVIEWING'])
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('Must return to pre-blocked state')
-    })
-  })
-
-  describe('guard failures', () => {
-    it('rejects IMPLEMENTING to REVIEWING without commits', () => {
-      const ctx = setup({ gitInfo: { hasCommitsVsDefault: false } })
-      runCommand(ctx, ['init'])
-      runCommand(ctx, ['record-issue', '1'])
-      const result = runCommand(ctx, ['transition', 'REVIEWING'])
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('No commits')
-    })
-
-    it('rejects IMPLEMENTING to REVIEWING with unclean working tree', () => {
-      const ctx = setup({ gitInfo: { workingTreeClean: false } })
-      runCommand(ctx, ['init'])
-      runCommand(ctx, ['record-issue', '1'])
-      const result = runCommand(ctx, ['transition', 'REVIEWING'])
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('not clean')
-    })
-
-    it('rejects IMPLEMENTING to REVIEWING without issue recorded', () => {
-      const ctx = setup()
-      runCommand(ctx, ['init'])
-      const result = runCommand(ctx, ['transition', 'REVIEWING'])
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('No issue recorded')
-    })
-
-    it('blocks gate when no task-check review exists', () => {
-      const ctx = setup()
-      progressToState(ctx, 'REVIEWING')
-      recordPassingPreReviews(ctx)
-
-      const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
-
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('Not all reviews passed')
-    })
-
-    it('blocks gate when latest task-check review failed', () => {
-      const ctx = setup()
-      progressToState(ctx, 'REVIEWING')
-      recordPassingPreReviews(ctx)
-      recordTaskCheck(ctx, 'FAIL')
-
-      const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
-
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('Not all reviews passed')
-    })
-
-    it('allows gate when latest task-check review passed', () => {
-      const ctx = setup()
-      progressToState(ctx, 'REVIEWING')
-      recordPassingPreReviews(ctx)
-      recordTaskCheck(ctx, 'PASS')
-
-      const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
-
-      expect(result.exitCode).toStrictEqual(0)
-    })
-
-    it('allows gate when latest task-check review passed after an earlier failure', () => {
-      const ctx = setup()
-      progressToState(ctx, 'REVIEWING')
-      recordPassingPreReviews(ctx)
-      recordTaskCheck(ctx, 'FAIL')
-      recordTaskCheck(ctx, 'PASS', 'Task check passed after fixes.')
-
-      const result = runCommand(ctx, ['transition', 'SUBMITTING_PR'])
-
-      expect(result.exitCode).toStrictEqual(0)
-    })
-
-    it('rejects REVIEWING to IMPLEMENTING when all reviews passed', () => {
-      const ctx = setup()
-      progressToState(ctx, 'REVIEWING')
-      recordPassingPreReviews(ctx)
-      recordTaskCheck(ctx, 'PASS')
-
-      const result = runCommand(ctx, ['transition', 'IMPLEMENTING'])
-
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('All reviews passed')
-    })
-
-    it('rejects SUBMITTING_PR to AWAITING_CI without PR recorded', () => {
-      const ctx = setup()
-      progressToState(ctx, 'SUBMITTING_PR')
-      const result = runCommand(ctx, ['transition', 'AWAITING_CI'])
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('prNumber not set')
-    })
-
-    it('rejects AWAITING_CI to AWAITING_PR_FEEDBACK without CI passed', () => {
-      const ctx = setup()
-      progressToState(ctx, 'AWAITING_CI')
-      const result = runCommand(ctx, ['transition', 'AWAITING_PR_FEEDBACK'])
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('CI not passed')
-    })
-
-    it('rejects AWAITING_CI to IMPLEMENTING when CI passed', () => {
-      const ctx = setup()
-      progressToState(ctx, 'AWAITING_CI')
-      runCommand(ctx, ['record-ci-passed'])
-      const result = runCommand(ctx, ['transition', 'IMPLEMENTING'])
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('CI passed')
-    })
-
-    it('allows REFLECTING to COMPLETE without a workflow-level reflection guard', () => {
-      const ctx = setup({
-        getPrFeedback: () => ({
-          reviewDecision: 'APPROVED',
-          coderabbitReviewSeen: true,
-          unresolvedCount: 0,
-          threads: [],
-        }),
-      })
-      progressToState(ctx, 'REFLECTING')
-      const result = runCommand(ctx, ['transition', 'COMPLETE'])
-      expect(result.exitCode).toStrictEqual(0)
-    })
-
-    it('rejects ADDRESSING_FEEDBACK to REFLECTING without feedback addressed', () => {
-      const ctx = setup({
-        getPrFeedback: () => ({
-          reviewDecision: 'CHANGES_REQUESTED',
-          coderabbitReviewSeen: true,
-          unresolvedCount: 1,
-          threads: [],
-        }),
-      })
-      progressToState(ctx, 'ADDRESSING_FEEDBACK')
-      const result = runCommand(ctx, ['transition', 'REFLECTING'])
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('Feedback not addressed')
-    })
-
-    it('blocks feedback verification while GitHub still reports unresolved feedback', () => {
-      const ctx = setup({
-        getPrFeedback: () => ({
-          reviewDecision: 'CHANGES_REQUESTED',
-          coderabbitReviewSeen: true,
-          unresolvedCount: 1,
-          threads: [],
-        }),
-      })
-      progressToState(ctx, 'ADDRESSING_FEEDBACK')
-      const verifyResult = runCommand(ctx, ['verify-feedback-addressed'])
-      expect(verifyResult.exitCode).toStrictEqual(2)
-      expect(verifyResult.output).toContain('CHANGES_REQUESTED')
-      const result = runCommand(ctx, ['transition', 'REFLECTING'])
-      expect(result.exitCode).toStrictEqual(2)
-      expect(result.output).toContain('Feedback not addressed')
-    })
+    expect(runCommand(context, ['transition', 'REVIEWING']).exitCode).toBe(0)
+    expect(
+      context.engineDeps.store.readEvents(context.sessionId).map(flattenStoredEvent),
+    ).toContainEqual(
+      expect.objectContaining({
+        type: 'transitioned',
+        from: 'REVIEWING',
+        to: 'ADDRESSING_FEEDBACK',
+      }),
+    )
   })
 })

@@ -10,7 +10,7 @@ export class ImplementingState {
   readonly name: 'IMPLEMENTING'
   readonly emoji = '🔨'
   readonly agentInstructions = 'states/implementing.md'
-  readonly canTransitionTo = ['REVIEWING', 'BLOCKED'] as const
+  readonly canTransitionTo = ['SUBMITTING_PR', 'BLOCKED'] as const
   readonly allowedWorkflowOperations = ['record-issue', 'record-branch'] as const
   readonly forbidden = { write: true } as const
 
@@ -50,13 +50,13 @@ export class ImplementingState {
 
   onEntry(state: WorkflowState): WorkflowState {
     return state.with({
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
+      reviewerStatuses: {
+        'architecture-review': 'PENDING',
+        'code-review': 'PENDING',
+        'bug-scanner': 'PENDING',
+        'task-check': 'PENDING',
+        coderabbit: 'PENDING',
+      },
     })
   }
 }

@@ -31,3 +31,6 @@ allowBuilds:
   nx: true
   protobufjs: false
   unrs-resolver: true
+
+patchedDependencies:
+  '@nt-ai-lab/deterministic-agent-workflow-engine@0.4.7': patches/@nt-ai-lab__deterministic-agent-workflow-engine@0.4.7.patch

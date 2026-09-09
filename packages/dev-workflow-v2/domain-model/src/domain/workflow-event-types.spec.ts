@@ -8,12 +8,7 @@ describe('getKnownWorkflowEventTypes', () => {
       'issue-recorded',
       'branch-recorded',
       'pr-recorded',
-      'ci-completed',
-      'feedback-checked',
-      'feedback-addressed',
-      'pr-feedback-verification-failed',
-      'task-check-passed',
-      'review-recorded',
+      'reviewer-status-recorded',
       'bash-checked',
       'write-checked',
     ])

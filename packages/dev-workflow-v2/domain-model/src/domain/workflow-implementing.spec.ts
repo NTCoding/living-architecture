@@ -1,9 +1,7 @@
 import {
   spec,
   makeDeps,
-  transitioned,
   eventsToReviewing,
-  codeReviewFailed,
   buildTestWorkflow,
   TEST_WORKFLOW_REGISTRY,
 } from './__fixtures__/workflow-test-fixtures'
@@ -77,6 +75,46 @@ describe('Workflow', () => {
     })
   })
 
+  describe('review records', () => {
+    it('returns current reviews and rejects an unknown review detail', () => {
+      const workflow = buildTestWorkflow(makeDeps())
+      expect(workflow.getRecordedReviews()).toStrictEqual([])
+      expect(workflow.getLatestReviewByType('code-review')).toBeUndefined()
+      expect(() => workflow.getReviewDetails(1)).toThrow('Review 1 not found')
+    })
+
+    it('finds the latest review of a type', () => {
+      const workflow = buildTestWorkflow(
+        makeDeps({
+          listSessionReviews: () => [
+            {
+              id: 1,
+              sessionId: 'session',
+              createdAt: '2026-01-01T00:00:00Z',
+              reviewType: 'code-review',
+              sourceState: 'REVIEWING',
+              verdict: 'PASS',
+              summary: 'first',
+              findings: [],
+            },
+            {
+              id: 2,
+              sessionId: 'session',
+              createdAt: '2026-01-02T00:00:00Z',
+              reviewType: 'code-review',
+              sourceState: 'REVIEWING',
+              verdict: 'PASS',
+              summary: 'latest',
+              findings: [],
+            },
+          ],
+        }),
+      )
+      expect(workflow.getReviewDetails(1).summary).toBe('first')
+      expect(workflow.getLatestReviewByType('code-review')?.id).toBe(2)
+    })
+  })
+
   describe('IMPLEMENTING state', () => {
     it('sets githubIssue when record-issue succeeds', () => {
       const { result, state, events } = spec
@@ -123,50 +161,20 @@ describe('Workflow', () => {
         .when((wf) => wf.executeRecording('record-branch', 'feature/x'))
       expect(result.pass).toBe(false)
     })
+  })
 
-    it('resets review flags on entry via stateOverrides in event', () => {
-      const { state } = spec
-        .given(
-          ...eventsToReviewing(),
-          codeReviewFailed(),
-          transitioned('REVIEWING', 'IMPLEMENTING', {
-            architectureReviewPassed: false,
-            codeReviewPassed: false,
-            bugScannerPassed: false,
-            taskCheckPassed: false,
-            ciPassed: false,
-            feedbackClean: false,
-            feedbackAddressed: false,
-          }),
-        )
-        .when((wf) => wf.getState())
-      expect(state).toMatchObject({
-        architectureReviewPassed: false,
-        codeReviewPassed: false,
-        bugScannerPassed: false,
-        taskCheckPassed: false,
-        ciPassed: false,
-      })
+  describe('REVIEWING state', () => {
+    it('records a named reviewer status only while reviewing', () => {
+      const { result, state } = spec
+        .given(...eventsToReviewing())
+        .when((wf) => wf.recordReviewerStatus('code-review', 'OPEN_FEEDBACK'))
+      expect(result).toStrictEqual({ pass: true })
+      expect(state.reviewerStatuses['code-review']).toBe('OPEN_FEEDBACK')
     })
 
-    it('resets feedback flags on entry via stateOverrides in event', () => {
-      const { state } = spec
-        .given(
-          ...eventsToReviewing(),
-          codeReviewFailed(),
-          transitioned('REVIEWING', 'IMPLEMENTING', {
-            architectureReviewPassed: false,
-            codeReviewPassed: false,
-            bugScannerPassed: false,
-            taskCheckPassed: false,
-            ciPassed: false,
-            feedbackClean: false,
-            feedbackAddressed: false,
-          }),
-        )
-        .when((wf) => wf.getState())
-      expect(state.feedbackClean).toBe(false)
-      expect(state.feedbackAddressed).toBe(false)
+    it('rejects reviewer status recording outside reviewing', () => {
+      const workflow = buildTestWorkflow(makeDeps())
+      expect(workflow.recordReviewerStatus('code-review', 'APPROVED').pass).toBe(false)
     })
   })
 })

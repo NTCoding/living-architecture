@@ -20,6 +20,7 @@ function initialResponse(): string {
     data: {
       repository: {
         pullRequest: {
+          headRefOid: 'head-oid',
           reviewDecision: null,
           reviews: {
             nodes: [review('reviewer', 'COMMENTED', 'first review')],
@@ -55,6 +56,7 @@ function review(
   return {
     author: { login },
     body,
+    commit: { oid: 'head-oid' },
     state,
     submittedAt,
   }
@@ -165,6 +167,7 @@ it('clears a prior CodeRabbit rate limit when newer active feedback succeeds', (
     data: {
       repository: {
         pullRequest: {
+          headRefOid: 'head-oid',
           reviewDecision: null,
           reviews: {
             nodes: [
@@ -198,6 +201,7 @@ it('reports a rate limit when newer CodeRabbit feedback is rate limited', () => 
     data: {
       repository: {
         pullRequest: {
+          headRefOid: 'head-oid',
           reviewDecision: null,
           reviews: {
             nodes: [
@@ -230,6 +234,7 @@ it('rejects an incomplete GitHub pagination cursor', () => {
     data: {
       repository: {
         pullRequest: {
+          headRefOid: 'head-oid',
           reviewDecision: null,
           reviews: {
             nodes: [],
@@ -258,6 +263,7 @@ it('ignores rate limits in resolved and outdated CodeRabbit threads', () => {
     data: {
       repository: {
         pullRequest: {
+          headRefOid: 'head-oid',
           reviewDecision: null,
           reviews: {
             nodes: [],

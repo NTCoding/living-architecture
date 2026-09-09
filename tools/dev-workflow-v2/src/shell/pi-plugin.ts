@@ -18,9 +18,7 @@ import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/e
 import { createWorkflowCliRuntime } from './workflow-cli-runtime'
 import {
   parseNumberArgument,
-  parseOptionalStringArgument,
   parseStringArgument,
-  parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 
 const sharedWorkflowRuntime = createWorkflowCliRuntime()
@@ -33,8 +31,6 @@ const routes = createWorkflowRoutes({
   ),
   parseNumberArgument,
   parseStringArgument,
-  parseOptionalStringArgument,
-  parseStringArguments,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],
@@ -42,18 +38,10 @@ const bashForbidden = {
 }
 const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const workflowCommand = 'dev-workflow-v2:workflow'
-class InvalidSleepDurationError extends Error {
-  constructor() {
-    super('sleepMs requires a finite non-negative number')
-    this.name = 'InvalidSleepDurationError'
-  }
-}
-
 const commandNames = [
   'choose-next-task',
   'code-review',
   'continue-planning',
-  'create-pr',
   'list-review-threads',
   'optimize-factory',
   'planning-status',
@@ -61,11 +49,11 @@ const commandNames = [
   'start-planning',
 ] as const
 
-function sleepMs(milliseconds: number): void {
-  if (!Number.isFinite(milliseconds) || milliseconds < 0) {
-    throw new InvalidSleepDurationError()
-  }
+class InvalidSleepDurationError extends Error {}
 
+function sleepMs(milliseconds: number): void {
+  if (!Number.isFinite(milliseconds) || milliseconds < 0)
+    throw new InvalidSleepDurationError(`Invalid sleep duration: ${String(milliseconds)}`)
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds)
 }
 

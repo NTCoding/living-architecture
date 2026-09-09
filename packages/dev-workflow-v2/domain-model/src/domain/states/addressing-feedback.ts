@@ -10,8 +10,8 @@ export class AddressingFeedbackState {
   readonly name: 'ADDRESSING_FEEDBACK'
   readonly emoji = '🔧'
   readonly agentInstructions = 'states/addressing_feedback.md'
-  readonly canTransitionTo = ['REFLECTING', 'BLOCKED'] as const
-  readonly allowedWorkflowOperations = ['verify-feedback-addressed'] as const
+  readonly canTransitionTo = ['REVIEWING', 'BLOCKED'] as const
+  readonly allowedWorkflowOperations = [] as const
   readonly forbidden = { write: true } as const
   readonly allowForbidden = { bash: ['git push'] } as const
 
@@ -28,26 +28,10 @@ export class AddressingFeedbackState {
     context: Parameters<typeof WorkflowTransitionContext.from>[0],
   ): PreconditionResult {
     if (context.to === 'BLOCKED') return { pass: true }
-    if (!context.state.feedbackAddressed) {
-      return {
-        pass: false,
-        reason: 'Feedback not addressed. Run verify-feedback-addressed first.',
-      }
-    }
-    if (!context.state.feedbackClean) {
-      return {
-        pass: false,
-        reason:
-          'PR feedback is not yet clear. Resolve all feedback, ensure no CHANGES_REQUESTED review remains, then run verify-feedback-addressed again.',
-      }
-    }
     return { pass: true }
   }
 
   onEntry(state: WorkflowState): WorkflowState {
-    return state.with({
-      feedbackAddressed: false,
-      feedbackClean: false,
-    })
+    return state.with({})
   }
 }

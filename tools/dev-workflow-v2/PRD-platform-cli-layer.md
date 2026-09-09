@@ -21,7 +21,7 @@ dev-workflow-v2 has ~975 lines of mechanical infrastructure code that the platfo
 - `formatDenyDecision` / `formatContextInjection` owned by platform
 - `PlatformContext` exposed to consumer for dep wiring
 - `extractField` utility for hook input parsing
-- `customRouter` escape hatch for non-standard commands
+- No custom route escape hatch is used. State-specific behaviour belongs to the relevant state entry method.
 
 **The migration is urgent.** The installed platform package has already removed the `WorkflowFactory` type. Our current code imports a type that no longer exists. The codebase compiles only because TypeScript resolves from cached build artifacts. Any clean rebuild will fail.
 
@@ -57,7 +57,7 @@ After migration, the infrastructure layer reduces to:
 
 **`workflow-definition.ts` (~50 lines)** — `WorkflowDefinition` implementation with `getRegistry`, `buildTransitionContext`, `buildTransitionEvent` (encodes `onEntry` mutations), `parseStateName`
 
-**`workflow.ts` changes** — `defineRecordingOps` declaration (~20 lines) + `executeRecording` method (~6 lines) + `appendEvent` method (~15 lines, including autoFetchFeedback side effect), replacing ~260 lines of hand-written recording methods, transition logic, check methods, and identity verification.
+**`workflow.ts` changes** — `defineRecordingOps` declaration (~20 lines), `executeRecording` (~6 lines), and a generic `appendEvent` bridge. State effects are owned by the relevant `afterEntry` method.
 
 **Total new infrastructure: ~130 lines** (down from ~1000).
 
@@ -140,6 +140,10 @@ export const WORKFLOW_DEFINITION: WorkflowDefinition<
 }
 ```
 
+**Superseded state entry design:**
+
+State entry receives the workflow and its dependencies. Each state emits its own durable events from `afterEntry`; the aggregate event path only parses, appends, and folds events. Route code only maps CLI input to generic operations. This replaces the former proposal to hide state behaviour in event append code or a custom router.
+
 **Why `buildTransitionEvent` encodes `onEntry` mutations:**
 
 The engine computes `stateAfter = onEntry(stateBefore, ctx)` but only passes `stateAfter` to `buildTransitionEvent` — it never applies `stateAfter` to the workflow. The `workflow.appendEvent(transitionEvent)` runs the fold, which only sets `currentStateMachineState` and `preBlockedState`. Without encoding `onEntry` mutations in the event, the IMPLEMENTING state's flag resets (6 boolean fields) and ADDRESSING_FEEDBACK's resets (3 fields) are silently lost at runtime.
@@ -171,32 +175,9 @@ function applyTransitioned(state, event) {
 
 The `TRANSITIONED_SCHEMA` adds `stateOverrides: z.record(z.unknown()).optional()`.
 
-**`RehydratableWorkflow` — `transitionTo` replaced by `appendEvent`**
+**`RehydratableWorkflow` — generic event bridge**
 
-The `Workflow` class drops `transitionTo()`, `checkBashAllowed()`, `checkWriteAllowed()`, `buildTransitionContext()`, and `verifyIdentity()`. It adds `appendEvent()`:
-
-```typescript
-// Added
-appendEvent(event: BaseEvent): void {
-  const workflowEvent = WORKFLOW_EVENT_SCHEMA.parse(event)
-  this.pendingEvents = [...this.pendingEvents, workflowEvent]
-  this.state = applyEvent(this.state, workflowEvent)
-
-  // Side effect: auto-fetch feedback when transitioning to CHECKING_FEEDBACK
-  if (
-    workflowEvent.type === 'transitioned' &&
-    workflowEvent.to === 'CHECKING_FEEDBACK' &&
-    this.state.prNumber !== undefined
-  ) {
-    this.autoFetchFeedback(this.state.prNumber)
-  }
-}
-
-// Deleted: transitionTo(), checkBashAllowed(), checkWriteAllowed(),
-//          buildTransitionContext(), verifyIdentity()
-```
-
-The `autoFetchFeedback` side effect fires inside `appendEvent` when it detects a transition to CHECKING_FEEDBACK. The engine calls `workflow.appendEvent(transitionEvent)` during its `transition()` lifecycle, so the side effect triggers automatically. The engine then persists all pending events (transition + feedback-checked) atomically afterward.
+The workflow drops `transitionTo()`, `checkBashAllowed()`, `checkWriteAllowed()`, `buildTransitionContext()`, and `verifyIdentity()`. Its `appendEvent()` method parses, appends, and folds a durable event only. It does not inspect a target state or trigger a state effect.
 
 **`startSession` signature alignment**
 
@@ -464,20 +445,20 @@ Adapt Workflow class, adapter, state definitions, types, and event schemas to th
   - Verification: Update `workflow-adapter.spec.ts` → `workflow-definition.spec.ts`: remove `getEmojiForState` tests, add `getRegistry`/`buildTransitionContext`/`buildTransitionEvent` tests
 
 - **D1.2:** Workflow class — engine-owned behaviors
-  - Add `appendEvent(event: BaseEvent)` — parse with `WORKFLOW_EVENT_SCHEMA`, append, apply, trigger `autoFetchFeedback` side effect when transitioning to CHECKING_FEEDBACK
+  - Add `appendEvent(event: BaseEvent)` — parse with `WORKFLOW_EVENT_SCHEMA`, append, and apply without state-specific behaviour
   - Align `startSession(transcriptPath, repository)` — add `transcriptPath` parameter to match `RehydratableWorkflow` interface
   - Remove `transitionTo()` — engine's `transition()` handles full lifecycle
   - Remove `buildTransitionContext()` — moved to `WorkflowDefinition`
   - Remove `checkBashAllowed()` — engine's `checkBash()` handles this
   - Remove `checkWriteAllowed()` method — engine's `checkWrite()` handles this
   - Remove `verifyIdentity()` — engine handles via `getPrefixConfig`
-  - Keep `autoFetchFeedback()` as private method — called from within `appendEvent`
-  - Key scenarios: appendEvent with transition event, appendEvent with recording event, appendEvent with transition to CHECKING_FEEDBACK triggers autoFetchFeedback, appendEvent with transition to other states doesn't trigger autoFetchFeedback, autoFetchFeedback skipped when no prNumber, startSession with both params
-  - Acceptance: Workflow class has no transition, check, or identity methods; `appendEvent` preserves autoFetchFeedback behavior
+  - State entry methods own all effects that need workflow dependencies
+  - Key scenarios: appendEvent with transition event, appendEvent with recording event, state entry emits its own durable event, startSession with both params
+  - Acceptance: Workflow class has no transition, check, or identity methods; `appendEvent` is generic
   - Verification: Domain tests updated and passing. Test files affected:
     - `workflow-implementing.spec.ts` (168 lines) — update `transitionTo`/`startSession` calls
     - `workflow-reviewing-submitting.spec.ts` (326 lines) — update `transitionTo` calls
-    - `workflow-feedback-reflecting.spec.ts` (299 lines) — update `transitionTo` calls, verify autoFetchFeedback still fires via `appendEvent`
+    - `workflow-feedback-reflecting.spec.ts` (299 lines) — replaced by state entry tests
     - `workflow-hook-checks.spec.ts` (202 lines) — remove `checkBashAllowed`/`checkWriteAllowed`/`verifyIdentity` tests from Workflow. The `checkWriteAllowed` predicate is tested via `workflow-predicates.ts`. Bash enforcement behavior becomes engine-level (platform tests cover it). Per-state exemption behavior is verified via integration tests in M2.
 
 - **D1.3:** Event schema and fold updates
@@ -600,7 +581,7 @@ tracks:
 | 3   | `createWorkflowCli` owns dep assembly with `buildWorkflowDeps(platform)`    | Platform builds all generic engine infrastructure. Consumer only provides domain-specific deps. `PlatformContext` exposes `getPluginRoot`, `now`, `getSessionId`, `store` for consumer deps that need them.                                                                                                                                                                                                                                                                       | 2026-03-07 |
 | 4   | Session ID injected by platform, not positional arg                         | Eliminates redundant `arg.string('session-id')` declarations. Platform reads `CLAUDE_SESSION_ID` from env and passes to engine calls internally.                                                                                                                                                                                                                                                                                                                                  | 2026-03-07 |
 | 5   | Platform package updated and verified locally                               | All required APIs confirmed to exist. `WorkflowFactory` type removed — migration is urgent.                                                                                                                                                                                                                                                                                                                                                                                       | 2026-03-07 |
-| 6   | `autoFetchFeedback` implemented as side effect in `appendEvent`             | `afterEntry: () => void` has no access to deps, state, or the workflow instance. Moving the side effect into `appendEvent` — triggered when the appended event is a transition to CHECKING_FEEDBACK — preserves automatic behavior without requiring platform changes. The engine calls `workflow.appendEvent(transitionEvent)` during its `transition()` lifecycle, so the side effect fires at the right time, and the engine persists all pending events atomically afterward. | 2026-03-07 |
+| 6   | State effects are implemented in `afterEntry`                               | State entry receives the workflow and state dependencies. It emits durable events itself. `appendEvent` and route code remain generic. | 2026-09-09 |
 | 7   | DB path and env file path changes accepted                                  | `createWorkflowCli` creates store at `${pluginRoot}/workflow.db` (was `~/.claude/workflow-events.db`). Env file hardcoded to `~/.claude/claude.env` (was `CLAUDE_ENV_FILE` env var). Session data is ephemeral. No migration value.                                                                                                                                                                                                                                               | 2026-03-07 |
 | 8   | `forbidden: { write: true }` added to all state definitions                 | Engine's `checkWrite()` only calls the consumer predicate when `forbidden.write` is set. Without it, all writes auto-pass, bypassing our protected file list. Setting the flag on all states preserves current behavior.                                                                                                                                                                                                                                                          | 2026-03-07 |
 | 9   | `checkWriteAllowed` predicate wrapped for engine signature                  | Engine's `checkWrite()` expects `(toolName, filePath, state) => PreconditionResult`. Our predicate only uses `filePath`. Thin wrapper ignores `toolName` and `state`, delegates to existing `checkWriteAllowed(filePath)`.                                                                                                                                                                                                                                                        | 2026-03-07 |

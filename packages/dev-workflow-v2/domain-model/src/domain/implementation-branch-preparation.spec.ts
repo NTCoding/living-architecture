@@ -4,7 +4,7 @@ import {
   ImplementationBranchPreparationError,
   PreparatoryCheckout,
 } from './implementation-branch-preparation'
-import type { ImplementationBranchWorkspace } from './ports/implementation-branch-workspace'
+import type { ImplementationBranchWorkspace } from './implementation-branch-preparation'
 
 type ImplementationBranchFacts = ReturnType<ImplementationBranchWorkspace['inspect']>
 type BranchCommitRelation = ImplementationBranchFacts['currentBranchRelation']

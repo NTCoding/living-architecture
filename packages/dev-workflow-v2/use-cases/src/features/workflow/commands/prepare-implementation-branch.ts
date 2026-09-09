@@ -2,7 +2,7 @@ import {
   ImplementationBranchPreparation,
   PreparatoryCheckout,
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/implementation-branch-preparation'
-import type { ImplementationBranchWorkspace } from '@living-architecture/dev-workflow-v2-domain-model/domain/ports/implementation-branch-workspace'
+import type { ImplementationBranchWorkspace } from '@living-architecture/dev-workflow-v2-domain-model/domain/implementation-branch-preparation'
 
 /** @riviere-role command-use-case-input */
 export interface PrepareImplementationBranchInput {

@@ -14,12 +14,12 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 
 describe('plugin Agent Skills', () => {
-  it('tells agents to push fixes directly, wait for CodeRabbit, and reflect after clean verification', () => {
+  it('tells agents to compact their context, push fixes, and return to reviewing', () => {
     const addressingFeedback = readPluginFile('states/addressing_feedback.md')
 
     expect(addressingFeedback).toContain('Push the recorded feature branch: `git push`')
-    expect(addressingFeedback).toContain('Wait for CodeRabbit to process the pushed commit')
-    expect(addressingFeedback).toContain('transitions directly to `REFLECTING`')
+    expect(addressingFeedback).toContain('Run `/compact`')
+    expect(addressingFeedback).toContain('transition to `REVIEWING`')
   })
 
   it('registers Pi commands and loads their instruction assets', async () => {
@@ -31,7 +31,6 @@ describe('plugin Agent Skills', () => {
       'choose-next-task',
       'code-review',
       'continue-planning',
-      'create-pr',
       'list-review-threads',
       'optimize-factory',
       'planning-status',
@@ -141,7 +140,7 @@ describe('plugin Agent Skills', () => {
     )
   })
 
-  it.each(['workflow', 'code-review', 'create-pr', 'list-review-threads'])(
+  it.each(['workflow', 'code-review', 'list-review-threads'])(
     'contains a complete %s skill',
     (skillName) => {
       const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
@@ -178,37 +177,25 @@ describe('plugin Agent Skills', () => {
     })
   })
 
-  it('validates reviewer result types before recording them', () => {
+  it('keeps review findings on GitHub and records reviewer status only', () => {
     const skill = readPluginFile('skills/code-review/SKILL.md')
-    const validationPosition = skill.indexOf('`verdict` equal to `PASS` or `FAIL`')
-    const recordingPosition = skill.indexOf('`record-review` workflow operation')
 
     expect({
-      validatesSummary: skill.includes('`summary` as a string'),
-      validatesFindings: skill.includes('`findings` as an array'),
-      blocksInvalidResults: skill.includes('stop before recording any invalid result'),
-      validatesBeforeRecording: validationPosition > -1 && validationPosition < recordingPosition,
+      publishesInlineFeedback: skill.includes('GitHub inline comments'),
+      recordsReviewerStatus: skill.includes('`record-reviewer-status`'),
+      recordsOpenFeedback: skill.includes('`OPEN_FEEDBACK`'),
+      recordsApproval: skill.includes('`APPROVED`'),
+      doesNotRecordFindings: skill.includes('Do not copy findings into workflow events'),
     }).toStrictEqual({
-      validatesSummary: true,
-      validatesFindings: true,
-      blocksInvalidResults: true,
-      validatesBeforeRecording: true,
+      publishesInlineFeedback: true,
+      recordsReviewerStatus: true,
+      recordsOpenFeedback: true,
+      recordsApproval: true,
+      doesNotRecordFindings: true,
     })
   })
 
-  it('prohibits direct pushes while creating a pull request', () => {
-    const skill = readPluginFile('skills/create-pr/SKILL.md')
-
-    expect({
-      prohibitsDirectPush: skill.includes('Do not call `git push`'),
-      containsDirectPushCommand: skill.includes('git push -u origin'),
-    }).toStrictEqual({
-      prohibitsDirectPush: true,
-      containsDirectPushCommand: false,
-    })
-  })
-
-  it.each(['code-review', 'create-pr', 'list-review-threads'])(
+  it.each(['code-review', 'list-review-threads'])(
     'does not translate Codex skill syntax in the %s command adapter',
     (commandName) => {
       const command = readPluginFile(`commands/${commandName}.md`)
@@ -223,7 +210,7 @@ describe('plugin Agent Skills', () => {
     },
   )
 
-  it.each(['create-pr', 'list-review-threads'])(
+  it.each(['list-review-threads'])(
     'selects workflow execution for Codex or slash-command harnesses in %s',
     (skillName) => {
       const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
@@ -254,7 +241,7 @@ describe('reviewer workflow preflight', () => {
       const reviewer = readPluginFile(`agents/${reviewerName}.md`)
       const codexPreflightPosition = reviewer.indexOf('$dev-workflow-v2:workflow get-state')
       const slashPreflightPosition = reviewer.indexOf('/dev-workflow-v2:workflow get-state')
-      const projectReadPosition = reviewer.indexOf('You will return structured JSON')
+      const projectReadPosition = reviewer.indexOf('## Instructions')
 
       expect({
         hasCodexInvocation: codexPreflightPosition > -1,

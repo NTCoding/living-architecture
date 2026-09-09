@@ -3,13 +3,13 @@ import { WorkflowState } from './workflow-types'
 
 const BASE_STATE = WorkflowState.parse({
   currentStateMachineState: 'IMPLEMENTING',
-  architectureReviewPassed: false,
-  codeReviewPassed: false,
-  bugScannerPassed: false,
-  taskCheckPassed: false,
-  ciPassed: false,
-  feedbackClean: false,
-  feedbackAddressed: false,
+  reviewerStatuses: {
+    'architecture-review': 'PENDING',
+    'code-review': 'PENDING',
+    'bug-scanner': 'PENDING',
+    'task-check': 'PENDING',
+    coderabbit: 'PENDING',
+  },
 })
 
 describe('isWriteAllowed predicate', () => {

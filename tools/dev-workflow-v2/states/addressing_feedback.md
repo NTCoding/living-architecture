@@ -1,6 +1,6 @@
 # ADDRESSING_FEEDBACK State
 
-You are addressing PR review feedback.
+Run `/compact`, or the equivalent provider command, before addressing PR review feedback.
 
 Start by running `/dev-workflow-v2:workflow get-state` and extracting `prNumber` from its JSON output, then fetch the current PR feedback directly from GitHub for that PR.
 
@@ -27,7 +27,7 @@ Start by running `/dev-workflow-v2:workflow get-state` and extracting `prNumber`
 - [ ] Push the recorded feature branch: `git push`
 - [ ] Wait for CodeRabbit to process the pushed commit, then re-fetch the PR feedback from GitHub
 - [ ] If feedback remains unresolved, return to the fix loop above
-- [ ] Record that feedback has been addressed (this verifies live GitHub state has no unresolved threads and no `CHANGES_REQUESTED` review decision): `/dev-workflow-v2:workflow verify-feedback-addressed`. Successful verification transitions directly to `REFLECTING`.
+- [ ] Commit all fixes, push, then transition to `REVIEWING`: `/dev-workflow-v2:workflow transition REVIEWING`.
 
 ## GraphQL shape
 
@@ -39,8 +39,7 @@ Use a query that fetches this data for the current PR:
 
 ## Constraints
 
-- Cannot transition to REFLECTING unless `verify-feedback-addressed` succeeds
-- To leave this state, GitHub must show no unresolved actionable PR feedback and no `CHANGES_REQUESTED` review decision
+- Return to REVIEWING after pushing fixes. Reviewers that have not approved validate their own resolved feedback.
 - When all threads are resolved but CodeRabbit remains `CHANGES_REQUESTED` while it processes new commits, wait and periodically re-fetch the feedback; do not transition to `BLOCKED`.
 - If CodeRabbit reports that its review is rate limited, transition to `BLOCKED` and tell the user to wait for the rate limit to reset.
 - Do not infer `prNumber` from branch state or prior messages. When workflow state values are needed, run `/dev-workflow-v2:workflow get-state` and extract the exact fields required from its JSON output.

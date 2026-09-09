@@ -3,13 +3,10 @@ import type { WorkflowEvent } from './workflow-events'
 
 const STATE_NAMES = [
   'IMPLEMENTING',
-  'REVIEWING',
   'SUBMITTING_PR',
-  'AWAITING_CI',
-  'AWAITING_PR_FEEDBACK',
+  'REVIEWING',
   'ADDRESSING_FEEDBACK',
-  'REFLECTING',
-  'COMPLETE',
+  'HUMAN_REVIEWING',
   'BLOCKED',
 ] as const
 
@@ -29,15 +26,7 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
     featureBranch: z.string().optional(),
     prNumber: z.number().int().positive().optional(),
     prUrl: z.string().optional(),
-    architectureReviewPassed: z.boolean(),
-    codeReviewPassed: z.boolean(),
-    bugScannerPassed: z.boolean(),
-    taskCheckPassed: z.boolean(),
-    ciPassed: z.boolean(),
-    feedbackClean: z.boolean(),
-    feedbackAddressed: z.boolean(),
-    feedbackUnresolvedCount: z.number().optional(),
-    prFeedbackVerificationFailedReason: z.string().optional(),
+    reviewerStatuses: z.record(z.enum(['PENDING', 'OPEN_FEEDBACK', 'APPROVED'])),
     preBlockedState: z.string().optional(),
     transcriptPath: z.string().optional(),
   })
@@ -45,50 +34,11 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
 
 const WORKFLOW_STATE_SCHEMA = createWorkflowStateSchema(STATE_NAMES)
 
-function applyRecordedReviewVerdict(
-  state: WorkflowState,
-  event: Extract<WorkflowEvent, { type: 'review-recorded' }>,
-): WorkflowState {
-  const parsedReviewType = z
-    .enum(['architecture-review', 'code-review', 'bug-scanner', 'task-check'])
-    .safeParse(event.reviewType)
-  if (!parsedReviewType.success) return state
-
-  const passed = event.verdict === 'PASS'
-  switch (parsedReviewType.data) {
-    case 'architecture-review':
-      return state.with({ architectureReviewPassed: passed })
-    case 'code-review':
-      return state.with({ codeReviewPassed: passed })
-    case 'bug-scanner':
-      return state.with({ bugScannerPassed: passed })
-    case 'task-check':
-      return state.with({ taskCheckPassed: passed })
-  }
-}
-
 function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState | undefined {
-  switch (event.type) {
-    case 'architecture-review-completed':
-      return state.with({ architectureReviewPassed: event.passed })
-    case 'code-review-completed':
-      return state.with({ codeReviewPassed: event.passed })
-    case 'bug-scanner-completed':
-      return state.with({ bugScannerPassed: event.passed })
-    case 'ci-completed':
-      return state.with({ ciPassed: event.passed })
-    case 'feedback-checked':
-      return state.with({
-        feedbackClean: event.clean,
-        feedbackUnresolvedCount: event.unresolvedCount,
-      })
-    case 'feedback-addressed':
-      return state.with({ feedbackAddressed: true })
-    case 'pr-feedback-verification-failed':
-      return state.with({ prFeedbackVerificationFailedReason: event.reason })
-    case 'review-recorded':
-      return applyRecordedReviewVerdict(state, event)
-  }
+  if (event.type === 'reviewer-status-recorded')
+    return state.with({
+      reviewerStatuses: { ...state.reviewerStatuses, [event.reviewer]: event.status },
+    })
   return undefined
 }
 
@@ -101,37 +51,17 @@ export class WorkflowState {
   readonly featureBranch?: string
   readonly prNumber?: number
   readonly prUrl?: string
-  readonly architectureReviewPassed: boolean
-  readonly codeReviewPassed: boolean
-  readonly bugScannerPassed: boolean
-  readonly taskCheckPassed: boolean
-  readonly ciPassed: boolean
-  readonly feedbackClean: boolean
-  readonly feedbackAddressed: boolean
-  readonly feedbackUnresolvedCount?: number
-  readonly prFeedbackVerificationFailedReason?: string
+  readonly reviewerStatuses: Record<string, 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED'>
   readonly preBlockedState?: string
   readonly transcriptPath?: string
 
   private constructor(value: z.infer<typeof WORKFLOW_STATE_SCHEMA>) {
     this.currentStateMachineState = value.currentStateMachineState
-    this.architectureReviewPassed = value.architectureReviewPassed
-    this.codeReviewPassed = value.codeReviewPassed
-    this.bugScannerPassed = value.bugScannerPassed
-    this.taskCheckPassed = value.taskCheckPassed
-    this.ciPassed = value.ciPassed
-    this.feedbackClean = value.feedbackClean
-    this.feedbackAddressed = value.feedbackAddressed
+    this.reviewerStatuses = value.reviewerStatuses
     if (value.githubIssue !== undefined) this.githubIssue = value.githubIssue
     if (value.featureBranch !== undefined) this.featureBranch = value.featureBranch
     if (value.prNumber !== undefined) this.prNumber = value.prNumber
     if (value.prUrl !== undefined) this.prUrl = value.prUrl
-    if (value.feedbackUnresolvedCount !== undefined) {
-      this.feedbackUnresolvedCount = value.feedbackUnresolvedCount
-    }
-    if (value.prFeedbackVerificationFailedReason !== undefined) {
-      this.prFeedbackVerificationFailedReason = value.prFeedbackVerificationFailedReason
-    }
     if (value.preBlockedState !== undefined) this.preBlockedState = value.preBlockedState
     if (value.transcriptPath !== undefined) this.transcriptPath = value.transcriptPath
   }
@@ -178,8 +108,6 @@ export class WorkflowState {
         return this.with({ featureBranch: event.branch })
       case 'pr-recorded':
         return this.with({ prNumber: event.prNumber, prUrl: event.prUrl })
-      case 'task-check-passed':
-        return this.with({ taskCheckPassed: true })
       case 'session-started':
         return this.with({
           ...(event.transcriptPath !== undefined && { transcriptPath: event.transcriptPath }),
@@ -192,13 +120,13 @@ export class WorkflowState {
 
 const INITIAL_STATE = WorkflowState.parse({
   currentStateMachineState: 'IMPLEMENTING',
-  architectureReviewPassed: false,
-  codeReviewPassed: false,
-  bugScannerPassed: false,
-  taskCheckPassed: false,
-  ciPassed: false,
-  feedbackClean: false,
-  feedbackAddressed: false,
+  reviewerStatuses: {
+    'architecture-review': 'PENDING',
+    'code-review': 'PENDING',
+    'bug-scanner': 'PENDING',
+    'task-check': 'PENDING',
+    coderabbit: 'PENDING',
+  },
 })
 
 /**

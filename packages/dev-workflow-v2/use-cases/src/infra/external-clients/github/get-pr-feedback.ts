@@ -27,6 +27,7 @@ const graphqlThreadNodeSchema = z.object({
 const graphqlReviewNodeSchema = z.object({
   author: z.object({ login: z.string() }).nullable(),
   body: z.string(),
+  commit: z.object({ oid: z.string() }).nullable(),
   state: z.string(),
   submittedAt: z.string().nullable(),
 })
@@ -35,6 +36,7 @@ const graphqlResponseSchema = z.object({
   data: z.object({
     repository: z.object({
       pullRequest: z.object({
+        headRefOid: z.string(),
         reviewDecision: z.string().nullable(),
         reviews: z.object({
           nodes: z.array(graphqlReviewNodeSchema),
@@ -163,7 +165,7 @@ function readAllReviews(
 ): readonly GraphqlReview[] {
   const cursor = nextPageCursor(pageInfo)
   if (cursor === undefined) return reviews
-  const query = `{ repository(owner: "${repositoryOwner}", name: "${repositoryName}") { pullRequest(number: ${String(prNumber)}) { reviews(first: 100${afterCursor(cursor)}) { nodes { author { login } body state submittedAt } pageInfo { hasNextPage endCursor } } } } }`
+  const query = `{ repository(owner: "${repositoryOwner}", name: "${repositoryName}") { pullRequest(number: ${String(prNumber)}) { reviews(first: 100${afterCursor(cursor)}) { nodes { author { login } body commit { oid } state submittedAt } pageInfo { hasNextPage endCursor } } } } }`
   const response = reviewsResponseSchema.parse(JSON.parse(queryGithub(runGh, query)))
   const reviewPage = response.data.repository.pullRequest.reviews
   return readAllReviews(
@@ -262,7 +264,7 @@ export function createGithubPullRequestFeedbackClient(
   return (prNumber: number): GithubPullRequestFeedback => {
     const repoRaw = runGh(['repo', 'view', '--json', 'owner,name'])
     const repo = repoInfoSchema.parse(JSON.parse(repoRaw))
-    const query = `{ repository(owner: "${repo.owner.login}", name: "${repo.name}") { pullRequest(number: ${String(prNumber)}) { reviewDecision reviews(first: 100) { nodes { author { login } body state submittedAt } pageInfo { hasNextPage endCursor } } reviewThreads(first: 100) { nodes { id isResolved isOutdated path line comments(first: 100) { nodes { body createdAt url author { login } } pageInfo { hasNextPage endCursor } } } pageInfo { hasNextPage endCursor } } } } }`
+    const query = `{ repository(owner: "${repo.owner.login}", name: "${repo.name}") { pullRequest(number: ${String(prNumber)}) { headRefOid reviewDecision reviews(first: 100) { nodes { author { login } body commit { oid } state submittedAt } pageInfo { hasNextPage endCursor } } reviewThreads(first: 100) { nodes { id isResolved isOutdated path line comments(first: 100) { nodes { body createdAt url author { login } } pageInfo { hasNextPage endCursor } } } pageInfo { hasNextPage endCursor } } } } }`
     const response = graphqlResponseSchema.parse(JSON.parse(queryGithub(runGh, query)))
     const pullRequest = response.data.repository.pullRequest
     const reviews = readAllReviews(
@@ -296,7 +298,10 @@ export function createGithubPullRequestFeedbackClient(
     const currentCodeRabbitFeedback = mostRecentCodeRabbitFeedback(reviews, unresolved)
     return {
       reviewDecision: pullRequest.reviewDecision,
-      coderabbitReviewSeen: reviews.some((review) => isCodeRabbitAuthor(review.author?.login)),
+      coderabbitReviewSeen: reviews.some(
+        (review) =>
+          isCodeRabbitAuthor(review.author?.login) && review.commit?.oid === pullRequest.headRefOid,
+      ),
       coderabbitRateLimited:
         currentCodeRabbitFeedback !== undefined &&
         indicatesCodeRabbitRateLimit(currentCodeRabbitFeedback.body),
