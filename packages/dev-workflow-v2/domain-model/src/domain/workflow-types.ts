@@ -1,9 +1,9 @@
 import { z } from 'zod'
 import type { WorkflowEvent } from './workflow-events'
-import { Reviewers } from './reviews/reviewers'
+import { Reviewer } from './reviews/reviewers'
 import { ReviewStatuses } from './reviews/statuses'
 
-type ReviewerKey = z.infer<ReturnType<typeof Reviewers.schema>>
+type ReviewerKey = z.infer<ReturnType<typeof Reviewer.schema>>
 type ReviewerStatus = z.infer<ReturnType<typeof ReviewStatuses.schema>>
 type ReviewerStatuses = {
   readonly 'architecture-review': ReviewerStatus

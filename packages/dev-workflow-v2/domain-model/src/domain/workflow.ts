@@ -18,6 +18,7 @@ import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
 import type { ReadWorkflowGitStatus } from './ports/read-git-status'
 import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
 import type { ReviewLauncher } from './ports/review-launcher'
+import type { Reviewer } from './reviews/reviewers'
 import type { WorkflowEvent } from './workflow-events'
 import { parseWorkflowEvent } from './workflow-events'
 import { WorkflowTransitionContext } from './workflow-transition-context'
@@ -164,12 +165,17 @@ export class MaintainerWorkflow {
   }
 
   recordReviewerStatus(
-    reviewer: keyof WorkflowState['reviewerStatuses'],
+    reviewer: Reviewer,
     status: WorkflowState['reviewerStatuses'][keyof WorkflowState['reviewerStatuses']],
   ): PreconditionResult {
     const gate = checkOperationGate('record-reviewer-status', this.state, this.registryDefinition)
     if (!gate.pass) return gate
-    this.append({ type: 'reviewer-status-recorded', at: this.deps.now(), reviewer, status })
+    this.append({
+      type: 'reviewer-status-recorded',
+      at: this.deps.now(),
+      reviewer: reviewer.name(),
+      status,
+    })
     return pass()
   }
 

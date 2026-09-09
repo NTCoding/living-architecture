@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import { Reviewers } from './reviews/reviewers'
+import { Reviewer } from './reviews/reviewers'
 import { ReviewStatuses } from './reviews/statuses'
 import { WorkflowState } from './workflow-types'
 
@@ -54,7 +54,7 @@ const PR_RECORDED_SCHEMA = z.object({
 const REVIEWER_STATUS_RECORDED_EVENT_SCHEMA = z.object({
   type: z.literal('reviewer-status-recorded'),
   at: z.string(),
-  reviewer: Reviewers.schema(),
+  reviewer: Reviewer.schema(),
   status: ReviewStatuses.schema(),
 })
 

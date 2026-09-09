@@ -2,6 +2,7 @@ import { defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { z } from 'zod'
 import { describe, expect, it, vi } from 'vitest'
 import { CreateWorkflowRoutes } from './create-workflow-routes'
+import { Reviewer } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
 
 function createRoutes() {
   const recordIssue = vi.fn(() => ({ pass: true as const }))
@@ -36,7 +37,11 @@ describe('CreateWorkflowRoutes', () => {
     routes['record-reviewer-status'].handler(workflow, 'code-review', 'OPEN_FEEDBACK')
     expect(recordIssue).toHaveBeenCalledWith(workflow, 42)
     expect(recordBranch).toHaveBeenCalledWith(workflow, 'issue-42')
-    expect(recordReviewerStatus).toHaveBeenCalledWith(workflow, 'code-review', 'OPEN_FEEDBACK')
+    expect(recordReviewerStatus).toHaveBeenCalledWith(
+      workflow,
+      Reviewer.fromName('code-review'),
+      'OPEN_FEEDBACK',
+    )
   })
 
   it('rejects unknown reviewer names and statuses', () => {

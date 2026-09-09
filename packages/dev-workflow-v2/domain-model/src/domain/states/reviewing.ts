@@ -6,6 +6,7 @@ import type { ReviewOutcome } from '../workflow'
 import type { ReadWorkflowPullRequestFeedback } from '../ports/read-pull-request-feedback'
 import type { ReviewAgentName, ReviewLauncher } from '../ports/review-launcher'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { Reviewer } from '../reviews/reviewers'
 
 /** @riviere-role domain-port
  * @riviere-role-justification State entry receives external review capabilities and aggregate operations; it does not load previously created workflow state.
@@ -15,7 +16,7 @@ export type ReviewingDependencies = {
     getState(): WorkflowState
     getPullRequestNumber(): number
     recordReviewerStatus(
-      reviewer: keyof WorkflowState['reviewerStatuses'],
+      reviewer: Reviewer,
       status: WorkflowState['reviewerStatuses'][keyof WorkflowState['reviewerStatuses']],
     ): { readonly pass: boolean; readonly reason?: string }
     transition(target: 'ADDRESSING_FEEDBACK' | 'HUMAN_REVIEWING' | 'BLOCKED'): {
@@ -107,12 +108,12 @@ export class ReviewingState {
     for (const reviewer of reviewers) {
       const status = reviewerStatus(feedback, reviewer)
       if (context.workflow.getState().reviewerStatuses[reviewer] !== status)
-        context.workflow.recordReviewerStatus(reviewer, status)
+        context.workflow.recordReviewerStatus(Reviewer.fromName(reviewer), status)
     }
     if (!skipCodeRabbit) {
       const coderabbitStatus = getCodeRabbitStatus(feedback)
       if (context.workflow.getState().reviewerStatuses['coderabbit'] !== coderabbitStatus)
-        context.workflow.recordReviewerStatus('coderabbit', coderabbitStatus)
+        context.workflow.recordReviewerStatus(Reviewer.fromName('coderabbit'), coderabbitStatus)
     }
 
     switch (context.workflow.reviewOutcome({ ignoreCodeRabbit: skipCodeRabbit })) {

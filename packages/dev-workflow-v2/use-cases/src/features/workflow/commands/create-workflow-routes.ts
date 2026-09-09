@@ -1,7 +1,7 @@
 import { arg } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { defineRoutes, RouteMap } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { MaintainerWorkflow as Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
-import { Reviewers } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
+import { Reviewer } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
 import { ReviewStatuses } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/statuses'
 import type { ZodType } from 'zod'
 
@@ -15,18 +15,9 @@ type RoutedWorkflow = Workflow
 type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
 
 type WorkflowResult = ReturnType<Workflow['executeRecording']>
-type Reviewer = Parameters<Workflow['recordReviewerStatus']>[0]
 type ReviewerStatus = Parameters<Workflow['recordReviewerStatus']>[1]
 
 class InvalidReviewerStatusError extends Error {}
-
-function parseReviewer(value: string): Reviewer {
-  try {
-    return Reviewers.schema().parse(value)
-  } catch {
-    throw new InvalidReviewerStatusError(`Unknown reviewer: ${value}`)
-  }
-}
 
 function parseReviewerStatus(value: string): ReviewerStatus {
   try {
@@ -114,7 +105,7 @@ export class CreateWorkflowRoutes {
         handler: (workflow: RoutedWorkflow, reviewer: unknown, status: unknown) =>
           input.recordReviewerStatus(
             workflow,
-            parseReviewer(input.parseStringArgument(reviewer)),
+            Reviewer.fromName(input.parseStringArgument(reviewer)),
             parseReviewerStatus(input.parseStringArgument(status)),
           ),
       },

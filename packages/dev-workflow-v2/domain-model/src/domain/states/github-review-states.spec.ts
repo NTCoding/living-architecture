@@ -5,6 +5,7 @@ import { ReviewingState } from './reviewing'
 import { SubmittingPrState } from './submitting-pr'
 import type { ReadWorkflowPullRequestFeedback } from '../ports/read-pull-request-feedback'
 import type { ReviewAgentName } from '../ports/review-launcher'
+import { Reviewer } from '../reviews/reviewers'
 
 const AT = '2026-01-01T00:00:00Z'
 type PullRequestFeedback = ReturnType<ReadWorkflowPullRequestFeedback>
@@ -75,12 +76,15 @@ function stateContext(
           stateBox.value = stateBox.value.apply(event)
         },
         recordReviewerStatus: (
-          reviewer: keyof WorkflowState['reviewerStatuses'],
+          reviewer: Reviewer,
           status: 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED',
         ) => {
-          events.push({ reviewer, status })
+          events.push({ reviewer: reviewer.name(), status })
           stateBox.value = stateBox.value.with({
-            reviewerStatuses: { ...stateBox.value.reviewerStatuses, [reviewer]: status },
+            reviewerStatuses: {
+              ...stateBox.value.reviewerStatuses,
+              [reviewer.name()]: status,
+            },
           })
           return { pass: true }
         },

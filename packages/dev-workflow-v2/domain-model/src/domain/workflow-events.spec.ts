@@ -1,5 +1,5 @@
 import { getKnownWorkflowEventTypes, parseWorkflowEvent } from './workflow-events'
-import { Reviewers } from './reviews/reviewers'
+import { Reviewer, Reviewers } from './reviews/reviewers'
 import { ReviewStatuses } from './reviews/statuses'
 
 const AT = '2026-01-01T00:00:00Z'
@@ -52,8 +52,13 @@ describe('workflow events', () => {
   })
 
   it('parses the review domain value objects', () => {
+    expect(Reviewer.fromName('code-review').name()).toBe('code-review')
     expect(Reviewers.parse(['code-review']).values).toStrictEqual(['code-review'])
     expect(ReviewStatuses.parse(['APPROVED']).values).toStrictEqual(['APPROVED'])
+  })
+
+  it('rejects an unknown reviewer name', () => {
+    expect(() => Reviewer.fromName('unknown')).toThrow('Unknown reviewer: unknown')
   })
 
   it.each([
