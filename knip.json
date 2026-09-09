@@ -68,6 +68,8 @@
     },
     "tools/dev-workflow-v2": {
       "entry": [
+        "esbuild.config.mjs",
+        "src/infra/external-clients/acp/acp-reviewer-worker.ts",
         "src/shell/cli.ts",
         "src/shell/codex-cli.ts",
         "src/shell/codex-workflow-command.ts",
