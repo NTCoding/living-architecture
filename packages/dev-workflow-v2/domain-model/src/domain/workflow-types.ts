@@ -1,30 +1,16 @@
 import { z } from 'zod'
 import type { WorkflowEvent } from './workflow-events'
+import { Reviewers } from './reviews/reviewers'
+import { ReviewStatuses } from './reviews/statuses'
 
-type ReviewerKey =
-  | 'architecture-review'
-  | 'code-review'
-  | 'bug-scanner'
-  | 'task-check'
-  | 'coderabbit'
-
-type ReviewerStatus = 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED'
+type ReviewerKey = z.infer<ReturnType<typeof Reviewers.schema>>
+type ReviewerStatus = z.infer<ReturnType<typeof ReviewStatuses.schema>>
 type ReviewerStatuses = {
   readonly 'architecture-review': ReviewerStatus
   readonly 'code-review': ReviewerStatus
   readonly 'bug-scanner': ReviewerStatus
   readonly 'task-check': ReviewerStatus
   readonly coderabbit: ReviewerStatus
-}
-
-function pendingReviewerStatuses(): ReviewerStatuses {
-  return {
-    'architecture-review': 'PENDING',
-    'code-review': 'PENDING',
-    'bug-scanner': 'PENDING',
-    'task-check': 'PENDING',
-    coderabbit: 'PENDING',
-  }
 }
 
 const STATE_NAMES = [
@@ -39,7 +25,7 @@ const STATE_NAMES = [
 type StateName = (typeof STATE_NAMES)[number]
 
 const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
-const REVIEWER_STATUS_SCHEMA = z.enum(['PENDING', 'OPEN_FEEDBACK', 'APPROVED'])
+const REVIEWER_STATUS_SCHEMA = ReviewStatuses.schema()
 const REVIEWER_STATUSES_SCHEMA = z
   .object({
     'architecture-review': REVIEWER_STATUS_SCHEMA,
@@ -175,7 +161,7 @@ export class WorkflowState {
 
 const INITIAL_STATE = WorkflowState.parse({
   currentStateMachineState: 'IMPLEMENTING',
-  reviewerStatuses: pendingReviewerStatuses(),
+  reviewerStatuses: ReviewStatuses.pending(),
 })
 
 /**

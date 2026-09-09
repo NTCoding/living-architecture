@@ -1,5 +1,6 @@
 import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { z } from 'zod'
+import { ReviewStatuses } from '../reviews/statuses'
 import type { WorkflowState } from '../workflow-types'
 import type { WorkflowTransitionContext } from '../workflow-transition-context'
 
@@ -50,13 +51,7 @@ export class ImplementingState {
 
   onEntry(state: WorkflowState): WorkflowState {
     return state.with({
-      reviewerStatuses: {
-        'architecture-review': 'PENDING',
-        'code-review': 'PENDING',
-        'bug-scanner': 'PENDING',
-        'task-check': 'PENDING',
-        coderabbit: 'PENDING',
-      },
+      reviewerStatuses: ReviewStatuses.pending(),
     })
   }
 }

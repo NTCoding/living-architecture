@@ -2,10 +2,12 @@ import { configureWorkflow } from './configure-workflow'
 import { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { ReviewStatuses } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/statuses'
 import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
 
 type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
 type StateName = WorkflowState['currentStateMachineState']
+const ALL_PENDING = ReviewStatuses.pending()
 const WORKFLOW_DEFINITION = configureWorkflow({})
 
 function makeWorkflowDeps(): WorkflowDeps {
@@ -148,13 +150,7 @@ describe('WORKFLOW_DEFINITION', () => {
     it('builds context with state and transition info', () => {
       const state = WorkflowState.parse({
         currentStateMachineState: 'IMPLEMENTING',
-        reviewerStatuses: {
-          'architecture-review': 'PENDING',
-          'code-review': 'PENDING',
-          'bug-scanner': 'PENDING',
-          'task-check': 'PENDING',
-          coderabbit: 'PENDING',
-        },
+        reviewerStatuses: ALL_PENDING,
         prNumber: 42,
       })
       const deps = makeWorkflowDeps()
@@ -173,13 +169,7 @@ describe('WORKFLOW_DEFINITION', () => {
   describe('buildTransitionEvent', () => {
     const baseBefore = WorkflowState.parse({
       currentStateMachineState: 'IMPLEMENTING',
-      reviewerStatuses: {
-        'architecture-review': 'PENDING',
-        'code-review': 'PENDING',
-        'bug-scanner': 'PENDING',
-        'task-check': 'PENDING',
-        coderabbit: 'PENDING',
-      },
+      reviewerStatuses: ALL_PENDING,
     })
 
     it('produces event without stateOverrides when no state changes', () => {
@@ -206,13 +196,7 @@ describe('WORKFLOW_DEFINITION', () => {
         },
       })
       const stateAfter = baseBefore.with({
-        reviewerStatuses: {
-          'architecture-review': 'PENDING',
-          'code-review': 'PENDING',
-          'bug-scanner': 'PENDING',
-          'task-check': 'PENDING',
-          coderabbit: 'PENDING',
-        },
+        reviewerStatuses: ALL_PENDING,
       })
       const event = buildTransitionEvent(
         'REVIEWING',
@@ -222,13 +206,7 @@ describe('WORKFLOW_DEFINITION', () => {
         '2026-01-01T00:00:00Z',
       )
       expect(event).toHaveProperty('stateOverrides', {
-        reviewerStatuses: {
-          'architecture-review': 'PENDING',
-          'code-review': 'PENDING',
-          'bug-scanner': 'PENDING',
-          'task-check': 'PENDING',
-          coderabbit: 'PENDING',
-        },
+        reviewerStatuses: ALL_PENDING,
       })
     })
 

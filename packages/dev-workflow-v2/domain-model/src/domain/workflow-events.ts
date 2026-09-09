@@ -1,16 +1,10 @@
 import { z } from 'zod'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { Reviewers } from './reviews/reviewers'
+import { ReviewStatuses } from './reviews/statuses'
 import { WorkflowState } from './workflow-types'
 
 const STATE_NAME_SCHEMA = WorkflowState.stateNameSchema()
-const REVIEWER_KEYS = [
-  'architecture-review',
-  'code-review',
-  'bug-scanner',
-  'task-check',
-  'coderabbit',
-] as const
-
 const KNOWN_WORKFLOW_EVENT_TYPES = [
   'session-started',
   'transitioned',
@@ -60,8 +54,8 @@ const PR_RECORDED_SCHEMA = z.object({
 const REVIEWER_STATUS_RECORDED_EVENT_SCHEMA = z.object({
   type: z.literal('reviewer-status-recorded'),
   at: z.string(),
-  reviewer: z.enum(REVIEWER_KEYS),
-  status: z.enum(['PENDING', 'OPEN_FEEDBACK', 'APPROVED']),
+  reviewer: Reviewers.schema(),
+  status: ReviewStatuses.schema(),
 })
 
 const BASH_CHECKED_SCHEMA = z.object({

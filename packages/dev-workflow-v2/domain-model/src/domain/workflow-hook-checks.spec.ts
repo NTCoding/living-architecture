@@ -1,15 +1,10 @@
 import { isWriteAllowed } from './workflow-predicates'
+import { ReviewStatuses } from './reviews/statuses'
 import { WorkflowState } from './workflow-types'
 
 const BASE_STATE = WorkflowState.parse({
   currentStateMachineState: 'IMPLEMENTING',
-  reviewerStatuses: {
-    'architecture-review': 'PENDING',
-    'code-review': 'PENDING',
-    'bug-scanner': 'PENDING',
-    'task-check': 'PENDING',
-    coderabbit: 'PENDING',
-  },
+  reviewerStatuses: ReviewStatuses.pending(),
 })
 
 describe('isWriteAllowed predicate', () => {

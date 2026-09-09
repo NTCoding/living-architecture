@@ -91,11 +91,16 @@ function makeThread(
   }
 }
 
-function makeReview(login: string, state: string, body = '', commitOid = 'head-oid'): object {
+function makeReview(
+  login: string,
+  state: string,
+  body = '',
+  commitOid: string | null = 'head-oid',
+): object {
   return {
     author: { login },
     body,
-    commit: { oid: commitOid },
+    commit: commitOid === null ? null : { oid: commitOid },
     state,
     submittedAt: '2026-09-03T10:00:00Z',
   }
@@ -266,6 +271,20 @@ describe('createGithubPullRequestFeedbackClient', () => {
       .mockReturnValueOnce(
         graphqlResponse([], {
           reviews: [makeReview('coderabbitai[bot]', 'APPROVED', '', 'old-oid')],
+        }),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+
+    expect(getPrFeedback(1).coderabbitReviewSeen).toBe(false)
+  })
+
+  it('does not treat a CodeRabbit review without a commit as current feedback', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([], {
+          reviews: [makeReview('coderabbitai[bot]', 'APPROVED', '', null)],
         }),
       )
     const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)

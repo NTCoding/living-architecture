@@ -1,6 +1,8 @@
 import { arg } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { defineRoutes, RouteMap } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { MaintainerWorkflow as Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
+import { Reviewers } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
+import { ReviewStatuses } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/statuses'
 import type { ZodType } from 'zod'
 
 interface ZodSchemaProvider<T> {
@@ -15,24 +17,23 @@ type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
 type WorkflowResult = ReturnType<Workflow['executeRecording']>
 type Reviewer = Parameters<Workflow['recordReviewerStatus']>[0]
 type ReviewerStatus = Parameters<Workflow['recordReviewerStatus']>[1]
-const REVIEWER_KEYS = [
-  'architecture-review',
-  'code-review',
-  'bug-scanner',
-  'task-check',
-  'coderabbit',
-] as const
 
 class InvalidReviewerStatusError extends Error {}
 
 function parseReviewer(value: string): Reviewer {
-  for (const reviewer of REVIEWER_KEYS) if (reviewer === value) return reviewer
-  throw new InvalidReviewerStatusError(`Unknown reviewer: ${value}`)
+  try {
+    return Reviewers.schema().parse(value)
+  } catch {
+    throw new InvalidReviewerStatusError(`Unknown reviewer: ${value}`)
+  }
 }
 
 function parseReviewerStatus(value: string): ReviewerStatus {
-  if (value === 'PENDING' || value === 'OPEN_FEEDBACK' || value === 'APPROVED') return value
-  throw new InvalidReviewerStatusError(`Unknown reviewer status: ${value}`)
+  try {
+    return ReviewStatuses.schema().parse(value)
+  } catch {
+    throw new InvalidReviewerStatusError(`Unknown reviewer status: ${value}`)
+  }
 }
 
 /** @riviere-role command-use-case-input */

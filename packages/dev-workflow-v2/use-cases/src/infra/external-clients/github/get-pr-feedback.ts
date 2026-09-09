@@ -31,6 +31,8 @@ const graphqlReviewNodeSchema = z.object({
   submittedAt: z.string().nullable(),
 })
 
+const REVIEW_NODE_FIELDS = 'author { login } body commit { oid } state submittedAt'
+
 const pullRequestCommentSchema = z.object({
   author: z.object({ login: z.string() }).nullable(),
   body: z.string(),
@@ -215,7 +217,7 @@ function readAllReviews(
 ): readonly GraphqlReview[] {
   const cursor = nextPageCursor(pageInfo)
   if (cursor === undefined) return reviews
-  const query = `{ repository(owner: "${repositoryOwner}", name: "${repositoryName}") { pullRequest(number: ${String(prNumber)}) { reviews(first: 100${afterCursor(cursor)}) { nodes { author { login } body commit { oid } state submittedAt } pageInfo { hasNextPage endCursor } } } } }`
+  const query = `{ repository(owner: "${repositoryOwner}", name: "${repositoryName}") { pullRequest(number: ${String(prNumber)}) { reviews(first: 100${afterCursor(cursor)}) { nodes { ${REVIEW_NODE_FIELDS} } pageInfo { hasNextPage endCursor } } } } }`
   const response = reviewsResponseSchema.parse(JSON.parse(queryGithub(runGh, query)))
   const reviewPage = response.data.repository.pullRequest.reviews
   return readAllReviews(
@@ -337,7 +339,7 @@ export function createGithubPullRequestFeedbackClient(
   return (prNumber: number): GithubPullRequestFeedback => {
     const repoRaw = runGh(['repo', 'view', '--json', 'owner,name'])
     const repo = repoInfoSchema.parse(JSON.parse(repoRaw))
-    const query = `{ repository(owner: "${repo.owner.login}", name: "${repo.name}") { pullRequest(number: ${String(prNumber)}) { headRefOid reviewDecision reviews(first: 100) { nodes { author { login } body commit { oid } state submittedAt } pageInfo { hasNextPage endCursor } } comments(first: 100) { nodes { author { login } body createdAt } pageInfo { hasNextPage endCursor } } reviewThreads(first: 100) { nodes { id isResolved isOutdated path line comments(first: 100) { nodes { body createdAt url author { login } } pageInfo { hasNextPage endCursor } } } pageInfo { hasNextPage endCursor } } } } }`
+    const query = `{ repository(owner: "${repo.owner.login}", name: "${repo.name}") { pullRequest(number: ${String(prNumber)}) { headRefOid reviewDecision reviews(first: 100) { nodes { ${REVIEW_NODE_FIELDS} } pageInfo { hasNextPage endCursor } } comments(first: 100) { nodes { author { login } body createdAt } pageInfo { hasNextPage endCursor } } reviewThreads(first: 100) { nodes { id isResolved isOutdated path line comments(first: 100) { nodes { body createdAt url author { login } } pageInfo { hasNextPage endCursor } } } pageInfo { hasNextPage endCursor } } } } }`
     const response = graphqlResponseSchema.parse(JSON.parse(queryGithub(runGh, query)))
     const pullRequest = response.data.repository.pullRequest
     const reviews = readAllReviews(

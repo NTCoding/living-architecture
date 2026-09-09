@@ -46,8 +46,14 @@ describe('workflow-cli commands', () => {
     const context = setup()
     runCommand(context, ['init'])
 
-    expect(runCommand(context, ['create-pr']).exitCode).toBe(1)
-    expect(runCommand(context, ['record-pr', '1']).exitCode).toBe(1)
+    expect(runCommand(context, ['create-pr'])).toMatchObject({
+      exitCode: 1,
+      output: 'Unknown test workflow command.',
+    })
+    expect(runCommand(context, ['record-pr', '1'])).toMatchObject({
+      exitCode: 1,
+      output: 'Unknown test workflow command.',
+    })
   })
 
   it('rejects recording reviewer status outside REVIEWING', () => {
