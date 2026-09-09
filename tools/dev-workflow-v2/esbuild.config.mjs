@@ -37,3 +37,13 @@ await esbuild.build({
   outfile: 'dist/prepare-implementation-branch.js',
   banner: { js: executableBanner },
 })
+
+await esbuild.build({
+  entryPoints: ['src/features/workflow/review/acp-reviewer-worker.ts'],
+  bundle: true,
+  platform: 'node',
+  target: 'node20',
+  format: 'esm',
+  outfile: 'dist/acp-reviewer-worker.js',
+  banner: { js: executableBanner },
+})

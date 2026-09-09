@@ -1,11 +1,9 @@
 # REVIEWING State
 
-GitHub is the review record. Run only reviewers whose workflow status is not `APPROVED`; they publish prefixed inline feedback on the pull request.
-
-The state's `afterEntry` reads CodeRabbit feedback and records its status. Run `/dev-workflow-v2:code-review` for custom reviewers. When they finish, re-enter REVIEWING; its `afterEntry` moves automatically to `ADDRESSING_FEEDBACK` when feedback is open or to `HUMAN_REVIEWING` when every reviewer has approved.
+GitHub is the review record. The state's `afterEntry` starts only reviewers whose recorded GitHub status is not `APPROVED`, waits for every required reviewer and CodeRabbit, reads their GitHub inline feedback and approval comments, records only the resulting reviewer statuses, and transitions to the next state. The main agent does not orchestrate reviewers or receive review results.
 
 ## Constraints
 
 - An approved reviewer is never invoked again for this pull request.
-- Workflow events store reviewer status only. GitHub stores every finding and reply.
+- Workflow events store reviewer status only. GitHub stores every finding, reply, and approval comment.
 - If blocked, transition to BLOCKED: `/dev-workflow-v2:workflow transition BLOCKED`

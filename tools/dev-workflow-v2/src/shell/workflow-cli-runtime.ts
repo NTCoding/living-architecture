@@ -4,7 +4,6 @@ import {
   createDefaultProcessDeps,
   type PlatformContext,
 } from '@nt-ai-lab/deterministic-agent-workflow-cli'
-import { toPayload, type BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { defineWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
 import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
 import { createWorkflowPullRequestCreator } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-creator'
@@ -21,7 +20,7 @@ import {
   parseStringArgument,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
-type WorkflowEntryState = { readonly currentStateMachineState: string }
+import { AcpReviewerLauncher } from '../features/workflow/review/acp-reviewer-launcher'
 
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
@@ -68,14 +67,11 @@ function buildWorkflowDeps(platform: PlatformContext) {
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,
-    emitEvent: (event: BaseEvent, state: WorkflowEntryState) => {
-      platform.store.appendEvents(platform.getSessionId(), [
-        {
-          envelope: { type: event.type, at: event.at, state: state.currentStateMachineState },
-          payload: toPayload(event),
-        },
-      ])
-    },
+    reviewLauncher: new AcpReviewerLauncher({
+      workerPath: join(workflowRoot, 'dist/acp-reviewer-worker.js'),
+      command: process.env.ACP_REVIEWER_COMMAND ?? 'codex',
+      cwd: process.cwd(),
+    }),
   }
 }
 
