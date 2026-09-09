@@ -20,12 +20,12 @@ describe('createGithubPullRequestClient', () => {
       branch: 'issue-42',
       title: 'Ready PR',
       body: '## Description\n\nCreates a ready PR.',
+      draft: false,
     })
 
     expect(pullRequest).toStrictEqual({
       prNumber: 123,
       prUrl: 'https://github.com/example/repo/pull/123',
-      isDraft: false,
     })
     expect(calls).toStrictEqual([
       [
@@ -37,12 +37,13 @@ describe('createGithubPullRequestClient', () => {
         'Ready PR',
         '--body',
         '## Description\n\nCreates a ready PR.',
+        '--draft=false',
       ],
       ['pr', 'view', 'https://github.com/example/repo/pull/123', '--json', 'number,url,isDraft'],
     ])
   })
 
-  it('returns draft status without changing pull request readiness', () => {
+  it('rejects a draft pull request response', () => {
     const calls: Array<readonly string[]> = []
     const createPullRequest = createGithubPullRequestClient((args) => {
       calls.push(args)
@@ -56,17 +57,14 @@ describe('createGithubPullRequestClient', () => {
       })
     })
 
-    const pullRequest = createPullRequest({
-      branch: 'issue-42',
-      title: 'Ready PR',
-      body: '## Description\n\nCreates a ready PR.',
-    })
-
-    expect(pullRequest).toStrictEqual({
-      prNumber: 123,
-      prUrl: 'https://github.com/example/repo/pull/123',
-      isDraft: true,
-    })
+    expect(() =>
+      createPullRequest({
+        branch: 'issue-42',
+        title: 'Ready PR',
+        body: '## Description\n\nCreates a ready PR.',
+        draft: false,
+      }),
+    ).toThrow('Created pull request is a draft.')
     expect(calls).toStrictEqual([
       [
         'pr',
@@ -77,6 +75,7 @@ describe('createGithubPullRequestClient', () => {
         'Ready PR',
         '--body',
         '## Description\n\nCreates a ready PR.',
+        '--draft=false',
       ],
       ['pr', 'view', 'https://github.com/example/repo/pull/123', '--json', 'number,url,isDraft'],
     ])
@@ -90,6 +89,7 @@ describe('createGithubPullRequestClient', () => {
         branch: 'issue-42',
         title: 'Ready PR',
         body: '## Description\n\nCreates a ready PR.',
+        draft: false,
       }),
     ).toThrow('Expected gh pr create to return a URL. Got empty output.')
   })
@@ -102,6 +102,7 @@ describe('createGithubPullRequestClient', () => {
         branch: 'issue-42',
         title: 'Ready PR',
         body: '## Description\n\nCreates a ready PR.',
+        draft: false,
       }),
     ).toThrow('Expected gh pr create to return a URL. Got: not-json')
   })

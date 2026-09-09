@@ -23,6 +23,7 @@ function graphqlResponse(
     reviews: readonly object[]
     reviewPageInfo: PageInfo
     threadPageInfo: PageInfo
+    comments: readonly object[]
   }> = {},
 ): string {
   return JSON.stringify({
@@ -38,6 +39,10 @@ function graphqlResponse(
           reviewThreads: {
             nodes: threads,
             pageInfo: overrides.threadPageInfo ?? NO_NEXT_PAGE,
+          },
+          comments: {
+            nodes: overrides.comments ?? [],
+            pageInfo: NO_NEXT_PAGE,
           },
         },
       },
@@ -198,6 +203,25 @@ describe('createGithubPullRequestFeedbackClient', () => {
     const result = getPrFeedback(1)
     expect(result.reviewDecision).toBe('CHANGES_REQUESTED')
     expect(result.coderabbitReviewSeen).toBe(true)
+  })
+
+  it('reads reviewer approval from a pull request comment', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([], {
+          comments: [
+            {
+              author: { login: 'reviewer' },
+              body: '[code-review] APPROVED',
+              createdAt: '2026-09-03T10:00:00Z',
+            },
+          ],
+        }),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+    expect(getPrFeedback(1).reviewerStatuses['code-review']).toBe('APPROVED')
   })
 
   it('detects a submitted CodeRabbit bot review', () => {

@@ -177,7 +177,7 @@ describe('plugin Agent Skills', () => {
     })
   })
 
-  it('keeps review findings on GitHub and records reviewer status only', () => {
+  it('keeps review findings and reviewer status on GitHub', () => {
     const skill = readPluginFile('skills/code-review/SKILL.md')
 
     expect({
@@ -188,8 +188,8 @@ describe('plugin Agent Skills', () => {
       doesNotRecordFindings: skill.includes('Do not copy findings into workflow events'),
     }).toStrictEqual({
       publishesInlineFeedback: true,
-      recordsReviewerStatus: true,
-      recordsOpenFeedback: true,
+      recordsReviewerStatus: false,
+      recordsOpenFeedback: false,
       recordsApproval: true,
       doesNotRecordFindings: true,
     })

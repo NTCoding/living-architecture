@@ -1,7 +1,7 @@
 import { unlinkSync, existsSync, mkdtempSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { toPayload, type WorkflowEngineDeps } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { type WorkflowEngineDeps } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { createStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store'
 import type { RunnerResult } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
@@ -55,8 +55,15 @@ export function buildTestContext(
     getPrFeedback:
       overrides.getPrFeedback ??
       (() => ({
+        reviewerStatuses: {
+          'architecture-review': 'APPROVED',
+          'code-review': 'APPROVED',
+          'bug-scanner': 'APPROVED',
+          'task-check': 'APPROVED',
+          coderabbit: 'APPROVED',
+        },
         reviewDecision: null,
-        coderabbitReviewSeen: false,
+        coderabbitReviewSeen: true,
         unresolvedCount: 0,
         threads: [],
       })),
@@ -70,13 +77,9 @@ export function buildTestContext(
     listSessionReviews: () => store.listSessionReviews(sessionId),
     sleepMs: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
-    emitEvent: (event, state) =>
-      store.appendEvents(sessionId, [
-        {
-          envelope: { type: event.type, at: event.at, state: state.currentStateMachineState },
-          payload: toPayload(event),
-        },
-      ]),
+    reviewLauncher: {
+      run: () => undefined,
+    },
   }
 
   return {

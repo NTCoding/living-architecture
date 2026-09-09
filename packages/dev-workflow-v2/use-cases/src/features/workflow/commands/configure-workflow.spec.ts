@@ -18,6 +18,13 @@ function makeWorkflowDeps(): WorkflowDeps {
       hasCommitsVsDefault: false,
     }),
     getPrFeedback: () => ({
+      reviewerStatuses: {
+        'architecture-review': 'APPROVED',
+        'code-review': 'APPROVED',
+        'bug-scanner': 'APPROVED',
+        'task-check': 'APPROVED',
+        coderabbit: 'APPROVED',
+      },
       reviewDecision: null,
       coderabbitReviewSeen: true,
       unresolvedCount: 0,
@@ -31,7 +38,9 @@ function makeWorkflowDeps(): WorkflowDeps {
     listSessionReviews: () => [],
     sleepMs: () => undefined,
     now: () => '2026-01-01T00:00:00Z',
-    emitEvent: () => undefined,
+    reviewLauncher: {
+      run: () => undefined,
+    },
   }
 }
 

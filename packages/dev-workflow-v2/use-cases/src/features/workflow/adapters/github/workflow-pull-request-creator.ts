@@ -13,9 +13,9 @@ export function createWorkflowPullRequestCreator(
       branch: request.branch,
       body: request.body,
       title: request.title,
+      draft: false,
     })
     return {
-      isDraft: pullRequest.isDraft,
       prNumber: pullRequest.prNumber,
       prUrl: pullRequest.prUrl,
     }
