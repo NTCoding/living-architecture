@@ -224,6 +224,29 @@ describe('createGithubPullRequestFeedbackClient', () => {
     expect(getPrFeedback(1).reviewerStatuses['code-review']).toBe('APPROVED')
   })
 
+  it('returns OPEN_FEEDBACK when a thread comment starts with the reviewer prefix', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([
+          makeThread({
+            comments: {
+              nodes: [
+                {
+                  author: { login: 'reviewer' },
+                  body: '[code-review] needs changes',
+                  createdAt: '2026-09-03T10:00:00Z',
+                },
+              ],
+            },
+          }),
+        ]),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+    expect(getPrFeedback(1).reviewerStatuses['code-review']).toBe('OPEN_FEEDBACK')
+  })
+
   it('detects a submitted CodeRabbit bot review', () => {
     const runGh = vi
       .fn()
