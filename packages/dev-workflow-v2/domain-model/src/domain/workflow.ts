@@ -33,6 +33,9 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
   },
 }
 type WorkflowOperation = keyof typeof RECORDING_OPS_MAP | 'record-reviewer-status'
+/** @riviere-role domain-port
+ * @riviere-role-justification Review outcome is the aggregate's contract for the result of evaluating external reviewer statuses.
+ */
 export type ReviewOutcome = 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED'
 /** @riviere-role domain-port
  * @riviere-role-justification The aggregate receives current Git and GitHub capabilities at construction time; they are external observations and effects, not previously created workflow state.

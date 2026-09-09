@@ -1,7 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
-/** @riviere-role external-client-model */
-export type AcpReviewerLauncherOptions = {
+type AcpReviewerLauncherOptions = {
   readonly workerPath: string
   readonly command: string
   readonly args?: readonly string[]

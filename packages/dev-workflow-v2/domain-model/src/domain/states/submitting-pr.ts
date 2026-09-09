@@ -5,7 +5,9 @@ import type { WorkflowState } from '../workflow-types'
 import type { CreateWorkflowPullRequest } from '../ports/create-pull-request'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 
-/** @riviere-role domain-port */
+/** @riviere-role domain-port
+ * @riviere-role-justification State entry receives external capabilities and aggregate operations; it does not load previously created workflow state.
+ */
 export type SubmittingPrDependencies = {
   readonly workflow: {
     getState(): WorkflowState

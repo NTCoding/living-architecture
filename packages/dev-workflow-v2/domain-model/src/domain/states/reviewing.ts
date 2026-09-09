@@ -7,7 +7,9 @@ import type { ReadWorkflowPullRequestFeedback } from '../ports/read-pull-request
 import type { ReviewAgentName, ReviewLauncher } from '../ports/review-launcher'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 
-/** @riviere-role domain-port */
+/** @riviere-role domain-port
+ * @riviere-role-justification State entry receives external review capabilities and aggregate operations; it does not load previously created workflow state.
+ */
 export type ReviewingDependencies = {
   readonly workflow: {
     getState(): WorkflowState
