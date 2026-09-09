@@ -342,6 +342,14 @@ describe('Workflow', () => {
       expect(result).toBe('OPEN_FEEDBACK')
     })
 
+    it('prioritises OPEN_FEEDBACK over PENDING', () => {
+      const { result } = spec.given(...eventsToReviewing()).when((wf) => {
+        wf.recordReviewerStatus(Reviewer.fromName('code-review'), 'OPEN_FEEDBACK')
+        return wf.reviewOutcome()
+      })
+      expect(result).toBe('OPEN_FEEDBACK')
+    })
+
     it('returns PENDING when a reviewer has not responded', () => {
       const { result } = spec.given(...eventsToReviewing()).when((wf) => wf.reviewOutcome())
       expect(result).toBe('PENDING')

@@ -6,6 +6,7 @@ import { SubmittingPrState } from './submitting-pr'
 import type { ReadWorkflowPullRequestFeedback } from '../ports/read-pull-request-feedback'
 import type { ReviewAgentName } from '../ports/review-launcher'
 import { Reviewer } from '../reviews/reviewers'
+import type { ReviewOutcome } from '../workflow'
 
 const AT = '2026-01-01T00:00:00Z'
 type PullRequestFeedback = ReturnType<ReadWorkflowPullRequestFeedback>
@@ -57,6 +58,7 @@ function stateContext(
     getPrFeedback: () => PullRequestFeedback
     sleepMs: (milliseconds: number) => void
     runReviewers: (requests: readonly { readonly reviewer: ReviewAgentName }[]) => void
+    reviewOutcome: (options: { readonly ignoreCodeRabbit?: boolean }) => ReviewOutcome
   }> = {},
 ) {
   const events: unknown[] = []
@@ -102,14 +104,7 @@ function stateContext(
           stateBox.value = stateBox.value.with({ currentStateMachineState: target })
           return { pass: true }
         },
-        reviewOutcome: ({ ignoreCodeRabbit }: { readonly ignoreCodeRabbit?: boolean } = {}) => {
-          const statuses = Object.entries(stateBox.value.reviewerStatuses)
-            .filter(([reviewer]) => !(ignoreCodeRabbit === true && reviewer === 'coderabbit'))
-            .map(([, status]) => status)
-          if (statuses.some((status) => status === 'OPEN_FEEDBACK')) return 'OPEN_FEEDBACK' as const
-          if (statuses.some((status) => status === 'PENDING')) return 'PENDING' as const
-          return 'APPROVED' as const
-        },
+        reviewOutcome: depsOverrides.reviewOutcome ?? (() => 'APPROVED'),
       },
       deps: {
         getPrFeedback: depsOverrides.getPrFeedback ?? (() => feedback),
@@ -192,6 +187,8 @@ describe('GitHub review states', () => {
         coderabbitReviewSeen: true,
         threads: [codeRabbitThread('coderabbitai')],
       }),
+      undefined,
+      { reviewOutcome: () => 'OPEN_FEEDBACK' },
     )
     ReviewingState.parse('REVIEWING', context).afterEntry()
     expect(events).toContainEqual(
@@ -224,6 +221,8 @@ describe('GitHub review states', () => {
         coderabbitReviewSeen: true,
         threads: [codeRabbitThread('coderabbitai[bot]')],
       }),
+      undefined,
+      { reviewOutcome: () => 'OPEN_FEEDBACK' },
     )
     ReviewingState.parse('REVIEWING', context).afterEntry()
     expect(events).not.toContainEqual(expect.objectContaining({ reviewer: 'coderabbit' }))
@@ -301,6 +300,8 @@ describe('GitHub review states', () => {
           coderabbit: 'APPROVED',
         },
       }),
+      undefined,
+      { reviewOutcome: () => 'PENDING' },
     )
     expect(() => ReviewingState.parse('REVIEWING', context).afterEntry()).toThrow(
       'Reviewing completion was evaluated before every reviewer returned a result.',
@@ -325,7 +326,7 @@ describe('GitHub review states', () => {
       WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
       undefined,
       undefined,
-      { getPrFeedback, sleepMs },
+      { getPrFeedback, sleepMs, reviewOutcome: () => 'PENDING' },
     )
     expect(() => ReviewingState.parse('REVIEWING', context).afterEntry()).toThrow(
       'Reviewing completion was evaluated before every reviewer returned a result.',
