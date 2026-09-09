@@ -151,17 +151,15 @@ function waitForReviewCompletion(
 
 function getCodeRabbitStatus(feedback: {
   readonly coderabbitReviewSeen: boolean
-  readonly coderabbitRateLimited?: boolean
   readonly threads: readonly {
     readonly comments: readonly { readonly author: { readonly login: string } | null }[]
   }[]
-}): 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED' {
+}): 'OPEN_FEEDBACK' | 'APPROVED' {
   const hasOpenCodeRabbitThread = feedback.threads.some((thread) =>
     thread.comments.some(
       (comment) =>
         comment.author?.login === 'coderabbitai' || comment.author?.login === 'coderabbitai[bot]',
     ),
   )
-  if (hasOpenCodeRabbitThread) return 'OPEN_FEEDBACK'
-  return feedback.coderabbitReviewSeen ? 'APPROVED' : 'PENDING'
+  return hasOpenCodeRabbitThread ? 'OPEN_FEEDBACK' : 'APPROVED'
 }

@@ -178,4 +178,129 @@ describe('Workflow', () => {
       expect(workflow.recordReviewerStatus('code-review', 'APPROVED').pass).toBe(false)
     })
   })
+
+  describe('getPullRequestNumber', () => {
+    it('throws when no pull request has been recorded', () => {
+      const workflow = buildTestWorkflow(makeDeps())
+      expect(() => workflow.getPullRequestNumber()).toThrow(
+        'Workflow has no recorded pull request.',
+      )
+    })
+
+    it('returns the pull request number after recording', () => {
+      const { result } = spec.given().when((wf) => {
+        wf.recordPullRequest(99, 'https://github.com/example/repo/pull/99')
+        return wf.getPullRequestNumber()
+      })
+      expect(result).toBe(99)
+    })
+  })
+
+  describe('getSubmissionDetails', () => {
+    it('throws when no issue or branch has been recorded', () => {
+      const workflow = buildTestWorkflow(makeDeps())
+      expect(() => workflow.getSubmissionDetails()).toThrow(
+        'Workflow is not ready to submit a pull request.',
+      )
+    })
+
+    it('returns submission details when issue and branch are recorded', () => {
+      const { result } = spec.given().when((wf) => {
+        wf.executeRecording('record-issue', 42)
+        wf.executeRecording('record-branch', 'issue-42')
+        return wf.getSubmissionDetails()
+      })
+      expect(result).toStrictEqual({ githubIssue: 42, featureBranch: 'issue-42' })
+    })
+  })
+
+  describe('recordPullRequest', () => {
+    it('records a pull request and updates the state', () => {
+      const { result, state, events } = spec
+        .given()
+        .when((wf) => wf.recordPullRequest(99, 'https://github.com/example/repo/pull/99'))
+      expect(result).toStrictEqual({ pass: true })
+      expect(state.prNumber).toBe(99)
+      expect(state.prUrl).toBe('https://github.com/example/repo/pull/99')
+      expect(events).toStrictEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'pr-recorded',
+            prNumber: 99,
+            prUrl: 'https://github.com/example/repo/pull/99',
+          }),
+        ]),
+      )
+    })
+  })
+
+  describe('transition', () => {
+    it('transitions to a legal target state', () => {
+      const { result, state, events } = spec.given().when((wf) => wf.transition('SUBMITTING_PR'))
+      expect(result).toStrictEqual({ pass: true })
+      expect(state.currentStateMachineState).toBe('SUBMITTING_PR')
+      expect(events).toStrictEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'transitioned',
+            from: 'IMPLEMENTING',
+            to: 'SUBMITTING_PR',
+          }),
+        ]),
+      )
+    })
+
+    it('rejects an illegal transition', () => {
+      const { result } = spec.given().when((wf) => wf.transition('REVIEWING'))
+      expect(result).toStrictEqual({
+        pass: false,
+        reason: 'Illegal transition IMPLEMENTING -> REVIEWING.',
+      })
+    })
+  })
+
+  describe('reviewOutcome', () => {
+    it('returns APPROVED when every reviewer is approved', () => {
+      const { result } = spec.given(...eventsToReviewing()).when((wf) => {
+        for (const reviewer of [
+          'architecture-review',
+          'code-review',
+          'bug-scanner',
+          'task-check',
+          'coderabbit',
+        ] as const)
+          wf.recordReviewerStatus(reviewer, 'APPROVED')
+        return wf.reviewOutcome()
+      })
+      expect(result).toBe('APPROVED')
+    })
+
+    it('returns OPEN_FEEDBACK when any reviewer has open feedback', () => {
+      const { result } = spec.given(...eventsToReviewing()).when((wf) => {
+        wf.recordReviewerStatus('code-review', 'OPEN_FEEDBACK')
+        return wf.reviewOutcome()
+      })
+      expect(result).toBe('OPEN_FEEDBACK')
+    })
+
+    it('returns PENDING when a reviewer has not responded', () => {
+      const { result } = spec.given(...eventsToReviewing()).when((wf) => wf.reviewOutcome())
+      expect(result).toBe('PENDING')
+    })
+
+    it('ignores CodeRabbit when asked', () => {
+      const { result } = spec.given(...eventsToReviewing()).when((wf) => {
+        wf.recordReviewerStatus('coderabbit', 'OPEN_FEEDBACK')
+        for (const reviewer of [
+          'architecture-review',
+          'code-review',
+          'bug-scanner',
+          'task-check',
+        ] as const)
+          wf.recordReviewerStatus(reviewer, 'APPROVED')
+        return wf.reviewOutcome({ ignoreCodeRabbit: true })
+      })
+      expect(result).toBe('APPROVED')
+    })
+  })
 })

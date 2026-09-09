@@ -54,6 +54,8 @@ Domain model package: `@living-architecture/dev-workflow-v2-domain-model`
   - `build`
   - `getPendingEvents`
   - `getState`
+  - `getPullRequestNumber`
+  - `getSubmissionDetails`
   - `registry`
   - `getAgentInstructions`
   - `appendEvent`
@@ -66,6 +68,9 @@ Domain model package: `@living-architecture/dev-workflow-v2-domain-model`
   - `handleTeammateIdle`
   - `executeRecording`
   - `recordReviewerStatus`
+  - `recordPullRequest`
+  - `transition`
+  - `reviewOutcome`
 
 #### Supported use cases
 
