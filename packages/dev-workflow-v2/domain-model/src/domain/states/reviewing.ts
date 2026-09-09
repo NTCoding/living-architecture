@@ -7,6 +7,7 @@ import type { ReadWorkflowPullRequestFeedback } from '../ports/read-pull-request
 import type { ReviewAgentName, ReviewLauncher } from '../ports/review-launcher'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 
+/** @riviere-role domain-port */
 export type ReviewingDependencies = {
   readonly workflow: {
     getState(): WorkflowState

@@ -39,7 +39,7 @@ await esbuild.build({
 })
 
 await esbuild.build({
-  entryPoints: ['src/features/workflow/review/acp-reviewer-worker.ts'],
+  entryPoints: ['src/infra/external-clients/acp/acp-reviewer-worker.ts'],
   bundle: true,
   platform: 'node',
   target: 'node20',

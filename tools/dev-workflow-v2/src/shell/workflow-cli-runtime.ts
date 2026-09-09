@@ -20,7 +20,7 @@ import {
   parseStringArgument,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
-import { AcpReviewerLauncher } from '../features/workflow/review/acp-reviewer-launcher'
+import { AcpReviewerLauncher } from '../infra/external-clients/acp/acp-reviewer-launcher'
 
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration

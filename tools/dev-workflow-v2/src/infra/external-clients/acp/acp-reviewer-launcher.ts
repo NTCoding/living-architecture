@@ -1,10 +1,6 @@
 import { spawnSync } from 'node:child_process'
-import type {
-  ReviewAgentName,
-  ReviewLaunchRequest,
-  ReviewLauncher,
-} from '@living-architecture/dev-workflow-v2-domain-model/domain/ports/review-launcher'
 
+/** @riviere-role external-client-model */
 export type AcpReviewerLauncherOptions = {
   readonly workerPath: string
   readonly command: string
@@ -14,8 +10,14 @@ export type AcpReviewerLauncherOptions = {
 
 class AcpReviewerProcessError extends Error {}
 
-/** @riviere-role infrastructure-adapter */
-export class AcpReviewerLauncher implements ReviewLauncher {
+type ReviewLaunchRequest = {
+  readonly pullRequestNumber: number
+  readonly reviewer: 'architecture-review' | 'code-review' | 'bug-scanner' | 'task-check'
+  readonly workflowState: unknown
+}
+
+/** @riviere-role external-client-service */
+export class AcpReviewerLauncher {
   private readonly options: AcpReviewerLauncherOptions
 
   constructor(options: AcpReviewerLauncherOptions) {
@@ -40,13 +42,4 @@ export class AcpReviewerLauncher implements ReviewLauncher {
         `ACP reviewer exited with status ${String(result.status)}: ${result.stderr}`,
       )
   }
-}
-
-export function isReviewAgentName(value: string): value is ReviewAgentName {
-  return (
-    value === 'architecture-review' ||
-    value === 'code-review' ||
-    value === 'bug-scanner' ||
-    value === 'task-check'
-  )
 }
