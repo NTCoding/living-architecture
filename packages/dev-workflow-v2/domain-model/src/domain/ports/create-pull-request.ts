@@ -6,7 +6,6 @@ export type CreateWorkflowPullRequest = (request: {
   readonly branch: string
   readonly title: string
   readonly body: string
-  readonly draft: false
 }) => {
   readonly prNumber: number
   readonly prUrl: string

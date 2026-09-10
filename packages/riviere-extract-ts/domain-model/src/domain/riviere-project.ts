@@ -25,7 +25,7 @@ import {
   ExtractionConfigurationUnavailableError,
   GraphStateUnavailableError,
 } from './riviere-project-errors'
-import { Workflow } from './workflow'
+import { Workflow, WorkflowRunMode } from './workflow'
 import type { WorkflowStageValue } from './workflow-stage'
 
 export { OrphanedDraftComponentError } from './orphaned-draft-component-error'
@@ -69,7 +69,7 @@ export class RiviereProject {
 
   addWorkflow(input: Parameters<typeof Workflow.start>[0]) {
     const result = Workflow.start(input)
-    if (result.success) this.workflows.push(result.data)
+    if (result.success) this.workflows.push(result.workflow)
     return result
   }
 
@@ -137,7 +137,7 @@ export class RiviereProject {
     return this.graphBuilder().serialize()
   }
 
-  rebuildGraph(workflowName: string) {
+  rebuildGraph(workflowName: string, mode: WorkflowRunMode = WorkflowRunMode.from('run')) {
     const workflow = this.workflows.find((candidate) => candidate.name() === workflowName)
     if (workflow === undefined) {
       return workflowFailure('WORKFLOW_NOT_FOUND', `Workflow '${workflowName}' was not found`)
@@ -147,63 +147,47 @@ export class RiviereProject {
       return workflowFailure('GRAPH_STATE_UNAVAILABLE', 'Graph state is unavailable')
     }
     this.builder = RiviereBuilder.new(RiviereBuilder.graphOptionsFrom(previousBuilder.build()))
-    const run = workflow.run(this.builder, (stage, components) =>
-      this.executeWorkflowStage(stage, components),
-    )
-    if (!run.success) {
+    const run = workflow.run(this.builder, mode, (stage) => this.executeWorkflowStage(stage))
+    if (!run.value.success) {
       this.builder = previousBuilder
-      return run
+      return run.value
     }
     return {
       success: true as const,
       graph: this.graphBuilder().build(),
       outputPath: workflow.outputPath(),
       runLogDirectory: workflow.runLogDirectory(),
-      events: run.events,
-      warnings: run.warnings,
+      events: run.value.events,
+      transitions: run.value.transitions,
+      warnings: run.value.warnings,
     }
   }
 
-  private executeWorkflowStage(
-    stage: Exclude<WorkflowStageValue, { kind: 'validate' }>,
-    accumulatedComponents: readonly EnrichedComponent[],
-  ) {
+  private executeWorkflowStage(stage: WorkflowStageValue) {
     switch (stage.kind) {
-      case 'extract':
-        return this.executeExtractionStage(stage.configuration)
-      case 'link':
-        return this.executeLinkStage(stage.configuration, accumulatedComponents)
+      case 'schema-validate':
+        return this.executeSchemaValidationStage()
+      case 'code-extraction':
+      case 'eventcatalog-import':
+      case 'asyncapi-import':
+      case 'ai-extract':
+      case 'ai-enrich':
+        return {
+          success: false as const,
+          errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',
+          reason: `Stage behaviour is unavailable for '${stage.kind}'`,
+        }
     }
   }
 
-  private executeExtractionStage(configuration: ExtractionConfiguration) {
-    const modules = RiviereModule.fromConfiguration(configuration, [])
-    modules.forEach((module) => module.extractAllDraftComponents())
-    const enrichment = EnrichmentResult.mergeModuleResults(
-      modules.map((module) => module.enrichDraftComponents()),
-    )
-    if (enrichment.hasFailures()) {
-      return {
-        success: false as const,
-        errorCode: 'FIELD_ENRICHMENT_FAILED',
-        reason: `Field enrichment failed: ${enrichment.failedFieldNames().join(', ')}`,
-      }
-    }
+  private executeSchemaValidationStage() {
+    const validation = this.graphBuilder().validate()
+    if (validation.valid) return { success: true as const, diagnostics: [], warnings: [] }
     return {
-      success: true as const,
-      kind: 'components' as const,
-      components: enrichment.components,
-      repository: configuration.repositoryName,
+      success: false as const,
+      errorCode: 'GRAPH_VALIDATION_FAILED',
+      reason: validation.errors.map((error) => error.message).join('\n'),
     }
-  }
-
-  private executeLinkStage(
-    configuration: ExtractionConfiguration,
-    components: readonly EnrichedComponent[],
-  ) {
-    const modules = RiviereModule.fromConfiguration(configuration, [])
-    const connections = this.detectConnectionsUsing(configuration, modules, components, false)
-    return { success: true as const, kind: 'connections' as const, connections }
   }
 
   extractDraftComponents(options: {
@@ -428,6 +412,7 @@ function workflowFailure(errorCode: string, reason: string) {
     errorCode,
     reason,
     events: [],
+    transitions: [],
     warnings: [],
   }
 }

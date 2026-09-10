@@ -6,9 +6,11 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { parsePullRequestDescriptionOptions } from '../features/workflow/entrypoint/workflow/pull-request-description-input'
 import {
   parseNumberArgument,
   parseStringArgument,
+  parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 import { createWorkflowCliRuntime } from './workflow-cli-runtime'
@@ -23,6 +25,8 @@ const routes = createWorkflowRoutes({
   ),
   parseNumberArgument,
   parseStringArgument,
+  parseStringArguments,
+  parsePullRequestDescriptionOptions,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],

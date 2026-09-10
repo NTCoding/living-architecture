@@ -4,7 +4,6 @@ import type { WorkflowTransitionContext } from '../workflow-transition-context'
 import type { WorkflowState } from '../workflow-types'
 import type { ReviewOutcome } from '../workflow'
 import type { ReadWorkflowPullRequestFeedback } from '../ports/read-pull-request-feedback'
-import type { ReviewAgentName, ReviewLauncher } from '../ports/review-launcher'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { Reviewer } from '../reviews/reviewers'
 
@@ -29,7 +28,6 @@ export type ReviewingDependencies = {
     readonly getPrFeedback: ReadWorkflowPullRequestFeedback
     readonly sleepMs: (milliseconds: number) => void
     readonly now: () => string
-    readonly reviewLauncher: ReviewLauncher
   }
 }
 
@@ -85,25 +83,12 @@ export class ReviewingState {
       throw new WorkflowStateError('Reviewing entry dependencies have not been configured.')
     const context = this.dependencies
     const pullRequestNumber = context.workflow.getPullRequestNumber()
-    const state = context.workflow.getState()
-    const reviewers: readonly ReviewAgentName[] = [
-      'architecture-review',
-      'code-review',
-      'bug-scanner',
-      'task-check',
-    ]
-    const outstandingReviewers: readonly ReviewAgentName[] = reviewers.filter(
-      (reviewer) => state.reviewerStatuses[reviewer] !== 'APPROVED',
+    const reviewers = ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
+    const feedback = waitForReviewCompletion(
+      context.deps,
+      pullRequestNumber,
+      context.workflow.getState(),
     )
-    context.deps.reviewLauncher.run(
-      outstandingReviewers.map((reviewer) => ({
-        pullRequestNumber,
-        reviewer,
-        workflowState: context.workflow.getState(),
-      })),
-    )
-
-    const feedback = waitForReviewCompletion(context.deps, pullRequestNumber, state)
     const skipCodeRabbit = feedback.coderabbitRateLimited === true
     for (const reviewer of reviewers) {
       const status = reviewerStatus(feedback, reviewer)
@@ -124,16 +109,15 @@ export class ReviewingState {
         context.workflow.transition('HUMAN_REVIEWING')
         return
       case 'PENDING':
-        throw new WorkflowStateError(
-          'Reviewing completion was evaluated before every reviewer returned a result.',
-        )
+        context.workflow.transition('BLOCKED')
+        return
     }
   }
 }
 
 function reviewerStatus(
   feedback: ReturnType<ReadWorkflowPullRequestFeedback>,
-  reviewer: ReviewAgentName,
+  reviewer: 'architecture-review' | 'code-review' | 'bug-scanner' | 'task-check',
 ): WorkflowState['reviewerStatuses'][keyof WorkflowState['reviewerStatuses']] {
   switch (reviewer) {
     case 'architecture-review':
@@ -161,8 +145,8 @@ function waitForReviewCompletion(
       state.reviewerStatuses[reviewer] === 'APPROVED' ||
       feedback.reviewerStatuses[reviewer] !== 'PENDING',
   )
-  if (localReviewersComplete && (feedback.coderabbitReviewSeen || feedback.coderabbitRateLimited))
-    return feedback
+  if (!localReviewersComplete) return feedback
+  if (feedback.coderabbitReviewSeen || feedback.coderabbitRateLimited) return feedback
   if (remainingPolls === 1) return feedback
   deps.sleepMs(CODERABBIT_POLL_INTERVAL_MS)
   return waitForReviewCompletion(deps, prNumber, state, remainingPolls - 1)
@@ -173,7 +157,8 @@ function getCodeRabbitStatus(feedback: {
   readonly threads: readonly {
     readonly comments: readonly { readonly author: { readonly login: string } | null }[]
   }[]
-}): 'OPEN_FEEDBACK' | 'APPROVED' {
+}): 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED' {
+  if (!feedback.coderabbitReviewSeen) return 'PENDING'
   const hasOpenCodeRabbitThread = feedback.threads.some((thread) =>
     thread.comments.some(
       (comment) =>

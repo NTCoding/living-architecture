@@ -28,6 +28,12 @@ export class ImplementingState {
     context: Parameters<typeof WorkflowTransitionContext.from>[0],
   ): PreconditionResult {
     if (context.to === 'BLOCKED') return { pass: true }
+    if (context.state.prNumber !== undefined) {
+      return {
+        pass: false,
+        reason: 'A pull request has already been recorded. Submitting another is not allowed.',
+      }
+    }
     if (!context.gitInfo.hasCommitsVsDefault) {
       return {
         pass: false,
@@ -44,6 +50,12 @@ export class ImplementingState {
       return {
         pass: false,
         reason: 'No issue recorded. Run record-issue first.',
+      }
+    }
+    if (context.state.featureBranch === undefined) {
+      return {
+        pass: false,
+        reason: 'No branch recorded. Run record-branch first.',
       }
     }
     return { pass: true }

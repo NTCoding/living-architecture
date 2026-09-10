@@ -6,7 +6,6 @@ import {
   TEST_WORKFLOW_REGISTRY,
 } from './__fixtures__/workflow-test-fixtures'
 import { Reviewer } from './reviews/reviewers'
-
 describe('Workflow', () => {
   describe('createFresh', () => {
     it('creates a workflow in IMPLEMENTING state with empty pending events', () => {
@@ -17,7 +16,6 @@ describe('Workflow', () => {
       expect(wf.registry().IMPLEMENTING).toBe(TEST_WORKFLOW_REGISTRY.IMPLEMENTING)
     })
   })
-
   describe('startSession', () => {
     it('appends session-started event with repository', () => {
       const { events } = spec.given().when((wf) => wf.startSession('', 'owner/repo'))
@@ -28,7 +26,6 @@ describe('Workflow', () => {
         transcriptPath: '',
       })
     })
-
     it('appends session-started event without repository when undefined', () => {
       const { events } = spec.given().when((wf) => wf.startSession('', undefined))
       expect(events).toHaveLength(1)
@@ -36,14 +33,12 @@ describe('Workflow', () => {
       expect(events[0]).toHaveProperty('transcriptPath', '')
     })
   })
-
   describe('getAgentInstructions', () => {
     it('returns path from registry agentInstructions field', () => {
       const { result } = spec.given().when((wf) => wf.getAgentInstructions('/plugin'))
       expect(result).toBe('/plugin/states/implementing.md')
     })
   })
-
   describe('getTranscriptPath', () => {
     it('throws when session has not been started', () => {
       const wf = buildTestWorkflow(makeDeps())
@@ -51,7 +46,6 @@ describe('Workflow', () => {
         'Transcript path not set. Session has not been started.',
       )
     })
-
     it('returns transcript path after session started', () => {
       const { result } = spec.given().when((wf) => {
         wf.startSession('some/path', undefined)
@@ -60,7 +54,6 @@ describe('Workflow', () => {
       expect(result).toBe('some/path')
     })
   })
-
   describe('registerAgent', () => {
     it('returns pass (no-op for single-agent workflow)', () => {
       const { result, events } = spec.given().when((wf) => wf.registerAgent('lead', 'agent-1'))
@@ -68,7 +61,6 @@ describe('Workflow', () => {
       expect(events).toHaveLength(0)
     })
   })
-
   describe('handleTeammateIdle', () => {
     it('returns pass (no-op for single-agent workflow)', () => {
       const { result, events } = spec.given().when((wf) => wf.handleTeammateIdle('agent-1'))
@@ -76,7 +68,6 @@ describe('Workflow', () => {
       expect(events).toHaveLength(0)
     })
   })
-
   describe('review records', () => {
     it('returns current reviews and rejects an unknown review detail', () => {
       const workflow = buildTestWorkflow(makeDeps())
@@ -84,7 +75,6 @@ describe('Workflow', () => {
       expect(workflow.getLatestReviewByType('code-review')).toBeUndefined()
       expect(() => workflow.getReviewDetails(1)).toThrow('Review 1 not found')
     })
-
     it('finds the latest review of a type', () => {
       const workflow = buildTestWorkflow(
         makeDeps({
@@ -116,7 +106,6 @@ describe('Workflow', () => {
       expect(workflow.getLatestReviewByType('code-review')?.id).toBe(2)
     })
   })
-
   describe('IMPLEMENTING state', () => {
     it('sets githubIssue when record-issue succeeds', () => {
       const { result, state, events } = spec
@@ -133,14 +122,12 @@ describe('Workflow', () => {
         ]),
       )
     })
-
     it('fails record-issue in non-IMPLEMENTING states', () => {
       const { result } = spec
         .given(...eventsToReviewing())
         .when((wf) => wf.executeRecording('record-issue', 42))
       expect(result.pass).toBe(false)
     })
-
     it('sets featureBranch when record-branch succeeds', () => {
       const { result, state, events } = spec
         .given()
@@ -156,7 +143,6 @@ describe('Workflow', () => {
         ]),
       )
     })
-
     it('fails record-branch in non-IMPLEMENTING states', () => {
       const { result } = spec
         .given(...eventsToReviewing())
@@ -164,7 +150,6 @@ describe('Workflow', () => {
       expect(result.pass).toBe(false)
     })
   })
-
   describe('REVIEWING state', () => {
     it('records a named reviewer status only while reviewing', () => {
       const { result, state } = spec
@@ -173,7 +158,6 @@ describe('Workflow', () => {
       expect(result).toStrictEqual({ pass: true })
       expect(state.reviewerStatuses['code-review']).toBe('OPEN_FEEDBACK')
     })
-
     it('rejects reviewer status recording outside reviewing', () => {
       const workflow = buildTestWorkflow(makeDeps())
       expect(workflow.recordReviewerStatus(Reviewer.fromName('code-review'), 'APPROVED').pass).toBe(
@@ -181,7 +165,6 @@ describe('Workflow', () => {
       )
     })
   })
-
   describe('getPullRequestNumber', () => {
     it('throws when no pull request has been recorded', () => {
       const workflow = buildTestWorkflow(makeDeps())
@@ -189,7 +172,6 @@ describe('Workflow', () => {
         'Workflow has no recorded pull request.',
       )
     })
-
     it('returns the pull request number after recording', () => {
       const { result } = spec.given().when((wf) => {
         wf.recordPullRequest(99, 'https://github.com/example/repo/pull/99')
@@ -198,7 +180,6 @@ describe('Workflow', () => {
       expect(result).toBe(99)
     })
   })
-
   describe('getSubmissionDetails', () => {
     it('throws when no issue or branch has been recorded', () => {
       const workflow = buildTestWorkflow(makeDeps())
@@ -206,7 +187,6 @@ describe('Workflow', () => {
         'Workflow is not ready to submit a pull request.',
       )
     })
-
     it('returns submission details when issue and branch are recorded', () => {
       const { result } = spec.given().when((wf) => {
         wf.executeRecording('record-issue', 42)
@@ -216,7 +196,6 @@ describe('Workflow', () => {
       expect(result).toStrictEqual({ githubIssue: 42, featureBranch: 'issue-42' })
     })
   })
-
   describe('recordPullRequest', () => {
     it('records a pull request and updates the state', () => {
       const { result, state, events } = spec
@@ -236,7 +215,6 @@ describe('Workflow', () => {
       )
     })
   })
-
   describe('transition', () => {
     it('transitions to a legal target state', () => {
       const { result, state, events } = spec
@@ -266,7 +244,6 @@ describe('Workflow', () => {
         ]),
       )
     })
-
     it('rejects an illegal transition', () => {
       const { result } = spec.given().when((wf) => wf.transition('REVIEWING'))
       expect(result).toStrictEqual({
@@ -274,7 +251,6 @@ describe('Workflow', () => {
         reason: 'Illegal transition IMPLEMENTING -> REVIEWING.',
       })
     })
-
     it('rejects a legal transition when its guard fails before recording an event', () => {
       const workflow = buildTestWorkflow(
         makeDeps({
@@ -297,7 +273,6 @@ describe('Workflow', () => {
       expect(workflow.getPendingEvents()).toHaveLength(2)
       expect(workflow.getState().currentStateMachineState).toBe('IMPLEMENTING')
     })
-
     it('records a legal transition for a state without a guard', () => {
       const workflow = buildTestWorkflow(makeDeps())
       workflow.executeRecording('record-issue', 42)
@@ -317,7 +292,6 @@ describe('Workflow', () => {
       expect(workflow.transition('BLOCKED')).toStrictEqual({ pass: true })
     })
   })
-
   describe('reviewOutcome', () => {
     it('returns APPROVED when every reviewer is approved', () => {
       const { result } = spec.given(...eventsToReviewing()).when((wf) => {
@@ -333,7 +307,6 @@ describe('Workflow', () => {
       })
       expect(result).toBe('APPROVED')
     })
-
     it('returns OPEN_FEEDBACK when any reviewer has open feedback', () => {
       const { result } = spec.given(...eventsToReviewing()).when((wf) => {
         wf.recordReviewerStatus(Reviewer.fromName('code-review'), 'OPEN_FEEDBACK')
@@ -341,7 +314,6 @@ describe('Workflow', () => {
       })
       expect(result).toBe('OPEN_FEEDBACK')
     })
-
     it('prioritises OPEN_FEEDBACK over PENDING', () => {
       const { result } = spec.given(...eventsToReviewing()).when((wf) => {
         wf.recordReviewerStatus(Reviewer.fromName('code-review'), 'OPEN_FEEDBACK')
@@ -349,12 +321,10 @@ describe('Workflow', () => {
       })
       expect(result).toBe('OPEN_FEEDBACK')
     })
-
     it('returns PENDING when a reviewer has not responded', () => {
       const { result } = spec.given(...eventsToReviewing()).when((wf) => wf.reviewOutcome())
       expect(result).toBe('PENDING')
     })
-
     it('ignores CodeRabbit when asked', () => {
       const { result } = spec.given(...eventsToReviewing()).when((wf) => {
         wf.recordReviewerStatus(Reviewer.fromName('coderabbit'), 'OPEN_FEEDBACK')

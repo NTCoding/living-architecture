@@ -8,17 +8,20 @@ function createRoutes() {
   const recordIssue = vi.fn(() => ({ pass: true as const }))
   const recordBranch = vi.fn(() => ({ pass: true as const }))
   const recordReviewerStatus = vi.fn(() => ({ pass: true as const }))
+  const createPullRequest = vi.fn(() => ({ pass: true as const }))
   const routes = new CreateWorkflowRoutes(
     { getSchema: () => z.enum(['IMPLEMENTING', 'REVIEWING']) },
     defineRoutes,
   ).execute({
     parseNumberArgument: (value) => Number(value),
     parseStringArgument: (value) => String(value),
+    parseStringArguments: (value) => z.array(z.string()).parse(value),
     recordIssue,
     recordBranch,
     recordReviewerStatus,
+    createPullRequest,
   }).routes
-  return { routes, recordIssue, recordBranch, recordReviewerStatus }
+  return { routes, recordIssue, recordBranch, recordReviewerStatus, createPullRequest }
 }
 
 describe('CreateWorkflowRoutes', () => {
@@ -29,6 +32,7 @@ describe('CreateWorkflowRoutes', () => {
       'transition',
       'record-issue',
       'record-branch',
+      'create-pr',
       'record-reviewer-status',
     ])
     const workflow = Object.create({})
@@ -42,6 +46,15 @@ describe('CreateWorkflowRoutes', () => {
       Reviewer.fromName('code-review'),
       'OPEN_FEEDBACK',
     )
+  })
+
+  it('delegates pull request creation with parsed string arguments', () => {
+    const { routes, createPullRequest } = createRoutes()
+    const workflow = Object.create({})
+
+    routes['create-pr'].handler(workflow, ['--title', 'Restore review agents'])
+
+    expect(createPullRequest).toHaveBeenCalledWith(workflow, ['--title', 'Restore review agents'])
   })
 
   it('rejects unknown reviewer names and statuses', () => {

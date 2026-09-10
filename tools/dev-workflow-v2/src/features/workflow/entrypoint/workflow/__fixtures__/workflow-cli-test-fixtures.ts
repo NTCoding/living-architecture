@@ -79,9 +79,6 @@ export function buildTestContext(
     listSessionReviews: () => store.listSessionReviews(sessionId),
     sleepMs: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
-    reviewLauncher: {
-      run: () => undefined,
-    },
   }
 
   return {

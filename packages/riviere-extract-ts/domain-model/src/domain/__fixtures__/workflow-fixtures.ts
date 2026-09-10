@@ -4,8 +4,6 @@ import { Project } from 'ts-morph'
 import { assert } from 'vitest'
 import { ExtractionConfiguration } from '../extraction-configuration'
 import { type MetadataValue, EnrichedComponent } from '../value-extraction/enriched-component'
-import { Workflow } from '../workflow'
-import { WorkflowStage } from '../workflow-stage'
 
 export function configuration(customType?: string): ExtractionConfiguration {
   const parsed = ValidatedConfiguration.parse({
@@ -70,23 +68,4 @@ export function component(
     metadata,
     _missing: undefined,
   })
-}
-
-export function workflow(stages = stagesFor(configuration())): Workflow {
-  const result = Workflow.start({
-    name: 'build-graph',
-    outputPath: '.riviere/graph.json',
-    runLogDirectory: '.riviere/logs/workflows',
-    stages,
-  })
-  assert(result.success)
-  return result.data
-}
-
-export function stagesFor(config: ExtractionConfiguration) {
-  return [
-    WorkflowStage.fromExtraction('extract', config),
-    WorkflowStage.fromLink('link', config),
-    WorkflowStage.fromValidation('validate'),
-  ]
 }

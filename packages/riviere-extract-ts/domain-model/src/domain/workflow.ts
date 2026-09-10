@@ -1,21 +1,33 @@
 import {
-  ComponentDefinition,
   type OperationWarning,
   RiviereBuilder,
 } from '@living-architecture/riviere-builder-published-language'
-import type { ConnectionDetectionResult } from './connection-detection/connection-detection-result'
-import type { ExtractionConfiguration } from './extraction-configuration'
-import type { EnrichedComponent } from './value-extraction/enriched-component'
+import type { CodeExtractionConfig } from '@living-architecture/riviere-extract-config-published-language'
 import { WorkflowDefinitionFailure } from './workflow-definition-failure'
+import type { WorkflowDiagnostic } from './workflow-diagnostic'
 import { WorkflowRunEvent } from './workflow-run-event'
 import type { WorkflowStage, WorkflowStageValue } from './workflow-stage'
+import { WorkflowStateSnapshot, WorkflowTransitionSnapshot } from './workflow-transition-snapshot'
 
 type WorkflowState = 'ready' | 'running' | 'completed' | 'failed'
+
+type WorkflowRunModeValue = 'run' | 'skip-ai' | 'dry-run'
+
+/** @riviere-role value-object */
+export class WorkflowRunMode {
+  declare private readonly brand: 'WorkflowRunMode'
+
+  static from(value: WorkflowRunModeValue): WorkflowRunMode {
+    return new WorkflowRunMode(value)
+  }
+
+  private constructor(readonly value: WorkflowRunModeValue) {}
+}
 
 type WorkflowStageExecutionResult =
   | Readonly<{
       success: true
-      extractedComponents?: readonly EnrichedComponent[]
+      diagnostics: readonly WorkflowDiagnostic[]
       warnings: readonly OperationWarning[]
     }>
   | Readonly<{
@@ -24,24 +36,11 @@ type WorkflowStageExecutionResult =
       reason: string
     }>
 
-type WorkflowStagePreparationResult =
-  | Readonly<{
-      success: true
-      kind: 'components'
-      components: readonly EnrichedComponent[]
-      repository: string
-    }>
-  | Readonly<{
-      success: true
-      kind: 'connections'
-      connections: ConnectionDetectionResult
-    }>
-  | Readonly<{ success: false; errorCode: string; reason: string }>
-
-type WorkflowRunResult =
+type WorkflowRunResultValue =
   | Readonly<{
       success: true
       events: readonly WorkflowRunEvent[]
+      transitions: readonly WorkflowTransitionSnapshot[]
       warnings: readonly OperationWarning[]
     }>
   | Readonly<{
@@ -49,24 +48,42 @@ type WorkflowRunResult =
       errorCode: string
       reason: string
       events: readonly WorkflowRunEvent[]
+      transitions: readonly WorkflowTransitionSnapshot[]
       warnings: readonly OperationWarning[]
     }>
+
+/** @riviere-role value-object */
+export class WorkflowRunResult {
+  declare private readonly brand: 'WorkflowRunResult'
+
+  static from(value: WorkflowRunResultValue): WorkflowRunResult {
+    return new WorkflowRunResult(value)
+  }
+
+  private constructor(readonly value: WorkflowRunResultValue) {}
+}
 
 type WorkflowStartResult =
-  | Readonly<{ success: true; data: Workflow }>
+  | Readonly<{ success: true; workflow: Workflow }>
   | Readonly<{ success: false; error: WorkflowDefinitionFailure }>
 
+type WorkflowStageContext = Readonly<{
+  components: ReturnType<RiviereBuilder['components']>
+  diagnostics: readonly WorkflowDiagnostic[]
+}>
+
 type ExecuteWorkflowStage = (
-  stage: Exclude<WorkflowStageValue, { kind: 'validate' }>,
-  accumulatedComponents: readonly EnrichedComponent[],
-) => WorkflowStagePreparationResult
+  stage: WorkflowStageValue,
+  context: WorkflowStageContext,
+) => WorkflowStageExecutionResult
 
 /** @riviere-role aggregate-entity */
 export class Workflow {
   private state: WorkflowState = 'ready'
   private runEvents: WorkflowRunEvent[] = []
   private runWarnings: OperationWarning[] = []
-  private accumulatedComponents: EnrichedComponent[] = []
+  private runDiagnostics: WorkflowDiagnostic[] = []
+  private runTransitions: WorkflowTransitionSnapshot[] = []
 
   static start(input: {
     name: string
@@ -78,7 +95,7 @@ export class Workflow {
     if (failure !== undefined) return { success: false, error: failure }
     return {
       success: true,
-      data: new Workflow(input.name, input.outputPath, input.runLogDirectory, input.stages),
+      workflow: new Workflow(input.name, input.outputPath, input.runLogDirectory, input.stages),
     }
   }
 
@@ -105,46 +122,59 @@ export class Workflow {
     return this.state
   }
 
-  configurations(): readonly ExtractionConfiguration[] {
+  configurations(): readonly CodeExtractionConfig[] {
     return this.stages.flatMap((stage) =>
-      stage.value.kind === 'validate' ? [] : [stage.value.configuration],
+      stage.value.kind === 'code-extraction' ? [stage.value.config] : [],
     )
   }
 
-  run(builder: RiviereBuilder, execute: ExecuteWorkflowStage): WorkflowRunResult {
-    this.startRun()
-    this.defineCustomTypes(builder)
-    for (const [index, stage] of this.stages.entries()) {
+  run(
+    builder: RiviereBuilder,
+    mode: WorkflowRunMode,
+    execute: ExecuteWorkflowStage,
+  ): WorkflowRunResult {
+    this.startRun(builder)
+    const activeStages = this.activeStages(mode.value)
+    for (const [index, stage] of activeStages.entries()) {
       const values = stageEventValues(stage.value, index)
       this.runEvents.push(WorkflowRunEvent.fromStage('StageStarted', values))
-      const result = this.executeStage(builder, execute, stage.value)
+      const result = this.executeStage(execute, stage.value, builder)
       if (!result.success) return this.failRun(values, result)
-      this.recordStageSuccess(stage.value, values, result)
+      this.recordStageSuccess(stage.value, values, result, builder, index)
     }
     this.state = 'completed'
     this.runEvents.push(WorkflowRunEvent.fromWorkflow('WorkflowCompleted'))
-    return { success: true, events: [...this.runEvents], warnings: [...this.runWarnings] }
+    return this.successResult()
   }
 
-  private startRun(): void {
+  private activeStages(mode: WorkflowRunModeValue): readonly WorkflowStage[] {
+    switch (mode) {
+      case 'run':
+      case 'dry-run':
+        return this.stages
+      case 'skip-ai':
+        return this.stages.filter((stage) => !isAiStage(stage.value))
+    }
+  }
+
+  private startRun(builder: RiviereBuilder): void {
     this.state = 'running'
     this.runEvents = [WorkflowRunEvent.fromWorkflow('WorkflowStarted')]
     this.runWarnings = []
-    this.accumulatedComponents = []
+    this.runDiagnostics = []
+    this.runTransitions = [WorkflowTransitionSnapshot.fromInitial(this.snapshot(builder))]
   }
 
   private executeStage(
-    builder: RiviereBuilder,
     execute: ExecuteWorkflowStage,
     stage: WorkflowStageValue,
+    builder: RiviereBuilder,
   ): WorkflowStageExecutionResult {
     try {
-      if (stage.kind === 'validate') return validateGraph(builder)
-      const prepared = execute(stage, this.accumulatedComponents)
-      if (!prepared.success) return prepared
-      return prepared.kind === 'components'
-        ? applyComponents(builder, prepared.components, prepared.repository)
-        : applyConnections(builder, prepared.connections)
+      return execute(stage, {
+        components: builder.components(),
+        diagnostics: [...this.runDiagnostics],
+      })
     } catch (error) {
       return {
         success: false,
@@ -154,27 +184,37 @@ export class Workflow {
     }
   }
 
-  private defineCustomTypes(builder: RiviereBuilder): void {
-    const names = new Set(
-      this.configurations().flatMap((configuration) =>
-        configuration.resolvedConfig.modules.flatMap((module) =>
-          Object.keys(module.customTypes ?? {}),
-        ),
-      ),
-    )
-    for (const name of names) builder.defineCustomType({ name })
-  }
-
   private recordStageSuccess(
     stage: WorkflowStageValue,
     values: WorkflowStageEventValues,
     result: Extract<WorkflowStageExecutionResult, { success: true }>,
+    builder: RiviereBuilder,
+    stageIndex: number,
   ): void {
-    if (stage.kind === 'extract' && result.extractedComponents !== undefined) {
-      this.accumulatedComponents.push(...result.extractedComponents)
-    }
     this.runWarnings.push(...result.warnings)
+    this.runDiagnostics.push(...result.diagnostics)
     this.runEvents.push(WorkflowRunEvent.fromStage('StageCompleted', values))
+    this.runTransitions.push(
+      WorkflowTransitionSnapshot.fromCompletedStage(stage, stageIndex, this.snapshot(builder)),
+    )
+  }
+
+  private snapshot(builder: RiviereBuilder): WorkflowStateSnapshot {
+    return WorkflowStateSnapshot.from({
+      components: builder.components(),
+      diagnostics: [...this.runDiagnostics],
+      externalLinks: builder.externalLinks(),
+      links: builder.links(),
+    })
+  }
+
+  private successResult(): WorkflowRunResult {
+    return WorkflowRunResult.from({
+      success: true,
+      events: [...this.runEvents],
+      transitions: [...this.runTransitions],
+      warnings: [...this.runWarnings],
+    })
   }
 
   private failRun(
@@ -186,13 +226,14 @@ export class Workflow {
       WorkflowRunEvent.fromStageFailure(values, failure.reason, failure.errorCode),
       WorkflowRunEvent.fromWorkflowFailure(failure.reason, failure.errorCode),
     )
-    return {
+    return WorkflowRunResult.from({
       success: false,
       errorCode: failure.errorCode,
       reason: failure.reason,
       events: [...this.runEvents],
+      transitions: [...this.runTransitions],
       warnings: [...this.runWarnings],
-    }
+    })
   }
 }
 
@@ -206,6 +247,19 @@ function stageEventValues(stage: WorkflowStageValue, index: number): WorkflowSta
   return { name: stage.name, kind: stage.kind, index }
 }
 
+function isAiStage(stage: WorkflowStageValue): boolean {
+  switch (stage.kind) {
+    case 'ai-extract':
+    case 'ai-enrich':
+      return true
+    case 'code-extraction':
+    case 'eventcatalog-import':
+    case 'asyncapi-import':
+    case 'schema-validate':
+      return false
+  }
+}
+
 function validateWorkflow(
   name: string,
   stages: readonly WorkflowStage[],
@@ -216,14 +270,18 @@ function validateWorkflow(
       `Workflow name '${name}' must match [a-z0-9][a-z0-9-]*`,
     )
   }
-  const duplicateName = findDuplicateStageName(stages)
-  if (duplicateName !== undefined) {
+  if (stages.length === 0) {
     return WorkflowDefinitionFailure.parse(
-      'DUPLICATE_STAGE_NAME',
-      `Duplicate workflow stage name '${duplicateName}'`,
+      'MISSING_WORKFLOW_STAGE',
+      'Workflow must define at least one stage',
     )
   }
-  return validateStageSequence(stages)
+  const duplicateName = findDuplicateStageName(stages)
+  if (duplicateName === undefined) return undefined
+  return WorkflowDefinitionFailure.parse(
+    'DUPLICATE_STAGE_NAME',
+    `Duplicate workflow stage name '${duplicateName}'`,
+  )
 }
 
 function findDuplicateStageName(stages: readonly WorkflowStage[]): string | undefined {
@@ -233,152 +291,4 @@ function findDuplicateStageName(stages: readonly WorkflowStage[]): string | unde
     names.add(stage.value.name)
   }
   return undefined
-}
-
-function validateStageSequence(
-  stages: readonly WorkflowStage[],
-): WorkflowDefinitionFailure | undefined {
-  const counts = countStageKinds(stages)
-  if (counts.extract === 0) {
-    return WorkflowDefinitionFailure.parse(
-      'MISSING_EXTRACT_STAGE',
-      'Workflow stages must contain one or more extract stages',
-    )
-  }
-  if (counts.link === 0) {
-    return WorkflowDefinitionFailure.parse(
-      'MISSING_LINK_STAGE',
-      'Workflow stages must contain exactly one link stage',
-    )
-  }
-  if (counts.link > 1) {
-    return WorkflowDefinitionFailure.parse(
-      'MULTIPLE_LINK_STAGES',
-      'Workflow stages must contain exactly one link stage',
-    )
-  }
-  if (counts.validate === 0) {
-    return WorkflowDefinitionFailure.parse(
-      'MISSING_VALIDATE_STAGE',
-      'Workflow stages must contain exactly one validate stage',
-    )
-  }
-  if (counts.validate > 1) {
-    return WorkflowDefinitionFailure.parse(
-      'MULTIPLE_VALIDATE_STAGES',
-      'Workflow stages must contain exactly one validate stage',
-    )
-  }
-  const linkStage = stages.at(-2)
-  const validateStage = stages.at(-1)
-  if (linkStage?.value.kind === 'link' && validateStage?.value.kind === 'validate') {
-    return undefined
-  }
-  return WorkflowDefinitionFailure.parse(
-    'INVALID_STAGE_ORDER',
-    'Workflow stages must contain all extract stages, followed by one link stage and one validate stage',
-  )
-}
-
-function countStageKinds(
-  stages: readonly WorkflowStage[],
-): Record<WorkflowStageValue['kind'], number> {
-  const counts: Record<WorkflowStageValue['kind'], number> = {
-    extract: 0,
-    link: 0,
-    validate: 0,
-  }
-  for (const stage of stages) {
-    switch (stage.value.kind) {
-      case 'extract':
-        counts.extract += 1
-        break
-      case 'link':
-        counts.link += 1
-        break
-      case 'validate':
-        counts.validate += 1
-        break
-    }
-  }
-  return counts
-}
-
-function validateGraph(builder: RiviereBuilder): WorkflowStageExecutionResult {
-  const validation = builder.validate()
-  return validation.valid
-    ? { success: true, warnings: [] }
-    : {
-        success: false,
-        errorCode: 'GRAPH_VALIDATION_FAILED',
-        reason: validation.errors.map((error) => error.message).join('\n'),
-      }
-}
-
-function applyComponents(
-  builder: RiviereBuilder,
-  components: readonly EnrichedComponent[],
-  repository: string,
-): WorkflowStageExecutionResult {
-  const warnings: OperationWarning[] = []
-  for (const component of components) {
-    const parsed = component.toComponentDefinition(repository)
-    if (!parsed.success) {
-      return {
-        success: false,
-        errorCode: 'GRAPH_APPLICATION_FAILED',
-        reason: `${component.type}:${component.name}: ${parsed.message}`,
-      }
-    }
-    warnings.push(...upsertComponent(builder, parsed.data.value))
-  }
-  return { success: true, extractedComponents: components, warnings }
-}
-
-function upsertComponent(
-  builder: RiviereBuilder,
-  definition: ComponentDefinition['value'],
-): readonly OperationWarning[] {
-  switch (definition.type) {
-    case 'UI':
-      return builder.upsertUI(definition.input).warnings
-    case 'API':
-      return builder.upsertApi(definition.input).warnings
-    case 'UseCase':
-      return builder.upsertUseCase(definition.input).warnings
-    case 'DomainOp':
-      return builder.upsertDomainOp(definition.input).warnings
-    case 'Event':
-      return builder.upsertEvent(definition.input).warnings
-    case 'EventHandler':
-      return builder.upsertEventHandler(definition.input).warnings
-    case 'Custom':
-      return builder.upsertCustom(definition.input).warnings
-  }
-}
-
-function applyConnections(
-  builder: RiviereBuilder,
-  connections: ConnectionDetectionResult,
-): WorkflowStageExecutionResult {
-  const warnings: OperationWarning[] = []
-  for (const link of connections.links) {
-    builder.link({
-      from: link.source,
-      to: link.target,
-      ...(link.type === undefined ? {} : { type: link.type }),
-      ...(link.sourceLocation === undefined ? {} : { sourceLocation: link.sourceLocation }),
-    })
-  }
-  for (const link of connections.externalLinks) {
-    const result = builder.linkExternal({
-      from: link.source,
-      target: link.target,
-      ...(link.type === undefined ? {} : { type: link.type }),
-      ...(link.description === undefined ? {} : { description: link.description }),
-      ...(link.sourceLocation === undefined ? {} : { sourceLocation: link.sourceLocation }),
-    })
-    warnings.push(...result.warnings)
-  }
-  return { success: true, warnings }
 }

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
@@ -16,13 +16,13 @@ import { createGithubPullRequestClient } from '@living-architecture/dev-workflow
 import { createGithubPullRequestFeedbackClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-pr-feedback'
 import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/github-cli'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { parsePullRequestDescriptionOptions } from '../features/workflow/entrypoint/workflow/pull-request-description-input'
 import {
   parseNumberArgument,
   parseStringArgument,
+  parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
-import { createAcpReviewLauncher } from '@living-architecture/dev-workflow-v2-use-cases/adapters/acp/acp-review-launcher'
-import { AcpClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/acp/acp-client'
 
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
@@ -33,12 +33,14 @@ const routes = createWorkflowRoutes({
   ),
   parseNumberArgument,
   parseStringArgument,
+  parseStringArguments,
+  parsePullRequestDescriptionOptions,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],
   flags: ['--no-verify', '--force', '--hard'],
 }
-const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
+const workflowRoot = resolveWorkflowRoot(dirname(fileURLToPath(import.meta.url)))
 const unknownCommandMessage = [
   '[dev-workflow-v2-automated-message]: Error: You tried to run a command that does not exist. STOP working immediately and switch to BLOCKED. Report this to the user along with a root cause analysis of why you tried to run a command that does not exist.',
   'STOP and fix the workflow. It is broken. Do not attempt to create a workaround. YOU must immediately switch to blocked and stop.',
@@ -51,12 +53,25 @@ class InvalidSleepDurationError extends Error {
   }
 }
 
-function sleepMs(ms: number): void {
-  if (!Number.isFinite(ms) || ms < 0) {
+class WorkflowRootNotFoundError extends Error {
+  constructor() {
+    super('Could not locate the dev-workflow-v2 package root')
+    this.name = 'WorkflowRootNotFoundError'
+  }
+}
+
+function resolveWorkflowRoot(moduleDirectory: string): string {
+  if (existsSync(join(moduleDirectory, 'package.json'))) return moduleDirectory
+  const parentDirectory = dirname(moduleDirectory)
+  if (parentDirectory === moduleDirectory) throw new WorkflowRootNotFoundError()
+  return resolveWorkflowRoot(parentDirectory)
+}
+
+function sleepMs(milliseconds: number): void {
+  if (!Number.isFinite(milliseconds) || milliseconds < 0) {
     throw new InvalidSleepDurationError()
   }
-
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds)
 }
 
 function buildWorkflowDeps(platform: PlatformContext) {
@@ -69,14 +84,6 @@ function buildWorkflowDeps(platform: PlatformContext) {
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,
-    reviewLauncher: createAcpReviewLauncher(
-      new AcpClient({
-        workerPath: join(workflowRoot, 'dist/acp-client-worker.js'),
-        command: process.env.ACP_REVIEWER_COMMAND ?? 'codex',
-        cwd: process.cwd(),
-      }),
-      (reviewer) => readFileSync(join(workflowRoot, 'agents', `${reviewer}.md`), 'utf8'),
-    ),
   }
 }
 

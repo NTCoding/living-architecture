@@ -69,7 +69,7 @@ describe('workflow state definitions', () => {
     ).toBe(false)
     expect(
       implementing.transitionGuard({
-        state: state.with({ githubIssue: 42 }),
+        state: state.with({ githubIssue: 42, featureBranch: 'issue-42' }),
         gitInfo,
         from: 'IMPLEMENTING',
         to: 'SUBMITTING_PR',

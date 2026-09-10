@@ -11,13 +11,13 @@ import {
 import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from './workflow-types'
+import type { PullRequestDescriptionInput } from './pull-request-description'
 import { MaintainerWorkflowRegistry } from './registry'
 import { ReviewingState } from './states/reviewing'
 import { SubmittingPrState } from './states/submitting-pr'
 import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
 import type { ReadWorkflowGitStatus } from './ports/read-git-status'
 import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
-import type { ReviewLauncher } from './ports/review-launcher'
 import type { Reviewer } from './reviews/reviewers'
 import type { WorkflowEvent } from './workflow-events'
 import { parseWorkflowEvent } from './workflow-events'
@@ -49,7 +49,6 @@ export type WorkflowDeps = {
   readonly listSessionReviews: () => readonly StoredReview[]
   readonly sleepMs: (milliseconds: number) => void
   readonly now: () => string
-  readonly reviewLauncher: ReviewLauncher
 }
 /** @riviere-role aggregate */
 export class MaintainerWorkflow {
@@ -68,7 +67,7 @@ export class MaintainerWorkflow {
     this.registryDefinition = MaintainerWorkflowRegistry.parse({
       ...registry,
       REVIEWING: ReviewingState.parse('REVIEWING', { workflow: this, deps }),
-      SUBMITTING_PR: SubmittingPrState.parse('SUBMITTING_PR', { workflow: this, deps }),
+      SUBMITTING_PR: SubmittingPrState.parse('SUBMITTING_PR'),
     })
   }
   static build(
@@ -179,6 +178,54 @@ export class MaintainerWorkflow {
     return pass()
   }
 
+  createPr(input: PullRequestDescriptionInput): PreconditionResult {
+    const gate = checkOperationGate('create-pr', this.state, this.registryDefinition)
+    if (!gate.pass) return gate
+    if (this.state.prNumber !== undefined) {
+      return fail('A pull request has already been recorded for this workflow.')
+    }
+    return this.submitPullRequest(input)
+  }
+
+  private submitPullRequest(input: PullRequestDescriptionInput): PreconditionResult {
+    try {
+      const submission = this.getSubmissionDetails()
+      const pullRequest = this.deps.createPullRequest(
+        this.pullRequestCreationRequest(input, submission.githubIssue, submission.featureBranch),
+      )
+      this.append({
+        type: 'pr-recorded',
+        at: this.deps.now(),
+        prNumber: pullRequest.prNumber,
+        prUrl: pullRequest.prUrl,
+      })
+      return pass()
+    } catch (error) {
+      return fail(`Unable to create PR: ${String(error)}`)
+    }
+  }
+
+  private pullRequestCreationRequest(
+    input: PullRequestDescriptionInput,
+    githubIssue: number,
+    branch: string,
+  ): Parameters<CreateWorkflowPullRequest>[0] {
+    return {
+      branch,
+      title: input.title,
+      body: [
+        formatSection('Description', input.description),
+        formatSection('Linked Issue', `Closes #${githubIssue}`),
+        formatSection('What Problem Does This PR Solve?', input.problem),
+        formatSection('Acceptance Criteria', input.acceptanceCriteria),
+        formatSection('Key Changes', input.keyChanges),
+        formatSection('Notable Architectural Changes / Impact', input.architectureImpact),
+        formatSection('Validation', input.validation),
+        formatSection('Notes', input.notes),
+      ].join('\n\n'),
+    }
+  }
+
   recordPullRequest(prNumber: number, prUrl: string): PreconditionResult {
     this.append({ type: 'pr-recorded', at: this.deps.now(), prNumber, prUrl })
     return pass()
@@ -216,4 +263,8 @@ export class MaintainerWorkflow {
     this.pendingEvents = [...this.pendingEvents, event]
     this.state = this.state.apply(event)
   }
+}
+
+function formatSection(heading: string, content: string): string {
+  return [`## ${heading}`, content].join('\n\n')
 }

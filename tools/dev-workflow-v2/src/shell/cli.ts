@@ -4,9 +4,11 @@ import { createClaudeCodeWorkflowCli } from '@nt-ai-lab/deterministic-agent-work
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
 import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { parsePullRequestDescriptionOptions } from '../features/workflow/entrypoint/workflow/pull-request-description-input'
 import {
   parseNumberArgument,
   parseStringArgument,
+  parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 import { createWorkflowCliRuntime } from './workflow-cli-runtime'
@@ -21,6 +23,8 @@ const routes = createWorkflowRoutes({
   ),
   parseNumberArgument,
   parseStringArgument,
+  parseStringArguments,
+  parsePullRequestDescriptionOptions,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],
