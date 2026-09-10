@@ -12,8 +12,8 @@ import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-wor
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from './workflow-types'
 import {
-  buildPullRequestCreationRequest,
   parsePullRequestDescriptionOptions,
+  type PullRequestDescriptionInput,
 } from './pull-request-description'
 import { MaintainerWorkflowRegistry } from './registry'
 import { ReviewingState } from './states/reviewing'
@@ -184,17 +184,19 @@ export class MaintainerWorkflow {
   createPr(rawArgs: unknown): PreconditionResult {
     const gate = checkOperationGate('create-pr', this.state, this.registryDefinition)
     if (!gate.pass) return gate
-    const submission = this.getSubmissionDetails()
+    if (this.state.prNumber !== undefined) {
+      return fail('A pull request has already been recorded for this workflow.')
+    }
     const parsedDescription = parsePullRequestDescriptionOptions(rawArgs)
     if (!parsedDescription.ok) return fail(parsedDescription.reason)
+    return this.submitPullRequest(parsedDescription.input)
+  }
 
+  private submitPullRequest(input: PullRequestDescriptionInput): PreconditionResult {
     try {
+      const submission = this.getSubmissionDetails()
       const pullRequest = this.deps.createPullRequest(
-        buildPullRequestCreationRequest(
-          parsedDescription.input,
-          submission.githubIssue,
-          submission.featureBranch,
-        ),
+        this.pullRequestCreationRequest(input, submission.githubIssue, submission.featureBranch),
       )
       this.append({
         type: 'pr-recorded',
@@ -205,6 +207,27 @@ export class MaintainerWorkflow {
       return pass()
     } catch (error) {
       return fail(`Unable to create PR: ${String(error)}`)
+    }
+  }
+
+  private pullRequestCreationRequest(
+    input: PullRequestDescriptionInput,
+    githubIssue: number,
+    branch: string,
+  ): Parameters<CreateWorkflowPullRequest>[0] {
+    return {
+      branch,
+      title: input.title,
+      body: [
+        formatSection('Description', input.description),
+        formatSection('Linked Issue', `Closes #${githubIssue}`),
+        formatSection('What Problem Does This PR Solve?', input.problem),
+        formatSection('Acceptance Criteria', input.acceptanceCriteria),
+        formatSection('Key Changes', input.keyChanges),
+        formatSection('Notable Architectural Changes / Impact', input.architectureImpact),
+        formatSection('Validation', input.validation),
+        formatSection('Notes', input.notes),
+      ].join('\n\n'),
     }
   }
 
@@ -245,4 +268,8 @@ export class MaintainerWorkflow {
     this.pendingEvents = [...this.pendingEvents, event]
     this.state = this.state.apply(event)
   }
+}
+
+function formatSection(heading: string, content: string): string {
+  return [`## ${heading}`, content].join('\n\n')
 }

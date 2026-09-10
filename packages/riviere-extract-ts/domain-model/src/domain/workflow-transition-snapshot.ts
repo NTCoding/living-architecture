@@ -17,10 +17,10 @@ export class WorkflowStateSnapshot {
     links: readonly Link[]
   }): WorkflowStateSnapshot {
     return new WorkflowStateSnapshot(
-      input.components,
-      input.diagnostics,
-      input.externalLinks,
-      input.links,
+      copyCollection(input.components),
+      copyCollection(input.diagnostics),
+      copyCollection(input.externalLinks),
+      copyCollection(input.links),
     )
   }
 
@@ -68,3 +68,7 @@ export class WorkflowTransitionSnapshot {
 }
 
 export type { WorkflowTransitionSnapshotValue }
+
+function copyCollection<T extends object>(items: readonly T[]): T[] {
+  return items.map((item) => ({ ...item }))
+}

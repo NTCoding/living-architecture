@@ -6,25 +6,6 @@ import {
   TEST_WORKFLOW_REGISTRY,
 } from './__fixtures__/workflow-test-fixtures'
 import { Reviewer } from './reviews/reviewers'
-class GitHubPullRequestError extends Error {}
-const CREATE_PULL_REQUEST_OPTIONS = [
-  '--title',
-  'Restore agent drafted pull requests',
-  '--description',
-  'The workflow now restores the agent drafted pull request description so the submitted pull request explains the completed work clearly.',
-  '--problem',
-  'Fixed pull request metadata did not explain the completed work.',
-  '--acceptance-criteria',
-  '- Pull requests include the drafted workflow description.',
-  '--key-changes',
-  '- Restore structured pull request creation.',
-  '--architecture-impact',
-  'None.',
-  '--validation',
-  '- pnpm nx test dev-workflow-v2-domain-model',
-  '--notes',
-  'None.',
-] as const
 describe('Workflow', () => {
   describe('createFresh', () => {
     it('creates a workflow in IMPLEMENTING state with empty pending events', () => {
@@ -123,43 +104,6 @@ describe('Workflow', () => {
       )
       expect(workflow.getReviewDetails(1).summary).toBe('first')
       expect(workflow.getLatestReviewByType('code-review')?.id).toBe(2)
-    })
-  })
-  describe('pull request creation', () => {
-    it('records a structured ready pull request when the submission details and description are valid', () => {
-      const workflow = buildTestWorkflow(
-        makeDeps({
-          createPullRequest: () => ({ prNumber: 11, prUrl: 'https://example.test/pull/11' }),
-        }),
-      )
-      expect(workflow.createPr(CREATE_PULL_REQUEST_OPTIONS).pass).toBe(false)
-      workflow.executeRecording('record-issue', 42)
-      workflow.executeRecording('record-branch', 'issue-42')
-      workflow.transition('SUBMITTING_PR')
-      expect(workflow.createPr([]).pass).toBe(false)
-      const result = workflow.createPr(CREATE_PULL_REQUEST_OPTIONS)
-      expect(result).toStrictEqual({ pass: true })
-      expect(workflow.getState()).toMatchObject({
-        prNumber: 11,
-        prUrl: 'https://example.test/pull/11',
-      })
-    })
-    it('returns the GitHub error when pull request creation fails', () => {
-      const workflow = buildTestWorkflow(
-        makeDeps({
-          createPullRequest: () => {
-            throw new GitHubPullRequestError('GitHub rejected the request')
-          },
-        }),
-      )
-      workflow.executeRecording('record-issue', 42)
-      workflow.executeRecording('record-branch', 'issue-42')
-      workflow.transition('SUBMITTING_PR')
-      const result = workflow.createPr(CREATE_PULL_REQUEST_OPTIONS)
-      expect(result).toStrictEqual({
-        pass: false,
-        reason: 'Unable to create PR: Error: GitHub rejected the request',
-      })
     })
   })
   describe('IMPLEMENTING state', () => {

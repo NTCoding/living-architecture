@@ -82,24 +82,22 @@ export function parsePullRequestDescriptionOptions(rawArgs: unknown): PullReques
     }
   }
 
-  const title = readRequiredOption(commandTokens, '--title')
-  const description = readRequiredDescription(commandTokens)
-  const problem = readRequiredOption(commandTokens, '--problem')
-  const acceptanceCriteria = readRequiredOption(commandTokens, '--acceptance-criteria')
-  const keyChanges = readRequiredOption(commandTokens, '--key-changes')
-  const architectureImpact = readRequiredOption(commandTokens, '--architecture-impact')
-  const validation = readRequiredOption(commandTokens, '--validation')
-  const notes = readRequiredOption(commandTokens, '--notes')
-  return buildPullRequestDescriptionInput({
-    title,
-    description,
-    problem,
-    acceptanceCriteria,
-    keyChanges,
-    architectureImpact,
-    validation,
-    notes,
-  })
+  return buildPullRequestDescriptionInput(readPullRequestOptionValues(commandTokens))
+}
+
+function readPullRequestOptionValues(
+  commandTokens: readonly string[],
+): PullRequestOptionValueResults {
+  return {
+    title: readRequiredOption(commandTokens, '--title'),
+    description: readRequiredDescription(commandTokens),
+    problem: readRequiredOption(commandTokens, '--problem'),
+    acceptanceCriteria: readRequiredOption(commandTokens, '--acceptance-criteria'),
+    keyChanges: readRequiredOption(commandTokens, '--key-changes'),
+    architectureImpact: readRequiredOption(commandTokens, '--architecture-impact'),
+    validation: readRequiredOption(commandTokens, '--validation'),
+    notes: readRequiredOption(commandTokens, '--notes'),
+  }
 }
 
 function buildPullRequestDescriptionInput(
@@ -130,31 +128,6 @@ function buildPullRequestDescriptionInput(
 
 function readSuccessfulOptionValue(optionValueResult: OptionValueResult): string {
   return OPTION_SUCCESS_SCHEMA.parse(optionValueResult).value
-}
-
-/**
- * @riviere-role domain-service
- * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
- */
-export function buildPullRequestCreationRequest(
-  input: PullRequestDescriptionInput,
-  githubIssue: number,
-  branch: string,
-): Parameters<import('./ports/create-pull-request').CreateWorkflowPullRequest>[0] {
-  return {
-    branch,
-    title: input.title,
-    body: [
-      formatSection('Description', input.description),
-      formatSection('Linked Issue', `Closes #${githubIssue}`),
-      formatSection('What Problem Does This PR Solve?', input.problem),
-      formatSection('Acceptance Criteria', input.acceptanceCriteria),
-      formatSection('Key Changes', input.keyChanges),
-      formatSection('Notable Architectural Changes / Impact', input.architectureImpact),
-      formatSection('Validation', input.validation),
-      formatSection('Notes', input.notes),
-    ].join('\n\n'),
-  }
 }
 
 function validateOptionTokens(commandTokens: readonly string[]): string | undefined {
@@ -216,7 +189,7 @@ function readRequiredDescription(commandTokens: readonly string[]): OptionValueR
   if (!description.ok) {
     return description
   }
-  if (description.value.length < MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH) {
+  if (description.value.trim().length < MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH) {
     return {
       ok: false,
       reason: `Expected --description to be at least ${MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH} characters.`,
@@ -225,6 +198,4 @@ function readRequiredDescription(commandTokens: readonly string[]): OptionValueR
   return description
 }
 
-function formatSection(heading: string, content: string): string {
-  return [`## ${heading}`, content].join('\n\n')
-}
+export type { PullRequestDescriptionInput, PullRequestOptionParseResult }

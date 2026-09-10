@@ -80,7 +80,7 @@ export function workflow(stages = stagesFor(configuration())): Workflow {
     stages,
   })
   assert(result.success)
-  return result.data
+  return result.workflow
 }
 
 export function stagesFor(config: ExtractionConfiguration) {

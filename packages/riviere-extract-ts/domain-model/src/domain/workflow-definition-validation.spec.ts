@@ -19,6 +19,21 @@ describe('Workflow definition validation', () => {
     })
   })
 
+  it('rejects a workflow without stages', () => {
+    const result = Workflow.start({
+      name: 'build-graph',
+      outputPath: 'graph.json',
+      runLogDirectory: 'logs',
+      stages: [],
+    })
+
+    assert(!result.success)
+    expect(result.error).toMatchObject({
+      code: 'MISSING_WORKFLOW_STAGE',
+      message: 'Workflow must define at least one stage',
+    })
+  })
+
   it('rejects duplicate stage names across different stage kinds', () => {
     const result = Workflow.start({
       name: 'build-graph',

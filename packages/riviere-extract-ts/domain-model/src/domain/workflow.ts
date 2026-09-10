@@ -64,7 +64,7 @@ export class WorkflowRunResult {
 }
 
 type WorkflowStartResult =
-  | Readonly<{ success: true; data: Workflow }>
+  | Readonly<{ success: true; workflow: Workflow }>
   | Readonly<{ success: false; error: WorkflowDefinitionFailure }>
 
 type WorkflowStageContext = Readonly<{
@@ -95,7 +95,7 @@ export class Workflow {
     if (failure !== undefined) return { success: false, error: failure }
     return {
       success: true,
-      data: new Workflow(input.name, input.outputPath, input.runLogDirectory, input.stages),
+      workflow: new Workflow(input.name, input.outputPath, input.runLogDirectory, input.stages),
     }
   }
 
@@ -268,6 +268,12 @@ function validateWorkflow(
     return WorkflowDefinitionFailure.parse(
       'INVALID_WORKFLOW_NAME',
       `Workflow name '${name}' must match [a-z0-9][a-z0-9-]*`,
+    )
+  }
+  if (stages.length === 0) {
+    return WorkflowDefinitionFailure.parse(
+      'MISSING_WORKFLOW_STAGE',
+      'Workflow must define at least one stage',
     )
   }
   const duplicateName = findDuplicateStageName(stages)

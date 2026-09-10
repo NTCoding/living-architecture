@@ -81,7 +81,7 @@ describe('GitHub review states', () => {
     expect(() => ReviewingState.parse('REVIEWING').afterEntry()).toThrow('dependencies')
   })
 
-  it('leaves reviewing active without waiting for GitHub reviewers that have not run', () => {
+  it('blocks when GitHub reviewers have not run instead of staying in reviewing', () => {
     const sleepMs = vi.fn()
     const { context, events } = stateContext(
       WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
@@ -100,7 +100,7 @@ describe('GitHub review states', () => {
 
     ReviewingState.parse('REVIEWING', context).afterEntry()
 
-    expect(events).toStrictEqual([])
+    expect(events).toStrictEqual([{ type: 'transitioned', from: 'REVIEWING', to: 'BLOCKED' }])
     expect(sleepMs).not.toHaveBeenCalled()
   })
 

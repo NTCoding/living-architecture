@@ -66,7 +66,6 @@ Apply object calisthenics principles:
 
 7. **SD-014: Keep all entities small**
     - Small classes (< 150 lines)
-    - Small methods (< 10 lines)
     - Small packages/modules
     - Easier to understand and maintain
 

@@ -109,6 +109,7 @@ export class ReviewingState {
         context.workflow.transition('HUMAN_REVIEWING')
         return
       case 'PENDING':
+        context.workflow.transition('BLOCKED')
         return
     }
   }

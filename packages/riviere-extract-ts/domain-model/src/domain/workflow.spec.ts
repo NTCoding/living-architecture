@@ -60,7 +60,7 @@ function workflow(stages = allStages()): Workflow {
     stages,
   })
   assert(result.success)
-  return result.data
+  return result.workflow
 }
 
 const successfulStage = {

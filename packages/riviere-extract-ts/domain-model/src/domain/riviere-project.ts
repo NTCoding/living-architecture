@@ -69,7 +69,7 @@ export class RiviereProject {
 
   addWorkflow(input: Parameters<typeof Workflow.start>[0]) {
     const result = Workflow.start(input)
-    if (result.success) this.workflows.push(result.data)
+    if (result.success) this.workflows.push(result.workflow)
     return result
   }
 
