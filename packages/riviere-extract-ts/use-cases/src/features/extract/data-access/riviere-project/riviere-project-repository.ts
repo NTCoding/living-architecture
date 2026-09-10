@@ -77,16 +77,18 @@ export class RiviereProjectRepository {
   loadByWorkflowName(params: WorkflowLoadParameters): RiviereProject {
     return this.translateDataAccessErrors(() => {
       const definition = this.loadWorkflowDefinition(params)
-      const stages = definition.stages.flatMap((stage) => {
-        if (stage.kind === 'validate') return [WorkflowStage.fromSchemaValidation(stage.name)]
-        if (stage.kind === 'link') return []
-        const configuration = this.loadExtractionConfiguration({
-          projectRoot: params.projectRoot,
-          configPath: stage.configPath,
-          useTsConfig: stage.useTsConfig,
-        })
-        return [WorkflowStage.fromCodeExtraction(stage.name, configuration.resolvedConfig)]
-      })
+      const hasLegacyExtractStage = definition.stages.some((stage) => stage.kind === 'extract')
+      const hasLegacyLinkStage = definition.stages.some((stage) => stage.kind === 'link')
+      if (hasLegacyExtractStage || hasLegacyLinkStage) {
+        const unsupportedKind = hasLegacyExtractStage ? 'extract' : 'link'
+        throw new ExtractionConfigError(
+          'VALIDATION_ERROR',
+          `Workflow '${params.workflowName}' uses the legacy '${unsupportedKind}' stage. Legacy 'extract' and 'link' stages are not supported by the six-stage workflow language.`,
+        )
+      }
+      const stages = definition.stages.map((stage) =>
+        WorkflowStage.fromSchemaValidation(stage.name),
+      )
       const graphPath = resolve(params.projectRoot, definition.graph.outputPath)
       const project = this.loadWorkflowGraph(graphPath, {
         ...(definition.graph.name === undefined ? {} : { name: definition.graph.name }),

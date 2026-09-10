@@ -16,6 +16,7 @@ import { createGithubPullRequestClient } from '@living-architecture/dev-workflow
 import { createGithubPullRequestFeedbackClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-pr-feedback'
 import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/github-cli'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { parsePullRequestDescriptionOptions } from '../features/workflow/entrypoint/workflow/pull-request-description-input'
 import {
   parseNumberArgument,
   parseStringArgument,
@@ -33,6 +34,7 @@ const routes = createWorkflowRoutes({
   parseNumberArgument,
   parseStringArgument,
   parseStringArguments,
+  parsePullRequestDescriptionOptions,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],
@@ -51,10 +53,18 @@ class InvalidSleepDurationError extends Error {
   }
 }
 
+class WorkflowRootNotFoundError extends Error {
+  constructor() {
+    super('Could not locate the dev-workflow-v2 package root')
+    this.name = 'WorkflowRootNotFoundError'
+  }
+}
+
 function resolveWorkflowRoot(moduleDirectory: string): string {
-  const compiledRoot = join(moduleDirectory, '..')
-  if (existsSync(join(compiledRoot, 'agents'))) return compiledRoot
-  return join(moduleDirectory, '..', '..')
+  if (existsSync(join(moduleDirectory, 'package.json'))) return moduleDirectory
+  const parentDirectory = dirname(moduleDirectory)
+  if (parentDirectory === moduleDirectory) throw new WorkflowRootNotFoundError()
+  return resolveWorkflowRoot(parentDirectory)
 }
 
 function sleepMs(milliseconds: number): void {

@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { parsePullRequestDescriptionOptions } from '../features/workflow/entrypoint/workflow/pull-request-description-input'
 import {
   parseNumberArgument,
   parseStringArgument,
@@ -25,6 +26,7 @@ const routes = createWorkflowRoutes({
   parseNumberArgument,
   parseStringArgument,
   parseStringArguments,
+  parsePullRequestDescriptionOptions,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],

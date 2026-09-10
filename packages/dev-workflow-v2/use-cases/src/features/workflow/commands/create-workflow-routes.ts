@@ -3,7 +3,10 @@ import type { defineRoutes, RouteMap } from '@nt-ai-lab/deterministic-agent-work
 import type { MaintainerWorkflow as Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
 import { Reviewer } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
 import { ReviewStatuses } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/statuses'
+import type { PullRequestDescriptionInput } from '@living-architecture/dev-workflow-v2-domain-model/domain/pull-request-description'
 import type { ZodType } from 'zod'
+
+export type { PullRequestDescriptionInput }
 
 interface ZodSchemaProvider<T> {
   getSchema(): ZodType<T>

@@ -456,7 +456,7 @@ importers:
     dependencies:
       '@earendil-works/pi-coding-agent':
         specifier: 0.84.4
-        version: 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5)
+        version: 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76)
       '@living-architecture/dev-workflow-v2-use-cases':
         specifier: workspace:*
         version: link:../../packages/dev-workflow-v2/use-cases
@@ -480,13 +480,16 @@ importers:
         version: 0.4.8
       '@nt-ai-lab/deterministic-agent-workflow-pi':
         specifier: 0.5.5
-        version: 0.5.5(@earendil-works/pi-coding-agent@0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5))
+        version: 0.5.5(@earendil-works/pi-coding-agent@0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76))
       esbuild:
         specifier: 0.27.2
         version: 0.27.2
       tsx:
         specifier: 4.21.0
         version: 4.21.0
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
@@ -9142,12 +9145,6 @@ snapshots:
     optionalDependencies:
       zod: 3.25.76
 
-  '@anthropic-ai/sdk@0.91.1(zod@4.3.5)':
-    dependencies:
-      json-schema-to-ts: 3.1.1
-    optionalDependencies:
-      zod: 4.3.5
-
   '@asamuzakjp/css-color@3.2.0':
     dependencies:
       '@csstools/css-calc': 2.1.4(@csstools/css-parser-algorithms@3.0.5(@csstools/css-tokenizer@3.0.4))(@csstools/css-tokenizer@3.0.4)
@@ -10437,9 +10434,9 @@ snapshots:
     transitivePeerDependencies:
       - '@algolia/client-search'
 
-  '@earendil-works/pi-agent-core@0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5)':
+  '@earendil-works/pi-agent-core@0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76)':
     dependencies:
-      '@earendil-works/pi-ai': 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5)
+      '@earendil-works/pi-ai': 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76)
       '@earendil-works/pi-telemetry': 0.84.4
       diff: 8.0.4
       ignore: 7.0.5
@@ -10473,33 +10470,13 @@ snapshots:
       - ws
       - zod
 
-  '@earendil-works/pi-ai@0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5)':
-    dependencies:
-      '@anthropic-ai/sdk': 0.91.1(zod@4.3.5)
-      '@aws-sdk/client-bedrock-runtime': 3.1048.0
-      '@earendil-works/pi-telemetry': 0.84.4
-      '@google/genai': 1.52.0(supports-color@8.1.1)
-      '@smithy/node-http-handler': 4.7.3
-      http-proxy-agent: 7.0.2(supports-color@8.1.1)
-      https-proxy-agent: 7.0.6(supports-color@8.1.1)
-      openai: 6.40.0(ws@8.19.0)(zod@4.3.5)
-      partial-json: 0.1.7
-      typebox: 1.3.7
-    transitivePeerDependencies:
-      - '@modelcontextprotocol/sdk'
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-      - ws
-      - zod
-
   '@earendil-works/pi-client@0.84.4':
     dependencies:
       '@earendil-works/pi-protocol': 0.84.4
 
-  '@earendil-works/pi-coding-agent@0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5)':
+  '@earendil-works/pi-coding-agent@0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76)':
     dependencies:
-      '@earendil-works/pi-agent-core': 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5)
+      '@earendil-works/pi-agent-core': 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76)
       '@earendil-works/pi-ai': 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76)
       '@earendil-works/pi-client': 0.84.4
       '@earendil-works/pi-protocol': 0.84.4
@@ -11288,9 +11265,9 @@ snapshots:
       - '@opentui/keymap'
       - '@opentui/solid'
 
-  '@nt-ai-lab/deterministic-agent-workflow-pi@0.5.5(@earendil-works/pi-coding-agent@0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5))':
+  '@nt-ai-lab/deterministic-agent-workflow-pi@0.5.5(@earendil-works/pi-coding-agent@0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76))':
     dependencies:
-      '@earendil-works/pi-coding-agent': 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5)
+      '@earendil-works/pi-coding-agent': 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76)
       '@nt-ai-lab/deterministic-agent-workflow-cli': 0.4.8
       '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.7
       '@nt-ai-lab/deterministic-agent-workflow-event-store': 0.4.7
@@ -17252,11 +17229,6 @@ snapshots:
     optionalDependencies:
       ws: 8.19.0
       zod: 3.25.76
-
-  openai@6.40.0(ws@8.19.0)(zod@4.3.5):
-    optionalDependencies:
-      ws: 8.19.0
-      zod: 4.3.5
 
   optionator@0.9.4:
     dependencies:

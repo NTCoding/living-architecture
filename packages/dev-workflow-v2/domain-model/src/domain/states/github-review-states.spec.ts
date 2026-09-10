@@ -142,6 +142,37 @@ describe('GitHub review states', () => {
     ])
   })
 
+  it('skips the CodeRabbit status and ignores CodeRabbit when rate limited', () => {
+    const reviewOutcome = vi.fn((): ReviewOutcome => 'APPROVED')
+    const sleepMs = vi.fn()
+    const { context, events } = stateContext(
+      WorkflowState.initial().with({
+        currentStateMachineState: 'REVIEWING',
+        prNumber: 9,
+        reviewerStatuses: {
+          'architecture-review': 'APPROVED',
+          'code-review': 'APPROVED',
+          'bug-scanner': 'APPROVED',
+          'task-check': 'APPROVED',
+          coderabbit: 'PENDING',
+        },
+      }),
+      githubFeedback({
+        coderabbitRateLimited: true,
+      }),
+      reviewOutcome,
+      { sleepMs },
+    )
+
+    ReviewingState.parse('REVIEWING', context).afterEntry()
+
+    expect(reviewOutcome).toHaveBeenCalledWith({ ignoreCodeRabbit: true })
+    expect(events).toStrictEqual([
+      { type: 'transitioned', from: 'REVIEWING', to: 'HUMAN_REVIEWING' },
+    ])
+    expect(sleepMs).not.toHaveBeenCalled()
+  })
+
   it('waits for CodeRabbit before recording approval and moving to human review', () => {
     const sleepMs = vi.fn()
     const getPrFeedback = vi

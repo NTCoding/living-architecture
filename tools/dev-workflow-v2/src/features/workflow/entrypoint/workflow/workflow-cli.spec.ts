@@ -62,4 +62,14 @@ describe('workflow-cli commands', () => {
     expect(result.exitCode).toStrictEqual(2)
     expect(result.output).toContain('record-reviewer-status')
   })
+
+  it('rejects create-pr with invalid options before touching the workflow', () => {
+    const context = setup()
+    runCommand(context, ['init'])
+
+    const result = runCommand(context, ['create-pr', '--title'])
+
+    expect(result.exitCode).toStrictEqual(2)
+    expect(result.output).toContain('Expected value after --title.')
+  })
 })

@@ -49,13 +49,8 @@ function runIsolatedGit(directory: string, args: string[]): void {
 
 function writeWorkflow(
   directory: string,
-  secondConfig = 'shipping.yaml',
-  secondStageName = 'shipping',
-  graphMetadata = '',
-  stages = `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
-  - extract: { name: ${secondStageName}, config: ${secondConfig}, useTsConfig: false }
-  - link: { config: orders.yaml, useTsConfig: false }
-  - validate: {}`,
+  stages = '  - validate: {}',
+  graphMetadata = '  name: Combined graph\n  description: Orders and shipping',
 ): void {
   writeFileSync(
     join(directory, '.riviere', 'workflows', 'combined.yaml'),
@@ -77,69 +72,114 @@ afterEach(() => {
 })
 
 describe('RiviereProjectRepository workflow loading', () => {
-  it('materialises legacy extraction as a code extraction stage', () => {
+  it('refuses legacy extract workflows at load', () => {
     const directory = workspace()
     writeFileSync(join(directory, 'orders.yaml'), CONFIG)
-    writeFileSync(join(directory, 'shipping.yaml'), CONFIG)
     writeWorkflow(
       directory,
-      'shipping.yaml',
-      'shipping',
-      '  name: Combined graph\n  description: Orders and shipping',
+      `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
+  - validate: {}`,
     )
-
-    const project = new RiviereProjectRepository().loadByWorkflowName({
-      projectRoot: directory,
-      workflowName: 'combined',
-    })
-    const result = project.rebuildGraph('combined')
-
-    expect(result).toMatchObject({
-      success: false,
-      errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',
-      reason: "Stage behaviour is unavailable for 'code-extraction'",
-      events: [
-        { type: 'WorkflowStarted' },
-        { type: 'StageStarted', stageKind: 'code-extraction', stageName: 'orders' },
-        { type: 'StageFailed', stageKind: 'code-extraction', stageName: 'orders' },
-        { type: 'WorkflowFailed' },
-      ],
-    })
-  })
-
-  it('loads the previous completed graph before adding the workflow', () => {
-    const directory = workspace()
-    writeFileSync(join(directory, 'orders.yaml'), CONFIG)
-    writeFileSync(join(directory, 'shipping.yaml'), CONFIG)
-    writeWorkflow(directory)
-    const previousGraph = RiviereBuilder.new({
-      name: 'Previous graph',
-      sources: [{ repository: 'workflow-test' }],
-      domains: { orders: { description: 'Orders', systemType: 'domain' } },
-    }).build()
-    writeFileSync(join(directory, '.riviere', 'graph.json'), JSON.stringify(previousGraph))
-    const project = new RiviereProjectRepository().loadByWorkflowName({
-      projectRoot: directory,
-      workflowName: 'combined',
-    })
-    const loadedGraph = project.build()
-
-    project.rebuildGraph('combined')
-
-    expect(project.build()).toStrictEqual(loadedGraph)
-  })
-
-  it('fails before returning the project when a referenced configuration is missing', () => {
-    const directory = workspace()
-    writeFileSync(join(directory, 'orders.yaml'), CONFIG)
-    writeWorkflow(directory, 'missing.yaml')
 
     expect(() =>
       new RiviereProjectRepository().loadByWorkflowName({
         projectRoot: directory,
         workflowName: 'combined',
       }),
-    ).toThrow('Config file not found')
+    ).toThrow("uses the legacy 'extract' stage")
+  })
+
+  it('refuses legacy link workflows at load', () => {
+    const directory = workspace()
+    writeFileSync(join(directory, 'orders.yaml'), CONFIG)
+    writeWorkflow(
+      directory,
+      `  - link: { config: orders.yaml, useTsConfig: false }
+  - validate: {}`,
+    )
+
+    expect(() =>
+      new RiviereProjectRepository().loadByWorkflowName({
+        projectRoot: directory,
+        workflowName: 'combined',
+      }),
+    ).toThrow("uses the legacy 'link' stage")
+  })
+
+  it.each([
+    [
+      'no extraction stage',
+      `  - link: { config: orders.yaml, useTsConfig: false }
+  - validate: {}`,
+    ],
+    [
+      'no legacy link stage',
+      `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
+  - validate: {}`,
+    ],
+    [
+      'several legacy link stages',
+      `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
+  - link: { config: orders.yaml, useTsConfig: false }
+  - link: { config: orders.yaml, useTsConfig: false }
+  - validate: {}`,
+    ],
+    [
+      'no validation stage',
+      `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
+  - link: { config: orders.yaml, useTsConfig: false }`,
+    ],
+  ])('refuses a legacy stage plan with %s', (_case, stages) => {
+    const directory = workspace()
+    writeFileSync(join(directory, 'orders.yaml'), CONFIG)
+    writeWorkflow(directory, stages)
+
+    expect(() =>
+      new RiviereProjectRepository().loadByWorkflowName({
+        projectRoot: directory,
+        workflowName: 'combined',
+      }),
+    ).toThrow("Legacy 'extract' and 'link' stages are not supported")
+  })
+
+  it('loads the previous completed graph before adding the workflow', () => {
+    const directory = workspace()
+    const previousGraph = RiviereBuilder.new({
+      name: 'Combined graph',
+      description: 'Orders and shipping',
+      sources: [{ repository: 'workflow-test' }],
+      domains: { orders: { description: 'orders domain', systemType: 'domain' } },
+    }).build()
+    writeFileSync(join(directory, '.riviere', 'graph.json'), JSON.stringify(previousGraph))
+    writeWorkflow(directory)
+
+    const project = new RiviereProjectRepository().loadByWorkflowName({
+      projectRoot: directory,
+      workflowName: 'combined',
+    })
+
+    expect(project.build()).toStrictEqual(previousGraph)
+    expect(project.rebuildGraph('combined')).toMatchObject({ success: true })
+    expect(project.build()).toStrictEqual(previousGraph)
+  })
+
+  it('keeps the persisted graph name and description when the workflow omits them', () => {
+    const directory = workspace()
+    const persistedGraph = RiviereBuilder.new({
+      name: 'Persisted graph',
+      description: 'Persisted description',
+      sources: [{ repository: 'workflow-test' }],
+      domains: { orders: { description: 'orders domain', systemType: 'domain' } },
+    }).build()
+    writeFileSync(join(directory, '.riviere', 'graph.json'), JSON.stringify(persistedGraph))
+    writeWorkflow(directory, '  - validate: {}', '')
+
+    const project = new RiviereProjectRepository().loadByWorkflowName({
+      projectRoot: directory,
+      workflowName: 'combined',
+    })
+
+    expect(project.build()).toStrictEqual(persistedGraph)
   })
 
   it('rejects missing and invalid workflow definitions', () => {
@@ -167,68 +207,9 @@ describe('RiviereProjectRepository workflow loading', () => {
     ).toThrow('Invalid workflow name')
   })
 
-  it('rejects a workflow that the aggregate cannot start', () => {
+  it('rejects a workflow with duplicate stage names before returning the project', () => {
     const directory = workspace()
-    writeFileSync(join(directory, 'orders.yaml'), CONFIG)
-    writeFileSync(join(directory, 'shipping.yaml'), CONFIG)
-    writeWorkflow(directory, 'shipping.yaml', 'orders')
-
-    expect(() =>
-      new RiviereProjectRepository().loadByWorkflowName({
-        projectRoot: directory,
-        workflowName: 'combined',
-      }),
-    ).toThrow("Duplicate workflow stage name 'orders'")
-  })
-
-  it.each([
-    [
-      'no extraction stage',
-      `  - link: { config: orders.yaml, useTsConfig: false }
-  - validate: {}`,
-    ],
-    [
-      'no legacy link stage',
-      `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
-  - validate: {}`,
-    ],
-    [
-      'several legacy link stages',
-      `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
-  - link: { config: orders.yaml, useTsConfig: false }
-  - link: { config: orders.yaml, useTsConfig: false }
-  - validate: {}`,
-    ],
-    [
-      'no validation stage',
-      `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
-  - link: { config: orders.yaml, useTsConfig: false }`,
-    ],
-  ])('loads the temporary legacy definition with %s', (_case, stages) => {
-    const directory = workspace()
-    writeFileSync(join(directory, 'orders.yaml'), CONFIG)
-    writeWorkflow(directory, 'shipping.yaml', 'shipping', '', stages)
-
-    expect(() =>
-      new RiviereProjectRepository().loadByWorkflowName({
-        projectRoot: directory,
-        workflowName: 'combined',
-      }),
-    ).not.toThrow()
-  })
-
-  it('rejects duplicate validation stage names', () => {
-    const directory = workspace()
-    writeFileSync(join(directory, 'orders.yaml'), CONFIG)
-    writeWorkflow(
-      directory,
-      'shipping.yaml',
-      'shipping',
-      '',
-      `  - extract: { name: orders, config: orders.yaml, useTsConfig: false }
-  - validate: {}
-  - validate: {}`,
-    )
+    writeWorkflow(directory, '  - validate: {}\n  - validate: {}')
 
     expect(() =>
       new RiviereProjectRepository().loadByWorkflowName({
@@ -256,8 +237,6 @@ describe('RiviereProjectRepository workflow loading', () => {
 
   it('rejects an invalid existing graph', () => {
     const directory = workspace()
-    writeFileSync(join(directory, 'orders.yaml'), CONFIG)
-    writeFileSync(join(directory, 'shipping.yaml'), CONFIG)
     writeWorkflow(directory)
     mkdirSync(join(directory, '.riviere'), { recursive: true })
     writeFileSync(join(directory, '.riviere', 'graph.json'), '{"invalid":true}')

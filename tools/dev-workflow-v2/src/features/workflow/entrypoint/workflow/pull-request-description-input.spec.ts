@@ -1,4 +1,4 @@
-import { parsePullRequestDescriptionOptions } from './pull-request-description'
+import { parsePullRequestDescriptionOptions } from './pull-request-description-input'
 
 const VALID_DESCRIPTION = 'A'.repeat(100)
 

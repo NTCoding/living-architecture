@@ -11,10 +11,7 @@ import {
 import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from './workflow-types'
-import {
-  parsePullRequestDescriptionOptions,
-  type PullRequestDescriptionInput,
-} from './pull-request-description'
+import type { PullRequestDescriptionInput } from './pull-request-description'
 import { MaintainerWorkflowRegistry } from './registry'
 import { ReviewingState } from './states/reviewing'
 import { SubmittingPrState } from './states/submitting-pr'
@@ -181,15 +178,13 @@ export class MaintainerWorkflow {
     return pass()
   }
 
-  createPr(rawArgs: unknown): PreconditionResult {
+  createPr(input: PullRequestDescriptionInput): PreconditionResult {
     const gate = checkOperationGate('create-pr', this.state, this.registryDefinition)
     if (!gate.pass) return gate
     if (this.state.prNumber !== undefined) {
       return fail('A pull request has already been recorded for this workflow.')
     }
-    const parsedDescription = parsePullRequestDescriptionOptions(rawArgs)
-    if (!parsedDescription.ok) return fail(parsedDescription.reason)
-    return this.submitPullRequest(parsedDescription.input)
+    return this.submitPullRequest(input)
   }
 
   private submitPullRequest(input: PullRequestDescriptionInput): PreconditionResult {
