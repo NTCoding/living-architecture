@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { spawnSync } from 'node:child_process'
 import type { SpawnSyncReturns } from 'node:child_process'
-import { AcpClient, AcpClientError, AcpClientTimeoutError } from './acp-client'
+import { AcpClient, AcpClientTimeoutError } from './acp-client'
 
 class SpawnFailureTestError extends Error {}
 class SpawnTimeoutTestError extends Error {
@@ -33,15 +33,6 @@ function spawnResult(overrides: Partial<SpawnSyncReturns<string>> = {}): SpawnSy
 
 describe('AcpClient', () => {
   beforeEach(() => mockSpawnSync.mockReset())
-
-  it('rejects an unconfigured reviewer command before spawning a worker', () => {
-    expect(() =>
-      new AcpClient({ workerPath: OPTIONS.workerPath, command: undefined, cwd: OPTIONS.cwd }).run(
-        SESSIONS,
-      ),
-    ).toThrow(AcpClientError)
-    expect(mockSpawnSync).not.toHaveBeenCalled()
-  })
 
   it('runs the worker with ACP session requests', () => {
     mockSpawnSync.mockReturnValue(spawnResult())

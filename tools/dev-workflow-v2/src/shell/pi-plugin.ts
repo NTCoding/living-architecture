@@ -14,7 +14,7 @@ import {
   parseStringArgument,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 
-const sharedWorkflowRuntime = createWorkflowCliRuntime()
+const sharedWorkflowRuntime = createWorkflowCliRuntime('pi')
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
