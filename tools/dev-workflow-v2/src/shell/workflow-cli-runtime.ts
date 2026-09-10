@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
@@ -38,7 +38,7 @@ const bashForbidden = {
   commands: ['gh pr', 'git push'],
   flags: ['--no-verify', '--force', '--hard'],
 }
-const workflowRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
+const workflowRoot = resolveWorkflowRoot(dirname(fileURLToPath(import.meta.url)))
 const unknownCommandMessage = [
   '[dev-workflow-v2-automated-message]: Error: You tried to run a command that does not exist. STOP working immediately and switch to BLOCKED. Report this to the user along with a root cause analysis of why you tried to run a command that does not exist.',
   'STOP and fix the workflow. It is broken. Do not attempt to create a workaround. YOU must immediately switch to blocked and stop.',
@@ -49,6 +49,12 @@ class InvalidSleepDurationError extends Error {
     super('sleepMs requires a finite non-negative number')
     this.name = 'InvalidSleepDurationError'
   }
+}
+
+function resolveWorkflowRoot(moduleDirectory: string): string {
+  const compiledRoot = join(moduleDirectory, '..')
+  if (existsSync(join(compiledRoot, 'agents'))) return compiledRoot
+  return join(moduleDirectory, '..', '..')
 }
 
 function sleepMs(ms: number): void {
