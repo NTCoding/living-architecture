@@ -179,31 +179,58 @@ describe('plugin Agent Skills', () => {
   )
 })
 
-describe('reviewer workflow preflight', () => {
+describe('Pi review orchestration', () => {
+  it('configures pi-subagents to discover the four repository reviewers', () => {
+    const piProjectSettings = readPluginFile('../../.pi/settings.json')
+
+    expect(JSON.parse(piProjectSettings)).toMatchObject({
+      packages: expect.arrayContaining(['npm:pi-subagents']),
+      subagents: {
+        agentScanDirs: ['tools/dev-workflow-v2/agents'],
+        defaultSubagentContext: 'fresh',
+      },
+    })
+  })
+
+  it('requires Pi to await four fresh review children', () => {
+    const reviewing = readPluginFile('states/reviewing.md')
+
+    expect({
+      hasSubagentTool: reviewing.includes('`subagent` tool'),
+      hasParallelWorkflow: reviewing.includes('`runs.all`'),
+      hasFreshContext: reviewing.includes('fresh-context child agents'),
+      waitsForChildren: reviewing.includes('Set `async: false`'),
+      reviewers: ['architecture-review', 'code-review', 'bug-scanner', 'task-check'].every(
+        (reviewer) => reviewing.includes(`- \`${reviewer}\``),
+      ),
+    }).toStrictEqual({
+      hasSubagentTool: true,
+      hasParallelWorkflow: true,
+      hasFreshContext: true,
+      waitsForChildren: true,
+      reviewers: true,
+    })
+  })
+
   it.each(['architecture-review', 'code-review', 'bug-scanner', 'task-check'])(
-    'checks REVIEWING state before %s reads project files',
+    'gives %s the direct GitHub publishing tools, completion receipt, and parent state guard',
     (reviewerName) => {
       const reviewer = readPluginFile(`agents/${reviewerName}.md`)
-      const codexPreflightPosition = reviewer.indexOf('$dev-workflow-v2:workflow get-state')
-      const slashPreflightPosition = reviewer.indexOf('/dev-workflow-v2:workflow get-state')
-      const projectReadPosition = reviewer.indexOf('## Instructions')
 
       expect({
-        hasCodexInvocation: codexPreflightPosition > -1,
-        hasSlashInvocation: slashPreflightPosition > -1,
-        hasStateField: reviewer.includes('currentStateMachineState'),
-        hasReviewingGuard: reviewer.includes('is not `REVIEWING`'),
-        hasRefusal: reviewer.includes('{"refused":true,"reason":"Workflow is not in REVIEWING."}'),
-        preflightBeforeReview:
-          codexPreflightPosition < projectReadPosition &&
-          slashPreflightPosition < projectReadPosition,
+        hasGitHubPublishing: reviewer.includes('## GitHub Review Output'),
+        hasBash: reviewer.includes('tools: read, grep, find, ls, bash'),
+        parentGuardsState: reviewer.includes('The parent workflow starts this reviewer only after'),
+        doesNotQueryWorkflow: reviewer.includes('Do not query or change workflow state.'),
+        returnsCompletionReceipt: reviewer.includes(
+          'Return a short completion receipt to the workflow caller only after GitHub publication.',
+        ),
       }).toStrictEqual({
-        hasCodexInvocation: true,
-        hasSlashInvocation: true,
-        hasStateField: true,
-        hasReviewingGuard: true,
-        hasRefusal: true,
-        preflightBeforeReview: true,
+        hasGitHubPublishing: true,
+        hasBash: true,
+        parentGuardsState: true,
+        doesNotQueryWorkflow: true,
+        returnsCompletionReceipt: true,
       })
     },
   )

@@ -1,29 +1,16 @@
 ---
 name: bug-scanner
 description: Scan for bugs, dangerous config changes, security issues, and framework misuse
+tools: read, grep, find, ls, bash
 ---
 
-## Workflow Preflight
+## Workflow Invocation
 
-Before reading task details, changed files, conventions, or any project file, get the workflow state using the invocation registered by the current harness:
-
-- Codex: `$dev-workflow-v2:workflow get-state`
-- Pi: the `workflow` tool with operation `get-state`
-- Claude Code or OpenCode: `/dev-workflow-v2:workflow get-state`
-
-Parse `currentStateMachineState` from the result.
-
-If that operation fails or `currentStateMachineState` is not `REVIEWING`, return only:
-
-```json
-{"refused":true,"reason":"Workflow is not in REVIEWING."}
-```
-
-Then stop. Do not inspect any project files.
+The parent workflow starts this reviewer only after it has confirmed `REVIEWING`. Do not query or change workflow state. Review the pull request number and changed files supplied in your task.
 
 ## GitHub Review Output
 
-Publish every finding as a GitHub inline pull request comment beginning `[bug-scanner]`. When every earlier `[bug-scanner]` comment is resolved and no new finding exists, publish a GitHub pull request comment containing `[bug-scanner] APPROVED`. Do not record status through a workflow command. Return nothing; the workflow reads GitHub comments and thread state.
+Publish every finding as a GitHub inline pull request comment beginning `[bug-scanner]`. When every earlier `[bug-scanner]` comment is resolved and no new finding exists, publish a GitHub pull request comment containing `[bug-scanner] APPROVED`. Do not record status through a workflow command. Return a short completion receipt only after GitHub publication; the workflow reads GitHub comments and thread state.
 
 You are the bug hunter. You scan code for bugs, dangerous patterns, and security issues. If you are more than 50% confident a violation exists then report it.
 
@@ -34,7 +21,7 @@ You are the bug hunter. You scan code for bugs, dangerous patterns, and security
 3. Review ALL files listed in "Files to Review" below
 4. For each file, read its contents and scan for the patterns described
 5. Check related files as needed to understand context
-6. Finish after publishing the inline findings or the approved comment. Return nothing.
+6. Finish after publishing the inline findings or the approved comment. Return the short completion receipt.
 
 ## Priority 1: Bug Patterns
 
@@ -180,8 +167,8 @@ Read `docs/conventions/review-feedback-checks.md` and apply each RFC check to ch
 
 - Publish findings only as GitHub inline comments.
 - Publish approval only as a GitHub comment containing `[bug-scanner] APPROVED`.
-- Return nothing to the workflow caller.
+- Return a short completion receipt to the workflow caller only after GitHub publication. The parent uses it only to confirm that the child finished; it must not record reviewer status from this receipt.
 
 ## Completion Checklist
 
-Before finishing, verify that every finding is on GitHub as an inline comment with the required prefix, or that the approval comment is on GitHub. Then return nothing.
+Before finishing, verify that every finding is on GitHub as an inline comment with the required prefix, or that the approval comment is on GitHub. Then return the short completion receipt.
