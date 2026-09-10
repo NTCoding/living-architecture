@@ -3,7 +3,10 @@ import { createCodexWorkflowCli } from '@nt-ai-lab/deterministic-agent-workflow-
 import { createWorkflowCliRuntime } from './workflow-cli-runtime'
 
 const workflowCommand = 'pnpm --dir "$PLUGIN_ROOT" run codex-workflow'
-const runtime = createWorkflowCliRuntime('codex')
+const runtime = createWorkflowCliRuntime({
+  command: 'npx',
+  args: ['-y', '@agentclientprotocol/codex-acp'],
+})
 const defaultProcessDeps = runtime.processDeps
 const processDeps = {
   ...defaultProcessDeps,

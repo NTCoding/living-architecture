@@ -65,7 +65,12 @@ function sleepMs(ms: number): void {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
 }
 
-function buildWorkflowDeps(platform: PlatformContext, reviewerCommand: string) {
+type ReviewerCommand = {
+  readonly command: string
+  readonly args: readonly string[]
+}
+
+function buildWorkflowDeps(platform: PlatformContext, reviewerCommand: ReviewerCommand) {
   return {
     getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),
     getPrFeedback: createWorkflowPullRequestFeedbackReader(
@@ -78,7 +83,8 @@ function buildWorkflowDeps(platform: PlatformContext, reviewerCommand: string) {
     reviewLauncher: createAcpReviewLauncher(
       new AcpClient({
         workerPath: join(workflowRoot, 'dist/acp-client-worker.js'),
-        command: reviewerCommand,
+        command: reviewerCommand.command,
+        args: reviewerCommand.args,
         cwd: process.cwd(),
       }),
       (reviewer) => readFileSync(join(workflowRoot, 'agents', `${reviewer}.md`), 'utf8'),
@@ -87,7 +93,7 @@ function buildWorkflowDeps(platform: PlatformContext, reviewerCommand: string) {
 }
 
 /** @riviere-role main */
-export function createWorkflowCliRuntime(reviewerCommand: string) {
+export function createWorkflowCliRuntime(reviewerCommand: ReviewerCommand) {
   return {
     workflowDefinition,
     routes,

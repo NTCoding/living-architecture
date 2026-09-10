@@ -14,7 +14,10 @@ import {
   parseStringArgument,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 
-const sharedWorkflowRuntime = createWorkflowCliRuntime('pi')
+const sharedWorkflowRuntime = createWorkflowCliRuntime({
+  command: 'npx',
+  args: ['-y', 'pi-acp'],
+})
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
