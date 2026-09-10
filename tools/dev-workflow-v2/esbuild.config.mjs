@@ -39,11 +39,11 @@ await esbuild.build({
 })
 
 await esbuild.build({
-  entryPoints: ['src/infra/external-clients/acp/acp-reviewer-worker.ts'],
+  entryPoints: ['src/shell/acp-client-worker.ts'],
   bundle: true,
   platform: 'node',
   target: 'node20',
   format: 'esm',
-  outfile: 'dist/acp-reviewer-worker.js',
+  outfile: 'dist/acp-client-worker.js',
   banner: { js: executableBanner },
 })

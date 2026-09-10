@@ -21,7 +21,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@agentclientprotocol/sdk": "1.4.0",
     "@earendil-works/pi-coding-agent": "0.84.4",
     "@living-architecture/dev-workflow-v2-use-cases": "workspace:*",
     "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.4.8",
@@ -32,8 +31,7 @@
     "@nt-ai-lab/deterministic-agent-workflow-opencode": "0.4.8",
     "@nt-ai-lab/deterministic-agent-workflow-pi": "0.5.5",
     "esbuild": "0.27.2",
-    "tsx": "4.21.0",
-    "zod": "^3.23.0"
+    "tsx": "4.21.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

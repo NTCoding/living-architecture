@@ -5,9 +5,9 @@ import {
   writableStream,
   readableStream,
   readStdin,
-  runAcpReviewSession,
+  runAcpSession,
   type AcpSessionMessage,
-} from './acp-review-session'
+} from './acp-session'
 
 const { mockSpawn, mockClient, mockNdJsonStream } = vi.hoisted(() => ({
   mockSpawn: vi.fn(),
@@ -169,7 +169,7 @@ describe('readStdin', () => {
   })
 })
 
-describe('runAcpReviewSession', () => {
+describe('runAcpSession', () => {
   const initializeRequest = vi.fn(async () => ({}))
   const promptMock = vi.fn(async () => ({}))
   const nextUpdateMock = vi.fn(async () => ({ kind: 'stop' }))
@@ -218,12 +218,14 @@ describe('runAcpReviewSession', () => {
   it('spawns the ACP agent with the given command and args', async () => {
     setupClientMock()
     mockSpawn.mockReturnValue(child)
+    const onSpawned = vi.fn()
 
-    await runAcpReviewSession(
-      { pullRequestNumber: 42, reviewer: 'code-review' },
-      { command: 'acp-agent', args: ['--serve'], cwd: '/repo' },
+    await runAcpSession(
+      { prompt: 'Review pull request #42.' },
+      { command: 'acp-agent', args: ['--serve'], cwd: '/repo', onSpawned },
     )
 
+    expect(onSpawned).toHaveBeenCalledWith(child)
     expect(mockSpawn).toHaveBeenCalledWith('acp-agent', ['--serve'], {
       stdio: ['pipe', 'pipe', 'inherit'],
     })
@@ -233,12 +235,12 @@ describe('runAcpReviewSession', () => {
     const { handlers } = setupClientMock()
     mockSpawn.mockReturnValue(child)
 
-    await runAcpReviewSession(
-      { pullRequestNumber: 42, reviewer: 'code-review' },
+    await runAcpSession(
+      { prompt: 'Review pull request #42.' },
       { command: 'acp-agent', args: [], cwd: '/repo' },
     )
 
-    expect(mockClient).toHaveBeenCalledWith({ name: 'dev-workflow-v2-review-launcher' })
+    expect(mockClient).toHaveBeenCalledWith({ name: 'dev-workflow-v2-acp-client' })
     expect(handlers['client/session/requestPermission']?.({})).toStrictEqual({
       outcome: { outcome: 'cancelled' },
     })
@@ -250,8 +252,8 @@ describe('runAcpReviewSession', () => {
     setupClientMock()
     mockSpawn.mockReturnValue(child)
 
-    await runAcpReviewSession(
-      { pullRequestNumber: 42, reviewer: 'code-review' },
+    await runAcpSession(
+      { prompt: 'Review pull request #42.' },
       { command: 'acp-agent', args: [], cwd: '/repo' },
     )
 
@@ -260,17 +262,15 @@ describe('runAcpReviewSession', () => {
       clientCapabilities: { fs: { readTextFile: true, writeTextFile: true } },
     })
     expect(buildSessionMock).toHaveBeenCalledWith('/repo')
-    expect(promptMock).toHaveBeenCalledWith(
-      'Review pull request #42 as code-review. Review the changed code on GitHub and post all feedback as inline comments. Prefix every comment with [code-review]. When all your feedback is resolved, post a GitHub comment containing [code-review] APPROVED. Do not return findings or a verdict to the caller.',
-    )
+    expect(promptMock).toHaveBeenCalledWith('Review pull request #42.')
   })
 
   it('connects over the child streams and reads the response', async () => {
     setupClientMock()
     mockSpawn.mockReturnValue(child)
 
-    await runAcpReviewSession(
-      { pullRequestNumber: 42, reviewer: 'code-review' },
+    await runAcpSession(
+      { prompt: 'Review pull request #42.' },
       { command: 'acp-agent', args: [], cwd: '/repo' },
     )
 

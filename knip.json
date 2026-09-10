@@ -1,16 +1,31 @@
 {
   "$schema": "https://knip.dev/reference/knip-json",
-  "ignoreDependencies": ["tailwindcss", "oxlint", "tsx"],
+  "ignoreDependencies": [
+    "tailwindcss",
+    "oxlint",
+    "tsx"
+  ],
   "workspaces": {
     ".": {
-      "entry": [".opencode/plugins/dev-workflow-v2.js", "scripts/build-public-exports.mjs"]
+      "entry": [
+        ".opencode/plugins/dev-workflow-v2.js",
+        "scripts/build-public-exports.mjs"
+      ]
     },
     "apps/eclair": {
-      "entry": ["src/main.tsx"],
-      "project": ["src/**/*.ts", "src/**/*.tsx"]
+      "entry": [
+        "src/main.tsx"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "src/**/*.tsx"
+      ]
     },
     "apps/docs": {
-      "project": [".vitepress/**/*.ts", ".vitepress/**/*.vue"]
+      "project": [
+        ".vitepress/**/*.ts",
+        ".vitepress/**/*.vue"
+      ]
     },
     "apps/cli": {
       "entry": [
@@ -20,11 +35,18 @@
         "src/index.ts",
         "src/shell/role-enforcement-bin.ts"
       ],
-      "project": ["src/**/*.ts"]
+      "project": [
+        "src/**/*.ts"
+      ]
     },
     "packages/riviere-role-enforcement/domain-model": {
-      "entry": ["esbuild.config.mjs", "src/index.ts"],
-      "project": ["src/**/*.ts"]
+      "entry": [
+        "esbuild.config.mjs",
+        "src/index.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
     },
     "packages/riviere-schema/published-language": {
       "entry": [
@@ -35,41 +57,68 @@
         "src/published-language/schema.ts",
         "src/published-language/validation.ts"
       ],
-      "project": ["src/**/*.ts"]
+      "project": [
+        "src/**/*.ts"
+      ]
     },
     "packages/riviere-extract-config/published-language": {
-      "entry": ["scripts/generate-docs.ts", "src/index.ts"],
-      "project": ["src/**/*.ts"]
+      "entry": [
+        "scripts/generate-docs.ts",
+        "src/index.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
     },
     "packages/riviere-extract-conventions/published-language": {
-      "entry": ["src/index.ts", "src/published-language/eslint-plugin/*.cjs"],
-      "project": ["src/**/*.{ts,cjs,cts}"]
+      "entry": [
+        "src/index.ts",
+        "src/published-language/eslint-plugin/*.cjs"
+      ],
+      "project": [
+        "src/**/*.{ts,cjs,cts}"
+      ]
     },
     "packages/riviere-builder/domain-model": {
-      "entry": ["src/index.ts", "src/domain/component-definition.ts"],
-      "project": ["src/**/*.ts"]
+      "entry": [
+        "src/index.ts",
+        "src/domain/component-definition.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
     },
     "packages/riviere-extract-ts/domain-model": {
-      "entry": ["src/domain/connection-detection/connection-detection-values.ts"],
-      "project": ["src/**/*.ts"]
+      "entry": [
+        "src/domain/connection-detection/connection-detection-values.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
     },
     "packages/riviere-extract-ts/use-cases": {
       "entry": [
         "src/index.ts",
         "src/infra/external-clients/node/read-node-performance-time-in-milliseconds.ts"
       ],
-      "project": ["src/**/*.ts"]
+      "project": [
+        "src/**/*.ts"
+      ]
     },
     "packages/*/*": {
-      "project": ["src/**/*.ts"]
+      "project": [
+        "src/**/*.ts"
+      ]
     },
     "packages/*": {
-      "project": ["src/**/*.ts"]
+      "project": [
+        "src/**/*.ts"
+      ]
     },
     "tools/dev-workflow-v2": {
       "entry": [
         "esbuild.config.mjs",
-        "src/infra/external-clients/acp/acp-reviewer-worker.ts",
+        "src/shell/acp-client-worker.ts",
         "src/shell/cli.ts",
         "src/shell/codex-cli.ts",
         "src/shell/codex-workflow-command.ts",
@@ -77,11 +126,17 @@
         "src/shell/pi-plugin.ts",
         "src/shell/prepare-implementation-branch.ts"
       ],
-      "project": ["src/**/*.ts"]
+      "project": [
+        "src/**/*.ts"
+      ]
     },
     "tools/living-documentation": {
-      "entry": ["src/shell/main.ts"],
-      "project": ["src/**/*.ts"]
+      "entry": [
+        "src/shell/main.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
     }
   },
   "ignore": [

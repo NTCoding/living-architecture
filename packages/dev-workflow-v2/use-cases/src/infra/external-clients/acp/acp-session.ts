@@ -1,12 +1,14 @@
 import { spawn } from 'node:child_process'
+import type { ChildProcess } from 'node:child_process'
 import * as acp from '@agentclientprotocol/sdk'
-import { buildReviewPrompt, type AcpReviewRequest } from './review-prompt'
+import type { AcpSessionRequest } from './acp-client'
 
 /** @riviere-role external-client-model */
-export type AcpReviewSessionOptions = {
+export type AcpSessionOptions = {
   readonly command: string
   readonly args: readonly string[]
   readonly cwd: string
+  readonly onSpawned?: (child: ChildProcess) => void
 }
 
 /** @riviere-role external-client-model */
@@ -34,13 +36,14 @@ function isTextChunk(
 }
 
 /** @riviere-role external-client-service */
-export async function runAcpReviewSession(
-  request: AcpReviewRequest,
-  options: AcpReviewSessionOptions,
+export async function runAcpSession(
+  request: AcpSessionRequest,
+  options: AcpSessionOptions,
 ): Promise<void> {
   const child = spawn(options.command, options.args, { stdio: ['pipe', 'pipe', 'inherit'] })
+  options.onSpawned?.(child)
   const client = acp
-    .client({ name: 'dev-workflow-v2-review-launcher' })
+    .client({ name: 'dev-workflow-v2-acp-client' })
     .onRequest(acp.methods.client.session.requestPermission, () => ({
       outcome: { outcome: 'cancelled' as const },
     }))
@@ -54,7 +57,7 @@ export async function runAcpReviewSession(
         clientCapabilities: { fs: { readTextFile: true, writeTextFile: true } },
       })
       await context.buildSession(options.cwd).withSession(async (session) => {
-        await session.prompt(buildReviewPrompt(request))
+        await session.prompt(request.prompt)
         await readResponse(session)
       })
     },
