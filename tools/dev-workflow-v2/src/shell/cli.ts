@@ -11,10 +11,7 @@ import {
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 import { createWorkflowCliRuntime } from './workflow-cli-runtime'
 
-const sharedWorkflowRuntime = createWorkflowCliRuntime({
-  command: 'npx',
-  args: ['-y', '@agentclientprotocol/claude-agent-acp'],
-})
+const sharedWorkflowRuntime = createWorkflowCliRuntime('claude')
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({

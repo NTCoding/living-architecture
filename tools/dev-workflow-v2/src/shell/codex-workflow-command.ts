@@ -49,10 +49,7 @@ const args =
   operationArgs[0] === sessionId || operationArgs[0] === workflowSessionId
     ? operationArgs.slice(1)
     : operationArgs
-const runtime = createWorkflowCliRuntime({
-  command: 'npx',
-  args: ['-y', '@agentclientprotocol/codex-acp'],
-})
+const runtime = createWorkflowCliRuntime('codex')
 const now = () => new Date().toISOString()
 const configuredDatabasePath = runtime.processDeps.getEnv('WORKFLOW_EVENTS_DB')
 const databasePath =

@@ -3,10 +3,12 @@ import { spawnSync } from 'node:child_process'
 const ACP_REVIEW_BATCH_TIMEOUT_MS = 7 * 60 * 1000
 
 /** @riviere-role external-client-model */
+export type AcpReviewerProvider = 'claude' | 'codex' | 'opencode' | 'pi'
+
+/** @riviere-role external-client-model */
 export type AcpClientOptions = {
   readonly workerPath: string
-  readonly command: string
-  readonly args?: readonly string[]
+  readonly provider: AcpReviewerProvider
   readonly cwd: string
 }
 
@@ -20,6 +22,22 @@ export class AcpClientError extends Error {}
 
 /** @riviere-role external-client-error */
 export class AcpClientTimeoutError extends Error {}
+
+function providerCommand(provider: AcpReviewerProvider): {
+  readonly command: string
+  readonly args: readonly string[]
+} {
+  switch (provider) {
+    case 'claude':
+      return { command: 'npx', args: ['-y', '@agentclientprotocol/claude-agent-acp'] }
+    case 'codex':
+      return { command: 'npx', args: ['-y', '@agentclientprotocol/codex-acp'] }
+    case 'opencode':
+      return { command: 'opencode', args: ['acp'] }
+    case 'pi':
+      return { command: 'npx', args: ['-y', 'pi-acp'] }
+  }
+}
 
 /** @riviere-role external-client-service */
 export class AcpClient {
@@ -35,8 +53,7 @@ export class AcpClient {
       env: process.env,
       input: JSON.stringify({
         sessions,
-        command: this.options.command,
-        args: this.options.args ?? [],
+        ...providerCommand(this.options.provider),
       }),
       encoding: 'utf8',
       maxBuffer: 1024 * 1024,

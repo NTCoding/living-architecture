@@ -22,7 +22,10 @@ import {
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 import { createAcpReviewLauncher } from '@living-architecture/dev-workflow-v2-use-cases/adapters/acp/acp-review-launcher'
-import { AcpClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/acp/acp-client'
+import {
+  AcpClient,
+  type AcpReviewerProvider,
+} from '@living-architecture/dev-workflow-v2-use-cases/external-clients/acp/acp-client'
 
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
@@ -65,12 +68,9 @@ function sleepMs(ms: number): void {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
 }
 
-type ReviewerCommand = {
-  readonly command: string
-  readonly args: readonly string[]
-}
+type ReviewerProvider = AcpReviewerProvider
 
-function buildWorkflowDeps(platform: PlatformContext, reviewerCommand: ReviewerCommand) {
+function buildWorkflowDeps(platform: PlatformContext, reviewerProvider: ReviewerProvider) {
   return {
     getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),
     getPrFeedback: createWorkflowPullRequestFeedbackReader(
@@ -83,8 +83,7 @@ function buildWorkflowDeps(platform: PlatformContext, reviewerCommand: ReviewerC
     reviewLauncher: createAcpReviewLauncher(
       new AcpClient({
         workerPath: join(workflowRoot, 'dist/acp-client-worker.js'),
-        command: reviewerCommand.command,
-        args: reviewerCommand.args,
+        provider: reviewerProvider,
         cwd: process.cwd(),
       }),
       (reviewer) => readFileSync(join(workflowRoot, 'agents', `${reviewer}.md`), 'utf8'),
@@ -93,7 +92,7 @@ function buildWorkflowDeps(platform: PlatformContext, reviewerCommand: ReviewerC
 }
 
 /** @riviere-role main */
-export function createWorkflowCliRuntime(reviewerCommand: ReviewerCommand) {
+export function createWorkflowCliRuntime(reviewerProvider: ReviewerProvider) {
   return {
     workflowDefinition,
     routes,
@@ -104,6 +103,6 @@ export function createWorkflowCliRuntime(reviewerCommand: ReviewerCommand) {
     unknownCommandMessage,
     stopPreventionMessage:
       '[dev-workflow-v2-automated-response] If you are blocked, switch to the `BLOCKED` state.',
-    buildWorkflowDeps: (platform: PlatformContext) => buildWorkflowDeps(platform, reviewerCommand),
+    buildWorkflowDeps: (platform: PlatformContext) => buildWorkflowDeps(platform, reviewerProvider),
   }
 }

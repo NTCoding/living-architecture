@@ -16,7 +16,7 @@ function successfulWorker(): SpawnSyncReturns<string> {
 it('translates each review launch into an ACP prompt using its reviewer guidelines', () => {
   mockSpawnSync.mockReturnValue(successfulWorker())
   const launcher = createAcpReviewLauncher(
-    new AcpClient({ workerPath: '/worker.js', command: 'acp-agent', cwd: '/repo' }),
+    new AcpClient({ workerPath: '/worker.js', provider: 'pi', cwd: '/repo' }),
     (reviewer) => `Instructions for ${reviewer}.`,
   )
 
@@ -39,8 +39,8 @@ it('translates each review launch into an ACP prompt using its reviewer guidelin
               'Instructions for code-review.\n\n## ACP Review Delivery\n\nReview pull request #42. Publish every finding as a GitHub inline pull request comment beginning [code-review]. When every earlier [code-review] comment is resolved and no new finding exists, publish a GitHub pull request comment containing [code-review] APPROVED. Do not return findings or a verdict to the caller.',
           },
         ],
-        command: 'acp-agent',
-        args: [],
+        command: 'npx',
+        args: ['-y', 'pi-acp'],
       }),
     }),
   )

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { spawnSync } from 'node:child_process'
 import type { SpawnSyncReturns } from 'node:child_process'
-import { AcpClient, AcpClientTimeoutError } from './acp-client'
+import { AcpClient, AcpClientTimeoutError, type AcpClientOptions } from './acp-client'
 
 class SpawnFailureTestError extends Error {}
 class SpawnTimeoutTestError extends Error {
@@ -11,10 +11,9 @@ class SpawnTimeoutTestError extends Error {
 vi.mock('node:child_process', () => ({ spawnSync: vi.fn() }))
 
 const mockSpawnSync = vi.mocked(spawnSync)
-const OPTIONS = {
+const OPTIONS: AcpClientOptions = {
   workerPath: '/path/to/worker.js',
-  command: 'acp-agent',
-  args: ['--serve'],
+  provider: 'pi',
   cwd: '/repo',
 }
 const SESSIONS = [{ prompt: 'Review pull request #42.' }]
@@ -44,28 +43,27 @@ describe('AcpClient', () => {
       ['/path/to/worker.js'],
       expect.objectContaining({
         cwd: '/repo',
-        input: JSON.stringify({ sessions: SESSIONS, command: 'acp-agent', args: ['--serve'] }),
+        input: JSON.stringify({ sessions: SESSIONS, command: 'npx', args: ['-y', 'pi-acp'] }),
         timeout: 7 * 60 * 1000,
         killSignal: 'SIGTERM',
       }),
     )
   })
 
-  it('uses an empty argument list when ACP arguments are absent', () => {
+  it.each([
+    ['claude', 'npx', ['-y', '@agentclientprotocol/claude-agent-acp']],
+    ['codex', 'npx', ['-y', '@agentclientprotocol/codex-acp']],
+    ['opencode', 'opencode', ['acp']],
+    ['pi', 'npx', ['-y', 'pi-acp']],
+  ] as const)('maps the %s provider to its ACP adapter', (provider, command, args) => {
     mockSpawnSync.mockReturnValue(spawnResult())
 
-    new AcpClient({
-      workerPath: OPTIONS.workerPath,
-      command: OPTIONS.command,
-      cwd: OPTIONS.cwd,
-    }).run(SESSIONS)
+    new AcpClient({ workerPath: OPTIONS.workerPath, provider, cwd: OPTIONS.cwd }).run(SESSIONS)
 
     expect(mockSpawnSync).toHaveBeenCalledWith(
       process.execPath,
-      ['/path/to/worker.js'],
-      expect.objectContaining({
-        input: JSON.stringify({ sessions: SESSIONS, command: 'acp-agent', args: [] }),
-      }),
+      [OPTIONS.workerPath],
+      expect.objectContaining({ input: JSON.stringify({ sessions: SESSIONS, command, args }) }),
     )
   })
 
