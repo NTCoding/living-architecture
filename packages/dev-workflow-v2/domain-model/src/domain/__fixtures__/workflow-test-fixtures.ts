@@ -55,6 +55,7 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
       isDraft: false,
     }),
     listSessionReviews: () => [],
+    sleepMs: () => undefined,
     now: () => AT,
     ...overrides,
   }

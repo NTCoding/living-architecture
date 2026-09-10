@@ -50,6 +50,7 @@ export type WorkflowDeps = {
   readonly getPrFeedback: ReadWorkflowPullRequestFeedback
   readonly createPullRequest: CreateWorkflowPullRequest
   readonly listSessionReviews: () => readonly StoredReview[]
+  readonly sleepMs: (milliseconds: number) => void
   readonly now: () => string
 }
 /** @riviere-role aggregate */

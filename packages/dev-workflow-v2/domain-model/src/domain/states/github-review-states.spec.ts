@@ -3,6 +3,7 @@ import { ReviewingState } from './reviewing'
 import type { ReadWorkflowPullRequestFeedback } from '../ports/read-pull-request-feedback'
 import { Reviewer } from '../reviews/reviewers'
 import type { ReviewOutcome } from '../workflow'
+import { vi } from 'vitest'
 
 const AT = '2026-01-01T00:00:00Z'
 type PullRequestFeedback = ReturnType<ReadWorkflowPullRequestFeedback>
@@ -29,6 +30,10 @@ function stateContext(
   feedback: PullRequestFeedback = githubFeedback(),
   reviewOutcome: (options: { readonly ignoreCodeRabbit?: boolean }) => ReviewOutcome = () =>
     'APPROVED',
+  depsOverrides: Partial<{
+    getPrFeedback: () => PullRequestFeedback
+    sleepMs: (milliseconds: number) => void
+  }> = {},
 ) {
   const events: unknown[] = []
   const stateBox = { value: state }
@@ -63,7 +68,8 @@ function stateContext(
         reviewOutcome,
       },
       deps: {
-        getPrFeedback: () => feedback,
+        getPrFeedback: depsOverrides.getPrFeedback ?? (() => feedback),
+        sleepMs: depsOverrides.sleepMs ?? (() => undefined),
         now: () => AT,
       },
     },
@@ -75,7 +81,8 @@ describe('GitHub review states', () => {
     expect(() => ReviewingState.parse('REVIEWING').afterEntry()).toThrow('dependencies')
   })
 
-  it('leaves reviewing active when GitHub has pending reviewer statuses', () => {
+  it('leaves reviewing active without waiting for GitHub reviewers that have not run', () => {
+    const sleepMs = vi.fn()
     const { context, events } = stateContext(
       WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
       githubFeedback({
@@ -88,11 +95,13 @@ describe('GitHub review states', () => {
         },
       }),
       () => 'PENDING',
+      { sleepMs },
     )
 
     ReviewingState.parse('REVIEWING', context).afterEntry()
 
-    expect(events).toStrictEqual([{ reviewer: 'coderabbit', status: 'APPROVED' }])
+    expect(events).toStrictEqual([])
+    expect(sleepMs).not.toHaveBeenCalled()
   })
 
   it('records GitHub reviewer statuses before moving to human review', () => {
@@ -123,6 +132,7 @@ describe('GitHub review states', () => {
           coderabbit: 'APPROVED',
         },
       }),
+      githubFeedback({ coderabbitReviewSeen: true }),
     )
 
     ReviewingState.parse('REVIEWING', context).afterEntry()
@@ -130,6 +140,31 @@ describe('GitHub review states', () => {
     expect(events).toStrictEqual([
       { type: 'transitioned', from: 'REVIEWING', to: 'HUMAN_REVIEWING' },
     ])
+  })
+
+  it('waits for CodeRabbit before recording approval and moving to human review', () => {
+    const sleepMs = vi.fn()
+    const getPrFeedback = vi
+      .fn()
+      .mockReturnValueOnce(githubFeedback({ coderabbitReviewSeen: false }))
+      .mockReturnValueOnce(githubFeedback({ coderabbitReviewSeen: true }))
+    const { context, events } = stateContext(
+      WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
+      undefined,
+      () => 'APPROVED',
+      { getPrFeedback, sleepMs },
+    )
+
+    ReviewingState.parse('REVIEWING', context).afterEntry()
+
+    expect(getPrFeedback).toHaveBeenCalledTimes(2)
+    expect(sleepMs).toHaveBeenCalledWith(15_000)
+    expect(events).toContainEqual({ reviewer: 'coderabbit', status: 'APPROVED' })
+    expect(events).toContainEqual({
+      type: 'transitioned',
+      from: 'REVIEWING',
+      to: 'HUMAN_REVIEWING',
+    })
   })
 
   it('records CodeRabbit feedback from its bot comment', () => {

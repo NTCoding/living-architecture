@@ -26,9 +26,13 @@ export type ReviewingDependencies = {
   }
   readonly deps: {
     readonly getPrFeedback: ReadWorkflowPullRequestFeedback
+    readonly sleepMs: (milliseconds: number) => void
     readonly now: () => string
   }
 }
+
+const CODERABBIT_POLL_INTERVAL_MS = 15_000
+const MAX_REVIEW_COMPLETION_POLLS = 120
 
 /** @riviere-role value-object */
 export class ReviewingState {
@@ -80,7 +84,11 @@ export class ReviewingState {
     const context = this.dependencies
     const pullRequestNumber = context.workflow.getPullRequestNumber()
     const reviewers = ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
-    const feedback = context.deps.getPrFeedback(pullRequestNumber)
+    const feedback = waitForReviewCompletion(
+      context.deps,
+      pullRequestNumber,
+      context.workflow.getState(),
+    )
     const skipCodeRabbit = feedback.coderabbitRateLimited === true
     for (const reviewer of reviewers) {
       const status = reviewerStatus(feedback, reviewer)
@@ -122,12 +130,34 @@ function reviewerStatus(
   }
 }
 
+function waitForReviewCompletion(
+  deps: ReviewingDependencies['deps'],
+  prNumber: number,
+  state: WorkflowState,
+  remainingPolls: number = MAX_REVIEW_COMPLETION_POLLS,
+): ReturnType<ReadWorkflowPullRequestFeedback> {
+  const feedback = deps.getPrFeedback(prNumber)
+  const localReviewersComplete = (
+    ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
+  ).every(
+    (reviewer) =>
+      state.reviewerStatuses[reviewer] === 'APPROVED' ||
+      feedback.reviewerStatuses[reviewer] !== 'PENDING',
+  )
+  if (!localReviewersComplete) return feedback
+  if (feedback.coderabbitReviewSeen || feedback.coderabbitRateLimited) return feedback
+  if (remainingPolls === 1) return feedback
+  deps.sleepMs(CODERABBIT_POLL_INTERVAL_MS)
+  return waitForReviewCompletion(deps, prNumber, state, remainingPolls - 1)
+}
+
 function getCodeRabbitStatus(feedback: {
   readonly coderabbitReviewSeen: boolean
   readonly threads: readonly {
     readonly comments: readonly { readonly author: { readonly login: string } | null }[]
   }[]
-}): 'OPEN_FEEDBACK' | 'APPROVED' {
+}): 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED' {
+  if (!feedback.coderabbitReviewSeen) return 'PENDING'
   const hasOpenCodeRabbitThread = feedback.threads.some((thread) =>
     thread.comments.some(
       (comment) =>
