@@ -1,9 +1,11 @@
 # REVIEWING State
 
-GitHub is the review record. The state's `afterEntry` starts only reviewers whose recorded GitHub status is not `APPROVED`, waits for every required reviewer and CodeRabbit, reads their GitHub inline feedback and approval comments, records only the resulting reviewer statuses, and transitions to the next state. The main agent does not orchestrate reviewers or receive review results.
+Run the four review agents in parallel: `architecture-review`, `code-review`, `bug-scanner`, and `task-check`. Give each agent its definition from `agents/<reviewer>.md`, the pull request number from workflow state, and the changed files. The agents publish findings and approvals directly to GitHub.
+
+After every agent has finished, transition to `REVIEWING` again. The workflow then reads the GitHub review record, records the statuses, and moves to `ADDRESSING_FEEDBACK` or `HUMAN_REVIEWING` when all required feedback is available.
 
 ## Constraints
 
-- An approved reviewer is never invoked again for this pull request.
-- Workflow events store reviewer status only. GitHub stores every finding, reply, and approval comment.
+- Do not use ACP to run reviewers.
+- Do not record reviewer status yourself.
 - If blocked, transition to BLOCKED: `/dev-workflow-v2:workflow transition BLOCKED`

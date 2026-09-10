@@ -12,7 +12,6 @@ it('translates workflow pull request details into a GitHub request', () => {
     branch: 'issue-42',
     body: 'Description',
     title: 'Example change',
-    draft: false,
   })
 
   expect(client).toHaveBeenCalledWith({

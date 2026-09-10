@@ -68,6 +68,7 @@ Domain model package: `@living-architecture/dev-workflow-v2-domain-model`
   - `handleTeammateIdle`
   - `executeRecording`
   - `recordReviewerStatus`
+  - `createPr`
   - `recordPullRequest`
   - `transition`
   - `reviewOutcome`

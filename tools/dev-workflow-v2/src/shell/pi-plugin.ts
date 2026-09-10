@@ -12,9 +12,10 @@ import { createWorkflowCliRuntime } from './workflow-cli-runtime'
 import {
   parseNumberArgument,
   parseStringArgument,
+  parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 
-const sharedWorkflowRuntime = createWorkflowCliRuntime('pi')
+const sharedWorkflowRuntime = createWorkflowCliRuntime()
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
@@ -24,6 +25,7 @@ const routes = createWorkflowRoutes({
   ),
   parseNumberArgument,
   parseStringArgument,
+  parseStringArguments,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],

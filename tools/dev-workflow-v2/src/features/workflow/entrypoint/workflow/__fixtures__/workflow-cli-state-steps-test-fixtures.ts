@@ -1,8 +1,29 @@
+export const CREATE_PULL_REQUEST = [
+  'create-pr',
+  '--title',
+  'Restore workflow review agents',
+  '--description',
+  'This pull request restores the main agent review hand off and ensures submitted pull requests contain a useful description of the completed work.',
+  '--problem',
+  'The automated workflow did not provide reliable reviews or useful pull request metadata.',
+  '--acceptance-criteria',
+  '- Review agents publish to GitHub.\n- Pull request metadata is structured.',
+  '--key-changes',
+  '- Restore agent led review and pull request drafting.',
+  '--architecture-impact',
+  'None.',
+  '--validation',
+  '- pnpm nx test dev-workflow-v2',
+  '--notes',
+  'None.',
+] as const
+
 export const STATE_STEPS: Readonly<Record<string, readonly (readonly string[])[]>> = {
   REVIEWING: [
     ['record-issue', '1'],
     ['record-branch', 'feat/test'],
     ['transition', 'SUBMITTING_PR'],
+    CREATE_PULL_REQUEST,
     ['transition', 'REVIEWING'],
   ],
   SUBMITTING_PR: [
@@ -14,6 +35,7 @@ export const STATE_STEPS: Readonly<Record<string, readonly (readonly string[])[]
     ['record-issue', '1'],
     ['record-branch', 'feat/test'],
     ['transition', 'SUBMITTING_PR'],
+    CREATE_PULL_REQUEST,
     ['transition', 'REVIEWING'],
   ],
 }

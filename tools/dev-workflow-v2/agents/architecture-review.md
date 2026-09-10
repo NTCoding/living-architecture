@@ -8,6 +8,7 @@ description: Architecture and layer responsibility review with zero tolerance en
 Before reading task details, changed files, conventions, or any project file, get the workflow state using the invocation registered by the current harness:
 
 - Codex: `$dev-workflow-v2:workflow get-state`
+- Pi: the `workflow` tool with operation `get-state`
 - Claude Code or OpenCode: `/dev-workflow-v2:workflow get-state`
 
 Parse `currentStateMachineState` from the result.

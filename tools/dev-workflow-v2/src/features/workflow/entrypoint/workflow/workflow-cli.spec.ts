@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { flattenStoredEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { buildTestContext, cleanupDb, runCommand } from './__fixtures__/workflow-cli-test-fixtures'
+import { CREATE_PULL_REQUEST } from './__fixtures__/workflow-cli-state-steps-test-fixtures'
 
 describe('workflow-cli commands', () => {
   const dbPaths: string[] = []
@@ -28,6 +29,7 @@ describe('workflow-cli commands', () => {
     runCommand(context, ['record-issue', '42'])
     runCommand(context, ['record-branch', 'feat/test'])
     runCommand(context, ['transition', 'SUBMITTING_PR'])
+    runCommand(context, CREATE_PULL_REQUEST)
     runCommand(context, ['transition', 'REVIEWING'])
 
     const statusEvents = context.engineDeps.store
@@ -42,14 +44,10 @@ describe('workflow-cli commands', () => {
     expect(context.engineDeps.store.listSessionReviews(context.sessionId)).toStrictEqual([])
   })
 
-  it('does not expose manual pull request or local review commands', () => {
+  it('does not expose manual pull request recording', () => {
     const context = setup()
     runCommand(context, ['init'])
 
-    expect(runCommand(context, ['create-pr'])).toMatchObject({
-      exitCode: 1,
-      output: 'Unknown test workflow command.',
-    })
     expect(runCommand(context, ['record-pr', '1'])).toMatchObject({
       exitCode: 1,
       output: 'Unknown test workflow command.',

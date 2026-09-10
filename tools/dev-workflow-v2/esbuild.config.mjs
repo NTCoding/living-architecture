@@ -37,13 +37,3 @@ await esbuild.build({
   outfile: 'dist/prepare-implementation-branch.js',
   banner: { js: executableBanner },
 })
-
-await esbuild.build({
-  entryPoints: ['src/shell/acp-client-worker.ts'],
-  bundle: true,
-  platform: 'node',
-  target: 'node20',
-  format: 'esm',
-  outfile: 'dist/acp-client-worker.js',
-  banner: { js: executableBanner },
-})

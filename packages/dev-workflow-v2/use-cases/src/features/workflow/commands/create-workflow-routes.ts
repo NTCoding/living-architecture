@@ -31,6 +31,7 @@ function parseReviewerStatus(value: string): ReviewerStatus {
 export interface CreateWorkflowRoutesInput {
   readonly parseNumberArgument: (value: unknown) => number
   readonly parseStringArgument: (value: unknown) => string
+  readonly parseStringArguments: (value: unknown) => readonly string[]
   readonly recordIssue: (workflow: RoutedWorkflow, issueNumber: number) => WorkflowResult
   readonly recordBranch: (workflow: RoutedWorkflow, branch: string) => WorkflowResult
   readonly recordReviewerStatus: (
@@ -38,6 +39,7 @@ export interface CreateWorkflowRoutesInput {
     reviewer: Reviewer,
     status: ReviewerStatus,
   ) => WorkflowResult
+  readonly createPullRequest: (workflow: RoutedWorkflow, args: readonly string[]) => WorkflowResult
 }
 
 interface WorkflowRouteDefinitions extends RouteMap<RoutedWorkflow, RoutedWorkflowState> {
@@ -55,6 +57,11 @@ interface WorkflowRouteDefinitions extends RouteMap<RoutedWorkflow, RoutedWorkfl
     readonly type: 'transaction'
     readonly args: readonly [ReturnType<typeof arg.string>]
     readonly handler: (workflow: RoutedWorkflow, branch: unknown) => WorkflowResult
+  }
+  readonly 'create-pr': {
+    readonly type: 'transaction'
+    readonly args: readonly [ReturnType<typeof arg.rest>]
+    readonly handler: (workflow: RoutedWorkflow, args: unknown) => WorkflowResult
   }
   readonly 'record-reviewer-status': {
     readonly type: 'transaction'
@@ -98,6 +105,12 @@ export class CreateWorkflowRoutes {
         args: [arg.string('branch')] as const,
         handler: (workflow: RoutedWorkflow, branch: unknown) =>
           input.recordBranch(workflow, input.parseStringArgument(branch)),
+      },
+      'create-pr': {
+        type: 'transaction' as const,
+        args: [arg.rest()] as const,
+        handler: (workflow: RoutedWorkflow, args: unknown) =>
+          input.createPullRequest(workflow, input.parseStringArguments(args)),
       },
       'record-reviewer-status': {
         type: 'transaction' as const,

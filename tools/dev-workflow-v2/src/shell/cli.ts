@@ -7,11 +7,12 @@ import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/e
 import {
   parseNumberArgument,
   parseStringArgument,
+  parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 import { createWorkflowCliRuntime } from './workflow-cli-runtime'
 
-const sharedWorkflowRuntime = createWorkflowCliRuntime('claude')
+const sharedWorkflowRuntime = createWorkflowCliRuntime()
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
 const routes = createWorkflowRoutes({
@@ -21,6 +22,7 @@ const routes = createWorkflowRoutes({
   ),
   parseNumberArgument,
   parseStringArgument,
+  parseStringArguments,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],

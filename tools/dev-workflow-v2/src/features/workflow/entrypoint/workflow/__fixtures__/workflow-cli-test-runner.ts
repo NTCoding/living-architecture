@@ -2,7 +2,11 @@ import { createWorkflowRunner, defineRoutes } from '@nt-ai-lab/deterministic-age
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
 import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
 import { createWorkflowRoutes } from '../entrypoint'
-import { parseNumberArgument, parseStringArgument } from '../workflow-route-inputs'
+import {
+  parseNumberArgument,
+  parseStringArgument,
+  parseStringArguments,
+} from '../workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 
 const workflowConfiguration = configureWorkflow({})
@@ -16,6 +20,7 @@ export const runner = createWorkflowRunner({
     ),
     parseNumberArgument,
     parseStringArgument,
+    parseStringArguments,
   }),
   unknownCommandMessage: 'Unknown test workflow command.',
   bashForbidden: {
