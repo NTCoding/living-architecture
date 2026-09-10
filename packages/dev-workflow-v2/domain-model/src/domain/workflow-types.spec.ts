@@ -1,105 +1,95 @@
-import { createWorkflowStateSchema, getWorkflowStateNames, WorkflowState } from './workflow-types'
+import {
+  WorkflowState,
+  createWorkflowStateSchema,
+  getInitialWorkflowState,
+  getWorkflowStateNames,
+} from './workflow-types'
 
-const STATE_NAMES = getWorkflowStateNames()
-const STATE_NAME_SCHEMA = WorkflowState.stateNameSchema()
-const workflowStateSchema = createWorkflowStateSchema(STATE_NAMES)
+const REVIEWERS = {
+  'architecture-review': 'PENDING',
+  'code-review': 'PENDING',
+  'bug-scanner': 'PENDING',
+  'task-check': 'PENDING',
+  coderabbit: 'PENDING',
+} as const
 
-describe('STATE_NAME_SCHEMA', () => {
-  it('accepts all valid state names', () => {
-    STATE_NAMES.forEach((s) => expect(STATE_NAME_SCHEMA.parse(s)).toStrictEqual(s))
-  })
-
-  it('rejects unknown state names', () => {
-    expect(() => STATE_NAME_SCHEMA.parse('UNKNOWN')).toThrow('Invalid enum value')
-  })
-
-  it('rejects non-string values', () => {
-    expect(() => STATE_NAME_SCHEMA.parse(42)).toThrow('received number')
-  })
-})
-
-describe('createWorkflowStateSchema — WorkflowState', () => {
-  it('parses valid minimal state', () => {
-    const raw = {
+describe('WorkflowState', () => {
+  it('starts with all named reviewers pending', () => {
+    expect(getInitialWorkflowState()).toMatchObject({
       currentStateMachineState: 'IMPLEMENTING',
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
-    }
-    const parsed = workflowStateSchema.parse(raw)
-    expect(parsed.currentStateMachineState).toStrictEqual('IMPLEMENTING')
+      reviewerStatuses: REVIEWERS,
+    })
   })
 
-  it('parses state with all optional fields', () => {
-    const raw = {
-      currentStateMachineState: 'SUBMITTING_PR',
-      architectureReviewPassed: true,
-      codeReviewPassed: true,
-      bugScannerPassed: true,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
+  it('requires reviewer statuses when parsing persisted state', () => {
+    expect(() => WorkflowState.parse({ currentStateMachineState: 'IMPLEMENTING' })).toThrow(
+      'Required',
+    )
+  })
+
+  it('requires exactly the known reviewer roster', () => {
+    expect(() =>
+      WorkflowState.parse({
+        currentStateMachineState: 'IMPLEMENTING',
+        reviewerStatuses: {},
+      }),
+    ).toThrow('reviewerStatuses')
+    expect(() =>
+      WorkflowState.parse({
+        currentStateMachineState: 'IMPLEMENTING',
+        reviewerStatuses: { ...REVIEWERS, unknown: 'PENDING' },
+      }),
+    ).toThrow('Unrecognized key')
+    expect(
+      WorkflowState.parse({
+        currentStateMachineState: 'IMPLEMENTING',
+        reviewerStatuses: REVIEWERS,
+      }).reviewerStatuses,
+    ).toStrictEqual(REVIEWERS)
+  })
+
+  it('replays reviewer status records', () => {
+    expect(
+      WorkflowState.replay([
+        {
+          type: 'reviewer-status-recorded',
+          at: '2026-01-01T00:00:00Z',
+          reviewer: 'code-review',
+          status: 'APPROVED',
+        },
+      ]),
+    ).toMatchObject({ reviewerStatuses: { ...REVIEWERS, 'code-review': 'APPROVED' } })
+  })
+
+  it('uses the configured state names for state schemas', () => {
+    const schema = createWorkflowStateSchema(['ONE', 'TWO'])
+    expect(
+      schema.parse({ currentStateMachineState: 'ONE', reviewerStatuses: REVIEWERS }),
+    ).toMatchObject({
+      currentStateMachineState: 'ONE',
+    })
+  })
+
+  it('preserves optional state fields and ignores non state events', () => {
+    const state = WorkflowState.parse({
+      currentStateMachineState: 'IMPLEMENTING',
+      reviewerStatuses: REVIEWERS,
       githubIssue: 42,
       featureBranch: 'issue-42',
-      prNumber: 7,
-      prUrl: 'https://github.com/owner/repo/pull/7',
-      preBlockedState: 'IMPLEMENTING',
-      feedbackUnresolvedCount: 3,
-    }
-    const parsed = workflowStateSchema.parse(raw)
-    expect(parsed.githubIssue).toStrictEqual(42)
-    expect(parsed.prNumber).toStrictEqual(7)
-    expect(parsed.preBlockedState).toStrictEqual('IMPLEMENTING')
-    expect(parsed.feedbackUnresolvedCount).toStrictEqual(3)
-  })
-
-  it('rejects invalid state name', () => {
-    const raw = {
-      currentStateMachineState: 'INVALID',
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
-    }
-    expect(() => workflowStateSchema.parse(raw)).toThrow('Invalid enum value')
-  })
-
-  it('rejects negative githubIssue', () => {
-    const raw = {
-      currentStateMachineState: 'IMPLEMENTING',
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
-      githubIssue: -1,
-    }
-    expect(() => workflowStateSchema.parse(raw)).toThrow('greater than 0')
-  })
-
-  it('accepts optional preBlockedState', () => {
-    const raw = {
-      currentStateMachineState: 'BLOCKED',
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
-      preBlockedState: 'IMPLEMENTING',
-    }
-    const parsed = workflowStateSchema.parse(raw)
-    expect(parsed.preBlockedState).toStrictEqual('IMPLEMENTING')
+      prNumber: 1,
+      prUrl: 'https://example.test/pr/1',
+      preBlockedState: 'REVIEWING',
+      transcriptPath: '/workspace/transcript',
+    })
+    expect(
+      state.apply({
+        type: 'bash-checked',
+        at: '2026-01-01T00:00:00Z',
+        tool: 'bash',
+        command: 'git status',
+        allowed: true,
+      }),
+    ).toBe(state)
+    expect(getWorkflowStateNames()).toContain('HUMAN_REVIEWING')
   })
 })

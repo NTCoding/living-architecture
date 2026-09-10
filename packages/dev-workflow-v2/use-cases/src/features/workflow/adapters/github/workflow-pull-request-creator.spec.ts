@@ -3,7 +3,6 @@ import { createWorkflowPullRequestCreator } from './workflow-pull-request-creato
 
 it('translates workflow pull request details into a GitHub request', () => {
   const client = vi.fn(() => ({
-    isDraft: false,
     prNumber: 42,
     prUrl: 'https://github.com/example/repository/pull/42',
   }))
@@ -13,15 +12,16 @@ it('translates workflow pull request details into a GitHub request', () => {
     branch: 'issue-42',
     body: 'Description',
     title: 'Example change',
+    draft: false,
   })
 
   expect(client).toHaveBeenCalledWith({
     branch: 'issue-42',
     body: 'Description',
     title: 'Example change',
+    draft: false,
   })
   expect(result).toStrictEqual({
-    isDraft: false,
     prNumber: 42,
     prUrl: 'https://github.com/example/repository/pull/42',
   })

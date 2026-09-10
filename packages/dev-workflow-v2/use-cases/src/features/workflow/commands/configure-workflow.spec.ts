@@ -2,10 +2,12 @@ import { configureWorkflow } from './configure-workflow'
 import { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { ReviewStatuses } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/statuses'
 import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
 
 type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
 type StateName = WorkflowState['currentStateMachineState']
+const ALL_PENDING = ReviewStatuses.pending()
 const WORKFLOW_DEFINITION = configureWorkflow({})
 
 function makeWorkflowDeps(): WorkflowDeps {
@@ -18,6 +20,13 @@ function makeWorkflowDeps(): WorkflowDeps {
       hasCommitsVsDefault: false,
     }),
     getPrFeedback: () => ({
+      reviewerStatuses: {
+        'architecture-review': 'APPROVED',
+        'code-review': 'APPROVED',
+        'bug-scanner': 'APPROVED',
+        'task-check': 'APPROVED',
+        coderabbit: 'APPROVED',
+      },
       reviewDecision: null,
       coderabbitReviewSeen: true,
       unresolvedCount: 0,
@@ -31,6 +40,9 @@ function makeWorkflowDeps(): WorkflowDeps {
     listSessionReviews: () => [],
     sleepMs: () => undefined,
     now: () => '2026-01-01T00:00:00Z',
+    reviewLauncher: {
+      run: () => undefined,
+    },
   }
 }
 
@@ -124,13 +136,13 @@ describe('WORKFLOW_DEFINITION', () => {
       const registry = WORKFLOW_DEFINITION.getRegistry()
       expect(registry.IMPLEMENTING).toBeDefined()
       expect(registry.REVIEWING).toBeDefined()
-      expect(registry.COMPLETE).toBeDefined()
+      expect(registry.HUMAN_REVIEWING).toBeDefined()
     })
 
-    it('marks COMPLETE and BLOCKED as write-forbidden states', () => {
+    it('marks HUMAN_REVIEWING and BLOCKED as write-forbidden states', () => {
       const registry = WORKFLOW_DEFINITION.getRegistry()
       expect(registry.BLOCKED.forbidden).toStrictEqual({ write: true })
-      expect(registry.COMPLETE.forbidden).toStrictEqual({ write: true })
+      expect(registry.HUMAN_REVIEWING.forbidden).toStrictEqual({ write: true })
     })
   })
 
@@ -138,13 +150,7 @@ describe('WORKFLOW_DEFINITION', () => {
     it('builds context with state and transition info', () => {
       const state = WorkflowState.parse({
         currentStateMachineState: 'IMPLEMENTING',
-        architectureReviewPassed: false,
-        codeReviewPassed: false,
-        bugScannerPassed: false,
-        taskCheckPassed: false,
-        ciPassed: false,
-        feedbackClean: false,
-        feedbackAddressed: false,
+        reviewerStatuses: ALL_PENDING,
         prNumber: 42,
       })
       const deps = makeWorkflowDeps()
@@ -163,13 +169,7 @@ describe('WORKFLOW_DEFINITION', () => {
   describe('buildTransitionEvent', () => {
     const baseBefore = WorkflowState.parse({
       currentStateMachineState: 'IMPLEMENTING',
-      architectureReviewPassed: true,
-      codeReviewPassed: true,
-      bugScannerPassed: true,
-      taskCheckPassed: false,
-      ciPassed: true,
-      feedbackClean: true,
-      feedbackAddressed: true,
+      reviewerStatuses: ALL_PENDING,
     })
 
     it('produces event without stateOverrides when no state changes', () => {
@@ -188,33 +188,29 @@ describe('WORKFLOW_DEFINITION', () => {
       })
     })
 
-    it('produces event with stateOverrides when onEntry mutates state', () => {
+    it('produces event with reviewer status reset when re entering implementation', () => {
+      const reviewedBefore = baseBefore.with({
+        reviewerStatuses: {
+          ...baseBefore.reviewerStatuses,
+          'code-review': 'APPROVED',
+        },
+      })
       const stateAfter = baseBefore.with({
-        architectureReviewPassed: false,
-        codeReviewPassed: false,
-        bugScannerPassed: false,
-        ciPassed: false,
-        feedbackClean: false,
-        feedbackAddressed: false,
+        reviewerStatuses: ALL_PENDING,
       })
       const event = buildTransitionEvent(
         'REVIEWING',
         'IMPLEMENTING',
-        baseBefore,
+        reviewedBefore,
         stateAfter,
         '2026-01-01T00:00:00Z',
       )
       expect(event).toHaveProperty('stateOverrides', {
-        architectureReviewPassed: false,
-        codeReviewPassed: false,
-        bugScannerPassed: false,
-        ciPassed: false,
-        feedbackClean: false,
-        feedbackAddressed: false,
+        reviewerStatuses: ALL_PENDING,
       })
     })
 
-    it('does not include currentStateMachineState in stateOverrides', () => {
+    it('does not include currentStateMachineState in stateOverrides when statuses are unchanged', () => {
       const stateAfter = baseBefore.with({ currentStateMachineState: 'REVIEWING' })
       const event = buildTransitionEvent(
         'IMPLEMENTING',

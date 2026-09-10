@@ -240,6 +240,13 @@ describe('workflow-cli hooks', () => {
   it('allows direct pushes while addressing feedback', () => {
     const ctx = setup({
       getPrFeedback: () => ({
+        reviewerStatuses: {
+          'architecture-review': 'APPROVED',
+          'code-review': 'OPEN_FEEDBACK',
+          'bug-scanner': 'APPROVED',
+          'task-check': 'APPROVED',
+          coderabbit: 'APPROVED',
+        },
         reviewDecision: 'CHANGES_REQUESTED',
         coderabbitReviewSeen: true,
         unresolvedCount: 1,
@@ -289,6 +296,13 @@ describe('workflow-cli hooks', () => {
     (command) => {
       const ctx = setup({
         getPrFeedback: () => ({
+          reviewerStatuses: {
+            'architecture-review': 'APPROVED',
+            'code-review': 'OPEN_FEEDBACK',
+            'bug-scanner': 'APPROVED',
+            'task-check': 'APPROVED',
+            coderabbit: 'APPROVED',
+          },
           reviewDecision: 'CHANGES_REQUESTED',
           coderabbitReviewSeen: true,
           unresolvedCount: 1,

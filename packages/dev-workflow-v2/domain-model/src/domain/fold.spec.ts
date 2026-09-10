@@ -1,365 +1,55 @@
-import type { WorkflowEvent } from './workflow-events'
-import { getInitialWorkflowState, type WorkflowState } from './workflow-types'
+import { WorkflowState } from './workflow-types'
 
 const AT = '2026-01-01T00:00:00Z'
-const EMPTY_STATE = getInitialWorkflowState()
 
-function makeState(overrides: Partial<WorkflowState>): WorkflowState {
-  return EMPTY_STATE.with(overrides)
-}
+describe('WorkflowState.apply', () => {
+  it('records the issue, branch, and pull request', () => {
+    const state = WorkflowState.initial()
+      .apply({ type: 'issue-recorded', at: AT, issueNumber: 42 })
+      .apply({ type: 'branch-recorded', at: AT, branch: 'issue-42' })
+      .apply({ type: 'pr-recorded', at: AT, prNumber: 7, prUrl: 'https://example.test/pr/7' })
 
-describe('EMPTY_STATE', () => {
-  it('has IMPLEMENTING state with all flags false', () => {
-    expect(EMPTY_STATE).toMatchObject({
-      currentStateMachineState: 'IMPLEMENTING',
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
-      taskCheckPassed: false,
-    })
-  })
-
-  it('has no preBlockedState', () => {
-    expect(EMPTY_STATE.preBlockedState).toBeUndefined()
-  })
-})
-
-describe('applyEvent — session-started', () => {
-  it('returns state unchanged', () => {
-    const event: WorkflowEvent = {
-      type: 'session-started',
-      at: AT,
-    }
-    const result = EMPTY_STATE.apply(event)
-    expect(result).toStrictEqual(EMPTY_STATE)
-  })
-})
-
-describe('applyEvent — issue-recorded', () => {
-  it('sets githubIssue', () => {
-    const event: WorkflowEvent = {
-      type: 'issue-recorded',
-      at: AT,
-      issueNumber: 42,
-    }
-    const result = EMPTY_STATE.apply(event)
-    expect(result.githubIssue).toStrictEqual(42)
-  })
-})
-
-describe('applyEvent — branch-recorded', () => {
-  it('sets featureBranch', () => {
-    const event: WorkflowEvent = {
-      type: 'branch-recorded',
-      at: AT,
-      branch: 'feature/x',
-    }
-    const result = EMPTY_STATE.apply(event)
-    expect(result.featureBranch).toStrictEqual('feature/x')
-  })
-})
-
-describe('applyEvent — architecture-review-completed', () => {
-  it('sets architectureReviewPassed to true when passed', () => {
-    const event: WorkflowEvent = {
-      type: 'architecture-review-completed',
-      at: AT,
-      passed: true,
-    }
-    const result = EMPTY_STATE.apply(event)
-    expect(result.architectureReviewPassed).toStrictEqual(true)
-  })
-
-  it('sets architectureReviewPassed to false when failed', () => {
-    const state = makeState({ architectureReviewPassed: true })
-    const event: WorkflowEvent = {
-      type: 'architecture-review-completed',
-      at: AT,
-      passed: false,
-    }
-    const result = state.apply(event)
-    expect(result.architectureReviewPassed).toStrictEqual(false)
-  })
-})
-
-describe('applyEvent — code-review-completed', () => {
-  it('sets codeReviewPassed to true when passed', () => {
-    const event: WorkflowEvent = {
-      type: 'code-review-completed',
-      at: AT,
-      passed: true,
-    }
-    const result = EMPTY_STATE.apply(event)
-    expect(result.codeReviewPassed).toStrictEqual(true)
-  })
-
-  it('sets codeReviewPassed to false when failed', () => {
-    const state = makeState({ codeReviewPassed: true })
-    const event: WorkflowEvent = {
-      type: 'code-review-completed',
-      at: AT,
-      passed: false,
-    }
-    const result = state.apply(event)
-    expect(result.codeReviewPassed).toStrictEqual(false)
-  })
-})
-
-describe('applyEvent — bug-scanner-completed', () => {
-  it('sets bugScannerPassed to true when passed', () => {
-    const event: WorkflowEvent = {
-      type: 'bug-scanner-completed',
-      at: AT,
-      passed: true,
-    }
-    const result = EMPTY_STATE.apply(event)
-    expect(result.bugScannerPassed).toStrictEqual(true)
-  })
-
-  it('sets bugScannerPassed to false when failed', () => {
-    const state = makeState({ bugScannerPassed: true })
-    const event: WorkflowEvent = {
-      type: 'bug-scanner-completed',
-      at: AT,
-      passed: false,
-    }
-    const result = state.apply(event)
-    expect(result.bugScannerPassed).toStrictEqual(false)
-  })
-})
-
-describe('applyEvent — pr-recorded', () => {
-  it('sets prNumber', () => {
-    const event: WorkflowEvent = {
-      type: 'pr-recorded',
-      at: AT,
+    expect(state).toMatchObject({
+      githubIssue: 42,
+      featureBranch: 'issue-42',
       prNumber: 7,
-    }
-    const result = EMPTY_STATE.apply(event)
-    expect(result.prNumber).toStrictEqual(7)
-  })
-
-  it('sets prUrl when provided', () => {
-    const event: WorkflowEvent = {
-      type: 'pr-recorded',
-      at: AT,
-      prNumber: 7,
-      prUrl: 'https://github.com/x/y/pull/7',
-    }
-    const result = EMPTY_STATE.apply(event)
-    expect(result.prUrl).toStrictEqual('https://github.com/x/y/pull/7')
-  })
-})
-
-describe('applyEvent — ci-completed', () => {
-  it('sets ciPassed to true when passed', () => {
-    const event: WorkflowEvent = {
-      type: 'ci-completed',
-      at: AT,
-      passed: true,
-    }
-    const result = EMPTY_STATE.apply(event)
-    expect(result.ciPassed).toStrictEqual(true)
-  })
-
-  it('sets ciPassed to false when failed', () => {
-    const state = makeState({ ciPassed: true })
-    const event: WorkflowEvent = {
-      type: 'ci-completed',
-      at: AT,
-      passed: false,
-      output: 'test failures',
-    }
-    const result = state.apply(event)
-    expect(result.ciPassed).toStrictEqual(false)
-  })
-})
-
-describe('applyEvent — feedback-checked', () => {
-  it('sets feedbackClean to true when clean', () => {
-    const event: WorkflowEvent = {
-      type: 'feedback-checked',
-      at: AT,
-      clean: true,
-    }
-    const result = EMPTY_STATE.apply(event)
-    expect(result.feedbackClean).toStrictEqual(true)
-  })
-
-  it('sets feedbackClean to false and stores unresolvedCount when not clean', () => {
-    const state = makeState({ feedbackClean: true })
-    const event: WorkflowEvent = {
-      type: 'feedback-checked',
-      at: AT,
-      clean: false,
-      unresolvedCount: 3,
-    }
-    const result = state.apply(event)
-    expect(result.feedbackClean).toStrictEqual(false)
-    expect(result.feedbackUnresolvedCount).toStrictEqual(3)
-  })
-})
-
-describe('applyEvent — feedback-addressed', () => {
-  it('sets feedbackAddressed to true', () => {
-    const event: WorkflowEvent = {
-      type: 'feedback-addressed',
-      at: AT,
-    }
-    const result = EMPTY_STATE.apply(event)
-    expect(result.feedbackAddressed).toStrictEqual(true)
-  })
-})
-
-describe('applyEvent — task-check-passed', () => {
-  it('sets taskCheckPassed to true', () => {
-    const event: WorkflowEvent = {
-      type: 'task-check-passed',
-      at: AT,
-    }
-    const result = EMPTY_STATE.apply(event)
-    expect(result.taskCheckPassed).toStrictEqual(true)
-  })
-})
-
-describe('applyEvent — transitioned', () => {
-  it('changes state field', () => {
-    const result = EMPTY_STATE.apply({
-      type: 'transitioned',
-      at: AT,
-      from: 'IMPLEMENTING',
-      to: 'REVIEWING',
+      prUrl: 'https://example.test/pr/7',
     })
-    expect(result.currentStateMachineState).toStrictEqual('REVIEWING')
   })
 
-  it('sets preBlockedState when transitioning to BLOCKED', () => {
-    const result = EMPTY_STATE.apply({
-      type: 'transitioned',
+  it('updates only the named reviewer status', () => {
+    const state = WorkflowState.initial().apply({
+      type: 'reviewer-status-recorded',
       at: AT,
-      from: 'IMPLEMENTING',
-      to: 'BLOCKED',
+      reviewer: 'bug-scanner',
+      status: 'OPEN_FEEDBACK',
     })
-    expect(result.preBlockedState).toStrictEqual('IMPLEMENTING')
-    expect(result.currentStateMachineState).toStrictEqual('BLOCKED')
+
+    expect(state.reviewerStatuses).toMatchObject({
+      'bug-scanner': 'OPEN_FEEDBACK',
+      'code-review': 'PENDING',
+    })
   })
 
-  it('clears preBlockedState when transitioning away from BLOCKED', () => {
-    const state = makeState({
-      currentStateMachineState: 'BLOCKED',
-      preBlockedState: 'IMPLEMENTING',
-    })
-    const result = state.apply({
-      type: 'transitioned',
-      at: AT,
-      from: 'BLOCKED',
-      to: 'IMPLEMENTING',
-    })
-    expect(result.preBlockedState).toBeUndefined()
-    expect(result.currentStateMachineState).toStrictEqual('IMPLEMENTING')
-  })
-
-  it('applies stateOverrides from transition event', () => {
-    const state = makeState({
-      architectureReviewPassed: true,
-      codeReviewPassed: true,
-      bugScannerPassed: true,
-      ciPassed: true,
-      feedbackClean: true,
-      feedbackAddressed: true,
-    })
-    const result = state.apply({
+  it('transitions state without treating review feedback as workflow state', () => {
+    const state = WorkflowState.initial().apply({
       type: 'transitioned',
       at: AT,
       from: 'REVIEWING',
-      to: 'IMPLEMENTING',
-      stateOverrides: {
-        architectureReviewPassed: false,
-        codeReviewPassed: false,
-        bugScannerPassed: false,
-        ciPassed: false,
-        feedbackClean: false,
-        feedbackAddressed: false,
-      },
-    })
-    expect(result).toMatchObject({
-      currentStateMachineState: 'IMPLEMENTING',
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
-    })
-  })
-
-  it('is backward-compatible when stateOverrides is absent', () => {
-    const result = EMPTY_STATE.apply({
-      type: 'transitioned',
-      at: AT,
-      from: 'IMPLEMENTING',
-      to: 'REVIEWING',
-    })
-    expect(result.currentStateMachineState).toStrictEqual('REVIEWING')
-    expect(result.architectureReviewPassed).toStrictEqual(false)
-  })
-
-  it('applies ADDRESSING_FEEDBACK stateOverrides resets', () => {
-    const state = makeState({
-      currentStateMachineState: 'AWAITING_PR_FEEDBACK',
-      feedbackAddressed: true,
-      feedbackClean: true,
-    })
-    const result = state.apply({
-      type: 'transitioned',
-      at: AT,
-      from: 'AWAITING_PR_FEEDBACK',
       to: 'ADDRESSING_FEEDBACK',
-      stateOverrides: {
-        feedbackAddressed: false,
-        feedbackClean: false,
-      },
     })
-    expect(result.currentStateMachineState).toStrictEqual('ADDRESSING_FEEDBACK')
-    expect(result.feedbackAddressed).toStrictEqual(false)
-    expect(result.feedbackClean).toStrictEqual(false)
+
+    expect(state.currentStateMachineState).toBe('ADDRESSING_FEEDBACK')
   })
 
-  it('currentStateMachineState in stateOverrides does not override fold logic', () => {
-    const result = EMPTY_STATE.apply({
+  it('records the state before a blocked transition', () => {
+    const state = WorkflowState.initial().apply({
       type: 'transitioned',
       at: AT,
-      from: 'IMPLEMENTING',
-      to: 'REVIEWING',
-      stateOverrides: { currentStateMachineState: 'COMPLETE' },
+      from: 'REVIEWING',
+      to: 'BLOCKED',
     })
-    expect(result.currentStateMachineState).toStrictEqual('REVIEWING')
-  })
-})
 
-describe('applyEvent — observation events return unchanged state', () => {
-  it('bash-checked returns state unchanged', () => {
-    const result = EMPTY_STATE.apply({
-      type: 'bash-checked',
-      at: AT,
-      tool: 'Bash',
-      command: 'ls',
-      allowed: true,
-    })
-    expect(result).toStrictEqual(EMPTY_STATE)
-  })
-
-  it('write-checked returns state unchanged', () => {
-    const result = EMPTY_STATE.apply({
-      type: 'write-checked',
-      at: AT,
-      tool: 'Write',
-      filePath: '/f',
-      allowed: true,
-    })
-    expect(result).toStrictEqual(EMPTY_STATE)
+    expect(state.preBlockedState).toBe('REVIEWING')
   })
 })

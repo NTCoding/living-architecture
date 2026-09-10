@@ -14,12 +14,12 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 
 describe('plugin Agent Skills', () => {
-  it('tells agents to push fixes directly, wait for CodeRabbit, and reflect after clean verification', () => {
+  it('tells agents to compact their context, push fixes, and return to reviewing', () => {
     const addressingFeedback = readPluginFile('states/addressing_feedback.md')
 
     expect(addressingFeedback).toContain('Push the recorded feature branch: `git push`')
-    expect(addressingFeedback).toContain('Wait for CodeRabbit to process the pushed commit')
-    expect(addressingFeedback).toContain('transitions directly to `REFLECTING`')
+    expect(addressingFeedback).toContain('/compact ignore all previous information')
+    expect(addressingFeedback).toContain('transition to `REVIEWING`')
   })
 
   it('registers Pi commands and loads their instruction assets', async () => {
@@ -29,9 +29,7 @@ describe('plugin Agent Skills', () => {
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
     const commandNames = [
       'choose-next-task',
-      'code-review',
       'continue-planning',
-      'create-pr',
       'list-review-threads',
       'optimize-factory',
       'planning-status',
@@ -82,12 +80,6 @@ describe('plugin Agent Skills', () => {
         undefined,
       )
     }
-
-    await registeredCommands
-      .get('dev-workflow-v2:code-review')
-      ?.handler('example arguments', Object.create({ isIdle: () => false }))
-
-    expect(sentMessages).toHaveBeenLastCalledWith(expect.any(String), { deliverAs: 'followUp' })
   })
 
   it('renders Pi branch preparation without Claude or Codex startup assumptions', async () => {
@@ -141,74 +133,14 @@ describe('plugin Agent Skills', () => {
     )
   })
 
-  it.each(['workflow', 'code-review', 'create-pr', 'list-review-threads'])(
-    'contains a complete %s skill',
-    (skillName) => {
-      const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
+  it.each(['workflow', 'list-review-threads'])('contains a complete %s skill', (skillName) => {
+    const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
 
-      expect(skill).toContain(`name: ${skillName}`)
-      expect(skill).not.toContain('TODO')
-    },
-  )
-
-  it('selects the code-review execution mechanism for all supported harnesses', () => {
-    const skill = readPluginFile('skills/code-review/SKILL.md')
-    const command = readPluginFile('commands/code-review.md')
-
-    expect({
-      detectsCodex: skill.includes('If `CODEX_THREAD_ID` is present'),
-      usesCodexSubagents: skill.includes('Codex `spawn_agent`'),
-      detectsPi: skill.includes('if `PI_CODING_AGENT=true` is present'),
-      usesPiSubagents: skill.includes('Pi `Task`'),
-      usesPiWorkflowTool: skill.includes('with the `workflow` tool'),
-      detectsOpenCode: skill.includes('if `OPENCODE=1` is present'),
-      usesOpenCodeSubagents: skill.includes('OpenCode `Task`'),
-      usesClaudeSubagents: skill.includes('Claude Code `Agent`'),
-      commandDoesNotOverrideHarness: !command.includes("Use Claude's Agent tool"),
-    }).toStrictEqual({
-      detectsCodex: true,
-      usesCodexSubagents: true,
-      detectsPi: true,
-      usesPiSubagents: true,
-      usesPiWorkflowTool: true,
-      detectsOpenCode: true,
-      usesOpenCodeSubagents: true,
-      usesClaudeSubagents: true,
-      commandDoesNotOverrideHarness: true,
-    })
+    expect(skill).toContain(`name: ${skillName}`)
+    expect(skill).not.toContain('TODO')
   })
 
-  it('validates reviewer result types before recording them', () => {
-    const skill = readPluginFile('skills/code-review/SKILL.md')
-    const validationPosition = skill.indexOf('`verdict` equal to `PASS` or `FAIL`')
-    const recordingPosition = skill.indexOf('`record-review` workflow operation')
-
-    expect({
-      validatesSummary: skill.includes('`summary` as a string'),
-      validatesFindings: skill.includes('`findings` as an array'),
-      blocksInvalidResults: skill.includes('stop before recording any invalid result'),
-      validatesBeforeRecording: validationPosition > -1 && validationPosition < recordingPosition,
-    }).toStrictEqual({
-      validatesSummary: true,
-      validatesFindings: true,
-      blocksInvalidResults: true,
-      validatesBeforeRecording: true,
-    })
-  })
-
-  it('prohibits direct pushes while creating a pull request', () => {
-    const skill = readPluginFile('skills/create-pr/SKILL.md')
-
-    expect({
-      prohibitsDirectPush: skill.includes('Do not call `git push`'),
-      containsDirectPushCommand: skill.includes('git push -u origin'),
-    }).toStrictEqual({
-      prohibitsDirectPush: true,
-      containsDirectPushCommand: false,
-    })
-  })
-
-  it.each(['code-review', 'create-pr', 'list-review-threads'])(
+  it.each(['list-review-threads'])(
     'does not translate Codex skill syntax in the %s command adapter',
     (commandName) => {
       const command = readPluginFile(`commands/${commandName}.md`)
@@ -223,7 +155,7 @@ describe('plugin Agent Skills', () => {
     },
   )
 
-  it.each(['create-pr', 'list-review-threads'])(
+  it.each(['list-review-threads'])(
     'selects workflow execution for Codex or slash-command harnesses in %s',
     (skillName) => {
       const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
@@ -254,7 +186,7 @@ describe('reviewer workflow preflight', () => {
       const reviewer = readPluginFile(`agents/${reviewerName}.md`)
       const codexPreflightPosition = reviewer.indexOf('$dev-workflow-v2:workflow get-state')
       const slashPreflightPosition = reviewer.indexOf('/dev-workflow-v2:workflow get-state')
-      const projectReadPosition = reviewer.indexOf('You will return structured JSON')
+      const projectReadPosition = reviewer.indexOf('## Instructions')
 
       expect({
         hasCodexInvocation: codexPreflightPosition > -1,

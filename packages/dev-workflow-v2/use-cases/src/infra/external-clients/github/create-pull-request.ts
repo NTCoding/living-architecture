@@ -11,13 +11,13 @@ export interface GithubPullRequestCreationInput {
   readonly branch: string
   readonly body: string
   readonly title: string
+  readonly draft: false
 }
 
 /** @riviere-role external-client-model */
 export type GithubPullRequest = {
   readonly prNumber: number
   readonly prUrl: string
-  readonly isDraft: boolean
 }
 
 /** @riviere-role external-client-model */
@@ -45,6 +45,7 @@ export function createGithubPullRequestClient(
       request.title,
       '--body',
       request.body,
+      '--draft=false',
     ])
     const pullRequestUrl = readPullRequestUrl(createOutput)
     return readPullRequest(runGh, pullRequestUrl)
@@ -71,9 +72,9 @@ function readPullRequestUrl(createOutput: string): string {
 function readPullRequest(runGh: GhRunner, pullRequestReference: string): GithubPullRequest {
   const rawPullRequest = runGh(['pr', 'view', pullRequestReference, '--json', 'number,url,isDraft'])
   const pullRequest = pullRequestSchema.parse(JSON.parse(rawPullRequest))
+  if (pullRequest.isDraft) throw new PullRequestCreationOutputError('Created pull request is a draft.')
   return {
     prNumber: pullRequest.number,
     prUrl: pullRequest.url,
-    isDraft: pullRequest.isDraft,
   }
 }

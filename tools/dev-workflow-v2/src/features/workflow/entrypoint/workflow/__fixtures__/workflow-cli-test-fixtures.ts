@@ -1,12 +1,7 @@
 import { unlinkSync, existsSync, mkdtempSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import type {
-  WorkflowEngineDeps,
-  ReviewPayload,
-  ReviewType,
-} from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { type WorkflowEngineDeps } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { createStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store'
 import type { RunnerResult } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
@@ -15,6 +10,8 @@ import { runner } from './workflow-cli-test-runner'
 
 type WorkflowDefinition = ReturnType<typeof configureWorkflow>
 type WorkflowDeps = Parameters<WorkflowDefinition['buildWorkflow']>[1]
+
+class WorkflowProgressionTestError extends Error {}
 
 export type TestContext = {
   readonly engineDeps: WorkflowEngineDeps
@@ -60,8 +57,15 @@ export function buildTestContext(
     getPrFeedback:
       overrides.getPrFeedback ??
       (() => ({
+        reviewerStatuses: {
+          'architecture-review': 'APPROVED',
+          'code-review': 'APPROVED',
+          'bug-scanner': 'APPROVED',
+          'task-check': 'APPROVED',
+          coderabbit: 'APPROVED',
+        },
         reviewDecision: null,
-        coderabbitReviewSeen: false,
+        coderabbitReviewSeen: true,
         unresolvedCount: 0,
         threads: [],
       })),
@@ -75,6 +79,9 @@ export function buildTestContext(
     listSessionReviews: () => store.listSessionReviews(sessionId),
     sleepMs: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
+    reviewLauncher: {
+      run: () => undefined,
+    },
   }
 
   return {
@@ -94,24 +101,6 @@ export function runCommand(ctx: TestContext, args: readonly string[]): RunnerRes
   })
 }
 
-export function runReviewCommandWithJson(
-  ctx: TestContext,
-  reviewType: ReviewType,
-  reviewJson: string,
-): RunnerResult {
-  return runner(['record-review', reviewType, reviewJson], ctx.engineDeps, ctx.workflowDeps, {
-    getSessionId: () => ctx.sessionId,
-  })
-}
-
-export function runReviewCommand(
-  ctx: TestContext,
-  reviewType: ReviewType,
-  payload: ReviewPayload,
-): RunnerResult {
-  return runReviewCommandWithJson(ctx, reviewType, JSON.stringify(payload))
-}
-
 export function runHook(ctx: TestContext, stdinJson: string): RunnerResult {
   return runner([], ctx.engineDeps, ctx.workflowDeps, { readStdin: () => stdinJson })
 }
@@ -124,30 +113,16 @@ export function cleanupDb(dbPath: string): void {
 }
 
 export function progressToState(ctx: TestContext, targetState: string): void {
-  runCommand(ctx, ['init'])
+  const initResult = runCommand(ctx, ['init'])
+  if (initResult.exitCode !== 0)
+    throw new WorkflowProgressionTestError(`Failed to initialise workflow: ${initResult.output}`)
   const steps = STATE_STEPS[targetState]
   if (!steps) return
   for (const step of steps) {
-    if (step[0] === 'record-review') {
-      if (step[1] === undefined) {
-        throw new WorkflowStateError(
-          "Expected record-review test step shape ['record-review', <reviewType>].",
-        )
-      }
-      const reviewType = step[1],
-        verdict = step[2]
-      if (verdict !== 'PASS' && verdict !== 'FAIL') {
-        throw new WorkflowStateError(
-          "Expected record-review test step shape ['record-review', <reviewType>, <PASS|FAIL>].",
-        )
-      }
-      runReviewCommand(ctx, reviewType, {
-        verdict,
-        summary: verdict === 'PASS' ? `${reviewType} passed` : `${reviewType} failed`,
-        findings: [],
-      })
-      continue
-    }
-    runCommand(ctx, step)
+    const result = runCommand(ctx, step)
+    if (result.exitCode !== 0)
+      throw new WorkflowProgressionTestError(
+        `Failed to progress workflow with ${step.join(' ')}: ${result.output}`,
+      )
   }
 }

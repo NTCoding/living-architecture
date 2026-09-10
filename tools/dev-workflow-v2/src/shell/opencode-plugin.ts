@@ -1,23 +1,14 @@
 import { createOpenCodeWorkflowPlugin } from '@nt-ai-lab/deterministic-agent-workflow-opencode'
 import { defineWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
-import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
-import { createWorkflowPullRequestCreator } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-creator'
-import { createWorkflowPullRequestFeedbackReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-feedback-reader'
 import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
 import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
-import { readGitRepositoryStatus } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/git-client'
-import { createGithubPullRequestClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/create-pull-request'
-import { createGithubPullRequestFeedbackClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-pr-feedback'
-import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/github-cli'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
 import {
   parseNumberArgument,
-  parseOptionalStringArgument,
   parseStringArgument,
-  parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 import { createWorkflowCliRuntime } from './workflow-cli-runtime'
@@ -32,8 +23,6 @@ const routes = createWorkflowRoutes({
   ),
   parseNumberArgument,
   parseStringArgument,
-  parseOptionalStringArgument,
-  parseStringArguments,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],
@@ -45,10 +34,6 @@ type WorkflowState = ReturnType<typeof workflowDefinition.initialState>
 type WorkflowDeps = Parameters<typeof workflowDefinition.buildWorkflow>[1]
 type StateName = Parameters<typeof workflowDefinition.buildTransitionContext>[1]
 type WorkflowOperation = Parameters<NonNullable<typeof workflowDefinition.getOperationBody>>[0]
-
-function sleepMs(ms: number): void {
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
-}
 
 const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const AGENT_NAMES = [
@@ -146,16 +131,7 @@ const basePlugin = createOpenCodeWorkflowPlugin<
   commandDirectories: [join(pluginRoot, 'commands')],
   commandPrefix: 'dev-workflow-v2:',
   stopPreventionMessage: sharedWorkflowRuntime.stopPreventionMessage,
-  buildWorkflowDeps: (platform) => ({
-    getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),
-    getPrFeedback: createWorkflowPullRequestFeedbackReader(
-      createGithubPullRequestFeedbackClient(runGh),
-    ),
-    createPullRequest: createWorkflowPullRequestCreator(createGithubPullRequestClient(runGh)),
-    listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
-    sleepMs,
-    now: platform.now,
-  }),
+  buildWorkflowDeps: sharedWorkflowRuntime.buildWorkflowDeps,
 })
 
 /** @riviere-role main */

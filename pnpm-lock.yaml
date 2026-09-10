@@ -265,8 +265,8 @@ importers:
         specifier: 0.4.7
         version: 0.4.7
       '@nt-ai-lab/deterministic-agent-workflow-engine':
-        specifier: 0.4.7
-        version: 0.4.7
+        specifier: 0.6.2
+        version: 0.6.2
       zod:
         specifier: ^3.23.0
         version: 3.25.76
@@ -286,6 +286,9 @@ importers:
 
   packages/dev-workflow-v2/use-cases:
     dependencies:
+      '@agentclientprotocol/sdk':
+        specifier: 1.4.0
+        version: 1.4.0(zod@3.25.76)
       '@living-architecture/dev-workflow-v2-domain-model':
         specifier: workspace:*
         version: link:../domain-model
@@ -293,8 +296,8 @@ importers:
         specifier: 0.4.8
         version: 0.4.8
       '@nt-ai-lab/deterministic-agent-workflow-engine':
-        specifier: 0.4.7
-        version: 0.4.7
+        specifier: 0.6.2
+        version: 0.6.2
       zod:
         specifier: ^3.23.0
         version: 3.25.76
@@ -470,8 +473,8 @@ importers:
         specifier: 0.4.10
         version: 0.4.10
       '@nt-ai-lab/deterministic-agent-workflow-engine':
-        specifier: 0.4.7
-        version: 0.4.7
+        specifier: 0.6.2
+        version: 0.6.2
       '@nt-ai-lab/deterministic-agent-workflow-event-store':
         specifier: 0.4.7
         version: 0.4.7
@@ -520,6 +523,11 @@ packages:
 
   '@adobe/css-tools@4.4.4':
     resolution: {integrity: sha512-Elp+iwUx5rN5+Y8xLt5/GRoG20WGoDCQ/1Fb+1LiGtvwbDavuSk0jhD/eZdckHAuzcDzccnkv+rEjyWfRx18gg==}
+
+  '@agentclientprotocol/sdk@1.4.0':
+    resolution: {integrity: sha512-/eufudw+aFY1LKLolT6yFE6UMmYRl7fMJ/DEONSIyR6wI3slHWITBsANRGqXEY8FRzqUxwh7QEaGiZHcJPVThg==}
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
 
   '@ai-sdk/provider@3.0.8':
     resolution: {integrity: sha512-oGMAgGoQdBXbZqNG0Ze56CHjDZ1IDYOwGYxYjO5KLSlz5HiNQ9udIXsPZ61VWaHGZ5XW/jyjmr6t2xz2jGVwbQ==}
@@ -2363,6 +2371,9 @@ packages:
 
   '@nt-ai-lab/deterministic-agent-workflow-engine@0.4.7':
     resolution: {integrity: sha512-uvt0khbg48DWiV28eQ4Z6FEIMXnejHc//wOn09cOYFOTH5Sha+RQ0zod3NSTmpEO2ltVXPgdAAAD7azqEyHflQ==}
+
+  '@nt-ai-lab/deterministic-agent-workflow-engine@0.6.2':
+    resolution: {integrity: sha512-cE4rExHcKIiInCez234/L8pWS9Lh/Lo/soQT9NsiD6IZgA9xMxVz5SNERn4mstuwHwTchJNWp2nPqGDvpPfBeA==}
 
   '@nt-ai-lab/deterministic-agent-workflow-event-store@0.4.7':
     resolution: {integrity: sha512-SrDiSOZ0pZ/Jz10HQZl3/MbCr2+vMZfWe4Mqsco2RZ5QjGhpuXTC8boRapjcMX544ZrxUDzYv249+MPcyjdcSA==}
@@ -9012,6 +9023,10 @@ snapshots:
 
   '@adobe/css-tools@4.4.4': {}
 
+  '@agentclientprotocol/sdk@1.4.0(zod@3.25.76)':
+    dependencies:
+      zod: 3.25.76
+
   '@ai-sdk/provider@3.0.8':
     dependencies:
       json-schema: 0.4.0
@@ -9132,6 +9147,12 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
+
+  '@anthropic-ai/sdk@0.91.1(zod@3.25.76)':
+    dependencies:
+      json-schema-to-ts: 3.1.1
+    optionalDependencies:
+      zod: 3.25.76
 
   '@anthropic-ai/sdk@0.91.1(zod@4.3.5)':
     dependencies:
@@ -10444,6 +10465,26 @@ snapshots:
       - ws
       - zod
 
+  '@earendil-works/pi-ai@0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76)':
+    dependencies:
+      '@anthropic-ai/sdk': 0.91.1(zod@3.25.76)
+      '@aws-sdk/client-bedrock-runtime': 3.1048.0
+      '@earendil-works/pi-telemetry': 0.84.4
+      '@google/genai': 1.52.0(supports-color@8.1.1)
+      '@smithy/node-http-handler': 4.7.3
+      http-proxy-agent: 7.0.2(supports-color@8.1.1)
+      https-proxy-agent: 7.0.6(supports-color@8.1.1)
+      openai: 6.40.0(ws@8.19.0)(zod@3.25.76)
+      partial-json: 0.1.7
+      typebox: 1.3.7
+    transitivePeerDependencies:
+      - '@modelcontextprotocol/sdk'
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+      - ws
+      - zod
+
   '@earendil-works/pi-ai@0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5)':
     dependencies:
       '@anthropic-ai/sdk': 0.91.1(zod@4.3.5)
@@ -10471,7 +10512,7 @@ snapshots:
   '@earendil-works/pi-coding-agent@0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5)':
     dependencies:
       '@earendil-works/pi-agent-core': 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5)
-      '@earendil-works/pi-ai': 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@4.3.5)
+      '@earendil-works/pi-ai': 0.84.4(supports-color@8.1.1)(ws@8.19.0)(zod@3.25.76)
       '@earendil-works/pi-client': 0.84.4
       '@earendil-works/pi-protocol': 0.84.4
       '@earendil-works/pi-tui': 0.84.4
@@ -11235,6 +11276,10 @@ snapshots:
       '@nt-ai-lab/deterministic-agent-workflow-engine': 0.4.7
 
   '@nt-ai-lab/deterministic-agent-workflow-engine@0.4.7':
+    dependencies:
+      zod: 3.25.76
+
+  '@nt-ai-lab/deterministic-agent-workflow-engine@0.6.2':
     dependencies:
       zod: 3.25.76
 
@@ -17214,6 +17259,11 @@ snapshots:
       define-lazy-prop: 3.0.0
       is-inside-container: 1.0.0
       is-wsl: 3.1.0
+
+  openai@6.40.0(ws@8.19.0)(zod@3.25.76):
+    optionalDependencies:
+      ws: 8.19.0
+      zod: 3.25.76
 
   openai@6.40.0(ws@8.19.0)(zod@4.3.5):
     optionalDependencies:

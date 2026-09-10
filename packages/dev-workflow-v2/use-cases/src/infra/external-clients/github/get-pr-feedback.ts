@@ -1,5 +1,4 @@
 import { z } from 'zod'
-
 const pageInfoSchema = z.object({
   hasNextPage: z.boolean(),
   endCursor: z.string().nullable(),
@@ -27,14 +26,24 @@ const graphqlThreadNodeSchema = z.object({
 const graphqlReviewNodeSchema = z.object({
   author: z.object({ login: z.string() }).nullable(),
   body: z.string(),
+  commit: z.object({ oid: z.string() }).nullable(),
   state: z.string(),
   submittedAt: z.string().nullable(),
+})
+
+const REVIEW_NODE_FIELDS = 'author { login } body commit { oid } state submittedAt'
+
+const pullRequestCommentSchema = z.object({
+  author: z.object({ login: z.string() }).nullable(),
+  body: z.string(),
+  createdAt: z.string(),
 })
 
 const graphqlResponseSchema = z.object({
   data: z.object({
     repository: z.object({
       pullRequest: z.object({
+        headRefOid: z.string(),
         reviewDecision: z.string().nullable(),
         reviews: z.object({
           nodes: z.array(graphqlReviewNodeSchema),
@@ -44,6 +53,12 @@ const graphqlResponseSchema = z.object({
           nodes: z.array(graphqlThreadNodeSchema),
           pageInfo: pageInfoSchema,
         }),
+        comments: z
+          .object({
+            nodes: z.array(pullRequestCommentSchema),
+            pageInfo: pageInfoSchema,
+          })
+          .optional(),
       }),
     }),
   }),
@@ -86,6 +101,22 @@ const commentsResponseSchema = z.object({
   }),
 })
 
+const pullRequestCommentsResponseSchema = z.object({
+  data: z.object({
+    repository: z.object({
+      pullRequest: z.object({
+        comments: z.object({
+          nodes: z.array(pullRequestCommentSchema),
+          pageInfo: pageInfoSchema,
+        }),
+      }),
+    }),
+  }),
+})
+
+type Reviewer = 'architecture-review' | 'code-review' | 'bug-scanner' | 'task-check'
+type ReviewerStatus = 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED'
+
 const repoInfoSchema = z.object({
   owner: z.object({ login: z.string() }),
   name: z.string(),
@@ -119,6 +150,7 @@ class GithubPaginationError extends Error {}
 
 /** @riviere-role external-client-model */
 export interface GithubPullRequestFeedback {
+  readonly reviewerStatuses: Readonly<Record<Reviewer | 'coderabbit', ReviewerStatus>>
   readonly reviewDecision: string | null
   readonly coderabbitReviewSeen: boolean
   readonly coderabbitRateLimited: boolean
@@ -135,6 +167,28 @@ function isCodeRabbitAuthor(login: string | undefined): boolean {
 
 function indicatesCodeRabbitRateLimit(body: string): boolean {
   return /review rate limited/i.test(body)
+}
+
+function reviewerStatus(
+  reviewer: Reviewer,
+  reviews: readonly GraphqlReview[],
+  threads: readonly {
+    readonly comments: { readonly nodes: readonly { readonly body: string }[] }
+  }[],
+  comments: readonly {
+    readonly author: { readonly login: string } | null
+    readonly body: string
+  }[] = [],
+): ReviewerStatus {
+  const prefix = `[${reviewer}]`
+  const hasOpenFeedback = threads.some((thread) =>
+    thread.comments.nodes.some((comment) => comment.body.trimStart().startsWith(prefix)),
+  )
+  if (hasOpenFeedback) return 'OPEN_FEEDBACK'
+  const approved =
+    reviews.some((review) => review.body.trim() === `${prefix} APPROVED`) ||
+    comments.some((comment) => comment.body.trim() === `${prefix} APPROVED`)
+  return approved ? 'APPROVED' : 'PENDING'
 }
 
 function afterCursor(cursor: string): string {
@@ -163,7 +217,7 @@ function readAllReviews(
 ): readonly GraphqlReview[] {
   const cursor = nextPageCursor(pageInfo)
   if (cursor === undefined) return reviews
-  const query = `{ repository(owner: "${repositoryOwner}", name: "${repositoryName}") { pullRequest(number: ${String(prNumber)}) { reviews(first: 100${afterCursor(cursor)}) { nodes { author { login } body state submittedAt } pageInfo { hasNextPage endCursor } } } } }`
+  const query = `{ repository(owner: "${repositoryOwner}", name: "${repositoryName}") { pullRequest(number: ${String(prNumber)}) { reviews(first: 100${afterCursor(cursor)}) { nodes { ${REVIEW_NODE_FIELDS} } pageInfo { hasNextPage endCursor } } } } }`
   const response = reviewsResponseSchema.parse(JSON.parse(queryGithub(runGh, query)))
   const reviewPage = response.data.repository.pullRequest.reviews
   return readAllReviews(
@@ -190,6 +244,29 @@ function readAllThreadComments(
   return readAllThreadComments(
     runGh,
     thread,
+    [...comments, ...commentPage.nodes],
+    commentPage.pageInfo,
+  )
+}
+
+function readAllPullRequestComments(
+  runGh: GhRunner,
+  repositoryOwner: string,
+  repositoryName: string,
+  prNumber: number,
+  comments: readonly z.infer<typeof pullRequestCommentSchema>[],
+  pageInfo: z.infer<typeof pageInfoSchema>,
+): readonly z.infer<typeof pullRequestCommentSchema>[] {
+  const cursor = nextPageCursor(pageInfo)
+  if (cursor === undefined) return comments
+  const query = `{ repository(owner: "${repositoryOwner}", name: "${repositoryName}") { pullRequest(number: ${String(prNumber)}) { comments(first: 100${afterCursor(cursor)}) { nodes { author { login } body createdAt } pageInfo { hasNextPage endCursor } } } } }`
+  const response = pullRequestCommentsResponseSchema.parse(JSON.parse(queryGithub(runGh, query)))
+  const commentPage = response.data.repository.pullRequest.comments
+  return readAllPullRequestComments(
+    runGh,
+    repositoryOwner,
+    repositoryName,
+    prNumber,
     [...comments, ...commentPage.nodes],
     commentPage.pageInfo,
   )
@@ -262,7 +339,7 @@ export function createGithubPullRequestFeedbackClient(
   return (prNumber: number): GithubPullRequestFeedback => {
     const repoRaw = runGh(['repo', 'view', '--json', 'owner,name'])
     const repo = repoInfoSchema.parse(JSON.parse(repoRaw))
-    const query = `{ repository(owner: "${repo.owner.login}", name: "${repo.name}") { pullRequest(number: ${String(prNumber)}) { reviewDecision reviews(first: 100) { nodes { author { login } body state submittedAt } pageInfo { hasNextPage endCursor } } reviewThreads(first: 100) { nodes { id isResolved isOutdated path line comments(first: 100) { nodes { body createdAt url author { login } } pageInfo { hasNextPage endCursor } } } pageInfo { hasNextPage endCursor } } } } }`
+    const query = `{ repository(owner: "${repo.owner.login}", name: "${repo.name}") { pullRequest(number: ${String(prNumber)}) { headRefOid reviewDecision reviews(first: 100) { nodes { ${REVIEW_NODE_FIELDS} } pageInfo { hasNextPage endCursor } } comments(first: 100) { nodes { author { login } body createdAt } pageInfo { hasNextPage endCursor } } reviewThreads(first: 100) { nodes { id isResolved isOutdated path line comments(first: 100) { nodes { body createdAt url author { login } } pageInfo { hasNextPage endCursor } } } pageInfo { hasNextPage endCursor } } } } }`
     const response = graphqlResponseSchema.parse(JSON.parse(queryGithub(runGh, query)))
     const pullRequest = response.data.repository.pullRequest
     const reviews = readAllReviews(
@@ -293,10 +370,36 @@ export function createGithubPullRequestFeedbackClient(
       },
     }))
     const unresolved = threads.filter((thread) => !thread.isResolved && !thread.isOutdated)
+    const pullRequestComments =
+      pullRequest.comments === undefined
+        ? []
+        : readAllPullRequestComments(
+            runGh,
+            repo.owner.login,
+            repo.name,
+            prNumber,
+            pullRequest.comments.nodes,
+            pullRequest.comments.pageInfo,
+          )
     const currentCodeRabbitFeedback = mostRecentCodeRabbitFeedback(reviews, unresolved)
     return {
+      reviewerStatuses: {
+        'architecture-review': reviewerStatus(
+          'architecture-review',
+          reviews,
+          unresolved,
+          pullRequestComments,
+        ),
+        'code-review': reviewerStatus('code-review', reviews, unresolved, pullRequestComments),
+        'bug-scanner': reviewerStatus('bug-scanner', reviews, unresolved, pullRequestComments),
+        'task-check': reviewerStatus('task-check', reviews, unresolved, pullRequestComments),
+        coderabbit: 'PENDING',
+      },
       reviewDecision: pullRequest.reviewDecision,
-      coderabbitReviewSeen: reviews.some((review) => isCodeRabbitAuthor(review.author?.login)),
+      coderabbitReviewSeen: reviews.some(
+        (review) =>
+          isCodeRabbitAuthor(review.author?.login) && review.commit?.oid === pullRequest.headRefOid,
+      ),
       coderabbitRateLimited:
         currentCodeRabbitFeedback !== undefined &&
         indicatesCodeRabbitRateLimit(currentCodeRabbitFeedback.body),

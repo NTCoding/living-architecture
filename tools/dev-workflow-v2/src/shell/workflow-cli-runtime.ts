@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
@@ -17,11 +18,11 @@ import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-c
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
 import {
   parseNumberArgument,
-  parseOptionalStringArgument,
   parseStringArgument,
-  parseStringArguments,
 } from '../features/workflow/entrypoint/workflow/workflow-route-inputs'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
+import { createAcpReviewLauncher } from '@living-architecture/dev-workflow-v2-use-cases/adapters/acp/acp-review-launcher'
+import { AcpClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/acp/acp-client'
 
 const workflowConfiguration = configureWorkflow({})
 const workflowDefinition = workflowConfiguration
@@ -32,8 +33,6 @@ const routes = createWorkflowRoutes({
   ),
   parseNumberArgument,
   parseStringArgument,
-  parseOptionalStringArgument,
-  parseStringArguments,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],
@@ -70,6 +69,14 @@ function buildWorkflowDeps(platform: PlatformContext) {
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,
+    reviewLauncher: createAcpReviewLauncher(
+      new AcpClient({
+        workerPath: join(workflowRoot, 'dist/acp-client-worker.js'),
+        command: process.env.ACP_REVIEWER_COMMAND ?? 'codex',
+        cwd: process.cwd(),
+      }),
+      (reviewer) => readFileSync(join(workflowRoot, 'agents', `${reviewer}.md`), 'utf8'),
+    ),
   }
 }
 

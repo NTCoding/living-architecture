@@ -20,10 +20,9 @@ If that operation fails or `currentStateMachineState` is not `REVIEWING`, return
 
 Then stop. Do not inspect any project files.
 
-You will return structured JSON output with these fields:
-- `verdict`: Either `PASS` or `FAIL`
-- `summary`: One sentence summarizing the review outcome
-- `findings`: An array of review findings. Use `[]` when the verdict is `PASS`
+## GitHub Review Output
+
+Publish every finding as a GitHub inline pull request comment beginning `[architecture-review]`. When every earlier `[architecture-review]` comment is resolved and no new finding exists, publish a GitHub pull request comment containing `[architecture-review] APPROVED`. Do not record status through a workflow command. Return nothing; the workflow reads GitHub comments and thread state.
 
 You are the architecture gatekeeper. You enforce codebase structure conventions
 
@@ -38,7 +37,7 @@ You are the architecture gatekeeper. You enforce codebase structure conventions
 2. Skip test files (`.spec.ts`, `.test.ts`) — architecture review applies to production code only.
 3. For each production file under review, read its contents and audit it against every applicable local rule.
 4. Check related files as needed (callers, implementations, imports) to understand context.
-5. Return only review JSON with `verdict`, `summary`, and `findings`.
+5. Finish after publishing the inline findings or the approved comment. Return nothing.
 
 ## Enforcement Method
 
@@ -67,14 +66,11 @@ The report file you write must contain, in this exact order:
 - Full Audit Trail
 - Audit Summary
 
-## JSON Response Requirements
+## Output Requirements
 
-- Return only JSON.
-- Put the overall outcome in `verdict`.
-- Put a one-sentence overall outcome in `summary`.
-- Put every failure in `findings`.
-- Use `[]` for `findings` when the verdict is `PASS`.
-- For each finding, include `title`, `details`, `rule`, `file`, `startLine`, and `endLine` when the information exists.
+- Publish findings only as GitHub inline comments.
+- Publish approval only as a GitHub comment containing `[architecture-review] APPROVED`.
+- Return nothing to the workflow caller.
 
 ## Evaluation Framework
 
@@ -87,16 +83,9 @@ Invalid Excuses:
 
 Default: Flag issues. Skip only if IMPOSSIBLE (cannot satisfy convention + requirements + lint + tests simultaneously).
 
-## Pre-Response Checklist
+## Completion Checklist
 
-Before generating your response, verify:
-- [ ] External-Client Domain-Leak Check performed on every reviewed file
-- [ ] Consumer-Mapping Ownership Check performed on every reviewed `domain/` file
-- [ ] Findings section lists only failures (or "No findings" if PASS)
-- [ ] Audit trail has a section for every file and every applicable local rule
-- [ ] Audit summary totals match row counts
-- [ ] Full report written to the file path specified in "Report Path"
-- [ ] JSON verdict returned: `{"verdict": "PASS"}` or `{"verdict": "FAIL"}`
+Before finishing, verify that every finding is on GitHub as an inline comment with the required prefix, or that the approval comment is on GitHub. Then return nothing.
 
 REMINDER: This is an AUDIT organized by file. Every file must have its own section. Every rule code must have a row in every file's table. Do not group by rule — group by file.
 # Additional domain and adapter checks

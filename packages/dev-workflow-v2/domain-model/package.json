@@ -6,6 +6,12 @@
   "type": "module",
   "exports": {
     "./package.json": "./package.json",
+    "./domain/ports/*": {
+      "@living-architecture/source": "./src/domain/ports/*.ts",
+      "types": "./dist/domain/ports/*.d.ts",
+      "import": "./dist/domain/ports/*.js",
+      "default": "./dist/domain/ports/*.js"
+    },
     "./domain/*": {
       "@living-architecture/source": "./src/domain/*.ts",
       "types": "./dist/domain/*.d.ts",
@@ -15,7 +21,7 @@
   },
   "dependencies": {
     "@nt-ai-lab/deterministic-agent-workflow-dsl": "0.4.7",
-    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.4.7",
+    "@nt-ai-lab/deterministic-agent-workflow-engine": "0.6.2",
     "zod": "^3.23.0"
   },
   "devDependencies": {

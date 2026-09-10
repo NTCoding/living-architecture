@@ -1,6 +1,8 @@
 import { arg } from '@nt-ai-lab/deterministic-agent-workflow-cli'
-import type { defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
+import type { defineRoutes, RouteMap } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { MaintainerWorkflow as Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
+import { Reviewer } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
+import { ReviewStatuses } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/statuses'
 import type { ZodType } from 'zod'
 
 interface ZodSchemaProvider<T> {
@@ -13,29 +15,61 @@ type RoutedWorkflow = Workflow
 type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
 
 type WorkflowResult = ReturnType<Workflow['executeRecording']>
+type ReviewerStatus = Parameters<Workflow['recordReviewerStatus']>[1]
 
-/** @riviere-role command-use-case-result */
-export interface CreateWorkflowRoutesResult {
-  readonly routes: ReturnType<typeof defineRoutes<RoutedWorkflow, RoutedWorkflowState>>
+class InvalidReviewerStatusError extends Error {}
+
+function parseReviewerStatus(value: string): ReviewerStatus {
+  try {
+    return ReviewStatuses.schema().parse(value)
+  } catch {
+    throw new InvalidReviewerStatusError(`Unknown reviewer status: ${value}`)
+  }
 }
 
 /** @riviere-role command-use-case-input */
 export interface CreateWorkflowRoutesInput {
   readonly parseNumberArgument: (value: unknown) => number
   readonly parseStringArgument: (value: unknown) => string
-  readonly parseOptionalStringArgument: (value: unknown) => string | undefined
-  readonly parseStringArguments: (value: unknown) => readonly string[]
   readonly recordIssue: (workflow: RoutedWorkflow, issueNumber: number) => WorkflowResult
   readonly recordBranch: (workflow: RoutedWorkflow, branch: string) => WorkflowResult
-  readonly recordPullRequest: (
+  readonly recordReviewerStatus: (
     workflow: RoutedWorkflow,
-    number: number,
-    url: string | undefined,
+    reviewer: Reviewer,
+    status: ReviewerStatus,
   ) => WorkflowResult
-  readonly createPullRequest: (workflow: RoutedWorkflow, args: readonly string[]) => WorkflowResult
-  readonly recordCiPassed: (workflow: RoutedWorkflow) => WorkflowResult
-  readonly recordCiFailed: (workflow: RoutedWorkflow, output: string) => WorkflowResult
-  readonly verifyFeedbackAddressed: (workflow: RoutedWorkflow) => WorkflowResult
+}
+
+interface WorkflowRouteDefinitions extends RouteMap<RoutedWorkflow, RoutedWorkflowState> {
+  readonly init: { readonly type: 'session-start' }
+  readonly transition: {
+    readonly type: 'transition'
+    readonly args: readonly [ReturnType<typeof arg.state>]
+  }
+  readonly 'record-issue': {
+    readonly type: 'transaction'
+    readonly args: readonly [ReturnType<typeof arg.number>]
+    readonly handler: (workflow: RoutedWorkflow, issueNumber: unknown) => WorkflowResult
+  }
+  readonly 'record-branch': {
+    readonly type: 'transaction'
+    readonly args: readonly [ReturnType<typeof arg.string>]
+    readonly handler: (workflow: RoutedWorkflow, branch: unknown) => WorkflowResult
+  }
+  readonly 'record-reviewer-status': {
+    readonly type: 'transaction'
+    readonly args: readonly [ReturnType<typeof arg.string>, ReturnType<typeof arg.string>]
+    readonly handler: (
+      workflow: RoutedWorkflow,
+      reviewer: unknown,
+      status: unknown,
+    ) => WorkflowResult
+  }
+}
+
+/** @riviere-role command-use-case-result */
+export interface CreateWorkflowRoutesResult {
+  readonly routes: WorkflowRouteDefinitions
 }
 
 /** @riviere-role command-use-case */
@@ -47,58 +81,38 @@ export class CreateWorkflowRoutes {
 
   execute(input: CreateWorkflowRoutesInput): CreateWorkflowRoutesResult {
     const stateNameSchema = this.stateNameSchemaProvider.getSchema()
+    const routes = {
+      init: { type: 'session-start' as const },
+      transition: {
+        type: 'transition' as const,
+        args: [arg.state('STATE', stateNameSchema)] as const,
+      },
+      'record-issue': {
+        type: 'transaction' as const,
+        args: [arg.number('number')] as const,
+        handler: (workflow: RoutedWorkflow, issueNumber: unknown) =>
+          input.recordIssue(workflow, input.parseNumberArgument(issueNumber)),
+      },
+      'record-branch': {
+        type: 'transaction' as const,
+        args: [arg.string('branch')] as const,
+        handler: (workflow: RoutedWorkflow, branch: unknown) =>
+          input.recordBranch(workflow, input.parseStringArgument(branch)),
+      },
+      'record-reviewer-status': {
+        type: 'transaction' as const,
+        args: [arg.string('reviewer'), arg.string('status')] as const,
+        handler: (workflow: RoutedWorkflow, reviewer: unknown, status: unknown) =>
+          input.recordReviewerStatus(
+            workflow,
+            Reviewer.fromName(input.parseStringArgument(reviewer)),
+            parseReviewerStatus(input.parseStringArgument(status)),
+          ),
+      },
+    }
+    this.defineRoutes<RoutedWorkflow, RoutedWorkflowState>(routes)
     return {
-      routes: this.defineRoutes<RoutedWorkflow, RoutedWorkflowState>({
-        init: { type: 'session-start' },
-        transition: {
-          type: 'transition',
-          args: [arg.state('STATE', stateNameSchema)],
-        },
-        'record-issue': {
-          type: 'transaction',
-          args: [arg.number('number')],
-          handler: (workflow, issueNumber) =>
-            input.recordIssue(workflow, input.parseNumberArgument(issueNumber)),
-        },
-        'record-branch': {
-          type: 'transaction',
-          args: [arg.string('branch')],
-          handler: (workflow, branch) =>
-            input.recordBranch(workflow, input.parseStringArgument(branch)),
-        },
-        'record-pr': {
-          type: 'transaction',
-          args: [arg.number('number'), arg.string('url').optional()],
-          handler: (workflow, number, url) =>
-            input.recordPullRequest(
-              workflow,
-              input.parseNumberArgument(number),
-              input.parseOptionalStringArgument(url),
-            ),
-        },
-        'create-pr': {
-          type: 'transaction',
-          args: [arg.rest()],
-          handler: (workflow, args) =>
-            input.createPullRequest(workflow, input.parseStringArguments(args)),
-        },
-        'record-ci-passed': {
-          type: 'transaction',
-          args: [],
-          handler: (workflow) => input.recordCiPassed(workflow),
-        },
-        'record-ci-failed': {
-          type: 'transaction',
-          args: [arg.string('output')],
-          handler: (workflow, output) =>
-            input.recordCiFailed(workflow, input.parseStringArgument(output)),
-        },
-        'verify-feedback-addressed': {
-          type: 'transaction',
-          args: [],
-          handler: (workflow) => input.verifyFeedbackAddressed(workflow),
-        },
-      }),
+      routes,
     }
   }
 }

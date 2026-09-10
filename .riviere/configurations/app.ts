@@ -30,6 +30,11 @@ const cliPresentationRoles: RoleName[] = [
   'cli-error-handler',
 ]
 const shellRoles: RoleName[] = ['main', 'cli-error-handler']
+const externalClientRoles: RoleName[] = [
+  'external-client-service',
+  'external-client-model',
+  'external-client-error',
+]
 
 export const app = {
   locations: locationConfiguration<RoleName>(
@@ -52,6 +57,7 @@ export const app = {
 
     location('/infra', {
       'cli/presentation': cliPresentationRoles,
+      'external-clients/{client}': externalClientRoles,
       importRules: { allow: {} },
     }),
 

@@ -20,6 +20,7 @@ function initialResponse(): string {
     data: {
       repository: {
         pullRequest: {
+          headRefOid: 'head-oid',
           reviewDecision: null,
           reviews: {
             nodes: [review('reviewer', 'COMMENTED', 'first review')],
@@ -27,6 +28,10 @@ function initialResponse(): string {
               hasNextPage: true,
               endCursor: 'review-page-1',
             },
+          },
+          comments: {
+            nodes: [],
+            pageInfo: { hasNextPage: true, endCursor: 'comment-page-1' },
           },
           reviewThreads: {
             nodes: [
@@ -55,6 +60,7 @@ function review(
   return {
     author: { login },
     body,
+    commit: { oid: 'head-oid' },
     state,
     submittedAt,
   }
@@ -150,6 +156,26 @@ it('reads every page of reviews, threads, and thread comments', () => {
         },
       })
     }
+    if (query?.includes('comments(first: 100, after: "comment-page-1")')) {
+      return JSON.stringify({
+        data: {
+          repository: {
+            pullRequest: {
+              comments: {
+                nodes: [
+                  {
+                    author: { login: 'reviewer' },
+                    body: '[code-review] APPROVED',
+                    createdAt: '2026-09-03T10:02:00Z',
+                  },
+                ],
+                pageInfo: NO_NEXT_PAGE,
+              },
+            },
+          },
+        },
+      })
+    }
     return initialResponse()
   })
 
@@ -158,6 +184,7 @@ it('reads every page of reviews, threads, and thread comments', () => {
   expect(feedback.coderabbitReviewSeen).toBe(true)
   expect(feedback.threads.map((value) => value.id)).toStrictEqual(['thread-1', 'thread-2'])
   expect(feedback.threads[0]?.comments).toHaveLength(2)
+  expect(feedback.reviewerStatuses['code-review']).toBe('APPROVED')
 })
 
 it('clears a prior CodeRabbit rate limit when newer active feedback succeeds', () => {
@@ -165,6 +192,7 @@ it('clears a prior CodeRabbit rate limit when newer active feedback succeeds', (
     data: {
       repository: {
         pullRequest: {
+          headRefOid: 'head-oid',
           reviewDecision: null,
           reviews: {
             nodes: [
@@ -198,6 +226,7 @@ it('reports a rate limit when newer CodeRabbit feedback is rate limited', () => 
     data: {
       repository: {
         pullRequest: {
+          headRefOid: 'head-oid',
           reviewDecision: null,
           reviews: {
             nodes: [
@@ -230,6 +259,7 @@ it('rejects an incomplete GitHub pagination cursor', () => {
     data: {
       repository: {
         pullRequest: {
+          headRefOid: 'head-oid',
           reviewDecision: null,
           reviews: {
             nodes: [],
@@ -258,6 +288,7 @@ it('ignores rate limits in resolved and outdated CodeRabbit threads', () => {
     data: {
       repository: {
         pullRequest: {
+          headRefOid: 'head-oid',
           reviewDecision: null,
           reviews: {
             nodes: [],

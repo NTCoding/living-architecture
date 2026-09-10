@@ -27,9 +27,7 @@ $dev-workflow-continue-planning
 $dev-workflow-choose-next-task
 $dev-workflow-start-implementation <issue-number>
 $dev-workflow-optimize-factory
-$dev-workflow-v2:code-review
 $dev-workflow-v2:list-review-threads
-$dev-workflow-v2:create-pr
 ```
 
 Agent Skills are the canonical procedures. Provider-specific commands adapt those procedures for their harness. Codex's shared workflow runner reads `CODEX_THREAD_ID`, so workflow operations use the active task session without copying an ID from hook output.
@@ -54,9 +52,7 @@ Pi exposes the same lifecycle commands as Claude Code:
 /dev-workflow-v2:continue-planning
 /dev-workflow-v2:choose-next-task
 /dev-workflow-v2:start-implementation <issue-number>
-/dev-workflow-v2:code-review
 /dev-workflow-v2:list-review-threads
-/dev-workflow-v2:create-pr
 /dev-workflow-v2:optimize-factory
 /dev-workflow-v2:workflow <operation> [args]
 ```
@@ -173,22 +169,10 @@ Branch preparation supports both a primary checkout and a linked worktree. It le
 ### Reusable workflow actions
 
 ```bash
-/dev-workflow-v2:code-review
-```
-
-Runs the required workflow review bundle and records each valid verdict.
-
-```bash
 /dev-workflow-v2:list-review-threads
 ```
 
 Lists unresolved review threads for the pull request recorded in workflow state.
-
-```bash
-/dev-workflow-v2:create-pr
-```
-
-Pushes the recorded feature branch, then delegates standard PR creation and recording to the workflow.
 
 ### Workflow (internal)
 
@@ -211,25 +195,18 @@ This returns the current workflow state as JSON so state instructions can extrac
 ```mermaid
 stateDiagram-v2
     [*] --> IMPLEMENTING
-    IMPLEMENTING --> REVIEWING
-    REVIEWING --> SUBMITTING_PR : all reviews passed
-    REVIEWING --> IMPLEMENTING : review failed
-    SUBMITTING_PR --> AWAITING_CI
-    AWAITING_CI --> AWAITING_PR_FEEDBACK : CI passed
-    AWAITING_CI --> IMPLEMENTING : CI failed
-    AWAITING_PR_FEEDBACK --> REFLECTING : no feedback
-    AWAITING_PR_FEEDBACK --> ADDRESSING_FEEDBACK : feedback exists
-    ADDRESSING_FEEDBACK --> REFLECTING : fixes pushed and feedback verified clean
-    REFLECTING --> COMPLETE
-    COMPLETE --> [*]
+    IMPLEMENTING --> SUBMITTING_PR
+    SUBMITTING_PR --> REVIEWING : PR created
+    REVIEWING --> ADDRESSING_FEEDBACK : GitHub feedback exists
+    ADDRESSING_FEEDBACK --> REVIEWING : fixes pushed
+    REVIEWING --> HUMAN_REVIEWING : all reviewers approve
+    HUMAN_REVIEWING --> ADDRESSING_FEEDBACK : human feedback
 
     IMPLEMENTING --> BLOCKED
     REVIEWING --> BLOCKED
     SUBMITTING_PR --> BLOCKED
-    AWAITING_CI --> BLOCKED
-    AWAITING_PR_FEEDBACK --> BLOCKED
     ADDRESSING_FEEDBACK --> BLOCKED
-    REFLECTING --> BLOCKED
+    HUMAN_REVIEWING --> BLOCKED
     BLOCKED --> IMPLEMENTING : returns to pre-blocked state
 ```
 

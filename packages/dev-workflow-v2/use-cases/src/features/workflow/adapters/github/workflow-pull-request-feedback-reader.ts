@@ -8,6 +8,7 @@ export function createWorkflowPullRequestFeedbackReader(
   return (prNumber) => {
     const feedback = readGithubPullRequestFeedback(prNumber)
     return {
+      reviewerStatuses: feedback.reviewerStatuses,
       coderabbitReviewSeen: feedback.coderabbitReviewSeen,
       coderabbitRateLimited: feedback.coderabbitRateLimited,
       reviewDecision: feedback.reviewDecision,

@@ -23,12 +23,14 @@ function graphqlResponse(
     reviews: readonly object[]
     reviewPageInfo: PageInfo
     threadPageInfo: PageInfo
+    comments: readonly object[]
   }> = {},
 ): string {
   return JSON.stringify({
     data: {
       repository: {
         pullRequest: {
+          headRefOid: 'head-oid',
           reviewDecision: overrides.reviewDecision ?? null,
           reviews: {
             nodes: overrides.reviews ?? [],
@@ -37,6 +39,10 @@ function graphqlResponse(
           reviewThreads: {
             nodes: threads,
             pageInfo: overrides.threadPageInfo ?? NO_NEXT_PAGE,
+          },
+          comments: {
+            nodes: overrides.comments ?? [],
+            pageInfo: NO_NEXT_PAGE,
           },
         },
       },
@@ -85,10 +91,16 @@ function makeThread(
   }
 }
 
-function makeReview(login: string, state: string, body = ''): object {
+function makeReview(
+  login: string,
+  state: string,
+  body = '',
+  commitOid: string | null = 'head-oid',
+): object {
   return {
     author: { login },
     body,
+    commit: commitOid === null ? null : { oid: commitOid },
     state,
     submittedAt: '2026-09-03T10:00:00Z',
   }
@@ -198,6 +210,48 @@ describe('createGithubPullRequestFeedbackClient', () => {
     expect(result.coderabbitReviewSeen).toBe(true)
   })
 
+  it('reads reviewer approval from a pull request comment', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([], {
+          comments: [
+            {
+              author: { login: 'reviewer' },
+              body: '[code-review] APPROVED',
+              createdAt: '2026-09-03T10:00:00Z',
+            },
+          ],
+        }),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+    expect(getPrFeedback(1).reviewerStatuses['code-review']).toBe('APPROVED')
+  })
+
+  it('returns OPEN_FEEDBACK when a thread comment starts with the reviewer prefix', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([
+          makeThread({
+            comments: {
+              nodes: [
+                {
+                  author: { login: 'reviewer' },
+                  body: '[code-review] needs changes',
+                  createdAt: '2026-09-03T10:00:00Z',
+                },
+              ],
+            },
+          }),
+        ]),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+    expect(getPrFeedback(1).reviewerStatuses['code-review']).toBe('OPEN_FEEDBACK')
+  })
+
   it('detects a submitted CodeRabbit bot review', () => {
     const runGh = vi
       .fn()
@@ -208,6 +262,34 @@ describe('createGithubPullRequestFeedbackClient', () => {
     const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
     const result = getPrFeedback(1)
     expect(result.coderabbitReviewSeen).toBe(true)
+  })
+
+  it('does not treat a CodeRabbit review of an earlier head as current feedback', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([], {
+          reviews: [makeReview('coderabbitai[bot]', 'APPROVED', '', 'old-oid')],
+        }),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+
+    expect(getPrFeedback(1).coderabbitReviewSeen).toBe(false)
+  })
+
+  it('does not treat a CodeRabbit review without a commit as current feedback', () => {
+    const runGh = vi
+      .fn()
+      .mockReturnValueOnce(REPO_INFO)
+      .mockReturnValueOnce(
+        graphqlResponse([], {
+          reviews: [makeReview('coderabbitai[bot]', 'APPROVED', '', null)],
+        }),
+      )
+    const getPrFeedback = createGithubPullRequestFeedbackClient(runGh)
+
+    expect(getPrFeedback(1).coderabbitReviewSeen).toBe(false)
   })
 
   it('detects a CodeRabbit review rate limit', () => {

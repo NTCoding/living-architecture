@@ -1,21 +1,17 @@
 import { z } from 'zod'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { Reviewer } from './reviews/reviewers'
+import { ReviewStatuses } from './reviews/statuses'
 import { WorkflowState } from './workflow-types'
 
 const STATE_NAME_SCHEMA = WorkflowState.stateNameSchema()
-
 const KNOWN_WORKFLOW_EVENT_TYPES = [
   'session-started',
   'transitioned',
   'issue-recorded',
   'branch-recorded',
   'pr-recorded',
-  'ci-completed',
-  'feedback-checked',
-  'feedback-addressed',
-  'pr-feedback-verification-failed',
-  'task-check-passed',
-  'review-recorded',
+  'reviewer-status-recorded',
   'bash-checked',
   'write-checked',
 ] as const
@@ -48,24 +44,6 @@ const BRANCH_RECORDED_SCHEMA = z.object({
   branch: z.string(),
 })
 
-const ARCHITECTURE_REVIEW_COMPLETED_SCHEMA = z.object({
-  type: z.literal('architecture-review-completed'),
-  at: z.string(),
-  passed: z.boolean(),
-})
-
-const CODE_REVIEW_COMPLETED_SCHEMA = z.object({
-  type: z.literal('code-review-completed'),
-  at: z.string(),
-  passed: z.boolean(),
-})
-
-const BUG_SCANNER_COMPLETED_SCHEMA = z.object({
-  type: z.literal('bug-scanner-completed'),
-  at: z.string(),
-  passed: z.boolean(),
-})
-
 const PR_RECORDED_SCHEMA = z.object({
   type: z.literal('pr-recorded'),
   at: z.string(),
@@ -73,43 +51,11 @@ const PR_RECORDED_SCHEMA = z.object({
   prUrl: z.string().optional(),
 })
 
-const CI_COMPLETED_SCHEMA = z.object({
-  type: z.literal('ci-completed'),
+const REVIEWER_STATUS_RECORDED_EVENT_SCHEMA = z.object({
+  type: z.literal('reviewer-status-recorded'),
   at: z.string(),
-  passed: z.boolean(),
-  output: z.string().optional(),
-})
-
-const FEEDBACK_CHECKED_SCHEMA = z.object({
-  type: z.literal('feedback-checked'),
-  at: z.string(),
-  clean: z.boolean(),
-  unresolvedCount: z.number().optional(),
-  reviewDecision: z.string().nullable().optional(),
-})
-
-const FEEDBACK_ADDRESSED_SCHEMA = z.object({
-  type: z.literal('feedback-addressed'),
-  at: z.string(),
-})
-
-const PR_FEEDBACK_VERIFICATION_FAILED_SCHEMA = z.object({
-  type: z.literal('pr-feedback-verification-failed'),
-  at: z.string(),
-  reason: z.string().min(1),
-})
-
-const TASK_CHECK_PASSED_SCHEMA = z.object({
-  type: z.literal('task-check-passed'),
-  at: z.string(),
-})
-
-const REVIEW_RECORDED_EVENT_SCHEMA = z.object({
-  type: z.literal('review-recorded'),
-  at: z.string(),
-  reviewId: z.number().int().nonnegative(),
-  reviewType: z.string(),
-  verdict: z.enum(['PASS', 'FAIL']),
+  reviewer: Reviewer.schema(),
+  status: ReviewStatuses.schema(),
 })
 
 const BASH_CHECKED_SCHEMA = z.object({
@@ -135,16 +81,8 @@ const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
   TRANSITIONED_SCHEMA,
   ISSUE_RECORDED_SCHEMA,
   BRANCH_RECORDED_SCHEMA,
-  ARCHITECTURE_REVIEW_COMPLETED_SCHEMA,
-  CODE_REVIEW_COMPLETED_SCHEMA,
-  BUG_SCANNER_COMPLETED_SCHEMA,
   PR_RECORDED_SCHEMA,
-  CI_COMPLETED_SCHEMA,
-  FEEDBACK_CHECKED_SCHEMA,
-  FEEDBACK_ADDRESSED_SCHEMA,
-  PR_FEEDBACK_VERIFICATION_FAILED_SCHEMA,
-  TASK_CHECK_PASSED_SCHEMA,
-  REVIEW_RECORDED_EVENT_SCHEMA,
+  REVIEWER_STATUS_RECORDED_EVENT_SCHEMA,
   BASH_CHECKED_SCHEMA,
   WRITE_CHECKED_SCHEMA,
 ])

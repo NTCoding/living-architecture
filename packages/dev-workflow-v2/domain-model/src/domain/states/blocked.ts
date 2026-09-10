@@ -15,10 +15,8 @@ export class BlockedState {
     'IMPLEMENTING',
     'REVIEWING',
     'SUBMITTING_PR',
-    'AWAITING_CI',
-    'AWAITING_PR_FEEDBACK',
     'ADDRESSING_FEEDBACK',
-    'REFLECTING',
+    'HUMAN_REVIEWING',
   ] as const
   readonly allowedWorkflowOperations = [] as const
 
