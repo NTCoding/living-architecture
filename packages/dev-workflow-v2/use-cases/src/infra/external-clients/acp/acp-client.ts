@@ -5,7 +5,7 @@ const ACP_REVIEW_BATCH_TIMEOUT_MS = 7 * 60 * 1000
 /** @riviere-role external-client-model */
 export type AcpClientOptions = {
   readonly workerPath: string
-  readonly command: string
+  readonly command: string | undefined
   readonly args?: readonly string[]
   readonly cwd: string
 }
@@ -30,6 +30,11 @@ export class AcpClient {
   }
 
   run(sessions: readonly AcpSessionRequest[]): void {
+    if (this.options.command === undefined || this.options.command === '') {
+      throw new AcpClientError(
+        'ACP_REVIEWER_COMMAND must be set to an ACP-compatible reviewer executable.',
+      )
+    }
     const result = spawnSync(process.execPath, [this.options.workerPath], {
       cwd: this.options.cwd,
       env: process.env,

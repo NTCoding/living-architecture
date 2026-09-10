@@ -78,7 +78,7 @@ function buildWorkflowDeps(platform: PlatformContext) {
     reviewLauncher: createAcpReviewLauncher(
       new AcpClient({
         workerPath: join(workflowRoot, 'dist/acp-client-worker.js'),
-        command: process.env.ACP_REVIEWER_COMMAND ?? 'codex',
+        command: process.env.ACP_REVIEWER_COMMAND,
         cwd: process.cwd(),
       }),
       (reviewer) => readFileSync(join(workflowRoot, 'agents', `${reviewer}.md`), 'utf8'),
