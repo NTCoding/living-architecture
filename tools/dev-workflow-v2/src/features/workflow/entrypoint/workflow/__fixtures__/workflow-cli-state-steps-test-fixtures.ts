@@ -2,6 +2,8 @@ export const CREATE_PULL_REQUEST = [
   'create-pr',
   '--commit-type',
   'feat',
+  '--commit-scope',
+  'workflow',
   '--title',
   'Restore workflow review agents',
   '--description',

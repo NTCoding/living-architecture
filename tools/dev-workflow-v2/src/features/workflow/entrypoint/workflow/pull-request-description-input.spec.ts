@@ -5,6 +5,8 @@ const VALID_DESCRIPTION = 'A'.repeat(100)
 const VALID_CREATE_PR_OPTIONS = [
   '--commit-type',
   'feat',
+  '--commit-scope',
+  'workflow',
   '--title',
   'Ready PR',
   '--description',
@@ -25,6 +27,7 @@ const VALID_CREATE_PR_OPTIONS = [
 
 const VALID_PULL_REQUEST_DESCRIPTION_INPUT = {
   commitType: 'feat',
+  commitScope: 'workflow',
   title: 'Ready PR',
   description: VALID_DESCRIPTION,
   problem: 'Direct PR creation could bypass workflow rules.',
@@ -49,6 +52,8 @@ describe('parsePullRequestDescriptionOptions', () => {
     const result = parsePullRequestDescriptionOptions([
       '--commit-type',
       'feat',
+      '--commit-scope',
+      'workflow',
       '--title',
       '--description',
       '--description',
@@ -91,7 +96,7 @@ describe('parsePullRequestDescriptionOptions', () => {
     expect(result).toStrictEqual({
       ok: false,
       reason:
-        'Expected create-pr options: --commit-type, --title, --description, --problem, --acceptance-criteria, --key-changes, --architecture-impact, --validation, --notes.',
+        'Expected create-pr options: --commit-type, --commit-scope, --title, --description, --problem, --acceptance-criteria, --key-changes, --architecture-impact, --validation, --notes.',
     })
   })
 
@@ -110,7 +115,7 @@ describe('parsePullRequestDescriptionOptions', () => {
     expect(result).toStrictEqual({
       ok: false,
       reason:
-        'Unknown create-pr option --draft. Allowed options: --commit-type, --title, --description, --problem, --acceptance-criteria, --key-changes, --architecture-impact, --validation, --notes.',
+        'Unknown create-pr option --draft. Allowed options: --commit-type, --commit-scope, --title, --description, --problem, --acceptance-criteria, --key-changes, --architecture-impact, --validation, --notes.',
     })
   })
 
@@ -146,10 +151,39 @@ describe('parsePullRequestDescriptionOptions', () => {
     })
   })
 
+  it('returns failure when commit scope is missing', () => {
+    const result = parsePullRequestDescriptionOptions([
+      ...VALID_CREATE_PR_OPTIONS.slice(0, 2),
+      ...VALID_CREATE_PR_OPTIONS.slice(4),
+    ])
+
+    expect(result).toStrictEqual({
+      ok: false,
+      reason: 'Missing required create-pr option --commit-scope.',
+    })
+  })
+
+  it('returns failure when commit scope value is empty', () => {
+    const result = parsePullRequestDescriptionOptions([
+      '--commit-type',
+      'feat',
+      '--commit-scope',
+      '',
+      ...VALID_CREATE_PR_OPTIONS.slice(4),
+    ])
+
+    expect(result).toStrictEqual({
+      ok: false,
+      reason: 'Expected non-empty value for --commit-scope.',
+    })
+  })
+
   it('returns failure when required option is missing', () => {
     const result = parsePullRequestDescriptionOptions([
       '--commit-type',
       'feat',
+      '--commit-scope',
+      'workflow',
       '--description',
       'Creates a ready PR.',
       '--problem',
@@ -176,6 +210,8 @@ describe('parsePullRequestDescriptionOptions', () => {
     const result = parsePullRequestDescriptionOptions([
       '--commit-type',
       'feat',
+      '--commit-scope',
+      'workflow',
       '--title',
       'Ready PR',
       '--problem',
@@ -202,6 +238,8 @@ describe('parsePullRequestDescriptionOptions', () => {
     const result = parsePullRequestDescriptionOptions([
       '--commit-type',
       'feat',
+      '--commit-scope',
+      'workflow',
       '--title',
       '',
       '--description',
@@ -230,6 +268,8 @@ describe('parsePullRequestDescriptionOptions', () => {
     const result = parsePullRequestDescriptionOptions([
       '--commit-type',
       'feat',
+      '--commit-scope',
+      'workflow',
       '--title',
       '   ',
       '--description',
@@ -257,9 +297,9 @@ describe('parsePullRequestDescriptionOptions', () => {
   it('returns failure when the description is whitespace padded below 100 characters', () => {
     const paddedDescription = `          ${'A'.repeat(80)}          `
     const result = parsePullRequestDescriptionOptions([
-      ...VALID_CREATE_PR_OPTIONS.slice(0, 5),
+      ...VALID_CREATE_PR_OPTIONS.slice(0, 7),
       paddedDescription,
-      ...VALID_CREATE_PR_OPTIONS.slice(6),
+      ...VALID_CREATE_PR_OPTIONS.slice(8),
     ])
 
     expect(result).toStrictEqual({
@@ -270,14 +310,42 @@ describe('parsePullRequestDescriptionOptions', () => {
 
   it('returns failure when description is shorter than 100 characters', () => {
     const result = parsePullRequestDescriptionOptions([
-      ...VALID_CREATE_PR_OPTIONS.slice(0, 5),
+      ...VALID_CREATE_PR_OPTIONS.slice(0, 7),
       'A'.repeat(99),
-      ...VALID_CREATE_PR_OPTIONS.slice(6),
+      ...VALID_CREATE_PR_OPTIONS.slice(8),
     ])
 
     expect(result).toStrictEqual({
       ok: false,
       reason: 'Expected --description to be at least 100 characters.',
+    })
+  })
+
+  it('returns failure when title ends with a full stop', () => {
+    const result = parsePullRequestDescriptionOptions([
+      ...VALID_CREATE_PR_OPTIONS.slice(0, 4),
+      '--title',
+      'ready PR.',
+      ...VALID_CREATE_PR_OPTIONS.slice(6),
+    ])
+
+    expect(result).toStrictEqual({
+      ok: false,
+      reason: 'Expected --title to not end with a full stop.',
+    })
+  })
+
+  it('returns failure when composed title is over 100 characters', () => {
+    const result = parsePullRequestDescriptionOptions([
+      ...VALID_CREATE_PR_OPTIONS.slice(0, 4),
+      '--title',
+      'a'.repeat(85),
+      ...VALID_CREATE_PR_OPTIONS.slice(6),
+    ])
+
+    expect(result).toStrictEqual({
+      ok: false,
+      reason: 'Expected composed pull request title to be at most 100 characters.',
     })
   })
 })

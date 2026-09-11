@@ -5,6 +5,7 @@ import { WorkflowState } from './workflow-types'
 class GitHubPullRequestError extends Error {}
 const VALID_PULL_REQUEST_DESCRIPTION_INPUT: PullRequestDescriptionInput = {
   commitType: 'feat',
+  commitScope: 'workflow',
   title: 'Restore agent drafted pull requests',
   description:
     'The workflow now restores the agent drafted pull request description so the submitted pull request explains the completed work clearly.',
@@ -60,7 +61,7 @@ describe('pull request creation', () => {
 
     expect(requests[0]).toStrictEqual({
       branch: 'issue-42',
-      title: 'feat: Restore agent drafted pull requests',
+      title: 'feat(workflow): restore agent drafted pull requests',
       body: [
         '## Description\n\nThe workflow now restores the agent drafted pull request description so the submitted pull request explains the completed work clearly.',
         '## Linked Issue\n\nCloses #42',

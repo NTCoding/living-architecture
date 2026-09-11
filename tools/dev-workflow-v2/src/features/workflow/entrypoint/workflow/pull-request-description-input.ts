@@ -3,6 +3,7 @@ import type { PullRequestDescriptionInput } from '@living-architecture/dev-workf
 
 const CREATE_PR_COMMAND_TOKENS_SCHEMA = z.array(z.string())
 const MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH = 100
+const MAXIMUM_PULL_REQUEST_TITLE_LENGTH = 100
 const OPTION_SUCCESS_SCHEMA = z.object({ ok: z.literal(true), value: z.string() })
 
 const CONVENTIONAL_COMMIT_TYPES: readonly string[] = [
@@ -21,6 +22,7 @@ const CONVENTIONAL_COMMIT_TYPES: readonly string[] = [
 
 const PULL_REQUEST_OPTION_NAMES: readonly string[] = [
   '--commit-type',
+  '--commit-scope',
   '--title',
   '--description',
   '--problem',
@@ -66,7 +68,8 @@ function readPullRequestOptionValues(
 ): PullRequestOptionValueResults {
   return {
     commitType: readCommitType(commandTokens),
-    title: readRequiredOption(commandTokens, '--title'),
+    commitScope: readRequiredOption(commandTokens, '--commit-scope'),
+    title: readTitle(commandTokens),
     description: readRequiredDescription(commandTokens),
     problem: readRequiredOption(commandTokens, '--problem'),
     acceptanceCriteria: readRequiredOption(commandTokens, '--acceptance-criteria'),
@@ -89,19 +92,28 @@ function buildPullRequestDescriptionInput(
       reason: failedOptionResult.reason,
     }
   }
+  const input = {
+    commitType: readSuccessfulOptionValue(optionValueResults.commitType),
+    commitScope: readSuccessfulOptionValue(optionValueResults.commitScope),
+    title: readSuccessfulOptionValue(optionValueResults.title),
+    description: readSuccessfulOptionValue(optionValueResults.description),
+    problem: readSuccessfulOptionValue(optionValueResults.problem),
+    acceptanceCriteria: readSuccessfulOptionValue(optionValueResults.acceptanceCriteria),
+    keyChanges: readSuccessfulOptionValue(optionValueResults.keyChanges),
+    architectureImpact: readSuccessfulOptionValue(optionValueResults.architectureImpact),
+    validation: readSuccessfulOptionValue(optionValueResults.validation),
+    notes: readSuccessfulOptionValue(optionValueResults.notes),
+  }
+  const composedTitle = `${input.commitType}(${input.commitScope}): ${input.title}`
+  if (composedTitle.length > MAXIMUM_PULL_REQUEST_TITLE_LENGTH) {
+    return {
+      ok: false,
+      reason: `Expected composed pull request title to be at most ${MAXIMUM_PULL_REQUEST_TITLE_LENGTH} characters.`,
+    }
+  }
   return {
     ok: true,
-    input: {
-      commitType: readSuccessfulOptionValue(optionValueResults.commitType),
-      title: readSuccessfulOptionValue(optionValueResults.title),
-      description: readSuccessfulOptionValue(optionValueResults.description),
-      problem: readSuccessfulOptionValue(optionValueResults.problem),
-      acceptanceCriteria: readSuccessfulOptionValue(optionValueResults.acceptanceCriteria),
-      keyChanges: readSuccessfulOptionValue(optionValueResults.keyChanges),
-      architectureImpact: readSuccessfulOptionValue(optionValueResults.architectureImpact),
-      validation: readSuccessfulOptionValue(optionValueResults.validation),
-      notes: readSuccessfulOptionValue(optionValueResults.notes),
-    },
+    input,
   }
 }
 
@@ -156,6 +168,20 @@ function readRequiredOption(
     ok: true,
     value: optionValue,
   }
+}
+
+function readTitle(commandTokens: readonly string[]): OptionValueResult {
+  const title = readRequiredOption(commandTokens, '--title')
+  if (!title.ok) {
+    return title
+  }
+  if (title.value.endsWith('.')) {
+    return {
+      ok: false,
+      reason: 'Expected --title to not end with a full stop.',
+    }
+  }
+  return title
 }
 
 function readRequiredDescription(commandTokens: readonly string[]): OptionValueResult {
