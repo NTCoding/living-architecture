@@ -14,11 +14,10 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 
 describe('plugin Agent Skills', () => {
-  it('tells agents to compact their context, push fixes, and return to reviewing', () => {
+  it('delegates workflow feedback handling to the reusable procedure before returning to reviewing', () => {
     const addressingFeedback = readPluginFile('states/addressing_feedback.md')
 
-    expect(addressingFeedback).toContain('Push the recorded feature branch: `git push`')
-    expect(addressingFeedback).toContain('/compact ignore all previous information')
+    expect(addressingFeedback).toContain('commands/address-pull-request-feedback.md')
     expect(addressingFeedback).toContain('transition to `REVIEWING`')
   })
 
@@ -28,6 +27,7 @@ describe('plugin Agent Skills', () => {
     )
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
     const commandNames = [
+      'address-pull-request-feedback',
       'choose-next-task',
       'continue-planning',
       'list-review-threads',
@@ -180,7 +180,7 @@ describe('plugin Agent Skills', () => {
   )
 })
 
-describe('reusable pull request review orchestration', () => {
+describe('reusable pull request orchestration', () => {
   it('configures pi-subagents to discover the four repository reviewers', () => {
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
 
@@ -229,6 +229,30 @@ describe('reusable pull request review orchestration', () => {
       skipsTaskCheck: true,
       namesReason: true,
       waitsForLaunches: true,
+    })
+  })
+
+  it('plans feedback before making changes and preserves human direction', () => {
+    const feedbackProcedure = readPluginFile('commands/address-pull-request-feedback.md')
+
+    expect({
+      workflowIndependent: !feedbackProcedure.includes('$dev-workflow-v2:workflow'),
+      checksHeadBranch: feedbackProcedure.includes('pull request head branch'),
+      waitsForApproval: feedbackProcedure.includes('Wait for explicit approval'),
+      hasClearFixes: feedbackProcedure.includes('**Clear fixes**'),
+      hasDiscussion: feedbackProcedure.includes('**Discussion needed**'),
+      hasHumanDirection: feedbackProcedure.includes('**Human direction**'),
+      prefixesReplies: feedbackProcedure.includes('[main-agent] ✅ **Fixed**'),
+      doesNotResolveHumanDecisions: feedbackProcedure.includes('do not resolve it'),
+    }).toStrictEqual({
+      workflowIndependent: true,
+      checksHeadBranch: true,
+      waitsForApproval: true,
+      hasClearFixes: true,
+      hasDiscussion: true,
+      hasHumanDirection: true,
+      prefixesReplies: true,
+      doesNotResolveHumanDecisions: true,
     })
   })
 
