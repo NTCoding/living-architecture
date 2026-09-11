@@ -41,6 +41,7 @@ const commandNames = [
   'list-review-threads',
   'optimize-factory',
   'planning-status',
+  'review-pull-request',
   'start-implementation',
   'start-planning',
 ] as const

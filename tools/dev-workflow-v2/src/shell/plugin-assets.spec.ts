@@ -33,6 +33,7 @@ describe('plugin Agent Skills', () => {
       'list-review-threads',
       'optimize-factory',
       'planning-status',
+      'review-pull-request',
       'start-implementation',
       'start-planning',
     ]
@@ -179,7 +180,7 @@ describe('plugin Agent Skills', () => {
   )
 })
 
-describe('Pi review orchestration', () => {
+describe('reusable pull request review orchestration', () => {
   it('configures pi-subagents to discover the four repository reviewers', () => {
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
 
@@ -192,35 +193,53 @@ describe('Pi review orchestration', () => {
     })
   })
 
-  it('requires Pi to await four fresh review children', () => {
+  it('uses one canonical procedure from both standalone and workflow review entry points', () => {
     const reviewing = readPluginFile('states/reviewing.md')
+    const pullRequestReview = readPluginFile('commands/review-pull-request.md')
 
     expect({
-      hasSubagentTool: reviewing.includes('`subagent` tool'),
-      hasParallelWorkflow: reviewing.includes('`runs.all`'),
-      hasFreshContext: reviewing.includes('fresh-context child agents'),
-      waitsForChildren: reviewing.includes('Set `async: false`'),
-      reviewers: ['architecture-review', 'code-review', 'bug-scanner', 'task-check'].every(
-        (reviewer) => reviewing.includes(`- \`${reviewer}\``),
+      workflowDelegates: reviewing.includes('commands/review-pull-request.md'),
+      usesGraphql: pullRequestReview.includes('gh api graphql'),
+      readsChangedFiles: pullRequestReview.includes('files(first: 100)'),
+      readsClosingIssues: pullRequestReview.includes('closingIssuesReferences(first: 100)'),
+      launchesInParallel: pullRequestReview.includes('`runs.all`'),
+      publishesDiagnosticRecord: pullRequestReview.includes('[workflow-orchestrator]'),
+      doesNotUseWorkflowCommand: !pullRequestReview.includes('$dev-workflow-v2:workflow'),
+    }).toStrictEqual({
+      workflowDelegates: true,
+      usesGraphql: true,
+      readsChangedFiles: true,
+      readsClosingIssues: true,
+      launchesInParallel: true,
+      publishesDiagnosticRecord: true,
+      doesNotUseWorkflowCommand: true,
+    })
+  })
+
+  it('does not launch task-check without linked issues and records why', () => {
+    const pullRequestReview = readPluginFile('commands/review-pull-request.md')
+
+    expect({
+      skipsTaskCheck: pullRequestReview.includes('do not launch `task-check`'),
+      namesReason: pullRequestReview.includes('task-check: no linked issue'),
+      waitsForLaunches: pullRequestReview.includes(
+        'after every applicable reviewer has been launched successfully',
       ),
     }).toStrictEqual({
-      hasSubagentTool: true,
-      hasParallelWorkflow: true,
-      hasFreshContext: true,
-      waitsForChildren: true,
-      reviewers: true,
+      skipsTaskCheck: true,
+      namesReason: true,
+      waitsForLaunches: true,
     })
   })
 
   it.each(['architecture-review', 'code-review', 'bug-scanner', 'task-check'])(
-    'gives %s the direct GitHub publishing tools, completion receipt, and parent state guard',
+    'keeps %s as a direct GitHub publisher that does not use workflow state',
     (reviewerName) => {
       const reviewer = readPluginFile(`agents/${reviewerName}.md`)
 
       expect({
         hasGitHubPublishing: reviewer.includes('## GitHub Review Output'),
         hasBash: reviewer.includes('tools: read, grep, find, ls, bash'),
-        parentGuardsState: reviewer.includes('The parent workflow starts this reviewer only after'),
         doesNotQueryWorkflow: reviewer.includes('Do not query or change workflow state.'),
         returnsCompletionReceipt: reviewer.includes(
           'Return a short completion receipt to the workflow caller only after GitHub publication.',
@@ -228,7 +247,6 @@ describe('Pi review orchestration', () => {
       }).toStrictEqual({
         hasGitHubPublishing: true,
         hasBash: true,
-        parentGuardsState: true,
         doesNotQueryWorkflow: true,
         returnsCompletionReceipt: true,
       })
