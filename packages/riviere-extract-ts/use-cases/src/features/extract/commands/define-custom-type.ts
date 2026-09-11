@@ -18,17 +18,22 @@ export class DefineCustomType {
     if (!optionalProperties.success) return optionalProperties.result
 
     try {
-      const project = this.repository.loadByGraphPath(input.graphFileLocation)
-      project.defineCustomType({
-        ...(input.description !== undefined && { description: input.description }),
-        name: input.name,
-        ...(Object.keys(optionalProperties.properties).length > 0
-          ? { optionalProperties: optionalProperties.properties }
-          : {}),
-        ...(Object.keys(requiredProperties.properties).length > 0
-          ? { requiredProperties: requiredProperties.properties }
-          : {}),
+      const project = this.repository.load({
+        kind: 'graph',
+        graphFileLocation: input.graphFileLocation,
       })
+      project.amendGraph((builder) =>
+        builder.defineCustomType({
+          ...(input.description !== undefined && { description: input.description }),
+          name: input.name,
+          ...(Object.keys(optionalProperties.properties).length > 0
+            ? { optionalProperties: optionalProperties.properties }
+            : {}),
+          ...(Object.keys(requiredProperties.properties).length > 0
+            ? { requiredProperties: requiredProperties.properties }
+            : {}),
+        }),
+      )
       this.repository.save(input.graphFileLocation, project)
       return {
         result: {

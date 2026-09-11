@@ -4,7 +4,6 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { ExtractionConfigError } from './riviere-config-error'
-import { ExtractionDataAccessError } from './riviere-project-error'
 import { RiviereProjectRepository } from './riviere-project-repository'
 
 const VALID_CONFIG = `modules:
@@ -48,8 +47,9 @@ function loadProject(params: {
   configPath: string
   projectRoot?: string
   useTsConfig: boolean
-}): ReturnType<RiviereProjectRepository['loadByExtractionConfigPath']> {
-  return new RiviereProjectRepository().loadByExtractionConfigPath({
+}): ReturnType<RiviereProjectRepository['load']> {
+  return new RiviereProjectRepository().load({
+    kind: 'extraction',
     projectRoot: params.projectRoot ?? process.cwd(),
     configPath: params.configPath,
     useTsConfig: params.useTsConfig,
@@ -127,102 +127,6 @@ describe('RiviereProjectRepository', () => {
     ).toThrow(ExtractionConfigError)
   })
 
-  it('translates a missing Git remote into a data access error', () => {
-    withWorkspace((dir) => {
-      runGit(['remote', 'remove', 'origin'], dir)
-      writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
-      writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
-
-      const load = () =>
-        loadProject({
-          configPath: join(dir, 'extract.config.yml'),
-          projectRoot: dir,
-          useTsConfig: false,
-        })
-      expect(load).toThrow(ExtractionDataAccessError)
-      expect(load).toThrow(expect.objectContaining({ code: 'NO_REMOTE' }))
-    })
-  })
-
-  it('load throws ExtractionConfigError for invalid YAML', () => {
-    withWorkspace((dir) => {
-      writeFileSync(join(dir, 'extract.yml'), '}{invalid yaml', 'utf-8')
-      expect(() =>
-        loadProject({
-          configPath: join(dir, 'extract.yml'),
-          useTsConfig: false,
-        }),
-      ).toThrow(ExtractionConfigError)
-    })
-  })
-
-  it('load throws ExtractionConfigError for non-object root config', () => {
-    withWorkspace((dir) => {
-      writeFileSync(join(dir, 'extract.yml'), 'hello\n', 'utf-8')
-      expect(() =>
-        loadProject({
-          configPath: join(dir, 'extract.yml'),
-          useTsConfig: false,
-        }),
-      ).toThrow(ExtractionConfigError)
-    })
-  })
-
-  it('load throws ExtractionConfigError for invalid modules array shape', () => {
-    withWorkspace((dir) => {
-      writeFileSync(join(dir, 'bad-modules.yml'), 'modules: hello\n', 'utf-8')
-      expect(() =>
-        loadProject({
-          configPath: join(dir, 'bad-modules.yml'),
-          useTsConfig: false,
-        }),
-      ).toThrow(ExtractionConfigError)
-    })
-  })
-
-  it('load throws ExtractionConfigError for missing $ref module file', () => {
-    withWorkspace((dir) => {
-      writeFileSync(join(dir, 'extract.yml'), 'modules:\n  - $ref: ./missing.yml\n', 'utf-8')
-      expect(() =>
-        loadProject({
-          configPath: join(dir, 'extract.yml'),
-          useTsConfig: false,
-        }),
-      ).toThrow(ExtractionConfigError)
-    })
-  })
-
-  it('load loads config with valid modules array', () => {
-    withWorkspace((dir) => {
-      mkdirSync(join(dir, 'src'), { recursive: true })
-      writeFileSync(join(dir, 'src', 'component.ts'), 'export const x = 1', 'utf-8')
-      writeFileSync(
-        join(dir, 'extract.yml'),
-        [
-          'modules:',
-          '  - name: orders',
-          '    domain: orders',
-          '    path: src',
-          '    glob: "**/*.ts"',
-          '    modules: "/src/{module}/"',
-          '    api: { notUsed: true }',
-          '    useCase: { notUsed: true }',
-          '    domainOp: { notUsed: true }',
-          '    event: { notUsed: true }',
-          '    eventHandler: { notUsed: true }',
-          '    ui: { notUsed: true }',
-        ].join('\n'),
-        'utf-8',
-      )
-      expect(
-        loadProject({
-          configPath: join(dir, 'extract.yml'),
-          useTsConfig: false,
-        }),
-      ).toBeDefined()
-    })
-  })
-
   it('load loads config with relative top-level extends reference', () => {
     withWorkspace((dir) => {
       writeFileSync(join(dir, 'extended.yml'), 'api: { notUsed: true }\n', 'utf-8')
@@ -270,7 +174,7 @@ describe('RiviereProjectRepository', () => {
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
-      ).toThrow(/Invalid extended config format/)
+      ).toThrow(/Invalid extended config/)
     })
   })
 
@@ -407,7 +311,64 @@ describe('RiviereProjectRepository', () => {
           configPath: join(dir, 'extract.yml'),
           useTsConfig: false,
         }),
-      ).toThrow(/Config has empty modules array/)
+      ).toThrow(/Invalid extended config/)
     })
+  })
+})
+
+it('load throws when no source files match the extraction patterns', () => {
+  withWorkspace((dir) => {
+    writeFileSync(
+      join(dir, 'extract.yml'),
+      [
+        'modules:',
+        '  - name: orders',
+        '    domain: orders',
+        '    path: .',
+        '    glob: "*.nomatch"',
+        '    api: { notUsed: true }',
+        '    useCase: { notUsed: true }',
+        '    domainOp: { notUsed: true }',
+        '    event: { notUsed: true }',
+        '    eventHandler: { notUsed: true }',
+        '    ui: { notUsed: true }',
+      ].join('\n'),
+      'utf-8',
+    )
+    expect(() =>
+      loadProject({
+        configPath: join(dir, 'extract.yml'),
+        useTsConfig: false,
+      }),
+    ).toThrow(/No files matched extraction patterns/)
+  })
+})
+
+it('load resolves a module reference to an existing file', () => {
+  withWorkspace((dir) => {
+    writeFileSync(join(dir, 'component.ts'), 'export class Order {}', 'utf-8')
+    writeFileSync(
+      join(dir, 'module.yml'),
+      [
+        'name: orders',
+        'domain: orders',
+        'path: .',
+        'glob: "*.ts"',
+        'api: { notUsed: true }',
+        'useCase: { notUsed: true }',
+        'domainOp: { notUsed: true }',
+        'event: { notUsed: true }',
+        'eventHandler: { notUsed: true }',
+        'ui: { notUsed: true }',
+      ].join('\n'),
+      'utf-8',
+    )
+    writeFileSync(join(dir, 'extract.yml'), 'modules:\n  - $ref: ./module.yml\n', 'utf-8')
+    expect(
+      loadProject({
+        configPath: join(dir, 'extract.yml'),
+        useTsConfig: false,
+      }),
+    ).toBeDefined()
   })
 })

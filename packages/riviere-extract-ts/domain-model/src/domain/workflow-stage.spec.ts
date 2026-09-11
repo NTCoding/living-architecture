@@ -97,6 +97,11 @@ describe('WorkflowStage', () => {
     expect(asyncApiConfigOf(stage.value)).not.toBe(config)
   })
 
+  it('materialises a stage from a prebuilt value', () => {
+    const value: WorkflowStageValue = { kind: 'schema-validate', name: 'validate' }
+    expect(WorkflowStage.fromMaterialized(value).value).toStrictEqual(value)
+  })
+
   it('copies ai extract configuration from its input', () => {
     const config = aiExtractConfig()
     const stage = WorkflowStage.fromAiExtract('discover-gaps', config)

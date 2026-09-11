@@ -49,7 +49,8 @@ function loadByExtractionConfigAndDraftComponentsPaths(
   directory: string,
   draftComponentsPath: string,
 ) {
-  return new RiviereProjectRepository().loadByExtractionConfigAndDraftComponentsPaths({
+  return new RiviereProjectRepository().load({
+    kind: 'extraction',
     configPath: 'extract.config.yml',
     draftComponentsPath,
     projectRoot: directory,

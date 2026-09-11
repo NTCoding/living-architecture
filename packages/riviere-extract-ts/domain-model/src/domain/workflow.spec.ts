@@ -70,6 +70,17 @@ const successfulStage = {
 } as const
 
 describe('Workflow stage language', () => {
+  it('reports its workflow name', () => {
+    const result = Workflow.start({
+      name: 'build',
+      outputPath: 'graph.json',
+      runLogDirectory: 'logs',
+      stages: [WorkflowStage.fromSchemaValidation('validate')],
+    })
+    assert(result.success)
+    expect(result.workflow.name()).toBe('build')
+  })
+
   it('retains every closed stage variant and its typed configuration', () => {
     const subject = workflow()
     const retainedCodeExtractionConfig = {

@@ -8,6 +8,7 @@ export type {
   DraftConfiguration,
   DraftModule,
   EventPublisherConfig,
+  ExtendingDraftModuleInput,
   ExtendsClassPredicateInput,
   ExtractBlockInput,
   ExtractionRuleInput,
@@ -82,32 +83,50 @@ export {
   type Predicate,
 } from './published-language/predicate'
 export { ValidatedConfiguration } from './published-language/validated-configuration'
+export { ExtendingDraftModule } from './published-language/extending-draft-module'
+export {
+  ModuleDefaults,
+  type ModuleConfigurationSource,
+  type ModuleDefaultsParseFailure,
+  type ModuleDefaultsParseResult,
+  type ModuleDefaultsParseSuccess,
+  type ModuleDefaultsSource,
+  type ModuleRulesSource,
+} from './published-language/module-defaults'
 export { ValidatedModule } from './published-language/validated-module'
 export {
   parseExtractionConfigSchema,
   parseExtractionConfig,
   type ValidationError,
 } from './published-language/validation'
-export type {
-  AiCliConfig,
-  AiEnrichableField,
-  AiEnrichConfig,
-  AiExtractionGap,
-  AiExtractConfig,
-  AsyncApiImportConfig,
-  CodeExtractionConfig,
-  EventCatalogImportConfig,
+export {
+  AI_ENRICHABLE_FIELDS,
+  AI_EXTRACTION_GAPS,
+  parseAiEnrichConfig,
+  parseAiExtractConfig,
+  parseAsyncApiImportConfig,
+  parseEventCatalogImportConfig,
+  type AiCliConfig,
+  type AiEnrichConfig,
+  type AiEnrichableField,
+  type AiExtractConfig,
+  type AiExtractionGap,
+  type AsyncApiImportConfig,
+  type CodeExtractionConfig,
+  type EventCatalogImportConfig,
 } from './published-language/workflow-stage-config'
 export {
+  WORKFLOW_STAGE_KINDS,
   parseWorkflowDefinition,
+  type ConfiguredWorkflowStageDefinition,
+  type SchemaValidateWorkflowStageDefinition,
   type WorkflowDefinition,
-  type WorkflowDefinitionParseFailure,
-  type WorkflowDefinitionParseResult,
-  type WorkflowDefinitionParseSuccess,
-  type WorkflowExtractStageDefinition,
-  type WorkflowGraphDefinition,
-  type WorkflowLinkStageDefinition,
-  type WorkflowRunLogDefinition,
   type WorkflowStageDefinition,
-  type WorkflowValidateStageDefinition,
+  type WorkflowStageKind,
 } from './published-language/workflow-definition'
+export {
+  type ExtractionProjectLoadInput,
+  type GraphProjectLoadInput,
+  type RiviereProjectLoadInput,
+  type WorkflowProjectLoadInput,
+} from './published-language/riviere-project-load-input'

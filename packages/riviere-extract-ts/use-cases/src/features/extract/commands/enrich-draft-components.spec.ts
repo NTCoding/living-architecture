@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('../data-access/riviere-project/riviere-project-repository', () => ({
   RiviereProjectRepository: class {
-    loadByExtractionConfigAndDraftComponentsPaths = mocks.loadMock
+    load = mocks.loadMock
   },
 }))
 

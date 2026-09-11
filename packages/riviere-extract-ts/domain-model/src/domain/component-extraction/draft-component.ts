@@ -33,6 +33,24 @@ export class DraftComponent {
     return result.data
   }
 
+  static parseMany(values: unknown):
+    | {
+        success: true
+        data: readonly DraftComponent[]
+      }
+    | { success: false; error: string } {
+    if (!Array.isArray(values)) {
+      return { success: false, error: 'Draft components file must contain an array' }
+    }
+    const components: DraftComponent[] = []
+    for (const value of values) {
+      const parsed = DraftComponent.parse(value)
+      if (!parsed.success) return { success: false, error: parsed.error }
+      components.push(parsed.data)
+    }
+    return { success: true, data: components }
+  }
+
   private constructor(params: DraftComponentParameters) {
     this.type = params.type
     this.name = params.name

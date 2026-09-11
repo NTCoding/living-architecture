@@ -2,22 +2,18 @@ import { assert, describe, expect, it } from 'vitest'
 import { parseWorkflowDefinition } from './workflow-definition'
 
 const validWorkflow = {
-  version: 1,
-  graph: {
-    name: 'Combined graph',
-    description: 'Orders and shipping',
-    sources: [{ name: 'example', repository: 'example' }],
-    domains: [
-      { name: 'orders', description: 'Order domain', systemType: 'bff' },
-      { name: 'shipping' },
-    ],
-    outputPath: '.riviere/graph.json',
+  apiVersion: 'v1',
+  name: 'Combined graph',
+  description: 'Orders and shipping',
+  output: '.riviere/graph.json',
+  sources: [{ name: 'example', repository: 'github.com/example/orders' }],
+  domains: {
+    orders: { description: 'Order domain', systemType: 'bff' },
+    shipping: { description: 'Shipping domain' },
   },
-  runLog: { directory: '.riviere/logs' },
   stages: [
-    { extract: { name: 'orders', config: 'orders.yaml', useTsConfig: false } },
-    { link: { config: 'combined.yaml' } },
-    { validate: {} },
+    { kind: 'code-extraction', name: 'extract', config: 'orders.yaml' },
+    { kind: 'schema-validate', name: 'validate' },
   ],
 }
 
@@ -26,55 +22,55 @@ describe('parseWorkflowDefinition', () => {
     expect(parseWorkflowDefinition(validWorkflow)).toStrictEqual({
       success: true,
       definition: {
-        version: 1,
-        graph: {
-          name: 'Combined graph',
-          description: 'Orders and shipping',
-          sources: [{ repository: 'example' }],
-          domains: {
-            orders: { description: 'Order domain', systemType: 'bff' },
-            shipping: { description: 'shipping domain', systemType: 'domain' },
-          },
-          outputPath: '.riviere/graph.json',
+        apiVersion: 'v1',
+        name: 'Combined graph',
+        description: 'Orders and shipping',
+        output: '.riviere/graph.json',
+        sources: [{ name: 'example', repository: 'github.com/example/orders' }],
+        domains: {
+          orders: { description: 'Order domain', systemType: 'bff' },
+          shipping: { description: 'Shipping domain', systemType: 'domain' },
         },
-        runLog: { directory: '.riviere/logs' },
         stages: [
-          {
-            kind: 'extract',
-            name: 'orders',
-            configPath: 'orders.yaml',
-            useTsConfig: false,
-          },
-          { kind: 'link', name: 'link', configPath: 'combined.yaml', useTsConfig: true },
-          { kind: 'validate', name: 'validate' },
+          { kind: 'code-extraction', name: 'extract', config: 'orders.yaml' },
+          { kind: 'schema-validate', name: 'validate' },
         ],
       },
     })
   })
 
-  it('applies defaults when optional workflow values are absent', () => {
+  it('applies defaults and omits absent optional values', () => {
     const result = parseWorkflowDefinition({
-      ...validWorkflow,
-      graph: {
-        sources: validWorkflow.graph.sources,
-        domains: [{ name: 'orders' }],
-        outputPath: validWorkflow.graph.outputPath,
-      },
-      stages: [{ extract: { name: 'orders', config: 'orders.yaml' } }],
+      apiVersion: 'v1',
+      name: 'Minimal graph',
+      output: '.riviere/graph.json',
+      sources: validWorkflow.sources,
+      domains: { orders: { description: 'Order domain' } },
+      stages: [{ kind: 'ai-extract', name: 'enrich', config: 'ai.yaml' }],
     })
 
     expect(result).toMatchObject({
       success: true,
       definition: {
-        graph: {
-          domains: { orders: { description: 'orders domain', systemType: 'domain' } },
-        },
-        stages: [{ kind: 'extract', useTsConfig: true }],
+        domains: { orders: { description: 'Order domain', systemType: 'domain' } },
+        stages: [{ kind: 'ai-extract', name: 'enrich', config: 'ai.yaml' }],
       },
     })
     assert(result.success)
-    expect(result.definition.graph).not.toHaveProperty('name')
-    expect(result.definition.graph).not.toHaveProperty('description')
+    expect(result.definition).not.toHaveProperty('description')
+  })
+
+  it('accepts all configured stage kinds and reports them as definitions', () => {
+    for (const kind of ['eventcatalog-import', 'asyncapi-import', 'ai-enrich'] as const) {
+      const result = parseWorkflowDefinition({
+        ...validWorkflow,
+        stages: [{ kind, name: 'stage', config: 'stage.yaml' }],
+      })
+      assert(result.success)
+      expect(result.definition.stages).toStrictEqual([
+        { kind, name: 'stage', config: 'stage.yaml' },
+      ])
+    }
   })
 
   it('reports errors at the document root', () => {
@@ -85,46 +81,51 @@ describe('parseWorkflowDefinition', () => {
   })
 
   it.each([
-    ['unsupported version', { ...validWorkflow, version: 2 }],
-    ['missing graph metadata', { ...validWorkflow, graph: { outputPath: 'graph.json' } }],
+    ['unsupported api version', { ...validWorkflow, apiVersion: 'v2' }],
+    ['missing name', { ...validWorkflow, name: undefined }],
+    ['empty name', { ...validWorkflow, name: '' }],
+    ['missing output', { ...validWorkflow, output: undefined }],
+    ['empty output', { ...validWorkflow, output: '' }],
+    ['missing sources', { ...validWorkflow, sources: undefined }],
+    ['empty sources', { ...validWorkflow, sources: [] }],
+    ['missing domains', { ...validWorkflow, domains: undefined }],
+    ['empty domains', { ...validWorkflow, domains: {} }],
+    ['empty domain name', { ...validWorkflow, domains: { '': { description: 'Order domain' } } }],
     [
-      'missing graph sources',
-      { ...validWorkflow, graph: { ...validWorkflow.graph, sources: undefined } },
-    ],
-    [
-      'missing graph domains',
-      { ...validWorkflow, graph: { ...validWorkflow.graph, domains: undefined } },
-    ],
-    [
-      'missing graph output path',
-      { ...validWorkflow, graph: { ...validWorkflow.graph, outputPath: undefined } },
-    ],
-    ['missing run log directory', { ...validWorkflow, runLog: {} }],
-    ['unknown stage type', { ...validWorkflow, stages: [{ command: { run: 'echo forbidden' } }] }],
-    [
-      'more than one type in a stage',
-      { ...validWorkflow, stages: [{ extract: {}, validate: {} }] },
-    ],
-    ['missing extract config', { ...validWorkflow, stages: [{ extract: { name: 'orders' } }] }],
-    ['missing link config', { ...validWorkflow, stages: [{ link: {} }] }],
-    [
-      'extract allowIncomplete option',
+      'unsupported domain system type',
       {
         ...validWorkflow,
-        stages: [{ extract: { name: 'orders', config: 'orders.yaml', allowIncomplete: true } }],
+        domains: { orders: { description: 'Order domain', systemType: 'invalid' } },
+      },
+    ],
+    ['domain missing description', { ...validWorkflow, domains: { orders: {} } }],
+    ['missing stages', { ...validWorkflow, stages: undefined }],
+    ['empty stages', { ...validWorkflow, stages: [] }],
+    [
+      'duplicate stage names',
+      {
+        ...validWorkflow,
+        stages: [
+          { kind: 'code-extraction', name: 'dupe', config: 'one.yaml' },
+          { kind: 'ai-extract', name: 'dupe', config: 'two.yaml' },
+        ],
+      },
+    ],
+    ['unknown stage kind', { ...validWorkflow, stages: [{ kind: 'command', name: 'stage' }] }],
+    [
+      'configured stage missing config',
+      { ...validWorkflow, stages: [{ kind: 'code-extraction', name: 'stage' }] },
+    ],
+    [
+      'schema-validate stage with config',
+      {
+        ...validWorkflow,
+        stages: [{ kind: 'schema-validate', name: 'stage', config: 'x.yaml' }],
       },
     ],
     [
-      'link allowIncomplete option',
-      { ...validWorkflow, stages: [{ link: { config: 'combined.yaml', allowIncomplete: true } }] },
-    ],
-    ['empty strings', { ...validWorkflow, graph: { ...validWorkflow.graph, outputPath: '' } }],
-    [
-      'unsupported system type',
-      {
-        ...validWorkflow,
-        graph: { ...validWorkflow.graph, domains: [{ name: 'orders', systemType: 'invalid' }] },
-      },
+      'schema-validate stage with blank name',
+      { ...validWorkflow, stages: [{ kind: 'schema-validate', name: '' }] },
     ],
   ])('rejects %s', (_case, input) => {
     expect(parseWorkflowDefinition(input)).toMatchObject({ success: false })

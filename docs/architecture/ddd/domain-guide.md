@@ -219,17 +219,7 @@ Domain model package: `@living-architecture/riviere-extract-ts-domain-model`
 - `RiviereProject`
   - `start`
   - `rehydrate`
-  - `addWorkflow`
-  - `addSource`
-  - `addDomain`
-  - `addComponent`
-  - `defineCustomType`
-  - `defineRelationshipType`
-  - `enrichComponent`
-  - `link`
-  - `linkExternal`
-  - `warnings`
-  - `validate`
+  - `amendGraph`
   - `build`
   - `serialize`
   - `rebuildGraph`
@@ -242,41 +232,40 @@ Domain model package: `@living-architecture/riviere-extract-ts-domain-model`
 ##### Commands
 
 - `AddComponent`
-  - Invokes aggregate operation `RiviereProject.addComponent`
+  - Invokes aggregate operation `RiviereProject.amendGraph`
 - `AddDomain`
-  - Invokes aggregate operation `RiviereProject.addDomain`
+  - Invokes aggregate operation `RiviereProject.amendGraph`
 - `AddSource`
-  - Invokes aggregate operation `RiviereProject.addSource`
+  - Invokes aggregate operation `RiviereProject.amendGraph`
 - `CheckConsistency`
-  - Invokes aggregate operation `RiviereProject.warnings`
+  - Invokes aggregate operation `RiviereProject.amendGraph`
 - `DefineCustomType`
-  - Invokes aggregate operation `RiviereProject.defineCustomType`
+  - Invokes aggregate operation `RiviereProject.amendGraph`
 - `DefineRelationshipType`
-  - Invokes aggregate operation `RiviereProject.defineRelationshipType`
+  - Invokes aggregate operation `RiviereProject.amendGraph`
 - `EnrichComponent`
-  - Invokes aggregate operation `RiviereProject.enrichComponent`
+  - Invokes aggregate operation `RiviereProject.amendGraph`
 - `EnrichDraftComponents`
   - Invokes aggregate operation `RiviereProject.enrichDraftComponents`
 - `ExtractDraftComponents`
   - Invokes domain service operation `resolveSourceFileSelection`
   - Invokes aggregate operation `RiviereProject.extractDraftComponents`
 - `FinalizeGraph`
-  - Invokes aggregate operation `RiviereProject.validate`
+  - Invokes aggregate operation `RiviereProject.amendGraph`
   - Invokes aggregate operation `RiviereProject.build`
 - `InitGraph`
   - Invokes aggregate operation `RiviereProject.start`
 - `LinkComponents`
-  - Invokes aggregate operation `RiviereProject.link`
+  - Invokes aggregate operation `RiviereProject.amendGraph`
 - `LinkExternal`
-  - Invokes aggregate operation `RiviereProject.linkExternal`
+  - Invokes aggregate operation `RiviereProject.amendGraph`
 - `LinkHttp`
   - Invokes aggregate operation `RiviereProject.build`
-  - Invokes aggregate operation `RiviereProject.link`
+  - Invokes aggregate operation `RiviereProject.amendGraph`
 - `RunWorkflow`
   - Invokes aggregate operation `RiviereProject.rebuildGraph`
 - `ValidateGraph`
-  - Invokes aggregate operation `RiviereProject.validate`
-  - Invokes aggregate operation `RiviereProject.warnings`
+  - Invokes aggregate operation `RiviereProject.amendGraph`
 
 ##### Queries
 

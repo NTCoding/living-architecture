@@ -332,10 +332,18 @@ export interface StandaloneDraftModule extends ModuleIdentity, ModuleRules {
   extends?: never
 }
 
+/**
+ * A module as written that inherits missing rules from an extended config.
+ * Local rules override the inherited rules. Named so the extending draft can
+ * be a self-constructing value object that owns the inheritance merge.
+ */
+/** @riviere-role published-language-data-structure */
+export interface ExtendingDraftModuleInput extends ModuleIdentity, Partial<ModuleRules> {
+  extends: string
+}
+
 /** @riviere-role published-language-union */
-export type DraftModule =
-  | StandaloneDraftModule
-  | (ModuleIdentity & Partial<ModuleRules> & { extends: string })
+export type DraftModule = StandaloneDraftModule | ExtendingDraftModuleInput
 
 /**
  * A fully resolved module with all component rules.
