@@ -1,4 +1,5 @@
 type PullRequestDescriptionInput = {
+  readonly commitType: string
   readonly title: string
   readonly description: string
   readonly problem: string

@@ -5,7 +5,22 @@ const CREATE_PR_COMMAND_TOKENS_SCHEMA = z.array(z.string())
 const MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH = 100
 const OPTION_SUCCESS_SCHEMA = z.object({ ok: z.literal(true), value: z.string() })
 
+const CONVENTIONAL_COMMIT_TYPES: readonly string[] = [
+  'build',
+  'chore',
+  'ci',
+  'docs',
+  'feat',
+  'fix',
+  'perf',
+  'refactor',
+  'revert',
+  'style',
+  'test',
+]
+
 const PULL_REQUEST_OPTION_NAMES: readonly string[] = [
+  '--commit-type',
   '--title',
   '--description',
   '--problem',
@@ -50,6 +65,7 @@ function readPullRequestOptionValues(
   commandTokens: readonly string[],
 ): PullRequestOptionValueResults {
   return {
+    commitType: readCommitType(commandTokens),
     title: readRequiredOption(commandTokens, '--title'),
     description: readRequiredDescription(commandTokens),
     problem: readRequiredOption(commandTokens, '--problem'),
@@ -76,6 +92,7 @@ function buildPullRequestDescriptionInput(
   return {
     ok: true,
     input: {
+      commitType: readSuccessfulOptionValue(optionValueResults.commitType),
       title: readSuccessfulOptionValue(optionValueResults.title),
       description: readSuccessfulOptionValue(optionValueResults.description),
       problem: readSuccessfulOptionValue(optionValueResults.problem),
@@ -153,4 +170,18 @@ function readRequiredDescription(commandTokens: readonly string[]): OptionValueR
     }
   }
   return description
+}
+
+function readCommitType(commandTokens: readonly string[]): OptionValueResult {
+  const commitType = readRequiredOption(commandTokens, '--commit-type')
+  if (!commitType.ok) {
+    return commitType
+  }
+  if (!CONVENTIONAL_COMMIT_TYPES.includes(commitType.value)) {
+    return {
+      ok: false,
+      reason: `Expected --commit-type to be one of: ${CONVENTIONAL_COMMIT_TYPES.join(', ')}.`,
+    }
+  }
+  return commitType
 }

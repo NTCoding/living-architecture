@@ -212,7 +212,7 @@ export class MaintainerWorkflow {
   ): Parameters<CreateWorkflowPullRequest>[0] {
     return {
       branch,
-      title: input.title,
+      title: `${input.commitType}: ${input.title}`,
       body: [
         formatSection('Description', input.description),
         formatSection('Linked Issue', `Closes #${githubIssue}`),
