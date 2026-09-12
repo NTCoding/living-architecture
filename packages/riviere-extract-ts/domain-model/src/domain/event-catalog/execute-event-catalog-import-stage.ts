@@ -123,7 +123,7 @@ function mapEventCatalogImport(input: {
 }): EventCatalogImportOutcome {
   const services = resolveServices(input)
   const events = resolveEvents(input, services.resolved)
-  const handlers = buildConsumedEventHandlers(services.resolved, events.resolved)
+  const eventHandlers = buildConsumedEventHandlers(services.resolved, events.resolved)
   const failures = findMappingConfigFailures(input)
   if (failures.length > 0) return { success: false, reason: failures.join('\n') }
 
@@ -137,9 +137,9 @@ function mapEventCatalogImport(input: {
     components: [
       ...[...services.resolved.values()].map((service) => service.component),
       ...events.resolved.values(),
-      ...handlers.components,
+      ...eventHandlers.components,
     ],
-    links: [...buildLinks(services.resolved, events.resolved), ...handlers.links],
+    links: [...buildLinks(services.resolved, events.resolved), ...eventHandlers.links],
     diagnostics: unmapped.map((record) =>
       WorkflowDiagnostic.fromUnmappedRecord(record.kind, record.id),
     ),
@@ -298,7 +298,7 @@ function buildConsumedEventHandlers(
       return event === undefined ? [] : [event]
     })
     if (consumed.length === 0) continue
-    const handler: EventCatalogCanonicalComponent = {
+    const eventHandler: EventCatalogCanonicalComponent = {
       kind: 'event-handler',
       id: ComponentId.parseFromParts({
         domain: service.component.domain,
@@ -311,8 +311,8 @@ function buildConsumedEventHandlers(
       name: service.component.name,
       subscribedEvents: consumed.map((event) => event.name),
     }
-    components.push(handler)
-    for (const event of consumed) links.push({ from: event.id, to: handler.id })
+    components.push(eventHandler)
+    for (const event of consumed) links.push({ from: event.id, to: eventHandler.id })
   }
   return { components, links }
 }

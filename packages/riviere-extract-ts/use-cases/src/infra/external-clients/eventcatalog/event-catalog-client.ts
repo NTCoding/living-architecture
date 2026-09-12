@@ -28,26 +28,45 @@ export interface EventCatalogDocument {
   readonly events: readonly EventCatalogEventDocument[]
 }
 
+/** @riviere-role external-client-error */
+export class EventCatalogUnreadableError extends Error {
+  constructor(sourcePath: string) {
+    super(`EventCatalog at '${sourcePath}' could not be read`)
+    this.name = 'EventCatalogUnreadableError'
+  }
+}
+
 /** @riviere-role external-client-service */
 export async function readEventCatalog(sourcePath: string): Promise<EventCatalogDocument> {
   const catalog = eventCatalog(sourcePath)
-  const [domains = [], services = [], events = []] = await Promise.all([
-    catalog.getDomains(),
-    catalog.getServices(),
-    catalog.getEvents(),
+  const [domains, services, events] = await Promise.all([
+    catalog.getDomains({ latestOnly: true }),
+    catalog.getServices({ latestOnly: true }),
+    catalog.getEvents({ latestOnly: true }),
   ])
   return {
-    domains: domains.map((domain) => ({
+    domains: requireCatalogCollection(domains, sourcePath).map((domain) => ({
       id: domain.id,
       name: domain.name,
       serviceIds: (domain.services ?? []).map((service) => service.id),
     })),
-    services: services.map((service) => ({
+    services: requireCatalogCollection(services, sourcePath).map((service) => ({
       id: service.id,
       name: service.name,
       produces: (service.sends ?? []).map((pointer) => pointer.id),
       consumes: (service.receives ?? []).map((pointer) => pointer.id),
     })),
-    events: events.map((event) => ({ id: event.id, name: event.name })),
+    events: requireCatalogCollection(events, sourcePath).map((event) => ({
+      id: event.id,
+      name: event.name,
+    })),
   }
+}
+
+function requireCatalogCollection<T>(
+  collection: readonly T[] | undefined,
+  sourcePath: string,
+): readonly T[] {
+  if (collection === undefined) throw new EventCatalogUnreadableError(sourcePath)
+  return collection
 }

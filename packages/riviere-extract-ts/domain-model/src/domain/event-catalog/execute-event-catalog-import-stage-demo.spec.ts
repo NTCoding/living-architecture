@@ -39,5 +39,11 @@ describe('executeEventCatalogImportStage demo fixture', () => {
       { id: 'orders-domain:infrastructure:usecase:placeorder', type: 'UseCase' },
       { id: 'orders-domain:infrastructure:event:orderplaced', type: 'Event' },
     ])
+    expect(
+      graphBuilder
+        .components()
+        .find((component) => component.id === 'orders-domain:infrastructure:usecase:placeorder')
+        ?.sourceLocation,
+    ).toStrictEqual({ repository: 'shop', filePath: 'specs/eventcatalog' })
   })
 })

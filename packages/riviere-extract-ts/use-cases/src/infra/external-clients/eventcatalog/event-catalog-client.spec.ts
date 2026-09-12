@@ -14,7 +14,7 @@ vi.mock('@eventcatalog/sdk', () => ({
   }),
 }))
 
-import { readEventCatalog } from './event-catalog-client'
+import { EventCatalogUnreadableError, readEventCatalog } from './event-catalog-client'
 
 describe('readEventCatalog', () => {
   it('maps SDK domains, services, and events into client documents', async () => {
@@ -33,6 +33,9 @@ describe('readEventCatalog', () => {
 
     const result = await readEventCatalog('/catalog')
 
+    expect(sdk.getDomains).toHaveBeenCalledWith({ latestOnly: true })
+    expect(sdk.getServices).toHaveBeenCalledWith({ latestOnly: true })
+    expect(sdk.getEvents).toHaveBeenCalledWith({ latestOnly: true })
     expect(result).toStrictEqual({
       domains: [{ id: 'OrdersDomain', name: 'Orders', serviceIds: ['OrdersService'] }],
       services: [
@@ -61,13 +64,11 @@ describe('readEventCatalog', () => {
     })
   })
 
-  it('defaults an entirely absent catalog to empty collections', async () => {
+  it('fails when the catalog cannot be read', async () => {
     sdk.getDomains.mockResolvedValue(undefined)
     sdk.getServices.mockResolvedValue(undefined)
     sdk.getEvents.mockResolvedValue(undefined)
 
-    const result = await readEventCatalog('/missing')
-
-    expect(result).toStrictEqual({ domains: [], services: [], events: [] })
+    await expect(readEventCatalog('/missing')).rejects.toThrow(EventCatalogUnreadableError)
   })
 })

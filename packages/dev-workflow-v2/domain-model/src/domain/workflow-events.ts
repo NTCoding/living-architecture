@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { Reviewer } from './reviews/reviewers'
-import { InvalidReviewerStatus, ReviewerStatus } from './reviews/statuses'
+import { ReviewerStatus } from './reviews/statuses'
 import { StateNames, type StateName } from './workflow-types'
 
 /** @riviere-role domain-error */
@@ -52,9 +52,7 @@ function requiredReviewerStatusRecord(value: unknown): Readonly<Record<string, s
   const record = requiredStringRecord(value)
   const validated: Record<string, string> = {}
   for (const [reviewerName, statusName] of Object.entries(record)) {
-    const status = ReviewerStatus.fromName(statusName)
-    if (!status.ok) throw new InvalidReviewerStatus(statusName)
-    validated[Reviewer.fromName(reviewerName).name()] = status.value.name()
+    validated[Reviewer.fromName(reviewerName).name()] = ReviewerStatus.parse(statusName).name()
   }
   return validated
 }
@@ -230,12 +228,10 @@ export class ReviewerStatusRecorded {
   static parse(event: BaseEvent): ReviewerStatusRecorded {
     const reviewerName = requiredString(event['reviewer'])
     const statusName = requiredString(event['status'])
-    const status = ReviewerStatus.fromName(statusName)
-    if (!status.ok) throw new InvalidReviewerStatus(statusName)
     return new ReviewerStatusRecorded(
       requiredString(event['at']),
       Reviewer.fromName(reviewerName).name(),
-      status.value.name(),
+      ReviewerStatus.parse(statusName).name(),
     )
   }
 }

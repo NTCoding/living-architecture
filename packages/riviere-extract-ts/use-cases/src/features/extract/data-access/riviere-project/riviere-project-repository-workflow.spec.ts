@@ -230,7 +230,7 @@ it.each([
   writeFileSync(join(directory, '.riviere', 'workflows', 'import.yaml'), configYaml)
   writeWorkflow(directory, `  - kind: ${kind}\n    name: import\n    config: import.yaml`)
 
-  expect(loadWorkflow(directory, 'combined')).toBeDefined()
+  expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
 })
 
 it('materializes an eventcatalog-import stage with validated mappings', () => {
@@ -306,7 +306,7 @@ it('materializes an ai-extract stage', () => {
   )
   writeWorkflow(directory, '  - kind: ai-extract\n    name: extract\n    config: ai.yaml')
 
-  expect(loadWorkflow(directory, 'combined')).toBeDefined()
+  expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
 })
 
 it('materializes an ai-enrich stage', () => {
@@ -331,7 +331,7 @@ it('materializes an ai-enrich stage', () => {
   )
   writeWorkflow(directory, '  - kind: ai-enrich\n    name: enrich\n    config: ai.yaml')
 
-  expect(loadWorkflow(directory, 'combined')).toBeDefined()
+  expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
 })
 
 it.each([
@@ -383,7 +383,7 @@ it('materializes a code-extraction stage', () => {
   )
   writeWorkflow(directory, '  - kind: code-extraction\n    name: extract\n    config: extract.yaml')
 
-  expect(loadWorkflow(directory, 'combined')).toBeDefined()
+  expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
 })
 
 it('rejects a workflow whose name is invalid for the workflow runner', () => {
