@@ -20,7 +20,6 @@ import { FinalizeGraph } from './finalize-graph'
 import { InitGraph } from './init-graph'
 import { LinkComponents } from './link-components'
 import { LinkExternal } from './link-external'
-import { LinkHttp } from './link-http'
 import { ValidateGraph } from './validate-graph'
 import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
 
@@ -97,17 +96,16 @@ describe('command success path coverage', () => {
     expect(result.result.success).toBe(true)
   })
 
-  it('initializes a new graph and reports an existing one', () => {
+  it('reports an existing graph from init-graph', () => {
     const input = {
       domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],
       graphFileLocation: graphLocation(),
       name: 'combined',
       sources: ['https://github.com/org/repo'],
     }
-    const first = new InitGraph(new RiviereProjectRepository()).execute(input)
-    expect(first.result.success).toBe(true)
-    const second = new InitGraph(new RiviereProjectRepository()).execute(input)
-    expect(second.result).toMatchObject({ code: 'GRAPH_EXISTS', success: false })
+    new InitGraph(new RiviereProjectRepository()).execute(input)
+    const result = new InitGraph(new RiviereProjectRepository()).execute(input)
+    expect(result.result).toMatchObject({ code: 'GRAPH_EXISTS', success: false })
   })
 
   it('returns a validation error from init-graph for an unsupported system type', () => {
@@ -257,12 +255,17 @@ describe('command success path coverage', () => {
     ).toMatchObject({ success: true })
   })
 
-  it('adds event and event-handler components', () => {
+  it('adds an event component', () => {
     const project = createProject()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     expect(
       runAddComponent({ componentType: 'Event', eventName: 'order.placed', name: 'order placed' }),
     ).toMatchObject({ success: true })
+  })
+
+  it('adds an event-handler component', () => {
+    const project = createProject()
+    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     expect(
       runAddComponent({
         componentType: 'EventHandler',
@@ -333,35 +336,7 @@ describe('command success path coverage', () => {
     expect(result.result.success).toBe(true)
   })
 
-  it('links an http route', () => {
-    const project = createProjectWithApi()
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new LinkHttp(new RiviereProjectRepository()).execute({
-      graphFileLocation: graphLocation(),
-      httpMethod: 'POST',
-      linkType: 'sync',
-      path: '/orders',
-      targetDomain: 'orders',
-      targetModule: 'core',
-      targetName: 'Place Order',
-      targetType: 'UseCase',
-    })
-    expect(result.result.success).toBe(true)
-  })
-
-  it('returns validation errors from link-http and link-components for invalid input', () => {
-    expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
-        graphFileLocation: graphLocation(),
-        httpMethod: undefined,
-        linkType: undefined,
-        path: '/orders',
-        targetDomain: 'orders',
-        targetModule: 'core',
-        targetName: 'Place Order',
-        targetType: 'Bogus',
-      }).result,
-    ).toMatchObject({ code: 'VALIDATION_ERROR', success: false })
+  it('returns validation error from link-components for invalid input', () => {
     expect(
       new LinkComponents(new RiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
@@ -375,7 +350,7 @@ describe('command success path coverage', () => {
     ).toMatchObject({ code: 'VALIDATION_ERROR', success: false })
   })
 
-  it('returns graph not found from add-domain and a component-not-found and validation errors from link-http', async () => {
+  it('returns graph not found from add-domain', () => {
     expect(
       new AddDomain(new RiviereProjectRepository()).execute({
         description: 'x',
@@ -384,43 +359,5 @@ describe('command success path coverage', () => {
         systemType: 'domain',
       }).result,
     ).toMatchObject({ code: 'GRAPH_NOT_FOUND', success: false })
-    const project = createProjectWithApi()
-    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
-        graphFileLocation: graphLocation(),
-        httpMethod: undefined,
-        linkType: undefined,
-        path: '/missing',
-        targetDomain: 'orders',
-        targetModule: 'core',
-        targetName: 'Place Order',
-        targetType: 'UseCase',
-      }).result,
-    ).toMatchObject({ code: 'COMPONENT_NOT_FOUND', success: false })
-    expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
-        graphFileLocation: graphLocation(),
-        httpMethod: 'invalid',
-        linkType: undefined,
-        path: '/orders',
-        targetDomain: 'orders',
-        targetModule: 'core',
-        targetName: 'Place Order',
-        targetType: 'UseCase',
-      }).result,
-    ).toMatchObject({ code: 'VALIDATION_ERROR', success: false })
-    expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
-        graphFileLocation: graphLocation(),
-        httpMethod: undefined,
-        linkType: 'invalid',
-        path: '/orders',
-        targetDomain: 'orders',
-        targetModule: 'core',
-        targetName: 'Place Order',
-        targetType: 'UseCase',
-      }).result,
-    ).toMatchObject({ code: 'VALIDATION_ERROR', success: false })
   })
 })

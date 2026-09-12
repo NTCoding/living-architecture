@@ -80,7 +80,7 @@ describe('final command coverage', () => {
     ).toMatchObject({ code: 'COMPONENT_NOT_FOUND', success: false })
   })
 
-  it('returns component not found and validation errors from link-components', () => {
+  it('returns component not found from link-components', () => {
     const project = createProject()
     project.amendGraph((builder) =>
       builder.addApi({
@@ -113,6 +113,29 @@ describe('final command coverage', () => {
         type: 'sync',
       }).result,
     ).toMatchObject({ code: 'COMPONENT_NOT_FOUND', success: false })
+  })
+
+  it('returns validation error from link-components for an invalid type', () => {
+    const project = createProject()
+    project.amendGraph((builder) =>
+      builder.addApi({
+        apiType: 'REST',
+        domain: 'orders',
+        httpMethod: 'POST',
+        module: 'core',
+        name: 'CreateOrder',
+        path: '/orders',
+        sourceLocation: {
+          repository: 'https://github.com/org/repo',
+          filePath: 'src/create-order.ts',
+        },
+      }),
+    )
+    project.amendGraph((builder) =>
+      builder.defineRelationshipType({ name: 'reads', description: 'Reads' }),
+    )
+    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    const graphFileLocation = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
       new LinkComponents(new RiviereProjectRepository()).execute({
         from: 'orders:core:usecase:missing',
@@ -214,12 +237,15 @@ describe('final command coverage', () => {
     expect(result.result.success).toBe(true)
   })
 
-  it('returns graph not found and rethrows from check-consistency', () => {
+  it('returns graph not found from check-consistency', () => {
     expect(
       new CheckConsistency(new RiviereProjectRepository()).execute({
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
       }).result,
     ).toMatchObject({ code: 'GRAPH_NOT_FOUND', success: false })
+  })
+
+  it('rethrows unexpected errors from check-consistency', () => {
     const project = createProject()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     vi.spyOn(project, 'amendGraph').mockImplementation(() => {
@@ -241,7 +267,7 @@ describe('final command coverage', () => {
     expect(result.result.success).toBe(true)
   })
 
-  it('returns graph not found from add-source, check-consistency, and validate-graph', () => {
+  it('returns graph not found from add-source', () => {
     const g = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
       new AddSource(new RiviereProjectRepository()).execute({
@@ -249,15 +275,23 @@ describe('final command coverage', () => {
         repository: 'https://github.com/org/x',
       }).result,
     ).toMatchObject({ code: 'GRAPH_NOT_FOUND', success: false })
+  })
+
+  it('returns graph not found from check-consistency', () => {
+    const g = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
       new CheckConsistency(new RiviereProjectRepository()).execute({ graphFileLocation: g }).result,
     ).toMatchObject({ code: 'GRAPH_NOT_FOUND', success: false })
+  })
+
+  it('returns graph not found from validate-graph', () => {
+    const g = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
       new ValidateGraph(new RiviereProjectRepository()).execute({ graphFileLocation: g }).result,
     ).toMatchObject({ code: 'GRAPH_NOT_FOUND', success: false })
   })
 
-  it('returns graph not found from finalize-graph and enrich', () => {
+  it('returns graph not found from finalize-graph', () => {
     const g = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
       new FinalizeGraph(new RiviereProjectRepository()).execute({
@@ -265,6 +299,10 @@ describe('final command coverage', () => {
         outputPath: '/out',
       }).result,
     ).toMatchObject({ code: 'GRAPH_NOT_FOUND', success: false })
+  })
+
+  it('returns graph not found from enrich', () => {
+    const g = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
       new EnrichComponent(new RiviereProjectRepository()).execute({
         businessRules: [],
