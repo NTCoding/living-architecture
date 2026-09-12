@@ -46,8 +46,8 @@ describe('startReviewCycle', () => {
     expect(workflow.getPendingEvents().at(-1)).toMatchObject({
       type: 'review-cycle-started',
       cycleNumber: 1,
-      included: ['architecture-review', 'code-review', 'bug-scanner', 'task-check'],
-      excluded: {},
+      includedReviewers: ['architecture-review', 'code-review', 'bug-scanner', 'task-check'],
+      excludedReviewers: {},
     })
   })
 
@@ -66,8 +66,8 @@ describe('startReviewCycle', () => {
     workflow.startReviewCycle()
 
     expect(workflow.getPendingEvents().at(-1)).toMatchObject({
-      included: ['architecture-review', 'code-review', 'bug-scanner'],
-      excluded: { 'task-check': 'already-approved' },
+      includedReviewers: ['architecture-review', 'code-review', 'bug-scanner'],
+      excludedReviewers: { 'task-check': 'already-approved' },
     })
   })
 
@@ -190,6 +190,52 @@ describe('waitForCodeRabbitAndCloseReviewCycle', () => {
 
     expect(workflow.waitForCodeRabbitAndCloseReviewCycle()).toStrictEqual({ pass: true })
     expect(workflow.getState().currentStateMachineState).toBe('ADDRESSING_FEEDBACK')
+  })
+
+  it('ignores a resolved CodeRabbit thread', () => {
+    const workflow = reviewingWithOpenCycle(
+      makeDeps({
+        getPrFeedback: () =>
+          githubFeedback({
+            threads: [
+              {
+                id: 'thread-resolved',
+                isResolved: true,
+                isOutdated: false,
+                path: 'orders.ts',
+                line: 1,
+                comments: [{ author: { login: 'coderabbitai' }, body: 'Fixed' }],
+              },
+            ],
+          }),
+      }),
+    )
+
+    expect(workflow.waitForCodeRabbitAndCloseReviewCycle()).toStrictEqual({ pass: true })
+    expect(workflow.getState().currentStateMachineState).toBe('HUMAN_REVIEWING')
+  })
+
+  it('ignores an outdated CodeRabbit thread', () => {
+    const workflow = reviewingWithOpenCycle(
+      makeDeps({
+        getPrFeedback: () =>
+          githubFeedback({
+            threads: [
+              {
+                id: 'thread-outdated',
+                isResolved: false,
+                isOutdated: true,
+                path: 'orders.ts',
+                line: 1,
+                comments: [{ author: { login: 'coderabbitai' }, body: 'Stale' }],
+              },
+            ],
+          }),
+      }),
+    )
+
+    expect(workflow.waitForCodeRabbitAndCloseReviewCycle()).toStrictEqual({ pass: true })
+    expect(workflow.getState().currentStateMachineState).toBe('HUMAN_REVIEWING')
   })
 
   it('stops waiting when CodeRabbit never reviews', () => {

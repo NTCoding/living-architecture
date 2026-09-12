@@ -26,13 +26,13 @@ describe('workflow events', () => {
         type: 'review-cycle-started',
         at: AT,
         cycleNumber: 2,
-        included: ['code-review', 'architecture-review'],
-        excluded: { 'task-check': 'already-approved' },
+        includedReviewers: ['code-review', 'architecture-review'],
+        excludedReviewers: { 'task-check': 'already-approved' },
       }),
     ).toMatchObject({
       cycleNumber: 2,
-      included: ['code-review', 'architecture-review'],
-      excluded: { 'task-check': 'already-approved' },
+      includedReviewers: ['code-review', 'architecture-review'],
+      excludedReviewers: { 'task-check': 'already-approved' },
     })
   })
 

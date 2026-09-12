@@ -41,7 +41,7 @@ describe('workflow-cli commands', () => {
     expect(cycleEvents).toContainEqual(
       expect.objectContaining({
         cycleNumber: 1,
-        included: ['architecture-review', 'code-review', 'bug-scanner', 'task-check'],
+        includedReviewers: ['architecture-review', 'code-review', 'bug-scanner', 'task-check'],
       }),
     )
     expect(context.engineDeps.store.listSessionReviews(context.sessionId)).toStrictEqual([])

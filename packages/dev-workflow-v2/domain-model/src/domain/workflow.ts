@@ -260,17 +260,17 @@ export class MaintainerWorkflow {
         'APPROVED'
       ) {
         excluded[reviewer] = 'already-approved'
-      } else {
-        included.push(reviewer)
+        continue
       }
+      included.push(reviewer)
     }
     this.append(
       ReviewCycleStarted.parse({
         type: 'review-cycle-started',
         at: this.deps.now(),
         cycleNumber: this.state.reviewCycleNumber + 1,
-        included,
-        excluded,
+        includedReviewers: included,
+        excludedReviewers: excluded,
       }),
     )
     return pass()
@@ -382,11 +382,14 @@ function codeRabbitOutcome(
 ): 'PENDING' | 'RATE_LIMITED' | 'OPEN_FEEDBACK' | 'APPROVED' {
   if (feedback.coderabbitRateLimited) return 'RATE_LIMITED'
   if (!feedback.coderabbitReviewSeen) return 'PENDING'
-  const hasOpenCodeRabbitThread = feedback.threads.some((thread) =>
-    thread.comments.some(
-      (comment) =>
-        comment.author?.login === 'coderabbitai' || comment.author?.login === 'coderabbitai[bot]',
-    ),
+  const hasOpenCodeRabbitThread = feedback.threads.some(
+    (thread) =>
+      !thread.isResolved &&
+      !thread.isOutdated &&
+      thread.comments.some(
+        (comment) =>
+          comment.author?.login === 'coderabbitai' || comment.author?.login === 'coderabbitai[bot]',
+      ),
   )
   return hasOpenCodeRabbitThread ? 'OPEN_FEEDBACK' : 'APPROVED'
 }

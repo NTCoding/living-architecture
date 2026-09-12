@@ -191,6 +191,49 @@ describe('executeEventCatalogImportStage', () => {
     })
   })
 
+  it('fails when a mapping references an unknown domain', async () => {
+    const outcome = await executeEventCatalogImportStage(
+      builder(),
+      importConfig({
+        mappings: { domains: { GhostDomain: 'ghost' }, services: {}, events: {} },
+      }),
+      collaborators({ domains: [], services: [], events: [] }),
+    )
+
+    expect(outcome).toStrictEqual({
+      success: false,
+      errorCode: 'EVENT_CATALOG_IMPORT_FAILED',
+      reason: "EventCatalog mappings reference unknown domain 'GhostDomain'",
+    })
+  })
+
+  it('reports a builder failure as a typed stage failure', async () => {
+    const outcome = await executeEventCatalogImportStage(
+      builder(),
+      importConfig({
+        mappings: {
+          domains: {},
+          services: {
+            OrdersService: {
+              type: 'UseCase',
+              domain: 'missing',
+              module: 'checkout',
+              name: 'PlaceOrder',
+            },
+          },
+          events: {},
+        },
+      }),
+      collaborators({
+        domains: [],
+        services: [{ id: 'OrdersService', name: 'Orders', produces: [], consumes: [] }],
+        events: [],
+      }),
+    )
+
+    expect(outcome).toMatchObject({ success: false, errorCode: 'EVENT_CATALOG_IMPORT_FAILED' })
+  })
+
   it('applies convention defaults when a mapping omits identity fields', async () => {
     const graphBuilder = builder()
 

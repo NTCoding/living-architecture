@@ -111,8 +111,8 @@ describe('WorkflowState', () => {
         type: 'review-cycle-started',
         at: '2026-01-01T00:00:00Z',
         cycleNumber: 2,
-        included: ['code-review'],
-        excluded: { 'task-check': 'already-approved' },
+        includedReviewers: ['code-review'],
+        excludedReviewers: { 'task-check': 'already-approved' },
       }),
     ])
 

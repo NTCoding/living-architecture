@@ -24,6 +24,10 @@ function requiredNumber(value: unknown): number {
   return z.number().parse(value)
 }
 
+function requiredCycleNumber(value: unknown): number {
+  return z.number().int().positive().parse(value)
+}
+
 function requiredBoolean(value: unknown): boolean {
   return z.boolean().parse(value)
 }
@@ -152,16 +156,16 @@ export class ReviewCycleStarted {
   private constructor(
     readonly at: string,
     readonly cycleNumber: number,
-    readonly included: readonly string[],
-    readonly excluded: Readonly<Record<string, string>>,
+    readonly includedReviewers: readonly string[],
+    readonly excludedReviewers: Readonly<Record<string, string>>,
   ) {}
 
   static parse(event: BaseEvent): ReviewCycleStarted {
     return new ReviewCycleStarted(
       requiredString(event['at']),
-      requiredNumber(event['cycleNumber']),
-      requiredStringArray(event['included']),
-      requiredStringRecord(event['excluded']),
+      requiredCycleNumber(event['cycleNumber']),
+      requiredStringArray(event['includedReviewers']),
+      requiredStringRecord(event['excludedReviewers']),
     )
   }
 }
@@ -181,7 +185,7 @@ export class ReviewCycleClosed {
   static parse(event: BaseEvent): ReviewCycleClosed {
     return new ReviewCycleClosed(
       requiredString(event['at']),
-      requiredNumber(event['cycleNumber']),
+      requiredCycleNumber(event['cycleNumber']),
       requiredStringRecord(event['outcomes']),
     )
   }

@@ -37,7 +37,11 @@ function runIsolatedGit(directory: string, args: string[]): void {
   for (const name of Object.keys(environment)) {
     if (name.startsWith('GIT_')) delete environment[name]
   }
-  execFileSync('/usr/bin/git', args, { cwd: directory, env: environment, stdio: 'ignore' })
+  execFileSync(process.env['GIT_EXECUTABLE'] ?? 'git', args, {
+    cwd: directory,
+    env: environment,
+    stdio: 'ignore',
+  })
 }
 
 function writeWorkflow(

@@ -66,8 +66,8 @@ describe('workflow lifecycle', () => {
       expect.objectContaining({
         type: 'review-cycle-started',
         cycleNumber: 1,
-        included: ['architecture-review', 'code-review', 'bug-scanner', 'task-check'],
-        excluded: {},
+        includedReviewers: ['architecture-review', 'code-review', 'bug-scanner', 'task-check'],
+        excludedReviewers: {},
       }),
     )
   })

@@ -192,8 +192,8 @@ export class WorkflowState {
         return this.with({
           reviewCycleNumber: event.cycleNumber,
           reviewCycleOpen: true,
-          includedReviewers: [...event.included],
-          excludedReviewers: { ...event.excluded },
+          includedReviewers: [...event.includedReviewers],
+          excludedReviewers: { ...event.excludedReviewers },
         })
       case 'review-cycle-closed': {
         const withOutcomes = Object.entries(event.outcomes).reduce<WorkflowState>(

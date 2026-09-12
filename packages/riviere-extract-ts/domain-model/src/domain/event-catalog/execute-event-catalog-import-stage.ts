@@ -100,14 +100,22 @@ export async function executeEventCatalogImportStage(
   if (!outcome.success) {
     return { success: false, errorCode: 'EVENT_CATALOG_IMPORT_FAILED', reason: outcome.reason }
   }
-  const warnings = applyComponents(
-    builder,
-    outcome.components,
-    config,
-    collaborators.repositoryName,
-  )
-  applyLinks(builder, outcome.links)
-  return { success: true, diagnostics: outcome.diagnostics, warnings }
+  try {
+    const warnings = applyComponents(
+      builder,
+      outcome.components,
+      config,
+      collaborators.repositoryName,
+    )
+    applyLinks(builder, outcome.links)
+    return { success: true, diagnostics: outcome.diagnostics, warnings }
+  } catch (error) {
+    return {
+      success: false,
+      errorCode: 'EVENT_CATALOG_IMPORT_FAILED',
+      reason: `EventCatalog import failed: ${String(error)}`,
+    }
+  }
 }
 
 function mapEventCatalogImport(input: {
@@ -146,7 +154,11 @@ function findMappingConfigFailures(input: {
 }): readonly string[] {
   const sourceServiceIds = new Set(input.source.services.map((service) => service.id))
   const sourceEventIds = new Set(input.source.events.map((event) => event.id))
+  const sourceDomainIds = new Set(input.source.domains.map((domain) => domain.id))
   return [
+    ...Object.keys(input.mappings.domains)
+      .filter((id) => !sourceDomainIds.has(id))
+      .map((id) => `EventCatalog mappings reference unknown domain '${id}'`),
     ...Object.keys(input.mappings.services)
       .filter((id) => !sourceServiceIds.has(id))
       .map((id) => `EventCatalog mappings reference unknown service '${id}'`),
