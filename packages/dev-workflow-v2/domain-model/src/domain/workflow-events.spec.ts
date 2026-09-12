@@ -12,10 +12,42 @@ describe('workflow events', () => {
       'issue-recorded',
       'branch-recorded',
       'pr-recorded',
+      'review-cycle-started',
+      'review-cycle-closed',
       'reviewer-status-recorded',
       'bash-checked',
       'write-checked',
     ])
+  })
+
+  it('parses a started review cycle with its included and excluded reviewers', () => {
+    expect(
+      parseWorkflowEvent({
+        type: 'review-cycle-started',
+        at: AT,
+        cycleNumber: 2,
+        included: ['code-review', 'architecture-review'],
+        excluded: { 'task-check': 'already-approved' },
+      }),
+    ).toMatchObject({
+      cycleNumber: 2,
+      included: ['code-review', 'architecture-review'],
+      excluded: { 'task-check': 'already-approved' },
+    })
+  })
+
+  it('parses a closed review cycle with its outcomes', () => {
+    expect(
+      parseWorkflowEvent({
+        type: 'review-cycle-closed',
+        at: AT,
+        cycleNumber: 2,
+        outcomes: { 'code-review': 'APPROVED', coderabbit: 'APPROVED' },
+      }),
+    ).toMatchObject({
+      cycleNumber: 2,
+      outcomes: { 'code-review': 'APPROVED', coderabbit: 'APPROVED' },
+    })
   })
 
   it('parses a reviewer status record', () => {

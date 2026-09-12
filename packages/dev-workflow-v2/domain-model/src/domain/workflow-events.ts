@@ -36,6 +36,14 @@ function optionalStateOverrides(value: unknown): Readonly<Record<string, unknown
   return z.record(z.unknown()).optional().parse(value)
 }
 
+function requiredStringArray(value: unknown): readonly string[] {
+  return z.array(z.string()).parse(value)
+}
+
+function requiredStringRecord(value: unknown): Readonly<Record<string, string>> {
+  return z.record(z.string(), z.string()).parse(value)
+}
+
 /** @riviere-role value-object */
 export class SessionStarted {
   declare private readonly brand: 'SessionStarted';
@@ -136,6 +144,50 @@ export class PrRecorded {
 }
 
 /** @riviere-role value-object */
+export class ReviewCycleStarted {
+  declare private readonly brand: 'ReviewCycleStarted';
+  [key: string]: unknown
+  readonly type = 'review-cycle-started'
+
+  private constructor(
+    readonly at: string,
+    readonly cycleNumber: number,
+    readonly included: readonly string[],
+    readonly excluded: Readonly<Record<string, string>>,
+  ) {}
+
+  static parse(event: BaseEvent): ReviewCycleStarted {
+    return new ReviewCycleStarted(
+      requiredString(event['at']),
+      requiredNumber(event['cycleNumber']),
+      requiredStringArray(event['included']),
+      requiredStringRecord(event['excluded']),
+    )
+  }
+}
+
+/** @riviere-role value-object */
+export class ReviewCycleClosed {
+  declare private readonly brand: 'ReviewCycleClosed';
+  [key: string]: unknown
+  readonly type = 'review-cycle-closed'
+
+  private constructor(
+    readonly at: string,
+    readonly cycleNumber: number,
+    readonly outcomes: Readonly<Record<string, string>>,
+  ) {}
+
+  static parse(event: BaseEvent): ReviewCycleClosed {
+    return new ReviewCycleClosed(
+      requiredString(event['at']),
+      requiredNumber(event['cycleNumber']),
+      requiredStringRecord(event['outcomes']),
+    )
+  }
+}
+
+/** @riviere-role value-object */
 export class ReviewerStatusRecorded {
   declare private readonly brand: 'ReviewerStatusRecorded';
   [key: string]: unknown
@@ -220,6 +272,8 @@ export type WorkflowEvent =
   | IssueRecorded
   | BranchRecorded
   | PrRecorded
+  | ReviewCycleStarted
+  | ReviewCycleClosed
   | ReviewerStatusRecorded
   | BashChecked
   | WriteChecked
@@ -230,6 +284,8 @@ const KNOWN_WORKFLOW_EVENT_TYPES = [
   'issue-recorded',
   'branch-recorded',
   'pr-recorded',
+  'review-cycle-started',
+  'review-cycle-closed',
   'reviewer-status-recorded',
   'bash-checked',
   'write-checked',
@@ -251,6 +307,10 @@ export function parseWorkflowEvent(event: BaseEvent): WorkflowEvent {
       return BranchRecorded.parse(event)
     case 'pr-recorded':
       return PrRecorded.parse(event)
+    case 'review-cycle-started':
+      return ReviewCycleStarted.parse(event)
+    case 'review-cycle-closed':
+      return ReviewCycleClosed.parse(event)
     case 'reviewer-status-recorded':
       return ReviewerStatusRecorded.parse(event)
     case 'bash-checked':

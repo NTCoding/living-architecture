@@ -1,39 +1,18 @@
 import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { z } from 'zod'
+import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowTransitionContext } from '../workflow-transition-context'
 import type { WorkflowState } from '../workflow-types'
-import type { ReviewOutcome } from '../workflow'
-import type { ReadWorkflowPullRequestFeedback } from '../ports/read-pull-request-feedback'
-import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import { Reviewer } from '../reviews/reviewers'
-import type { ReviewerStatus } from '../reviews/statuses'
 
 /** @riviere-role domain-port
- * @riviere-role-justification State entry receives external review capabilities and aggregate operations; it does not load previously created workflow state.
+ * @riviere-role-justification State entry receives the aggregate operation that opens a review cycle; it does not load previously created workflow state.
  */
 export type ReviewingDependencies = {
   readonly workflow: {
     getState(): WorkflowState
-    getPullRequestNumber(): number
-    recordReviewerStatus(
-      reviewer: Reviewer,
-      status: ReturnType<ReviewerStatus['name']>,
-    ): { readonly pass: boolean; readonly reason?: string }
-    transition(target: 'ADDRESSING_FEEDBACK' | 'HUMAN_REVIEWING' | 'BLOCKED'): {
-      readonly pass: boolean
-      readonly reason?: string
-    }
-    reviewOutcome(options: { readonly ignoreCodeRabbit?: boolean }): ReviewOutcome
-  }
-  readonly deps: {
-    readonly getPrFeedback: ReadWorkflowPullRequestFeedback
-    readonly sleepMs: (milliseconds: number) => void
-    readonly now: () => string
+    startReviewCycle(): { readonly pass: boolean; readonly reason?: string }
   }
 }
-
-const CODERABBIT_POLL_INTERVAL_MS = 15_000
-const MAX_REVIEW_COMPLETION_POLLS = 120
 
 /** @riviere-role value-object */
 export class ReviewingState {
@@ -42,14 +21,12 @@ export class ReviewingState {
   readonly name: 'REVIEWING'
   readonly emoji = '📋'
   readonly agentInstructions = 'states/reviewing.md'
-  readonly canTransitionTo = [
-    'REVIEWING',
-    'ADDRESSING_FEEDBACK',
-    'HUMAN_REVIEWING',
-    'BLOCKED',
-  ] as const
+  readonly canTransitionTo = ['ADDRESSING_FEEDBACK', 'HUMAN_REVIEWING', 'BLOCKED'] as const
   readonly forbidden = { write: true } as const
-  readonly allowedWorkflowOperations = ['record-reviewer-status'] as const
+  readonly allowedWorkflowOperations = [
+    'record-reviewer-status',
+    'wait-for-coderabbit-and-close-review-cycle',
+  ] as const
 
   private readonly dependencies: ReviewingDependencies | undefined
 
@@ -82,99 +59,8 @@ export class ReviewingState {
   afterEntry(): void {
     if (this.dependencies === undefined)
       throw new WorkflowStateError('Reviewing entry dependencies have not been configured.')
-    const context = this.dependencies
-    const pullRequestNumber = context.workflow.getPullRequestNumber()
-    const reviewers = ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
-    const feedback = waitForReviewCompletion(
-      context.deps,
-      pullRequestNumber,
-      context.workflow.getState(),
-    )
-    const skipCodeRabbit = feedback.coderabbitRateLimited === true
-    for (const reviewer of reviewers) {
-      const status = reviewerStatus(feedback, reviewer)
-      if (
-        context.workflow
-          .getState()
-          .reviewerStatuses.statusFor(Reviewer.fromName(reviewer))
-          ?.name() !== status
-      )
-        context.workflow.recordReviewerStatus(Reviewer.fromName(reviewer), status)
-    }
-    if (!skipCodeRabbit) {
-      const coderabbitStatus = getCodeRabbitStatus(feedback)
-      if (
-        context.workflow
-          .getState()
-          .reviewerStatuses.statusFor(Reviewer.fromName('coderabbit'))
-          ?.name() !== coderabbitStatus
-      )
-        context.workflow.recordReviewerStatus(Reviewer.fromName('coderabbit'), coderabbitStatus)
-    }
-
-    switch (context.workflow.reviewOutcome({ ignoreCodeRabbit: skipCodeRabbit })) {
-      case 'OPEN_FEEDBACK':
-        context.workflow.transition('ADDRESSING_FEEDBACK')
-        return
-      case 'APPROVED':
-        context.workflow.transition('HUMAN_REVIEWING')
-        return
-      case 'PENDING':
-        context.workflow.transition('BLOCKED')
-        return
-    }
+    const result = this.dependencies.workflow.startReviewCycle()
+    if (!result.pass)
+      throw new WorkflowStateError(result.reason ?? 'Unable to start a review cycle.')
   }
-}
-
-function reviewerStatus(
-  feedback: ReturnType<ReadWorkflowPullRequestFeedback>,
-  reviewer: 'architecture-review' | 'code-review' | 'bug-scanner' | 'task-check',
-): ReturnType<ReviewerStatus['name']> {
-  switch (reviewer) {
-    case 'architecture-review':
-      return feedback.reviewerStatuses['architecture-review']
-    case 'code-review':
-      return feedback.reviewerStatuses['code-review']
-    case 'bug-scanner':
-      return feedback.reviewerStatuses['bug-scanner']
-    case 'task-check':
-      return feedback.reviewerStatuses['task-check']
-  }
-}
-
-function waitForReviewCompletion(
-  deps: ReviewingDependencies['deps'],
-  prNumber: number,
-  state: WorkflowState,
-  remainingPolls: number = MAX_REVIEW_COMPLETION_POLLS,
-): ReturnType<ReadWorkflowPullRequestFeedback> {
-  const feedback = deps.getPrFeedback(prNumber)
-  const localReviewersComplete = (
-    ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
-  ).every(
-    (reviewer) =>
-      state.reviewerStatuses.statusFor(Reviewer.fromName(reviewer))?.name() === 'APPROVED' ||
-      feedback.reviewerStatuses[reviewer] !== 'PENDING',
-  )
-  if (!localReviewersComplete) return feedback
-  if (feedback.coderabbitReviewSeen || feedback.coderabbitRateLimited) return feedback
-  if (remainingPolls === 1) return feedback
-  deps.sleepMs(CODERABBIT_POLL_INTERVAL_MS)
-  return waitForReviewCompletion(deps, prNumber, state, remainingPolls - 1)
-}
-
-function getCodeRabbitStatus(feedback: {
-  readonly coderabbitReviewSeen: boolean
-  readonly threads: readonly {
-    readonly comments: readonly { readonly author: { readonly login: string } | null }[]
-  }[]
-}): 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED' {
-  if (!feedback.coderabbitReviewSeen) return 'PENDING'
-  const hasOpenCodeRabbitThread = feedback.threads.some((thread) =>
-    thread.comments.some(
-      (comment) =>
-        comment.author?.login === 'coderabbitai' || comment.author?.login === 'coderabbitai[bot]',
-    ),
-  )
-  return hasOpenCodeRabbitThread ? 'OPEN_FEEDBACK' : 'APPROVED'
 }
