@@ -335,16 +335,23 @@ it('materializes an ai-enrich stage', () => {
 })
 
 it.each([
-  ['eventcatalog-import', 'source: a.json\n'],
+  ['eventcatalog missing mappings', 'eventcatalog-import', 'source: a.json\n', /mappings/],
   [
+    'eventcatalog unknown key',
     'eventcatalog-import',
     'source: a.json\nmappings: m.yaml\nallow-unmapped: false\nunexpected: true\n',
+    /unexpected/,
   ],
-  ['eventcatalog-import', "source: ''\nmappings: m.yaml\nallow-unmapped: false\n"],
-  ['asyncapi-import', 'source: a.json\n'],
-  ['ai-extract', 'command: extract\n'],
-  ['ai-enrich', 'command: enrich\n'],
-])('rejects an %s stage with an invalid config', (kind, configYaml) => {
+  [
+    'eventcatalog empty source',
+    'eventcatalog-import',
+    "source: ''\nmappings: m.yaml\nallow-unmapped: false\n",
+    /source: Too small/,
+  ],
+  ['asyncapi missing mappings', 'asyncapi-import', 'source: a.json\n', /mappings/],
+  ['incomplete ai-extract config', 'ai-extract', 'command: extract\n', /timeout-seconds/],
+  ['incomplete ai-enrich config', 'ai-enrich', 'command: enrich\n', /timeout-seconds/],
+])('rejects an invalid %s config', (_scenario, kind, configYaml, error) => {
   const directory = workspace()
   writeFileSync(join(directory, '.riviere', 'workflows', 'stage.yaml'), configYaml)
   writeFileSync(
@@ -353,7 +360,7 @@ it.each([
   )
   writeWorkflow(directory, `  - kind: ${kind}\n    name: stage\n    config: stage.yaml`)
 
-  expect(() => loadWorkflow(directory, 'combined')).toThrow(/./)
+  expect(() => loadWorkflow(directory, 'combined')).toThrow(error)
 })
 
 it('materializes a code-extraction stage', () => {

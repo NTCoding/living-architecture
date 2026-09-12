@@ -31,7 +31,7 @@ export interface EventCatalogDocument {
 /** @riviere-role external-client-service */
 export async function readEventCatalog(sourcePath: string): Promise<EventCatalogDocument> {
   const catalog = eventCatalog(sourcePath)
-  const [domains, services, events] = await Promise.all([
+  const [domains = [], services = [], events = []] = await Promise.all([
     catalog.getDomains(),
     catalog.getServices(),
     catalog.getEvents(),

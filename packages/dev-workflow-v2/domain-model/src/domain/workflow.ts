@@ -252,23 +252,23 @@ export class MaintainerWorkflow {
       return fail('A review cycle can only start in REVIEWING.')
     }
     if (this.state.reviewCycleOpen) return fail('A review cycle is already open.')
-    const included: string[] = []
-    const excluded: Record<string, string> = {}
+    const includedReviewers: string[] = []
+    const excludedReviewers: Record<string, string> = {}
     for (const reviewer of REVIEW_RUNNERS) {
       const status = this.state.reviewerStatuses.statusFor(ReviewerValue.fromName(reviewer))
       if (status?.isApproved() === true) {
-        excluded[reviewer] = 'already-approved'
+        excludedReviewers[reviewer] = 'already-approved'
         continue
       }
-      included.push(reviewer)
+      includedReviewers.push(reviewer)
     }
     this.append(
       ReviewCycleStarted.parse({
         type: 'review-cycle-started',
         at: this.deps.now(),
         cycleNumber: this.state.reviewCycleNumber + 1,
-        includedReviewers: included,
-        excludedReviewers: excluded,
+        includedReviewers,
+        excludedReviewers,
       }),
     )
     return pass()

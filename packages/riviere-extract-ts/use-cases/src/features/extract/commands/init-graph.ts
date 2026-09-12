@@ -36,6 +36,17 @@ export class InitGraph {
       })
     }
 
+    const primarySource = input.sources[0]
+    if (primarySource === undefined) {
+      return {
+        result: {
+          code: 'VALIDATION_ERROR',
+          message: 'At least one source is required',
+          success: false,
+        },
+      }
+    }
+
     const builderOptions = {
       ...(input.name === undefined ? {} : { name: input.name }),
       domains: Object.fromEntries(
@@ -66,7 +77,7 @@ export class InitGraph {
           { graphDefinition: builderOptions },
           {
             loadEventCatalogSource: this.loadEventCatalogSource,
-            repositoryName: input.sources.join(', '),
+            repositoryName: primarySource,
           },
         ).project
         this.repository.save(input.graphFileLocation, project)

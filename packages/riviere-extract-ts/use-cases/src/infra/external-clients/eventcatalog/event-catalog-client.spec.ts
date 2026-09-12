@@ -60,4 +60,14 @@ describe('readEventCatalog', () => {
       events: [],
     })
   })
+
+  it('defaults an entirely absent catalog to empty collections', async () => {
+    sdk.getDomains.mockResolvedValue(undefined)
+    sdk.getServices.mockResolvedValue(undefined)
+    sdk.getEvents.mockResolvedValue(undefined)
+
+    const result = await readEventCatalog('/missing')
+
+    expect(result).toStrictEqual({ domains: [], services: [], events: [] })
+  })
 })

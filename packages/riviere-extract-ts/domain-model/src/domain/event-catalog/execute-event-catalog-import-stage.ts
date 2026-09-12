@@ -89,16 +89,16 @@ export async function executeEventCatalogImportStage(
     }>
   | Readonly<{ success: false; errorCode: string; reason: string }>
 > {
-  const source = await collaborators.loadEventCatalogSource(config.source)
-  const outcome = mapEventCatalogImport({
-    source,
-    mappings: config.mappings,
-    allowUnmapped: config.allowUnmapped,
-  })
-  if (!outcome.success) {
-    return { success: false, errorCode: 'EVENT_CATALOG_IMPORT_FAILED', reason: outcome.reason }
-  }
   try {
+    const source = await collaborators.loadEventCatalogSource(config.source)
+    const outcome = mapEventCatalogImport({
+      source,
+      mappings: config.mappings,
+      allowUnmapped: config.allowUnmapped,
+    })
+    if (!outcome.success) {
+      return { success: false, errorCode: 'EVENT_CATALOG_IMPORT_FAILED', reason: outcome.reason }
+    }
     const warnings = applyComponents(
       builder,
       outcome.components,

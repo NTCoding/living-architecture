@@ -104,6 +104,19 @@ describe('command success path coverage', () => {
     expect(result.result.success).toBe(true)
   })
 
+  it('returns a validation error when no source is declared', () => {
+    const result = new InitGraph(
+      createRiviereProjectRepository(),
+      collaborators().loadEventCatalogSource,
+    ).execute({
+      domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],
+      graphFileLocation: graphLocation(),
+      name: 'Combined graph',
+      sources: [],
+    })
+    expect(result.result).toMatchObject({ code: 'VALIDATION_ERROR', success: false })
+  })
+
   it('reports an existing graph from init-graph', () => {
     const input = {
       domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],

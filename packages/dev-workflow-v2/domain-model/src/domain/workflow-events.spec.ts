@@ -64,6 +64,30 @@ describe('workflow events', () => {
     }
   })
 
+  it('rejects a started review cycle with an unknown included reviewer', () => {
+    expect(() =>
+      parseWorkflowEvent({
+        type: 'review-cycle-started',
+        at: AT,
+        cycleNumber: 1,
+        includedReviewers: ['unknown-reviewer'],
+        excludedReviewers: {},
+      }),
+    ).toThrow('Unknown reviewer: unknown-reviewer')
+  })
+
+  it('rejects a started review cycle with an unknown excluded reviewer', () => {
+    expect(() =>
+      parseWorkflowEvent({
+        type: 'review-cycle-started',
+        at: AT,
+        cycleNumber: 1,
+        includedReviewers: [],
+        excludedReviewers: { 'unknown-reviewer': 'already-approved' },
+      }),
+    ).toThrow('Unknown reviewer: unknown-reviewer')
+  })
+
   it('rejects a closed review cycle with an unknown reviewer outcome', () => {
     expect(() =>
       parseWorkflowEvent({

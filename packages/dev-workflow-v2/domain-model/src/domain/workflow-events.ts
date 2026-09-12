@@ -59,6 +59,19 @@ function requiredReviewerStatusRecord(value: unknown): Readonly<Record<string, s
   return validated
 }
 
+function requiredReviewerNameArray(value: unknown): readonly string[] {
+  return requiredStringArray(value).map((name) => Reviewer.fromName(name).name())
+}
+
+function requiredReviewerNameRecord(value: unknown): Readonly<Record<string, string>> {
+  const record = requiredStringRecord(value)
+  const validated: Record<string, string> = {}
+  for (const [reviewerName, reason] of Object.entries(record)) {
+    validated[Reviewer.fromName(reviewerName).name()] = reason
+  }
+  return validated
+}
+
 /** @riviere-role value-object */
 export class SessionStarted {
   declare private readonly brand: 'SessionStarted';
@@ -175,8 +188,8 @@ export class ReviewCycleStarted {
     return new ReviewCycleStarted(
       requiredString(event['at']),
       requiredCycleNumber(event['cycleNumber']),
-      requiredStringArray(event['includedReviewers']),
-      requiredStringRecord(event['excludedReviewers']),
+      requiredReviewerNameArray(event['includedReviewers']),
+      requiredReviewerNameRecord(event['excludedReviewers']),
     )
   }
 }

@@ -4,6 +4,13 @@ import { builder, collaborators } from '../__fixtures__/workflow-fixtures'
 import { importConfig } from './__fixtures__/event-catalog-stage-fixtures'
 import { executeEventCatalogImportStage } from './execute-event-catalog-import-stage'
 
+class SourceLoadFailure extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'SourceLoadFailure'
+  }
+}
+
 async function runProducingServiceStage() {
   const graphBuilder = builder()
   const outcome = await executeEventCatalogImportStage(
@@ -402,5 +409,18 @@ describe('executeEventCatalogImportStage', () => {
 
     expect(outcome.success).toBe(true)
     expect(graphBuilder.links()).toStrictEqual([])
+  })
+
+  it('fails with the EventCatalog error code when the source loader rejects', async () => {
+    const outcome = await executeEventCatalogImportStage(builder(), importConfig(), {
+      loadEventCatalogSource: () => Promise.reject(new SourceLoadFailure('boom')),
+      repositoryName: 'shop',
+    })
+
+    expect(outcome).toStrictEqual({
+      success: false,
+      errorCode: 'EVENT_CATALOG_IMPORT_FAILED',
+      reason: 'EventCatalog import failed: SourceLoadFailure: boom',
+    })
   })
 })
