@@ -1,44 +1,50 @@
 import { assert, describe, expect, it } from 'vitest'
-import { builder } from '../__fixtures__/workflow-fixtures'
-import { collaborators, importConfig } from './__fixtures__/event-catalog-stage-fixtures'
+import { builder, collaborators } from '../__fixtures__/workflow-fixtures'
+import { importConfig } from './__fixtures__/event-catalog-stage-fixtures'
 import { executeEventCatalogImportStage } from './execute-event-catalog-import-stage'
 
-describe('executeEventCatalogImportStage consumer outcomes', () => {
-  it('adds an event handler and links the consumed event to it', async () => {
-    const graphBuilder = builder()
-    graphBuilder.addDomain({ name: 'shipping', description: 'Shipping', systemType: 'domain' })
+async function importConsumingService() {
+  const graphBuilder = builder()
+  graphBuilder.addDomain({ name: 'shipping', description: 'Shipping', systemType: 'domain' })
 
-    const outcome = await executeEventCatalogImportStage(
-      graphBuilder,
-      importConfig({
-        mappings: {
-          domains: {},
-          services: {
-            OrdersService: {
-              type: 'UseCase',
-              domain: 'orders',
-              module: 'checkout',
-              name: 'PlaceOrder',
-            },
-            ShippingService: {
-              type: 'UseCase',
-              domain: 'shipping',
-              module: 'fulfillment',
-              name: 'ShipOrder',
-            },
+  const outcome = await executeEventCatalogImportStage(
+    graphBuilder,
+    importConfig({
+      mappings: {
+        domains: {},
+        services: {
+          OrdersService: {
+            type: 'UseCase',
+            domain: 'orders',
+            module: 'checkout',
+            name: 'PlaceOrder',
           },
-          events: { OrderCreated: { name: 'OrderPlaced' } },
+          ShippingService: {
+            type: 'UseCase',
+            domain: 'shipping',
+            module: 'fulfillment',
+            name: 'ShipOrder',
+          },
         },
-      }),
-      collaborators({
-        domains: [],
-        services: [
-          { id: 'OrdersService', name: 'Orders', produces: ['OrderCreated'], consumes: [] },
-          { id: 'ShippingService', name: 'Shipping', produces: [], consumes: ['OrderCreated'] },
-        ],
-        events: [{ id: 'OrderCreated', name: 'Order Created' }],
-      }),
-    )
+        events: { OrderCreated: { name: 'OrderPlaced' } },
+      },
+    }),
+    collaborators({
+      domains: [],
+      services: [
+        { id: 'OrdersService', name: 'Orders', produces: ['OrderCreated'], consumes: [] },
+        { id: 'ShippingService', name: 'Shipping', produces: [], consumes: ['OrderCreated'] },
+      ],
+      events: [{ id: 'OrderCreated', name: 'Order Created' }],
+    }),
+  )
+
+  return { graphBuilder, outcome }
+}
+
+describe('executeEventCatalogImportStage consumer outcomes', () => {
+  it('adds an event handler component for a consumed event', async () => {
+    const { graphBuilder, outcome } = await importConsumingService()
 
     expect(outcome.success).toBe(true)
     expect(
@@ -55,6 +61,12 @@ describe('executeEventCatalogImportStage consumer outcomes', () => {
     expect(
       graphBuilder.components().find((component) => component.type === 'EventHandler'),
     ).toMatchObject({ subscribedEvents: ['OrderPlaced'] })
+  })
+
+  it('links a consumed event to its event handler', async () => {
+    const { graphBuilder, outcome } = await importConsumingService()
+
+    expect(outcome.success).toBe(true)
     expect(graphBuilder.links().map((link) => [link.source, link.target, link.type])).toStrictEqual(
       [
         ['orders:checkout:usecase:placeorder', 'orders:checkout:event:orderplaced', 'async'],

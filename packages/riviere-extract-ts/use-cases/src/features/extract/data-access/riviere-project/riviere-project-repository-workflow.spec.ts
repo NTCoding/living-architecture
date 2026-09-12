@@ -1,7 +1,9 @@
-import { execFileSync } from 'node:child_process'
 import { createRiviereProjectRepository } from '../../../../__fixtures__/riviere-project-repository-fixtures'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import {
+  cleanupWorkflowWorkspaces,
+  createWorkflowWorkspace as workspace,
+} from '../../../../__fixtures__/riviere-project-workspace-fixtures'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
@@ -13,36 +15,6 @@ import * as fileReader from '../../../../infra/external-clients/filesystem/file-
 class UnexpectedParserFailure extends Error {}
 class UnexpectedGraphReadFailure extends Error {}
 class UnexpectedRehydrateFailure extends Error {}
-
-const directories: string[] = []
-
-function workspace(): string {
-  const directory = mkdtempSync(join(tmpdir(), 'project-workflow-test-'))
-  directories.push(directory)
-  mkdirSync(join(directory, '.riviere', 'workflows'), { recursive: true })
-  writeFileSync(join(directory, 'package.json'), '{"name":"workflow-test"}')
-  writeFileSync(join(directory, 'component.ts'), 'export class Component {}')
-  runIsolatedGit(directory, ['init', '--initial-branch=main'])
-  runIsolatedGit(directory, [
-    'remote',
-    'add',
-    'origin',
-    'https://github.com/test/workflow-test.git',
-  ])
-  return directory
-}
-
-function runIsolatedGit(directory: string, args: string[]): void {
-  const environment = { ...process.env }
-  for (const name of Object.keys(environment)) {
-    if (name.startsWith('GIT_')) delete environment[name]
-  }
-  execFileSync(process.env['GIT_EXECUTABLE'] ?? 'git', args, {
-    cwd: directory,
-    env: environment,
-    stdio: 'ignore',
-  })
-}
 
 function writeWorkflow(
   directory: string,
@@ -73,9 +45,7 @@ function loadWorkflow(directory: string, name: string) {
   })
 }
 
-afterEach(() => {
-  for (const directory of directories.splice(0)) rmSync(directory, { recursive: true })
-})
+afterEach(cleanupWorkflowWorkspaces)
 
 describe('RiviereProjectRepository workflow loading', () => {
   it('creates a new graph from a workflow when none exists', () => {
@@ -377,6 +347,10 @@ it.each([
 ])('rejects an %s stage with an invalid config', (kind, configYaml) => {
   const directory = workspace()
   writeFileSync(join(directory, '.riviere', 'workflows', 'stage.yaml'), configYaml)
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'm.yaml'),
+    'domains: {}\nservices: {}\nevents: {}\n',
+  )
   writeWorkflow(directory, `  - kind: ${kind}\n    name: stage\n    config: stage.yaml`)
 
   expect(() => loadWorkflow(directory, 'combined')).toThrow(/./)

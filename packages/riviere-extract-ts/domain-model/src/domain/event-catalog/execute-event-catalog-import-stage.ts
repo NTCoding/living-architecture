@@ -174,7 +174,8 @@ function resolveServices(input: {
   const unmapped: UnmappedRecord[] = []
   for (const service of input.source.services) {
     const mapping = input.mappings.services[service.id]
-    const domain = mapping?.domain ?? canonicalDomain(input, service) ?? service.domainId
+    const defaultDomain = canonicalDomain(input, service) ?? service.domainId
+    const domain = mapping?.domain ?? defaultDomain
     if (domain === undefined) {
       unmapped.push({ kind: 'service', id: service.id })
       continue

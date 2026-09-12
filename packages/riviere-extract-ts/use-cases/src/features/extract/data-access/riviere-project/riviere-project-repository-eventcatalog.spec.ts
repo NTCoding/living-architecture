@@ -1,38 +1,11 @@
-import { execFileSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import {
+  cleanupWorkflowWorkspaces,
+  createWorkflowWorkspace as workspace,
+} from '../../../../__fixtures__/riviere-project-workspace-fixtures'
+import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, assert, describe, expect, it } from 'vitest'
 import { RiviereProjectRepository } from './riviere-project-repository'
-
-const directories: string[] = []
-
-function workspace(): string {
-  const directory = mkdtempSync(join(tmpdir(), 'project-eventcatalog-test-'))
-  directories.push(directory)
-  mkdirSync(join(directory, '.riviere', 'workflows'), { recursive: true })
-  writeFileSync(join(directory, 'package.json'), '{"name":"workflow-test"}')
-  runIsolatedGit(directory, ['init', '--initial-branch=main'])
-  runIsolatedGit(directory, [
-    'remote',
-    'add',
-    'origin',
-    'https://github.com/test/workflow-test.git',
-  ])
-  return directory
-}
-
-function runIsolatedGit(directory: string, args: string[]): void {
-  const environment = { ...process.env }
-  for (const name of Object.keys(environment)) {
-    if (name.startsWith('GIT_')) delete environment[name]
-  }
-  execFileSync(process.env['GIT_EXECUTABLE'] ?? 'git', args, {
-    cwd: directory,
-    env: environment,
-    stdio: 'ignore',
-  })
-}
 
 function writeWorkflow(directory: string): void {
   writeFileSync(
@@ -73,9 +46,7 @@ function writeWorkflow(directory: string): void {
   )
 }
 
-afterEach(() => {
-  for (const directory of directories.splice(0)) rmSync(directory, { recursive: true })
-})
+afterEach(cleanupWorkflowWorkspaces)
 
 describe('RiviereProjectRepository EventCatalog workflow', () => {
   it('runs an EventCatalog import stage through the supplied port', async () => {

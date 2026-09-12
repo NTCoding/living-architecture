@@ -1,9 +1,8 @@
 import { z } from 'zod'
-import { COMPONENT_TYPES } from '@living-architecture/riviere-schema-published-language/schema'
 
 /** @riviere-role published-language-data-structure */
 export interface EventCatalogServiceMapping {
-  readonly type?: (typeof COMPONENT_TYPES)[number] | undefined
+  readonly type?: 'UseCase' | undefined
   readonly domain?: string | undefined
   readonly module?: string | undefined
   readonly name?: string | undefined
@@ -26,12 +25,7 @@ export interface EventCatalogMappings {
 const nonEmptyString = z.string().trim().min(1)
 
 const serviceMappingSchema = z.strictObject({
-  type: z
-    .enum(COMPONENT_TYPES)
-    .refine((type) => type === 'UseCase', {
-      message: 'EventCatalog services map to UseCase components',
-    })
-    .optional(),
+  type: z.literal('UseCase').optional(),
   domain: nonEmptyString.optional(),
   module: nonEmptyString.optional(),
   name: nonEmptyString.optional(),

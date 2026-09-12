@@ -1,7 +1,7 @@
 import { assert, describe, expect, it } from 'vitest'
 import type { EventCatalogSource } from '../ports/load-event-catalog-source'
-import { builder } from '../__fixtures__/workflow-fixtures'
-import { collaborators, importConfig } from './__fixtures__/event-catalog-stage-fixtures'
+import { builder, collaborators } from '../__fixtures__/workflow-fixtures'
+import { importConfig } from './__fixtures__/event-catalog-stage-fixtures'
 import { executeEventCatalogImportStage } from './execute-event-catalog-import-stage'
 
 async function runProducingServiceStage() {

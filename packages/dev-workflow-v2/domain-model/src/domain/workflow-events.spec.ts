@@ -50,6 +50,20 @@ describe('workflow events', () => {
     })
   })
 
+  it('rejects a review cycle event whose cycle number is not a positive integer', () => {
+    for (const cycleNumber of [0, -1, 1.5]) {
+      expect(() =>
+        parseWorkflowEvent({
+          type: 'review-cycle-started',
+          at: AT,
+          cycleNumber,
+          includedReviewers: ['code-review'],
+          excludedReviewers: {},
+        }),
+      ).toThrow(/Number must be greater than 0|Expected integer/)
+    }
+  })
+
   it('parses a reviewer status record', () => {
     expect(
       parseWorkflowEvent({
