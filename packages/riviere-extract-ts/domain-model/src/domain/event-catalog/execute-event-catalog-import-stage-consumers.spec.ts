@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { assert, describe, expect, it } from 'vitest'
 import { builder } from '../__fixtures__/workflow-fixtures'
 import { collaborators, importConfig } from './__fixtures__/event-catalog-stage-fixtures'
 import { executeEventCatalogImportStage } from './execute-event-catalog-import-stage'
@@ -99,5 +99,43 @@ describe('executeEventCatalogImportStage consumer outcomes', () => {
 
     expect(outcome.success).toBe(true)
     expect(graphBuilder.links()).toStrictEqual([])
+  })
+  it('overwrites a scalar contributed by an earlier stage', async () => {
+    const graphBuilder = builder()
+    graphBuilder.addEvent({
+      name: 'OrderPlaced',
+      eventName: 'StaleName',
+      domain: 'orders',
+      module: 'checkout',
+      sourceLocation: { repository: 'shop', filePath: 'code/order-placed.ts' },
+    })
+
+    const outcome = await executeEventCatalogImportStage(
+      graphBuilder,
+      importConfig({
+        mappings: {
+          domains: {},
+          services: {
+            OrdersService: {
+              type: 'UseCase',
+              domain: 'orders',
+              module: 'checkout',
+              name: 'PlaceOrder',
+            },
+          },
+          events: { OrderCreated: { name: 'OrderPlaced' } },
+        },
+      }),
+      collaborators({
+        domains: [],
+        services: [
+          { id: 'OrdersService', name: 'Orders', produces: ['OrderCreated'], consumes: [] },
+        ],
+        events: [{ id: 'OrderCreated', name: 'Order Created' }],
+      }),
+    )
+
+    assert(outcome.success)
+    expect(outcome.warnings).toContainEqual(expect.objectContaining({ code: 'SCALAR_OVERWRITE' }))
   })
 })

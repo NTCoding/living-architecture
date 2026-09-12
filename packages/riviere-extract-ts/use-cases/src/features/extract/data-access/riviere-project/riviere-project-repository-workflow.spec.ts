@@ -366,6 +366,11 @@ it('materializes an ai-enrich stage', () => {
 
 it.each([
   ['eventcatalog-import', 'source: a.json\n'],
+  [
+    'eventcatalog-import',
+    'source: a.json\nmappings: m.yaml\nallow-unmapped: false\nunexpected: true\n',
+  ],
+  ['eventcatalog-import', "source: ''\nmappings: m.yaml\nallow-unmapped: false\n"],
   ['asyncapi-import', 'source: a.json\n'],
   ['ai-extract', 'command: extract\n'],
   ['ai-enrich', 'command: enrich\n'],
