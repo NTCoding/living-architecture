@@ -6,6 +6,7 @@ import { ResolvedCallTarget } from './connection-detection/call-graph/resolved-c
 import { EnrichedComponent } from './value-extraction/enriched-component'
 import { ExtractionConfiguration } from './extraction-configuration'
 import { RiviereProject } from './riviere-project'
+import { collaborators } from './__fixtures__/workflow-fixtures'
 
 describe('RiviereProject unresolved call reason', () => {
   it('uses a default reason when resolution supplies none', () => {
@@ -55,10 +56,13 @@ describe('RiviereProject unresolved call reason', () => {
       resolvedConfig: validatedConfiguration.data,
       moduleContexts: [{ module, files: [sourceFile.getFilePath()], project }],
     })
-    const parsedProject = RiviereProject.start({
-      configuration: extractionConfiguration,
-      draftComponents: [],
-    })
+    const parsedProject = RiviereProject.start(
+      {
+        configuration: extractionConfiguration,
+        draftComponents: [],
+      },
+      collaborators(),
+    )
     assert(parsedProject.success)
     vi.spyOn(DetectedCall.prototype, 'resolveTarget').mockImplementation(function (
       this: DetectedCall,
@@ -70,7 +74,7 @@ describe('RiviereProject unresolved call reason', () => {
       })
     })
 
-    const result = parsedProject.data.detectConnections([component], true)
+    const result = parsedProject.project.detectConnections([component], true)
 
     expect(result.links).toMatchObject([
       { target: '_unresolved', _uncertain: 'Call target unresolved' },

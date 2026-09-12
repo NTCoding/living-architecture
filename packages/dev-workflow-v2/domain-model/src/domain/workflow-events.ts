@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { Reviewer } from './reviews/reviewers'
-import { InvalidReviewerStatus, ReviewerStatus } from './reviews/statuses'
+import { ReviewerStatus } from './reviews/statuses'
 import { StateNames, type StateName } from './workflow-types'
 
 /** @riviere-role domain-error */
@@ -24,6 +24,10 @@ function requiredNumber(value: unknown): number {
   return z.number().parse(value)
 }
 
+function requiredCycleNumber(value: unknown): number {
+  return z.number().int().positive().parse(value)
+}
+
 function requiredBoolean(value: unknown): boolean {
   return z.boolean().parse(value)
 }
@@ -34,6 +38,36 @@ function requiredStateName(value: unknown): StateName {
 
 function optionalStateOverrides(value: unknown): Readonly<Record<string, unknown>> | undefined {
   return z.record(z.unknown()).optional().parse(value)
+}
+
+function requiredStringArray(value: unknown): readonly string[] {
+  return z.array(z.string()).parse(value)
+}
+
+function requiredStringRecord(value: unknown): Readonly<Record<string, string>> {
+  return z.record(z.string(), z.string()).parse(value)
+}
+
+function requiredReviewerStatusRecord(value: unknown): Readonly<Record<string, string>> {
+  const record = requiredStringRecord(value)
+  const validated: Record<string, string> = {}
+  for (const [reviewerName, statusName] of Object.entries(record)) {
+    validated[Reviewer.fromName(reviewerName).name()] = ReviewerStatus.parse(statusName).name()
+  }
+  return validated
+}
+
+function requiredReviewerNameArray(value: unknown): readonly string[] {
+  return requiredStringArray(value).map((name) => Reviewer.fromName(name).name())
+}
+
+function requiredReviewerNameRecord(value: unknown): Readonly<Record<string, string>> {
+  const record = requiredStringRecord(value)
+  const validated: Record<string, string> = {}
+  for (const [reviewerName, reason] of Object.entries(record)) {
+    validated[Reviewer.fromName(reviewerName).name()] = reason
+  }
+  return validated
 }
 
 /** @riviere-role value-object */
@@ -136,6 +170,50 @@ export class PrRecorded {
 }
 
 /** @riviere-role value-object */
+export class ReviewCycleStarted {
+  declare private readonly brand: 'ReviewCycleStarted';
+  [key: string]: unknown
+  readonly type = 'review-cycle-started'
+
+  private constructor(
+    readonly at: string,
+    readonly cycleNumber: number,
+    readonly includedReviewers: readonly string[],
+    readonly excludedReviewers: Readonly<Record<string, string>>,
+  ) {}
+
+  static parse(event: BaseEvent): ReviewCycleStarted {
+    return new ReviewCycleStarted(
+      requiredString(event['at']),
+      requiredCycleNumber(event['cycleNumber']),
+      requiredReviewerNameArray(event['includedReviewers']),
+      requiredReviewerNameRecord(event['excludedReviewers']),
+    )
+  }
+}
+
+/** @riviere-role value-object */
+export class ReviewCycleClosed {
+  declare private readonly brand: 'ReviewCycleClosed';
+  [key: string]: unknown
+  readonly type = 'review-cycle-closed'
+
+  private constructor(
+    readonly at: string,
+    readonly cycleNumber: number,
+    readonly outcomes: Readonly<Record<string, string>>,
+  ) {}
+
+  static parse(event: BaseEvent): ReviewCycleClosed {
+    return new ReviewCycleClosed(
+      requiredString(event['at']),
+      requiredCycleNumber(event['cycleNumber']),
+      requiredReviewerStatusRecord(event['outcomes']),
+    )
+  }
+}
+
+/** @riviere-role value-object */
 export class ReviewerStatusRecorded {
   declare private readonly brand: 'ReviewerStatusRecorded';
   [key: string]: unknown
@@ -150,12 +228,10 @@ export class ReviewerStatusRecorded {
   static parse(event: BaseEvent): ReviewerStatusRecorded {
     const reviewerName = requiredString(event['reviewer'])
     const statusName = requiredString(event['status'])
-    const status = ReviewerStatus.fromName(statusName)
-    if (!status.ok) throw new InvalidReviewerStatus(statusName)
     return new ReviewerStatusRecorded(
       requiredString(event['at']),
       Reviewer.fromName(reviewerName).name(),
-      status.value.name(),
+      ReviewerStatus.parse(statusName).name(),
     )
   }
 }
@@ -220,6 +296,8 @@ export type WorkflowEvent =
   | IssueRecorded
   | BranchRecorded
   | PrRecorded
+  | ReviewCycleStarted
+  | ReviewCycleClosed
   | ReviewerStatusRecorded
   | BashChecked
   | WriteChecked
@@ -230,6 +308,8 @@ const KNOWN_WORKFLOW_EVENT_TYPES = [
   'issue-recorded',
   'branch-recorded',
   'pr-recorded',
+  'review-cycle-started',
+  'review-cycle-closed',
   'reviewer-status-recorded',
   'bash-checked',
   'write-checked',
@@ -251,6 +331,10 @@ export function parseWorkflowEvent(event: BaseEvent): WorkflowEvent {
       return BranchRecorded.parse(event)
     case 'pr-recorded':
       return PrRecorded.parse(event)
+    case 'review-cycle-started':
+      return ReviewCycleStarted.parse(event)
+    case 'review-cycle-closed':
+      return ReviewCycleClosed.parse(event)
     case 'reviewer-status-recorded':
       return ReviewerStatusRecorded.parse(event)
     case 'bash-checked':

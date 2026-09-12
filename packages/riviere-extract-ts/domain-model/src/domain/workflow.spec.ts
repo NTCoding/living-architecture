@@ -14,7 +14,14 @@ import { builder, configuration } from './__fixtures__/workflow-fixtures'
 const codeExtractionConfig = configuration().resolvedConfig
 const eventCatalogConfig: EventCatalogImportConfig = {
   source: 'eventcatalog',
-  mappings: 'eventcatalog-mappings.yaml',
+  sourceFilePath: 'eventcatalog',
+  mappings: {
+    domains: { OrdersDomain: 'orders' },
+    services: {
+      OrdersService: { type: 'UseCase', domain: 'orders', module: 'checkout', name: 'PlaceOrder' },
+    },
+    events: { OrderCreated: { name: 'OrderPlaced' } },
+  },
   allowUnmapped: false,
 }
 const asyncApiConfig: AsyncApiImportConfig = {
@@ -135,10 +142,10 @@ describe('Workflow active stage plan', () => {
       ],
     ],
     ['skip-ai', ['code-extraction', 'eventcatalog-import', 'asyncapi-import', 'schema-validate']],
-  ] as const)('executes the expected stages in %s mode', (mode, expectedKinds) => {
+  ] as const)('executes the expected stages in %s mode', async (mode, expectedKinds) => {
     const executedKinds: string[] = []
 
-    const result = workflow().run(builder(), WorkflowRunMode.from(mode), (stage) => {
+    const result = await workflow().run(builder(), WorkflowRunMode.from(mode), (stage) => {
       executedKinds.push(stage.kind)
       return successfulStage
     })
@@ -149,14 +156,14 @@ describe('Workflow active stage plan', () => {
 })
 
 describe('Workflow transition snapshots', () => {
-  it('records initial and completed accumulated state after diagnostics are recorded', () => {
+  it('records initial and completed accumulated state after diagnostics are recorded', async () => {
     const graphBuilder = builder()
     const subject = workflow([
       WorkflowStage.fromEventCatalogImport('first', eventCatalogConfig),
       WorkflowStage.fromAsyncApiImport('second', asyncApiConfig),
     ])
 
-    const result = subject.run(graphBuilder, WorkflowRunMode.from('run'), (stage) => {
+    const result = await subject.run(graphBuilder, WorkflowRunMode.from('run'), (stage) => {
       if (stage.kind === 'eventcatalog-import') {
         graphBuilder.addUseCase({
           name: 'Place order',
@@ -277,14 +284,14 @@ describe('Workflow transition snapshots', () => {
     })
   })
 
-  it('records unchanged state after schema validation completes', () => {
+  it('records unchanged state after schema validation completes', async () => {
     const graphBuilder = builder()
     const subject = workflow([
       WorkflowStage.fromEventCatalogImport('import', eventCatalogConfig),
       WorkflowStage.fromSchemaValidation('validate'),
     ])
 
-    const result = subject.run(graphBuilder, WorkflowRunMode.from('run'), (stage) => {
+    const result = await subject.run(graphBuilder, WorkflowRunMode.from('run'), (stage) => {
       if (stage.kind === 'eventcatalog-import') {
         graphBuilder.addUseCase({
           name: 'Place order',
@@ -309,7 +316,7 @@ describe('Workflow transition snapshots', () => {
     expect(validationTransition.value.state).toStrictEqual(importTransition.value.state)
   })
 
-  it('retains completed transitions when a later stage fails', () => {
+  it('retains completed transitions when a later stage fails', async () => {
     const execute = vi.fn().mockReturnValueOnce(successfulStage).mockReturnValueOnce({
       success: false,
       errorCode: 'IMPORT_FAILED',
@@ -321,7 +328,7 @@ describe('Workflow transition snapshots', () => {
       WorkflowStage.fromSchemaValidation('not-reached'),
     ])
 
-    const result = subject.run(builder(), WorkflowRunMode.from('run'), execute)
+    const result = await subject.run(builder(), WorkflowRunMode.from('run'), execute)
 
     assert(!result.value.success)
     expect(result.value.transitions.map((transition) => transition.value.kind)).toStrictEqual([
@@ -332,8 +339,8 @@ describe('Workflow transition snapshots', () => {
     expect(subject.status()).toBe('failed')
   })
 
-  it('records no completed transition when the first stage fails', () => {
-    const result = workflow([WorkflowStage.fromAiExtract('fail', aiExtractConfig)]).run(
+  it('records no completed transition when the first stage fails', async () => {
+    const result = await workflow([WorkflowStage.fromAiExtract('fail', aiExtractConfig)]).run(
       builder(),
       WorkflowRunMode.from('run'),
       () => ({ success: false, errorCode: 'AI_FAILED', reason: 'AI failed' }),
@@ -347,8 +354,8 @@ describe('Workflow transition snapshots', () => {
 })
 
 describe('Workflow failure events', () => {
-  it('turns a thrown Error into a typed stage and Workflow failure', () => {
-    const result = workflow([WorkflowStage.fromSchemaValidation('validate')]).run(
+  it('turns a thrown Error into a typed stage and Workflow failure', async () => {
+    const result = await workflow([WorkflowStage.fromSchemaValidation('validate')]).run(
       builder(),
       WorkflowRunMode.from('run'),
       () => {
@@ -369,8 +376,8 @@ describe('Workflow failure events', () => {
     ])
   })
 
-  it('turns a thrown primitive into a typed failure reason', () => {
-    const result = workflow([WorkflowStage.fromSchemaValidation('validate')]).run(
+  it('turns a thrown primitive into a typed failure reason', async () => {
+    const result = await workflow([WorkflowStage.fromSchemaValidation('validate')]).run(
       builder(),
       WorkflowRunMode.from('run'),
       () => {

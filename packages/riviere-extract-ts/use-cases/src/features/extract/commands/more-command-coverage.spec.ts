@@ -1,10 +1,12 @@
 import { mkdir, writeFile } from 'node:fs/promises'
+import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
 import {
   type TestContext,
+  collaborators,
   createTestContext,
   setupCommandTest,
 } from '../../../__fixtures__/command-test-fixtures'
@@ -32,17 +34,20 @@ async function createInvalidGraph(testDir: string): Promise<string> {
 }
 
 function createProject(): RiviereProject {
-  return RiviereProject.start({
-    graphDefinition: {
-      domains: {
-        orders: {
-          description: 'Orders',
-          systemType: 'domain',
+  return RiviereProject.start(
+    {
+      graphDefinition: {
+        domains: {
+          orders: {
+            description: 'Orders',
+            systemType: 'domain',
+          },
         },
+        sources: [{ repository: 'https://github.com/org/repo' }],
       },
-      sources: [{ repository: 'https://github.com/org/repo' }],
     },
-  }).data
+    collaborators(),
+  ).project
 }
 
 describe('additional builder command coverage', () => {
@@ -52,7 +57,7 @@ describe('additional builder command coverage', () => {
   it('returns graph corrupted for finalize, link components, and link external', async () => {
     const graphPath = await createInvalidGraph(ctx.testDir)
 
-    const repo = new RiviereProjectRepository()
+    const repo = createRiviereProjectRepository()
     expect(
       new FinalizeGraph(repo).execute({ graphFileLocation: graphPath, outputPath: 'graph.json' }),
     ).toMatchObject({
@@ -87,7 +92,7 @@ describe('additional builder command coverage', () => {
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
 
     expect(
-      new DefineCustomType(new RiviereProjectRepository()).execute({
+      new DefineCustomType(createRiviereProjectRepository()).execute({
         description: undefined,
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         name: 'Queue',
@@ -104,7 +109,7 @@ describe('additional builder command coverage', () => {
 
   it('rejects an invalid optional custom property type', () => {
     expect(
-      new DefineCustomType(new RiviereProjectRepository()).execute({
+      new DefineCustomType(createRiviereProjectRepository()).execute({
         description: undefined,
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         name: 'Queue',
@@ -133,7 +138,7 @@ describe('additional builder command coverage', () => {
       }),
     ).id
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const command = new LinkComponents(new RiviereProjectRepository())
+    const command = new LinkComponents(createRiviereProjectRepository())
     const input = {
       from: sourceId,
       graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
@@ -173,7 +178,7 @@ describe('additional builder command coverage', () => {
   it('returns graph not found for define-custom-type and enrich-component', () => {
     const missingGraphPath = join(ctx.testDir, 'missing.json')
 
-    const repo = new RiviereProjectRepository()
+    const repo = createRiviereProjectRepository()
     expect(
       new DefineCustomType(repo).execute({
         description: undefined,
@@ -217,7 +222,7 @@ describe('additional builder command coverage', () => {
       .mockImplementation(() => undefined)
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
 
-    new EnrichComponent(new RiviereProjectRepository()).execute({
+    new EnrichComponent(createRiviereProjectRepository()).execute({
       businessRules: [],
       entity: undefined,
       emits: [],
@@ -242,7 +247,7 @@ describe('additional builder command coverage', () => {
       .mockImplementation(() => undefined)
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
 
-    new EnrichComponent(new RiviereProjectRepository()).execute({
+    new EnrichComponent(createRiviereProjectRepository()).execute({
       businessRules: [],
       entity: undefined,
       emits: [],
@@ -263,7 +268,7 @@ describe('additional builder command coverage', () => {
   it('returns graph corrupted for define-custom-type and enrich-component', async () => {
     const graphPath = await createInvalidGraph(ctx.testDir)
 
-    const repo = new RiviereProjectRepository()
+    const repo = createRiviereProjectRepository()
     expect(
       new DefineCustomType(repo).execute({
         description: undefined,
@@ -305,7 +310,7 @@ describe('additional builder command coverage', () => {
       throw new UnexpectedError('unexpected')
     })
 
-    const repo = new RiviereProjectRepository()
+    const repo = createRiviereProjectRepository()
     expect(() =>
       new FinalizeGraph(repo).execute({
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
@@ -314,7 +319,7 @@ describe('additional builder command coverage', () => {
     ).toThrow('unexpected')
 
     expect(() =>
-      new InitGraph(repo).execute({
+      new InitGraph(repo, collaborators().loadEventCatalogSource).execute({
         domains: [
           {
             description: 'Orders',

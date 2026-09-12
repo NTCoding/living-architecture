@@ -4,7 +4,12 @@ import {
   getInitialWorkflowState,
   getWorkflowStateNames,
 } from './workflow-types'
-import { BashChecked, ReviewerStatusRecorded } from './workflow-events'
+import {
+  BashChecked,
+  ReviewCycleClosed,
+  ReviewCycleStarted,
+  ReviewerStatusRecorded,
+} from './workflow-events'
 
 const REVIEWERS = {
   'architecture-review': 'PENDING',
@@ -98,5 +103,49 @@ describe('WorkflowState', () => {
       ),
     ).toBe(state)
     expect(getWorkflowStateNames()).toContain('HUMAN_REVIEWING')
+  })
+
+  it('opens a review cycle from a cycle-started event', () => {
+    const state = WorkflowState.from([
+      ReviewCycleStarted.parse({
+        type: 'review-cycle-started',
+        at: '2026-01-01T00:00:00Z',
+        cycleNumber: 2,
+        includedReviewers: ['code-review'],
+        excludedReviewers: { 'task-check': 'already-approved' },
+      }),
+    ])
+
+    expect(state.reviewCycleNumber).toBe(2)
+    expect(state.reviewCycleOpen).toBe(true)
+    expect(state.includedReviewers).toStrictEqual(['code-review'])
+    expect(state.excludedReviewers).toStrictEqual({ 'task-check': 'already-approved' })
+  })
+
+  it('closes a review cycle from a cycle-closed event', () => {
+    const state = WorkflowState.from([
+      ReviewCycleClosed.parse({
+        type: 'review-cycle-closed',
+        at: '2026-01-01T00:00:00Z',
+        cycleNumber: 1,
+        outcomes: {},
+      }),
+    ])
+
+    expect(state.reviewCycleOpen).toBe(false)
+  })
+
+  it('records review cycle outcomes as reviewer statuses', () => {
+    const state = WorkflowState.from([
+      ReviewCycleClosed.parse({
+        type: 'review-cycle-closed',
+        at: '2026-01-01T00:00:00Z',
+        cycleNumber: 1,
+        outcomes: { 'code-review': 'APPROVED', 'task-check': 'OPEN_FEEDBACK' },
+      }),
+    ])
+
+    expect(state.reviewerStatuses.toJSON()['code-review']).toBe('APPROVED')
+    expect(state.reviewerStatuses.toJSON()['task-check']).toBe('OPEN_FEEDBACK')
   })
 })

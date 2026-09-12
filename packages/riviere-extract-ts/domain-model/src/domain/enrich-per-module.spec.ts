@@ -8,6 +8,7 @@ import {
 } from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
 import { RiviereProject, OrphanedDraftComponentError } from './riviere-project'
+import { collaborators } from './__fixtures__/workflow-fixtures'
 import { RiviereModule } from './riviere-module'
 import { ExtractionConfiguration } from './extraction-configuration'
 import { TestFixtureError } from './value-extraction/literal-detection'
@@ -142,9 +143,9 @@ function createRiviereProject(
     resolvedConfig: configurationResult.data,
     moduleContexts: stageContexts,
   })
-  const projectResult = RiviereProject.start({ configuration, draftComponents })
+  const projectResult = RiviereProject.start({ configuration, draftComponents }, collaborators())
   assert(projectResult.success)
-  return projectResult.data
+  return projectResult.project
 }
 
 function enrichDraftComponents(

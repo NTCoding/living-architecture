@@ -65,6 +65,11 @@ export class CreateWorkflowRoutes {
           )
         },
       },
+      'wait-for-coderabbit-and-close-review-cycle': {
+        type: 'transaction' as const,
+        args: [] as const,
+        handler: (workflow: RoutedWorkflow) => workflow.waitForCodeRabbitAndCloseReviewCycle(),
+      },
     }
     this.defineRoutes<RoutedWorkflow, ReturnType<RoutedWorkflow['getState']>>(routes)
     return {

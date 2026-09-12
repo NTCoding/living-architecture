@@ -12,10 +12,102 @@ describe('workflow events', () => {
       'issue-recorded',
       'branch-recorded',
       'pr-recorded',
+      'review-cycle-started',
+      'review-cycle-closed',
       'reviewer-status-recorded',
       'bash-checked',
       'write-checked',
     ])
+  })
+
+  it('parses a started review cycle with its included and excluded reviewers', () => {
+    expect(
+      parseWorkflowEvent({
+        type: 'review-cycle-started',
+        at: AT,
+        cycleNumber: 2,
+        includedReviewers: ['code-review', 'architecture-review'],
+        excludedReviewers: { 'task-check': 'already-approved' },
+      }),
+    ).toMatchObject({
+      cycleNumber: 2,
+      includedReviewers: ['code-review', 'architecture-review'],
+      excludedReviewers: { 'task-check': 'already-approved' },
+    })
+  })
+
+  it('parses a closed review cycle with its outcomes', () => {
+    expect(
+      parseWorkflowEvent({
+        type: 'review-cycle-closed',
+        at: AT,
+        cycleNumber: 2,
+        outcomes: { 'code-review': 'APPROVED', coderabbit: 'APPROVED' },
+      }),
+    ).toMatchObject({
+      cycleNumber: 2,
+      outcomes: { 'code-review': 'APPROVED', coderabbit: 'APPROVED' },
+    })
+  })
+
+  it('rejects a review cycle event whose cycle number is not a positive integer', () => {
+    for (const cycleNumber of [0, -1, 1.5]) {
+      expect(() =>
+        parseWorkflowEvent({
+          type: 'review-cycle-started',
+          at: AT,
+          cycleNumber,
+          includedReviewers: ['code-review'],
+          excludedReviewers: {},
+        }),
+      ).toThrow(/Number must be greater than 0|Expected integer/)
+    }
+  })
+
+  it('rejects a started review cycle with an unknown included reviewer', () => {
+    expect(() =>
+      parseWorkflowEvent({
+        type: 'review-cycle-started',
+        at: AT,
+        cycleNumber: 1,
+        includedReviewers: ['unknown-reviewer'],
+        excludedReviewers: {},
+      }),
+    ).toThrow('Unknown reviewer: unknown-reviewer')
+  })
+
+  it('rejects a started review cycle with an unknown excluded reviewer', () => {
+    expect(() =>
+      parseWorkflowEvent({
+        type: 'review-cycle-started',
+        at: AT,
+        cycleNumber: 1,
+        includedReviewers: [],
+        excludedReviewers: { 'unknown-reviewer': 'already-approved' },
+      }),
+    ).toThrow('Unknown reviewer: unknown-reviewer')
+  })
+
+  it('rejects a closed review cycle with an unknown reviewer outcome', () => {
+    expect(() =>
+      parseWorkflowEvent({
+        type: 'review-cycle-closed',
+        at: AT,
+        cycleNumber: 1,
+        outcomes: { 'code-review': 'UNKNOWN' },
+      }),
+    ).toThrow('Unknown reviewer status: UNKNOWN')
+  })
+
+  it('rejects a closed review cycle with an unknown reviewer', () => {
+    expect(() =>
+      parseWorkflowEvent({
+        type: 'review-cycle-closed',
+        at: AT,
+        cycleNumber: 1,
+        outcomes: { 'unknown-reviewer': 'APPROVED' },
+      }),
+    ).toThrow('Unknown reviewer: unknown-reviewer')
   })
 
   it('parses a reviewer status record', () => {

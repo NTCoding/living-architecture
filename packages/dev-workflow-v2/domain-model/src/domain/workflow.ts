@@ -19,11 +19,14 @@ import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
 import type { ReadWorkflowGitStatus } from './ports/read-git-status'
 import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
 import type { Reviewer } from './reviews/reviewers'
+import { Reviewer as ReviewerValue } from './reviews/reviewers'
 import type { ReviewerStatus } from './reviews/statuses'
 import type { WorkflowEvent } from './workflow-events'
 import {
   parseWorkflowEvent,
   PrRecorded,
+  ReviewCycleClosed,
+  ReviewCycleStarted,
   ReviewerStatusRecorded,
   SessionStarted,
   Transitioned,
@@ -73,7 +76,7 @@ export class MaintainerWorkflow {
     this.deps = deps
     this.registryDefinition = MaintainerWorkflowRegistry.parse({
       ...registry,
-      REVIEWING: ReviewingState.parse('REVIEWING', { workflow: this, deps }),
+      REVIEWING: ReviewingState.parse('REVIEWING', { workflow: this }),
       SUBMITTING_PR: SubmittingPrState.parse('SUBMITTING_PR'),
     })
   }
@@ -244,6 +247,61 @@ export class MaintainerWorkflow {
     return pass()
   }
 
+  startReviewCycle(): PreconditionResult {
+    if (this.state.currentStateMachineState !== 'REVIEWING') {
+      return fail('A review cycle can only start in REVIEWING.')
+    }
+    if (this.state.reviewCycleOpen) return fail('A review cycle is already open.')
+    const includedReviewers: string[] = []
+    const excludedReviewers: Record<string, string> = {}
+    for (const reviewer of REVIEW_RUNNERS) {
+      const status = this.state.reviewerStatuses.statusFor(ReviewerValue.fromName(reviewer))
+      if (status?.isApproved() === true) {
+        excludedReviewers[reviewer] = 'already-approved'
+        continue
+      }
+      includedReviewers.push(reviewer)
+    }
+    this.append(
+      ReviewCycleStarted.parse({
+        type: 'review-cycle-started',
+        at: this.deps.now(),
+        cycleNumber: this.state.reviewCycleNumber + 1,
+        includedReviewers,
+        excludedReviewers,
+      }),
+    )
+    return pass()
+  }
+
+  waitForCodeRabbitAndCloseReviewCycle(): PreconditionResult {
+    const gate = checkOperationGate(
+      'wait-for-coderabbit-and-close-review-cycle',
+      this.state,
+      this.registryDefinition,
+    )
+    if (!gate.pass) return gate
+    if (!this.state.reviewCycleOpen) return fail('No review cycle is open.')
+    const feedback = waitForCodeRabbitCompletion(this.deps, this.getPullRequestNumber())
+    const outcomes = reviewCycleOutcomes(feedback, this.state.includedReviewers)
+    const statuses = Object.values(outcomes)
+    if (statuses.includes('PENDING')) {
+      return fail('Every reviewer must return a result before the review cycle can close.')
+    }
+    const hasOpenFeedback = statuses.includes('OPEN_FEEDBACK')
+    this.append(
+      ReviewCycleClosed.parse({
+        type: 'review-cycle-closed',
+        at: this.deps.now(),
+        cycleNumber: this.state.reviewCycleNumber,
+        outcomes,
+      }),
+    )
+    return hasOpenFeedback
+      ? this.transition('ADDRESSING_FEEDBACK')
+      : this.transition('HUMAN_REVIEWING')
+  }
+
   transition(target: StateName): PreconditionResult {
     const current = this.state.currentStateMachineState
     const definition = this.registryDefinition.state(current)
@@ -284,6 +342,52 @@ export class MaintainerWorkflow {
 
 function formatSection(heading: string, content: string): string {
   return [`## ${heading}`, content].join('\n\n')
+}
+
+const REVIEW_RUNNERS = ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
+const CODERABBIT_POLL_INTERVAL_MS = 15_000
+const MAX_REVIEW_COMPLETION_POLLS = 120
+
+function waitForCodeRabbitCompletion(
+  deps: WorkflowDeps,
+  prNumber: number,
+  remainingPolls: number = MAX_REVIEW_COMPLETION_POLLS,
+): ReturnType<ReadWorkflowPullRequestFeedback> {
+  const feedback = deps.getPrFeedback(prNumber)
+  if (feedback.coderabbitReviewSeen || feedback.coderabbitRateLimited) return feedback
+  if (remainingPolls === 1) return feedback
+  deps.sleepMs(CODERABBIT_POLL_INTERVAL_MS)
+  return waitForCodeRabbitCompletion(deps, prNumber, remainingPolls - 1)
+}
+
+function reviewCycleOutcomes(
+  feedback: ReturnType<ReadWorkflowPullRequestFeedback>,
+  includedReviewers: readonly string[],
+): Readonly<Record<string, string>> {
+  const outcomes: Record<string, string> = {}
+  for (const reviewer of REVIEW_RUNNERS) {
+    if (!includedReviewers.includes(reviewer)) continue
+    outcomes[reviewer] = feedback.reviewerStatuses[reviewer]
+  }
+  outcomes['coderabbit'] = codeRabbitOutcome(feedback)
+  return outcomes
+}
+
+function codeRabbitOutcome(
+  feedback: ReturnType<ReadWorkflowPullRequestFeedback>,
+): 'PENDING' | 'RATE_LIMITED' | 'OPEN_FEEDBACK' | 'APPROVED' {
+  if (feedback.coderabbitRateLimited) return 'RATE_LIMITED'
+  if (!feedback.coderabbitReviewSeen) return 'PENDING'
+  const hasOpenCodeRabbitThread = feedback.threads.some(
+    (thread) =>
+      !thread.isResolved &&
+      !thread.isOutdated &&
+      thread.comments.some(
+        (comment) =>
+          comment.author?.login === 'coderabbitai' || comment.author?.login === 'coderabbitai[bot]',
+      ),
+  )
+  return hasOpenCodeRabbitThread ? 'OPEN_FEEDBACK' : 'APPROVED'
 }
 
 function normalisePullRequestSubject(subject: string): string {

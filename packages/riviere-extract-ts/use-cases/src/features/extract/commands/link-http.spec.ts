@@ -1,8 +1,10 @@
 import { join } from 'node:path'
+import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import {
   type TestContext,
+  collaborators,
   createTestContext,
   setupCommandTest,
 } from '../../../__fixtures__/command-test-fixtures'
@@ -10,12 +12,15 @@ import { LinkHttp } from './link-http'
 import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
 
 function createProject(): RiviereProject {
-  return RiviereProject.start({
-    graphDefinition: {
-      domains: { orders: { description: 'Orders', systemType: 'domain' } },
-      sources: [{ repository: 'https://github.com/org/repo' }],
+  return RiviereProject.start(
+    {
+      graphDefinition: {
+        domains: { orders: { description: 'Orders', systemType: 'domain' } },
+        sources: [{ repository: 'https://github.com/org/repo' }],
+      },
     },
-  }).data
+    collaborators(),
+  ).project
 }
 
 function createProjectWithApi(): RiviereProject {
@@ -49,7 +54,7 @@ describe('link-http command', () => {
   it('links an http route', () => {
     const project = createProjectWithApi()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new LinkHttp(new RiviereProjectRepository()).execute({
+    const result = new LinkHttp(createRiviereProjectRepository()).execute({
       graphFileLocation: graphLocation(),
       httpMethod: 'POST',
       linkType: 'sync',
@@ -64,7 +69,7 @@ describe('link-http command', () => {
 
   it('returns validation error for invalid input', () => {
     expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
         httpMethod: undefined,
         linkType: undefined,
@@ -81,7 +86,7 @@ describe('link-http command', () => {
     const project = createProjectWithApi()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
         httpMethod: undefined,
         linkType: undefined,
@@ -98,7 +103,7 @@ describe('link-http command', () => {
     const project = createProjectWithApi()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
         httpMethod: 'invalid',
         linkType: undefined,
@@ -115,7 +120,7 @@ describe('link-http command', () => {
     const project = createProjectWithApi()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
         httpMethod: undefined,
         linkType: 'invalid',

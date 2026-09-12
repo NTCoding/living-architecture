@@ -1,6 +1,9 @@
-import { execFileSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { createRiviereProjectRepository } from '../../../../__fixtures__/riviere-project-repository-fixtures'
+import {
+  cleanupWorkflowWorkspaces,
+  createWorkflowWorkspace as workspace,
+} from '../../../../__fixtures__/riviere-project-workspace-fixtures'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
@@ -8,37 +11,10 @@ import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-m
 import { InvalidWorkflowDefinitionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project-errors'
 import { YamlDocumentReader } from '../../../../infra/external-clients/yaml/yaml-document-reader'
 import * as fileReader from '../../../../infra/external-clients/filesystem/file-reader'
-import { RiviereProjectRepository } from './riviere-project-repository'
 
 class UnexpectedParserFailure extends Error {}
 class UnexpectedGraphReadFailure extends Error {}
 class UnexpectedRehydrateFailure extends Error {}
-
-const directories: string[] = []
-
-function workspace(): string {
-  const directory = mkdtempSync(join(tmpdir(), 'project-workflow-test-'))
-  directories.push(directory)
-  mkdirSync(join(directory, '.riviere', 'workflows'), { recursive: true })
-  writeFileSync(join(directory, 'package.json'), '{"name":"workflow-test"}')
-  writeFileSync(join(directory, 'component.ts'), 'export class Component {}')
-  runIsolatedGit(directory, ['init', '--initial-branch=main'])
-  runIsolatedGit(directory, [
-    'remote',
-    'add',
-    'origin',
-    'https://github.com/test/workflow-test.git',
-  ])
-  return directory
-}
-
-function runIsolatedGit(directory: string, args: string[]): void {
-  const environment = { ...process.env }
-  for (const name of Object.keys(environment)) {
-    if (name.startsWith('GIT_')) delete environment[name]
-  }
-  execFileSync('/usr/bin/git', args, { cwd: directory, env: environment, stdio: 'ignore' })
-}
 
 function writeWorkflow(
   directory: string,
@@ -63,15 +39,13 @@ function writeWorkflow(
 }
 
 function loadWorkflow(directory: string, name: string) {
-  return new RiviereProjectRepository().load({
+  return createRiviereProjectRepository().load({
     kind: 'workflow',
     workflowPath: join(directory, '.riviere', 'workflows', `${name}.yaml`),
   })
 }
 
-afterEach(() => {
-  for (const directory of directories.splice(0)) rmSync(directory, { recursive: true })
-})
+afterEach(cleanupWorkflowWorkspaces)
 
 describe('RiviereProjectRepository workflow loading', () => {
   it('creates a new graph from a workflow when none exists', () => {
@@ -83,7 +57,7 @@ describe('RiviereProjectRepository workflow loading', () => {
     expect(project.build().metadata).toMatchObject({ name: 'combined-graph' })
   })
 
-  it('loads the previous completed graph before adding the workflow', () => {
+  it('loads the previous completed graph before adding the workflow', async () => {
     const directory = workspace()
     const previousGraph = RiviereBuilder.parse({
       name: 'previous-graph',
@@ -97,7 +71,7 @@ describe('RiviereProjectRepository workflow loading', () => {
     const project = loadWorkflow(directory, 'combined')
 
     expect(project.build().metadata.name).toBe('previous-graph')
-    expect(project.rebuildGraph()).toMatchObject({ success: true })
+    await expect(project.rebuildGraph()).resolves.toMatchObject({ success: true })
   })
 
   it('rejects missing and invalid workflow definitions', () => {
@@ -241,7 +215,7 @@ describe('RiviereProjectRepository workflow loading', () => {
     }).build()
     writeFileSync(join(workflowDirectory, 'out.json'), JSON.stringify(previousGraph))
 
-    const project = new RiviereProjectRepository().load({
+    const project = createRiviereProjectRepository().load({
       kind: 'workflow',
       workflowPath: join(workflowDirectory, 'workflow.yaml'),
     })
@@ -250,17 +224,63 @@ describe('RiviereProjectRepository workflow loading', () => {
   })
 })
 it.each([
-  [
-    'eventcatalog-import',
-    'source: imported.json\nmappings: mappings.json\nallow-unmapped: false\n',
-  ],
   ['asyncapi-import', 'source: imported.json\nmappings: mappings.json\nallow-unmapped: false\n'],
 ] as const)('materializes an %s stage', (kind, configYaml) => {
   const directory = workspace()
   writeFileSync(join(directory, '.riviere', 'workflows', 'import.yaml'), configYaml)
   writeWorkflow(directory, `  - kind: ${kind}\n    name: import\n    config: import.yaml`)
 
-  expect(loadWorkflow(directory, 'combined')).toBeDefined()
+  expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
+})
+
+it('materializes an eventcatalog-import stage with validated mappings', () => {
+  const directory = workspace()
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'import.yaml'),
+    'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
+  )
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'mappings.yaml'),
+    [
+      'domains:',
+      '  OrdersDomain: orders',
+      'services:',
+      '  OrdersService:',
+      '    type: UseCase',
+      '    domain: orders',
+      '    module: checkout',
+      '    name: PlaceOrder',
+      'events:',
+      '  OrderCreated:',
+      '    name: OrderPlaced',
+    ].join('\n'),
+  )
+  writeWorkflow(
+    directory,
+    '  - kind: eventcatalog-import\n    name: import\n    config: import.yaml',
+  )
+
+  const project = loadWorkflow(directory, 'combined')
+
+  expect(project.build().metadata.name).toBe('combined-graph')
+})
+
+it('rejects eventcatalog-import mappings with unknown keys', () => {
+  const directory = workspace()
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'import.yaml'),
+    'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
+  )
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'mappings.yaml'),
+    ['domains: {}', 'services: {}', 'events: {}', 'unexpected: true'].join('\n'),
+  )
+  writeWorkflow(
+    directory,
+    '  - kind: eventcatalog-import\n    name: import\n    config: import.yaml',
+  )
+
+  expect(() => loadWorkflow(directory, 'combined')).toThrow(/Invalid EventCatalog mappings/)
 })
 
 it('materializes an ai-extract stage', () => {
@@ -286,7 +306,7 @@ it('materializes an ai-extract stage', () => {
   )
   writeWorkflow(directory, '  - kind: ai-extract\n    name: extract\n    config: ai.yaml')
 
-  expect(loadWorkflow(directory, 'combined')).toBeDefined()
+  expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
 })
 
 it('materializes an ai-enrich stage', () => {
@@ -311,20 +331,36 @@ it('materializes an ai-enrich stage', () => {
   )
   writeWorkflow(directory, '  - kind: ai-enrich\n    name: enrich\n    config: ai.yaml')
 
-  expect(loadWorkflow(directory, 'combined')).toBeDefined()
+  expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
 })
 
 it.each([
-  ['eventcatalog-import', 'source: a.json\n'],
-  ['asyncapi-import', 'source: a.json\n'],
-  ['ai-extract', 'command: extract\n'],
-  ['ai-enrich', 'command: enrich\n'],
-])('rejects an %s stage with an invalid config', (kind, configYaml) => {
+  ['eventcatalog missing mappings', 'eventcatalog-import', 'source: a.json\n', /mappings/],
+  [
+    'eventcatalog unknown key',
+    'eventcatalog-import',
+    'source: a.json\nmappings: m.yaml\nallow-unmapped: false\nunexpected: true\n',
+    /unexpected/,
+  ],
+  [
+    'eventcatalog empty source',
+    'eventcatalog-import',
+    "source: ''\nmappings: m.yaml\nallow-unmapped: false\n",
+    /source: Too small/,
+  ],
+  ['asyncapi missing mappings', 'asyncapi-import', 'source: a.json\n', /mappings/],
+  ['incomplete ai-extract config', 'ai-extract', 'command: extract\n', /timeout-seconds/],
+  ['incomplete ai-enrich config', 'ai-enrich', 'command: enrich\n', /timeout-seconds/],
+])('rejects an invalid %s config', (_scenario, kind, configYaml, error) => {
   const directory = workspace()
   writeFileSync(join(directory, '.riviere', 'workflows', 'stage.yaml'), configYaml)
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'm.yaml'),
+    'domains: {}\nservices: {}\nevents: {}\n',
+  )
   writeWorkflow(directory, `  - kind: ${kind}\n    name: stage\n    config: stage.yaml`)
 
-  expect(() => loadWorkflow(directory, 'combined')).toThrow(/./)
+  expect(() => loadWorkflow(directory, 'combined')).toThrow(error)
 })
 
 it('materializes a code-extraction stage', () => {
@@ -347,7 +383,7 @@ it('materializes a code-extraction stage', () => {
   )
   writeWorkflow(directory, '  - kind: code-extraction\n    name: extract\n    config: extract.yaml')
 
-  expect(loadWorkflow(directory, 'combined')).toBeDefined()
+  expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
 })
 
 it('rejects a workflow whose name is invalid for the workflow runner', () => {

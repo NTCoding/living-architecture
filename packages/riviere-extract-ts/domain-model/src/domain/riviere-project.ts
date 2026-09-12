@@ -20,6 +20,8 @@ import { MissingModuleSourceError } from './extraction-errors'
 import { type EnrichedComponent, EnrichmentResult } from './value-extraction/enriched-component'
 import type { ExtractionConfiguration } from './extraction-configuration'
 import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
+import { executeEventCatalogImportStage } from './event-catalog/execute-event-catalog-import-stage'
+import type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
 import { RiviereModule } from './riviere-module'
 import {
   ExtractionConfigurationUnavailableError,
@@ -30,6 +32,7 @@ import { Workflow, WorkflowRunMode } from './workflow'
 import type { WorkflowStageValue } from './workflow-stage'
 
 export { OrphanedDraftComponentError } from './orphaned-draft-component-error'
+export type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
 
 /** @riviere-role aggregate */
 export class RiviereProject {
@@ -37,18 +40,34 @@ export class RiviereProject {
     private readonly configuration: ExtractionConfiguration | undefined,
     private readonly modules: readonly RiviereModule[],
     private unassignedDraftComponents: readonly DraftComponent[],
+    private readonly collaborators: RiviereProjectCollaborators,
     private builder?: RiviereBuilder,
     private workflow?: Workflow,
   ) {}
 
-  static start(input: GraphOnlyProjectStartInput): RiviereProjectStartSuccess
-  static start(input: GraphWithWorkflowStartInput): RiviereProjectStartResult
-  static start(input: ExtractionProjectStartInput): RiviereProjectStartResult
-  static start(input: RiviereProjectStartInput): RiviereProjectStartResult {
+  static start(
+    input: GraphOnlyProjectStartInput,
+    collaborators: RiviereProjectCollaborators,
+  ): RiviereProjectStartSuccess
+  static start(
+    input: GraphWithWorkflowStartInput,
+    collaborators: RiviereProjectCollaborators,
+  ): RiviereProjectStartResult
+  static start(
+    input: ExtractionProjectStartInput,
+    collaborators: RiviereProjectCollaborators,
+  ): RiviereProjectStartResult
+  static start(
+    input: RiviereProjectStartInput,
+    collaborators: RiviereProjectCollaborators,
+  ): RiviereProjectStartResult {
     if (input.graphDefinition !== undefined) {
       const builder = RiviereBuilder.parse(input.graphDefinition)
       if (input.workflowInput === undefined) {
-        return { success: true as const, data: new RiviereProject(undefined, [], [], builder) }
+        return {
+          success: true as const,
+          project: new RiviereProject(undefined, [], [], collaborators, builder),
+        }
       }
       const workflowResult = Workflow.build(input.workflowInput)
       if (!workflowResult.success) {
@@ -56,7 +75,14 @@ export class RiviereProject {
       }
       return {
         success: true as const,
-        data: new RiviereProject(undefined, [], [], builder, workflowResult.workflow),
+        project: new RiviereProject(
+          undefined,
+          [],
+          [],
+          collaborators,
+          builder,
+          workflowResult.workflow,
+        ),
       }
     }
     const sourceErrors = RiviereModule.configurationSourceErrors(input.configuration)
@@ -68,12 +94,18 @@ export class RiviereProject {
     )
     return {
       success: true as const,
-      data: new RiviereProject(input.configuration, modules, unassignedDraftComponents),
+      project: new RiviereProject(
+        input.configuration,
+        modules,
+        unassignedDraftComponents,
+        collaborators,
+      ),
     }
   }
 
   static rehydrate(
     graph: RiviereGraph,
+    collaborators: RiviereProjectCollaborators,
     graphOptions = BuilderOptions.fromGraph(graph),
     workflowInput?: WorkflowStartInput,
   ): RiviereProject {
@@ -81,6 +113,7 @@ export class RiviereProject {
       undefined,
       [],
       [],
+      collaborators,
       RiviereBuilder.fromGraph(graph, graphOptions),
     )
     if (workflowInput === undefined) return project
@@ -104,14 +137,21 @@ export class RiviereProject {
     return this.graphBuilder().serialize()
   }
 
-  rebuildGraph(mode: WorkflowRunMode = WorkflowRunMode.from('run')) {
+  async rebuildGraph(mode: WorkflowRunMode = WorkflowRunMode.from('run')) {
     const workflow = this.workflow
     if (workflow === undefined) {
-      return workflowFailure('WORKFLOW_UNAVAILABLE', 'No workflow is loaded')
+      return {
+        success: false as const,
+        errorCode: 'WORKFLOW_UNAVAILABLE',
+        reason: 'No workflow is loaded',
+        events: [],
+        transitions: [],
+        warnings: [],
+      }
     }
     const previousBuilder = this.graphBuilder()
     this.builder = RiviereBuilder.parse(BuilderOptions.fromGraph(previousBuilder.build()))
-    const run = workflow.run(this.builder, mode, (stage) => this.executeWorkflowStage(stage))
+    const run = await workflow.run(this.builder, mode, (stage) => this.executeWorkflowStage(stage))
     if (!run.value.success) {
       this.builder = previousBuilder
       return run.value
@@ -127,12 +167,13 @@ export class RiviereProject {
     }
   }
 
-  private executeWorkflowStage(stage: WorkflowStageValue) {
+  private async executeWorkflowStage(stage: WorkflowStageValue) {
     switch (stage.kind) {
       case 'schema-validate':
         return this.executeSchemaValidationStage()
-      case 'code-extraction':
       case 'eventcatalog-import':
+        return executeEventCatalogImportStage(this.graphBuilder(), stage.config, this.collaborators)
+      case 'code-extraction':
       case 'asyncapi-import':
       case 'ai-extract':
       case 'ai-enrich':
@@ -361,7 +402,7 @@ type RiviereProjectStartInput =
   | ExtractionProjectStartInput
   | GraphOnlyProjectStartInput
   | GraphWithWorkflowStartInput
-type RiviereProjectStartSuccess = Readonly<{ success: true; data: RiviereProject }>
+type RiviereProjectStartSuccess = Readonly<{ success: true; project: RiviereProject }>
 type RiviereProjectStartResult =
   | RiviereProjectStartSuccess
   | Readonly<{ success: false; error: string }>
@@ -380,16 +421,5 @@ function observePhase<T>(
     return operation()
   } finally {
     observer?.({ phase, status: 'completed' })
-  }
-}
-
-function workflowFailure(errorCode: string, reason: string) {
-  return {
-    success: false as const,
-    errorCode,
-    reason,
-    events: [],
-    transitions: [],
-    warnings: [],
   }
 }

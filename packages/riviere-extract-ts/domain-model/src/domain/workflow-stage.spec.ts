@@ -76,13 +76,47 @@ describe('WorkflowStage', () => {
   it('copies event catalog import configuration from its input', () => {
     const config: EventCatalogImportConfig = {
       source: 'eventcatalog',
-      mappings: 'eventcatalog-mappings.yaml',
+      sourceFilePath: 'eventcatalog',
+      mappings: {
+        domains: { OrdersDomain: 'orders' },
+        services: {
+          OrdersService: {
+            type: 'UseCase',
+            domain: 'orders',
+            module: 'checkout',
+            name: 'PlaceOrder',
+          },
+        },
+        events: { OrderCreated: { name: 'OrderPlaced' } },
+      },
       allowUnmapped: false,
     }
     const stage = WorkflowStage.fromEventCatalogImport('import-eventcatalog', config)
 
     expect(eventCatalogConfigOf(stage.value)).toStrictEqual(config)
     expect(eventCatalogConfigOf(stage.value)).not.toBe(config)
+  })
+
+  it('deep copies event catalog mappings from its input', () => {
+    const config: EventCatalogImportConfig = {
+      source: 'eventcatalog',
+      sourceFilePath: 'eventcatalog',
+      mappings: {
+        domains: { OrdersDomain: 'orders' },
+        services: {
+          OrdersService: { type: 'UseCase', module: 'checkout', name: 'PlaceOrder' },
+        },
+        events: { OrderCreated: { name: 'OrderPlaced' } },
+      },
+      allowUnmapped: false,
+    }
+
+    const stage = WorkflowStage.fromEventCatalogImport('import-eventcatalog', config)
+    const copied = eventCatalogConfigOf(stage.value)
+
+    expect(copied.mappings.domains).not.toBe(config.mappings.domains)
+    expect(copied.mappings.services).not.toBe(config.mappings.services)
+    expect(copied.mappings.events).not.toBe(config.mappings.events)
   })
 
   it('copies asyncapi import configuration from its input', () => {

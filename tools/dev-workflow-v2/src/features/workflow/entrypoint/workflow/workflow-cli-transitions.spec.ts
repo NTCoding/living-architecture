@@ -31,7 +31,7 @@ describe('workflow lifecycle', () => {
     ).not.toContainEqual(expect.objectContaining({ type: 'pr-recorded', prNumber: 78 }))
   })
 
-  it('automatically enters feedback work when CodeRabbit has an unresolved thread', () => {
+  it('starts a review cycle when reviewing begins', () => {
     const context = setup({
       getPrFeedback: () => ({
         reviewerStatuses: {
@@ -64,9 +64,10 @@ describe('workflow lifecycle', () => {
       context.engineDeps.store.readEvents(context.sessionId).map(flattenStoredEvent),
     ).toContainEqual(
       expect.objectContaining({
-        type: 'transitioned',
-        from: 'REVIEWING',
-        to: 'ADDRESSING_FEEDBACK',
+        type: 'review-cycle-started',
+        cycleNumber: 1,
+        includedReviewers: ['architecture-review', 'code-review', 'bug-scanner', 'task-check'],
+        excludedReviewers: {},
       }),
     )
   })

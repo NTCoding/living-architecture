@@ -5,22 +5,26 @@ import { ExtractionConfiguration } from './extraction-configuration'
 import { MissingModuleSourceError } from './extraction-errors'
 import { RiviereModule } from './riviere-module'
 import { RiviereProject } from './riviere-project'
+import { collaborators } from './__fixtures__/workflow-fixtures'
 import {
   ExtractionConfigurationUnavailableError,
   GraphStateUnavailableError,
 } from './riviere-project-errors'
 
 function graphProject(): RiviereProject {
-  const result = RiviereProject.start({
-    graphDefinition: {
-      sources: [{ repository: 'shop' }],
-      domains: {
-        orders: { description: 'Orders', systemType: 'domain' },
+  const result = RiviereProject.start(
+    {
+      graphDefinition: {
+        sources: [{ repository: 'shop' }],
+        domains: {
+          orders: { description: 'Orders', systemType: 'domain' },
+        },
       },
     },
-  })
+    collaborators(),
+  )
   assert(result.success)
-  return result.data
+  return result.project
 }
 
 function extractionConfiguration(): ExtractionConfiguration {
@@ -160,19 +164,19 @@ describe('RiviereProject graph behaviour', () => {
 
   it('rejects graph behaviour on an extraction only project', () => {
     const configuration = extractionConfiguration()
-    const started = RiviereProject.start({ configuration, draftComponents: [] })
+    const started = RiviereProject.start({ configuration, draftComponents: [] }, collaborators())
     assert(started.success)
 
-    expect(() => started.data.build()).toThrowError(new GraphStateUnavailableError())
+    expect(() => started.project.build()).toThrowError(new GraphStateUnavailableError())
   })
 
   it('rejects graph metadata mutations on an extraction only project', () => {
     const configuration = extractionConfiguration()
-    const started = RiviereProject.start({ configuration, draftComponents: [] })
+    const started = RiviereProject.start({ configuration, draftComponents: [] }, collaborators())
     assert(started.success)
 
     expect(() =>
-      started.data.amendGraph((builder) => builder.addSource({ repository: 'catalogue' })),
+      started.project.amendGraph((builder) => builder.addSource({ repository: 'catalogue' })),
     ).toThrowError(new GraphStateUnavailableError())
   })
 
