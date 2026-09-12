@@ -38,19 +38,69 @@ Wait for explicit approval of the complete plan. Do not start addressing feedbac
 
 ## Address approved feedback
 
-For every approved fix:
+After the user has confirmed the plan, respond to each approved GitHub review
+thread with the agreed follow up action before changing any code. This records
+the approved plan on the thread, so another agent can recover what was agreed
+and carry out the work without seeing this conversation.
 
-1. Make and verify the change.
-2. Reply to the relevant review thread using GitHub GraphQL:
+For each approved fix:
+
+1. Reply to the thread with a self contained implementation note. The reply
+   must start by explaining why the feedback is valid, then state what outcome
+   or follow up action has been agreed with the user, and only then describe how
+   and where the change will be made, including relevant files, tests,
+   constraints, and verification. It must be detailed enough for another agent
+   to carry out the agreed work without seeing this conversation.
+
+   Use this format:
+
+   ```text
+   [main-agent] Confirmed with user: <why the feedback is valid>. Agreed to
+   <what outcome or follow up action is required>. This will be done by
+   <how and where the change will be made>, including <tests, constraints, and
+   verification>.
+   ```
+
+   For example:
+
+   ```text
+   [main-agent] Confirmed with user: the feedback is valid because the current
+   tests violate the testing principle requiring the behaviour to be
+   demonstrated directly. Agreed to address this by adding the missing
+   assertion and refactoring the affected test in <file>. The change will
+   preserve the existing test intent, cover the reported behaviour directly,
+   and be verified with <command>.
+   ```
+
+   Do not change code until this planning reply has been posted successfully.
+   Post the reply to the review thread using GitHub GraphQL:
 
    ```bash
    gh api graphql \
      -f query='mutation($pullRequestReviewThreadId: ID!, $body: String!) { addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: $pullRequestReviewThreadId, body: $body}) { comment { id } } }' \
      -f pullRequestReviewThreadId='<THREAD_ID>' \
-     -f body='[main-agent] ✅ **Fixed**: <explanation>'
+     -f body='[main-agent] Confirmed with user: <why the feedback is valid>. Agreed to <what outcome or follow up action is required>. This will be done by <how and where the change will be made>, including <tests, constraints, and verification>.'
    ```
 
-3. Resolve the thread only after the reply and fix:
+2. Make and verify the agreed change.
+
+3. Reply to the same thread with:
+
+   ```text
+   [main-agent] Done as planned: <what changed and how it was verified>
+   ```
+
+4. Resolve the thread only after the change has been verified and the
+   completion reply has been posted successfully:
+
+   ```bash
+   gh api graphql \
+     -f query='mutation($pullRequestReviewThreadId: ID!, $body: String!) { addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: $pullRequestReviewThreadId, body: $body}) { comment { id } } }' \
+     -f pullRequestReviewThreadId='<THREAD_ID>' \
+     -f body='[main-agent] Done as planned: <what changed and how it was verified>'
+   ```
+
+   Then resolve it with:
 
    ```bash
    gh api graphql \

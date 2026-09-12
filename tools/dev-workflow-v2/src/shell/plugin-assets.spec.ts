@@ -242,7 +242,20 @@ describe('reusable pull request orchestration', () => {
       hasClearFixes: feedbackProcedure.includes('**Clear fixes**'),
       hasDiscussion: feedbackProcedure.includes('**Discussion needed**'),
       hasHumanDirection: feedbackProcedure.includes('**Human direction**'),
-      prefixesReplies: feedbackProcedure.includes('[main-agent] ✅ **Fixed**'),
+      recordsPlanBeforeChanges:
+        feedbackProcedure.includes('respond to each approved GitHub review') &&
+        feedbackProcedure.includes(
+          'thread with the agreed follow up action before changing any code',
+        ),
+      explainsWhyBeforeWhatAndHow: feedbackProcedure.includes(
+        'must start by explaining why the feedback is valid, then state what outcome',
+      ),
+      recordsCompletion: feedbackProcedure.includes(
+        '[main-agent] Done as planned: <what changed and how it was verified>',
+      ),
+      resolvesAfterCompletion:
+        feedbackProcedure.indexOf('Done as planned:') <
+        feedbackProcedure.indexOf('Resolve the thread only after'),
       doesNotResolveHumanDecisions: feedbackProcedure.includes('do not resolve it'),
     }).toStrictEqual({
       workflowIndependent: true,
@@ -251,7 +264,10 @@ describe('reusable pull request orchestration', () => {
       hasClearFixes: true,
       hasDiscussion: true,
       hasHumanDirection: true,
-      prefixesReplies: true,
+      recordsPlanBeforeChanges: true,
+      explainsWhyBeforeWhatAndHow: true,
+      recordsCompletion: true,
+      resolvesAfterCompletion: true,
       doesNotResolveHumanDecisions: true,
     })
   })
