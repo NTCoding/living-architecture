@@ -72,7 +72,7 @@ function parseProperties(
         success: false,
         result: failure(
           'VALIDATION_ERROR',
-          `Invalid property type: "${definition.type}". Valid types: ${CustomPropertyType.names().join(', ')}`,
+          `Invalid property type: "${definition.type}". Valid types: ${propertyType.validNames.join(', ')}`,
         ),
       }
     }

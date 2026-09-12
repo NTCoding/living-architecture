@@ -1,5 +1,8 @@
 import type { AiExtractConfig } from '@living-architecture/riviere-extract-config-published-language'
-import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
+import {
+  BuilderOptions,
+  RiviereBuilder,
+} from '@living-architecture/riviere-builder-published-language'
 import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from './riviere-project'
@@ -189,7 +192,7 @@ describe('RiviereProject Workflow rebuild', () => {
     const subject = project()
     addExistingComponent(subject)
     const graph = subject.build()
-    const rehydrated = RiviereProject.rehydrate(graph, RiviereBuilder.graphOptionsFrom(graph), {
+    const rehydrated = RiviereProject.rehydrate(graph, BuilderOptions.fromGraph(graph), {
       name: 'build-graph',
       outputPath: 'graph.json',
       runLogDirectory: 'logs',
@@ -207,7 +210,7 @@ describe('RiviereProject Workflow rebuild', () => {
     const graph = subject.build()
 
     expect(() =>
-      RiviereProject.rehydrate(graph, RiviereBuilder.graphOptionsFrom(graph), {
+      RiviereProject.rehydrate(graph, BuilderOptions.fromGraph(graph), {
         name: 'duplicate-stages',
         outputPath: 'graph.json',
         runLogDirectory: 'logs',

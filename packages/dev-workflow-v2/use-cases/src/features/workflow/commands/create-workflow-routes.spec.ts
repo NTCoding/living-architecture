@@ -175,8 +175,8 @@ describe('CreateWorkflowRoutes', () => {
     expect(() => routes['record-reviewer-status'].handler(workflow, 'unknown', 'APPROVED')).toThrow(
       'Unknown reviewer',
     )
-    expect(() =>
+    expect(
       routes['record-reviewer-status'].handler(workflow, 'code-review', 'UNKNOWN'),
-    ).toThrow('Unknown reviewer status')
+    ).toStrictEqual({ pass: false, reason: 'Unknown reviewer status: UNKNOWN' })
   })
 })

@@ -49,22 +49,6 @@ describe('CommitType', () => {
       ],
     })
   })
-
-  it('lists the conventional commit types in their required order', () => {
-    expect(CommitType.supportedNames()).toStrictEqual([
-      'build',
-      'chore',
-      'ci',
-      'docs',
-      'feat',
-      'fix',
-      'perf',
-      'refactor',
-      'revert',
-      'style',
-      'test',
-    ])
-  })
 })
 
 describe('CommitScope', () => {

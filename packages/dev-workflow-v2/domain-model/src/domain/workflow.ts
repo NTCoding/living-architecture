@@ -10,7 +10,7 @@ import {
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import { WorkflowState } from './workflow-types'
+import { getInitialWorkflowState, WorkflowState } from './workflow-types'
 import type { PullRequestCreationDetails } from './pull-request-description'
 import { MaintainerWorkflowRegistry } from './registry'
 import { ReviewingState } from './states/reviewing'
@@ -19,8 +19,15 @@ import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
 import type { ReadWorkflowGitStatus } from './ports/read-git-status'
 import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
 import type { Reviewer } from './reviews/reviewers'
+import type { ReviewerStatus } from './reviews/statuses'
 import type { WorkflowEvent } from './workflow-events'
-import { parseWorkflowEvent } from './workflow-events'
+import {
+  parseWorkflowEvent,
+  PrRecorded,
+  ReviewerStatusRecorded,
+  SessionStarted,
+  Transitioned,
+} from './workflow-events'
 import { WorkflowTransitionContext } from './workflow-transition-context'
 type StateName = WorkflowState['currentStateMachineState']
 type LivingArchitectureReviewType = StoredReview['reviewType']
@@ -73,7 +80,7 @@ export class MaintainerWorkflow {
   static build(
     registry: MaintainerWorkflowRegistry,
     deps: WorkflowDeps,
-    state: unknown = WorkflowState.initial(),
+    state: unknown = getInitialWorkflowState(),
   ): MaintainerWorkflow {
     return new MaintainerWorkflow(WorkflowState.parse(state), registry, deps)
   }
@@ -108,12 +115,12 @@ export class MaintainerWorkflow {
     this.append(workflowEvent)
   }
   startSession(transcriptPath: string, repository: string | undefined): void {
-    const event: WorkflowEvent = {
+    const event = SessionStarted.parse({
       type: 'session-started',
       at: this.deps.now(),
       transcriptPath,
       ...(repository === undefined ? {} : { repository }),
-    }
+    })
     this.pendingEvents = [...this.pendingEvents, event]
     this.state = this.state.apply(event)
   }
@@ -165,16 +172,18 @@ export class MaintainerWorkflow {
 
   recordReviewerStatus(
     reviewer: Reviewer,
-    status: WorkflowState['reviewerStatuses'][keyof WorkflowState['reviewerStatuses']],
+    status: ReturnType<ReviewerStatus['name']>,
   ): PreconditionResult {
     const gate = checkOperationGate('record-reviewer-status', this.state, this.registryDefinition)
     if (!gate.pass) return gate
-    this.append({
-      type: 'reviewer-status-recorded',
-      at: this.deps.now(),
-      reviewer: reviewer.name(),
-      status,
-    })
+    this.append(
+      ReviewerStatusRecorded.parse({
+        type: 'reviewer-status-recorded',
+        at: this.deps.now(),
+        reviewer: reviewer.name(),
+        status,
+      }),
+    )
     return pass()
   }
 
@@ -193,12 +202,14 @@ export class MaintainerWorkflow {
       const pullRequest = this.deps.createPullRequest(
         this.pullRequestCreationRequest(input, submission.githubIssue, submission.featureBranch),
       )
-      this.append({
-        type: 'pr-recorded',
-        at: this.deps.now(),
-        prNumber: pullRequest.prNumber,
-        prUrl: pullRequest.prUrl,
-      })
+      this.append(
+        PrRecorded.parse({
+          type: 'pr-recorded',
+          at: this.deps.now(),
+          prNumber: pullRequest.prNumber,
+          prUrl: pullRequest.prUrl,
+        }),
+      )
       return pass()
     } catch (error) {
       return fail(`Unable to create PR: ${String(error)}`)
@@ -229,7 +240,7 @@ export class MaintainerWorkflow {
   }
 
   recordPullRequest(prNumber: number, prUrl: string): PreconditionResult {
-    this.append({ type: 'pr-recorded', at: this.deps.now(), prNumber, prUrl })
+    this.append(PrRecorded.parse({ type: 'pr-recorded', at: this.deps.now(), prNumber, prUrl }))
     return pass()
   }
 
@@ -249,16 +260,20 @@ export class MaintainerWorkflow {
       )
       if (!guard.pass) return guard
     }
-    this.append({ type: 'transitioned', at: this.deps.now(), from: current, to: target })
+    this.append(
+      Transitioned.parse({ type: 'transitioned', at: this.deps.now(), from: current, to: target }),
+    )
     return pass()
   }
 
   reviewOutcome(options: { readonly ignoreCodeRabbit?: boolean } = {}): ReviewOutcome {
-    const statuses = Object.entries(this.state.reviewerStatuses)
-      .filter(([reviewer]) => !(options.ignoreCodeRabbit === true && reviewer === 'coderabbit'))
+    const statuses = [...this.state.reviewerStatuses.statusByReviewer()]
+      .filter(
+        ([reviewer]) => !(options.ignoreCodeRabbit === true && reviewer.name() === 'coderabbit'),
+      )
       .map(([, status]) => status)
-    if (statuses.some((status) => status === 'OPEN_FEEDBACK')) return 'OPEN_FEEDBACK'
-    if (statuses.some((status) => status === 'PENDING')) return 'PENDING'
+    if (statuses.some((status) => status.isOpenFeedback())) return 'OPEN_FEEDBACK'
+    if (statuses.some((status) => status.isPending())) return 'PENDING'
     return 'APPROVED'
   }
   private append(event: WorkflowEvent): void {

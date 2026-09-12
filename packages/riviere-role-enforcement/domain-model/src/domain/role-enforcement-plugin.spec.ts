@@ -365,3 +365,88 @@ export function createCommand(dependencies: ExampleEntrypointDependencies) {
     rmSync(workspaceDir, { force: true, recursive: true })
   }
 })
+
+it('accepts a value object with a parse factory and a zero-argument singleton accessor', () => {
+  const messages = enforce(`/** @riviere-role value-object */
+export class Statuses {
+  private static readonly empty = new Statuses([])
+
+  private constructor(readonly values: readonly string[]) {}
+
+  static parse(values: readonly string[]): Statuses {
+    return new Statuses(values)
+  }
+
+  static singleton(): Statuses {
+    return Statuses.empty
+  }
+
+  static [Symbol.iterator](): Iterator<string> {
+    return [][Symbol.iterator]()
+  }
+}
+`)
+
+  expect(messages).toStrictEqual([])
+})
+
+it('rejects a value object static method that is neither a factory nor singleton', () => {
+  const messages = enforce(`/** @riviere-role value-object */
+export class Money {
+  private constructor(readonly amount: number) {}
+
+  static parse(amount: number): Money {
+    return new Money(amount)
+  }
+
+  static defaultCurrency(): string {
+    return 'GBP'
+  }
+}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain("does not allow static method 'defaultCurrency'")
+})
+
+it('rejects a singleton accessor that takes parameters', () => {
+  const messages = enforce(`/** @riviere-role value-object */
+export class Statuses {
+  private constructor(readonly values: readonly string[]) {}
+
+  static parse(values: readonly string[]): Statuses {
+    return new Statuses(values)
+  }
+
+  static singleton(value: string): Statuses {
+    return new Statuses([value])
+  }
+}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain(
+    "requires allowed static 'singleton' on 'Statuses' to be a zero-argument accessor",
+  )
+})
+
+it('rejects a singleton accessor that does not return the declaring value object', () => {
+  const messages = enforce(`/** @riviere-role value-object */
+export class Statuses {
+  private constructor(readonly values: readonly string[]) {}
+
+  static parse(values: readonly string[]): Statuses {
+    return new Statuses(values)
+  }
+
+  static singleton(): readonly string[] {
+    return []
+  }
+}
+`)
+
+  expect(messages).toHaveLength(1)
+  expect(messages[0]?.message).toContain(
+    "requires allowed static 'singleton' on 'Statuses' to return 'Statuses'",
+  )
+})

@@ -5,7 +5,7 @@ import { SubmittingPrState } from './states/submitting-pr'
 import { AddressingFeedbackState } from './states/addressing-feedback'
 import { BlockedState } from './states/blocked'
 import { WorkflowTransitionContext } from './workflow-transition-context'
-import { getInitialWorkflowState, WorkflowState } from './workflow-types'
+import { getInitialWorkflowState } from './workflow-types'
 
 const gitInfo: GitInfo = {
   currentBranch: 'branch',
@@ -28,7 +28,7 @@ describe('workflow state definitions', () => {
       'bug-scanner': 'APPROVED',
       'task-check': 'APPROVED',
       coderabbit: 'APPROVED',
-    } satisfies WorkflowState['reviewerStatuses']
+    } satisfies Readonly<Record<string, string>>
     expect(
       reviewing.transitionGuard({
         state: state.with({ reviewerStatuses }),
@@ -41,7 +41,7 @@ describe('workflow state definitions', () => {
 
   it('resets reviewer status when implementation begins', () => {
     const state = ImplementingState.parse('IMPLEMENTING').onEntry(getInitialWorkflowState())
-    expect(state.reviewerStatuses).toMatchObject({ coderabbit: 'PENDING' })
+    expect(state.reviewerStatuses.toJSON()).toMatchObject({ coderabbit: 'PENDING' })
   })
 
   it('requires a committed, clean issue branch before submitting', () => {
@@ -107,7 +107,7 @@ describe('workflow state definitions', () => {
     expect(
       reviewing.transitionGuard({
         state: state.with({
-          reviewerStatuses: { ...state.reviewerStatuses, coderabbit: 'OPEN_FEEDBACK' },
+          reviewerStatuses: { ...state.reviewerStatuses.toJSON(), coderabbit: 'OPEN_FEEDBACK' },
         }),
         gitInfo,
         from: 'REVIEWING',

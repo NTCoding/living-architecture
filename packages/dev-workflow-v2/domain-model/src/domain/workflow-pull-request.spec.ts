@@ -2,7 +2,7 @@ import { assert } from 'vitest'
 import { buildTestWorkflow, makeDeps } from './__fixtures__/workflow-test-fixtures'
 import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
 import { PullRequestCreationDetails } from './pull-request-description'
-import { WorkflowState } from './workflow-types'
+import { getInitialWorkflowState } from './workflow-types'
 class GitHubPullRequestError extends Error {}
 const VALID_PULL_REQUEST_DESCRIPTION_INPUT = PullRequestCreationDetails.from({
   commitType: 'feat',
@@ -97,7 +97,7 @@ describe('pull request creation', () => {
   it('rejects re-entering SUBMITTING_PR after a pull request has been recorded', () => {
     const workflow = buildTestWorkflow(
       makeDeps(),
-      WorkflowState.initial().with({
+      getInitialWorkflowState().with({
         currentStateMachineState: 'IMPLEMENTING',
         githubIssue: 42,
         featureBranch: 'issue-42',

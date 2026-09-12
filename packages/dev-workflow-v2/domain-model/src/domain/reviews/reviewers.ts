@@ -30,10 +30,6 @@ export class Reviewer {
     return new Reviewer(result.data)
   }
 
-  static schema() {
-    return REVIEWER_SCHEMA
-  }
-
   name(): z.infer<typeof REVIEWER_SCHEMA> {
     return this.reviewerName
   }
@@ -47,5 +43,13 @@ export class Reviewers {
 
   static parse(value: readonly string[]): Reviewers {
     return new Reviewers(value.map((reviewer) => Reviewer.fromName(reviewer).name()))
+  }
+
+  static singleton(): Reviewers {
+    return new Reviewers(REVIEWER_NAMES)
+  }
+
+  all(): readonly Reviewer[] {
+    return this.values.map((reviewerName) => Reviewer.fromName(reviewerName))
   }
 }

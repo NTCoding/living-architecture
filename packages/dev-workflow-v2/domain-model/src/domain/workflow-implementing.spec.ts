@@ -6,6 +6,7 @@ import {
   TEST_WORKFLOW_REGISTRY,
 } from './__fixtures__/workflow-test-fixtures'
 import { Reviewer } from './reviews/reviewers'
+import { BranchRecorded, IssueRecorded } from './workflow-events'
 describe('Workflow', () => {
   describe('createFresh', () => {
     it('creates a workflow in IMPLEMENTING state with empty pending events', () => {
@@ -29,7 +30,7 @@ describe('Workflow', () => {
     it('appends session-started event without repository when undefined', () => {
       const { events } = spec.given().when((wf) => wf.startSession('', undefined))
       expect(events).toHaveLength(1)
-      expect(events[0]).not.toHaveProperty('repository')
+      expect(events[0]).toHaveProperty('repository', undefined)
       expect(events[0]).toHaveProperty('transcriptPath', '')
     })
   })
@@ -156,7 +157,9 @@ describe('Workflow', () => {
         .given(...eventsToReviewing())
         .when((wf) => wf.recordReviewerStatus(Reviewer.fromName('code-review'), 'OPEN_FEEDBACK'))
       expect(result).toStrictEqual({ pass: true })
-      expect(state.reviewerStatuses['code-review']).toBe('OPEN_FEEDBACK')
+      expect(state.reviewerStatuses.statusFor(Reviewer.fromName('code-review'))?.name()).toBe(
+        'OPEN_FEEDBACK',
+      )
     })
     it('rejects reviewer status recording outside reviewing', () => {
       const workflow = buildTestWorkflow(makeDeps())
@@ -220,16 +223,16 @@ describe('Workflow', () => {
       const { result, state, events } = spec
         .given(
           ...eventsToReviewing().slice(0, 0),
-          {
+          IssueRecorded.parse({
             type: 'issue-recorded',
             at: '2026-01-01T00:00:00Z',
             issueNumber: 42,
-          },
-          {
+          }),
+          BranchRecorded.parse({
             type: 'branch-recorded',
             at: '2026-01-01T00:00:00Z',
             branch: 'issue-42',
-          },
+          }),
         )
         .when((wf) => wf.transition('SUBMITTING_PR'))
       expect(result).toStrictEqual({ pass: true })

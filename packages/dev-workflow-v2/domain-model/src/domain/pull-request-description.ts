@@ -83,10 +83,6 @@ export class CommitType {
   name(): z.infer<typeof COMMIT_TYPE_SCHEMA> {
     return this.commitTypeName
   }
-
-  static supportedNames(): readonly z.infer<typeof COMMIT_TYPE_SCHEMA>[] {
-    return CONVENTIONAL_COMMIT_TYPES
-  }
 }
 
 /** @riviere-role value-object */

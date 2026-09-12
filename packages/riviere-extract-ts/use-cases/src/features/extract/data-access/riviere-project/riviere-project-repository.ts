@@ -20,7 +20,7 @@ import {
   type WorkflowDefinition,
   type WorkflowStageDefinition,
 } from '@living-architecture/riviere-extract-config-published-language'
-import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
+import { BuilderOptions } from '@living-architecture/riviere-builder-published-language'
 import {
   FileReadError,
   readJsonFile,
@@ -113,7 +113,7 @@ export class RiviereProjectRepository {
       )
     return RiviereProject.rehydrate(
       parsed.graph,
-      RiviereBuilder.graphOptionsFrom(parsed.graph),
+      BuilderOptions.fromGraph(parsed.graph),
       workflowInput,
     )
   }

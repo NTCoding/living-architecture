@@ -85,7 +85,7 @@ describe('RiviereProjectRepository workflow loading', () => {
 
   it('loads the previous completed graph before adding the workflow', () => {
     const directory = workspace()
-    const previousGraph = RiviereBuilder.new({
+    const previousGraph = RiviereBuilder.parse({
       name: 'previous-graph',
       description: 'Orders and shipping',
       sources: [{ repository: 'workflow-test' }],
@@ -111,7 +111,7 @@ describe('RiviereProjectRepository workflow loading', () => {
 
   it('rejects a workflow with duplicate stage names before returning the project', () => {
     const directory = workspace()
-    const previousGraph = RiviereBuilder.new({
+    const previousGraph = RiviereBuilder.parse({
       name: 'previous-graph',
       description: 'Orders and shipping',
       sources: [{ repository: 'workflow-test' }],
@@ -137,7 +137,7 @@ describe('RiviereProjectRepository workflow loading', () => {
   it('preserves an invalid workflow while rehydrating an existing graph', () => {
     const directory = workspace()
     writeWorkflow(directory)
-    const previousGraph = RiviereBuilder.new({
+    const previousGraph = RiviereBuilder.parse({
       name: 'previous-graph',
       description: 'Orders and shipping',
       sources: [{ repository: 'workflow-test' }],
@@ -158,7 +158,7 @@ describe('RiviereProjectRepository workflow loading', () => {
   it('rethrows unexpected rehydration failures', () => {
     const directory = workspace()
     writeWorkflow(directory)
-    const previousGraph = RiviereBuilder.new({
+    const previousGraph = RiviereBuilder.parse({
       name: 'previous-graph',
       description: 'Orders and shipping',
       sources: [{ repository: 'workflow-test' }],
@@ -233,7 +233,7 @@ describe('RiviereProjectRepository workflow loading', () => {
         '    name: validate',
       ].join('\n'),
     )
-    const previousGraph = RiviereBuilder.new({
+    const previousGraph = RiviereBuilder.parse({
       name: 'previous-graph',
       description: 'Orders and shipping',
       sources: [{ repository: 'workflow-test' }],

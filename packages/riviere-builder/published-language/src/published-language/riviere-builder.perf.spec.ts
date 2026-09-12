@@ -13,7 +13,7 @@ function options() {
 
 describe('RiviereBuilder large graph performance paths', () => {
   it('stores 80,000 components without rebuilding the component collection', () => {
-    const builder = RiviereBuilder.new(options())
+    const builder = RiviereBuilder.parse(options())
     for (const index of Array.from({ length: LARGE_GRAPH_SIZE }, (_, item) => item)) {
       builder.addUseCase({
         name: `Component ${index}`,
@@ -30,7 +30,7 @@ describe('RiviereBuilder large graph performance paths', () => {
   })
 
   it('stores 80,000 links without rebuilding the link collection', () => {
-    const builder = RiviereBuilder.new(options())
+    const builder = RiviereBuilder.parse(options())
     const source = builder.addUseCase({
       name: 'Source',
       domain: 'performance',

@@ -1,7 +1,8 @@
+import { BuilderOptions } from './riviere-graph-definition-input'
 import { RiviereBuilder } from './riviere-builder'
 
 function createValidOptions() {
-  return {
+  return BuilderOptions.parse({
     sources: [
       {
         repository: 'test/repo',
@@ -14,7 +15,7 @@ function createValidOptions() {
         systemType: 'domain',
       },
     },
-  } as const
+  } as const)
 }
 
 function sourceLocation() {
@@ -26,7 +27,7 @@ function sourceLocation() {
 
 describe('RiviereBuilder upsert', () => {
   it('upsertUI creates then merges and returns created flag', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     const created = builder.upsertUI({
       name: 'Checkout Page',
@@ -53,7 +54,7 @@ describe('RiviereBuilder upsert', () => {
   })
 
   it('upsertApi creates then merges and returns created flag', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     const created = builder.upsertApi({
       name: 'Create Order',
@@ -79,7 +80,7 @@ describe('RiviereBuilder upsert', () => {
   })
 
   it('upsertUseCase creates then merges and returns created flag', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     const created = builder.upsertUseCase({
       name: 'Place Order',
@@ -102,7 +103,7 @@ describe('RiviereBuilder upsert', () => {
   })
 
   it('upsertDomainOp creates then merges and returns created flag', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     const created = builder.upsertDomainOp({
       name: 'Place Order',
@@ -126,7 +127,7 @@ describe('RiviereBuilder upsert', () => {
   })
 
   it('upsertEvent creates then merges and returns created flag', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     const created = builder.upsertEvent({
       name: 'Order Created',
@@ -150,7 +151,7 @@ describe('RiviereBuilder upsert', () => {
   })
 
   it('upsertEventHandler unions subscribed events', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     builder.upsertEventHandler({
       name: 'Notify',
@@ -173,7 +174,7 @@ describe('RiviereBuilder upsert', () => {
   })
 
   it('upsertCustom creates then merges and returns created flag', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     builder.defineCustomType({ name: 'Queue' })
 
     const created = builder.upsertCustom({
@@ -200,7 +201,7 @@ describe('RiviereBuilder upsert', () => {
   })
 
   it('upsertDomainOp unions arrays and mergeBehavior arrays', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     builder.upsertDomainOp({
       name: 'Place Order',
@@ -265,7 +266,7 @@ describe('RiviereBuilder upsert', () => {
   })
 
   it('treats empty incoming arrays as no-op', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     builder.upsertEventHandler({
       name: 'Notify',
@@ -287,7 +288,7 @@ describe('RiviereBuilder upsert', () => {
   })
 
   it('does not overwrite with undefined or null values', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     builder.upsertUI({
       name: 'Checkout Page',
@@ -329,7 +330,7 @@ describe('RiviereBuilder upsert', () => {
   })
 
   it('supports noOverwrite for scalars while still unioning arrays', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     builder.upsertDomainOp({
       name: 'Place Order',
@@ -360,7 +361,7 @@ describe('RiviereBuilder upsert', () => {
   })
 
   it('fills missing scalar values with noOverwrite', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     builder.upsertApi({
       name: 'Create Order',
@@ -386,7 +387,7 @@ describe('RiviereBuilder upsert', () => {
   })
 
   it('fills missing array values during merge', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     builder.upsertDomainOp({
       name: 'Place Order',

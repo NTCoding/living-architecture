@@ -1,8 +1,9 @@
+import { BuilderOptions } from './riviere-graph-definition-input'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { RiviereBuilder } from './riviere-builder'
 
 function createValidOptions() {
-  return {
+  return BuilderOptions.parse({
     sources: [
       {
         repository: 'test/repo',
@@ -15,7 +16,7 @@ function createValidOptions() {
         systemType: 'domain',
       },
     },
-  } as const
+  } as const)
 }
 
 function sourceLocation() {
@@ -27,7 +28,7 @@ function sourceLocation() {
 
 describe('RiviereBuilder upsert nested merge behavior', () => {
   it('recursively merges nested custom metadata objects and arrays', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     builder.defineCustomType({ name: 'Queue' })
 
     builder.upsertCustom({
@@ -68,7 +69,7 @@ describe('RiviereBuilder upsert nested merge behavior', () => {
   })
 
   it('preserves nested custom metadata scalars with noOverwrite', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     builder.defineCustomType({ name: 'Queue' })
 
     builder.upsertCustom({
@@ -96,7 +97,7 @@ describe('RiviereBuilder upsert nested merge behavior', () => {
   })
 
   it('treats nested null metadata values as no-op during merge', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     builder.defineCustomType({ name: 'Queue' })
 
     builder.upsertCustom({
@@ -167,7 +168,7 @@ describe('RiviereBuilder upsert nested merge behavior', () => {
       "links": []
     }`)
 
-    const builder = RiviereBuilder.resume(malformedGraph)
+    const builder = RiviereBuilder.fromGraph(malformedGraph)
 
     const merged = builder.upsertDomainOp({
       name: 'Place Order',
@@ -182,7 +183,7 @@ describe('RiviereBuilder upsert nested merge behavior', () => {
   })
 
   it('handles DomainOp behavior records without reads array', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     builder.upsertDomainOp({
       name: 'Place Order',
@@ -218,7 +219,7 @@ describe('RiviereBuilder upsert nested merge behavior', () => {
   })
 
   it('merges nested object into previously undefined custom metadata field', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     builder.defineCustomType({ name: 'Queue' })
 
     builder.upsertCustom({
@@ -243,7 +244,7 @@ describe('RiviereBuilder upsert nested merge behavior', () => {
   })
 
   it('replaces primitive custom metadata field with object and merges recursively', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     builder.defineCustomType({ name: 'Queue' })
 
     builder.upsertCustom({

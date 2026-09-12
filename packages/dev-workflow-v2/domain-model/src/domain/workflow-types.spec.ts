@@ -4,6 +4,7 @@ import {
   getInitialWorkflowState,
   getWorkflowStateNames,
 } from './workflow-types'
+import { BashChecked, ReviewerStatusRecorded } from './workflow-events'
 
 const REVIEWERS = {
   'architecture-review': 'PENDING',
@@ -17,8 +18,8 @@ describe('WorkflowState', () => {
   it('starts with all named reviewers pending', () => {
     expect(getInitialWorkflowState()).toMatchObject({
       currentStateMachineState: 'IMPLEMENTING',
-      reviewerStatuses: REVIEWERS,
     })
+    expect(getInitialWorkflowState().reviewerStatuses.toJSON()).toStrictEqual(REVIEWERS)
   })
 
   it('requires reviewer statuses when parsing persisted state', () => {
@@ -44,21 +45,21 @@ describe('WorkflowState', () => {
       WorkflowState.parse({
         currentStateMachineState: 'IMPLEMENTING',
         reviewerStatuses: REVIEWERS,
-      }).reviewerStatuses,
+      }).reviewerStatuses.toJSON(),
     ).toStrictEqual(REVIEWERS)
   })
 
   it('replays reviewer status records', () => {
     expect(
-      WorkflowState.replay([
-        {
+      WorkflowState.from([
+        ReviewerStatusRecorded.parse({
           type: 'reviewer-status-recorded',
           at: '2026-01-01T00:00:00Z',
           reviewer: 'code-review',
           status: 'APPROVED',
-        },
-      ]),
-    ).toMatchObject({ reviewerStatuses: { ...REVIEWERS, 'code-review': 'APPROVED' } })
+        }),
+      ]).reviewerStatuses.toJSON(),
+    ).toStrictEqual({ ...REVIEWERS, 'code-review': 'APPROVED' })
   })
 
   it('uses the configured state names for state schemas', () => {
@@ -81,14 +82,20 @@ describe('WorkflowState', () => {
       preBlockedState: 'REVIEWING',
       transcriptPath: '/workspace/transcript',
     })
+    expect(state.toJSON()).toMatchObject({
+      preBlockedState: 'REVIEWING',
+      transcriptPath: '/workspace/transcript',
+    })
     expect(
-      state.apply({
-        type: 'bash-checked',
-        at: '2026-01-01T00:00:00Z',
-        tool: 'bash',
-        command: 'git status',
-        allowed: true,
-      }),
+      state.apply(
+        BashChecked.parse({
+          type: 'bash-checked',
+          at: '2026-01-01T00:00:00Z',
+          tool: 'bash',
+          command: 'git status',
+          allowed: true,
+        }),
+      ),
     ).toBe(state)
     expect(getWorkflowStateNames()).toContain('HUMAN_REVIEWING')
   })

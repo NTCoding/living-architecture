@@ -1,4 +1,7 @@
-import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
+import {
+  BuilderOptions,
+  RiviereBuilder,
+} from '@living-architecture/riviere-builder-published-language'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { DraftComponent } from './component-extraction/draft-component'
 import { AsyncDetectionOptions } from './connection-detection/async-detection/async-detection-options'
@@ -43,7 +46,7 @@ export class RiviereProject {
   static start(input: ExtractionProjectStartInput): RiviereProjectStartResult
   static start(input: RiviereProjectStartInput): RiviereProjectStartResult {
     if (input.graphDefinition !== undefined) {
-      const builder = RiviereBuilder.new(input.graphDefinition)
+      const builder = RiviereBuilder.parse(input.graphDefinition)
       if (input.workflowInput === undefined) {
         return { success: true as const, data: new RiviereProject(undefined, [], [], builder) }
       }
@@ -71,7 +74,7 @@ export class RiviereProject {
 
   static rehydrate(
     graph: RiviereGraph,
-    graphOptions = RiviereBuilder.graphOptionsFrom(graph),
+    graphOptions = BuilderOptions.fromGraph(graph),
     workflowInput?: WorkflowStartInput,
   ): RiviereProject {
     const project = new RiviereProject(
@@ -107,7 +110,7 @@ export class RiviereProject {
       return workflowFailure('WORKFLOW_UNAVAILABLE', 'No workflow is loaded')
     }
     const previousBuilder = this.graphBuilder()
-    this.builder = RiviereBuilder.new(RiviereBuilder.graphOptionsFrom(previousBuilder.build()))
+    this.builder = RiviereBuilder.parse(BuilderOptions.fromGraph(previousBuilder.build()))
     const run = workflow.run(this.builder, mode, (stage) => this.executeWorkflowStage(stage))
     if (!run.value.success) {
       this.builder = previousBuilder
@@ -198,7 +201,7 @@ export class RiviereProject {
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
   }) {
     this.assertNoUnassignedDraftComponents()
-    const enrichment = EnrichmentResult.mergeModuleResults(
+    const enrichment = EnrichmentResult.from(
       this.modules
         .filter((module) => module.draftComponents().length > 0)
         .map((module) => module.enrichDraftComponents()),
@@ -341,14 +344,14 @@ type ExtractionProjectStartInput = Readonly<{
 type WorkflowStartInput = Parameters<typeof Workflow.build>[0]
 
 type GraphOnlyProjectStartInput = Readonly<{
-  graphDefinition: Parameters<typeof RiviereBuilder.new>[0]
+  graphDefinition: Parameters<typeof RiviereBuilder.parse>[0]
   workflowInput?: undefined
   configuration?: undefined
   draftComponents?: undefined
 }>
 
 type GraphWithWorkflowStartInput = Readonly<{
-  graphDefinition: Parameters<typeof RiviereBuilder.new>[0]
+  graphDefinition: Parameters<typeof RiviereBuilder.parse>[0]
   workflowInput: WorkflowStartInput
   configuration?: undefined
   draftComponents?: undefined

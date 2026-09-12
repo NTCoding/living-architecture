@@ -1,6 +1,8 @@
 import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { z } from 'zod'
-import { ReviewStatuses } from '../reviews/statuses'
+import { Reviewers } from '../reviews/reviewers'
+import { ReviewerStatus } from '../reviews/statuses'
+import { ReviewerStatuses } from '../reviews/reviewer-statuses'
 import type { WorkflowState } from '../workflow-types'
 import type { WorkflowTransitionContext } from '../workflow-transition-context'
 
@@ -63,7 +65,10 @@ export class ImplementingState {
 
   onEntry(state: WorkflowState): WorkflowState {
     return state.with({
-      reviewerStatuses: ReviewStatuses.pending(),
+      reviewerStatuses: ReviewerStatuses.fromInitialState(
+        Reviewers.singleton().all(),
+        ReviewerStatus.parse('PENDING'),
+      ).toJSON(),
     })
   }
 }

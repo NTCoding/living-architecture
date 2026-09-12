@@ -1,11 +1,7 @@
 import { isWriteAllowed } from './workflow-predicates'
-import { ReviewStatuses } from './reviews/statuses'
-import { WorkflowState } from './workflow-types'
+import { getInitialWorkflowState } from './workflow-types'
 
-const BASE_STATE = WorkflowState.parse({
-  currentStateMachineState: 'IMPLEMENTING',
-  reviewerStatuses: ReviewStatuses.pending(),
-})
+const BASE_STATE = getInitialWorkflowState()
 
 describe('isWriteAllowed predicate', () => {
   it('allows writes to normal files', () => {

@@ -1,7 +1,16 @@
-import { z } from 'zod'
+import { z, type ZodType } from 'zod'
 
-const REVIEWER_STATUS_SCHEMA = z.enum(['PENDING', 'OPEN_FEEDBACK', 'APPROVED'] as const)
+const REVIEWER_STATUS_NAMES = ['PENDING', 'OPEN_FEEDBACK', 'APPROVED'] as const
+const REVIEWER_STATUS_SCHEMA = z.enum(REVIEWER_STATUS_NAMES)
 type ReviewerStatusName = z.infer<typeof REVIEWER_STATUS_SCHEMA>
+
+/** @riviere-role domain-error */
+export class InvalidReviewerStatus extends Error {
+  constructor(value: string) {
+    super(`Unknown reviewer status: ${value}`)
+    this.name = 'InvalidReviewerStatus'
+  }
+}
 
 /** @riviere-role value-object */
 export class ReviewerStatus {
@@ -18,6 +27,12 @@ export class ReviewerStatus {
     return result.success
       ? { ok: true, value: new ReviewerStatus(result.data) }
       : { ok: false, reason: `Unknown reviewer status: ${value}` }
+  }
+
+  static parse(value: string): ReviewerStatus {
+    const result = ReviewerStatus.fromName(value)
+    if (!result.ok) throw new InvalidReviewerStatus(value)
+    return result.value
   }
 
   name(): ReviewerStatusName {
@@ -37,23 +52,17 @@ export class ReviewerStatus {
 export class ReviewStatuses {
   declare private readonly brand: 'ReviewStatuses'
 
-  private constructor(readonly values: readonly z.infer<typeof REVIEWER_STATUS_SCHEMA>[]) {}
+  private constructor(readonly values: readonly ReviewerStatusName[]) {}
 
   static parse(value: readonly string[]): ReviewStatuses {
     return new ReviewStatuses(REVIEWER_STATUS_SCHEMA.array().parse(value))
   }
 
-  static schema() {
-    return REVIEWER_STATUS_SCHEMA
+  static singleton(): ReviewStatuses {
+    return new ReviewStatuses(REVIEWER_STATUS_NAMES)
   }
 
-  static pending() {
-    return {
-      'architecture-review': 'PENDING' as const,
-      'code-review': 'PENDING' as const,
-      'bug-scanner': 'PENDING' as const,
-      'task-check': 'PENDING' as const,
-      coderabbit: 'PENDING' as const,
-    }
+  asZodSchema(): ZodType<ReviewerStatusName> {
+    return REVIEWER_STATUS_SCHEMA
   }
 }

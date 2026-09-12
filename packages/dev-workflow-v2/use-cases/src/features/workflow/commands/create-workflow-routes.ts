@@ -2,7 +2,7 @@ import { arg } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { MaintainerWorkflow as Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
 import { Reviewer } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
-import { ReviewStatuses } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/statuses'
+import { ReviewerStatus } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/statuses'
 import type { ZodType } from 'zod'
 import type { CreateWorkflowRoutesInput } from './create-workflow-routes-input'
 import type { CreateWorkflowRoutesResult } from './create-workflow-routes-result'
@@ -12,15 +12,6 @@ interface ZodSchemaProvider<T> {
 }
 type DefineWorkflowRoutes = typeof defineRoutes
 type RoutedWorkflow = Workflow
-type ReviewerStatus = Parameters<Workflow['recordReviewerStatus']>[1]
-class InvalidReviewerStatusError extends Error {}
-function parseReviewerStatus(value: string): ReviewerStatus {
-  try {
-    return ReviewStatuses.schema().parse(value)
-  } catch {
-    throw new InvalidReviewerStatusError(`Unknown reviewer status: ${value}`)
-  }
-}
 
 /** @riviere-role command-use-case */
 export class CreateWorkflowRoutes {
@@ -64,12 +55,15 @@ export class CreateWorkflowRoutes {
       'record-reviewer-status': {
         type: 'transaction' as const,
         args: [arg.string('reviewer'), arg.string('status')] as const,
-        handler: (workflow: RoutedWorkflow, reviewer: unknown, status: unknown) =>
-          input.recordReviewerStatus(
+        handler: (workflow: RoutedWorkflow, reviewer: unknown, status: unknown) => {
+          const parsedStatus = ReviewerStatus.fromName(input.parseStringArgument(status))
+          if (!parsedStatus.ok) return { pass: false, reason: parsedStatus.reason }
+          return input.recordReviewerStatus(
             workflow,
             Reviewer.fromName(input.parseStringArgument(reviewer)),
-            parseReviewerStatus(input.parseStringArgument(status)),
-          ),
+            parsedStatus.value.name(),
+          )
+        },
       },
     }
     this.defineRoutes<RoutedWorkflow, ReturnType<RoutedWorkflow['getState']>>(routes)
