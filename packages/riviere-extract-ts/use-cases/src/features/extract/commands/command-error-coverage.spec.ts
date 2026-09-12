@@ -66,7 +66,10 @@ describe('command error path coverage', () => {
     const { mkdir, writeFile } = await import('node:fs/promises')
     await mkdir(join(ctx.testDir, '.riviere'), { recursive: true })
     await writeFile(graphLocation(), '{invalid', 'utf-8')
-    const result = new InitGraph(createRiviereProjectRepository()).execute({
+    const result = new InitGraph(
+      createRiviereProjectRepository(),
+      collaborators().loadEventCatalogSource,
+    ).execute({
       domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],
       graphFileLocation: graphLocation(),
       name: 'combined',

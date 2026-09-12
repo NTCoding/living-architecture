@@ -319,7 +319,7 @@ describe('additional builder command coverage', () => {
     ).toThrow('unexpected')
 
     expect(() =>
-      new InitGraph(repo).execute({
+      new InitGraph(repo, collaborators().loadEventCatalogSource).execute({
         domains: [
           {
             description: 'Orders',

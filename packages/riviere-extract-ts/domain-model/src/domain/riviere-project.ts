@@ -21,7 +21,6 @@ import { type EnrichedComponent, EnrichmentResult } from './value-extraction/enr
 import type { ExtractionConfiguration } from './extraction-configuration'
 import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
 import { executeEventCatalogImportStage } from './event-catalog/execute-event-catalog-import-stage'
-import { EventCatalogSourceUnavailableError } from './event-catalog/event-catalog-source-unavailable-error'
 import type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
 import { RiviereModule } from './riviere-module'
 import {
@@ -48,19 +47,19 @@ export class RiviereProject {
 
   static start(
     input: GraphOnlyProjectStartInput,
-    collaborators?: RiviereProjectCollaborators,
+    collaborators: RiviereProjectCollaborators,
   ): RiviereProjectStartSuccess
   static start(
     input: GraphWithWorkflowStartInput,
-    collaborators?: RiviereProjectCollaborators,
+    collaborators: RiviereProjectCollaborators,
   ): RiviereProjectStartResult
   static start(
     input: ExtractionProjectStartInput,
-    collaborators?: RiviereProjectCollaborators,
+    collaborators: RiviereProjectCollaborators,
   ): RiviereProjectStartResult
   static start(
     input: RiviereProjectStartInput,
-    collaborators: RiviereProjectCollaborators = unavailableCollaborators,
+    collaborators: RiviereProjectCollaborators,
   ): RiviereProjectStartResult {
     if (input.graphDefinition !== undefined) {
       const builder = RiviereBuilder.parse(input.graphDefinition)
@@ -106,7 +105,7 @@ export class RiviereProject {
 
   static rehydrate(
     graph: RiviereGraph,
-    collaborators: RiviereProjectCollaborators = unavailableCollaborators,
+    collaborators: RiviereProjectCollaborators,
     graphOptions = BuilderOptions.fromGraph(graph),
     workflowInput?: WorkflowStartInput,
   ): RiviereProject {
@@ -411,11 +410,6 @@ type RiviereProjectStartResult =
 type SourceFileSelection =
   | { readonly kind: 'all' }
   | { readonly kind: 'files'; readonly filePaths: readonly string[] }
-
-const unavailableCollaborators: RiviereProjectCollaborators = {
-  loadEventCatalogSource: () => Promise.reject(new EventCatalogSourceUnavailableError()),
-  repositoryName: '',
-}
 
 function observePhase<T>(
   observer: ObserveConnectionDetectionPhase | undefined,

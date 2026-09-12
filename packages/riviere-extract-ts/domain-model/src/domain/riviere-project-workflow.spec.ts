@@ -302,27 +302,4 @@ describe('RiviereProject Workflow rebuild', () => {
       'orders:checkout:event:orderplaced',
     ])
   })
-
-  it('fails an EventCatalog stage when no collaborators are supplied', async () => {
-    const eventCatalogConfig: EventCatalogImportConfig = {
-      source: 'eventcatalog',
-      sourceFilePath: 'eventcatalog',
-      allowUnmapped: false,
-      mappings: { domains: {}, services: {}, events: {} },
-    }
-    const started = RiviereProject.start({
-      graphDefinition: graphDefinition(),
-      workflowInput: {
-        name: 'build-graph',
-        outputPath: 'graph.json',
-        runLogDirectory: 'logs',
-        stages: [WorkflowStage.fromEventCatalogImport('import', eventCatalogConfig)],
-      },
-    })
-    assert(started.success)
-
-    const result = await started.project.rebuildGraph()
-
-    expect(result).toMatchObject({ success: false, errorCode: 'UNEXPECTED_STAGE_FAILURE' })
-  })
 })

@@ -44,4 +44,18 @@ describe('Reviewing state', () => {
       'Unable to start a review cycle.',
     )
   })
+
+  it('does not start another cycle when one is already open', () => {
+    const startReviewCycle = vi.fn().mockReturnValue({ pass: true })
+    const state = getInitialWorkflowState().with({
+      currentStateMachineState: 'REVIEWING',
+      reviewCycleOpen: true,
+    })
+
+    ReviewingState.parse('REVIEWING', {
+      workflow: { getState: () => state, startReviewCycle },
+    }).afterEntry()
+
+    expect(startReviewCycle).not.toHaveBeenCalled()
+  })
 })

@@ -262,7 +262,7 @@ export class RiviereProjectRepository {
         throw new GraphCorruptedError(graphFileLocation, { cause: result.issues })
       return RiviereProject.rehydrate(result.graph, {
         loadEventCatalogSource: this.loadEventCatalogSource,
-        repositoryName: '',
+        repositoryName: graphFileLocation,
       })
     } catch (error) {
       if (!(error instanceof FileReadError)) throw error

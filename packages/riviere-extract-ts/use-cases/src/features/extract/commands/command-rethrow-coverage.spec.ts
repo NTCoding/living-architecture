@@ -187,7 +187,10 @@ describe('command unexpected error propagation', () => {
       throw new UnexpectedBuilderFailure('init boom')
     })
     expect(() =>
-      new InitGraph(createRiviereProjectRepository()).execute({
+      new InitGraph(
+        createRiviereProjectRepository(),
+        collaborators().loadEventCatalogSource,
+      ).execute({
         domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],
         graphFileLocation: graphLocation(),
         name: 'combined',

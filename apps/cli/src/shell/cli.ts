@@ -130,7 +130,8 @@ const packageJson = loadPackageJson()
  * @returns Configured Rivière CLI program
  */
 export function createProgram(): Command {
-  const riviereProjectRepository = new RiviereProjectRepository(createEventCatalogSourceAdapter())
+  const eventCatalogSourceLoader = createEventCatalogSourceAdapter()
+  const riviereProjectRepository = new RiviereProjectRepository(eventCatalogSourceLoader)
   const defaultGraphFileLocation = join(process.cwd(), '.riviere', 'graph.json')
   const program = new Command()
 
@@ -169,7 +170,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createInitCommand({
-      initGraph: new InitGraph(riviereProjectRepository),
+      initGraph: new InitGraph(riviereProjectRepository, eventCatalogSourceLoader),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,

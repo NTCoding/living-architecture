@@ -59,6 +59,7 @@ export class ReviewingState {
   afterEntry(): void {
     if (this.dependencies === undefined)
       throw new WorkflowStateError('Reviewing entry dependencies have not been configured.')
+    if (this.dependencies.workflow.getState().reviewCycleOpen) return
     const result = this.dependencies.workflow.startReviewCycle()
     if (!result.pass)
       throw new WorkflowStateError(result.reason ?? 'Unable to start a review cycle.')

@@ -1,4 +1,5 @@
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
+import type { LoadEventCatalogSource } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
 import { GraphCorruptedError } from '../data-access/riviere-project/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-project/graph-not-found-error'
 import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
@@ -8,7 +9,10 @@ import type { InitGraphResult } from './init-graph-result'
 
 /** @riviere-role command-use-case */
 export class InitGraph {
-  constructor(private readonly repository: RiviereProjectRepository) {}
+  constructor(
+    private readonly repository: RiviereProjectRepository,
+    private readonly loadEventCatalogSource: LoadEventCatalogSource,
+  ) {}
 
   execute(input: InitGraphInput): InitGraphResult {
     const parsedDomains: {
@@ -58,7 +62,13 @@ export class InitGraph {
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
-        const project = RiviereProject.start({ graphDefinition: builderOptions }).project
+        const project = RiviereProject.start(
+          { graphDefinition: builderOptions },
+          {
+            loadEventCatalogSource: this.loadEventCatalogSource,
+            repositoryName: input.sources.join(', '),
+          },
+        ).project
         this.repository.save(input.graphFileLocation, project)
         return {
           result: {

@@ -92,7 +92,10 @@ describe('command success path coverage', () => {
       .result
 
   it('initializes a new graph', () => {
-    const result = new InitGraph(createRiviereProjectRepository()).execute({
+    const result = new InitGraph(
+      createRiviereProjectRepository(),
+      collaborators().loadEventCatalogSource,
+    ).execute({
       domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],
       graphFileLocation: graphLocation(),
       name: 'Combined graph',
@@ -108,13 +111,21 @@ describe('command success path coverage', () => {
       name: 'combined',
       sources: ['https://github.com/org/repo'],
     }
-    new InitGraph(createRiviereProjectRepository()).execute(input)
-    const result = new InitGraph(createRiviereProjectRepository()).execute(input)
+    new InitGraph(createRiviereProjectRepository(), collaborators().loadEventCatalogSource).execute(
+      input,
+    )
+    const result = new InitGraph(
+      createRiviereProjectRepository(),
+      collaborators().loadEventCatalogSource,
+    ).execute(input)
     expect(result.result).toMatchObject({ code: 'GRAPH_EXISTS', success: false })
   })
 
   it('returns a validation error from init-graph for an unsupported system type', () => {
-    const result = new InitGraph(createRiviereProjectRepository()).execute({
+    const result = new InitGraph(
+      createRiviereProjectRepository(),
+      collaborators().loadEventCatalogSource,
+    ).execute({
       domains: [{ description: 'Orders', name: 'orders', systemType: 'unsupported' }],
       graphFileLocation: graphLocation(),
       name: 'combined',
