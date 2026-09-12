@@ -36,7 +36,7 @@ function createProject(): RiviereProject {
   })
   const result = RiviereProject.start({ configuration, draftComponents: [] }, collaborators())
   assert(result.success)
-  return result.data
+  return result.project
 }
 
 function expectMissingSource(operation: (project: RiviereProject) => unknown): void {

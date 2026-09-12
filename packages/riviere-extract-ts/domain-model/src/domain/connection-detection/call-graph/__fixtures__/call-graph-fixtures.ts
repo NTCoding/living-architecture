@@ -122,7 +122,7 @@ export function buildCallGraph(
   const sourceIds = new Set(
     components.map((component) => ComponentId.parseFromParts(component).toString()),
   )
-  return parsedProject.data
+  return parsedProject.project
     .detectConnections(allComponents, !options.strict)
     .links.filter((link) => sourceIds.has(link.source))
 }

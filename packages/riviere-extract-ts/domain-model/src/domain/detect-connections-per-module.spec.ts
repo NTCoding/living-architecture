@@ -102,7 +102,7 @@ function createRiviereProject(
     collaborators(),
   )
   assert(projectResult.success)
-  return projectResult.data
+  return projectResult.project
 }
 
 describe('RiviereProject.extractDraftComponents', () => {

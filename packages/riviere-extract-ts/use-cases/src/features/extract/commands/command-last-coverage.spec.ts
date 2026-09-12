@@ -27,7 +27,7 @@ function createProject(): RiviereProject {
       },
     },
     collaborators(),
-  ).data
+  ).project
 }
 
 describe('final command coverage', () => {

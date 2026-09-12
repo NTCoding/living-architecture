@@ -145,7 +145,7 @@ function createRiviereProject(
   })
   const projectResult = RiviereProject.start({ configuration, draftComponents }, collaborators())
   assert(projectResult.success)
-  return projectResult.data
+  return projectResult.project
 }
 
 function enrichDraftComponents(

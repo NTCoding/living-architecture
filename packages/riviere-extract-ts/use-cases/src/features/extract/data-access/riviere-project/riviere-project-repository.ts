@@ -111,7 +111,7 @@ export class RiviereProjectRepository {
       collaborators,
     )
     if (!started.success) throw new ExtractionConfigError('VALIDATION_ERROR', started.error)
-    return started.data
+    return started.project
   }
 
   private rehydrateGraph(
@@ -251,7 +251,7 @@ export class RiviereProjectRepository {
       },
     )
     if (!started.success) throw new ExtractionConfigError('VALIDATION_ERROR', started.error)
-    return started.data
+    return started.project
   }
 
   private loadGraph(graphFileLocation: string): RiviereProject {

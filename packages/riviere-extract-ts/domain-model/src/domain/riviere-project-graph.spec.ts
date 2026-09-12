@@ -24,7 +24,7 @@ function graphProject(): RiviereProject {
     collaborators(),
   )
   assert(result.success)
-  return result.data
+  return result.project
 }
 
 function extractionConfiguration(): ExtractionConfiguration {
@@ -167,7 +167,7 @@ describe('RiviereProject graph behaviour', () => {
     const started = RiviereProject.start({ configuration, draftComponents: [] }, collaborators())
     assert(started.success)
 
-    expect(() => started.data.build()).toThrowError(new GraphStateUnavailableError())
+    expect(() => started.project.build()).toThrowError(new GraphStateUnavailableError())
   })
 
   it('rejects graph metadata mutations on an extraction only project', () => {
@@ -176,7 +176,7 @@ describe('RiviereProject graph behaviour', () => {
     assert(started.success)
 
     expect(() =>
-      started.data.amendGraph((builder) => builder.addSource({ repository: 'catalogue' })),
+      started.project.amendGraph((builder) => builder.addSource({ repository: 'catalogue' })),
     ).toThrowError(new GraphStateUnavailableError())
   })
 

@@ -47,7 +47,7 @@ function createProject(): RiviereProject {
       },
     },
     collaborators(),
-  ).data
+  ).project
 }
 
 describe('additional builder command coverage', () => {

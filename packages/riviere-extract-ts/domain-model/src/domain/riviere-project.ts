@@ -67,7 +67,7 @@ export class RiviereProject {
       if (input.workflowInput === undefined) {
         return {
           success: true as const,
-          data: new RiviereProject(undefined, [], [], collaborators, builder),
+          project: new RiviereProject(undefined, [], [], collaborators, builder),
         }
       }
       const workflowResult = Workflow.build(input.workflowInput)
@@ -76,7 +76,7 @@ export class RiviereProject {
       }
       return {
         success: true as const,
-        data: new RiviereProject(
+        project: new RiviereProject(
           undefined,
           [],
           [],
@@ -95,7 +95,7 @@ export class RiviereProject {
     )
     return {
       success: true as const,
-      data: new RiviereProject(
+      project: new RiviereProject(
         input.configuration,
         modules,
         unassignedDraftComponents,
@@ -403,7 +403,7 @@ type RiviereProjectStartInput =
   | ExtractionProjectStartInput
   | GraphOnlyProjectStartInput
   | GraphWithWorkflowStartInput
-type RiviereProjectStartSuccess = Readonly<{ success: true; data: RiviereProject }>
+type RiviereProjectStartSuccess = Readonly<{ success: true; project: RiviereProject }>
 type RiviereProjectStartResult =
   | RiviereProjectStartSuccess
   | Readonly<{ success: false; error: string }>

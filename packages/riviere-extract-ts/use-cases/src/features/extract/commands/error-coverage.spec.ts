@@ -52,7 +52,7 @@ function createLoadedProject(): RiviereProject {
       },
     },
     collaborators(),
-  ).data
+  ).project
 }
 
 describe('builder command coverage', () => {

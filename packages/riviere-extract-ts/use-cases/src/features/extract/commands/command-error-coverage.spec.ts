@@ -28,7 +28,7 @@ function createProject(): RiviereProject {
       },
     },
     collaborators(),
-  ).data
+  ).project
 }
 
 describe('command error path coverage', () => {

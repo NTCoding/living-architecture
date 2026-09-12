@@ -34,7 +34,7 @@ function createProject(): RiviereProject {
       },
     },
     collaborators(),
-  ).data
+  ).project
 }
 
 function createProjectWithType(): { project: RiviereProject; id: string } {

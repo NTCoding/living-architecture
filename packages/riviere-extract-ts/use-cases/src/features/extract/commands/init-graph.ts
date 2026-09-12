@@ -58,7 +58,7 @@ export class InitGraph {
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
-        const project = RiviereProject.start({ graphDefinition: builderOptions }).data
+        const project = RiviereProject.start({ graphDefinition: builderOptions }).project
         this.repository.save(input.graphFileLocation, project)
         return {
           result: {

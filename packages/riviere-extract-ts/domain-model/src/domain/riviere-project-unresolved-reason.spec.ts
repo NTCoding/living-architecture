@@ -74,7 +74,7 @@ describe('RiviereProject unresolved call reason', () => {
       })
     })
 
-    const result = parsedProject.data.detectConnections([component], true)
+    const result = parsedProject.project.detectConnections([component], true)
 
     expect(result.links).toMatchObject([
       { target: '_unresolved', _uncertain: 'Call target unresolved' },

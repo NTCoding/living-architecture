@@ -50,7 +50,7 @@ function project(stages?: readonly WorkflowStage[]): RiviereProject {
           collaborators(),
         )
   assert(result.success)
-  return result.data
+  return result.project
 }
 
 function addExistingComponent(subject: RiviereProject): void {
@@ -294,7 +294,7 @@ describe('RiviereProject Workflow rebuild', () => {
     )
     assert(started.success)
 
-    const result = await started.data.rebuildGraph()
+    const result = await started.project.rebuildGraph()
 
     assert(result.success)
     expect(result.graph.components.map((component) => component.id)).toStrictEqual([
@@ -321,7 +321,7 @@ describe('RiviereProject Workflow rebuild', () => {
     })
     assert(started.success)
 
-    const result = await started.data.rebuildGraph()
+    const result = await started.project.rebuildGraph()
 
     expect(result).toMatchObject({ success: false, errorCode: 'UNEXPECTED_STAGE_FAILURE' })
   })

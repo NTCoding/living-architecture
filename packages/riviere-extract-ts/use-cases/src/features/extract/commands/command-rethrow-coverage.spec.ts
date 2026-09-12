@@ -35,7 +35,7 @@ function createProject(): RiviereProject {
       },
     },
     collaborators(),
-  ).data
+  ).project
 }
 
 function createProjectWithApi(): RiviereProject {
