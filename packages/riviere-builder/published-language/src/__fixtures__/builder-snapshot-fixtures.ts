@@ -1,20 +1,23 @@
+import { BuilderOptions } from '../published-language/riviere-graph-definition-input'
 import { RiviereBuilder } from '../published-language/riviere-builder'
 
 export function createSnapshotBuilder(): RiviereBuilder {
-  return RiviereBuilder.new({
-    sources: [
-      {
-        repository: 'test/repo',
-        commit: 'abc123',
+  return RiviereBuilder.parse(
+    BuilderOptions.parse({
+      sources: [
+        {
+          repository: 'test/repo',
+          commit: 'abc123',
+        },
+      ],
+      domains: {
+        orders: {
+          description: 'Order domain',
+          systemType: 'domain',
+        },
       },
-    ],
-    domains: {
-      orders: {
-        description: 'Order domain',
-        systemType: 'domain',
-      },
-    },
-  })
+    }),
+  )
 }
 
 export function addSnapshotUseCase(builder: RiviereBuilder) {

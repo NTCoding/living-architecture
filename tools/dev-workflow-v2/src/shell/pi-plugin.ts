@@ -8,6 +8,7 @@ import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-case
 import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
 import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { formatPullRequestDetailsFailure } from '../features/workflow/entrypoint/workflow/format-pull-request-details-failure'
 import { parsePullRequestDescriptionOptions } from '../features/workflow/entrypoint/workflow/pull-request-description-input'
 import { createWorkflowCliRuntime } from './workflow-cli-runtime'
 import {
@@ -28,6 +29,7 @@ const routes = createWorkflowRoutes({
   parseStringArgument,
   parseStringArguments,
   parsePullRequestDescriptionOptions,
+  formatPullRequestDetailsFailure,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],
@@ -36,11 +38,13 @@ const bashForbidden = {
 const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const workflowCommand = 'dev-workflow-v2:workflow'
 const commandNames = [
+  'address-pull-request-feedback',
   'choose-next-task',
   'continue-planning',
   'list-review-threads',
   'optimize-factory',
   'planning-status',
+  'review-pull-request',
   'start-implementation',
   'start-planning',
 ] as const

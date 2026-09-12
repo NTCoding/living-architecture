@@ -1,3 +1,4 @@
+import { BuilderOptions } from './riviere-graph-definition-input'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { RiviereBuilder } from './riviere-builder'
 
@@ -11,7 +12,7 @@ function findComponent(builder: RiviereBuilder, id: string) {
 }
 
 function createValidOptions() {
-  return {
+  return BuilderOptions.parse({
     sources: [
       {
         repository: 'test/repo',
@@ -24,7 +25,7 @@ function createValidOptions() {
         systemType: 'domain',
       },
     },
-  } as const
+  } as const)
 }
 
 function createSourceLocation() {
@@ -37,7 +38,7 @@ function createSourceLocation() {
 describe('RiviereBuilder enrichComponent', () => {
   describe('stateChanges', () => {
     it('adds stateChanges to DomainOp component', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const domainOp = builder.addDomainOp({
         name: 'Place Order',
         domain: 'orders',
@@ -69,7 +70,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
   describe('businessRules', () => {
     it('adds businessRules to DomainOp component', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const domainOp = builder.addDomainOp({
         name: 'Place Order',
         domain: 'orders',
@@ -91,7 +92,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
   describe('entity', () => {
     it('sets entity on DomainOp component', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const domainOp = builder.addDomainOp({
         name: 'Place Order',
         domain: 'orders',
@@ -109,7 +110,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
   describe('validation', () => {
     it('throws when component is not DomainOp', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const useCase = builder.addUseCase({
         name: 'Checkout Flow',
         domain: 'orders',
@@ -132,7 +133,7 @@ describe('RiviereBuilder enrichComponent', () => {
     })
 
     it('suggests near-matches for missing component', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       builder.addDomainOp({
         name: 'Place Order',
         domain: 'orders',
@@ -147,7 +148,7 @@ describe('RiviereBuilder enrichComponent', () => {
     })
 
     it('accepts empty businessRules array', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const domainOp = builder.addDomainOp({
         name: 'Place Order',
         domain: 'orders',
@@ -165,7 +166,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
   describe('behavior', () => {
     it('adds behavior.reads to DomainOp component', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const domainOp = builder.addDomainOp({
         name: 'Place Order',
         domain: 'orders',
@@ -183,7 +184,7 @@ describe('RiviereBuilder enrichComponent', () => {
     })
 
     it('adds complete behavior object to DomainOp component', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const domainOp = builder.addDomainOp({
         name: 'Place Order',
         domain: 'orders',
@@ -213,7 +214,7 @@ describe('RiviereBuilder enrichComponent', () => {
     })
 
     it('appends to existing behavior.reads', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const domainOp = builder.addDomainOp({
         name: 'Place Order',
         domain: 'orders',
@@ -232,7 +233,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
   describe('append behavior', () => {
     it('appends to existing stateChanges', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const domainOp = builder.addDomainOp({
         name: 'Place Order',
         domain: 'orders',
@@ -272,7 +273,7 @@ describe('RiviereBuilder enrichComponent', () => {
     })
 
     it('appends to existing businessRules', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const domainOp = builder.addDomainOp({
         name: 'Place Order',
         domain: 'orders',
@@ -293,7 +294,7 @@ describe('RiviereBuilder enrichComponent', () => {
 
   describe('signature', () => {
     it('sets signature on DomainOp component', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const domainOp = builder.addDomainOp({
         name: 'Place Order',
         domain: 'orders',
@@ -329,7 +330,7 @@ describe('RiviereBuilder enrichComponent', () => {
     })
 
     it('replaces existing signature on DomainOp component', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const domainOp = builder.addDomainOp({
         name: 'Place Order',
         domain: 'orders',

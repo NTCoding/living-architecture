@@ -1915,6 +1915,7 @@ export default {
           validateRequiredPrivateMembers(node, role, name)
           validateRequiredPrivateConstructor(node, role, name)
           validateStaticFactoryMethods(node, role, name)
+          validateStaticMethodNames(node, role, name)
           validateCallableMemberConstraints(node, role, name)
           validateDataMemberRequirements(node, role, name)
           validateDataMemberConstraint(
@@ -1974,6 +1975,21 @@ export default {
               : []
           })
           if (factoryMethods.length === 0) {
+            const allowedNames = role.allowedStaticMethodNames ?? []
+            const hasAllowedStatic = node.body.body.some((member) => {
+              if (
+                member.type !== 'MethodDefinition' ||
+                member.static !== true ||
+                member.kind === 'constructor'
+              ) {
+                return false
+              }
+              const methodName = readMemberName(member.key)
+              return methodName !== null && allowedNames.includes(methodName)
+            })
+            if (hasAllowedStatic) {
+              return
+            }
             const formattedPrefixes = prefixes.map((prefix) => `'${prefix}'`).join(', ')
             report(
               node,
@@ -1993,6 +2009,68 @@ export default {
                 `Role '${role.name}' requires static factory method '${methodName}' on '${name}' to accept at least one parameter. ${referenceForKnownRole(options, role.name)}`,
               )
             })
+        }
+
+        function validateStaticMethodNames(node, role, name) {
+          if (role.forbidNonFactoryStaticMethods !== true) {
+            return
+          }
+
+          const prefixes = role.requiredStaticFactoryMethodNamePrefixes ?? []
+          const allowedNames = role.allowedStaticMethodNames ?? []
+          for (const member of node.body.body) {
+            if (
+              member.type !== 'MethodDefinition' ||
+              member.static !== true ||
+              member.kind === 'constructor'
+            ) {
+              continue
+            }
+
+            const methodName = readMemberName(member.key)
+            if (methodName === null) {
+              continue
+            }
+
+            if (prefixes.some((prefix) => methodName.startsWith(prefix))) {
+              continue
+            }
+
+            if (!allowedNames.includes(methodName)) {
+              report(
+                member,
+                `Role '${role.name}' does not allow static method '${methodName}' on '${name}'. Static members must be factories beginning with ${formatNames(prefixes)} or one of the allowed statics ${formatNames(allowedNames)}. ${referenceForKnownRole(options, role.name)}`,
+              )
+              continue
+            }
+
+            if (member.value.params.length !== 0) {
+              report(
+                member,
+                `Role '${role.name}' requires allowed static '${methodName}' on '${name}' to be a zero-argument accessor. ${referenceForKnownRole(options, role.name)}`,
+              )
+            }
+
+            if (!returnsDeclaringType(member, name)) {
+              report(
+                member,
+                `Role '${role.name}' requires allowed static '${methodName}' on '${name}' to return '${name}'. ${referenceForKnownRole(options, role.name)}`,
+              )
+            }
+          }
+        }
+
+        function formatNames(names) {
+          return names.map((entry) => `'${entry}'`).join(', ')
+        }
+
+        function returnsDeclaringType(member, name) {
+          const returnType = unwrapTypeAnnotation(member.value.returnType)
+          return (
+            returnType?.type === 'TSTypeReference' &&
+            returnType.typeName?.type === 'Identifier' &&
+            returnType.typeName.name === name
+          )
         }
 
         function validatePublicMethodCount(node, role, name) {

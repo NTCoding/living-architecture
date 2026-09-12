@@ -2,12 +2,14 @@ import { configureWorkflow } from './configure-workflow'
 import { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import { ReviewStatuses } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/statuses'
-import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
+import {
+  getInitialWorkflowState,
+  WorkflowState,
+} from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
 
 type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
 type StateName = WorkflowState['currentStateMachineState']
-const ALL_PENDING = ReviewStatuses.pending()
+const ALL_PENDING = getInitialWorkflowState().reviewerStatuses.toJSON()
 const WORKFLOW_DEFINITION = configureWorkflow({})
 
 function makeWorkflowDeps(): WorkflowDeps {
@@ -188,7 +190,7 @@ describe('WORKFLOW_DEFINITION', () => {
     it('produces event with reviewer status reset when re entering implementation', () => {
       const reviewedBefore = baseBefore.with({
         reviewerStatuses: {
-          ...baseBefore.reviewerStatuses,
+          ...baseBefore.reviewerStatuses.toJSON(),
           'code-review': 'APPROVED',
         },
       })

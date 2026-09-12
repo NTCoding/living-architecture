@@ -81,6 +81,10 @@ export class WorkflowStage {
     return new WorkflowStage({ kind: 'schema-validate', name })
   }
 
+  static fromMaterialized(value: WorkflowStageValue): WorkflowStage {
+    return new WorkflowStage(value)
+  }
+
   private constructor(readonly value: WorkflowStageValue) {}
 }
 

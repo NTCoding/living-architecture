@@ -14,11 +14,10 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 
 describe('plugin Agent Skills', () => {
-  it('tells agents to compact their context, push fixes, and return to reviewing', () => {
+  it('delegates workflow feedback handling to the reusable procedure before returning to reviewing', () => {
     const addressingFeedback = readPluginFile('states/addressing_feedback.md')
 
-    expect(addressingFeedback).toContain('Push the recorded feature branch: `git push`')
-    expect(addressingFeedback).toContain('/compact ignore all previous information')
+    expect(addressingFeedback).toContain('commands/address-pull-request-feedback.md')
     expect(addressingFeedback).toContain('transition to `REVIEWING`')
   })
 
@@ -28,11 +27,13 @@ describe('plugin Agent Skills', () => {
     )
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
     const commandNames = [
+      'address-pull-request-feedback',
       'choose-next-task',
       'continue-planning',
       'list-review-threads',
       'optimize-factory',
       'planning-status',
+      'review-pull-request',
       'start-implementation',
       'start-planning',
     ]
@@ -179,7 +180,7 @@ describe('plugin Agent Skills', () => {
   )
 })
 
-describe('Pi review orchestration', () => {
+describe('reusable pull request orchestration', () => {
   it('configures pi-subagents to discover the four repository reviewers', () => {
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
 
@@ -192,35 +193,118 @@ describe('Pi review orchestration', () => {
     })
   })
 
-  it('requires Pi to await four fresh review children', () => {
+  it('uses one canonical procedure from both standalone and workflow review entry points', () => {
     const reviewing = readPluginFile('states/reviewing.md')
+    const pullRequestReview = readPluginFile('commands/review-pull-request.md')
 
     expect({
-      hasSubagentTool: reviewing.includes('`subagent` tool'),
-      hasParallelWorkflow: reviewing.includes('`runs.all`'),
-      hasFreshContext: reviewing.includes('fresh-context child agents'),
-      waitsForChildren: reviewing.includes('Set `async: false`'),
-      reviewers: ['architecture-review', 'code-review', 'bug-scanner', 'task-check'].every(
-        (reviewer) => reviewing.includes(`- \`${reviewer}\``),
+      workflowDelegates: reviewing.includes('commands/review-pull-request.md'),
+      usesGraphql: pullRequestReview.includes('gh api graphql'),
+      readsChangedFiles: pullRequestReview.includes('files(first: 100)'),
+      readsClosingIssues: pullRequestReview.includes('closingIssuesReferences(first: 100)'),
+      launchesInParallel: pullRequestReview.includes('`runs.all`'),
+      publishesDiagnosticRecord: pullRequestReview.includes('[workflow-orchestrator]'),
+      doesNotUseWorkflowCommand: !pullRequestReview.includes('$dev-workflow-v2:workflow'),
+    }).toStrictEqual({
+      workflowDelegates: true,
+      usesGraphql: true,
+      readsChangedFiles: true,
+      readsClosingIssues: true,
+      launchesInParallel: true,
+      publishesDiagnosticRecord: true,
+      doesNotUseWorkflowCommand: true,
+    })
+  })
+
+  it('does not launch task-check without linked issues and records why', () => {
+    const pullRequestReview = readPluginFile('commands/review-pull-request.md')
+
+    expect({
+      skipsTaskCheck: pullRequestReview.includes('do not launch `task-check`'),
+      namesReason: pullRequestReview.includes('task-check: no linked issue'),
+      waitsForLaunches: pullRequestReview.includes(
+        'after every applicable reviewer has been launched successfully',
       ),
     }).toStrictEqual({
-      hasSubagentTool: true,
-      hasParallelWorkflow: true,
-      hasFreshContext: true,
-      waitsForChildren: true,
-      reviewers: true,
+      skipsTaskCheck: true,
+      namesReason: true,
+      waitsForLaunches: true,
+    })
+  })
+
+  it('plans feedback before making changes and preserves human direction', () => {
+    const feedbackProcedure = readPluginFile('commands/address-pull-request-feedback.md')
+
+    expect({
+      workflowIndependent: !feedbackProcedure.includes('$dev-workflow-v2:workflow'),
+      checksHeadBranch: feedbackProcedure.includes('pull request head branch'),
+      waitsForApproval: feedbackProcedure.includes('Wait for explicit approval'),
+      hasClearFixes: feedbackProcedure.includes('**Clear fixes**'),
+      hasDiscussion: feedbackProcedure.includes('**Discussion needed**'),
+      hasHumanDirection: feedbackProcedure.includes('**Human direction**'),
+      recoversPersistedDecisions: feedbackProcedure.includes(
+        'Recover persisted `[main-agent]` decisions from the thread history',
+      ),
+      resumesRecordedFixes: feedbackProcedure.includes(
+        'then start at step 2. Do not post a duplicate planning reply',
+      ),
+      recordsPlanBeforeChanges:
+        feedbackProcedure.includes('respond to each approved GitHub review') &&
+        feedbackProcedure.includes(
+          'thread with the agreed follow up action before changing any code',
+        ),
+      explainsWhyBeforeWhatAndHow: feedbackProcedure.includes(
+        'must start by explaining why the feedback is valid, then state what outcome',
+      ),
+      publishesRepliesImmediately: feedbackProcedure.includes(
+        'This endpoint publishes the reply immediately',
+      ),
+      usesSubmittedRestReplies:
+        feedbackProcedure.includes(
+          'pulls/<PR_NUMBER>/comments/<ROOT_COMMENT_DATABASE_ID>/replies',
+        ) && !feedbackProcedure.includes('addPullRequestReviewThreadReply(input'),
+      readsRootCommentDatabaseId: feedbackProcedure.includes(
+        'REST database ID of its root comment',
+      ),
+      recordsCompletion: feedbackProcedure.includes(
+        '[main-agent] Done as planned: <what changed and how it was verified>',
+      ),
+      resolvesAfterCompletion:
+        feedbackProcedure.indexOf('Done as planned:') <
+        feedbackProcedure.indexOf('Resolve the thread only after'),
+      rejectsAndResolvesImmediately:
+        feedbackProcedure.includes('When a technically justified rejection') &&
+        feedbackProcedure.includes('Immediately after the reply succeeds, resolve'),
+      doesNotResolveHumanDecisions: feedbackProcedure.includes('do not resolve it'),
+    }).toStrictEqual({
+      workflowIndependent: true,
+      checksHeadBranch: true,
+      waitsForApproval: true,
+      hasClearFixes: true,
+      hasDiscussion: true,
+      hasHumanDirection: true,
+      recoversPersistedDecisions: true,
+      resumesRecordedFixes: true,
+      recordsPlanBeforeChanges: true,
+      explainsWhyBeforeWhatAndHow: true,
+      publishesRepliesImmediately: true,
+      usesSubmittedRestReplies: true,
+      readsRootCommentDatabaseId: true,
+      recordsCompletion: true,
+      resolvesAfterCompletion: true,
+      rejectsAndResolvesImmediately: true,
+      doesNotResolveHumanDecisions: true,
     })
   })
 
   it.each(['architecture-review', 'code-review', 'bug-scanner', 'task-check'])(
-    'gives %s the direct GitHub publishing tools, completion receipt, and parent state guard',
+    'keeps %s as a direct GitHub publisher that does not use workflow state',
     (reviewerName) => {
       const reviewer = readPluginFile(`agents/${reviewerName}.md`)
 
       expect({
         hasGitHubPublishing: reviewer.includes('## GitHub Review Output'),
         hasBash: reviewer.includes('tools: read, grep, find, ls, bash'),
-        parentGuardsState: reviewer.includes('The parent workflow starts this reviewer only after'),
         doesNotQueryWorkflow: reviewer.includes('Do not query or change workflow state.'),
         returnsCompletionReceipt: reviewer.includes(
           'Return a short completion receipt to the workflow caller only after GitHub publication.',
@@ -228,7 +312,6 @@ describe('Pi review orchestration', () => {
       }).toStrictEqual({
         hasGitHubPublishing: true,
         hasBash: true,
-        parentGuardsState: true,
         doesNotQueryWorkflow: true,
         returnsCompletionReceipt: true,
       })

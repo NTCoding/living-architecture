@@ -48,6 +48,13 @@ const aggregateRepository = role('aggregate-repository', {
   targets: ['class'],
 })
 
+const valueObject = role('value-object', {
+  allowedStaticMethodNames: ['singleton'],
+  forbidNonFactoryStaticMethods: true,
+  requiredStaticFactoryMethodNamePrefixes: ['parse', 'from'],
+  targets: ['class'],
+})
+
 const config = RoleEnforcementConfiguration.parse({
   configurations: {
     'packages/example': {
@@ -61,6 +68,7 @@ const config = RoleEnforcementConfiguration.parse({
           'cli-entrypoint-dependencies',
           'aggregate',
           'aggregate-repository',
+          'value-object',
         ]),
       ),
     },
@@ -76,6 +84,7 @@ const config = RoleEnforcementConfiguration.parse({
     cliEntrypointDependencies,
     aggregate,
     aggregateRepository,
+    valueObject,
   ],
 })
 

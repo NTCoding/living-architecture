@@ -1,8 +1,12 @@
 import type { AiExtractConfig } from '@living-architecture/riviere-extract-config-published-language'
-import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
+import {
+  BuilderOptions,
+  RiviereBuilder,
+} from '@living-architecture/riviere-builder-published-language'
 import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from './riviere-project'
+import { InvalidWorkflowDefinitionError } from './riviere-project-errors'
 import { WorkflowRunMode } from './workflow'
 import { WorkflowStage } from './workflow-stage'
 import { configuration } from './__fixtures__/workflow-fixtures'
@@ -17,37 +21,41 @@ const aiExtractConfig: AiExtractConfig = {
   context: { exclude: ['**/*.spec.ts'], maxFilesPerBatch: 10, maxBatches: 2 },
 }
 
-function project(stages?: readonly WorkflowStage[]): RiviereProject {
-  const subject = RiviereProject.start({
-    graphDefinition: {
-      name: 'Shop',
-      description: 'Shop graph',
-      sources: [{ repository: 'shop' }],
-      domains: { orders: { description: 'Orders', systemType: 'domain' } },
-    },
-  }).data
-  if (stages !== undefined) {
-    const result = subject.addWorkflow({
-      name: 'build-graph',
-      outputPath: '/project/.riviere/graph.json',
-      runLogDirectory: '/project/.riviere/logs',
-      stages,
-    })
-    assert(result.success)
+function graphDefinition() {
+  return {
+    name: 'Shop',
+    description: 'Shop graph',
+    sources: [{ repository: 'shop' }],
+    domains: { orders: { description: 'Orders', systemType: 'domain' } as const },
   }
-  return subject
+}
+
+function project(stages?: readonly WorkflowStage[]): RiviereProject {
+  const result =
+    stages === undefined
+      ? RiviereProject.start({ graphDefinition: graphDefinition() })
+      : RiviereProject.start({
+          graphDefinition: graphDefinition(),
+          workflowInput: {
+            name: 'build-graph',
+            outputPath: '/project/.riviere/graph.json',
+            runLogDirectory: '/project/.riviere/logs',
+            stages,
+          },
+        })
+  assert(result.success)
+  return result.data
 }
 
 function addExistingComponent(subject: RiviereProject): void {
-  subject.addComponent({
-    type: 'UseCase',
-    input: {
+  subject.amendGraph((builder) =>
+    builder.addUseCase({
       name: 'Existing graph',
       domain: 'orders',
       module: 'orders',
       sourceLocation: { repository: 'shop', filePath: 'existing.ts' },
-    },
-  })
+    }),
+  )
 }
 
 describe('RiviereProject Workflow rebuild', () => {
@@ -57,7 +65,7 @@ describe('RiviereProject Workflow rebuild', () => {
     const subject = project([WorkflowStage.fromSchemaValidation('validate')])
     addExistingComponent(subject)
 
-    const result = subject.rebuildGraph('build-graph')
+    const result = subject.rebuildGraph()
 
     assert(result.success)
     expect(result.graph.components).toStrictEqual([])
@@ -76,10 +84,12 @@ describe('RiviereProject Workflow rebuild', () => {
 
   it('retains Workflow graph metadata when rebuilding', () => {
     const subject = project([WorkflowStage.fromSchemaValidation('validate')])
-    subject.addSource({ repository: 'catalogue' })
-    subject.addDomain({ name: 'payments', description: 'Payments', systemType: 'domain' })
+    subject.amendGraph((builder) => {
+      builder.addSource({ repository: 'catalogue' })
+      builder.addDomain({ name: 'payments', description: 'Payments', systemType: 'domain' })
+    })
 
-    const result = subject.rebuildGraph('build-graph')
+    const result = subject.rebuildGraph()
 
     assert(result.success)
     expect(result.graph.metadata).toStrictEqual({
@@ -99,7 +109,7 @@ describe('RiviereProject Workflow rebuild', () => {
       WorkflowStage.fromCodeExtraction('extract', configuration().resolvedConfig),
     ])
 
-    const result = subject.rebuildGraph('build-graph')
+    const result = subject.rebuildGraph()
 
     assert(!result.success)
     expect(result.transitions.map((transition) => transition.value.kind)).toStrictEqual([
@@ -115,7 +125,7 @@ describe('RiviereProject Workflow rebuild', () => {
     ])
     addExistingComponent(subject)
 
-    const result = subject.rebuildGraph('build-graph')
+    const result = subject.rebuildGraph()
 
     assert(!result.success)
     expect(subject.build().components.map((component) => component.name)).toStrictEqual([
@@ -129,7 +139,7 @@ describe('RiviereProject Workflow rebuild', () => {
       WorkflowStage.fromSchemaValidation('validate'),
     ])
 
-    const result = subject.rebuildGraph('build-graph', WorkflowRunMode.from('skip-ai'))
+    const result = subject.rebuildGraph(WorkflowRunMode.from('skip-ai'))
 
     assert(result.success)
     expect(result.transitions.map((transition) => transition.value.kind)).toStrictEqual([
@@ -141,7 +151,7 @@ describe('RiviereProject Workflow rebuild', () => {
   it('executes AI stages during a normal Project rebuild', () => {
     const subject = project([WorkflowStage.fromAiExtract('discover', aiExtractConfig)])
 
-    const result = subject.rebuildGraph('build-graph', WorkflowRunMode.from('run'))
+    const result = subject.rebuildGraph(WorkflowRunMode.from('run'))
 
     expect(result).toMatchObject({
       success: false,
@@ -160,7 +170,7 @@ describe('RiviereProject Workflow rebuild', () => {
       }),
     )
 
-    const result = subject.rebuildGraph('build-graph')
+    const result = subject.rebuildGraph()
 
     assert(!result.success)
     expect({
@@ -172,52 +182,63 @@ describe('RiviereProject Workflow rebuild', () => {
     })
   })
 
-  it('returns a typed failure for an unknown Workflow', () => {
-    const result = project().rebuildGraph('missing')
+  it('returns a typed failure when no workflow is loaded', () => {
+    const result = project().rebuildGraph()
 
-    expect(result).toMatchObject({ success: false, errorCode: 'WORKFLOW_NOT_FOUND' })
+    expect(result).toMatchObject({ success: false, errorCode: 'WORKFLOW_UNAVAILABLE' })
   })
 
-  it('returns a typed failure when graph state is unavailable', () => {
-    const extractionProject = RiviereProject.start({
-      configuration: configuration(),
-      draftComponents: [],
-    })
-    assert(extractionProject.success)
-    assert(
-      extractionProject.data.addWorkflow({
-        name: 'build-graph',
-        outputPath: 'graph.json',
-        runLogDirectory: 'logs',
-        stages: [WorkflowStage.fromSchemaValidation('validate')],
-      }).success,
-    )
-
-    const result = extractionProject.data.rebuildGraph('build-graph')
-
-    expect(result).toMatchObject({ success: false, errorCode: 'GRAPH_STATE_UNAVAILABLE' })
-  })
-
-  it('does not add a Workflow with duplicate stage names', () => {
+  it('rehydrates a persisted graph and runs its workflow', () => {
     const subject = project()
-
-    const result = subject.addWorkflow({
-      name: 'duplicate-stages',
+    addExistingComponent(subject)
+    const graph = subject.build()
+    const rehydrated = RiviereProject.rehydrate(graph, BuilderOptions.fromGraph(graph), {
+      name: 'build-graph',
       outputPath: 'graph.json',
       runLogDirectory: 'logs',
-      stages: [
-        WorkflowStage.fromCodeExtraction('same', configuration().resolvedConfig),
-        WorkflowStage.fromSchemaValidation('same'),
-      ],
+      stages: [WorkflowStage.fromSchemaValidation('validate')],
+    })
+
+    const result = rehydrated.rebuildGraph()
+
+    assert(result.success)
+    expect(result.graph.components).toStrictEqual([])
+  })
+
+  it('rejects rehydrating with a workflow that has duplicate stage names', () => {
+    const subject = project()
+    const graph = subject.build()
+
+    expect(() =>
+      RiviereProject.rehydrate(graph, BuilderOptions.fromGraph(graph), {
+        name: 'duplicate-stages',
+        outputPath: 'graph.json',
+        runLogDirectory: 'logs',
+        stages: [
+          WorkflowStage.fromCodeExtraction('same', configuration().resolvedConfig),
+          WorkflowStage.fromSchemaValidation('same'),
+        ],
+      }),
+    ).toThrowError(new InvalidWorkflowDefinitionError("Duplicate workflow stage name 'same'"))
+  })
+
+  it('does not start a project with a Workflow that has duplicate stage names', () => {
+    const result = RiviereProject.start({
+      graphDefinition: graphDefinition(),
+      workflowInput: {
+        name: 'duplicate-stages',
+        outputPath: 'graph.json',
+        runLogDirectory: 'logs',
+        stages: [
+          WorkflowStage.fromCodeExtraction('same', configuration().resolvedConfig),
+          WorkflowStage.fromSchemaValidation('same'),
+        ],
+      },
     })
 
     expect(result).toMatchObject({
       success: false,
-      error: { code: 'DUPLICATE_STAGE_NAME' },
-    })
-    expect(subject.rebuildGraph('duplicate-stages')).toMatchObject({
-      success: false,
-      errorCode: 'WORKFLOW_NOT_FOUND',
+      error: "Duplicate workflow stage name 'same'",
     })
   })
 })

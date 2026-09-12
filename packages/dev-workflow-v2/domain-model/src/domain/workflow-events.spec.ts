@@ -37,7 +37,7 @@ describe('workflow events', () => {
         reviewer: 'unknown',
         status: 'APPROVED',
       }),
-    ).toThrow('Invalid enum value')
+    ).toThrow('Unknown reviewer')
   })
 
   it('rejects a reviewer status record with an unknown status', () => {
@@ -48,7 +48,7 @@ describe('workflow events', () => {
         reviewer: 'architecture-review',
         status: 'DONE',
       }),
-    ).toThrow('Invalid enum value')
+    ).toThrow('Unknown reviewer status')
   })
 
   it('parses the review domain value objects', () => {
@@ -68,5 +68,22 @@ describe('workflow events', () => {
     ['write-checked', { tool: 'write', filePath: undefined, allowed: true }],
   ] as const)('rejects malformed %s events', (type, payload) => {
     expect(() => parseWorkflowEvent({ type, at: AT, ...payload })).toThrow('Required')
+  })
+
+  it.each([
+    { type: 'session-started' },
+    { type: 'transitioned', from: 'IMPLEMENTING', to: 'REVIEWING' },
+    { type: 'issue-recorded', issueNumber: 42 },
+    { type: 'branch-recorded', branch: 'issue-42' },
+    { type: 'pr-recorded', prNumber: 1, prUrl: 'https://example.test/pr/1' },
+    { type: 'reviewer-status-recorded', reviewer: 'code-review', status: 'APPROVED' },
+    { type: 'bash-checked', tool: 'bash', command: 'git status', allowed: true, reason: 'ok' },
+    { type: 'write-checked', tool: 'write', filePath: 'a.ts', allowed: false, reason: 'no' },
+  ] as const)('parses a %s event', (event) => {
+    expect(parseWorkflowEvent({ at: AT, ...event })).toMatchObject({ type: event.type })
+  })
+
+  it('rejects an unknown event type', () => {
+    expect(() => parseWorkflowEvent({ type: 'unknown', at: AT })).toThrow('unknown type')
   })
 })

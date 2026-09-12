@@ -1,12 +1,13 @@
 import { expect, it, vi } from 'vitest'
 import { createWorkflowPullRequestCreator } from './workflow-pull-request-creator'
 
-it('translates workflow pull request details into a GitHub request', () => {
+it('pushes the branch and translates workflow pull request details into a GitHub request', () => {
   const client = vi.fn(() => ({
     prNumber: 42,
     prUrl: 'https://github.com/example/repository/pull/42',
   }))
-  const createPullRequest = createWorkflowPullRequestCreator(client)
+  const pushBranch = vi.fn()
+  const createPullRequest = createWorkflowPullRequestCreator(client, pushBranch)
 
   const result = createPullRequest({
     branch: 'issue-42',
@@ -14,6 +15,11 @@ it('translates workflow pull request details into a GitHub request', () => {
     title: 'Example change',
   })
 
+  expect(pushBranch).toHaveBeenCalledWith('issue-42')
+  expect([pushBranch.mock.invocationCallOrder, client.mock.invocationCallOrder]).toStrictEqual([
+    [1],
+    [2],
+  ])
   expect(client).toHaveBeenCalledWith({
     branch: 'issue-42',
     body: 'Description',

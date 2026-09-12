@@ -1,5 +1,5 @@
 import {
-  ComponentDefinition,
+  BuilderOptions,
   RiviereBuilder,
 } from '@living-architecture/riviere-builder-published-language'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
@@ -24,6 +24,7 @@ import { RiviereModule } from './riviere-module'
 import {
   ExtractionConfigurationUnavailableError,
   GraphStateUnavailableError,
+  InvalidWorkflowDefinitionError,
 } from './riviere-project-errors'
 import { Workflow, WorkflowRunMode } from './workflow'
 import type { WorkflowStageValue } from './workflow-stage'
@@ -37,17 +38,25 @@ export class RiviereProject {
     private readonly modules: readonly RiviereModule[],
     private unassignedDraftComponents: readonly DraftComponent[],
     private builder?: RiviereBuilder,
-    private readonly workflows: Workflow[] = [],
+    private workflow?: Workflow,
   ) {}
 
-  static start(input: GraphProjectStartInput): RiviereProjectStartSuccess
+  static start(input: GraphOnlyProjectStartInput): RiviereProjectStartSuccess
+  static start(input: GraphWithWorkflowStartInput): RiviereProjectStartResult
   static start(input: ExtractionProjectStartInput): RiviereProjectStartResult
-  static start(input: RiviereProjectStartInput): RiviereProjectStartResult
   static start(input: RiviereProjectStartInput): RiviereProjectStartResult {
     if (input.graphDefinition !== undefined) {
+      const builder = RiviereBuilder.parse(input.graphDefinition)
+      if (input.workflowInput === undefined) {
+        return { success: true as const, data: new RiviereProject(undefined, [], [], builder) }
+      }
+      const workflowResult = Workflow.build(input.workflowInput)
+      if (!workflowResult.success) {
+        return { success: false as const, error: workflowResult.error.message }
+      }
       return {
         success: true as const,
-        data: new RiviereProject(undefined, [], [], RiviereBuilder.new(input.graphDefinition)),
+        data: new RiviereProject(undefined, [], [], builder, workflowResult.workflow),
       }
     }
     const sourceErrors = RiviereModule.configurationSourceErrors(input.configuration)
@@ -63,70 +72,28 @@ export class RiviereProject {
     }
   }
 
-  static rehydrate(graph: RiviereGraph, graphOptions = RiviereBuilder.graphOptionsFrom(graph)) {
-    return new RiviereProject(undefined, [], [], RiviereBuilder.fromGraph(graph, graphOptions))
-  }
-
-  addWorkflow(input: Parameters<typeof Workflow.start>[0]) {
-    const result = Workflow.start(input)
-    if (result.success) this.workflows.push(result.workflow)
-    return result
-  }
-
-  addSource(input: Parameters<RiviereBuilder['addSource']>[0]): void {
-    this.graphBuilder().addSource(input)
-  }
-
-  addDomain(input: Parameters<RiviereBuilder['addDomain']>[0]): void {
-    this.graphBuilder().addDomain(input)
-  }
-
-  addComponent(definition: ComponentDefinition['value']): string {
-    const builder = this.graphBuilder()
-    switch (definition.type) {
-      case 'UI':
-        return builder.addUI(definition.input).id
-      case 'API':
-        return builder.addApi(definition.input).id
-      case 'UseCase':
-        return builder.addUseCase(definition.input).id
-      case 'DomainOp':
-        return builder.addDomainOp(definition.input).id
-      case 'Event':
-        return builder.addEvent(definition.input).id
-      case 'EventHandler':
-        return builder.addEventHandler(definition.input).id
-      case 'Custom':
-        return builder.addCustom(definition.input).id
+  static rehydrate(
+    graph: RiviereGraph,
+    graphOptions = BuilderOptions.fromGraph(graph),
+    workflowInput?: WorkflowStartInput,
+  ): RiviereProject {
+    const project = new RiviereProject(
+      undefined,
+      [],
+      [],
+      RiviereBuilder.fromGraph(graph, graphOptions),
+    )
+    if (workflowInput === undefined) return project
+    const workflowResult = Workflow.build(workflowInput)
+    if (!workflowResult.success) {
+      throw new InvalidWorkflowDefinitionError(workflowResult.error.message)
     }
+    project.workflow = workflowResult.workflow
+    return project
   }
 
-  defineCustomType(input: Parameters<RiviereBuilder['defineCustomType']>[0]): void {
-    this.graphBuilder().defineCustomType(input)
-  }
-
-  defineRelationshipType(input: Parameters<RiviereBuilder['defineRelationshipType']>[0]): void {
-    this.graphBuilder().defineRelationshipType(input)
-  }
-
-  enrichComponent(...input: Parameters<RiviereBuilder['enrichComponent']>): void {
-    this.graphBuilder().enrichComponent(...input)
-  }
-
-  link(input: Parameters<RiviereBuilder['link']>[0]) {
-    return this.graphBuilder().link(input)
-  }
-
-  linkExternal(input: Parameters<RiviereBuilder['linkExternal']>[0]) {
-    return this.graphBuilder().linkExternal(input)
-  }
-
-  warnings() {
-    return this.graphBuilder().warnings()
-  }
-
-  validate() {
-    return this.graphBuilder().validate()
+  amendGraph<T>(amend: (builder: RiviereBuilder) => T): T {
+    return amend(this.graphBuilder())
   }
 
   build(): RiviereGraph {
@@ -137,16 +104,13 @@ export class RiviereProject {
     return this.graphBuilder().serialize()
   }
 
-  rebuildGraph(workflowName: string, mode: WorkflowRunMode = WorkflowRunMode.from('run')) {
-    const workflow = this.workflows.find((candidate) => candidate.name() === workflowName)
+  rebuildGraph(mode: WorkflowRunMode = WorkflowRunMode.from('run')) {
+    const workflow = this.workflow
     if (workflow === undefined) {
-      return workflowFailure('WORKFLOW_NOT_FOUND', `Workflow '${workflowName}' was not found`)
+      return workflowFailure('WORKFLOW_UNAVAILABLE', 'No workflow is loaded')
     }
-    const previousBuilder = this.builder
-    if (previousBuilder === undefined) {
-      return workflowFailure('GRAPH_STATE_UNAVAILABLE', 'Graph state is unavailable')
-    }
-    this.builder = RiviereBuilder.new(RiviereBuilder.graphOptionsFrom(previousBuilder.build()))
+    const previousBuilder = this.graphBuilder()
+    this.builder = RiviereBuilder.parse(BuilderOptions.fromGraph(previousBuilder.build()))
     const run = workflow.run(this.builder, mode, (stage) => this.executeWorkflowStage(stage))
     if (!run.value.success) {
       this.builder = previousBuilder
@@ -237,7 +201,7 @@ export class RiviereProject {
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
   }) {
     this.assertNoUnassignedDraftComponents()
-    const enrichment = EnrichmentResult.mergeModuleResults(
+    const enrichment = EnrichmentResult.from(
       this.modules
         .filter((module) => module.draftComponents().length > 0)
         .map((module) => module.enrichDraftComponents()),
@@ -377,13 +341,26 @@ type ExtractionProjectStartInput = Readonly<{
   graphDefinition?: undefined
 }>
 
-type GraphProjectStartInput = Readonly<{
-  graphDefinition: Parameters<typeof RiviereBuilder.new>[0]
+type WorkflowStartInput = Parameters<typeof Workflow.build>[0]
+
+type GraphOnlyProjectStartInput = Readonly<{
+  graphDefinition: Parameters<typeof RiviereBuilder.parse>[0]
+  workflowInput?: undefined
   configuration?: undefined
   draftComponents?: undefined
 }>
 
-type RiviereProjectStartInput = ExtractionProjectStartInput | GraphProjectStartInput
+type GraphWithWorkflowStartInput = Readonly<{
+  graphDefinition: Parameters<typeof RiviereBuilder.parse>[0]
+  workflowInput: WorkflowStartInput
+  configuration?: undefined
+  draftComponents?: undefined
+}>
+
+type RiviereProjectStartInput =
+  | ExtractionProjectStartInput
+  | GraphOnlyProjectStartInput
+  | GraphWithWorkflowStartInput
 type RiviereProjectStartSuccess = Readonly<{ success: true; data: RiviereProject }>
 type RiviereProjectStartResult =
   | RiviereProjectStartSuccess

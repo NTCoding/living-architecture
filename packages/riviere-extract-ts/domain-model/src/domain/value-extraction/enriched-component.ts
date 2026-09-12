@@ -187,7 +187,7 @@ export class EnrichmentResult {
     return new EnrichmentResult(params)
   }
 
-  static mergeModuleResults(results: readonly EnrichmentResult[]): EnrichmentResult {
+  static from(results: readonly EnrichmentResult[]): EnrichmentResult {
     const components: EnrichedComponent[] = []
     const failures: EnrichmentFailure[] = []
     for (const result of results) {

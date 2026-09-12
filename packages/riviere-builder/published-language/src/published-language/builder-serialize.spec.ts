@@ -6,7 +6,7 @@ import { createValidOptions, createSourceLocation } from '../__fixtures__/builde
 describe('RiviereBuilder', () => {
   describe('serialize', () => {
     it('returns valid JSON string when builder has no components', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const serialized = builder.serialize()
 
@@ -19,7 +19,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('includes component data when builder has components', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       builder.addApi({
         name: 'Create Order',
         domain: 'orders',
@@ -36,7 +36,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('includes custom types when defined', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       builder.defineCustomType({
         name: 'Repository',
         requiredProperties: {
@@ -54,7 +54,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('includes links when components are connected', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const source = builder.addApi({
         name: 'Create Order',
         domain: 'orders',
@@ -83,7 +83,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('includes external links when present', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const source = builder.addApi({
         name: 'Payment API',
         domain: 'orders',
@@ -103,7 +103,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('includes enrichments on DomainOp components', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const op = builder.addDomainOp({
         name: 'Save Order',
         domain: 'orders',
@@ -131,7 +131,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('serializes empty stateChanges and businessRules arrays', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const op = builder.addDomainOp({
         name: 'Save Order',
         domain: 'orders',
@@ -152,7 +152,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('returns pretty-printed JSON with 2-space indentation', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const serialized = builder.serialize()
 
@@ -163,17 +163,17 @@ describe('RiviereBuilder', () => {
 
   describe('resume', () => {
     it('restores builder from serialized empty graph', () => {
-      const original = RiviereBuilder.new(createValidOptions())
+      const original = RiviereBuilder.parse(createValidOptions())
       const serialized = original.serialize()
 
-      const resumed = RiviereBuilder.resume(JSON.parse(serialized))
+      const resumed = RiviereBuilder.fromGraph(JSON.parse(serialized))
 
       expect(resumed.build().components).toHaveLength(0)
       expect(resumed.build().links).toHaveLength(0)
     })
 
     it('preserves components from serialized graph', () => {
-      const original = RiviereBuilder.new(createValidOptions())
+      const original = RiviereBuilder.parse(createValidOptions())
       original.addApi({
         name: 'Create Order',
         domain: 'orders',
@@ -183,7 +183,7 @@ describe('RiviereBuilder', () => {
       })
       const serialized = original.serialize()
 
-      const resumed = RiviereBuilder.resume(JSON.parse(serialized))
+      const resumed = RiviereBuilder.fromGraph(JSON.parse(serialized))
 
       expect(resumed.build().components).toHaveLength(1)
       expect(
@@ -192,7 +192,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('allows continued building after resume', () => {
-      const original = RiviereBuilder.new(createValidOptions())
+      const original = RiviereBuilder.parse(createValidOptions())
       original.addApi({
         name: 'First API',
         domain: 'orders',
@@ -202,7 +202,7 @@ describe('RiviereBuilder', () => {
       })
       const serialized = original.serialize()
 
-      const resumed = RiviereBuilder.resume(JSON.parse(serialized))
+      const resumed = RiviereBuilder.fromGraph(JSON.parse(serialized))
       resumed.addApi({
         name: 'Second API',
         domain: 'orders',
@@ -218,7 +218,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('preserves custom types from serialized graph', () => {
-      const original = RiviereBuilder.new(createValidOptions())
+      const original = RiviereBuilder.parse(createValidOptions())
       original.defineCustomType({
         name: 'Repository',
         requiredProperties: {
@@ -230,7 +230,7 @@ describe('RiviereBuilder', () => {
       })
       const serialized = original.serialize()
 
-      const resumed = RiviereBuilder.resume(JSON.parse(serialized))
+      const resumed = RiviereBuilder.fromGraph(JSON.parse(serialized))
       resumed.addCustom({
         customTypeName: 'Repository',
         name: 'Order Repository',
@@ -247,7 +247,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('allows continued linking after resume', () => {
-      const original = RiviereBuilder.new(createValidOptions())
+      const original = RiviereBuilder.parse(createValidOptions())
       const api = original.addApi({
         name: 'Create Order',
         domain: 'orders',
@@ -268,7 +268,7 @@ describe('RiviereBuilder', () => {
       })
       const serialized = original.serialize()
 
-      const resumed = RiviereBuilder.resume(JSON.parse(serialized))
+      const resumed = RiviereBuilder.fromGraph(JSON.parse(serialized))
       const domainOp = resumed.addDomainOp({
         name: 'Save Order',
         domain: 'orders',
@@ -286,7 +286,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('preserves external links after resume', () => {
-      const original = RiviereBuilder.new(createValidOptions())
+      const original = RiviereBuilder.parse(createValidOptions())
       const source = original.addUseCase({
         name: 'Process Payment',
         domain: 'orders',
@@ -298,7 +298,7 @@ describe('RiviereBuilder', () => {
         target: { name: 'Payment provider', repository: 'external/payments' },
       })
 
-      const resumed = RiviereBuilder.resume(JSON.parse(original.serialize()))
+      const resumed = RiviereBuilder.fromGraph(JSON.parse(original.serialize()))
 
       expect(resumed.build().externalLinks).toHaveLength(1)
       expect(resumed.build().externalLinks).toStrictEqual([
@@ -320,7 +320,7 @@ describe('RiviereBuilder', () => {
         links: [],
       }
 
-      expect(() => RiviereBuilder.resume(invalidGraph)).toThrow('Invalid graph: missing sources')
+      expect(() => RiviereBuilder.fromGraph(invalidGraph)).toThrow('Invalid graph: missing sources')
     })
 
     it('throws clear error when graph metadata is missing sources', () => {
@@ -331,7 +331,7 @@ describe('RiviereBuilder', () => {
         links: [],
       }
 
-      expect(() => RiviereBuilder.resume(invalidGraph)).toThrow('Invalid graph: missing sources')
+      expect(() => RiviereBuilder.fromGraph(invalidGraph)).toThrow('Invalid graph: missing sources')
     })
 
     it('preserves omitted optional graph collections when resuming', () => {
@@ -355,7 +355,7 @@ describe('RiviereBuilder', () => {
         links: [],
       }
 
-      const resumed = RiviereBuilder.resume(minimalGraph)
+      const resumed = RiviereBuilder.fromGraph(minimalGraph)
 
       expect(JSON.parse(resumed.serialize())).toStrictEqual(minimalGraph)
     })
@@ -363,7 +363,7 @@ describe('RiviereBuilder', () => {
 
   describe('round-trip', () => {
     it('produces identical output when serialize then resume then serialize', () => {
-      const original = RiviereBuilder.new(createValidOptions())
+      const original = RiviereBuilder.parse(createValidOptions())
       original.addApi({
         name: 'Create Order',
         domain: 'orders',
@@ -390,17 +390,17 @@ describe('RiviereBuilder', () => {
       })
       const firstSerialized = original.serialize()
 
-      const resumed = RiviereBuilder.resume(JSON.parse(firstSerialized))
+      const resumed = RiviereBuilder.fromGraph(JSON.parse(firstSerialized))
       const secondSerialized = resumed.serialize()
 
       expect(secondSerialized).toBe(firstSerialized)
     })
 
     it('round-trips empty builder correctly', () => {
-      const original = RiviereBuilder.new(createValidOptions())
+      const original = RiviereBuilder.parse(createValidOptions())
       const firstSerialized = original.serialize()
 
-      const resumed = RiviereBuilder.resume(JSON.parse(firstSerialized))
+      const resumed = RiviereBuilder.fromGraph(JSON.parse(firstSerialized))
       const secondSerialized = resumed.serialize()
 
       expect(secondSerialized).toBe(firstSerialized)

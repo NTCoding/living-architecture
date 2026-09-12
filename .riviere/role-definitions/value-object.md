@@ -13,6 +13,15 @@ A class that represents a domain concept defined by its attributes rather than i
 7. Does not store functions in instance data members
 8. Used as a building block within aggregates, inputs, and results
 
+### Static Members
+
+A value object may declare static methods only when they are:
+
+1. A construction factory beginning with `parse` or `from`, following the behavioral contract above.
+2. The `singleton` accessor, for a value object that represents a fixed set or list of values. `singleton` takes no parameters and returns the declaring value object, for example `WorkflowEventTypes.singleton()`.
+
+Every other static method is forbidden. A static that exposes an internal schema, or a fixed list of allowed values, is a representation concern. The value object instead owns construction, and consumers obtain a representation from an instance, or call the factory and read the result.
+
 ### Explicit Mutable Value Objects
 
 A value object may mutate in place when all of these conditions apply:

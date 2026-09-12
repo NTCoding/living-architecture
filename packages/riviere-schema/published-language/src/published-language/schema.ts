@@ -37,15 +37,19 @@ export interface StateTransition {
   trigger?: string
 }
 
-/** @riviere-role published-language-union */
-export type ComponentType =
-  | 'UI'
-  | 'API'
-  | 'UseCase'
-  | 'DomainOp'
-  | 'Event'
-  | 'EventHandler'
-  | 'Custom'
+/** @riviere-role published-language-enumeration */
+export const COMPONENT_TYPES = [
+  'UI',
+  'API',
+  'UseCase',
+  'DomainOp',
+  'Event',
+  'EventHandler',
+  'Custom',
+] as const
+
+/** @riviere-role published-language-enumeration-type */
+export type ComponentType = (typeof COMPONENT_TYPES)[number]
 
 interface ComponentBase {
   id: string
@@ -171,8 +175,11 @@ export interface ExternalLink {
   sourceLocation?: SourceLocation
 }
 
-/** @riviere-role published-language-union */
-export type SystemType = 'domain' | 'bff' | 'ui' | 'external-service' | 'other'
+/** @riviere-role published-language-enumeration */
+export const SYSTEM_TYPES = ['domain', 'bff', 'ui', 'external-service', 'other'] as const
+
+/** @riviere-role published-language-enumeration-type */
+export type SystemType = (typeof SYSTEM_TYPES)[number]
 
 /** @riviere-role published-language-data-structure */
 export interface DomainMetadata {

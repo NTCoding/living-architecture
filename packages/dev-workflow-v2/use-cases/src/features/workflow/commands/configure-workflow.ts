@@ -16,7 +16,11 @@ import {
   getKnownWorkflowEventTypes,
   parseWorkflowEvent,
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-events'
-import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
+import {
+  getInitialWorkflowState,
+  StateNames,
+  WorkflowState,
+} from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
 import { WorkflowTransitionContext } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-transition-context'
 import { isWriteAllowed } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-predicates'
 import type { ZodType } from 'zod'
@@ -65,8 +69,8 @@ function diffStateOverrides(
   stateAfter: WorkflowState,
 ): Record<string, unknown> {
   const overrides: Record<string, unknown> = {}
-  const beforeEntries = new Map(Object.entries(stateBefore))
-  for (const [key, value] of Object.entries(stateAfter)) {
+  const beforeEntries = new Map(Object.entries(stateBefore.toJSON()))
+  for (const [key, value] of Object.entries(stateAfter.toJSON())) {
     if (key === 'currentStateMachineState') continue
     if (JSON.stringify(value) !== JSON.stringify(beforeEntries.get(key))) overrides[key] = value
   }
@@ -101,8 +105,8 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
       activeRegistry.value = workflow.registry()
       return workflow
     },
-    stateSchema: WorkflowState.stateNameSchema(),
-    initialState: WorkflowState.initial,
+    stateSchema: StateNames.singleton().asZodSchema(),
+    initialState: getInitialWorkflowState,
     getRegistry: () => activeRegistry.value,
     buildTransitionContext(
       state: WorkflowState,

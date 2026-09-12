@@ -27,6 +27,8 @@ $dev-workflow-continue-planning
 $dev-workflow-choose-next-task
 $dev-workflow-start-implementation <issue-number>
 $dev-workflow-optimize-factory
+$dev-workflow-address-pull-request-feedback <pr-number>
+$dev-workflow-review-pull-request <pr-number>
 $dev-workflow-v2:list-review-threads
 ```
 
@@ -52,6 +54,8 @@ Pi exposes the same lifecycle commands as Claude Code:
 /dev-workflow-v2:continue-planning
 /dev-workflow-v2:choose-next-task
 /dev-workflow-v2:start-implementation <issue-number>
+/dev-workflow-v2:address-pull-request-feedback <pr-number>
+/dev-workflow-v2:review-pull-request <pr-number>
 /dev-workflow-v2:list-review-threads
 /dev-workflow-v2:optimize-factory
 /dev-workflow-v2:workflow <operation> [args]
@@ -166,7 +170,19 @@ Prepares an issue branch from the refreshed remote default branch, reads the iss
 
 Branch preparation supports both a primary checkout and a linked worktree. It leaves the local default branch and any automatically created linked-worktree branch reference unchanged. It stops rather than overwriting work when the checkout is dirty or detached, the current branch contains commits absent from the remote default, the target branch is stale or contains commits, or another worktree already has the target branch checked out.
 
-### Reusable workflow actions
+### Reusable review actions
+
+```bash
+/dev-workflow-v2:address-pull-request-feedback <pr-number>
+```
+
+Plans and addresses feedback on the specified pull request without reading or changing workflow state. It requires the current worktree to be on the pull request head branch. Before changing code, it presents a plan for human approval. It replies as `[main-agent]`, resolves addressed threads, and stops for human input on design decisions or disputed human direction.
+
+```bash
+/dev-workflow-v2:review-pull-request <pr-number>
+```
+
+Runs the repository review agents for the specified pull request without reading or changing workflow state. It posts a diagnostic comment after the applicable agents start. `task-check` runs against every GitHub issue resolved by the pull request; when no issue is linked, it is not started and the diagnostic comment records why.
 
 ```bash
 /dev-workflow-v2:list-review-threads

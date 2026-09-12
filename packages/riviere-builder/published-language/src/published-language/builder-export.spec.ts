@@ -6,7 +6,7 @@ describe('RiviereBuilder', () => {
   describe('build', () => {
     describe('when building valid graph', () => {
       function buildValidGraph() {
-        const builder = RiviereBuilder.new({
+        const builder = RiviereBuilder.parse({
           ...createValidOptions(),
           name: 'test-graph',
           description: 'A test graph',
@@ -101,7 +101,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('throws with validation error when link target does not exist', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -119,7 +119,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('succeeds with orphan components (orphans are warnings, not errors)', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       builder.addUseCase({
         name: 'Orphan Service',
@@ -135,7 +135,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('excludes customTypes when none defined', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const graph = builder.build()
 
@@ -143,7 +143,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('includes customTypes when defined', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       builder.defineCustomType({
         name: 'Repository',
@@ -170,7 +170,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('includes relationshipTypes when defined', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       builder.defineRelationshipType({
         name: 'reads',
         description: 'Reads data from the target',
@@ -184,7 +184,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('excludes externalLinks when none present', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -212,7 +212,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('includes externalLinks when present', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Payment Service',

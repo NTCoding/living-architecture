@@ -46,7 +46,7 @@ export function configuration(customType?: string): ExtractionConfiguration {
 }
 
 export function builder(): RiviereBuilder {
-  return RiviereBuilder.new({
+  return RiviereBuilder.parse({
     name: 'Shop',
     description: 'Shop graph',
     sources: [{ repository: 'shop' }],

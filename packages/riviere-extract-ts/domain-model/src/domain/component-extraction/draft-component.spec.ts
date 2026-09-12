@@ -14,7 +14,7 @@ describe('DraftComponent.parse', () => {
   it('creates a draft component from valid data', () => {
     expect(DraftComponent.parse(validDraftComponent)).toStrictEqual({
       success: true,
-      data: expect.objectContaining(validDraftComponent),
+      draftComponent: expect.objectContaining(validDraftComponent),
     })
   })
 
@@ -37,5 +37,28 @@ describe('DraftComponent.parse', () => {
 
   it('throws the domain error when a caller requires valid data', () => {
     expect(() => DraftComponent.parseOrThrow({})).toThrow(InvalidDraftComponentError)
+  })
+})
+
+describe('DraftComponent.parseMany', () => {
+  it('creates components from an array of valid values', () => {
+    expect(DraftComponent.parseMany([validDraftComponent])).toStrictEqual({
+      success: true,
+      draftComponents: expect.objectContaining([expect.objectContaining(validDraftComponent)]),
+    })
+  })
+
+  it('returns an error when the value is not an array', () => {
+    expect(DraftComponent.parseMany({})).toStrictEqual({
+      success: false,
+      error: 'Draft components file must contain an array',
+    })
+  })
+
+  it('returns the first invalid component error', () => {
+    expect(DraftComponent.parseMany([validDraftComponent, {}])).toStrictEqual({
+      success: false,
+      error: 'Invalid draft component',
+    })
   })
 })

@@ -14,11 +14,16 @@ export class DefineRelationshipType {
 
   execute(input: DefineRelationshipTypeInput): DefineRelationshipTypeResult {
     try {
-      const project = this.repository.loadByGraphPath(input.graphFileLocation)
-      project.defineRelationshipType({
-        name: input.name,
-        description: input.description,
+      const project = this.repository.load({
+        kind: 'graph',
+        graphFileLocation: input.graphFileLocation,
       })
+      project.amendGraph((builder) =>
+        builder.defineRelationshipType({
+          name: input.name,
+          description: input.description,
+        }),
+      )
       this.repository.save(input.graphFileLocation, project)
       return {
         result: {

@@ -1,17 +1,8 @@
-import { z } from 'zod'
+import { z, type ZodType } from 'zod'
 import type { WorkflowEvent } from './workflow-events'
-import { Reviewer } from './reviews/reviewers'
-import { ReviewStatuses } from './reviews/statuses'
-
-type ReviewerKey = z.infer<ReturnType<typeof Reviewer.schema>>
-type ReviewerStatus = z.infer<ReturnType<typeof ReviewStatuses.schema>>
-type ReviewerStatuses = {
-  readonly 'architecture-review': ReviewerStatus
-  readonly 'code-review': ReviewerStatus
-  readonly 'bug-scanner': ReviewerStatus
-  readonly 'task-check': ReviewerStatus
-  readonly coderabbit: ReviewerStatus
-}
+import { Reviewer, Reviewers } from './reviews/reviewers'
+import { ReviewerStatus, ReviewStatuses } from './reviews/statuses'
+import { ReviewerStatuses } from './reviews/reviewer-statuses'
 
 const STATE_NAMES = [
   'IMPLEMENTING',
@@ -22,10 +13,28 @@ const STATE_NAMES = [
   'BLOCKED',
 ] as const
 
-type StateName = (typeof STATE_NAMES)[number]
+/**
+ * @riviere-role domain-port
+ * @riviere-role-justification The workflow engine consumes state names as its state machine contract, so the closed set is the contract the domain exposes to the engine.
+ */
+export type StateName = (typeof STATE_NAMES)[number]
 
-const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
-const REVIEWER_STATUS_SCHEMA = ReviewStatuses.schema()
+/** @riviere-role value-object */
+export class StateNames {
+  declare private readonly brand: 'StateNames'
+
+  private constructor(private readonly names: readonly [StateName, ...StateName[]]) {}
+
+  static singleton(): StateNames {
+    return new StateNames(STATE_NAMES)
+  }
+
+  asZodSchema(): ZodType<StateName> {
+    return z.enum(this.names)
+  }
+}
+
+const REVIEWER_STATUS_SCHEMA = ReviewStatuses.singleton().asZodSchema()
 const REVIEWER_STATUSES_SCHEMA = z
   .object({
     'architecture-review': REVIEWER_STATUS_SCHEMA,
@@ -56,6 +65,19 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
 
 const WORKFLOW_STATE_SCHEMA = createWorkflowStateSchema(STATE_NAMES)
 
+type WorkflowStateValue = z.infer<typeof WORKFLOW_STATE_SCHEMA>
+
+type WorkflowStateJson = {
+  readonly currentStateMachineState: StateName
+  readonly githubIssue?: number | undefined
+  readonly featureBranch?: string | undefined
+  readonly prNumber?: number | undefined
+  readonly prUrl?: string | undefined
+  readonly reviewerStatuses: Readonly<Record<string, string>>
+  readonly preBlockedState?: string | undefined
+  readonly transcriptPath?: string | undefined
+}
+
 function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState | undefined {
   if (event.type === 'reviewer-status-recorded')
     return applyReviewerStatus(state, event.reviewer, event.status)
@@ -64,23 +86,14 @@ function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowS
 
 function applyReviewerStatus(
   state: WorkflowState,
-  reviewer: ReviewerKey,
-  status: ReviewerStatus,
+  reviewerName: string,
+  statusName: string,
 ): WorkflowState {
-  switch (reviewer) {
-    case 'architecture-review':
-      return state.with({
-        reviewerStatuses: { ...state.reviewerStatuses, 'architecture-review': status },
-      })
-    case 'code-review':
-      return state.with({ reviewerStatuses: { ...state.reviewerStatuses, 'code-review': status } })
-    case 'bug-scanner':
-      return state.with({ reviewerStatuses: { ...state.reviewerStatuses, 'bug-scanner': status } })
-    case 'task-check':
-      return state.with({ reviewerStatuses: { ...state.reviewerStatuses, 'task-check': status } })
-    case 'coderabbit':
-      return state.with({ reviewerStatuses: { ...state.reviewerStatuses, coderabbit: status } })
-  }
+  return state.with({
+    reviewerStatuses: state.reviewerStatuses
+      .withReviewer(Reviewer.fromName(reviewerName), ReviewerStatus.parse(statusName))
+      .toJSON(),
+  })
 }
 
 /** @riviere-role value-object */
@@ -96,9 +109,9 @@ export class WorkflowState {
   readonly preBlockedState?: string
   readonly transcriptPath?: string
 
-  private constructor(value: z.infer<typeof WORKFLOW_STATE_SCHEMA>) {
+  private constructor(value: WorkflowStateValue) {
     this.currentStateMachineState = value.currentStateMachineState
-    this.reviewerStatuses = value.reviewerStatuses
+    this.reviewerStatuses = ReviewerStatuses.parse(value.reviewerStatuses)
     if (value.githubIssue !== undefined) this.githubIssue = value.githubIssue
     if (value.featureBranch !== undefined) this.featureBranch = value.featureBranch
     if (value.prNumber !== undefined) this.prNumber = value.prNumber
@@ -108,24 +121,30 @@ export class WorkflowState {
   }
 
   static parse(value: unknown): WorkflowState {
+    if (value instanceof WorkflowState) return value
     return new WorkflowState(WORKFLOW_STATE_SCHEMA.parse(value))
   }
 
-  static stateNameSchema() {
-    return STATE_NAME_SCHEMA
+  static from(events: readonly WorkflowEvent[]): WorkflowState {
+    return events.reduce((state, event) => state.apply(event), INITIAL_STATE)
   }
 
-  static initial(): WorkflowState {
-    return INITIAL_STATE
+  toJSON(): WorkflowStateJson {
+    return {
+      currentStateMachineState: this.currentStateMachineState,
+      reviewerStatuses: this.reviewerStatuses.toJSON(),
+      ...(this.githubIssue === undefined ? {} : { githubIssue: this.githubIssue }),
+      ...(this.featureBranch === undefined ? {} : { featureBranch: this.featureBranch }),
+      ...(this.prNumber === undefined ? {} : { prNumber: this.prNumber }),
+      ...(this.prUrl === undefined ? {} : { prUrl: this.prUrl }),
+      ...(this.preBlockedState === undefined ? {} : { preBlockedState: this.preBlockedState }),
+      ...(this.transcriptPath === undefined ? {} : { transcriptPath: this.transcriptPath }),
+    }
   }
 
-  static replay(events: readonly WorkflowEvent[]): WorkflowState {
-    return events.reduce((state, event) => state.apply(event), WorkflowState.initial())
-  }
-
-  with(changes: Partial<z.infer<typeof WORKFLOW_STATE_SCHEMA>>): WorkflowState {
+  with(changes: Partial<WorkflowStateJson>): WorkflowState {
     return WorkflowState.parse({
-      ...this,
+      ...this.toJSON(),
       ...changes,
     })
   }
@@ -159,9 +178,17 @@ export class WorkflowState {
   }
 }
 
+function pendingReviewerStatus(): ReviewerStatus {
+  return ReviewerStatus.parse('PENDING')
+}
+
+function initialReviewerStatuses(): ReviewerStatuses {
+  return ReviewerStatuses.fromInitialState(Reviewers.singleton().all(), pendingReviewerStatus())
+}
+
 const INITIAL_STATE = WorkflowState.parse({
   currentStateMachineState: 'IMPLEMENTING',
-  reviewerStatuses: ReviewStatuses.pending(),
+  reviewerStatuses: initialReviewerStatuses().toJSON(),
 })
 
 /**
@@ -177,5 +204,5 @@ export function getWorkflowStateNames() {
  * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function getInitialWorkflowState(): WorkflowState {
-  return WorkflowState.initial()
+  return INITIAL_STATE
 }

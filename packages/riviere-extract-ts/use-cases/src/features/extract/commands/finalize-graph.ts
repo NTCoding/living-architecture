@@ -10,8 +10,11 @@ export class FinalizeGraph {
 
   execute(input: FinalizeGraphInput): FinalizeGraphResult {
     try {
-      const project = this.repository.loadByGraphPath(input.graphFileLocation)
-      const validationResult = project.validate()
+      const project = this.repository.load({
+        kind: 'graph',
+        graphFileLocation: input.graphFileLocation,
+      })
+      const validationResult = project.amendGraph((builder) => builder.validate())
       if (!validationResult.valid) {
         return failure(
           'VALIDATION_ERROR',

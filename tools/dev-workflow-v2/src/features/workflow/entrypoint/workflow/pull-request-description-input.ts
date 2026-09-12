@@ -1,11 +1,12 @@
 import { z } from 'zod'
-import type { PullRequestDescriptionInput } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
+import type { CreatePullRequestInput } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-pull-request-input'
 
 const CREATE_PR_COMMAND_TOKENS_SCHEMA = z.array(z.string())
-const MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH = 100
 const OPTION_SUCCESS_SCHEMA = z.object({ ok: z.literal(true), value: z.string() })
 
 const PULL_REQUEST_OPTION_NAMES: readonly string[] = [
+  '--commit-type',
+  '--commit-scope',
   '--title',
   '--description',
   '--problem',
@@ -17,14 +18,14 @@ const PULL_REQUEST_OPTION_NAMES: readonly string[] = [
 ]
 
 type PullRequestOptionParseResult =
-  | { readonly ok: true; readonly input: PullRequestDescriptionInput }
+  | { readonly ok: true; readonly input: CreatePullRequestInput }
   | { readonly ok: false; readonly reason: string }
 
 type OptionValueResult =
   | { readonly ok: true; readonly value: string }
   | { readonly ok: false; readonly reason: string }
 
-type PullRequestOptionValueResults = Record<keyof PullRequestDescriptionInput, OptionValueResult>
+type PullRequestOptionValueResults = Record<keyof CreatePullRequestInput, OptionValueResult>
 
 /** @riviere-role entrypoint-cli-input-parser */
 export function parsePullRequestDescriptionOptions(rawArgs: unknown): PullRequestOptionParseResult {
@@ -43,15 +44,17 @@ export function parsePullRequestDescriptionOptions(rawArgs: unknown): PullReques
       reason: tokenValidationReason,
     }
   }
-  return buildPullRequestDescriptionInput(readPullRequestOptionValues(commandTokens))
+  return parsePullRequestDescriptionInput(readPullRequestOptionValues(commandTokens))
 }
 
 function readPullRequestOptionValues(
   commandTokens: readonly string[],
 ): PullRequestOptionValueResults {
   return {
+    commitType: readRequiredOption(commandTokens, '--commit-type'),
+    commitScope: readRequiredOption(commandTokens, '--commit-scope'),
     title: readRequiredOption(commandTokens, '--title'),
-    description: readRequiredDescription(commandTokens),
+    description: readRequiredOption(commandTokens, '--description'),
     problem: readRequiredOption(commandTokens, '--problem'),
     acceptanceCriteria: readRequiredOption(commandTokens, '--acceptance-criteria'),
     keyChanges: readRequiredOption(commandTokens, '--key-changes'),
@@ -61,7 +64,7 @@ function readPullRequestOptionValues(
   }
 }
 
-function buildPullRequestDescriptionInput(
+function parsePullRequestDescriptionInput(
   optionValueResults: PullRequestOptionValueResults,
 ): PullRequestOptionParseResult {
   const failedOptionResult = Object.values(optionValueResults).find(
@@ -76,6 +79,8 @@ function buildPullRequestDescriptionInput(
   return {
     ok: true,
     input: {
+      commitType: readSuccessfulOptionValue(optionValueResults.commitType),
+      commitScope: readSuccessfulOptionValue(optionValueResults.commitScope),
       title: readSuccessfulOptionValue(optionValueResults.title),
       description: readSuccessfulOptionValue(optionValueResults.description),
       problem: readSuccessfulOptionValue(optionValueResults.problem),
@@ -139,18 +144,4 @@ function readRequiredOption(
     ok: true,
     value: optionValue,
   }
-}
-
-function readRequiredDescription(commandTokens: readonly string[]): OptionValueResult {
-  const description = readRequiredOption(commandTokens, '--description')
-  if (!description.ok) {
-    return description
-  }
-  if (description.value.trim().length < MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH) {
-    return {
-      ok: false,
-      reason: `Expected --description to be at least ${MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH} characters.`,
-    }
-  }
-  return description
 }

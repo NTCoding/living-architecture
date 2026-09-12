@@ -50,7 +50,8 @@ function loadProject(params: {
   projectRoot?: string
   useTsConfig: boolean
 }): void {
-  new RiviereProjectRepository().loadByExtractionConfigPath({
+  new RiviereProjectRepository().load({
+    kind: 'extraction',
     projectRoot: params.projectRoot ?? process.cwd(),
     configPath: params.configPath,
     useTsConfig: params.useTsConfig,

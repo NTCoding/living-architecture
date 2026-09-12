@@ -1,5 +1,6 @@
+import { BuilderOptions } from '../published-language/riviere-graph-definition-input'
 export function createValidOptions() {
-  return {
+  return BuilderOptions.parse({
     sources: [
       {
         repository: 'test/repo',
@@ -16,7 +17,7 @@ export function createValidOptions() {
         systemType: 'domain',
       },
     },
-  } as const
+  } as const)
 }
 
 export function createSourceLocation() {

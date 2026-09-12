@@ -1,6 +1,7 @@
 import { workflowSpec } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowEvent } from '../workflow-events'
-import { WorkflowState } from '../workflow-types'
+import { BranchRecorded, IssueRecorded, Transitioned } from '../workflow-events'
+import { getInitialWorkflowState, WorkflowState } from '../workflow-types'
 import { MaintainerWorkflow } from '../workflow'
 import { MaintainerWorkflowRegistry } from '../registry'
 import { AddressingFeedbackState } from '../states/addressing-feedback'
@@ -63,7 +64,7 @@ export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
 
 export function buildTestWorkflow(
   deps: WorkflowDeps = makeDeps(),
-  state: unknown = WorkflowState.initial(),
+  state: unknown = getInitialWorkflowState(),
 ): MaintainerWorkflow {
   return MaintainerWorkflow.build(TEST_WORKFLOW_REGISTRY, deps, state)
 }
@@ -76,19 +77,19 @@ export function rehydrateTestWorkflow(
 }
 
 function issueRecorded(n: number): WorkflowEvent {
-  return {
+  return IssueRecorded.parse({
     type: 'issue-recorded',
     at: AT,
     issueNumber: n,
-  }
+  })
 }
 
 function branchRecorded(b: string): WorkflowEvent {
-  return {
+  return BranchRecorded.parse({
     type: 'branch-recorded',
     at: AT,
     branch: b,
-  }
+  })
 }
 
 export function transitioned(
@@ -96,13 +97,13 @@ export function transitioned(
   to: StateName,
   stateOverrides?: Record<string, unknown>,
 ): WorkflowEvent {
-  return {
+  return Transitioned.parse({
     type: 'transitioned',
     at: AT,
     from,
     to,
     ...(stateOverrides === undefined ? {} : { stateOverrides }),
-  }
+  })
 }
 
 export function unresolvedThread(id: string): {
@@ -128,7 +129,7 @@ export function eventsToReviewing(): readonly WorkflowEvent[] {
 }
 
 export const spec = workflowSpec<WorkflowEvent, WorkflowState, WorkflowDeps, MaintainerWorkflow>({
-  fold: WorkflowState.replay,
+  fold: WorkflowState.from,
   rehydrate: (state, deps) => buildTestWorkflow(deps, state),
   defaultDeps: makeDeps,
   getPendingEvents: (wf) => wf.getPendingEvents(),

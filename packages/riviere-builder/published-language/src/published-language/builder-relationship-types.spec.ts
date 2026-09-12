@@ -1,8 +1,9 @@
+import { BuilderOptions } from './riviere-graph-definition-input'
 import { describe, expect, it } from 'vitest'
 import { RiviereBuilder } from './riviere-builder'
 
 function createValidOptions() {
-  return {
+  return BuilderOptions.parse({
     sources: [{ repository: 'test/repo' }],
     domains: {
       orders: {
@@ -10,12 +11,12 @@ function createValidOptions() {
         systemType: 'domain',
       },
     },
-  } as const
+  } as const)
 }
 
 describe('RiviereBuilder relationship types', () => {
   it('stores a relationship type name and description', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     builder.defineRelationshipType({
       name: 'executes',
@@ -29,7 +30,7 @@ describe('RiviereBuilder relationship types', () => {
   })
 
   it('rejects a relationship type name that is already defined', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     const input = {
       name: 'executes',
       description: 'Invokes the target during execution',
@@ -42,7 +43,7 @@ describe('RiviereBuilder relationship types', () => {
   })
 
   it.each(['constructor', '__proto__'])('stores inherited name %s as its own type', (name) => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     builder.defineRelationshipType({
       name,
@@ -55,7 +56,7 @@ describe('RiviereBuilder relationship types', () => {
   })
 
   it('rejects an inherited relationship type name that is not declared', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     const source = builder.addUseCase({
       name: 'Create Order',
       domain: 'orders',

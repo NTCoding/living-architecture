@@ -1,4 +1,3 @@
-import { ComponentDefinition } from '@living-architecture/riviere-builder-published-language'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { Project } from 'ts-morph'
 import { assert, describe, expect, it } from 'vitest'
@@ -12,14 +11,16 @@ import {
 } from './riviere-project-errors'
 
 function graphProject(): RiviereProject {
-  return RiviereProject.start({
+  const result = RiviereProject.start({
     graphDefinition: {
       sources: [{ repository: 'shop' }],
       domains: {
         orders: { description: 'Orders', systemType: 'domain' },
       },
     },
-  }).data
+  })
+  assert(result.success)
+  return result.data
 }
 
 function extractionConfiguration(): ExtractionConfiguration {
@@ -54,95 +55,86 @@ function extractionConfiguration(): ExtractionConfiguration {
 
 function addEveryComponent(subject: RiviereProject): readonly string[] {
   const location = { repository: 'shop', filePath: 'orders.ts' }
-  subject.defineCustomType({ name: 'ScheduledJob' })
-  return [
-    subject.addComponent(
-      ComponentDefinition.parseUI({
+  const ids: string[] = []
+  subject.amendGraph((builder) => {
+    builder.defineCustomType({ name: 'ScheduledJob' })
+    ids.push(
+      builder.addUI({
         name: 'Orders page',
         domain: 'orders',
         module: 'orders',
         sourceLocation: location,
         route: '/orders',
-      }).value,
-    ),
-    subject.addComponent(
-      ComponentDefinition.parseAPI({
+      }).id,
+      builder.addApi({
         name: 'Orders API',
         domain: 'orders',
         module: 'orders',
         sourceLocation: location,
         apiType: 'REST',
-      }).value,
-    ),
-    subject.addComponent(
-      ComponentDefinition.parseUseCase({
+      }).id,
+      builder.addUseCase({
         name: 'Place order',
         domain: 'orders',
         module: 'orders',
         sourceLocation: location,
-      }).value,
-    ),
-    subject.addComponent(
-      ComponentDefinition.parseDomainOp({
+      }).id,
+      builder.addDomainOp({
         name: 'Create order',
         domain: 'orders',
         module: 'orders',
         sourceLocation: location,
         operationName: 'createOrder',
-      }).value,
-    ),
-    subject.addComponent(
-      ComponentDefinition.parseEvent({
+      }).id,
+      builder.addEvent({
         name: 'Order placed',
         domain: 'orders',
         module: 'orders',
         sourceLocation: location,
         eventName: 'OrderPlaced',
-      }).value,
-    ),
-    subject.addComponent(
-      ComponentDefinition.parseEventHandler({
+      }).id,
+      builder.addEventHandler({
         name: 'Notify customer',
         domain: 'orders',
         module: 'orders',
         sourceLocation: location,
         subscribedEvents: ['OrderPlaced'],
-      }).value,
-    ),
-    subject.addComponent(
-      ComponentDefinition.parseCustom({
+      }).id,
+      builder.addCustom({
         name: 'Expire orders',
         domain: 'orders',
         module: 'orders',
         sourceLocation: location,
         customTypeName: 'ScheduledJob',
-      }).value,
-    ),
-  ]
+      }).id,
+    )
+  })
+  return ids
 }
 
 describe('RiviereProject graph behaviour', () => {
   it('delegates graph construction through its private builder', () => {
     const subject = graphProject()
-    subject.addSource({ repository: 'catalogue' })
-    subject.addDomain({ name: 'shipping', description: 'Shipping', systemType: 'domain' })
-    subject.defineRelationshipType({ name: 'invokes', description: 'Invokes' })
-    const ids = addEveryComponent(subject)
-    const operation = ids[3]
-    assert(operation)
-    subject.enrichComponent(operation, {
-      entity: 'Order',
-      stateChanges: [{ from: 'draft', to: 'created' }],
-      businessRules: ['Order must be valid'],
-      behavior: { modifies: ['Order'] },
-      signature: { parameters: [], returnType: 'Order' },
+    subject.amendGraph((builder) => {
+      builder.addSource({ repository: 'catalogue' })
+      builder.addDomain({ name: 'shipping', description: 'Shipping', systemType: 'domain' })
+      builder.defineRelationshipType({ name: 'invokes', description: 'Invokes' })
     })
-    const source = ids[0]
-    const target = ids[1]
-    assert(source)
-    assert(target)
-    subject.link({ from: source, to: target, relationshipType: 'invokes' })
-    subject.linkExternal({ from: source, target: { name: 'Payments', repository: 'payments' } })
+    const [from, to, , operation] = addEveryComponent(subject)
+    assert(from)
+    assert(to)
+    assert(operation)
+    subject.amendGraph((builder) => {
+      builder.enrichComponent(operation, {
+        entity: 'Order',
+        stateChanges: [{ from: 'draft', to: 'created' }],
+        businessRules: ['Order must be valid'],
+        behavior: { modifies: ['Order'] },
+        signature: { parameters: [], returnType: 'Order' },
+      })
+      builder.link({ from, to, relationshipType: 'invokes' })
+      builder.linkExternal({ from, target: { name: 'Payments', repository: 'payments' } })
+    })
 
     const graph = subject.build()
     expect({
@@ -151,9 +143,9 @@ describe('RiviereProject graph behaviour', () => {
       externalLinks: graph.externalLinks?.length ?? 0,
       sources: graph.metadata.sources,
       domains: Object.keys(graph.metadata.domains),
-      valid: subject.validate().valid,
+      valid: subject.amendGraph((builder) => builder.validate().valid),
       serialised: JSON.parse(subject.serialize()),
-      warnings: subject.warnings(),
+      warnings: subject.amendGraph((builder) => builder.warnings()),
     }).toMatchObject({
       components: 7,
       links: 1,
@@ -179,9 +171,9 @@ describe('RiviereProject graph behaviour', () => {
     const started = RiviereProject.start({ configuration, draftComponents: [] })
     assert(started.success)
 
-    expect(() => started.data.addSource({ repository: 'catalogue' })).toThrowError(
-      new GraphStateUnavailableError(),
-    )
+    expect(() =>
+      started.data.amendGraph((builder) => builder.addSource({ repository: 'catalogue' })),
+    ).toThrowError(new GraphStateUnavailableError())
   })
 
   it('rejects extraction behaviour on a graph only project', () => {

@@ -85,7 +85,7 @@ export class Workflow {
   private runDiagnostics: WorkflowDiagnostic[] = []
   private runTransitions: WorkflowTransitionSnapshot[] = []
 
-  static start(input: {
+  static build(input: {
     name: string
     outputPath: string
     runLogDirectory: string

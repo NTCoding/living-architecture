@@ -131,6 +131,8 @@ export const allRoles = [
   }),
   role('value-object', {
     targets: ['class'],
+    allowedStaticMethodNames: ['singleton'],
+    forbidNonFactoryStaticMethods: true,
     forbiddenCallableDataMembers: true,
     forbiddenSupertypes: ['Error'],
     requiredPrivateMembers: ['brand'],

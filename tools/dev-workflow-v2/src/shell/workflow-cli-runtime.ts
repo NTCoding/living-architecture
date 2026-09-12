@@ -14,8 +14,10 @@ import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-c
 import { readGitRepositoryStatus } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/git-client'
 import { createGithubPullRequestClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/create-pull-request'
 import { createGithubPullRequestFeedbackClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-pr-feedback'
+import { pushGitBranch } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/push-git-branch'
 import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/github-cli'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { formatPullRequestDetailsFailure } from '../features/workflow/entrypoint/workflow/format-pull-request-details-failure'
 import { parsePullRequestDescriptionOptions } from '../features/workflow/entrypoint/workflow/pull-request-description-input'
 import {
   parseNumberArgument,
@@ -35,6 +37,7 @@ const routes = createWorkflowRoutes({
   parseStringArgument,
   parseStringArguments,
   parsePullRequestDescriptionOptions,
+  formatPullRequestDetailsFailure,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],
@@ -80,7 +83,10 @@ function buildWorkflowDeps(platform: PlatformContext) {
     getPrFeedback: createWorkflowPullRequestFeedbackReader(
       createGithubPullRequestFeedbackClient(runGh),
     ),
-    createPullRequest: createWorkflowPullRequestCreator(createGithubPullRequestClient(runGh)),
+    createPullRequest: createWorkflowPullRequestCreator(
+      createGithubPullRequestClient(runGh),
+      pushGitBranch,
+    ),
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,

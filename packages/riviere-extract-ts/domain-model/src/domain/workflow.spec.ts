@@ -53,7 +53,7 @@ function allStages() {
 }
 
 function workflow(stages = allStages()): Workflow {
-  const result = Workflow.start({
+  const result = Workflow.build({
     name: 'build-graph',
     outputPath: '.riviere/graph.json',
     runLogDirectory: '.riviere/logs',
@@ -70,6 +70,17 @@ const successfulStage = {
 } as const
 
 describe('Workflow stage language', () => {
+  it('reports its workflow name', () => {
+    const result = Workflow.build({
+      name: 'build',
+      outputPath: 'graph.json',
+      runLogDirectory: 'logs',
+      stages: [WorkflowStage.fromSchemaValidation('validate')],
+    })
+    assert(result.success)
+    expect(result.workflow.name()).toBe('build')
+  })
+
   it('retains every closed stage variant and its typed configuration', () => {
     const subject = workflow()
     const retainedCodeExtractionConfig = {

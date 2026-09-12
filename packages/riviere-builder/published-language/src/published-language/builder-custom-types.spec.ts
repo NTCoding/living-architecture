@@ -1,3 +1,4 @@
+import { BuilderOptions } from './riviere-graph-definition-input'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { RiviereBuilder } from './riviere-builder'
 
@@ -7,7 +8,7 @@ function parseGraph(builder: RiviereBuilder): RiviereGraph {
 }
 
 function createValidOptions() {
-  return {
+  return BuilderOptions.parse({
     sources: [
       {
         repository: 'my-org/my-repo',
@@ -20,13 +21,13 @@ function createValidOptions() {
         systemType: 'domain',
       },
     },
-  } as const
+  } as const)
 }
 
 describe('RiviereBuilder custom types', () => {
   describe('defineCustomType', () => {
     it('registers custom type with required properties', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       builder.defineCustomType({
         name: 'MessageQueue',
@@ -51,7 +52,7 @@ describe('RiviereBuilder custom types', () => {
     })
 
     it('registers custom type with optional properties and description', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       builder.defineCustomType({
         name: 'CacheStore',
@@ -78,7 +79,7 @@ describe('RiviereBuilder custom types', () => {
     })
 
     it('throws when custom type name already defined', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       builder.defineCustomType({ name: 'MessageQueue' })
 
       expect(() => builder.defineCustomType({ name: 'MessageQueue' })).toThrow(
@@ -89,7 +90,7 @@ describe('RiviereBuilder custom types', () => {
 
   describe('addCustom', () => {
     it('returns CustomComponent when type is defined', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       builder.defineCustomType({ name: 'MessageQueue' })
 
       const component = builder.addCustom({
@@ -118,7 +119,7 @@ describe('RiviereBuilder custom types', () => {
     })
 
     it('includes description when provided', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       builder.defineCustomType({ name: 'MessageQueue' })
 
       const component = builder.addCustom({
@@ -137,7 +138,7 @@ describe('RiviereBuilder custom types', () => {
     })
 
     it('throws immediately when custom type is not defined', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       builder.defineCustomType({ name: 'MessageQueue' })
       builder.defineCustomType({ name: 'CacheStore' })
 
@@ -156,7 +157,7 @@ describe('RiviereBuilder custom types', () => {
     })
 
     it('throws with explicit message when no custom types registered', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       expect(() =>
         builder.addCustom({
@@ -173,7 +174,7 @@ describe('RiviereBuilder custom types', () => {
     })
 
     it('throws immediately when required properties are missing', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       builder.defineCustomType({
         name: 'MessageQueue',
         requiredProperties: {

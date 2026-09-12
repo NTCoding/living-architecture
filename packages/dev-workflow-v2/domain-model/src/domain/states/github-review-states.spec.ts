@@ -1,4 +1,4 @@
-import { WorkflowState } from '../workflow-types'
+import { getInitialWorkflowState, WorkflowState } from '../workflow-types'
 import { ReviewingState } from './reviewing'
 import type { ReadWorkflowPullRequestFeedback } from '../ports/read-pull-request-feedback'
 import { Reviewer } from '../reviews/reviewers'
@@ -50,7 +50,7 @@ function stateContext(
           events.push({ reviewer: reviewer.name(), status })
           stateBox.value = stateBox.value.with({
             reviewerStatuses: {
-              ...stateBox.value.reviewerStatuses,
+              ...stateBox.value.reviewerStatuses.toJSON(),
               [reviewer.name()]: status,
             },
           })
@@ -84,7 +84,7 @@ describe('GitHub review states', () => {
   it('blocks when GitHub reviewers have not run instead of staying in reviewing', () => {
     const sleepMs = vi.fn()
     const { context, events } = stateContext(
-      WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
+      getInitialWorkflowState().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
       githubFeedback({
         reviewerStatuses: {
           'architecture-review': 'PENDING',
@@ -106,7 +106,7 @@ describe('GitHub review states', () => {
 
   it('records GitHub reviewer statuses before moving to human review', () => {
     const { context, events } = stateContext(
-      WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
+      getInitialWorkflowState().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
     )
 
     ReviewingState.parse('REVIEWING', context).afterEntry()
@@ -121,7 +121,7 @@ describe('GitHub review states', () => {
 
   it('does not record a reviewer status that is already current', () => {
     const { context, events } = stateContext(
-      WorkflowState.initial().with({
+      getInitialWorkflowState().with({
         currentStateMachineState: 'REVIEWING',
         prNumber: 9,
         reviewerStatuses: {
@@ -146,7 +146,7 @@ describe('GitHub review states', () => {
     const reviewOutcome = vi.fn((): ReviewOutcome => 'APPROVED')
     const sleepMs = vi.fn()
     const { context, events } = stateContext(
-      WorkflowState.initial().with({
+      getInitialWorkflowState().with({
         currentStateMachineState: 'REVIEWING',
         prNumber: 9,
         reviewerStatuses: {
@@ -180,7 +180,7 @@ describe('GitHub review states', () => {
       .mockReturnValueOnce(githubFeedback({ coderabbitReviewSeen: false }))
       .mockReturnValueOnce(githubFeedback({ coderabbitReviewSeen: true }))
     const { context, events } = stateContext(
-      WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
+      getInitialWorkflowState().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
       undefined,
       () => 'APPROVED',
       { getPrFeedback, sleepMs },
@@ -200,7 +200,7 @@ describe('GitHub review states', () => {
 
   it('records CodeRabbit feedback from its bot comment', () => {
     const { context, events } = stateContext(
-      WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
+      getInitialWorkflowState().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
       githubFeedback({
         coderabbitReviewSeen: true,
         threads: [
@@ -224,7 +224,7 @@ describe('GitHub review states', () => {
 
   it('moves to addressing feedback when GitHub has reviewer feedback', () => {
     const { context, events } = stateContext(
-      WorkflowState.initial().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
+      getInitialWorkflowState().with({ currentStateMachineState: 'REVIEWING', prNumber: 9 }),
       githubFeedback({
         reviewerStatuses: {
           'architecture-review': 'OPEN_FEEDBACK',

@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
 import {
   type TestContext,
   createTestContext,
@@ -82,8 +83,8 @@ describe('additional builder command coverage', () => {
 
   it('returns duplicate custom type validation error', () => {
     const project = createProject()
-    project.defineCustomType({ name: 'Queue' })
-    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
+    project.amendGraph((builder) => builder.defineCustomType({ name: 'Queue' }))
+    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
 
     expect(
       new DefineCustomType(new RiviereProjectRepository()).execute({
@@ -120,9 +121,8 @@ describe('additional builder command coverage', () => {
 
   it('returns validation errors for duplicate Links and undefined relationship types', () => {
     const project = createProject()
-    const sourceId = project.addComponent({
-      type: 'UseCase',
-      input: {
+    const sourceId = project.amendGraph((builder) =>
+      builder.addUseCase({
         domain: 'orders',
         module: 'checkout',
         name: 'Create Order',
@@ -130,9 +130,9 @@ describe('additional builder command coverage', () => {
           repository: 'https://github.com/org/repo',
           filePath: 'src/create-order.ts',
         },
-      },
-    })
-    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
+      }),
+    ).id
+    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     const command = new LinkComponents(new RiviereProjectRepository())
     const input = {
       from: sourceId,
@@ -212,8 +212,10 @@ describe('additional builder command coverage', () => {
 
   it('includes reads in enrichment behavior', () => {
     const project = createProject()
-    const enrichSpy = vi.spyOn(project, 'enrichComponent').mockImplementation(() => undefined)
-    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
+    const enrichSpy = vi
+      .spyOn(RiviereBuilder.prototype, 'enrichComponent')
+      .mockImplementation(() => undefined)
+    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
 
     new EnrichComponent(new RiviereProjectRepository()).execute({
       businessRules: [],
@@ -235,8 +237,10 @@ describe('additional builder command coverage', () => {
 
   it('includes validates in enrichment behavior', () => {
     const project = createProject()
-    const enrichSpy = vi.spyOn(project, 'enrichComponent').mockImplementation(() => undefined)
-    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockReturnValue(project)
+    const enrichSpy = vi
+      .spyOn(RiviereBuilder.prototype, 'enrichComponent')
+      .mockImplementation(() => undefined)
+    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
 
     new EnrichComponent(new RiviereProjectRepository()).execute({
       businessRules: [],
@@ -297,7 +301,7 @@ describe('additional builder command coverage', () => {
   })
 
   it('rethrows unknown errors from finalize-graph and init-graph', () => {
-    vi.spyOn(RiviereProjectRepository.prototype, 'loadByGraphPath').mockImplementation(() => {
+    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockImplementation(() => {
       throw new UnexpectedError('unexpected')
     })
 

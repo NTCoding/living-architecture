@@ -1,9 +1,10 @@
+import { BuilderOptions } from './riviere-graph-definition-input'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { RiviereBuilder } from './riviere-builder'
 import { ComponentTypeMismatchError } from './construction-errors'
 
 function createValidOptions() {
-  return {
+  return BuilderOptions.parse({
     sources: [
       {
         repository: 'test/repo',
@@ -16,7 +17,7 @@ function createValidOptions() {
         systemType: 'domain',
       },
     },
-  } as const
+  } as const)
 }
 
 function sourceLocation() {
@@ -28,7 +29,7 @@ function sourceLocation() {
 
 describe('RiviereBuilder upsert warnings', () => {
   it('emits SCALAR_OVERWRITE warning for changed scalar fields only', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     builder.upsertUI({
       name: 'Checkout Page',
@@ -73,7 +74,7 @@ describe('RiviereBuilder upsert warnings', () => {
   })
 
   it('does not emit SCALAR_OVERWRITE for unchanged value or noOverwrite skip', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
 
     builder.upsertUseCase({
       name: 'Place Order',
@@ -137,7 +138,7 @@ describe('RiviereBuilder upsert warnings', () => {
       links: [],
     }
 
-    const builder = RiviereBuilder.resume(malformedGraph)
+    const builder = RiviereBuilder.fromGraph(malformedGraph)
 
     expect(() =>
       builder.upsertUI({
@@ -190,7 +191,7 @@ describe('RiviereBuilder upsert warnings', () => {
       "links": []
     }`)
 
-    const builder = RiviereBuilder.resume(malformedGraph)
+    const builder = RiviereBuilder.fromGraph(malformedGraph)
 
     expect(() =>
       builder.upsertUI({
