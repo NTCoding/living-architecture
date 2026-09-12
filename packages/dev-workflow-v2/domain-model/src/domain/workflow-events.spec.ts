@@ -64,6 +64,28 @@ describe('workflow events', () => {
     }
   })
 
+  it('rejects a closed review cycle with an unknown reviewer outcome', () => {
+    expect(() =>
+      parseWorkflowEvent({
+        type: 'review-cycle-closed',
+        at: AT,
+        cycleNumber: 1,
+        outcomes: { 'code-review': 'UNKNOWN' },
+      }),
+    ).toThrow('Unknown reviewer status: UNKNOWN')
+  })
+
+  it('rejects a closed review cycle with an unknown reviewer', () => {
+    expect(() =>
+      parseWorkflowEvent({
+        type: 'review-cycle-closed',
+        at: AT,
+        cycleNumber: 1,
+        outcomes: { 'unknown-reviewer': 'APPROVED' },
+      }),
+    ).toThrow('Unknown reviewer: unknown-reviewer')
+  })
+
   it('parses a reviewer status record', () => {
     expect(
       parseWorkflowEvent({

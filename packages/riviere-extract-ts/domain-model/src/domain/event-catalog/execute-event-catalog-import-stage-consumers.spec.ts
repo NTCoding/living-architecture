@@ -111,6 +111,9 @@ describe('executeEventCatalogImportStage consumer outcomes', () => {
 
     expect(outcome.success).toBe(true)
     expect(graphBuilder.links()).toStrictEqual([])
+    expect(
+      graphBuilder.components().filter((component) => component.type === 'EventHandler'),
+    ).toStrictEqual([])
   })
   it('overwrites a scalar contributed by an earlier stage', async () => {
     const graphBuilder = builder()
@@ -149,5 +152,10 @@ describe('executeEventCatalogImportStage consumer outcomes', () => {
 
     assert(outcome.success)
     expect(outcome.warnings).toContainEqual(expect.objectContaining({ code: 'SCALAR_OVERWRITE' }))
+    expect(
+      graphBuilder
+        .components()
+        .find((component) => component.id === 'orders:checkout:event:orderplaced'),
+    ).toMatchObject({ eventName: 'OrderPlaced' })
   })
 })

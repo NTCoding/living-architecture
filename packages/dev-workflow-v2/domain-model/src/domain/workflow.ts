@@ -255,10 +255,8 @@ export class MaintainerWorkflow {
     const included: string[] = []
     const excluded: Record<string, string> = {}
     for (const reviewer of REVIEW_RUNNERS) {
-      if (
-        this.state.reviewerStatuses.statusFor(ReviewerValue.fromName(reviewer))?.name() ===
-        'APPROVED'
-      ) {
+      const status = this.state.reviewerStatuses.statusFor(ReviewerValue.fromName(reviewer))
+      if (status?.isApproved() === true) {
         excluded[reviewer] = 'already-approved'
         continue
       }
@@ -287,13 +285,10 @@ export class MaintainerWorkflow {
     const feedback = waitForCodeRabbitCompletion(this.deps, this.getPullRequestNumber())
     const outcomes = reviewCycleOutcomes(feedback, this.state.includedReviewers)
     const statuses = Object.values(outcomes)
-    const hasOpenFeedback = statuses.includes('OPEN_FEEDBACK')
-    const allApproved = statuses.every(
-      (status) => status === 'APPROVED' || status === 'RATE_LIMITED',
-    )
-    if (!hasOpenFeedback && !allApproved) {
+    if (statuses.includes('PENDING')) {
       return fail('Every reviewer must return a result before the review cycle can close.')
     }
+    const hasOpenFeedback = statuses.includes('OPEN_FEEDBACK')
     this.append(
       ReviewCycleClosed.parse({
         type: 'review-cycle-closed',

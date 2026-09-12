@@ -164,13 +164,14 @@ export class RiviereProjectRepository {
       return WorkflowStage.fromMaterialized({ kind: 'schema-validate', name: stage.name })
     }
     return WorkflowStage.fromMaterialized(
-      this.stageValue(stage, resolve(workflowDirectory, stage.config)),
+      this.stageValue(stage, resolve(workflowDirectory, stage.config), workflowDirectory),
     )
   }
 
   private stageValue(
     stage: ConfiguredWorkflowStageDefinition,
     configPath: string,
+    workflowDirectory: string,
   ): WorkflowStageValue {
     const configDirectory = dirname(configPath)
     const file = this.readConfigYaml(configPath)
@@ -193,12 +194,13 @@ export class RiviereProjectRepository {
             'VALIDATION_ERROR',
             `Invalid EventCatalog mappings: ${mappings.issues.join('\n')}`,
           )
+        const source = resolve(configDirectory, config.config.source)
         return {
           kind: 'eventcatalog-import',
           name: stage.name,
           config: {
-            source: resolve(configDirectory, config.config.source),
-            sourceFilePath: config.config.source,
+            source,
+            sourceFilePath: relative(workflowDirectory, source),
             mappings: mappings.mappings,
             allowUnmapped: config.config.allowUnmapped,
           },
