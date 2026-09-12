@@ -242,6 +242,12 @@ describe('reusable pull request orchestration', () => {
       hasClearFixes: feedbackProcedure.includes('**Clear fixes**'),
       hasDiscussion: feedbackProcedure.includes('**Discussion needed**'),
       hasHumanDirection: feedbackProcedure.includes('**Human direction**'),
+      recoversPersistedDecisions: feedbackProcedure.includes(
+        'Recover persisted `[main-agent]` decisions from the thread history',
+      ),
+      resumesRecordedFixes: feedbackProcedure.includes(
+        'then start at step 2. Do not post a duplicate planning reply',
+      ),
       recordsPlanBeforeChanges:
         feedbackProcedure.includes('respond to each approved GitHub review') &&
         feedbackProcedure.includes(
@@ -277,6 +283,8 @@ describe('reusable pull request orchestration', () => {
       hasClearFixes: true,
       hasDiscussion: true,
       hasHumanDirection: true,
+      recoversPersistedDecisions: true,
+      resumesRecordedFixes: true,
       recordsPlanBeforeChanges: true,
       explainsWhyBeforeWhatAndHow: true,
       publishesRepliesImmediately: true,

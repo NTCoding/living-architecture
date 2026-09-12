@@ -26,15 +26,20 @@ The user provides a GitHub pull request number — use `123`, not `#123`.
 
    CodeRabbit feedback is identified by its GitHub author, not by an agent prefix.
 
+5. Recover persisted `[main-agent]` decisions from the thread history. These comments are not new human direction, but they are binding records of decisions already made with the user:
+   - `[main-agent] Confirmed with user:` records an approved implementation decision. Follow it without presenting the same plan for approval again.
+   - `[main-agent] ❌ **Rejected**:` records an approved rejection. Do not implement the rejected feedback.
+   - `[main-agent] Done as planned:` records completed work. Do not repeat the completed work.
+
 ## Feedback plan
 
-Before changing code, replying, resolving a thread, committing, or pushing, present a feedback plan to the human user with these sections:
+Before changing code, replying, resolving a thread, committing, or pushing, present a feedback plan to the human user with these sections for feedback without a persisted `[main-agent]` decision:
 
 1. **Clear fixes** — bugs, clear rule violations, or poor code that can be fixed without a design decision. For each item, name the thread, the problem, the intended fix, and the expected reply.
 2. **Discussion needed** — feedback that may change the domain model, domain boundaries, or another design decision. Explain the decision needed and include any technical concern with human direction.
 3. **Human direction** — the relevant human comments and how the plan follows them.
 
-Wait for explicit approval of the complete plan. Do not start addressing feedback while discussion is ongoing.
+Wait for explicit approval of the complete plan. Do not start addressing feedback while discussion is ongoing. For a thread with a persisted `[main-agent] Confirmed with user:` decision, continue from that decision instead of presenting a duplicate plan or waiting for duplicate approval.
 
 ## Address approved feedback
 
@@ -43,7 +48,9 @@ thread with the agreed follow up action before changing any code. This records
 the approved plan on the thread, so another agent can recover what was agreed
 and carry out the work without seeing this conversation.
 
-For each approved fix:
+For an approved fix with a persisted `[main-agent] Confirmed with user:` decision, recover the recorded files, tests, constraints, and verification, then start at step 2. Do not post a duplicate planning reply.
+
+For each approved fix without a persisted decision:
 
 1. Reply to the thread with a self contained implementation note. The reply
    must start by explaining why the feedback is valid, then state what outcome
