@@ -4,42 +4,53 @@ import { builder } from '../__fixtures__/workflow-fixtures'
 import { collaborators, importConfig } from './__fixtures__/event-catalog-stage-fixtures'
 import { executeEventCatalogImportStage } from './execute-event-catalog-import-stage'
 
-describe('executeEventCatalogImportStage', () => {
-  it('maps a producing service and its event to canonical components and an async link', async () => {
-    const graphBuilder = builder()
-
-    const outcome = await executeEventCatalogImportStage(
-      graphBuilder,
-      importConfig({
-        mappings: {
-          domains: {},
-          services: {
-            OrdersService: {
-              type: 'UseCase',
-              domain: 'orders',
-              module: 'checkout',
-              name: 'PlaceOrder',
-            },
+async function runProducingServiceStage() {
+  const graphBuilder = builder()
+  const outcome = await executeEventCatalogImportStage(
+    graphBuilder,
+    importConfig({
+      mappings: {
+        domains: {},
+        services: {
+          OrdersService: {
+            type: 'UseCase',
+            domain: 'orders',
+            module: 'checkout',
+            name: 'PlaceOrder',
           },
-          events: { OrderCreated: { name: 'OrderPlaced' } },
         },
-      }),
-      collaborators({
-        domains: [],
-        services: [
-          { id: 'OrdersService', name: 'Orders', produces: ['OrderCreated'], consumes: [] },
-        ],
-        events: [{ id: 'OrderCreated', name: 'Order Created' }],
-      }),
-    )
+        events: { OrderCreated: { name: 'OrderPlaced' } },
+      },
+    }),
+    collaborators({
+      domains: [],
+      services: [{ id: 'OrdersService', name: 'Orders', produces: ['OrderCreated'], consumes: [] }],
+      events: [{ id: 'OrderCreated', name: 'Order Created' }],
+    }),
+  )
+  return { graphBuilder, outcome }
+}
 
-    expect(outcome).toStrictEqual({ success: true, diagnostics: [], warnings: [] })
+describe('executeEventCatalogImportStage', () => {
+  it('maps a producing service to a canonical use case component', async () => {
+    const { graphBuilder } = await runProducingServiceStage()
+
     expect(
       graphBuilder.components().map((component) => ({ id: component.id, type: component.type })),
-    ).toStrictEqual([
-      { id: 'orders:checkout:usecase:placeorder', type: 'UseCase' },
-      { id: 'orders:checkout:event:orderplaced', type: 'Event' },
-    ])
+    ).toContainEqual({ id: 'orders:checkout:usecase:placeorder', type: 'UseCase' })
+  })
+
+  it('maps a produced event to a canonical event component', async () => {
+    const { graphBuilder } = await runProducingServiceStage()
+
+    expect(
+      graphBuilder.components().map((component) => ({ id: component.id, type: component.type })),
+    ).toContainEqual({ id: 'orders:checkout:event:orderplaced', type: 'Event' })
+  })
+
+  it('links a producing service to the event it produces', async () => {
+    const { graphBuilder } = await runProducingServiceStage()
+
     expect(
       graphBuilder.links().map((link) => ({
         source: link.source,

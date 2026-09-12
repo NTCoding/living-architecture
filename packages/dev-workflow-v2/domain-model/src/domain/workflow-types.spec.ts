@@ -122,7 +122,20 @@ describe('WorkflowState', () => {
     expect(state.excludedReviewers).toStrictEqual({ 'task-check': 'already-approved' })
   })
 
-  it('closes a review cycle and records its outcomes', () => {
+  it('closes a review cycle from a cycle-closed event', () => {
+    const state = WorkflowState.from([
+      ReviewCycleClosed.parse({
+        type: 'review-cycle-closed',
+        at: '2026-01-01T00:00:00Z',
+        cycleNumber: 1,
+        outcomes: {},
+      }),
+    ])
+
+    expect(state.reviewCycleOpen).toBe(false)
+  })
+
+  it('records review cycle outcomes as reviewer statuses', () => {
     const state = WorkflowState.from([
       ReviewCycleClosed.parse({
         type: 'review-cycle-closed',
@@ -132,7 +145,6 @@ describe('WorkflowState', () => {
       }),
     ])
 
-    expect(state.reviewCycleOpen).toBe(false)
     expect(state.reviewerStatuses.toJSON()['code-review']).toBe('APPROVED')
     expect(state.reviewerStatuses.toJSON()['task-check']).toBe('OPEN_FEEDBACK')
   })

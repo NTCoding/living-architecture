@@ -91,16 +91,22 @@ describe('startReviewCycle', () => {
 })
 
 describe('waitForCodeRabbitAndCloseReviewCycle', () => {
-  it('closes the cycle and moves to human review when every reviewer approved', () => {
+  it('closes the review cycle when every reviewer approved', () => {
     const workflow = reviewingWithOpenCycle()
 
     expect(workflow.waitForCodeRabbitAndCloseReviewCycle()).toStrictEqual({ pass: true })
     expect(workflow.getState().reviewCycleOpen).toBe(false)
-    expect(workflow.getState().currentStateMachineState).toBe('HUMAN_REVIEWING')
     expect(workflow.getPendingEvents().map((event) => event.type)).toContain('review-cycle-closed')
   })
 
-  it('closes the cycle and moves to addressing feedback when a reviewer left feedback', () => {
+  it('moves to human review when every reviewer approved', () => {
+    const workflow = reviewingWithOpenCycle()
+
+    expect(workflow.waitForCodeRabbitAndCloseReviewCycle()).toStrictEqual({ pass: true })
+    expect(workflow.getState().currentStateMachineState).toBe('HUMAN_REVIEWING')
+  })
+
+  it('moves to addressing feedback when a reviewer left feedback', () => {
     const workflow = reviewingWithOpenCycle(
       makeDeps({
         getPrFeedback: () =>
