@@ -58,6 +58,12 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
     prNumber: z.number().int().positive().optional(),
     prUrl: z.string().optional(),
     reviewerStatuses: REVIEWER_STATUSES_SCHEMA,
+    reviewCycleNumber: z.number().int().nonnegative().optional(),
+    reviewCycleOpen: z.boolean().optional(),
+    reviewCycleCapReached: z.boolean().default(false),
+    reviewedCommit: z.string().optional(),
+    includedReviewers: z.array(z.string()).optional(),
+    excludedReviewers: z.record(z.string(), z.string()).optional(),
     preBlockedState: z.string().optional(),
     transcriptPath: z.string().optional(),
   })
@@ -74,6 +80,12 @@ type WorkflowStateJson = {
   readonly prNumber?: number | undefined
   readonly prUrl?: string | undefined
   readonly reviewerStatuses: Readonly<Record<string, string>>
+  readonly reviewCycleNumber?: number | undefined
+  readonly reviewCycleOpen?: boolean | undefined
+  readonly reviewCycleCapReached?: boolean | undefined
+  readonly reviewedCommit?: string | undefined
+  readonly includedReviewers?: readonly string[] | undefined
+  readonly excludedReviewers?: Readonly<Record<string, string>> | undefined
   readonly preBlockedState?: string | undefined
   readonly transcriptPath?: string | undefined
 }
@@ -106,12 +118,24 @@ export class WorkflowState {
   readonly prNumber?: number
   readonly prUrl?: string
   readonly reviewerStatuses: ReviewerStatuses
+  readonly reviewCycleNumber: number
+  readonly reviewCycleOpen: boolean
+  readonly reviewCycleCapReached: boolean
+  readonly reviewedCommit?: string
+  readonly includedReviewers: readonly string[]
+  readonly excludedReviewers: Readonly<Record<string, string>>
   readonly preBlockedState?: string
   readonly transcriptPath?: string
 
   private constructor(value: WorkflowStateValue) {
     this.currentStateMachineState = value.currentStateMachineState
     this.reviewerStatuses = ReviewerStatuses.parse(value.reviewerStatuses)
+    this.reviewCycleNumber = value.reviewCycleNumber ?? 0
+    this.reviewCycleOpen = value.reviewCycleOpen ?? false
+    this.reviewCycleCapReached = value.reviewCycleCapReached
+    if (value.reviewedCommit !== undefined) this.reviewedCommit = value.reviewedCommit
+    this.includedReviewers = value.includedReviewers ?? []
+    this.excludedReviewers = value.excludedReviewers ?? {}
     if (value.githubIssue !== undefined) this.githubIssue = value.githubIssue
     if (value.featureBranch !== undefined) this.featureBranch = value.featureBranch
     if (value.prNumber !== undefined) this.prNumber = value.prNumber
@@ -133,6 +157,12 @@ export class WorkflowState {
     return {
       currentStateMachineState: this.currentStateMachineState,
       reviewerStatuses: this.reviewerStatuses.toJSON(),
+      reviewCycleNumber: this.reviewCycleNumber,
+      reviewCycleOpen: this.reviewCycleOpen,
+      reviewCycleCapReached: this.reviewCycleCapReached,
+      ...(this.reviewedCommit === undefined ? {} : { reviewedCommit: this.reviewedCommit }),
+      includedReviewers: [...this.includedReviewers],
+      excludedReviewers: { ...this.excludedReviewers },
       ...(this.githubIssue === undefined ? {} : { githubIssue: this.githubIssue }),
       ...(this.featureBranch === undefined ? {} : { featureBranch: this.featureBranch }),
       ...(this.prNumber === undefined ? {} : { prNumber: this.prNumber }),
@@ -168,6 +198,24 @@ export class WorkflowState {
         return this.with({ featureBranch: event.branch })
       case 'pr-recorded':
         return this.with({ prNumber: event.prNumber, prUrl: event.prUrl })
+      case 'review-cycle-started':
+        return this.with({
+          reviewCycleNumber: event.cycleNumber,
+          reviewCycleOpen: true,
+          reviewCycleCapReached: false,
+          includedReviewers: [...event.includedReviewers],
+          excludedReviewers: { ...event.excludedReviewers },
+        })
+      case 'review-cycle-closed': {
+        const withOutcomes = Object.entries(event.outcomes).reduce<WorkflowState>(
+          (state, [reviewer, status]) => applyReviewerStatus(state, reviewer, status),
+          this,
+        )
+        return withOutcomes.with({
+          reviewCycleOpen: false,
+          reviewedCommit: event.reviewedCommit,
+        })
+      }
       case 'session-started':
         return this.with({
           ...(event.transcriptPath !== undefined && { transcriptPath: event.transcriptPath }),

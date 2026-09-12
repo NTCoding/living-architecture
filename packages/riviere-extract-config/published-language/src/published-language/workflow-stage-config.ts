@@ -4,6 +4,7 @@ import {
   type Component,
 } from '@living-architecture/riviere-schema-published-language/schema'
 import type { ValidatedConfiguration } from './validated-configuration'
+import type { EventCatalogMappings } from './eventcatalog-mappings'
 
 /** @riviere-role published-language-data-structure */
 export interface CodeExtractionConfig {
@@ -14,6 +15,14 @@ export interface CodeExtractionConfig {
 
 /** @riviere-role published-language-schema */
 export interface EventCatalogImportConfig {
+  readonly source: string
+  readonly sourceFilePath: string
+  readonly mappings: EventCatalogMappings
+  readonly allowUnmapped: boolean
+}
+
+/** @riviere-role published-language-schema */
+export interface EventCatalogImportFileConfig {
   readonly source: string
   readonly mappings: string
   readonly allowUnmapped: boolean
@@ -157,9 +166,15 @@ function parseStageConfig<T>(
   return { success: true, config: result.data }
 }
 
+type RawImportConfig = Readonly<{
+  source: string
+  mappings: string
+  allowUnmapped: boolean
+}>
+
 function parseImportConfig(
   value: unknown,
-): { success: true; config: EventCatalogImportConfig } | StageConfigParseFailure {
+): { success: true; config: RawImportConfig } | StageConfigParseFailure {
   const result = parseStageConfig(importConfigSchema, value)
   if (!result.success) return result
   return {
@@ -176,7 +191,7 @@ function parseImportConfig(
 export function parseEventCatalogImportConfig(
   value: unknown,
 ):
-  | { success: true; config: EventCatalogImportConfig }
+  | { success: true; config: EventCatalogImportFileConfig }
   | { success: false; issues: readonly string[] } {
   return parseImportConfig(value)
 }

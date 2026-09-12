@@ -1,6 +1,15 @@
 {
   "name": "riviere-cli",
   "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "cache": true,
+      "options": {
+        "command": "tsc --noEmit -p tsconfig.lib.json",
+        "cwd": "{projectRoot}"
+      }
+    },
     "build": {
       "executor": "nx:run-commands",
       "options": {

@@ -67,6 +67,7 @@ describe('CreateWorkflowRoutes', () => {
       'record-branch',
       'create-pr',
       'record-reviewer-status',
+      'wait-for-coderabbit-and-close-review-cycle',
     ])
     const workflow = Object.create({})
     routes['record-issue'].handler(workflow, '42')
@@ -79,6 +80,16 @@ describe('CreateWorkflowRoutes', () => {
       Reviewer.fromName('code-review'),
       'OPEN_FEEDBACK',
     )
+  })
+
+  it('delegates closing the review cycle to the workflow', () => {
+    const { routes } = createRoutes()
+    const waitForCodeRabbitAndCloseReviewCycle = vi.fn(() => ({ pass: true as const }))
+    const workflow = Object.create({ waitForCodeRabbitAndCloseReviewCycle })
+
+    routes['wait-for-coderabbit-and-close-review-cycle'].handler(workflow)
+
+    expect(waitForCodeRabbitAndCloseReviewCycle).toHaveBeenCalledWith()
   })
 
   it('creates a pull request from parsed command input', () => {

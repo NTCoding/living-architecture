@@ -2,6 +2,14 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, vi } from 'vitest'
+import type { RiviereProjectCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
+
+export function collaborators(): RiviereProjectCollaborators {
+  return {
+    loadEventCatalogSource: () => Promise.resolve({ domains: [], services: [], events: [] }),
+    repositoryName: 'test',
+  }
+}
 
 export interface TestContext {
   testDir: string

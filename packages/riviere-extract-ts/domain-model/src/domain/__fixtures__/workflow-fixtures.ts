@@ -3,7 +3,17 @@ import { ValidatedConfiguration } from '@living-architecture/riviere-extract-con
 import { Project } from 'ts-morph'
 import { assert } from 'vitest'
 import { ExtractionConfiguration } from '../extraction-configuration'
+import type {
+  EventCatalogSource,
+  RiviereProjectCollaborators,
+} from '../ports/load-event-catalog-source'
 import { type MetadataValue, EnrichedComponent } from '../value-extraction/enriched-component'
+
+export function collaborators(
+  source: EventCatalogSource = { domains: [], services: [], events: [] },
+): RiviereProjectCollaborators {
+  return { loadEventCatalogSource: () => Promise.resolve(source), repositoryName: 'shop' }
+}
 
 export function configuration(customType?: string): ExtractionConfiguration {
   const parsed = ValidatedConfiguration.parse({

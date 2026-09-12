@@ -22,7 +22,12 @@ const MAINTAINER_WORKFLOW_REGISTRY_SCHEMA = z.object({
 
 type MaintainerWorkflowRegistryValue = z.infer<typeof MAINTAINER_WORKFLOW_REGISTRY_SCHEMA>
 type StateName = WorkflowState['currentStateMachineState']
-type WorkflowOperation = 'record-issue' | 'record-branch' | 'record-reviewer-status' | 'create-pr'
+type WorkflowOperation =
+  | 'record-issue'
+  | 'record-branch'
+  | 'record-reviewer-status'
+  | 'create-pr'
+  | 'wait-for-coderabbit-and-close-review-cycle'
 
 /** @riviere-role value-object */
 export class MaintainerWorkflowRegistry {

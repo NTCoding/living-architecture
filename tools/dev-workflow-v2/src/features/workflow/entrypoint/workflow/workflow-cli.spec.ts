@@ -23,7 +23,7 @@ describe('workflow-cli commands', () => {
     })
   })
 
-  it('records reviewer statuses as events while REVIEWING', () => {
+  it('starts a review cycle on entering REVIEWING', () => {
     const context = setup()
     runCommand(context, ['init'])
     runCommand(context, ['record-issue', '42'])
@@ -32,14 +32,17 @@ describe('workflow-cli commands', () => {
     runCommand(context, CREATE_PULL_REQUEST)
     runCommand(context, ['transition', 'REVIEWING'])
 
-    const statusEvents = context.engineDeps.store
+    const cycleEvents = context.engineDeps.store
       .readEvents(context.sessionId)
       .map(flattenStoredEvent)
-      .filter((event) => event.type === 'reviewer-status-recorded')
+      .filter((event) => event.type === 'review-cycle-started')
 
-    expect(statusEvents).toHaveLength(5)
-    expect(statusEvents).toContainEqual(
-      expect.objectContaining({ reviewer: 'code-review', status: 'APPROVED' }),
+    expect(cycleEvents).toHaveLength(1)
+    expect(cycleEvents).toContainEqual(
+      expect.objectContaining({
+        cycleNumber: 1,
+        includedReviewers: ['architecture-review', 'code-review', 'bug-scanner', 'task-check'],
+      }),
     )
     expect(context.engineDeps.store.listSessionReviews(context.sessionId)).toStrictEqual([])
   })

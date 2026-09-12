@@ -41,6 +41,15 @@ Before changing code, replying, resolving a thread, committing, or pushing, pres
 
 Wait for explicit approval of the complete plan. Do not start addressing feedback while discussion is ongoing. For a thread with a persisted `[main-agent] Confirmed with user:` decision, continue from that decision instead of presenting a duplicate plan or waiting for duplicate approval.
 
+## Scope amendments
+
+When the human user approves feedback that changes the scope of the pull request, record the approval in two places:
+
+1. Reply on the relevant review thread with the `[main-agent] Confirmed with user:` record, as described above.
+2. Amend the pull request description so `task-check` can see the approved scope. Add or update a section titled `## Approved scope amendment` that states what was approved and why. Update the body with `gh pr edit <pull-request-number> --body ...` or the GitHub REST API, preserving the existing description.
+
+Do not broaden scope without an explicit human approval recorded in both places.
+
 ## Address approved feedback
 
 After the user has confirmed the plan, respond to each approved GitHub review

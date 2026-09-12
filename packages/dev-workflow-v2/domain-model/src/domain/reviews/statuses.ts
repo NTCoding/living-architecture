@@ -1,6 +1,6 @@
 import { z, type ZodType } from 'zod'
 
-const REVIEWER_STATUS_NAMES = ['PENDING', 'OPEN_FEEDBACK', 'APPROVED'] as const
+const REVIEWER_STATUS_NAMES = ['PENDING', 'RATE_LIMITED', 'OPEN_FEEDBACK', 'APPROVED'] as const
 const REVIEWER_STATUS_SCHEMA = z.enum(REVIEWER_STATUS_NAMES)
 type ReviewerStatusName = z.infer<typeof REVIEWER_STATUS_SCHEMA>
 
@@ -45,6 +45,10 @@ export class ReviewerStatus {
 
   isPending(): boolean {
     return this.statusName === 'PENDING'
+  }
+
+  isApproved(): boolean {
+    return this.statusName === 'APPROVED' || this.statusName === 'RATE_LIMITED'
   }
 }
 

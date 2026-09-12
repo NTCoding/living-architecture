@@ -200,7 +200,7 @@ describe('reusable pull request orchestration', () => {
     expect({
       workflowDelegates: reviewing.includes('commands/review-pull-request.md'),
       usesGraphql: pullRequestReview.includes('gh api graphql'),
-      readsChangedFiles: pullRequestReview.includes('files(first: 100)'),
+      reviewsDiff: pullRequestReview.includes('git diff'),
       readsClosingIssues: pullRequestReview.includes('closingIssuesReferences(first: 100)'),
       launchesInParallel: pullRequestReview.includes('`runs.all`'),
       publishesDiagnosticRecord: pullRequestReview.includes('[workflow-orchestrator]'),
@@ -208,7 +208,7 @@ describe('reusable pull request orchestration', () => {
     }).toStrictEqual({
       workflowDelegates: true,
       usesGraphql: true,
-      readsChangedFiles: true,
+      reviewsDiff: true,
       readsClosingIssues: true,
       launchesInParallel: true,
       publishesDiagnosticRecord: true,
@@ -309,11 +309,19 @@ describe('reusable pull request orchestration', () => {
         returnsCompletionReceipt: reviewer.includes(
           'Return a short completion receipt to the workflow caller only after GitHub publication.',
         ),
+        hasDecisionHistory: reviewer.includes('Read the decision history supplied in your task'),
+        bindsSettledDecisions: reviewer.includes('binding to you'),
+        statesExpectedOutcome: reviewer.includes(
+          'Every finding must also state what good looks like',
+        ),
       }).toStrictEqual({
         hasGitHubPublishing: true,
         hasBash: true,
         doesNotQueryWorkflow: true,
         returnsCompletionReceipt: true,
+        hasDecisionHistory: true,
+        bindsSettledDecisions: true,
+        statesExpectedOutcome: true,
       })
     },
   )

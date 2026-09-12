@@ -41,5 +41,6 @@ export const STATE_STEPS: Readonly<Record<string, readonly (readonly string[])[]
     ['transition', 'SUBMITTING_PR'],
     CREATE_PULL_REQUEST,
     ['transition', 'REVIEWING'],
+    ['wait-for-coderabbit-and-close-review-cycle'],
   ],
 }

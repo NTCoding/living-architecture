@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 
 const mocks = vi.hoisted(() => ({
   extractDraftComponentsMethodMock: vi.fn(),
@@ -17,7 +18,6 @@ vi.mock('../data-access/riviere-project/riviere-project-repository', () => ({
 }))
 
 import { ExtractDraftComponents } from './extract-draft-components'
-import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
 import { ExtractionConfigError } from '../data-access/riviere-project/riviere-config-error'
 import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-error'
@@ -33,7 +33,7 @@ class UnexpectedLoadingError extends Error {}
 
 function createExtractDraftComponents(now: () => number = () => 0): ExtractDraftComponents {
   return new ExtractDraftComponents(
-    new RiviereProjectRepository(),
+    createRiviereProjectRepository(),
     mocks.findChangedSourceFilesMock,
     mocks.findSpecifiedSourceFilesMock,
     now,

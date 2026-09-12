@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { createRiviereProjectRepository } from '../../../../__fixtures__/riviere-project-repository-fixtures'
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -56,7 +57,7 @@ function loadProject(params: {
   projectRoot?: string
   useTsConfig: boolean
 }): ReturnType<RiviereProjectRepository['load']> {
-  return new RiviereProjectRepository().load({
+  return createRiviereProjectRepository().load({
     kind: 'extraction',
     projectRoot: params.projectRoot ?? process.cwd(),
     configPath: params.configPath,

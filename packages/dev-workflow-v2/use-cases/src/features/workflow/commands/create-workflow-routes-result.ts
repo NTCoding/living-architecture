@@ -29,6 +29,11 @@ interface WorkflowRouteDefinitions extends RouteMap<Workflow, ReturnType<Workflo
     readonly args: readonly [ReturnType<typeof arg.string>, ReturnType<typeof arg.string>]
     readonly handler: (workflow: Workflow, reviewer: unknown, status: unknown) => WorkflowResult
   }
+  readonly 'wait-for-coderabbit-and-close-review-cycle': {
+    readonly type: 'transaction'
+    readonly args: readonly []
+    readonly handler: (workflow: Workflow) => WorkflowResult
+  }
 }
 
 /** @riviere-role command-use-case-result */

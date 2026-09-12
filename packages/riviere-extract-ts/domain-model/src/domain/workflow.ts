@@ -75,7 +75,7 @@ type WorkflowStageContext = Readonly<{
 type ExecuteWorkflowStage = (
   stage: WorkflowStageValue,
   context: WorkflowStageContext,
-) => WorkflowStageExecutionResult
+) => WorkflowStageExecutionResult | Promise<WorkflowStageExecutionResult>
 
 /** @riviere-role aggregate-entity */
 export class Workflow {
@@ -128,17 +128,17 @@ export class Workflow {
     )
   }
 
-  run(
+  async run(
     builder: RiviereBuilder,
     mode: WorkflowRunMode,
     execute: ExecuteWorkflowStage,
-  ): WorkflowRunResult {
+  ): Promise<WorkflowRunResult> {
     this.startRun(builder)
     const activeStages = this.activeStages(mode.value)
     for (const [index, stage] of activeStages.entries()) {
       const values = stageEventValues(stage.value, index)
       this.runEvents.push(WorkflowRunEvent.fromStage('StageStarted', values))
-      const result = this.executeStage(execute, stage.value, builder)
+      const result = await this.executeStage(execute, stage.value, builder)
       if (!result.success) return this.failRun(values, result)
       this.recordStageSuccess(stage.value, values, result, builder, index)
     }
@@ -165,13 +165,13 @@ export class Workflow {
     this.runTransitions = [WorkflowTransitionSnapshot.fromInitial(this.snapshot(builder))]
   }
 
-  private executeStage(
+  private async executeStage(
     execute: ExecuteWorkflowStage,
     stage: WorkflowStageValue,
     builder: RiviereBuilder,
-  ): WorkflowStageExecutionResult {
+  ): Promise<WorkflowStageExecutionResult> {
     try {
-      return execute(stage, {
+      return await execute(stage, {
         components: builder.components(),
         diagnostics: [...this.runDiagnostics],
       })

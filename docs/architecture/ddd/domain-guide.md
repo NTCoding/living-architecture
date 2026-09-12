@@ -70,6 +70,8 @@ Domain model package: `@living-architecture/dev-workflow-v2-domain-model`
   - `recordReviewerStatus`
   - `createPr`
   - `recordPullRequest`
+  - `startReviewCycle`
+  - `waitForCodeRabbitAndCloseReviewCycle`
   - `transition`
   - `reviewOutcome`
 

@@ -30,6 +30,7 @@ type StateName = WorkflowState['currentStateMachineState']
 type WorkflowOperation =
   | Parameters<MaintainerWorkflow['executeRecording']>[0]
   | 'record-reviewer-status'
+  | 'wait-for-coderabbit-and-close-review-cycle'
 /** @riviere-role command-use-case-result */
 export interface ConfigureWorkflowResult {
   fold(state: WorkflowState, event: BaseEvent): WorkflowState

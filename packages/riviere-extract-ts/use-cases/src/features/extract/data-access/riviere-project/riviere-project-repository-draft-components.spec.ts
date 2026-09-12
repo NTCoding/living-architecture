@@ -1,10 +1,10 @@
 import { execFileSync } from 'node:child_process'
+import { createRiviereProjectRepository } from '../../../../__fixtures__/riviere-project-repository-fixtures'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { DraftComponentsLoadError } from './draft-components-load-error'
-import { RiviereProjectRepository } from './riviere-project-repository'
 
 const VALID_CONFIG = `modules:
   - name: orders
@@ -49,7 +49,7 @@ function loadByExtractionConfigAndDraftComponentsPaths(
   directory: string,
   draftComponentsPath: string,
 ) {
-  return new RiviereProjectRepository().load({
+  return createRiviereProjectRepository().load({
     kind: 'extraction',
     configPath: 'extract.config.yml',
     draftComponentsPath,

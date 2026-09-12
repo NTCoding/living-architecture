@@ -119,7 +119,14 @@ export {
   type AsyncApiImportConfig,
   type CodeExtractionConfig,
   type EventCatalogImportConfig,
+  type EventCatalogImportFileConfig,
 } from './published-language/workflow-stage-config'
+export {
+  parseEventCatalogMappings,
+  type EventCatalogEventMapping,
+  type EventCatalogMappings,
+  type EventCatalogServiceMapping,
+} from './published-language/eventcatalog-mappings'
 export {
   WORKFLOW_STAGE_KINDS,
   parseWorkflowDefinition,
