@@ -143,6 +143,7 @@ describe('waitForCodeRabbitAndCloseReviewCycle', () => {
 
     expect(workflow.waitForCodeRabbitAndCloseReviewCycle()).toStrictEqual({ pass: true })
     expect(workflow.getState().currentStateMachineState).toBe('HUMAN_REVIEWING')
+    expect(workflow.getState().reviewerStatuses.toJSON()['coderabbit']).toBe('RATE_LIMITED')
   })
 
   it('treats an open CodeRabbit thread as feedback', () => {

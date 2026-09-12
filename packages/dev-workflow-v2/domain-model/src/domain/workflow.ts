@@ -288,7 +288,9 @@ export class MaintainerWorkflow {
     const outcomes = reviewCycleOutcomes(feedback)
     const statuses = Object.values(outcomes)
     const hasOpenFeedback = statuses.includes('OPEN_FEEDBACK')
-    const allApproved = statuses.every((status) => status === 'APPROVED')
+    const allApproved = statuses.every(
+      (status) => status === 'APPROVED' || status === 'RATE_LIMITED',
+    )
     if (!hasOpenFeedback && !allApproved) {
       return fail('Every reviewer must return a result before the review cycle can close.')
     }
@@ -377,8 +379,8 @@ function reviewCycleOutcomes(
 
 function codeRabbitOutcome(
   feedback: ReturnType<ReadWorkflowPullRequestFeedback>,
-): 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED' {
-  if (feedback.coderabbitRateLimited) return 'APPROVED'
+): 'PENDING' | 'RATE_LIMITED' | 'OPEN_FEEDBACK' | 'APPROVED' {
+  if (feedback.coderabbitRateLimited) return 'RATE_LIMITED'
   if (!feedback.coderabbitReviewSeen) return 'PENDING'
   const hasOpenCodeRabbitThread = feedback.threads.some((thread) =>
     thread.comments.some(

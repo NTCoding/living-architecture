@@ -44,7 +44,7 @@ export class ReviewingState {
     context: Parameters<typeof WorkflowTransitionContext.from>[0],
   ): PreconditionResult {
     const statuses = [...context.state.reviewerStatuses.statusByReviewer().values()]
-    const allApproved = statuses.every((status) => status.name() === 'APPROVED')
+    const allApproved = statuses.every((status) => status.isApproved())
     const hasOpenFeedback = statuses.some((status) => status.isOpenFeedback())
     if (context.to === 'HUMAN_REVIEWING' && !allApproved)
       return {
