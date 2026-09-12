@@ -14,6 +14,7 @@ export function importConfig(
 ): EventCatalogImportConfig {
   return {
     source: '/specs/eventcatalog',
+    sourceFilePath: '/specs/eventcatalog',
     mappings: { domains: {}, services: {}, events: {} },
     allowUnmapped: false,
     ...overrides,

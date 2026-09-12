@@ -16,6 +16,7 @@ export interface CodeExtractionConfig {
 /** @riviere-role published-language-schema */
 export interface EventCatalogImportConfig {
   readonly source: string
+  readonly sourceFilePath: string
   readonly mappings: EventCatalogMappings
   readonly allowUnmapped: boolean
 }

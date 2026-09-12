@@ -198,6 +198,7 @@ export class RiviereProjectRepository {
           name: stage.name,
           config: {
             source: resolve(configDirectory, config.config.source),
+            sourceFilePath: config.config.source,
             mappings: mappings.mappings,
             allowUnmapped: config.config.allowUnmapped,
           },

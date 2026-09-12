@@ -14,6 +14,7 @@ import { builder, configuration } from './__fixtures__/workflow-fixtures'
 const codeExtractionConfig = configuration().resolvedConfig
 const eventCatalogConfig: EventCatalogImportConfig = {
   source: 'eventcatalog',
+  sourceFilePath: 'eventcatalog',
   mappings: {
     domains: { OrdersDomain: 'orders' },
     services: {

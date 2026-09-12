@@ -259,6 +259,7 @@ describe('RiviereProject Workflow rebuild', () => {
   it('executes an EventCatalog import stage when rebuilding', async () => {
     const eventCatalogConfig: EventCatalogImportConfig = {
       source: 'eventcatalog',
+      sourceFilePath: 'eventcatalog',
       allowUnmapped: false,
       mappings: {
         domains: {},
@@ -305,6 +306,7 @@ describe('RiviereProject Workflow rebuild', () => {
   it('fails an EventCatalog stage when no collaborators are supplied', async () => {
     const eventCatalogConfig: EventCatalogImportConfig = {
       source: 'eventcatalog',
+      sourceFilePath: 'eventcatalog',
       allowUnmapped: false,
       mappings: { domains: {}, services: {}, events: {} },
     }

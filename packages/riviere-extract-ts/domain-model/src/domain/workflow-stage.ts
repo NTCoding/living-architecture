@@ -123,6 +123,7 @@ function copyCodeExtractionConfig(config: CodeExtractionConfig): CodeExtractionC
 function copyEventCatalogImportConfig(config: EventCatalogImportConfig): EventCatalogImportConfig {
   return {
     source: config.source,
+    sourceFilePath: config.sourceFilePath,
     allowUnmapped: config.allowUnmapped,
     mappings: {
       domains: { ...config.mappings.domains },

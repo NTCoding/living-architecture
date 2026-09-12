@@ -358,7 +358,7 @@ function upsertComponent(
   config: EventCatalogImportConfig,
   repositoryName: string,
 ) {
-  const sourceLocation = { repository: repositoryName, filePath: config.source }
+  const sourceLocation = { repository: repositoryName, filePath: config.sourceFilePath }
   switch (component.kind) {
     case 'use-case':
       return builder.upsertUseCase({

@@ -76,6 +76,7 @@ describe('WorkflowStage', () => {
   it('copies event catalog import configuration from its input', () => {
     const config: EventCatalogImportConfig = {
       source: 'eventcatalog',
+      sourceFilePath: 'eventcatalog',
       mappings: {
         domains: { OrdersDomain: 'orders' },
         services: {
@@ -99,6 +100,7 @@ describe('WorkflowStage', () => {
   it('deep copies event catalog mappings from its input', () => {
     const config: EventCatalogImportConfig = {
       source: 'eventcatalog',
+      sourceFilePath: 'eventcatalog',
       mappings: {
         domains: { OrdersDomain: 'orders' },
         services: {
