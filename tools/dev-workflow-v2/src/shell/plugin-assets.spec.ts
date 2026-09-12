@@ -250,12 +250,25 @@ describe('reusable pull request orchestration', () => {
       explainsWhyBeforeWhatAndHow: feedbackProcedure.includes(
         'must start by explaining why the feedback is valid, then state what outcome',
       ),
+      publishesRepliesImmediately: feedbackProcedure.includes(
+        'This endpoint publishes the reply immediately',
+      ),
+      usesSubmittedRestReplies:
+        feedbackProcedure.includes(
+          'pulls/<PR_NUMBER>/comments/<ROOT_COMMENT_DATABASE_ID>/replies',
+        ) && !feedbackProcedure.includes('addPullRequestReviewThreadReply(input'),
+      readsRootCommentDatabaseId: feedbackProcedure.includes(
+        'REST database ID of its root comment',
+      ),
       recordsCompletion: feedbackProcedure.includes(
         '[main-agent] Done as planned: <what changed and how it was verified>',
       ),
       resolvesAfterCompletion:
         feedbackProcedure.indexOf('Done as planned:') <
         feedbackProcedure.indexOf('Resolve the thread only after'),
+      rejectsAndResolvesImmediately:
+        feedbackProcedure.includes('When a technically justified rejection') &&
+        feedbackProcedure.includes('Immediately after the reply succeeds, resolve'),
       doesNotResolveHumanDecisions: feedbackProcedure.includes('do not resolve it'),
     }).toStrictEqual({
       workflowIndependent: true,
@@ -266,8 +279,12 @@ describe('reusable pull request orchestration', () => {
       hasHumanDirection: true,
       recordsPlanBeforeChanges: true,
       explainsWhyBeforeWhatAndHow: true,
+      publishesRepliesImmediately: true,
+      usesSubmittedRestReplies: true,
+      readsRootCommentDatabaseId: true,
       recordsCompletion: true,
       resolvesAfterCompletion: true,
+      rejectsAndResolvesImmediately: true,
       doesNotResolveHumanDecisions: true,
     })
   })

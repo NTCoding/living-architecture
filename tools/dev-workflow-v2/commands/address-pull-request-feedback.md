@@ -18,7 +18,7 @@ The user provides a GitHub pull request number — use `123`, not `#123`.
 
 2. Verify that the current worktree branch is the pull request head branch. Stop and explain the mismatch if it is not. Do not switch branches or modify another worktree.
 
-3. Fetch every review thread through GitHub GraphQL. Paginate review threads and every thread's comments until `pageInfo.hasNextPage` is false. Read each unresolved, non outdated thread chronologically, including its id, path, line, body, URL, and author.
+3. Fetch every review thread through GitHub GraphQL. Paginate review threads and every thread's comments until `pageInfo.hasNextPage` is false. The thread comment selection must include `databaseId`. Read each unresolved, non outdated thread chronologically, including its id, path, line, body, URL, author, and the REST database ID of its root comment.
 
 4. Treat a comment as human direction only when both conditions hold:
    - it is authored by the authenticated GitHub user; and
@@ -73,12 +73,12 @@ For each approved fix:
    ```
 
    Do not change code until this planning reply has been posted successfully.
-   Post the reply to the review thread using GitHub GraphQL:
+   Post the reply to the review thread using the GitHub REST API. Use the root review comment's REST database ID. This endpoint publishes the reply immediately; do not use a GitHub GraphQL review-reply mutation because it creates a pending review comment.
 
    ```bash
-   gh api graphql \
-     -f query='mutation($pullRequestReviewThreadId: ID!, $body: String!) { addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: $pullRequestReviewThreadId, body: $body}) { comment { id } } }' \
-     -f pullRequestReviewThreadId='<THREAD_ID>' \
+   gh api \
+     --method POST \
+     'repos/<OWNER>/<REPO>/pulls/<PR_NUMBER>/comments/<ROOT_COMMENT_DATABASE_ID>/replies' \
      -f body='[main-agent] Confirmed with user: <why the feedback is valid>. Agreed to <what outcome or follow up action is required>. This will be done by <how and where the change will be made>, including <tests, constraints, and verification>.'
    ```
 
@@ -94,9 +94,9 @@ For each approved fix:
    completion reply has been posted successfully:
 
    ```bash
-   gh api graphql \
-     -f query='mutation($pullRequestReviewThreadId: ID!, $body: String!) { addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: $pullRequestReviewThreadId, body: $body}) { comment { id } } }' \
-     -f pullRequestReviewThreadId='<THREAD_ID>' \
+   gh api \
+     --method POST \
+     'repos/<OWNER>/<REPO>/pulls/<PR_NUMBER>/comments/<ROOT_COMMENT_DATABASE_ID>/replies' \
      -f body='[main-agent] Done as planned: <what changed and how it was verified>'
    ```
 
@@ -108,7 +108,24 @@ For each approved fix:
      -f threadId='<THREAD_ID>'
    ```
 
-When a technically justified rejection is approved by the human user, reply with `[main-agent] ❌ **Rejected**: <specific technical reason>`. Never use “out of scope” or “nitpick” as the reason.
+When a technically justified rejection is approved by the human user, do not change code. Reply through the GitHub REST API using the root review comment's REST database ID:
+
+```bash
+gh api \
+  --method POST \
+  'repos/<OWNER>/<REPO>/pulls/<PR_NUMBER>/comments/<ROOT_COMMENT_DATABASE_ID>/replies' \
+  -f body='[main-agent] ❌ **Rejected**: <specific technical reason>'
+```
+
+Immediately after the reply succeeds, resolve the review thread:
+
+```bash
+gh api graphql \
+  -f query='mutation($threadId: ID!) { resolveReviewThread(input: {threadId: $threadId}) { thread { id } } }' \
+  -f threadId='<THREAD_ID>'
+```
+
+Never use “out of scope” or “nitpick” as the reason. Never use `addPullRequestReviewThreadReply`; it creates pending review comments.
 
 When a thread needs a human decision, or when you challenge human direction, do not resolve it. Bring the thread, the decision, and the relevant technical reasoning to the human user.
 
