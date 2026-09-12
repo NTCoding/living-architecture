@@ -44,6 +44,8 @@ type EventCatalogCanonicalLink = Readonly<{
   to: string
 }>
 
+type EventCatalogUseCaseComponent = Extract<EventCatalogCanonicalComponent, { kind: 'use-case' }>
+
 type EventCatalogImportOutcome =
   | Readonly<{
       success: true
@@ -56,11 +58,7 @@ type EventCatalogImportOutcome =
 type UnmappedRecord = Readonly<{ kind: 'service' | 'event'; id: string }>
 
 type ResolvedService = Readonly<{
-  component: EventCatalogCanonicalComponent
-  id: string
-  domain: string
-  module: string
-  name: string
+  component: EventCatalogUseCaseComponent
   produces: readonly string[]
   consumes: readonly string[]
 }>
@@ -171,40 +169,44 @@ function resolveServices(input: {
       unmapped.push({ kind: 'service', id: service.id })
       continue
     }
-    const domain = mapping.domain ?? canonicalDomain(input, service)
+    const domain = mapping.domain ?? canonicalDomain(input, service) ?? service.domainId
     if (domain === undefined) {
       failures.push(
         `EventCatalog service '${service.id}' has no canonical domain; add a domain to its mapping`,
       )
       continue
     }
+    const module = mapping.module ?? kebabCase(service.name)
+    const name = mapping.name ?? service.name
+    const type = (mapping.type ?? 'UseCase').toLowerCase()
+    const componentId = ComponentId.parseFromParts({
+      domain,
+      module,
+      type,
+      name,
+    }).toString()
     resolved.set(service.id, {
       component: {
         kind: 'use-case',
-        id: ComponentId.parseFromParts({
-          domain,
-          module: mapping.module,
-          type: 'usecase',
-          name: mapping.name,
-        }).toString(),
+        id: componentId,
         domain,
-        module: mapping.module,
-        name: mapping.name,
+        module,
+        name,
       },
-      id: ComponentId.parseFromParts({
-        domain,
-        module: mapping.module,
-        type: 'usecase',
-        name: mapping.name,
-      }).toString(),
-      domain,
-      module: mapping.module,
-      name: mapping.name,
       produces: service.produces,
       consumes: service.consumes,
     })
   }
   return { resolved, unmapped, failures }
+}
+
+function kebabCase(value: string): string {
+  const withBoundaries = value.replaceAll(/([a-z0-9])([A-Z])/g, '$1-$2')
+  return withBoundaries
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((part) => part.length > 0)
+    .join('-')
 }
 
 function canonicalDomain(
@@ -241,18 +243,19 @@ function resolveEvents(
       )
       continue
     }
+    const name = mapping.name ?? event.name
     resolved.set(event.id, {
       kind: 'event',
       id: ComponentId.parseFromParts({
         domain,
         module,
         type: 'event',
-        name: mapping.name,
+        name,
       }).toString(),
       domain,
       module,
-      name: mapping.name,
-      eventName: mapping.name,
+      name,
+      eventName: name,
     })
   }
   return { resolved, unmapped, failures }
@@ -283,14 +286,14 @@ function buildConsumedEventHandlers(
     const handler: EventCatalogCanonicalComponent = {
       kind: 'event-handler',
       id: ComponentId.parseFromParts({
-        domain: service.domain,
-        module: service.module,
+        domain: service.component.domain,
+        module: service.component.module,
         type: 'eventhandler',
-        name: service.name,
+        name: service.component.name,
       }).toString(),
-      domain: service.domain,
-      module: service.module,
-      name: service.name,
+      domain: service.component.domain,
+      module: service.component.module,
+      name: service.component.name,
       subscribedEvents: consumed.map((event) => event.name),
     }
     components.push(handler)
@@ -307,7 +310,7 @@ function buildLinks(
   for (const service of services.values()) {
     for (const produced of service.produces) {
       const event = events.get(produced)
-      if (event !== undefined) addLink(links, service.id, event.id)
+      if (event !== undefined) addLink(links, service.component.id, event.id)
     }
   }
   return [...links.values()]

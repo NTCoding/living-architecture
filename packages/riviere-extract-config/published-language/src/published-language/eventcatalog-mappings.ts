@@ -9,15 +9,15 @@ export type EventCatalogServiceComponentType =
 
 /** @riviere-role published-language-data-structure */
 export interface EventCatalogServiceMapping {
-  readonly type: EventCatalogServiceComponentType
+  readonly type?: EventCatalogServiceComponentType | undefined
   readonly domain?: string | undefined
-  readonly module: string
-  readonly name: string
+  readonly module?: string | undefined
+  readonly name?: string | undefined
 }
 
 /** @riviere-role published-language-data-structure */
 export interface EventCatalogEventMapping {
-  readonly name: string
+  readonly name?: string | undefined
   readonly domain?: string | undefined
   readonly module?: string | undefined
 }
@@ -32,14 +32,14 @@ export interface EventCatalogMappings {
 const nonEmptyString = z.string().trim().min(1)
 
 const serviceMappingSchema = z.strictObject({
-  type: z.enum(EVENT_CATALOG_SERVICE_COMPONENT_TYPES),
+  type: z.enum(EVENT_CATALOG_SERVICE_COMPONENT_TYPES).optional(),
   domain: nonEmptyString.optional(),
-  module: nonEmptyString,
-  name: nonEmptyString,
+  module: nonEmptyString.optional(),
+  name: nonEmptyString.optional(),
 })
 
 const eventMappingSchema = z.strictObject({
-  name: nonEmptyString,
+  name: nonEmptyString.optional(),
   domain: nonEmptyString.optional(),
   module: nonEmptyString.optional(),
 })

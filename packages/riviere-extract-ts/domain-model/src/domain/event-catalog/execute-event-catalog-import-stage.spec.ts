@@ -1,22 +1,8 @@
-import type { EventCatalogImportConfig } from '@living-architecture/riviere-extract-config-published-language'
 import { assert, describe, expect, it } from 'vitest'
+import type { EventCatalogSource } from '../ports/load-event-catalog-source'
 import { builder } from '../__fixtures__/workflow-fixtures'
-import type { EventCatalogSource, LoadEventCatalogSource } from '../ports/load-event-catalog-source'
+import { collaborators, importConfig } from './__fixtures__/event-catalog-stage-fixtures'
 import { executeEventCatalogImportStage } from './execute-event-catalog-import-stage'
-
-function collaborators(source: EventCatalogSource) {
-  const loadEventCatalogSource: LoadEventCatalogSource = () => Promise.resolve(source)
-  return { loadEventCatalogSource, repositoryName: 'shop' }
-}
-
-function importConfig(overrides: Partial<EventCatalogImportConfig> = {}): EventCatalogImportConfig {
-  return {
-    source: '/specs/eventcatalog',
-    mappings: { domains: {}, services: {}, events: {} },
-    allowUnmapped: false,
-    ...overrides,
-  }
-}
 
 describe('executeEventCatalogImportStage', () => {
   it('maps a producing service and its event to canonical components and an async link', async () => {
@@ -67,69 +53,6 @@ describe('executeEventCatalogImportStage', () => {
         type: 'async',
       },
     ])
-  })
-
-  it('links a consuming service from the event it consumes', async () => {
-    const graphBuilder = builder()
-    graphBuilder.addDomain({ name: 'shipping', description: 'Shipping', systemType: 'domain' })
-
-    const outcome = await executeEventCatalogImportStage(
-      graphBuilder,
-      importConfig({
-        mappings: {
-          domains: {},
-          services: {
-            OrdersService: {
-              type: 'UseCase',
-              domain: 'orders',
-              module: 'checkout',
-              name: 'PlaceOrder',
-            },
-            ShippingService: {
-              type: 'UseCase',
-              domain: 'shipping',
-              module: 'fulfillment',
-              name: 'ShipOrder',
-            },
-          },
-          events: { OrderCreated: { name: 'OrderPlaced' } },
-        },
-      }),
-      collaborators({
-        domains: [],
-        services: [
-          { id: 'OrdersService', name: 'Orders', produces: ['OrderCreated'], consumes: [] },
-          { id: 'ShippingService', name: 'Shipping', produces: [], consumes: ['OrderCreated'] },
-        ],
-        events: [{ id: 'OrderCreated', name: 'Order Created' }],
-      }),
-    )
-
-    expect(outcome.success).toBe(true)
-    expect(
-      graphBuilder.components().map((component) => ({
-        id: component.id,
-        type: component.type,
-      })),
-    ).toStrictEqual([
-      { id: 'orders:checkout:usecase:placeorder', type: 'UseCase' },
-      { id: 'shipping:fulfillment:usecase:shiporder', type: 'UseCase' },
-      { id: 'orders:checkout:event:orderplaced', type: 'Event' },
-      { id: 'shipping:fulfillment:eventhandler:shiporder', type: 'EventHandler' },
-    ])
-    expect(
-      graphBuilder.components().find((component) => component.type === 'EventHandler'),
-    ).toMatchObject({ subscribedEvents: ['OrderPlaced'] })
-    expect(graphBuilder.links().map((link) => [link.source, link.target, link.type])).toStrictEqual(
-      [
-        ['orders:checkout:usecase:placeorder', 'orders:checkout:event:orderplaced', 'async'],
-        [
-          'orders:checkout:event:orderplaced',
-          'shipping:fulfillment:eventhandler:shiporder',
-          'async',
-        ],
-      ],
-    )
   })
 
   it('derives a service canonical domain from the mapped EventCatalog domain', async () => {
@@ -268,6 +191,40 @@ describe('executeEventCatalogImportStage', () => {
     })
   })
 
+  it('applies convention defaults when a mapping omits identity fields', async () => {
+    const graphBuilder = builder()
+
+    const outcome = await executeEventCatalogImportStage(
+      graphBuilder,
+      importConfig({
+        mappings: {
+          domains: {},
+          services: { OrdersService: {} },
+          events: { OrderCreated: {} },
+        },
+      }),
+      collaborators({
+        domains: [{ id: 'orders', name: 'Orders', serviceIds: ['OrdersService'] }],
+        services: [
+          {
+            id: 'OrdersService',
+            name: 'OrdersService',
+            domainId: 'orders',
+            produces: ['OrderCreated'],
+            consumes: [],
+          },
+        ],
+        events: [{ id: 'OrderCreated', name: 'OrderCreated' }],
+      }),
+    )
+
+    expect(outcome.success).toBe(true)
+    expect(graphBuilder.components().map((component) => component.id)).toStrictEqual([
+      'orders:orders-service:usecase:ordersservice',
+      'orders:orders-service:event:ordercreated',
+    ])
+  })
+
   it('fails when a mapped service cannot resolve a canonical domain', async () => {
     const outcome = await executeEventCatalogImportStage(
       builder(),
@@ -388,40 +345,6 @@ describe('executeEventCatalogImportStage', () => {
         domains: [],
         services: [
           { id: 'OrdersService', name: 'Orders', produces: ['OrderCreated'], consumes: [] },
-        ],
-        events: [{ id: 'OrderCreated', name: 'Order Created' }],
-      }),
-    )
-
-    expect(outcome.success).toBe(true)
-    expect(graphBuilder.links()).toStrictEqual([])
-  })
-
-  it('omits a link for a consumed event that has no mapping', async () => {
-    const graphBuilder = builder()
-    graphBuilder.addDomain({ name: 'shipping', description: 'Shipping', systemType: 'domain' })
-
-    const outcome = await executeEventCatalogImportStage(
-      graphBuilder,
-      importConfig({
-        allowUnmapped: true,
-        mappings: {
-          domains: {},
-          services: {
-            ShippingService: {
-              type: 'UseCase',
-              domain: 'shipping',
-              module: 'fulfillment',
-              name: 'ShipOrder',
-            },
-          },
-          events: {},
-        },
-      }),
-      collaborators({
-        domains: [],
-        services: [
-          { id: 'ShippingService', name: 'Shipping', produces: [], consumes: ['OrderCreated'] },
         ],
         events: [{ id: 'OrderCreated', name: 'Order Created' }],
       }),
