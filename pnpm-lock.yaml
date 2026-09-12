@@ -7,7 +7,7 @@ settings:
 overrides:
   eslint-plugin-sonarjs>typescript: npm:typescript@5.9.3
   nanoid@: 3.3.17
-  postcss: 8.5.25
+  postcss: 8.5.28
 
 importers:
 
@@ -138,7 +138,7 @@ importers:
         version: 7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
       vitepress:
         specifier: ^1.5.0
-        version: 1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.18.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0))(change-case@5.4.4)(fuse.js@7.3.0)(lightningcss@1.30.2)(postcss@8.5.25)(search-insights@2.17.3)(typescript@5.9.3)
+        version: 1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.18.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0))(change-case@5.4.4)(fuse.js@7.3.0)(lightningcss@1.30.2)(postcss@8.5.28)(search-insights@2.17.3)(typescript@5.9.3)
       vitest:
         specifier: ^4.0.8
         version: 4.0.17(@types/node@24.10.9)(@vitest/browser-playwright@4.0.17)(jiti@2.6.1)(jsdom@27.4.0(supports-color@7.2.0))(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
@@ -177,7 +177,7 @@ importers:
     dependencies:
       vitepress:
         specifier: ^1.5.0
-        version: 1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.18.1(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(change-case@5.4.4)(fuse.js@7.3.0)(lightningcss@1.30.2)(postcss@8.5.25)(search-insights@2.17.3)(typescript@5.9.3)
+        version: 1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.18.1(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(change-case@5.4.4)(fuse.js@7.3.0)(lightningcss@1.30.2)(postcss@8.5.28)(search-insights@2.17.3)(typescript@5.9.3)
     devDependencies:
       jsdom:
         specifier: ^26.1.0
@@ -7135,8 +7135,8 @@ packages:
     resolution: {integrity: sha512-tacvGzUY5o2D8CBh2rrwxyNojUsZNU2zjNTzKQrkgGJQTbGAfArVWXSKMBokBeeg6C7OLRGUEyoFlYbfeWQIqw==}
     engines: {node: '>=20.17'}
 
-  nanoid@3.3.17:
-    resolution: {integrity: sha512-xQLf0A3HOMlgHq0n247/LRuAOYmB7dXJ/DvAxGvsSBij45XtBSmQycu+F8ODbHwns/XyFZagyL1+J0Offw1E0g==}
+  nanoid@3.3.18:
+    resolution: {integrity: sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
@@ -7521,8 +7521,8 @@ packages:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
     engines: {node: '>= 0.4'}
 
-  postcss@8.5.25:
-    resolution: {integrity: sha512-DTPx3RWSSnWyzLxQnlH0rJP+EW5ekl16ZU4/psbIhA0e53kJfdgaN5vKM+xP7yJtXVu+nfdVFmlgFDEKAe4Pyw==}
+  postcss@8.5.28:
+    resolution: {integrity: sha512-RRuzqDtt5Y9h3quz5hWhK+TPnsmVs6WwSU6LkJMeY4HstUEDuYTG8UJSdawMRzmzAtV+KEoG8N3Qg2qLy5vM/A==}
     engines: {node: ^10 || ^12 || >=14}
 
   preact@10.28.2:
@@ -8716,7 +8716,7 @@ packages:
     hasBin: true
     peerDependencies:
       markdown-it-mathjax3: ^4
-      postcss: 8.5.25
+      postcss: 8.5.28
     peerDependenciesMeta:
       markdown-it-mathjax3:
         optional: true
@@ -13187,7 +13187,7 @@ snapshots:
       '@vue/shared': 3.5.41
       estree-walker: 2.0.2
       magic-string: 0.30.21
-      postcss: 8.5.25
+      postcss: 8.5.28
       source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.5.41':
@@ -17008,7 +17008,7 @@ snapshots:
 
   nano-spawn@2.0.0: {}
 
-  nanoid@3.3.17: {}
+  nanoid@3.3.18: {}
 
   napi-postinstall@0.3.4:
     optional: true
@@ -17529,9 +17529,9 @@ snapshots:
 
   possible-typed-array-names@1.1.0: {}
 
-  postcss@8.5.25:
+  postcss@8.5.28:
     dependencies:
-      nanoid: 3.3.17
+      nanoid: 3.3.18
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
@@ -18860,7 +18860,7 @@ snapshots:
   vite@5.4.21(@types/node@22.19.7)(lightningcss@1.30.2):
     dependencies:
       esbuild: 0.21.5
-      postcss: 8.5.25
+      postcss: 8.5.28
       rollup: 4.62.4
     optionalDependencies:
       '@types/node': 22.19.7
@@ -18870,7 +18870,7 @@ snapshots:
   vite@5.4.21(@types/node@24.10.9)(lightningcss@1.30.2):
     dependencies:
       esbuild: 0.21.5
-      postcss: 8.5.25
+      postcss: 8.5.28
       rollup: 4.62.4
     optionalDependencies:
       '@types/node': 24.10.9
@@ -18882,7 +18882,7 @@ snapshots:
       esbuild: 0.27.7
       fdir: 6.5.0(picomatch@4.0.5)
       picomatch: 4.0.5
-      postcss: 8.5.25
+      postcss: 8.5.28
       rollup: 4.62.4
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -18898,7 +18898,7 @@ snapshots:
       esbuild: 0.27.7
       fdir: 6.5.0(picomatch@4.0.5)
       picomatch: 4.0.5
-      postcss: 8.5.25
+      postcss: 8.5.28
       rollup: 4.62.4
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -18909,7 +18909,7 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.9.0
 
-  vitepress@1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.18.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0))(change-case@5.4.4)(fuse.js@7.3.0)(lightningcss@1.30.2)(postcss@8.5.25)(search-insights@2.17.3)(typescript@5.9.3):
+  vitepress@1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.18.1(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0))(change-case@5.4.4)(fuse.js@7.3.0)(lightningcss@1.30.2)(postcss@8.5.28)(search-insights@2.17.3)(typescript@5.9.3):
     dependencies:
       '@docsearch/css': 3.8.2
       '@docsearch/js': 3.8.2(@algolia/client-search@5.46.3)(search-insights@2.17.3)
@@ -18930,7 +18930,7 @@ snapshots:
       vite: 5.4.21(@types/node@24.10.9)(lightningcss@1.30.2)
       vue: 3.5.41(typescript@5.9.3)
     optionalDependencies:
-      postcss: 8.5.25
+      postcss: 8.5.28
     transitivePeerDependencies:
       - '@algolia/client-search'
       - '@types/node'
@@ -18958,7 +18958,7 @@ snapshots:
       - typescript
       - universal-cookie
 
-  vitepress@1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.18.1(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(change-case@5.4.4)(fuse.js@7.3.0)(lightningcss@1.30.2)(postcss@8.5.25)(search-insights@2.17.3)(typescript@5.9.3):
+  vitepress@1.6.4(@algolia/client-search@5.46.3)(@types/node@24.10.9)(axios@1.18.1(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))(change-case@5.4.4)(fuse.js@7.3.0)(lightningcss@1.30.2)(postcss@8.5.28)(search-insights@2.17.3)(typescript@5.9.3):
     dependencies:
       '@docsearch/css': 3.8.2
       '@docsearch/js': 3.8.2(@algolia/client-search@5.46.3)(search-insights@2.17.3)
@@ -18979,7 +18979,7 @@ snapshots:
       vite: 5.4.21(@types/node@24.10.9)(lightningcss@1.30.2)
       vue: 3.5.41(typescript@5.9.3)
     optionalDependencies:
-      postcss: 8.5.25
+      postcss: 8.5.28
     transitivePeerDependencies:
       - '@algolia/client-search'
       - '@types/node'
