@@ -1,4 +1,5 @@
 import { join } from 'node:path'
+import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 import { afterEach, assert, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
@@ -87,11 +88,11 @@ describe('command success path coverage', () => {
     repository: 'https://github.com/org/repo',
   }
   const runAddComponent = (input: Partial<AddComponentInput>) =>
-    new AddComponent(new RiviereProjectRepository()).execute({ ...addComponentBase, ...input })
+    new AddComponent(createRiviereProjectRepository()).execute({ ...addComponentBase, ...input })
       .result
 
   it('initializes a new graph', () => {
-    const result = new InitGraph(new RiviereProjectRepository()).execute({
+    const result = new InitGraph(createRiviereProjectRepository()).execute({
       domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],
       graphFileLocation: graphLocation(),
       name: 'Combined graph',
@@ -107,13 +108,13 @@ describe('command success path coverage', () => {
       name: 'combined',
       sources: ['https://github.com/org/repo'],
     }
-    new InitGraph(new RiviereProjectRepository()).execute(input)
-    const result = new InitGraph(new RiviereProjectRepository()).execute(input)
+    new InitGraph(createRiviereProjectRepository()).execute(input)
+    const result = new InitGraph(createRiviereProjectRepository()).execute(input)
     expect(result.result).toMatchObject({ code: 'GRAPH_EXISTS', success: false })
   })
 
   it('returns a validation error from init-graph for an unsupported system type', () => {
-    const result = new InitGraph(new RiviereProjectRepository()).execute({
+    const result = new InitGraph(createRiviereProjectRepository()).execute({
       domains: [{ description: 'Orders', name: 'orders', systemType: 'unsupported' }],
       graphFileLocation: graphLocation(),
       name: 'combined',
@@ -124,7 +125,7 @@ describe('command success path coverage', () => {
 
   it('adds a domain', async () => {
     await createGraphWithDomain(ctx.testDir, 'orders')
-    const result = new AddDomain(new RiviereProjectRepository()).execute({
+    const result = new AddDomain(createRiviereProjectRepository()).execute({
       description: 'Payments',
       graphFileLocation: graphLocation(),
       name: 'payments',
@@ -136,7 +137,7 @@ describe('command success path coverage', () => {
   it('adds a source', () => {
     const project = createProject()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new AddSource(new RiviereProjectRepository()).execute({
+    const result = new AddSource(createRiviereProjectRepository()).execute({
       graphFileLocation: graphLocation(),
       repository: 'https://github.com/org/payments',
     })
@@ -174,7 +175,7 @@ describe('command success path coverage', () => {
       }),
       'utf-8',
     )
-    const result = new CheckConsistency(new RiviereProjectRepository()).execute({
+    const result = new CheckConsistency(createRiviereProjectRepository()).execute({
       graphFileLocation: graphLocation(),
     })
     expect(result.result).toMatchObject({
@@ -191,7 +192,7 @@ describe('command success path coverage', () => {
 
   it('validates a graph', async () => {
     await createGraphWithDomain(ctx.testDir, 'orders')
-    const result = new ValidateGraph(new RiviereProjectRepository()).execute({
+    const result = new ValidateGraph(createRiviereProjectRepository()).execute({
       graphFileLocation: graphLocation(),
     })
     expect(result.result.success).toBe(true)
@@ -200,7 +201,7 @@ describe('command success path coverage', () => {
   it('finalizes a graph', () => {
     const project = createProjectWithType().project
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new FinalizeGraph(new RiviereProjectRepository()).execute({
+    const result = new FinalizeGraph(createRiviereProjectRepository()).execute({
       graphFileLocation: graphLocation(),
       outputPath: '/out',
     })
@@ -209,7 +210,7 @@ describe('command success path coverage', () => {
 
   it('defines a custom type', async () => {
     await createGraphWithDomain(ctx.testDir, 'orders')
-    const result = new DefineCustomType(new RiviereProjectRepository()).execute({
+    const result = new DefineCustomType(createRiviereProjectRepository()).execute({
       description: undefined,
       graphFileLocation: graphLocation(),
       name: 'Queue',
@@ -221,7 +222,7 @@ describe('command success path coverage', () => {
 
   it('defines a custom relationship type', async () => {
     await createGraphWithDomain(ctx.testDir, 'orders')
-    const result = new DefineRelationshipType(new RiviereProjectRepository()).execute({
+    const result = new DefineRelationshipType(createRiviereProjectRepository()).execute({
       description: 'Reads data',
       graphFileLocation: graphLocation(),
       name: 'reads',
@@ -283,7 +284,7 @@ describe('command success path coverage', () => {
     const { project, id } = createProjectWithType()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     vi.spyOn(RiviereBuilder.prototype, 'enrichComponent').mockReturnValue(undefined)
-    const result = new EnrichComponent(new RiviereProjectRepository()).execute({
+    const result = new EnrichComponent(createRiviereProjectRepository()).execute({
       businessRules: ['rule'],
       entity: 'Order',
       emits: ['OrderPlaced'],
@@ -301,7 +302,7 @@ describe('command success path coverage', () => {
   it('links an external target with a domain and url', () => {
     const { project, id } = createProjectWithType()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new LinkExternal(new RiviereProjectRepository()).execute({
+    const result = new LinkExternal(createRiviereProjectRepository()).execute({
       from: id,
       graphFileLocation: graphLocation(),
       targetDomain: 'payments',
@@ -320,7 +321,7 @@ describe('command success path coverage', () => {
       builder.defineRelationshipType({ name: 'reads', description: 'Reads' }),
     )
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new LinkComponents(new RiviereProjectRepository()).execute({
+    const result = new LinkComponents(createRiviereProjectRepository()).execute({
       condition: 'orders.total > 100',
       from: source.id,
       graphFileLocation: graphLocation(),
@@ -342,7 +343,7 @@ describe('command success path coverage', () => {
 
   it('returns validation error from link-components for invalid input', () => {
     expect(
-      new LinkComponents(new RiviereProjectRepository()).execute({
+      new LinkComponents(createRiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
         graphFileLocation: graphLocation(),
         targetDomain: 'orders',
@@ -356,7 +357,7 @@ describe('command success path coverage', () => {
 
   it('returns graph not found from add-domain', () => {
     expect(
-      new AddDomain(new RiviereProjectRepository()).execute({
+      new AddDomain(createRiviereProjectRepository()).execute({
         description: 'x',
         graphFileLocation: graphLocation(),
         name: 'payments',

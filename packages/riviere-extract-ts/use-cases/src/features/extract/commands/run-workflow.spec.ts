@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 
 const mocks = vi.hoisted(() => ({ loadMock: vi.fn(), rebuildGraph: vi.fn() }))
 
@@ -9,7 +10,6 @@ vi.mock('../data-access/riviere-project/riviere-project-repository', () => ({
 }))
 
 import { RunWorkflow } from './run-workflow'
-import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
 import { ExtractionConfigError } from '../data-access/riviere-project/riviere-config-error'
 import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
 
@@ -24,7 +24,7 @@ describe('RunWorkflow', () => {
 
   it('loads the workflow file and delegates the complete run to the project', async () => {
     const input = { workflowPath: '/project/.riviere/workflows/combined.yaml' }
-    const result = await new RunWorkflow(new RiviereProjectRepository()).execute(input)
+    const result = await new RunWorkflow(createRiviereProjectRepository()).execute(input)
 
     expect(mocks.loadMock).toHaveBeenCalledWith({
       kind: 'workflow',
@@ -43,7 +43,7 @@ describe('RunWorkflow', () => {
     })
 
     await expect(
-      new RunWorkflow(new RiviereProjectRepository()).execute({
+      new RunWorkflow(createRiviereProjectRepository()).execute({
         workflowPath: '/project/.riviere/workflows/combined.yaml',
       }),
     ).resolves.toStrictEqual({
@@ -64,7 +64,7 @@ describe('RunWorkflow', () => {
     })
 
     await expect(
-      new RunWorkflow(new RiviereProjectRepository()).execute({
+      new RunWorkflow(createRiviereProjectRepository()).execute({
         workflowPath: '/project/.riviere/workflows/combined.yaml',
       }),
     ).rejects.toThrow('unexpected')

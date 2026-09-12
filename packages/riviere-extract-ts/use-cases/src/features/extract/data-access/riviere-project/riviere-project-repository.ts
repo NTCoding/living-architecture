@@ -50,7 +50,6 @@ import { InvalidExtractionConfigError } from './extraction-config-load-error'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
 import { GraphCorruptedError } from './graph-corrupted-error'
 import { GraphNotFoundError } from './graph-not-found-error'
-import { EventCatalogSourceUnavailableError } from './event-catalog-source-unavailable-error'
 
 type LoadParameters = Readonly<{
   projectRoot: string
@@ -63,7 +62,7 @@ type ParsedConfigState = Readonly<{ configDir: string; configuration: ValidatedC
 /** @riviere-role aggregate-repository */
 export class RiviereProjectRepository {
   constructor(
-    private readonly loadEventCatalogSource: RiviereProjectCollaborators['loadEventCatalogSource'] = unavailableLoadEventCatalogSource,
+    private readonly loadEventCatalogSource: RiviereProjectCollaborators['loadEventCatalogSource'],
   ) {}
 
   save(graphFileLocation: string, project: RiviereProject): void {
@@ -410,10 +409,6 @@ export class RiviereProjectRepository {
       )
     return sourceFilesByModule
   }
-}
-
-function unavailableLoadEventCatalogSource() {
-  return Promise.reject(new EventCatalogSourceUnavailableError())
 }
 
 function codeExtractionConfig(state: ParsedConfigState): CodeExtractionConfig {

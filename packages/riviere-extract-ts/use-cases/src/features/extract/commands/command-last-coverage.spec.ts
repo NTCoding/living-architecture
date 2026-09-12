@@ -1,4 +1,5 @@
 import { join } from 'node:path'
+import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import {
@@ -58,7 +59,7 @@ describe('final command coverage', () => {
       validates: [],
     }
     expect(
-      new EnrichComponent(new RiviereProjectRepository()).execute({ ...empty, id }).result,
+      new EnrichComponent(createRiviereProjectRepository()).execute({ ...empty, id }).result,
     ).toMatchObject({ code: 'INVALID_COMPONENT_TYPE', success: false })
   })
 
@@ -77,7 +78,7 @@ describe('final command coverage', () => {
       validates: [],
     }
     expect(
-      new EnrichComponent(new RiviereProjectRepository()).execute({
+      new EnrichComponent(createRiviereProjectRepository()).execute({
         ...empty,
         id: 'orders:core:domainop:nope',
       }).result,
@@ -106,7 +107,7 @@ describe('final command coverage', () => {
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     const graphFileLocation = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
-      new LinkComponents(new RiviereProjectRepository()).execute({
+      new LinkComponents(createRiviereProjectRepository()).execute({
         from: 'orders:core:usecase:missing',
         graphFileLocation,
         relationshipType: 'reads',
@@ -141,7 +142,7 @@ describe('final command coverage', () => {
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     const graphFileLocation = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
-      new LinkComponents(new RiviereProjectRepository()).execute({
+      new LinkComponents(createRiviereProjectRepository()).execute({
         from: 'orders:core:usecase:missing',
         graphFileLocation,
         targetDomain: 'orders',
@@ -157,7 +158,7 @@ describe('final command coverage', () => {
     const project = createProject()
     project.amendGraph((builder) => builder.defineCustomType({ name: 'Queue' }))
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new DefineCustomType(new RiviereProjectRepository()).execute({
+    const result = new DefineCustomType(createRiviereProjectRepository()).execute({
       description: undefined,
       graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
       name: 'Queue',
@@ -170,7 +171,7 @@ describe('final command coverage', () => {
   it('returns custom type not found from add-component', () => {
     const project = createProject()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new AddComponent(new RiviereProjectRepository()).execute({
+    const result = new AddComponent(createRiviereProjectRepository()).execute({
       componentType: 'Custom',
       customProperty: ['priority: high'],
       customType: 'Foo',
@@ -197,8 +198,8 @@ describe('final command coverage', () => {
       name: 'Place',
       repository: 'r',
     }
-    new AddComponent(new RiviereProjectRepository()).execute(base)
-    expect(new AddComponent(new RiviereProjectRepository()).execute(base).result).toMatchObject({
+    new AddComponent(createRiviereProjectRepository()).execute(base)
+    expect(new AddComponent(createRiviereProjectRepository()).execute(base).result).toMatchObject({
       code: 'DUPLICATE_COMPONENT',
       success: false,
     })
@@ -207,7 +208,7 @@ describe('final command coverage', () => {
   it('defines a custom type without property descriptions', () => {
     const project = createProject()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new DefineCustomType(new RiviereProjectRepository()).execute({
+    const result = new DefineCustomType(createRiviereProjectRepository()).execute({
       description: undefined,
       graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
       name: 'Queue',
@@ -222,7 +223,7 @@ describe('final command coverage', () => {
     await mkdir(join(ctx.testDir, '.riviere'), { recursive: true })
     await writeFile(join(ctx.testDir, '.riviere', 'graph.json'), '{invalid', 'utf-8')
     expect(
-      new CheckConsistency(new RiviereProjectRepository()).execute({
+      new CheckConsistency(createRiviereProjectRepository()).execute({
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
       }).result,
     ).toMatchObject({ code: 'GRAPH_CORRUPTED', success: false })
@@ -231,7 +232,7 @@ describe('final command coverage', () => {
   it('defines a custom type with a description', () => {
     const project = createProject()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new DefineCustomType(new RiviereProjectRepository()).execute({
+    const result = new DefineCustomType(createRiviereProjectRepository()).execute({
       description: 'A deferred unit of work',
       graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
       name: 'Queue',
@@ -243,7 +244,7 @@ describe('final command coverage', () => {
 
   it('returns graph not found from check-consistency', () => {
     expect(
-      new CheckConsistency(new RiviereProjectRepository()).execute({
+      new CheckConsistency(createRiviereProjectRepository()).execute({
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
       }).result,
     ).toMatchObject({ code: 'GRAPH_NOT_FOUND', success: false })
@@ -256,7 +257,7 @@ describe('final command coverage', () => {
       throw 'boom'
     })
     expect(() =>
-      new CheckConsistency(new RiviereProjectRepository()).execute({
+      new CheckConsistency(createRiviereProjectRepository()).execute({
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
       }),
     ).toThrow('boom')
@@ -265,7 +266,7 @@ describe('final command coverage', () => {
   it('checks consistency on a valid graph', () => {
     const project = createProject()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new CheckConsistency(new RiviereProjectRepository()).execute({
+    const result = new CheckConsistency(createRiviereProjectRepository()).execute({
       graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
     })
     expect(result.result.success).toBe(true)
@@ -274,7 +275,7 @@ describe('final command coverage', () => {
   it('returns graph not found from add-source', () => {
     const g = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
-      new AddSource(new RiviereProjectRepository()).execute({
+      new AddSource(createRiviereProjectRepository()).execute({
         graphFileLocation: g,
         repository: 'https://github.com/org/x',
       }).result,
@@ -284,21 +285,22 @@ describe('final command coverage', () => {
   it('returns graph not found from check-consistency', () => {
     const g = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
-      new CheckConsistency(new RiviereProjectRepository()).execute({ graphFileLocation: g }).result,
+      new CheckConsistency(createRiviereProjectRepository()).execute({ graphFileLocation: g })
+        .result,
     ).toMatchObject({ code: 'GRAPH_NOT_FOUND', success: false })
   })
 
   it('returns graph not found from validate-graph', () => {
     const g = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
-      new ValidateGraph(new RiviereProjectRepository()).execute({ graphFileLocation: g }).result,
+      new ValidateGraph(createRiviereProjectRepository()).execute({ graphFileLocation: g }).result,
     ).toMatchObject({ code: 'GRAPH_NOT_FOUND', success: false })
   })
 
   it('returns graph not found from finalize-graph', () => {
     const g = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
-      new FinalizeGraph(new RiviereProjectRepository()).execute({
+      new FinalizeGraph(createRiviereProjectRepository()).execute({
         graphFileLocation: g,
         outputPath: '/out',
       }).result,
@@ -308,7 +310,7 @@ describe('final command coverage', () => {
   it('returns graph not found from enrich', () => {
     const g = join(ctx.testDir, '.riviere', 'graph.json')
     expect(
-      new EnrichComponent(new RiviereProjectRepository()).execute({
+      new EnrichComponent(createRiviereProjectRepository()).execute({
         businessRules: [],
         entity: undefined,
         emits: [],

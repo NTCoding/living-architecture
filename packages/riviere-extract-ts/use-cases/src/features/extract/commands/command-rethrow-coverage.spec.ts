@@ -1,4 +1,5 @@
 import { join } from 'node:path'
+import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import {
@@ -76,7 +77,7 @@ describe('command unexpected error propagation', () => {
   it('rethrows unexpected errors from add-source', () => {
     stubBuilderToThrow()
     expect(() =>
-      new AddSource(new RiviereProjectRepository()).execute({
+      new AddSource(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
         repository: 'https://github.com/org/x',
       }),
@@ -86,7 +87,7 @@ describe('command unexpected error propagation', () => {
   it('rethrows unexpected errors from add-domain', () => {
     stubBuilderToThrow()
     expect(() =>
-      new AddDomain(new RiviereProjectRepository()).execute({
+      new AddDomain(createRiviereProjectRepository()).execute({
         description: 'x',
         graphFileLocation: graphLocation(),
         name: 'payments',
@@ -98,7 +99,7 @@ describe('command unexpected error propagation', () => {
   it('rethrows unexpected errors from validate-graph', () => {
     stubBuilderToThrow()
     expect(() =>
-      new ValidateGraph(new RiviereProjectRepository()).execute({
+      new ValidateGraph(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
       }),
     ).toThrow(UnexpectedBuilderFailure)
@@ -107,7 +108,7 @@ describe('command unexpected error propagation', () => {
   it('rethrows unexpected errors from finalize-graph', () => {
     stubBuilderToThrow()
     expect(() =>
-      new FinalizeGraph(new RiviereProjectRepository()).execute({
+      new FinalizeGraph(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
         outputPath: '/out',
       }),
@@ -117,7 +118,7 @@ describe('command unexpected error propagation', () => {
   it('rethrows unexpected errors from enrich', () => {
     stubBuilderToThrow()
     expect(() =>
-      new EnrichComponent(new RiviereProjectRepository()).execute({
+      new EnrichComponent(createRiviereProjectRepository()).execute({
         businessRules: [],
         entity: undefined,
         emits: [],
@@ -135,7 +136,7 @@ describe('command unexpected error propagation', () => {
   it('rethrows unexpected errors from link-components', () => {
     stubBuilderToThrow()
     expect(() =>
-      new LinkComponents(new RiviereProjectRepository()).execute({
+      new LinkComponents(createRiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
         graphFileLocation: graphLocation(),
         targetDomain: 'orders',
@@ -150,7 +151,7 @@ describe('command unexpected error propagation', () => {
   it('rethrows unexpected errors from link-external', () => {
     stubBuilderToThrow()
     expect(() =>
-      new LinkExternal(new RiviereProjectRepository()).execute({
+      new LinkExternal(createRiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
         graphFileLocation: graphLocation(),
         targetDomain: undefined,
@@ -168,7 +169,7 @@ describe('command unexpected error propagation', () => {
       throw new UnexpectedBuilderFailure('link-http boom')
     })
     expect(() =>
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
         httpMethod: 'POST',
         linkType: undefined,
@@ -186,7 +187,7 @@ describe('command unexpected error propagation', () => {
       throw new UnexpectedBuilderFailure('init boom')
     })
     expect(() =>
-      new InitGraph(new RiviereProjectRepository()).execute({
+      new InitGraph(createRiviereProjectRepository()).execute({
         domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],
         graphFileLocation: graphLocation(),
         name: 'combined',

@@ -30,6 +30,14 @@ type EventCatalogCanonicalComponent =
       name: string
       eventName: string
     }>
+  | Readonly<{
+      kind: 'event-handler'
+      id: string
+      domain: string
+      module: string
+      name: string
+      subscribedEvents: readonly string[]
+    }>
 
 type EventCatalogCanonicalLink = Readonly<{
   from: string
@@ -49,6 +57,10 @@ type UnmappedRecord = Readonly<{ kind: 'service' | 'event'; id: string }>
 
 type ResolvedService = Readonly<{
   component: EventCatalogCanonicalComponent
+  id: string
+  domain: string
+  module: string
+  name: string
   produces: readonly string[]
   consumes: readonly string[]
 }>
@@ -107,6 +119,7 @@ function mapEventCatalogImport(input: {
 }): EventCatalogImportOutcome {
   const services = resolveServices(input)
   const events = resolveEvents(input, services.resolved)
+  const handlers = buildConsumedEventHandlers(services.resolved, events.resolved)
   const failures = [...findMappingConfigFailures(input), ...services.failures, ...events.failures]
   if (failures.length > 0) return { success: false, reason: failures.join('\n') }
 
@@ -120,8 +133,9 @@ function mapEventCatalogImport(input: {
     components: [
       ...[...services.resolved.values()].map((service) => service.component),
       ...events.resolved.values(),
+      ...handlers.components,
     ],
-    links: buildLinks(services.resolved, events.resolved),
+    links: [...buildLinks(services.resolved, events.resolved), ...handlers.links],
     diagnostics: unmapped.map((record) =>
       WorkflowDiagnostic.fromUnmappedRecord(record.kind, record.id),
     ),
@@ -177,6 +191,15 @@ function resolveServices(input: {
         module: mapping.module,
         name: mapping.name,
       },
+      id: ComponentId.parseFromParts({
+        domain,
+        module: mapping.module,
+        type: 'usecase',
+        name: mapping.name,
+      }).toString(),
+      domain,
+      module: mapping.module,
+      name: mapping.name,
       produces: service.produces,
       consumes: service.consumes,
     })
@@ -242,20 +265,49 @@ function producersOf(
   return services.filter((service) => service.produces.includes(eventId))
 }
 
+function buildConsumedEventHandlers(
+  services: ReadonlyMap<string, ResolvedService>,
+  events: ReadonlyMap<string, EventCatalogCanonicalComponent>,
+): {
+  components: readonly EventCatalogCanonicalComponent[]
+  links: readonly EventCatalogCanonicalLink[]
+} {
+  const components: EventCatalogCanonicalComponent[] = []
+  const links: EventCatalogCanonicalLink[] = []
+  for (const service of services.values()) {
+    const consumed = service.consumes.flatMap((eventId) => {
+      const event = events.get(eventId)
+      return event === undefined ? [] : [event]
+    })
+    if (consumed.length === 0) continue
+    const handler: EventCatalogCanonicalComponent = {
+      kind: 'event-handler',
+      id: ComponentId.parseFromParts({
+        domain: service.domain,
+        module: service.module,
+        type: 'eventhandler',
+        name: service.name,
+      }).toString(),
+      domain: service.domain,
+      module: service.module,
+      name: service.name,
+      subscribedEvents: consumed.map((event) => event.name),
+    }
+    components.push(handler)
+    for (const event of consumed) links.push({ from: event.id, to: handler.id })
+  }
+  return { components, links }
+}
+
 function buildLinks(
   services: ReadonlyMap<string, ResolvedService>,
   events: ReadonlyMap<string, EventCatalogCanonicalComponent>,
 ): readonly EventCatalogCanonicalLink[] {
   const links = new Map<string, EventCatalogCanonicalLink>()
   for (const service of services.values()) {
-    const serviceComponentId = service.component.id
     for (const produced of service.produces) {
       const event = events.get(produced)
-      if (event !== undefined) addLink(links, serviceComponentId, event.id)
-    }
-    for (const consumed of service.consumes) {
-      const event = events.get(consumed)
-      if (event !== undefined) addLink(links, event.id, serviceComponentId)
+      if (event !== undefined) addLink(links, service.id, event.id)
     }
   }
   return [...links.values()]
@@ -308,21 +360,27 @@ function upsertComponent(
         eventName: component.eventName,
         sourceLocation,
       })
+    case 'event-handler':
+      return builder.upsertEventHandler({
+        name: component.name,
+        domain: component.domain,
+        module: component.module,
+        subscribedEvents: [...component.subscribedEvents],
+        sourceLocation,
+      })
   }
 }
 
 function applyLinks(builder: RiviereBuilder, links: readonly EventCatalogCanonicalLink[]): void {
-  const existing = new Set(
-    builder.links().map((link) => linkKey(link.source, link.target, link.type)),
-  )
+  const existing = new Set(builder.links().map((link) => linkKey(link.source, link.target)))
   for (const link of links) {
-    const key = linkKey(link.from, link.to, 'async')
+    const key = linkKey(link.from, link.to)
     if (existing.has(key)) continue
     builder.link({ from: link.from, to: link.to, type: 'async' })
     existing.add(key)
   }
 }
 
-function linkKey(source: string, target: string, type: string | undefined): string {
-  return type === undefined ? `${source}->${target}` : `${source}->${target}|${type}`
+function linkKey(source: string, target: string): string {
+  return `${source}->${target}`
 }

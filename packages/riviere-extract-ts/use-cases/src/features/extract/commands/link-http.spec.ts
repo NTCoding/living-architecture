@@ -1,4 +1,5 @@
 import { join } from 'node:path'
+import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import {
@@ -53,7 +54,7 @@ describe('link-http command', () => {
   it('links an http route', () => {
     const project = createProjectWithApi()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new LinkHttp(new RiviereProjectRepository()).execute({
+    const result = new LinkHttp(createRiviereProjectRepository()).execute({
       graphFileLocation: graphLocation(),
       httpMethod: 'POST',
       linkType: 'sync',
@@ -68,7 +69,7 @@ describe('link-http command', () => {
 
   it('returns validation error for invalid input', () => {
     expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
         httpMethod: undefined,
         linkType: undefined,
@@ -85,7 +86,7 @@ describe('link-http command', () => {
     const project = createProjectWithApi()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
         httpMethod: undefined,
         linkType: undefined,
@@ -102,7 +103,7 @@ describe('link-http command', () => {
     const project = createProjectWithApi()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
         httpMethod: 'invalid',
         linkType: undefined,
@@ -119,7 +120,7 @@ describe('link-http command', () => {
     const project = createProjectWithApi()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
         httpMethod: undefined,
         linkType: 'invalid',

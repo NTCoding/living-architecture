@@ -1,11 +1,11 @@
 import { execFileSync } from 'node:child_process'
+import { createRiviereProjectRepository } from '../../../../__fixtures__/riviere-project-repository-fixtures'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
-import { RiviereProjectRepository } from './riviere-project-repository'
 
 const VALID_CONFIG = `modules:
   - name: orders
@@ -50,7 +50,7 @@ function loadProject(params: {
   projectRoot?: string
   useTsConfig: boolean
 }): void {
-  new RiviereProjectRepository().load({
+  createRiviereProjectRepository().load({
     kind: 'extraction',
     projectRoot: params.projectRoot ?? process.cwd(),
     configPath: params.configPath,

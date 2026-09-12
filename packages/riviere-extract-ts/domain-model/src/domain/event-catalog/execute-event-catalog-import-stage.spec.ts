@@ -106,10 +106,28 @@ describe('executeEventCatalogImportStage', () => {
     )
 
     expect(outcome.success).toBe(true)
+    expect(
+      graphBuilder.components().map((component) => ({
+        id: component.id,
+        type: component.type,
+      })),
+    ).toStrictEqual([
+      { id: 'orders:checkout:usecase:placeorder', type: 'UseCase' },
+      { id: 'shipping:fulfillment:usecase:shiporder', type: 'UseCase' },
+      { id: 'orders:checkout:event:orderplaced', type: 'Event' },
+      { id: 'shipping:fulfillment:eventhandler:shiporder', type: 'EventHandler' },
+    ])
+    expect(
+      graphBuilder.components().find((component) => component.type === 'EventHandler'),
+    ).toMatchObject({ subscribedEvents: ['OrderPlaced'] })
     expect(graphBuilder.links().map((link) => [link.source, link.target, link.type])).toStrictEqual(
       [
         ['orders:checkout:usecase:placeorder', 'orders:checkout:event:orderplaced', 'async'],
-        ['orders:checkout:event:orderplaced', 'shipping:fulfillment:usecase:shiporder', 'async'],
+        [
+          'orders:checkout:event:orderplaced',
+          'shipping:fulfillment:eventhandler:shiporder',
+          'async',
+        ],
       ],
     )
   })

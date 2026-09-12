@@ -1,4 +1,5 @@
 import { join } from 'node:path'
+import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import {
@@ -40,7 +41,7 @@ describe('command error path coverage', () => {
   }
 
   it('returns a validation error from add-domain for an unsupported system type', () => {
-    const result = new AddDomain(new RiviereProjectRepository()).execute({
+    const result = new AddDomain(createRiviereProjectRepository()).execute({
       description: 'x',
       graphFileLocation: graphLocation(),
       name: 'payments',
@@ -52,7 +53,7 @@ describe('command error path coverage', () => {
   it('returns duplicate domain from add-domain', () => {
     const project = createProject()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new AddDomain(new RiviereProjectRepository()).execute({
+    const result = new AddDomain(createRiviereProjectRepository()).execute({
       description: 'x',
       graphFileLocation: graphLocation(),
       name: 'orders',
@@ -65,7 +66,7 @@ describe('command error path coverage', () => {
     const { mkdir, writeFile } = await import('node:fs/promises')
     await mkdir(join(ctx.testDir, '.riviere'), { recursive: true })
     await writeFile(graphLocation(), '{invalid', 'utf-8')
-    const result = new InitGraph(new RiviereProjectRepository()).execute({
+    const result = new InitGraph(createRiviereProjectRepository()).execute({
       domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],
       graphFileLocation: graphLocation(),
       name: 'combined',
@@ -80,7 +81,7 @@ describe('command error path coverage', () => {
       builder.defineRelationshipType({ name: 'reads', description: 'Reads' }),
     )
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new DefineRelationshipType(new RiviereProjectRepository()).execute({
+    const result = new DefineRelationshipType(createRiviereProjectRepository()).execute({
       description: 'Reads',
       graphFileLocation: graphLocation(),
       name: 'reads',
@@ -90,7 +91,7 @@ describe('command error path coverage', () => {
 
   it('returns validation error from define-custom-type for invalid required property type', () => {
     expect(
-      new DefineCustomType(new RiviereProjectRepository()).execute({
+      new DefineCustomType(createRiviereProjectRepository()).execute({
         description: undefined,
         graphFileLocation: graphLocation(),
         name: 'Queue',
@@ -102,7 +103,7 @@ describe('command error path coverage', () => {
 
   it('returns validation error from define-custom-type for invalid optional property type', () => {
     expect(
-      new DefineCustomType(new RiviereProjectRepository()).execute({
+      new DefineCustomType(createRiviereProjectRepository()).execute({
         description: undefined,
         graphFileLocation: graphLocation(),
         name: 'Queue',
@@ -129,7 +130,7 @@ describe('command error path coverage', () => {
       builder.link({ from: id, to: 'orders:core:domainop:missing', relationshipType: 'reads' }),
     )
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const result = new FinalizeGraph(new RiviereProjectRepository()).execute({
+    const result = new FinalizeGraph(createRiviereProjectRepository()).execute({
       graphFileLocation: graphLocation(),
       outputPath: '/out',
     })
@@ -138,7 +139,7 @@ describe('command error path coverage', () => {
 
   it('returns graph not found from link-components', () => {
     expect(
-      new LinkComponents(new RiviereProjectRepository()).execute({
+      new LinkComponents(createRiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
         graphFileLocation: graphLocation(),
         targetDomain: 'orders',
@@ -152,7 +153,7 @@ describe('command error path coverage', () => {
 
   it('returns graph not found from link-external', () => {
     expect(
-      new LinkExternal(new RiviereProjectRepository()).execute({
+      new LinkExternal(createRiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
         graphFileLocation: graphLocation(),
         targetDomain: undefined,
@@ -165,7 +166,7 @@ describe('command error path coverage', () => {
 
   it('returns graph not found from link-http', () => {
     expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),
         httpMethod: undefined,
         linkType: undefined,
@@ -182,7 +183,7 @@ describe('command error path coverage', () => {
     const project = createProject()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     expect(
-      new LinkExternal(new RiviereProjectRepository()).execute({
+      new LinkExternal(createRiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
         graphFileLocation: graphLocation(),
         targetDomain: undefined,
@@ -197,7 +198,7 @@ describe('command error path coverage', () => {
     const project = createProject()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     expect(
-      new LinkComponents(new RiviereProjectRepository()).execute({
+      new LinkComponents(createRiviereProjectRepository()).execute({
         from: 'not-a-valid-id',
         graphFileLocation: graphLocation(),
         targetDomain: 'orders',
@@ -214,7 +215,7 @@ describe('command error path coverage', () => {
     await mkdir(join(ctx.testDir, '.riviere'), { recursive: true })
     await writeFile(graphLocation(), '{invalid', 'utf-8')
     expect(
-      new AddDomain(new RiviereProjectRepository()).execute({
+      new AddDomain(createRiviereProjectRepository()).execute({
         description: 'x',
         graphFileLocation: graphLocation(),
         name: 'payments',
@@ -228,7 +229,7 @@ describe('command error path coverage', () => {
     await mkdir(join(ctx.testDir, '.riviere'), { recursive: true })
     await writeFile(graphLocation(), '{invalid', 'utf-8')
     expect(
-      new LinkExternal(new RiviereProjectRepository()).execute({
+      new LinkExternal(createRiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
         graphFileLocation: graphLocation(),
         targetDomain: undefined,
@@ -249,7 +250,7 @@ describe('command error path coverage', () => {
       name: 'x',
       repository: 'r',
     }
-    expect(new AddComponent(new RiviereProjectRepository()).execute(base).result).toMatchObject({
+    expect(new AddComponent(createRiviereProjectRepository()).execute(base).result).toMatchObject({
       code: 'GRAPH_NOT_FOUND',
       success: false,
     })
@@ -268,7 +269,7 @@ describe('command error path coverage', () => {
     const { mkdir, writeFile } = await import('node:fs/promises')
     await mkdir(join(ctx.testDir, '.riviere'), { recursive: true })
     await writeFile(graphLocation(), '{invalid', 'utf-8')
-    expect(new AddComponent(new RiviereProjectRepository()).execute(base).result).toMatchObject({
+    expect(new AddComponent(createRiviereProjectRepository()).execute(base).result).toMatchObject({
       code: 'VALIDATION_ERROR',
       success: false,
     })
@@ -276,7 +277,7 @@ describe('command error path coverage', () => {
 
   it('returns validation error from link-external for an invalid input id', () => {
     expect(
-      new LinkExternal(new RiviereProjectRepository()).execute({
+      new LinkExternal(createRiviereProjectRepository()).execute({
         from: 'not-an-id',
         graphFileLocation: graphLocation(),
         targetDomain: undefined,
@@ -289,7 +290,7 @@ describe('command error path coverage', () => {
 
   it('returns validation error from link-external for an invalid type', () => {
     expect(
-      new LinkExternal(new RiviereProjectRepository()).execute({
+      new LinkExternal(createRiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
         graphFileLocation: graphLocation(),
         targetDomain: undefined,
@@ -305,7 +306,7 @@ describe('command error path coverage', () => {
     await mkdir(join(ctx.testDir, '.riviere'), { recursive: true })
     await writeFile(graphLocation(), '{"apiVersion": 99}', 'utf-8')
     expect(
-      new AddDomain(new RiviereProjectRepository()).execute({
+      new AddDomain(createRiviereProjectRepository()).execute({
         description: 'x',
         graphFileLocation: graphLocation(),
         name: 'payments',

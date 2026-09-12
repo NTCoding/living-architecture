@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { createRiviereProjectRepository } from '../../../../__fixtures__/riviere-project-repository-fixtures'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -8,7 +9,6 @@ import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-m
 import { InvalidWorkflowDefinitionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project-errors'
 import { YamlDocumentReader } from '../../../../infra/external-clients/yaml/yaml-document-reader'
 import * as fileReader from '../../../../infra/external-clients/filesystem/file-reader'
-import { RiviereProjectRepository } from './riviere-project-repository'
 
 class UnexpectedParserFailure extends Error {}
 class UnexpectedGraphReadFailure extends Error {}
@@ -63,7 +63,7 @@ function writeWorkflow(
 }
 
 function loadWorkflow(directory: string, name: string) {
-  return new RiviereProjectRepository().load({
+  return createRiviereProjectRepository().load({
     kind: 'workflow',
     workflowPath: join(directory, '.riviere', 'workflows', `${name}.yaml`),
   })
@@ -241,7 +241,7 @@ describe('RiviereProjectRepository workflow loading', () => {
     }).build()
     writeFileSync(join(workflowDirectory, 'out.json'), JSON.stringify(previousGraph))
 
-    const project = new RiviereProjectRepository().load({
+    const project = createRiviereProjectRepository().load({
       kind: 'workflow',
       workflowPath: join(workflowDirectory, 'workflow.yaml'),
     })

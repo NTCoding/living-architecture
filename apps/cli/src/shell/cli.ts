@@ -130,9 +130,7 @@ const packageJson = loadPackageJson()
  * @returns Configured Rivière CLI program
  */
 export function createProgram(): Command {
-  const riviereProjectRepository = new RiviereProjectRepository({
-    loadEventCatalogSource: createEventCatalogSourceAdapter(),
-  })
+  const riviereProjectRepository = new RiviereProjectRepository(createEventCatalogSourceAdapter())
   const defaultGraphFileLocation = join(process.cwd(), '.riviere', 'graph.json')
   const program = new Command()
 

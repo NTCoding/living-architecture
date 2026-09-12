@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises'
+import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 import { join } from 'node:path'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -65,7 +66,7 @@ describe('builder command coverage', () => {
   it('returns graph corrupted for add-source and check-consistency.', async () => {
     const graphPath = await createInvalidGraphPath(ctx.testDir)
 
-    const repo = new RiviereProjectRepository()
+    const repo = createRiviereProjectRepository()
     expect(
       new AddSource(repo).execute({
         graphFileLocation: graphPath,
@@ -88,7 +89,7 @@ describe('builder command coverage', () => {
   it('returns graph corrupted for validate-graph', async () => {
     const graphPath = await createInvalidGraphPath(ctx.testDir)
 
-    const repo = new RiviereProjectRepository()
+    const repo = createRiviereProjectRepository()
     expect(new ValidateGraph(repo).execute({ graphFileLocation: graphPath })).toMatchObject({
       result: {
         code: 'GRAPH_CORRUPTED',
@@ -101,7 +102,7 @@ describe('builder command coverage', () => {
     const graphPath = await createInvalidGraphPath(ctx.testDir)
 
     expect(
-      new AddDomain(new RiviereProjectRepository()).execute({
+      new AddDomain(createRiviereProjectRepository()).execute({
         description: 'Orders',
         graphFileLocation: graphPath,
         name: 'orders',
@@ -123,7 +124,7 @@ describe('builder command coverage', () => {
     })
 
     expect(() =>
-      new AddDomain(new RiviereProjectRepository()).execute({
+      new AddDomain(createRiviereProjectRepository()).execute({
         description: 'Payments',
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         name: 'payments',
@@ -136,7 +137,7 @@ describe('builder command coverage', () => {
     const graphPath = await createInvalidGraphPath(ctx.testDir)
 
     expect(
-      new DefineRelationshipType(new RiviereProjectRepository()).execute({
+      new DefineRelationshipType(createRiviereProjectRepository()).execute({
         description: 'Reads data from the target',
         graphFileLocation: graphPath,
         name: 'reads',
@@ -157,7 +158,7 @@ describe('builder command coverage', () => {
     })
 
     expect(() =>
-      new DefineRelationshipType(new RiviereProjectRepository()).execute({
+      new DefineRelationshipType(createRiviereProjectRepository()).execute({
         description: 'Reads data from the target',
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         name: 'reads',
@@ -173,7 +174,7 @@ describe('builder command coverage', () => {
     })
 
     expect(() =>
-      new DefineCustomType(new RiviereProjectRepository()).execute({
+      new DefineCustomType(createRiviereProjectRepository()).execute({
         description: undefined,
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         name: 'Queue',
@@ -203,7 +204,7 @@ describe('builder command coverage', () => {
     })
 
     expect(() =>
-      new EnrichComponent(new RiviereProjectRepository()).execute({
+      new EnrichComponent(createRiviereProjectRepository()).execute({
         businessRules: [],
         entity: undefined,
         emits: [],
@@ -217,7 +218,7 @@ describe('builder command coverage', () => {
       }),
     ).toThrow('enrich explode')
     expect(() =>
-      new LinkComponents(new RiviereProjectRepository()).execute({
+      new LinkComponents(createRiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         targetDomain: 'orders',
@@ -228,7 +229,7 @@ describe('builder command coverage', () => {
       }),
     ).toThrow('link explode')
     expect(() =>
-      new LinkExternal(new RiviereProjectRepository()).execute({
+      new LinkExternal(createRiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         targetDomain: undefined,
@@ -243,7 +244,7 @@ describe('builder command coverage', () => {
     const graphPath = await createInvalidGraphPath(ctx.testDir)
 
     expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: graphPath,
         httpMethod: undefined,
         linkType: undefined,
@@ -292,7 +293,7 @@ describe('builder command coverage', () => {
     })
 
     expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         httpMethod: undefined,
         linkType: undefined,
@@ -319,7 +320,7 @@ describe('builder command coverage', () => {
     })
 
     expect(
-      new AddComponent(new RiviereProjectRepository()).execute({
+      new AddComponent(createRiviereProjectRepository()).execute({
         componentType: 'UI',
         domain: 'orders',
         filePath: 'src/checkout.tsx',
@@ -346,7 +347,7 @@ describe('builder command coverage', () => {
     })
 
     expect(() =>
-      new AddComponent(new RiviereProjectRepository()).execute({
+      new AddComponent(createRiviereProjectRepository()).execute({
         componentType: 'UI',
         domain: 'orders',
         filePath: 'src/checkout.tsx',
@@ -364,7 +365,7 @@ describe('builder command coverage', () => {
       throw new UnexpectedBuilderFailure('unexpected load failure')
     })
 
-    const repo = new RiviereProjectRepository()
+    const repo = createRiviereProjectRepository()
     expect(() =>
       new AddSource(repo).execute({
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
@@ -391,7 +392,7 @@ describe('builder command coverage', () => {
     })
 
     expect(() =>
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         httpMethod: undefined,
         linkType: undefined,
@@ -409,14 +410,14 @@ describe('builder command coverage', () => {
       throw new GraphNotFoundError('no graph')
     })
     expect(
-      new DefineRelationshipType(new RiviereProjectRepository()).execute({
+      new DefineRelationshipType(createRiviereProjectRepository()).execute({
         description: '',
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         name: 'reads',
       }).result,
     ).toMatchObject({ code: 'GRAPH_NOT_FOUND', success: false })
     expect(
-      new LinkHttp(new RiviereProjectRepository()).execute({
+      new LinkHttp(createRiviereProjectRepository()).execute({
         graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
         httpMethod: 'POST',
         linkType: undefined,

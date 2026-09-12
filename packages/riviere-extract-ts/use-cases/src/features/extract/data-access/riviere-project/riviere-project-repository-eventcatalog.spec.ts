@@ -69,13 +69,6 @@ function writeWorkflow(directory: string): void {
   )
 }
 
-function loadWorkflow(directory: string) {
-  return new RiviereProjectRepository().load({
-    kind: 'workflow',
-    workflowPath: join(directory, '.riviere', 'workflows', 'combined.yaml'),
-  })
-}
-
 afterEach(() => {
   for (const directory of directories.splice(0)) rmSync(directory, { recursive: true })
 })
@@ -105,14 +98,5 @@ describe('RiviereProjectRepository EventCatalog workflow', () => {
       'orders:checkout:usecase:placeorder',
       'orders:checkout:event:orderplaced',
     ])
-  })
-
-  it('fails the EventCatalog stage when no source port is supplied', async () => {
-    const directory = workspace()
-    writeWorkflow(directory)
-
-    const run = await loadWorkflow(directory).rebuildGraph()
-
-    expect(run).toMatchObject({ success: false, errorCode: 'UNEXPECTED_STAGE_FAILURE' })
   })
 })
