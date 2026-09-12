@@ -253,8 +253,8 @@ describe('executeEventCatalogImportStage', () => {
       importConfig({
         mappings: {
           domains: {},
-          services: { OrdersService: {} },
-          events: { OrderCreated: {} },
+          services: {},
+          events: {},
         },
       }),
       collaborators({
@@ -279,7 +279,7 @@ describe('executeEventCatalogImportStage', () => {
     ])
   })
 
-  it('fails when a mapped service cannot resolve a canonical domain', async () => {
+  it('skips a service that cannot resolve a canonical domain', async () => {
     const outcome = await executeEventCatalogImportStage(
       builder(),
       importConfig({
@@ -301,12 +301,11 @@ describe('executeEventCatalogImportStage', () => {
     expect(outcome).toStrictEqual({
       success: false,
       errorCode: 'EVENT_CATALOG_IMPORT_FAILED',
-      reason:
-        "EventCatalog service 'OrdersService' has no canonical domain; add a domain to its mapping",
+      reason: "Unmapped EventCatalog records: service 'OrdersService'",
     })
   })
 
-  it('fails when a mapped event cannot resolve a domain and module', async () => {
+  it('skips an event that cannot resolve a domain and module', async () => {
     const outcome = await executeEventCatalogImportStage(
       builder(),
       importConfig({
@@ -326,8 +325,7 @@ describe('executeEventCatalogImportStage', () => {
     expect(outcome).toStrictEqual({
       success: false,
       errorCode: 'EVENT_CATALOG_IMPORT_FAILED',
-      reason:
-        "EventCatalog event 'OrderCreated' has no canonical domain and module; add them to its mapping or map a producing service",
+      reason: "Unmapped EventCatalog records: event 'OrderCreated'",
     })
   })
 
@@ -375,7 +373,7 @@ describe('executeEventCatalogImportStage', () => {
     expect(graphBuilder.links()).toHaveLength(2)
   })
 
-  it('omits a link for a produced event that has no mapping', async () => {
+  it('omits a link for a produced event absent from the source', async () => {
     const graphBuilder = builder()
 
     const outcome = await executeEventCatalogImportStage(
@@ -397,10 +395,8 @@ describe('executeEventCatalogImportStage', () => {
       }),
       collaborators({
         domains: [],
-        services: [
-          { id: 'OrdersService', name: 'Orders', produces: ['OrderCreated'], consumes: [] },
-        ],
-        events: [{ id: 'OrderCreated', name: 'Order Created' }],
+        services: [{ id: 'OrdersService', name: 'Orders', produces: ['GhostEvent'], consumes: [] }],
+        events: [],
       }),
     )
 

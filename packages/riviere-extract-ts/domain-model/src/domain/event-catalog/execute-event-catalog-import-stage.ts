@@ -66,13 +66,11 @@ type ResolvedService = Readonly<{
 type ResolvedServices = Readonly<{
   resolved: ReadonlyMap<string, ResolvedService>
   unmapped: readonly UnmappedRecord[]
-  failures: readonly string[]
 }>
 
 type ResolvedEvents = Readonly<{
   resolved: ReadonlyMap<string, EventCatalogCanonicalComponent>
   unmapped: readonly UnmappedRecord[]
-  failures: readonly string[]
 }>
 
 /**
@@ -126,7 +124,7 @@ function mapEventCatalogImport(input: {
   const services = resolveServices(input)
   const events = resolveEvents(input, services.resolved)
   const handlers = buildConsumedEventHandlers(services.resolved, events.resolved)
-  const failures = [...findMappingConfigFailures(input), ...services.failures, ...events.failures]
+  const failures = findMappingConfigFailures(input)
   if (failures.length > 0) return { success: false, reason: failures.join('\n') }
 
   const unmapped = [...services.unmapped, ...events.unmapped]
@@ -174,23 +172,16 @@ function resolveServices(input: {
 }): ResolvedServices {
   const resolved = new Map<string, ResolvedService>()
   const unmapped: UnmappedRecord[] = []
-  const failures: string[] = []
   for (const service of input.source.services) {
     const mapping = input.mappings.services[service.id]
-    if (mapping === undefined) {
+    const domain = mapping?.domain ?? canonicalDomain(input, service) ?? service.domainId
+    if (domain === undefined) {
       unmapped.push({ kind: 'service', id: service.id })
       continue
     }
-    const domain = mapping.domain ?? canonicalDomain(input, service) ?? service.domainId
-    if (domain === undefined) {
-      failures.push(
-        `EventCatalog service '${service.id}' has no canonical domain; add a domain to its mapping`,
-      )
-      continue
-    }
-    const module = mapping.module ?? kebabCase(service.name)
-    const name = mapping.name ?? service.name
-    const type = (mapping.type ?? 'UseCase').toLowerCase()
+    const module = mapping?.module ?? kebabCase(service.name)
+    const name = mapping?.name ?? service.name
+    const type = (mapping?.type ?? 'UseCase').toLowerCase()
     const componentId = ComponentId.parseFromParts({
       domain,
       module,
@@ -209,7 +200,7 @@ function resolveServices(input: {
       consumes: service.consumes,
     })
   }
-  return { resolved, unmapped, failures }
+  return { resolved, unmapped }
 }
 
 function kebabCase(value: string): string {
@@ -235,42 +226,53 @@ function resolveEvents(
 ): ResolvedEvents {
   const resolved = new Map<string, EventCatalogCanonicalComponent>()
   const unmapped: UnmappedRecord[] = []
-  const failures: string[] = []
   for (const event of input.source.events) {
-    const mapping = input.mappings.events[event.id]
-    if (mapping === undefined) {
+    const component = resolveEventComponent(input, services, event)
+    if (component === undefined) {
       unmapped.push({ kind: 'event', id: event.id })
       continue
     }
-    const producer = producersOf(input.source.services, event.id).find((service) =>
-      services.has(service.id),
-    )
-    const producerComponent =
-      producer === undefined ? undefined : services.get(producer.id)?.component
-    const domain = mapping.domain ?? producerComponent?.domain
-    const module = mapping.module ?? producerComponent?.module
-    if (domain === undefined || module === undefined) {
-      failures.push(
-        `EventCatalog event '${event.id}' has no canonical domain and module; add them to its mapping or map a producing service`,
-      )
-      continue
-    }
-    const name = mapping.name ?? event.name
-    resolved.set(event.id, {
-      kind: 'event',
-      id: ComponentId.parseFromParts({
-        domain,
-        module,
-        type: 'event',
-        name,
-      }).toString(),
+    resolved.set(event.id, component)
+  }
+  return { resolved, unmapped }
+}
+
+function resolveEventComponent(
+  input: { source: EventCatalogSource; mappings: EventCatalogMappings },
+  services: ReadonlyMap<string, ResolvedService>,
+  event: { id: string; name: string },
+): EventCatalogCanonicalComponent | undefined {
+  const mapping = input.mappings.events[event.id]
+  const producer = producerComponentFor(input, services, event.id)
+  const domain = mapping?.domain ?? producer?.domain
+  const module = mapping?.module ?? producer?.module
+  if (domain === undefined || module === undefined) return undefined
+  const name = mapping?.name ?? event.name
+  return {
+    kind: 'event',
+    id: ComponentId.parseFromParts({
       domain,
       module,
+      type: 'event',
       name,
-      eventName: name,
-    })
+    }).toString(),
+    domain,
+    module,
+    name,
+    eventName: name,
   }
-  return { resolved, unmapped, failures }
+}
+
+function producerComponentFor(
+  input: { source: EventCatalogSource },
+  services: ReadonlyMap<string, ResolvedService>,
+  eventId: string,
+): EventCatalogCanonicalComponent | undefined {
+  const producer = producersOf(input.source.services, eventId).find((service) =>
+    services.has(service.id),
+  )
+  if (producer === undefined) return undefined
+  return services.get(producer.id)?.component
 }
 
 function producersOf(
