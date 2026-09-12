@@ -1,4 +1,5 @@
 import type { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
+import type { formatPullRequestDetailsFailure } from './format-pull-request-details-failure'
 import type { parsePullRequestDescriptionOptions } from './pull-request-description-input'
 import {
   parseNumberArgument,
@@ -13,6 +14,7 @@ export interface CreateWorkflowRoutesEntrypointDependencies {
   readonly parseStringArgument: typeof parseStringArgument
   readonly parseStringArguments: typeof parseStringArguments
   readonly parsePullRequestDescriptionOptions: typeof parsePullRequestDescriptionOptions
+  readonly formatPullRequestDetailsFailure: typeof formatPullRequestDetailsFailure
 }
 
 /** @riviere-role cli-entrypoint */
@@ -26,5 +28,6 @@ export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypoin
     recordReviewerStatus: (workflow, reviewer, status) =>
       workflow.recordReviewerStatus(reviewer, status),
     parsePullRequestDescriptionOptions: dependencies.parsePullRequestDescriptionOptions,
+    formatPullRequestDetailsFailure: dependencies.formatPullRequestDetailsFailure,
   }).routes
 }

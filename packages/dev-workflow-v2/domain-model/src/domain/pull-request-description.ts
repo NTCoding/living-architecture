@@ -16,7 +16,54 @@ const CONVENTIONAL_COMMIT_TYPES = [
 
 const COMMIT_TYPE_SCHEMA = z.enum(CONVENTIONAL_COMMIT_TYPES)
 
+const COMMIT_SCOPE_SCHEMA = z
+  .string()
+  .max(20)
+  .refine((value) => value.trim().length > 0)
+  .refine((value) => !value.includes('\n') && !value.includes('\r'))
+
 const MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH = 100
+
+type CommitTypeFailure = {
+  readonly ok: false
+  readonly type: 'unsupported-commit-type'
+  readonly supportedNames: readonly z.infer<typeof COMMIT_TYPE_SCHEMA>[]
+}
+
+type CommitScopeFailure = {
+  readonly ok: false
+  readonly type: 'invalid-commit-scope'
+}
+
+type PullRequestTitleFailure =
+  | { readonly ok: false; readonly type: 'empty-pull-request-title' }
+  | { readonly ok: false; readonly type: 'pull-request-title-ends-with-full-stop' }
+  | { readonly ok: false; readonly type: 'pull-request-title-has-uppercase' }
+
+type PullRequestDescriptionFailure = {
+  readonly ok: false
+  readonly type: 'pull-request-description-too-short'
+}
+
+type PullRequestCreationDetailsInput = {
+  readonly commitType: string
+  readonly commitScope: string
+  readonly title: string
+  readonly description: string
+  readonly problem: string
+  readonly acceptanceCriteria: string
+  readonly keyChanges: string
+  readonly architectureImpact: string
+  readonly validation: string
+  readonly notes: string
+}
+
+type PullRequestCreationDetailsFailure =
+  | CommitTypeFailure
+  | CommitScopeFailure
+  | PullRequestTitleFailure
+  | PullRequestDescriptionFailure
+  | { readonly ok: false; readonly type: 'composed-title-too-long' }
 
 /** @riviere-role value-object */
 export class CommitType {
@@ -26,20 +73,39 @@ export class CommitType {
 
   static from(
     value: string,
-  ):
-    | { readonly ok: true; readonly value: CommitType }
-    | { readonly ok: false; readonly reason: string } {
+  ): { readonly ok: true; readonly value: CommitType } | CommitTypeFailure {
     const result = COMMIT_TYPE_SCHEMA.safeParse(value)
     return result.success
       ? { ok: true, value: new CommitType(result.data) }
-      : {
-          ok: false,
-          reason: `Expected --commit-type to be one of: ${CONVENTIONAL_COMMIT_TYPES.join(', ')}.`,
-        }
+      : { ok: false, type: 'unsupported-commit-type', supportedNames: CONVENTIONAL_COMMIT_TYPES }
   }
 
   name(): z.infer<typeof COMMIT_TYPE_SCHEMA> {
     return this.commitTypeName
+  }
+
+  static supportedNames(): readonly z.infer<typeof COMMIT_TYPE_SCHEMA>[] {
+    return CONVENTIONAL_COMMIT_TYPES
+  }
+}
+
+/** @riviere-role value-object */
+export class CommitScope {
+  declare private readonly brand: 'CommitScope'
+
+  private constructor(private readonly scopeValue: z.infer<typeof COMMIT_SCOPE_SCHEMA>) {}
+
+  static from(
+    value: string,
+  ): { readonly ok: true; readonly value: CommitScope } | CommitScopeFailure {
+    const result = COMMIT_SCOPE_SCHEMA.safeParse(value)
+    return result.success
+      ? { ok: true, value: new CommitScope(result.data) }
+      : { ok: false, type: 'invalid-commit-scope' }
+  }
+
+  value(): string {
+    return this.scopeValue
   }
 }
 
@@ -51,17 +117,15 @@ export class PullRequestTitle {
 
   static from(
     value: string,
-  ):
-    | { readonly ok: true; readonly value: PullRequestTitle }
-    | { readonly ok: false; readonly reason: string } {
+  ): { readonly ok: true; readonly value: PullRequestTitle } | PullRequestTitleFailure {
     if (value.trim().length === 0) {
-      return { ok: false, reason: 'Expected non-empty value for --title.' }
+      return { ok: false, type: 'empty-pull-request-title' }
     }
     if (value.endsWith('.')) {
-      return { ok: false, reason: 'Expected --title to not end with a full stop.' }
+      return { ok: false, type: 'pull-request-title-ends-with-full-stop' }
     }
     if (value !== value.toLowerCase()) {
-      return { ok: false, reason: 'Expected --title to use lower case.' }
+      return { ok: false, type: 'pull-request-title-has-uppercase' }
     }
     return { ok: true, value: new PullRequestTitle(value) }
   }
@@ -79,14 +143,9 @@ export class PullRequestDescription {
 
   static from(
     value: string,
-  ):
-    | { readonly ok: true; readonly value: PullRequestDescription }
-    | { readonly ok: false; readonly reason: string } {
+  ): { readonly ok: true; readonly value: PullRequestDescription } | PullRequestDescriptionFailure {
     if (value.trim().length < MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH) {
-      return {
-        ok: false,
-        reason: `Expected --description to be at least ${MINIMUM_PULL_REQUEST_DESCRIPTION_LENGTH} characters.`,
-      }
+      return { ok: false, type: 'pull-request-description-too-short' }
     }
     return { ok: true, value: new PullRequestDescription(value) }
   }
@@ -102,7 +161,7 @@ export class PullRequestCreationDetails {
 
   private constructor(
     readonly commitType: CommitType,
-    readonly commitScope: string,
+    readonly commitScope: CommitScope,
     readonly title: PullRequestTitle,
     readonly description: PullRequestDescription,
     readonly problem: string,
@@ -113,29 +172,36 @@ export class PullRequestCreationDetails {
     readonly notes: string,
   ) {}
 
-  static from(values: {
-    readonly commitType: CommitType
-    readonly commitScope: string
-    readonly title: PullRequestTitle
-    readonly description: PullRequestDescription
-    readonly problem: string
-    readonly acceptanceCriteria: string
-    readonly keyChanges: string
-    readonly architectureImpact: string
-    readonly validation: string
-    readonly notes: string
-  }): PullRequestCreationDetails {
-    return new PullRequestCreationDetails(
-      values.commitType,
-      values.commitScope,
-      values.title,
-      values.description,
-      values.problem,
-      values.acceptanceCriteria,
-      values.keyChanges,
-      values.architectureImpact,
-      values.validation,
-      values.notes,
-    )
+  static from(
+    input: PullRequestCreationDetailsInput,
+  ):
+    | { readonly ok: true; readonly value: PullRequestCreationDetails }
+    | PullRequestCreationDetailsFailure {
+    const commitType = CommitType.from(input.commitType)
+    if (!commitType.ok) return commitType
+    const commitScope = CommitScope.from(input.commitScope)
+    if (!commitScope.ok) return commitScope
+    const title = PullRequestTitle.from(input.title)
+    if (!title.ok) return title
+    const description = PullRequestDescription.from(input.description)
+    if (!description.ok) return description
+    if (`${commitType.value.name()}(${commitScope.value.value()}): ${input.title}`.length > 100) {
+      return { ok: false, type: 'composed-title-too-long' }
+    }
+    return {
+      ok: true,
+      value: new PullRequestCreationDetails(
+        commitType.value,
+        commitScope.value,
+        title.value,
+        description.value,
+        input.problem,
+        input.acceptanceCriteria,
+        input.keyChanges,
+        input.architectureImpact,
+        input.validation,
+        input.notes,
+      ),
+    }
   }
 }

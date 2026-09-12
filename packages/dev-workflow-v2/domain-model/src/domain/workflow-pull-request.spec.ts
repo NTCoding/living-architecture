@@ -1,27 +1,15 @@
 import { assert } from 'vitest'
 import { buildTestWorkflow, makeDeps } from './__fixtures__/workflow-test-fixtures'
 import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
-import {
-  CommitType,
-  PullRequestCreationDetails,
-  PullRequestDescription,
-  PullRequestTitle,
-} from './pull-request-description'
+import { PullRequestCreationDetails } from './pull-request-description'
 import { WorkflowState } from './workflow-types'
 class GitHubPullRequestError extends Error {}
-const commitType = CommitType.from('feat')
-const title = PullRequestTitle.from('restore agent drafted pull requests')
-const description = PullRequestDescription.from(
-  'The workflow now restores the agent drafted pull request description so the submitted pull request explains the completed work clearly.',
-)
-assert(commitType.ok)
-assert(title.ok)
-assert(description.ok)
 const VALID_PULL_REQUEST_DESCRIPTION_INPUT = PullRequestCreationDetails.from({
-  commitType: commitType.value,
+  commitType: 'feat',
   commitScope: 'workflow',
-  title: title.value,
-  description: description.value,
+  title: 'restore agent drafted pull requests',
+  description:
+    'The workflow now restores the agent drafted pull request description so the submitted pull request explains the completed work clearly.',
   problem: 'Fixed pull request metadata did not explain the completed work.',
   acceptanceCriteria: '- Pull requests include the drafted workflow description.',
   keyChanges: '- Restore structured pull request creation.',
@@ -29,6 +17,7 @@ const VALID_PULL_REQUEST_DESCRIPTION_INPUT = PullRequestCreationDetails.from({
   validation: '- pnpm nx test dev-workflow-v2-domain-model',
   notes: 'None.',
 })
+assert(VALID_PULL_REQUEST_DESCRIPTION_INPUT.ok)
 describe('pull request creation', () => {
   it('rejects create-pr while still implementing with the operation gate reason', () => {
     const workflow = buildTestWorkflow(
@@ -36,7 +25,7 @@ describe('pull request creation', () => {
         createPullRequest: () => ({ prNumber: 11, prUrl: 'https://example.test/pull/11' }),
       }),
     )
-    expect(workflow.createPr(VALID_PULL_REQUEST_DESCRIPTION_INPUT)).toStrictEqual({
+    expect(workflow.createPr(VALID_PULL_REQUEST_DESCRIPTION_INPUT.value)).toStrictEqual({
       pass: false,
       reason: 'create-pr is not allowed in state IMPLEMENTING.',
     })
@@ -50,7 +39,7 @@ describe('pull request creation', () => {
     workflow.executeRecording('record-issue', 42)
     workflow.executeRecording('record-branch', 'issue-42')
     workflow.transition('SUBMITTING_PR')
-    const result = workflow.createPr(VALID_PULL_REQUEST_DESCRIPTION_INPUT)
+    const result = workflow.createPr(VALID_PULL_REQUEST_DESCRIPTION_INPUT.value)
     expect(result).toStrictEqual({ pass: true })
     expect(workflow.getState()).toMatchObject({
       prNumber: 11,
@@ -70,7 +59,7 @@ describe('pull request creation', () => {
     workflow.executeRecording('record-issue', 42)
     workflow.executeRecording('record-branch', 'issue-42')
     workflow.transition('SUBMITTING_PR')
-    workflow.createPr(VALID_PULL_REQUEST_DESCRIPTION_INPUT)
+    workflow.createPr(VALID_PULL_REQUEST_DESCRIPTION_INPUT.value)
 
     expect(requests[0]).toStrictEqual({
       branch: 'issue-42',
@@ -96,9 +85,11 @@ describe('pull request creation', () => {
     workflow.executeRecording('record-issue', 42)
     workflow.executeRecording('record-branch', 'issue-42')
     workflow.transition('SUBMITTING_PR')
-    expect(workflow.createPr(VALID_PULL_REQUEST_DESCRIPTION_INPUT)).toStrictEqual({ pass: true })
+    expect(workflow.createPr(VALID_PULL_REQUEST_DESCRIPTION_INPUT.value)).toStrictEqual({
+      pass: true,
+    })
 
-    expect(workflow.createPr(VALID_PULL_REQUEST_DESCRIPTION_INPUT)).toStrictEqual({
+    expect(workflow.createPr(VALID_PULL_REQUEST_DESCRIPTION_INPUT.value)).toStrictEqual({
       pass: false,
       reason: 'A pull request has already been recorded for this workflow.',
     })
@@ -140,7 +131,7 @@ describe('pull request creation', () => {
     workflow.executeRecording('record-issue', 42)
     workflow.executeRecording('record-branch', 'issue-42')
     workflow.transition('SUBMITTING_PR')
-    const result = workflow.createPr(VALID_PULL_REQUEST_DESCRIPTION_INPUT)
+    const result = workflow.createPr(VALID_PULL_REQUEST_DESCRIPTION_INPUT.value)
     expect(result).toStrictEqual({
       pass: false,
       reason: 'Unable to create PR: Error: GitHub rejected the request',

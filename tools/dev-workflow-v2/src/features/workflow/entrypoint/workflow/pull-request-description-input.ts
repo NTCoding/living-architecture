@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { CreatePullRequestInput } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
+import type { CreatePullRequestInput } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-pull-request-input'
 
 const CREATE_PR_COMMAND_TOKENS_SCHEMA = z.array(z.string())
 const OPTION_SUCCESS_SCHEMA = z.object({ ok: z.literal(true), value: z.string() })

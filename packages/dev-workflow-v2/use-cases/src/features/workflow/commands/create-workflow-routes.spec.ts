@@ -1,8 +1,9 @@
 import { defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import { z } from 'zod'
-import { describe, expect, it, vi } from 'vitest'
-import { CreateWorkflowRoutes } from './create-workflow-routes'
+import { assert, describe, expect, it, vi } from 'vitest'
+import { PullRequestCreationDetails } from '@living-architecture/dev-workflow-v2-domain-model/domain/pull-request-description'
 import { Reviewer } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
+import { CreateWorkflowRoutes } from './create-workflow-routes'
 
 function createRoutes(
   inputOverrides: Partial<{
@@ -25,15 +26,16 @@ function createRoutes(
     recordIssue,
     recordBranch,
     recordReviewerStatus,
-    parsePullRequestDescriptionOptions: () =>
+    formatPullRequestDetailsFailure: (failure) => `formatted:${failure.type}`,
+    parsePullRequestDescriptionOptions: (args) =>
       inputOverrides.parseFailure
         ? { ok: false as const, reason: 'Expected pull request options.' }
         : {
             ok: true as const,
             input: {
-              commitType: inputOverrides.commitType ?? 'feat',
-              commitScope: 'workflow',
-              title: inputOverrides.title ?? 'restore review agents',
+              commitType: inputOverrides.commitType ?? optionValue(args, '--commit-type', 'feat'),
+              commitScope: optionValue(args, '--commit-scope', 'workflow'),
+              title: inputOverrides.title ?? optionValue(args, '--title', 'restore review agents'),
               description: inputOverrides.description ?? 'A'.repeat(100),
               problem: 'Problem',
               acceptanceCriteria: 'Criteria',
@@ -45,6 +47,14 @@ function createRoutes(
           },
   }).routes
   return { routes, recordIssue, recordBranch, recordReviewerStatus }
+}
+
+function optionValue(args: readonly string[], optionName: string, defaultValue: string): string {
+  const optionIndex = args.indexOf(optionName)
+  if (optionIndex === -1) return defaultValue
+  const value = args[optionIndex + 1]
+  assert(value !== undefined, `Expected value for ${optionName}.`)
+  return value
 }
 
 describe('CreateWorkflowRoutes', () => {
@@ -76,9 +86,23 @@ describe('CreateWorkflowRoutes', () => {
     const createPr = vi.fn(() => ({ pass: true as const }))
     const workflow = Object.create({ createPr })
 
-    routes['create-pr'].handler(workflow, ['--title', 'Restore review agents'])
+    routes['create-pr'].handler(workflow, ['--title', 'publish workflow command'])
 
+    const expectedDetails = PullRequestCreationDetails.from({
+      commitType: 'feat',
+      commitScope: 'workflow',
+      title: 'publish workflow command',
+      description: 'A'.repeat(100),
+      problem: 'Problem',
+      acceptanceCriteria: 'Criteria',
+      keyChanges: 'Changes',
+      architectureImpact: 'Impact',
+      validation: 'Validation',
+      notes: 'Notes',
+    })
+    assert(expectedDetails.ok)
     expect(createPr).toHaveBeenCalledOnce()
+    expect(createPr).toHaveBeenCalledWith(expectedDetails.value)
   })
 
   it('rejects an unsupported commit type', () => {
@@ -87,7 +111,7 @@ describe('CreateWorkflowRoutes', () => {
 
     expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
       pass: false,
-      reason: expect.stringContaining('Expected --commit-type'),
+      reason: 'formatted:unsupported-commit-type',
     })
   })
 
@@ -97,19 +121,33 @@ describe('CreateWorkflowRoutes', () => {
 
     expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
       pass: false,
-      reason: 'Expected composed pull request title to be at most 100 characters.',
+      reason: 'formatted:composed-title-too-long',
     })
   })
 
-  it('rejects an invalid pull request title', () => {
-    const { routes } = createRoutes({ title: 'Invalid title' })
+  it.each([
+    { title: '', reason: 'formatted:empty-pull-request-title' },
+    { title: 'ready pull request.', reason: 'formatted:pull-request-title-ends-with-full-stop' },
+    { title: 'Invalid title', reason: 'formatted:pull-request-title-has-uppercase' },
+  ])('rejects an invalid pull request title', ({ title, reason }) => {
+    const { routes } = createRoutes({ title })
     const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
 
-    expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
-      pass: false,
-      reason: 'Expected --title to use lower case.',
-    })
+    expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({ pass: false, reason })
   })
+
+  it.each(['', '   ', 'workflow\nstate', 'A'.repeat(21)])(
+    'rejects an invalid commit scope',
+    (commitScope) => {
+      const { routes } = createRoutes()
+      const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
+
+      expect(routes['create-pr'].handler(workflow, ['--commit-scope', commitScope])).toStrictEqual({
+        pass: false,
+        reason: 'formatted:invalid-commit-scope',
+      })
+    },
+  )
 
   it('rejects an invalid pull request description', () => {
     const { routes } = createRoutes({ description: 'short' })
@@ -117,7 +155,7 @@ describe('CreateWorkflowRoutes', () => {
 
     expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
       pass: false,
-      reason: 'Expected --description to be at least 100 characters.',
+      reason: 'formatted:pull-request-description-too-short',
     })
   })
 

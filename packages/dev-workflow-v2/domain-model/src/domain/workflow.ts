@@ -212,7 +212,7 @@ export class MaintainerWorkflow {
   ): Parameters<CreateWorkflowPullRequest>[0] {
     return {
       branch,
-      title: `${input.commitType.name()}(${input.commitScope}): ${normalisePullRequestSubject(
+      title: `${input.commitType.name()}(${input.commitScope.value()}): ${normalisePullRequestSubject(
         input.title.value(),
       )}`,
       body: [

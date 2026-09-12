@@ -17,6 +17,7 @@ import { createGithubPullRequestFeedbackClient } from '@living-architecture/dev-
 import { pushGitBranch } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/push-git-branch'
 import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/github-cli'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
+import { formatPullRequestDetailsFailure } from '../features/workflow/entrypoint/workflow/format-pull-request-details-failure'
 import { parsePullRequestDescriptionOptions } from '../features/workflow/entrypoint/workflow/pull-request-description-input'
 import {
   parseNumberArgument,
@@ -36,6 +37,7 @@ const routes = createWorkflowRoutes({
   parseStringArgument,
   parseStringArguments,
   parsePullRequestDescriptionOptions,
+  formatPullRequestDetailsFailure,
 })
 const bashForbidden = {
   commands: ['gh pr', 'git push'],
