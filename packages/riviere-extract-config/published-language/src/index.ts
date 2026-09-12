@@ -122,11 +122,9 @@ export {
   type EventCatalogImportFileConfig,
 } from './published-language/workflow-stage-config'
 export {
-  EVENT_CATALOG_SERVICE_COMPONENT_TYPES,
   parseEventCatalogMappings,
   type EventCatalogEventMapping,
   type EventCatalogMappings,
-  type EventCatalogServiceComponentType,
   type EventCatalogServiceMapping,
 } from './published-language/eventcatalog-mappings'
 export {
