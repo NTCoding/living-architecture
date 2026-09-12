@@ -5,6 +5,7 @@ import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-m
 import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
 import {
   type TestContext,
+  collaborators,
   createTestContext,
   setupCommandTest,
 } from '../../../__fixtures__/command-test-fixtures'
@@ -32,17 +33,20 @@ async function createInvalidGraph(testDir: string): Promise<string> {
 }
 
 function createProject(): RiviereProject {
-  return RiviereProject.start({
-    graphDefinition: {
-      domains: {
-        orders: {
-          description: 'Orders',
-          systemType: 'domain',
+  return RiviereProject.start(
+    {
+      graphDefinition: {
+        domains: {
+          orders: {
+            description: 'Orders',
+            systemType: 'domain',
+          },
         },
+        sources: [{ repository: 'https://github.com/org/repo' }],
       },
-      sources: [{ repository: 'https://github.com/org/repo' }],
     },
-  }).data
+    collaborators(),
+  ).data
 }
 
 describe('additional builder command coverage', () => {

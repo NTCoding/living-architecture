@@ -76,7 +76,18 @@ describe('WorkflowStage', () => {
   it('copies event catalog import configuration from its input', () => {
     const config: EventCatalogImportConfig = {
       source: 'eventcatalog',
-      mappings: 'eventcatalog-mappings.yaml',
+      mappings: {
+        domains: { OrdersDomain: 'orders' },
+        services: {
+          OrdersService: {
+            type: 'UseCase',
+            domain: 'orders',
+            module: 'checkout',
+            name: 'PlaceOrder',
+          },
+        },
+        events: { OrderCreated: { name: 'OrderPlaced' } },
+      },
       allowUnmapped: false,
     }
     const stage = WorkflowStage.fromEventCatalogImport('import-eventcatalog', config)

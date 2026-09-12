@@ -12,6 +12,11 @@ type WorkflowDiagnosticValue =
       target: string
       sourceLocation?: SourceLocation
     }>
+  | Readonly<{
+      kind: 'unmapped-record'
+      recordKind: 'service' | 'event'
+      recordId: string
+    }>
 
 /** @riviere-role value-object */
 export class WorkflowDiagnostic {
@@ -37,6 +42,10 @@ export class WorkflowDiagnostic {
   }
 
   private constructor(readonly value: WorkflowDiagnosticValue) {}
+
+  static fromUnmappedRecord(recordKind: 'service' | 'event', recordId: string): WorkflowDiagnostic {
+    return new WorkflowDiagnostic({ kind: 'unmapped-record', recordKind, recordId })
+  }
 }
 
 export type { WorkflowDiagnosticValue }

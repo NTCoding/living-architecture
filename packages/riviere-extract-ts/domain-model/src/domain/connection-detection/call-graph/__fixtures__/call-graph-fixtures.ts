@@ -2,6 +2,7 @@ import { Project } from 'ts-morph'
 import { assert } from 'vitest'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
+import { collaborators } from '../../../__fixtures__/workflow-fixtures'
 import type { ComponentIndex } from '../../component-index'
 import { ExtractionConfiguration } from '../../../extraction-configuration'
 import { RiviereProject } from '../../../riviere-project'
@@ -110,10 +111,13 @@ export function buildCallGraph(
     resolvedConfig: validatedConfiguration.data,
     moduleContexts: [{ module, project, files: options.sourceFilePaths }],
   })
-  const parsedProject = RiviereProject.start({
-    configuration: extractionConfiguration,
-    draftComponents: [],
-  })
+  const parsedProject = RiviereProject.start(
+    {
+      configuration: extractionConfiguration,
+      draftComponents: [],
+    },
+    collaborators(),
+  )
   if (!parsedProject.success) assert.fail(parsedProject.error)
   const sourceIds = new Set(
     components.map((component) => ComponentId.parseFromParts(component).toString()),

@@ -22,9 +22,9 @@ describe('RunWorkflow', () => {
     mocks.rebuildGraph.mockReturnValue({ success: true, graph: { metadata: {} } })
   })
 
-  it('loads the workflow file and delegates the complete run to the project', () => {
+  it('loads the workflow file and delegates the complete run to the project', async () => {
     const input = { workflowPath: '/project/.riviere/workflows/combined.yaml' }
-    const result = new RunWorkflow(new RiviereProjectRepository()).execute(input)
+    const result = await new RunWorkflow(new RiviereProjectRepository()).execute(input)
 
     expect(mocks.loadMock).toHaveBeenCalledWith({
       kind: 'workflow',
@@ -37,16 +37,16 @@ describe('RunWorkflow', () => {
   it.each([
     new ExtractionConfigError('VALIDATION_ERROR', 'Invalid workflow'),
     new ExtractionDataAccessError('FILE_READ_ERROR', 'Cannot read workflow'),
-  ])('returns typed loading failures', (error) => {
+  ])('returns typed loading failures', async (error) => {
     mocks.loadMock.mockImplementation(() => {
       throw error
     })
 
-    expect(
+    await expect(
       new RunWorkflow(new RiviereProjectRepository()).execute({
         workflowPath: '/project/.riviere/workflows/combined.yaml',
       }),
-    ).toStrictEqual({
+    ).resolves.toStrictEqual({
       result: {
         success: false,
         errorCode: error.code,
@@ -58,15 +58,15 @@ describe('RunWorkflow', () => {
     expect(mocks.rebuildGraph).not.toHaveBeenCalled()
   })
 
-  it('does not hide unexpected failures', () => {
+  it('does not hide unexpected failures', async () => {
     mocks.loadMock.mockImplementation(() => {
       throw new UnexpectedWorkflowError('unexpected')
     })
 
-    expect(() =>
+    await expect(
       new RunWorkflow(new RiviereProjectRepository()).execute({
         workflowPath: '/project/.riviere/workflows/combined.yaml',
       }),
-    ).toThrow('unexpected')
+    ).rejects.toThrow('unexpected')
   })
 })

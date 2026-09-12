@@ -5,6 +5,7 @@ import { RiviereBuilder } from '@living-architecture/riviere-builder-published-l
 import {
   type TestContext,
   createGraphWithDomain,
+  collaborators,
   createTestContext,
   setupCommandTest,
 } from '../../../__fixtures__/command-test-fixtures'
@@ -24,12 +25,15 @@ import { ValidateGraph } from './validate-graph'
 import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
 
 function createProject(): RiviereProject {
-  return RiviereProject.start({
-    graphDefinition: {
-      domains: { orders: { description: 'Orders', systemType: 'domain' } },
-      sources: [{ repository: 'https://github.com/org/repo' }],
+  return RiviereProject.start(
+    {
+      graphDefinition: {
+        domains: { orders: { description: 'Orders', systemType: 'domain' } },
+        sources: [{ repository: 'https://github.com/org/repo' }],
+      },
     },
-  }).data
+    collaborators(),
+  ).data
 }
 
 function createProjectWithType(): { project: RiviereProject; id: string } {

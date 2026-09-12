@@ -2,6 +2,7 @@ import { assert, describe, expect, it } from 'vitest'
 import { Project } from 'ts-morph'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { RiviereProject } from './riviere-project'
+import { collaborators } from './__fixtures__/workflow-fixtures'
 import { ExtractionConfiguration } from './extraction-configuration'
 import { MissingModuleSourceError } from './extraction-errors'
 
@@ -33,7 +34,7 @@ function createProject(): RiviereProject {
     resolvedConfig: configurationResult.data,
     moduleContexts: [{ module, project: new Project(), files: ['test.ts'] }],
   })
-  const result = RiviereProject.start({ configuration, draftComponents: [] })
+  const result = RiviereProject.start({ configuration, draftComponents: [] }, collaborators())
   assert(result.success)
   return result.data
 }
@@ -112,7 +113,9 @@ describe('RiviereProject.start', () => {
       moduleContexts: [{ module: billing, project: new Project(), files: [] }],
     })
 
-    expect(RiviereProject.start({ configuration, draftComponents: [] })).toStrictEqual({
+    expect(
+      RiviereProject.start({ configuration, draftComponents: [] }, collaborators()),
+    ).toStrictEqual({
       success: false,
       error: "Missing source for module 'orders'\nSource supplied for unknown module 'billing'",
     })

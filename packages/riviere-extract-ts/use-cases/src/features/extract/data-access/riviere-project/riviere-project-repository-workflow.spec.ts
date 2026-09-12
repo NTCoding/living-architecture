@@ -83,7 +83,7 @@ describe('RiviereProjectRepository workflow loading', () => {
     expect(project.build().metadata).toMatchObject({ name: 'combined-graph' })
   })
 
-  it('loads the previous completed graph before adding the workflow', () => {
+  it('loads the previous completed graph before adding the workflow', async () => {
     const directory = workspace()
     const previousGraph = RiviereBuilder.parse({
       name: 'previous-graph',
@@ -97,7 +97,7 @@ describe('RiviereProjectRepository workflow loading', () => {
     const project = loadWorkflow(directory, 'combined')
 
     expect(project.build().metadata.name).toBe('previous-graph')
-    expect(project.rebuildGraph()).toMatchObject({ success: true })
+    await expect(project.rebuildGraph()).resolves.toMatchObject({ success: true })
   })
 
   it('rejects missing and invalid workflow definitions', () => {
@@ -250,10 +250,6 @@ describe('RiviereProjectRepository workflow loading', () => {
   })
 })
 it.each([
-  [
-    'eventcatalog-import',
-    'source: imported.json\nmappings: mappings.json\nallow-unmapped: false\n',
-  ],
   ['asyncapi-import', 'source: imported.json\nmappings: mappings.json\nallow-unmapped: false\n'],
 ] as const)('materializes an %s stage', (kind, configYaml) => {
   const directory = workspace()
@@ -261,6 +257,56 @@ it.each([
   writeWorkflow(directory, `  - kind: ${kind}\n    name: import\n    config: import.yaml`)
 
   expect(loadWorkflow(directory, 'combined')).toBeDefined()
+})
+
+it('materializes an eventcatalog-import stage with validated mappings', () => {
+  const directory = workspace()
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'import.yaml'),
+    'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
+  )
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'mappings.yaml'),
+    [
+      'domains:',
+      '  OrdersDomain: orders',
+      'services:',
+      '  OrdersService:',
+      '    type: UseCase',
+      '    domain: orders',
+      '    module: checkout',
+      '    name: PlaceOrder',
+      'events:',
+      '  OrderCreated:',
+      '    name: OrderPlaced',
+    ].join('\n'),
+  )
+  writeWorkflow(
+    directory,
+    '  - kind: eventcatalog-import\n    name: import\n    config: import.yaml',
+  )
+
+  const project = loadWorkflow(directory, 'combined')
+
+  expect(project.build().metadata.name).toBe('combined-graph')
+})
+
+it('rejects eventcatalog-import mappings with unknown keys', () => {
+  const directory = workspace()
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'import.yaml'),
+    'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
+  )
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'mappings.yaml'),
+    ['domains: {}', 'services: {}', 'events: {}', 'unexpected: true'].join('\n'),
+  )
+  writeWorkflow(
+    directory,
+    '  - kind: eventcatalog-import\n    name: import\n    config: import.yaml',
+  )
+
+  expect(() => loadWorkflow(directory, 'combined')).toThrow(/Invalid EventCatalog mappings/)
 })
 
 it('materializes an ai-extract stage', () => {

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import {
   type TestContext,
+  collaborators,
   createTestContext,
   setupCommandTest,
 } from '../../../__fixtures__/command-test-fixtures'
@@ -10,12 +11,15 @@ import { LinkHttp } from './link-http'
 import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
 
 function createProject(): RiviereProject {
-  return RiviereProject.start({
-    graphDefinition: {
-      domains: { orders: { description: 'Orders', systemType: 'domain' } },
-      sources: [{ repository: 'https://github.com/org/repo' }],
+  return RiviereProject.start(
+    {
+      graphDefinition: {
+        domains: { orders: { description: 'Orders', systemType: 'domain' } },
+        sources: [{ repository: 'https://github.com/org/repo' }],
+      },
     },
-  }).data
+    collaborators(),
+  ).data
 }
 
 function createProjectWithApi(): RiviereProject {

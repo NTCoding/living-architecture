@@ -62,7 +62,11 @@ export class WorkflowStage {
   }
 
   static fromEventCatalogImport(name: string, config: EventCatalogImportConfig): WorkflowStage {
-    return new WorkflowStage({ kind: 'eventcatalog-import', name, config: { ...config } })
+    return new WorkflowStage({
+      kind: 'eventcatalog-import',
+      name,
+      config: copyEventCatalogImportConfig(config),
+    })
   }
 
   static fromAsyncApiImport(name: string, config: AsyncApiImportConfig): WorkflowStage {
@@ -113,6 +117,22 @@ function copyCodeExtractionConfig(config: CodeExtractionConfig): CodeExtractionC
           },
         }),
     schema: config.schema,
+  }
+}
+
+function copyEventCatalogImportConfig(config: EventCatalogImportConfig): EventCatalogImportConfig {
+  return {
+    source: config.source,
+    allowUnmapped: config.allowUnmapped,
+    mappings: {
+      domains: { ...config.mappings.domains },
+      services: Object.fromEntries(
+        Object.entries(config.mappings.services).map(([id, mapping]) => [id, { ...mapping }]),
+      ),
+      events: Object.fromEntries(
+        Object.entries(config.mappings.events).map(([id, mapping]) => [id, { ...mapping }]),
+      ),
+    },
   }
 }
 

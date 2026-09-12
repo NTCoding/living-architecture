@@ -6,6 +6,7 @@ import {
 } from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
 import { RiviereProject } from './riviere-project'
+import { collaborators } from './__fixtures__/workflow-fixtures'
 import { RiviereModule } from './riviere-module'
 import { ExtractionConfiguration } from './extraction-configuration'
 import { EnrichmentFailure, EnrichmentResult } from './value-extraction/enriched-component'
@@ -96,7 +97,10 @@ function createRiviereProject(
       },
     ],
   })
-  const projectResult = RiviereProject.start({ configuration, draftComponents: [] })
+  const projectResult = RiviereProject.start(
+    { configuration, draftComponents: [] },
+    collaborators(),
+  )
   assert(projectResult.success)
   return projectResult.data
 }

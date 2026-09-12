@@ -8,6 +8,7 @@ import {
   parseAiExtractConfig,
   parseAsyncApiImportConfig,
   parseEventCatalogImportConfig,
+  parseEventCatalogMappings,
   parseWorkflowDefinition,
   ValidatedConfiguration,
   type CodeExtractionConfig,
@@ -24,13 +25,19 @@ import { BuilderOptions } from '@living-architecture/riviere-builder-published-l
 import {
   FileReadError,
   readJsonFile,
-  readTextFile,
 } from '../../../../infra/external-clients/filesystem/file-reader'
 import { fileExists } from '../../../../infra/external-clients/filesystem/file-existence'
+import { readConfigYaml } from '../../../../infra/external-clients/config/config-file-reader'
+import {
+  resolveAiConfig,
+  resolveImportConfig,
+} from '../../../../infra/external-clients/config/config-path-resolution'
 import { resolveFileOrPackagePath } from '../../../../infra/external-clients/node-modules/node-module-file-resolver'
+import { globSourceFiles } from '../../../../infra/external-clients/glob/glob-source-files'
 import { GitError } from '../../../../infra/external-clients/git/git-errors'
 import { getRepositoryInfo } from '../../../../infra/external-clients/git/git-repository-info'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
+import type { RiviereProjectCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { ExtractionConfiguration } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-configuration'
 import { createTypeScriptProjects } from '../../../../infra/external-clients/ts-morph/create-typescript-projects'
 import { ExtractionConfigError } from './riviere-config-error'
@@ -41,13 +48,9 @@ import type { WorkflowStageValue } from '@living-architecture/riviere-extract-ts
 import { DraftComponentsLoadError } from './draft-components-load-error'
 import { InvalidExtractionConfigError } from './extraction-config-load-error'
 import { parseRiviereGraph } from '@living-architecture/riviere-schema-published-language/validation'
-import { globSourceFiles } from '../../../../infra/external-clients/glob/glob-source-files'
-import {
-  YamlDocumentError,
-  YamlDocumentReader,
-} from '../../../../infra/external-clients/yaml/yaml-document-reader'
 import { GraphCorruptedError } from './graph-corrupted-error'
 import { GraphNotFoundError } from './graph-not-found-error'
+import { EventCatalogSourceUnavailableError } from './event-catalog-source-unavailable-error'
 
 type LoadParameters = Readonly<{
   projectRoot: string
@@ -59,6 +62,10 @@ type ParsedConfigState = Readonly<{ configDir: string; configuration: ValidatedC
 
 /** @riviere-role aggregate-repository */
 export class RiviereProjectRepository {
+  constructor(
+    private readonly loadEventCatalogSource: RiviereProjectCollaborators['loadEventCatalogSource'] = unavailableLoadEventCatalogSource,
+  ) {}
+
   save(graphFileLocation: string, project: RiviereProject): void {
     mkdirSync(dirname(graphFileLocation), { recursive: true })
     writeFileSync(graphFileLocation, project.serialize(), 'utf-8')
@@ -81,29 +88,37 @@ export class RiviereProjectRepository {
     const definition = this.loadWorkflowDefinition(workflowFile)
     const stages = definition.stages.map((stage) => this.materializeStage(stage, workflowDirectory))
     const graphPath = resolve(workflowDirectory, definition.output)
+    const collaborators = {
+      loadEventCatalogSource: this.loadEventCatalogSource,
+      repositoryName: this.repositoryName(workflowDirectory),
+    }
     const workflowInput = {
       name: definition.name,
       outputPath: graphPath,
       runLogDirectory: dirname(graphPath),
       stages,
     }
-    if (fileExists(graphPath)) return this.rehydrateGraph(graphPath, workflowInput)
-    const started = RiviereProject.start({
-      graphDefinition: {
-        name: definition.name,
-        ...(definition.description === undefined ? {} : { description: definition.description }),
-        sources: definition.sources,
-        domains: definition.domains,
+    if (fileExists(graphPath)) return this.rehydrateGraph(graphPath, workflowInput, collaborators)
+    const started = RiviereProject.start(
+      {
+        graphDefinition: {
+          name: definition.name,
+          ...(definition.description === undefined ? {} : { description: definition.description }),
+          sources: definition.sources,
+          domains: definition.domains,
+        },
+        workflowInput,
       },
-      workflowInput,
-    })
+      collaborators,
+    )
     if (!started.success) throw new ExtractionConfigError('VALIDATION_ERROR', started.error)
     return started.data
   }
 
   private rehydrateGraph(
     graphPath: string,
-    workflowInput: NonNullable<Parameters<typeof RiviereProject.rehydrate>[2]>,
+    workflowInput: NonNullable<Parameters<typeof RiviereProject.rehydrate>[3]>,
+    collaborators: RiviereProjectCollaborators,
   ): RiviereProject {
     const parsed = parseRiviereGraph(this.readExistingGraph(graphPath))
     if (!parsed.success)
@@ -113,6 +128,7 @@ export class RiviereProjectRepository {
       )
     return RiviereProject.rehydrate(
       parsed.graph,
+      collaborators,
       BuilderOptions.fromGraph(parsed.graph),
       workflowInput,
     )
@@ -170,10 +186,22 @@ export class RiviereProjectRepository {
         const config = parseEventCatalogImportConfig(file)
         if (!config.success)
           throw new ExtractionConfigError('VALIDATION_ERROR', config.issues.join('\n'))
+        const mappings = parseEventCatalogMappings(
+          this.readConfigYaml(resolve(configDirectory, config.config.mappings)),
+        )
+        if (!mappings.success)
+          throw new ExtractionConfigError(
+            'VALIDATION_ERROR',
+            `Invalid EventCatalog mappings: ${mappings.issues.join('\n')}`,
+          )
         return {
           kind: 'eventcatalog-import',
           name: stage.name,
-          config: resolveImportConfig(config.config, configDirectory),
+          config: {
+            source: resolve(configDirectory, config.config.source),
+            mappings: mappings.mappings,
+            allowUnmapped: config.config.allowUnmapped,
+          },
         }
       }
       case 'asyncapi-import': {
@@ -215,7 +243,13 @@ export class RiviereProjectRepository {
       input.draftComponentsPath === undefined
         ? []
         : this.loadDraftComponents(input.draftComponentsPath)
-    const started = RiviereProject.start({ configuration, draftComponents })
+    const started = RiviereProject.start(
+      { configuration, draftComponents },
+      {
+        loadEventCatalogSource: this.loadEventCatalogSource,
+        repositoryName: configuration.repositoryName,
+      },
+    )
     if (!started.success) throw new ExtractionConfigError('VALIDATION_ERROR', started.error)
     return started.data
   }
@@ -226,7 +260,10 @@ export class RiviereProjectRepository {
       const result = parseRiviereGraph(readJsonFile(graphFileLocation, 'Rivière graph'))
       if (!result.success)
         throw new GraphCorruptedError(graphFileLocation, { cause: result.issues })
-      return RiviereProject.rehydrate(result.graph)
+      return RiviereProject.rehydrate(result.graph, {
+        loadEventCatalogSource: this.loadEventCatalogSource,
+        repositoryName: '',
+      })
     } catch (error) {
       if (!(error instanceof FileReadError)) throw error
       throw new GraphCorruptedError(graphFileLocation, { cause: error })
@@ -303,22 +340,10 @@ export class RiviereProjectRepository {
     }
   }
 
-  private readConfigFile(path: string): string {
-    if (!fileExists(path))
-      throw new ExtractionConfigError('CONFIG_NOT_FOUND', `Config file not found: ${path}`)
-    return readTextFile(path)
-  }
-
   private readConfigYaml(path: string): unknown {
-    try {
-      return YamlDocumentReader.parse(this.readConfigFile(path)).value()
-    } catch (error) {
-      if (error instanceof ExtractionConfigError) throw error
-      if (error instanceof YamlDocumentError) {
-        throw new ExtractionConfigError('VALIDATION_ERROR', `Invalid config file: ${error.message}`)
-      }
-      throw new ExtractionConfigError('VALIDATION_ERROR', `Invalid config file: ${String(error)}`)
-    }
+    const result = readConfigYaml(path)
+    if (!result.success) throw new ExtractionConfigError(result.code, result.message)
+    return result.value
   }
 
   private resolveConfiguration(
@@ -387,33 +412,14 @@ export class RiviereProjectRepository {
   }
 }
 
+function unavailableLoadEventCatalogSource() {
+  return Promise.reject(new EventCatalogSourceUnavailableError())
+}
+
 function codeExtractionConfig(state: ParsedConfigState): CodeExtractionConfig {
   return {
     modules: state.configuration.modules,
     connections: state.configuration.connections,
     schema: state.configuration.schema,
-  }
-}
-
-function resolveImportConfig<
-  C extends { source: string; mappings: string; allowUnmapped: boolean },
->(config: C, configDirectory: string): Pick<C, 'source' | 'mappings' | 'allowUnmapped'> {
-  return {
-    source: resolve(configDirectory, config.source),
-    mappings: resolve(configDirectory, config.mappings),
-    allowUnmapped: config.allowUnmapped,
-  }
-}
-
-function resolveAiConfig<
-  C extends { memory?: string; promptAppend?: string; sources: readonly string[] },
->(config: C, configDirectory: string): C {
-  return {
-    ...config,
-    ...(config.memory === undefined ? {} : { memory: resolve(configDirectory, config.memory) }),
-    ...(config.promptAppend === undefined
-      ? {}
-      : { promptAppend: resolve(configDirectory, config.promptAppend) }),
-    sources: config.sources.map((source) => resolve(configDirectory, source)),
   }
 }
