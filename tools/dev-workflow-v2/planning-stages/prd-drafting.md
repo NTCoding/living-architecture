@@ -72,6 +72,30 @@ If the PRD needs information that is not present in approved discovery artefacts
 1. add a clarification to the PRD from the current conversation, or
 2. return to `solution-exploration` because discovery is incomplete.
 
+## Terminology
+
+Rules:
+
+- A term is defined once, in the terminology source.
+- The terminology source is the PRD terminology section, or `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`.
+- Use a term as the terminology source defines it. Do not write a second definition.
+- Do not introduce a term that is not in the terminology source. Add it to the terminology source first.
+- Do not invent language for something that already has a name.
+
+Example:
+
+Bad:
+
+```text
+Teams with EventCatalog must currently import domains, services, events, and producer/consumer relationships manually, so authoritative spec facts cannot participate in one Workflow.
+```
+
+Good:
+
+```text
+Teams with EventCatalog must copy the domains, services, events, and producer and consumer relationships into the graph by hand.
+```
+
 ## PRD standard
 
 The PRD must capture WHAT and WHY, not HOW.
