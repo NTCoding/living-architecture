@@ -627,6 +627,74 @@ The subagent that writes an option is responsible for applying those constraints
 
 The main agent must not perform a full semantic review of all written option bodies. If deeper review is needed, invoke a fresh specialist review subagent against `architecturePath` and the relevant marker block rather than loading all option bodies into the main-agent context.
 
+## Terminology
+
+Rules:
+
+- A term is defined once, in the terminology source.
+- The terminology source is the PRD terminology section, or `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`.
+- Use a term as the terminology source defines it. Do not write a second definition.
+- Do not introduce a term that is not in the terminology source. Add it to the terminology source first.
+- Do not invent language for something that already has a name.
+
+Example:
+
+Bad:
+
+```text
+Teams with EventCatalog must currently import domains, services, events, and producer/consumer relationships manually, so authoritative spec facts cannot participate in one Workflow.
+```
+
+Good:
+
+```text
+Teams with EventCatalog must copy the domains, services, events, and producer and consumer relationships into the graph by hand.
+```
+
+## Code and configuration samples
+
+Rules:
+
+- Introduce every code, configuration, or flow sample with a sentence that says what the file is, who writes it, where it lives, and whether it is the whole file or part of a file.
+- Keep the sample as it appears in the source. Do not shorten it.
+
+Example:
+
+Bad:
+
+```yaml
+# eventcatalog-import.yaml
+source: ./eventcatalog
+mappings: ./eventcatalog-mappings.yaml
+allow-unmapped: false
+```
+
+Good:
+
+This is the whole of `specs/eventcatalog-import.yaml`, a file the customer writes in their own repository. The `eventcatalog-import` stage of `riviere-workflow.yaml` points at it.
+
+```yaml
+source: ./eventcatalog
+mappings: ./eventcatalog-mappings.yaml
+allow-unmapped: false
+```
+
+## Role and location table
+
+Rules:
+
+- The table has a `Change` column.
+- Its value is one of `new`, `changed`, `removed`, or `unchanged`.
+
+Example:
+
+| Proposed Element | Kind | Role | Sublocation | Change | Confidence | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| LoadEventCatalogSource | type/interface | `domain-port` | extract domain-model domain/ports/ | new | High | Domain-owned external-fact contract |
+| EventCatalogSourceAdapter | function/class | `domain-port-adapter` | extract use-cases features/extract/adapters/ | new | High | Translates SDK client results |
+| EventCatalogClient | function/class | `external-client-service` | extract use-cases infra/external-clients/eventcatalog/ | new | High | Only location importing the SDK |
+| RiviereProject | class | `aggregate` | extract domain-model domain/ | changed | High | Owns mapping and Builder mutation |
+
 ## Draft approval and completion
 
 After the user approves, rejects, or combines the architecture options into one architecture direction, update `ARCH.md` with:
