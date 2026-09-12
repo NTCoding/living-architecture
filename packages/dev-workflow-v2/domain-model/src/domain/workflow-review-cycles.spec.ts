@@ -244,6 +244,38 @@ describe('waitForCodeRabbitAndCloseReviewCycle', () => {
     expect(workflow.getState().currentStateMachineState).toBe('HUMAN_REVIEWING')
   })
 
+  it('ignores feedback from reviewers excluded from the cycle', () => {
+    const state = WorkflowState.from(eventsToReviewing()).with({
+      prNumber: 99,
+      reviewerStatuses: {
+        'architecture-review': 'PENDING',
+        'code-review': 'PENDING',
+        'bug-scanner': 'PENDING',
+        'task-check': 'APPROVED',
+        coderabbit: 'PENDING',
+      },
+    })
+    const workflow = buildTestWorkflow(
+      makeDeps({
+        getPrFeedback: () =>
+          githubFeedback({
+            reviewerStatuses: {
+              'architecture-review': 'APPROVED',
+              'code-review': 'APPROVED',
+              'bug-scanner': 'APPROVED',
+              'task-check': 'OPEN_FEEDBACK',
+              coderabbit: 'PENDING',
+            },
+          }),
+      }),
+      state,
+    )
+    workflow.startReviewCycle()
+
+    expect(workflow.waitForCodeRabbitAndCloseReviewCycle()).toStrictEqual({ pass: true })
+    expect(workflow.getState().currentStateMachineState).toBe('HUMAN_REVIEWING')
+  })
+
   it('stops waiting when CodeRabbit never reviews', () => {
     const getPrFeedback = vi
       .fn<ReadWorkflowPullRequestFeedback>()

@@ -285,7 +285,7 @@ export class MaintainerWorkflow {
     if (!gate.pass) return gate
     if (!this.state.reviewCycleOpen) return fail('No review cycle is open.')
     const feedback = waitForCodeRabbitCompletion(this.deps, this.getPullRequestNumber())
-    const outcomes = reviewCycleOutcomes(feedback)
+    const outcomes = reviewCycleOutcomes(feedback, this.state.includedReviewers)
     const statuses = Object.values(outcomes)
     const hasOpenFeedback = statuses.includes('OPEN_FEEDBACK')
     const allApproved = statuses.every(
@@ -367,14 +367,15 @@ function waitForCodeRabbitCompletion(
 
 function reviewCycleOutcomes(
   feedback: ReturnType<ReadWorkflowPullRequestFeedback>,
+  includedReviewers: readonly string[],
 ): Readonly<Record<string, string>> {
-  return {
-    'architecture-review': feedback.reviewerStatuses['architecture-review'],
-    'code-review': feedback.reviewerStatuses['code-review'],
-    'bug-scanner': feedback.reviewerStatuses['bug-scanner'],
-    'task-check': feedback.reviewerStatuses['task-check'],
-    coderabbit: codeRabbitOutcome(feedback),
+  const outcomes: Record<string, string> = {}
+  for (const reviewer of REVIEW_RUNNERS) {
+    if (!includedReviewers.includes(reviewer)) continue
+    outcomes[reviewer] = feedback.reviewerStatuses[reviewer]
   }
+  outcomes['coderabbit'] = codeRabbitOutcome(feedback)
+  return outcomes
 }
 
 function codeRabbitOutcome(
