@@ -105,6 +105,17 @@ describe('WorkflowState', () => {
     expect(getWorkflowStateNames()).toContain('HUMAN_REVIEWING')
   })
 
+  it('defaults the cycle cap flag and round-trips it', () => {
+    expect(getInitialWorkflowState().reviewCycleCapReached).toBe(false)
+    expect(
+      WorkflowState.parse({
+        currentStateMachineState: 'HUMAN_REVIEWING',
+        reviewerStatuses: REVIEWERS,
+        reviewCycleCapReached: true,
+      }).toJSON().reviewCycleCapReached,
+    ).toBe(true)
+  })
+
   it('opens a review cycle from a cycle-started event', () => {
     const state = WorkflowState.from([
       ReviewCycleStarted.parse({
@@ -128,11 +139,13 @@ describe('WorkflowState', () => {
         type: 'review-cycle-closed',
         at: '2026-01-01T00:00:00Z',
         cycleNumber: 1,
+        reviewedCommit: 'abc123',
         outcomes: {},
       }),
     ])
 
     expect(state.reviewCycleOpen).toBe(false)
+    expect(state.reviewedCommit).toBe('abc123')
   })
 
   it('records review cycle outcomes as reviewer statuses', () => {
@@ -141,11 +154,22 @@ describe('WorkflowState', () => {
         type: 'review-cycle-closed',
         at: '2026-01-01T00:00:00Z',
         cycleNumber: 1,
+        reviewedCommit: 'abc123',
         outcomes: { 'code-review': 'APPROVED', 'task-check': 'OPEN_FEEDBACK' },
       }),
     ])
 
     expect(state.reviewerStatuses.toJSON()['code-review']).toBe('APPROVED')
     expect(state.reviewerStatuses.toJSON()['task-check']).toBe('OPEN_FEEDBACK')
+  })
+
+  it('round-trips the reviewed commit', () => {
+    expect(
+      WorkflowState.parse({
+        currentStateMachineState: 'REVIEWING',
+        reviewerStatuses: REVIEWERS,
+        reviewedCommit: 'abc123',
+      }).toJSON().reviewedCommit,
+    ).toBe('abc123')
   })
 })

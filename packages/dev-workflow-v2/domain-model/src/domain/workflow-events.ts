@@ -201,6 +201,7 @@ export class ReviewCycleClosed {
   private constructor(
     readonly at: string,
     readonly cycleNumber: number,
+    readonly reviewedCommit: string,
     readonly outcomes: Readonly<Record<string, string>>,
   ) {}
 
@@ -208,6 +209,7 @@ export class ReviewCycleClosed {
     return new ReviewCycleClosed(
       requiredString(event['at']),
       requiredCycleNumber(event['cycleNumber']),
+      requiredString(event['reviewedCommit']),
       requiredReviewerStatusRecord(event['outcomes']),
     )
   }

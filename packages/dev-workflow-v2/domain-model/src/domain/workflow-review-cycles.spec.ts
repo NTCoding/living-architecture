@@ -36,6 +36,31 @@ function reviewingWithOpenCycle(deps = makeDeps()) {
   return workflow
 }
 
+function reviewingAtCycle(cycleNumber: number, deps = makeDeps()) {
+  return buildTestWorkflow(
+    deps,
+    WorkflowState.from(eventsToReviewing()).with({
+      prNumber: 99,
+      reviewCycleNumber: cycleNumber,
+      reviewCycleOpen: true,
+      includedReviewers: ['architecture-review', 'code-review', 'bug-scanner', 'task-check'],
+      excludedReviewers: {},
+    }),
+  )
+}
+
+function feedbackWithOpenFinding(): PullRequestFeedback {
+  return githubFeedback({
+    reviewerStatuses: {
+      'architecture-review': 'APPROVED',
+      'code-review': 'OPEN_FEEDBACK',
+      'bug-scanner': 'APPROVED',
+      'task-check': 'APPROVED',
+      coderabbit: 'PENDING',
+    },
+  })
+}
+
 describe('startReviewCycle', () => {
   it('opens the first cycle with every reviewer included', () => {
     const workflow = reviewingWorkflow()
@@ -124,6 +149,58 @@ describe('waitForCodeRabbitAndCloseReviewCycle', () => {
 
     expect(workflow.waitForCodeRabbitAndCloseReviewCycle()).toStrictEqual({ pass: true })
     expect(workflow.getState().currentStateMachineState).toBe('ADDRESSING_FEEDBACK')
+  })
+
+  it('records the reviewed commit when closing a cycle', () => {
+    const workflow = reviewingWithOpenCycle()
+
+    workflow.waitForCodeRabbitAndCloseReviewCycle()
+
+    expect(workflow.getState().reviewedCommit).toBe('abc123')
+  })
+
+  it('returns to addressing feedback when feedback remains below the cycle limit', () => {
+    const workflow = reviewingAtCycle(
+      2,
+      makeDeps({ getPrFeedback: () => feedbackWithOpenFinding() }),
+    )
+
+    expect(workflow.waitForCodeRabbitAndCloseReviewCycle()).toStrictEqual({ pass: true })
+    expect(workflow.getState().currentStateMachineState).toBe('ADDRESSING_FEEDBACK')
+    expect(workflow.getState().reviewCycleCapReached).toBe(false)
+  })
+
+  it('moves to human review when the cycle limit is reached with open feedback', () => {
+    const workflow = reviewingAtCycle(
+      3,
+      makeDeps({ getPrFeedback: () => feedbackWithOpenFinding() }),
+    )
+
+    expect(workflow.waitForCodeRabbitAndCloseReviewCycle()).toStrictEqual({ pass: true })
+    expect(workflow.getState().currentStateMachineState).toBe('HUMAN_REVIEWING')
+    expect(workflow.getState().reviewCycleCapReached).toBe(true)
+  })
+
+  it('does not mark the cycle limit as reached when the final cycle approves', () => {
+    const workflow = reviewingAtCycle(3)
+
+    expect(workflow.waitForCodeRabbitAndCloseReviewCycle()).toStrictEqual({ pass: true })
+    expect(workflow.getState().currentStateMachineState).toBe('HUMAN_REVIEWING')
+    expect(workflow.getState().reviewCycleCapReached).toBe(false)
+  })
+
+  it('clears the cap flag when a new review cycle starts', () => {
+    const workflow = buildTestWorkflow(
+      makeDeps(),
+      WorkflowState.from(eventsToReviewing()).with({
+        prNumber: 99,
+        reviewCycleCapReached: true,
+      }),
+    )
+
+    workflow.startReviewCycle()
+
+    expect(workflow.getState().reviewCycleCapReached).toBe(false)
   })
 
   it('polls until CodeRabbit reviews the current commit', () => {

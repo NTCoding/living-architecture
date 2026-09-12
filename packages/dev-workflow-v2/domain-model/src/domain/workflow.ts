@@ -11,6 +11,7 @@ import {
 import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { getInitialWorkflowState, WorkflowState } from './workflow-types'
+import { ReviewCycleLimit } from './review-cycle-limit'
 import type { PullRequestCreationDetails } from './pull-request-description'
 import { MaintainerWorkflowRegistry } from './registry'
 import { ReviewingState } from './states/reviewing'
@@ -294,15 +295,21 @@ export class MaintainerWorkflow {
         type: 'review-cycle-closed',
         at: this.deps.now(),
         cycleNumber: this.state.reviewCycleNumber,
+        reviewedCommit: this.deps.getGitInfo().headCommit,
         outcomes,
       }),
     )
-    return hasOpenFeedback
-      ? this.transition('ADDRESSING_FEEDBACK')
-      : this.transition('HUMAN_REVIEWING')
+    const capReached = REVIEW_CYCLE_LIMIT.isReached(this.state.reviewCycleNumber)
+    if (hasOpenFeedback && !capReached) return this.transition('ADDRESSING_FEEDBACK')
+    return this.transition('HUMAN_REVIEWING', {
+      reviewCycleCapReached: hasOpenFeedback && capReached,
+    })
   }
 
-  transition(target: StateName): PreconditionResult {
+  transition(
+    target: StateName,
+    stateOverrides?: Readonly<Record<string, unknown>>,
+  ): PreconditionResult {
     const current = this.state.currentStateMachineState
     const definition = this.registryDefinition.state(current)
     if (!definition.canTransitionTo.includes(target))
@@ -319,7 +326,13 @@ export class MaintainerWorkflow {
       if (!guard.pass) return guard
     }
     this.append(
-      Transitioned.parse({ type: 'transitioned', at: this.deps.now(), from: current, to: target }),
+      Transitioned.parse({
+        type: 'transitioned',
+        at: this.deps.now(),
+        from: current,
+        to: target,
+        ...(stateOverrides === undefined ? {} : { stateOverrides }),
+      }),
     )
     return pass()
   }
@@ -345,6 +358,7 @@ function formatSection(heading: string, content: string): string {
 }
 
 const REVIEW_RUNNERS = ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
+const REVIEW_CYCLE_LIMIT = ReviewCycleLimit.singleton()
 const CODERABBIT_POLL_INTERVAL_MS = 15_000
 const MAX_REVIEW_COMPLETION_POLLS = 120
 

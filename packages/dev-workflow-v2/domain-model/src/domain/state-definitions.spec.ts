@@ -39,6 +39,17 @@ describe('workflow state definitions', () => {
     ).toStrictEqual({ pass: true })
   })
 
+  it('allows human review once the review cycle limit is reached without approval', () => {
+    const state = getInitialWorkflowState().with({
+      currentStateMachineState: 'REVIEWING',
+      reviewCycleNumber: 3,
+    })
+    const reviewing = ReviewingState.parse('REVIEWING')
+    expect(
+      reviewing.transitionGuard({ state, gitInfo, from: 'REVIEWING', to: 'HUMAN_REVIEWING' }),
+    ).toStrictEqual({ pass: true })
+  })
+
   it('resets reviewer status when implementation begins', () => {
     const state = ImplementingState.parse('IMPLEMENTING').onEntry(getInitialWorkflowState())
     expect(state.reviewerStatuses.toJSON()).toMatchObject({ coderabbit: 'PENDING' })

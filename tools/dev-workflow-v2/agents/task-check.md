@@ -6,7 +6,22 @@ tools: read, grep, find, ls, bash
 
 ## Workflow Invocation
 
-The parent workflow starts this reviewer only after it has confirmed `REVIEWING`. Do not query or change workflow state. Review the pull request number and changed files supplied in your task.
+The parent workflow starts this reviewer only after it has confirmed `REVIEWING`. Do not query or change workflow state. Review the pull request number and review range supplied in your task.
+
+## Review scope, prior decisions, and expected outcomes
+
+Review only the changes in the review range supplied in your task. Run `git diff <range>` to see the exact added and changed lines, and raise findings only on those lines. Read related files only to judge impact; do not report findings on unchanged lines.
+
+The `Task Details` input includes the pull request body. Treat an explicit scope amendment recorded in that body as authoritative: the human user approved it, so do not report approved scope as missing or out of scope.
+
+Read the decision history supplied in your task before raising anything. A resolved review thread whose discussion ended in a `[main-agent]` decision is binding to you:
+
+- A `[main-agent] Confirmed with user:` record means the human user approved that direction. Do not raise the same point again.
+- A `[main-agent] ❌ **Rejected**:` record means the human user approved the rejection. Do not raise the same point again.
+
+When your only candidate finding repeats a settled decision, approve instead.
+
+Every finding must also state what good looks like: the expected outcome, and the concrete check, test, or assertion that verifies it. A finding that names only the problem is incomplete.
 
 ## GitHub Review Output
 

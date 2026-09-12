@@ -42,10 +42,12 @@ describe('workflow events', () => {
         type: 'review-cycle-closed',
         at: AT,
         cycleNumber: 2,
+        reviewedCommit: 'abc123',
         outcomes: { 'code-review': 'APPROVED', coderabbit: 'APPROVED' },
       }),
     ).toMatchObject({
       cycleNumber: 2,
+      reviewedCommit: 'abc123',
       outcomes: { 'code-review': 'APPROVED', coderabbit: 'APPROVED' },
     })
   })
@@ -94,6 +96,7 @@ describe('workflow events', () => {
         type: 'review-cycle-closed',
         at: AT,
         cycleNumber: 1,
+        reviewedCommit: 'abc123',
         outcomes: { 'code-review': 'UNKNOWN' },
       }),
     ).toThrow('Unknown reviewer status: UNKNOWN')
@@ -105,6 +108,7 @@ describe('workflow events', () => {
         type: 'review-cycle-closed',
         at: AT,
         cycleNumber: 1,
+        reviewedCommit: 'abc123',
         outcomes: { 'unknown-reviewer': 'APPROVED' },
       }),
     ).toThrow('Unknown reviewer: unknown-reviewer')

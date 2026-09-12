@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import type { WorkflowTransitionContext } from '../workflow-transition-context'
 import type { WorkflowState } from '../workflow-types'
+import { ReviewCycleLimit } from '../review-cycle-limit'
 
 /** @riviere-role domain-port
  * @riviere-role-justification State entry receives the aggregate operation that opens a review cycle; it does not load previously created workflow state.
@@ -46,7 +47,8 @@ export class ReviewingState {
     const statuses = [...context.state.reviewerStatuses.statusByReviewer().values()]
     const allApproved = statuses.every((status) => status.isApproved())
     const hasOpenFeedback = statuses.some((status) => status.isOpenFeedback())
-    if (context.to === 'HUMAN_REVIEWING' && !allApproved)
+    const capReached = ReviewCycleLimit.singleton().isReached(context.state.reviewCycleNumber)
+    if (context.to === 'HUMAN_REVIEWING' && !allApproved && !capReached)
       return {
         pass: false,
         reason: 'All reviewers and CodeRabbit must approve before human review.',
