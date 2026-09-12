@@ -1,13 +1,13 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { dirname, relative, resolve } from 'node:path'
 import {
   ExtendingDraftModule,
+  ExtractionConfig,
   ModuleDefaults,
   parseAiEnrichConfig,
   parseAiExtractConfig,
   parseAsyncApiImportConfig,
   parseEventCatalogImportConfig,
-  parseExtractionConfig,
   parseWorkflowDefinition,
   ValidatedConfiguration,
   type CodeExtractionConfig,
@@ -80,16 +80,14 @@ export class RiviereProjectRepository {
     const workflowDirectory = dirname(workflowFile)
     const definition = this.loadWorkflowDefinition(workflowFile)
     const stages = definition.stages.map((stage) => this.materializeStage(stage, workflowDirectory))
-    const graphPath = resolve(workflowDirectory, '..', '..', definition.output)
+    const graphPath = resolve(workflowDirectory, definition.output)
     const workflowInput = {
       name: definition.name,
       outputPath: graphPath,
       runLogDirectory: dirname(graphPath),
       stages,
     }
-    if (fileExists(graphPath)) {
-      return this.rehydrateGraph(graphPath, workflowInput)
-    }
+    if (fileExists(graphPath)) return this.rehydrateGraph(graphPath, workflowInput)
     const started = RiviereProject.start({
       graphDefinition: {
         name: definition.name,
@@ -107,13 +105,12 @@ export class RiviereProjectRepository {
     graphPath: string,
     workflowInput: NonNullable<Parameters<typeof RiviereProject.rehydrate>[2]>,
   ): RiviereProject {
-    const parsed = parseRiviereGraph(readJsonFile(graphPath, 'Rivière graph'))
-    if (!parsed.success) {
+    const parsed = parseRiviereGraph(this.readExistingGraph(graphPath))
+    if (!parsed.success)
       throw new ExtractionConfigError(
         'VALIDATION_ERROR',
         `Invalid existing graph: ${parsed.issues.join('\n')}`,
       )
-    }
     return RiviereProject.rehydrate(
       parsed.graph,
       RiviereBuilder.graphOptionsFrom(parsed.graph),
@@ -121,14 +118,26 @@ export class RiviereProjectRepository {
     )
   }
 
+  private readExistingGraph(graphPath: string): unknown {
+    try {
+      return readJsonFile(graphPath, 'Rivière graph')
+    } catch (error) {
+      if (error instanceof FileReadError)
+        throw new ExtractionConfigError(
+          'VALIDATION_ERROR',
+          `Invalid existing graph: ${error.message}`,
+        )
+      throw error
+    }
+  }
+
   private loadWorkflowDefinition(workflowPath: string): WorkflowDefinition {
     const definition = parseWorkflowDefinition(this.readConfigYaml(workflowPath))
-    if (!definition.success) {
+    if (!definition.success)
       throw new ExtractionConfigError(
         'VALIDATION_ERROR',
         `Invalid workflow: ${definition.issues.join('\n')}`,
       )
-    }
     return definition.definition
   }
 
@@ -262,7 +271,7 @@ export class RiviereProjectRepository {
     try {
       const parsed = DraftComponent.parseMany(readJsonFile(path, 'Draft components'))
       if (!parsed.success) throw new DraftComponentsLoadError(`${parsed.error}: ${path}`)
-      return parsed.data
+      return parsed.draftComponents
     } catch (error) {
       if (error instanceof FileReadError) throw new DraftComponentsLoadError(error.message)
       throw error
@@ -271,10 +280,27 @@ export class RiviereProjectRepository {
 
   private loadParsedConfigState(configPath: string): ParsedConfigState {
     const configDir = dirname(resolve(configPath))
-    const expanded = this.expandModuleRefs(this.readConfigYaml(configPath), configDir)
-    const draft = parseExtractionConfig(expanded)
-    if (!draft.success) throw new InvalidExtractionConfigError(draft.errors)
-    return { configDir, configuration: this.resolveConfiguration(draft.configuration, configDir) }
+    const configuration = ExtractionConfig.parse(
+      this.readConfigYaml(configPath),
+      configDir,
+      (referencePath) => {
+        if (!fileExists(referencePath)) {
+          throw new ExtractionConfigError(
+            'VALIDATION_ERROR',
+            `Cannot resolve module reference './${relative(configDir, referencePath)}'. File not found: ${referencePath}`,
+          )
+        }
+        return this.readConfigYaml(referencePath)
+      },
+    )
+    if (!configuration.success) throw new InvalidExtractionConfigError(configuration.errors)
+    return {
+      configDir,
+      configuration: this.resolveConfiguration(
+        configuration.configuration.draftConfiguration(),
+        configDir,
+      ),
+    }
   }
 
   private readConfigFile(path: string): string {
@@ -293,25 +319,6 @@ export class RiviereProjectRepository {
       }
       throw new ExtractionConfigError('VALIDATION_ERROR', `Invalid config file: ${String(error)}`)
     }
-  }
-
-  private expandModuleRefs(config: unknown, configDir: string): unknown {
-    if (!hasModulesArray(config)) return config
-    return {
-      ...config,
-      modules: config['modules'].map((item) => this.expandModuleRefItem(item, configDir)),
-    }
-  }
-
-  private expandModuleRefItem(item: unknown, configDir: string): unknown {
-    if (!isModuleRef(item)) return item
-    const refPath = resolve(configDir, item['$ref'])
-    if (!fileExists(refPath))
-      throw new ExtractionConfigError(
-        'VALIDATION_ERROR',
-        `Cannot resolve module reference '${item['$ref']}'. File not found: ${refPath}`,
-      )
-    return this.readConfigYaml(refPath)
   }
 
   private resolveConfiguration(
@@ -409,16 +416,4 @@ function resolveAiConfig<
       : { promptAppend: resolve(configDirectory, config.promptAppend) }),
     sources: config.sources.map((source) => resolve(configDirectory, source)),
   }
-}
-
-function hasModulesArray(value: unknown): value is { modules: unknown[] } {
-  return isConfigRecord(value) && 'modules' in value && Array.isArray(value['modules'])
-}
-
-function isModuleRef(value: unknown): value is { $ref: string } {
-  return isConfigRecord(value) && '$ref' in value && typeof value['$ref'] === 'string'
-}
-
-function isConfigRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }

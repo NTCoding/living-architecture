@@ -128,20 +128,6 @@ describe('parsePullRequestDescriptionOptions', () => {
     })
   })
 
-  it('returns failure when commit type is not conventional', () => {
-    const invalidCommitTypeOptions = [
-      '--commit-type',
-      'nonsense',
-      ...VALID_CREATE_PR_OPTIONS.slice(2),
-    ]
-
-    expect(parsePullRequestDescriptionOptions(invalidCommitTypeOptions)).toStrictEqual({
-      ok: false,
-      reason:
-        'Expected --commit-type to be one of: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test.',
-    })
-  })
-
   it('returns failure when commit type is missing', () => {
     const missingCommitTypeOptions = VALID_CREATE_PR_OPTIONS.slice(2)
 
@@ -291,61 +277,6 @@ describe('parsePullRequestDescriptionOptions', () => {
     expect(result).toStrictEqual({
       ok: false,
       reason: 'Expected non-empty value for --title.',
-    })
-  })
-
-  it('returns failure when the description is whitespace padded below 100 characters', () => {
-    const paddedDescription = `          ${'A'.repeat(80)}          `
-    const result = parsePullRequestDescriptionOptions([
-      ...VALID_CREATE_PR_OPTIONS.slice(0, 7),
-      paddedDescription,
-      ...VALID_CREATE_PR_OPTIONS.slice(8),
-    ])
-
-    expect(result).toStrictEqual({
-      ok: false,
-      reason: 'Expected --description to be at least 100 characters.',
-    })
-  })
-
-  it('returns failure when description is shorter than 100 characters', () => {
-    const result = parsePullRequestDescriptionOptions([
-      ...VALID_CREATE_PR_OPTIONS.slice(0, 7),
-      'A'.repeat(99),
-      ...VALID_CREATE_PR_OPTIONS.slice(8),
-    ])
-
-    expect(result).toStrictEqual({
-      ok: false,
-      reason: 'Expected --description to be at least 100 characters.',
-    })
-  })
-
-  it('returns failure when title ends with a full stop', () => {
-    const result = parsePullRequestDescriptionOptions([
-      ...VALID_CREATE_PR_OPTIONS.slice(0, 4),
-      '--title',
-      'ready PR.',
-      ...VALID_CREATE_PR_OPTIONS.slice(6),
-    ])
-
-    expect(result).toStrictEqual({
-      ok: false,
-      reason: 'Expected --title to not end with a full stop.',
-    })
-  })
-
-  it('returns failure when composed title is over 100 characters', () => {
-    const result = parsePullRequestDescriptionOptions([
-      ...VALID_CREATE_PR_OPTIONS.slice(0, 4),
-      '--title',
-      'a'.repeat(85),
-      ...VALID_CREATE_PR_OPTIONS.slice(6),
-    ])
-
-    expect(result).toStrictEqual({
-      ok: false,
-      reason: 'Expected composed pull request title to be at most 100 characters.',
     })
   })
 })

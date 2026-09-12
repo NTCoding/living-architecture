@@ -14,7 +14,7 @@ describe('DraftComponent.parse', () => {
   it('creates a draft component from valid data', () => {
     expect(DraftComponent.parse(validDraftComponent)).toStrictEqual({
       success: true,
-      data: expect.objectContaining(validDraftComponent),
+      draftComponent: expect.objectContaining(validDraftComponent),
     })
   })
 
@@ -44,7 +44,7 @@ describe('DraftComponent.parseMany', () => {
   it('creates components from an array of valid values', () => {
     expect(DraftComponent.parseMany([validDraftComponent])).toStrictEqual({
       success: true,
-      data: expect.objectContaining([expect.objectContaining(validDraftComponent)]),
+      draftComponents: expect.objectContaining([expect.objectContaining(validDraftComponent)]),
     })
   })
 

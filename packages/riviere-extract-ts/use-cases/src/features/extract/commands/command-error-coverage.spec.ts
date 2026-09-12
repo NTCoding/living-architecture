@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import {
   type TestContext,
@@ -58,6 +58,7 @@ function createProjectWithApi(): RiviereProject {
 describe('command error path coverage', () => {
   const ctx: TestContext = createTestContext()
   setupCommandTest(ctx)
+  afterEach(() => vi.restoreAllMocks())
 
   function graphLocation(): string {
     return join(ctx.testDir, '.riviere', 'graph.json')
@@ -157,7 +158,7 @@ describe('command error path coverage', () => {
     expect(result.result).toMatchObject({ code: 'VALIDATION_ERROR', success: false })
   })
 
-  it('returns graph not found from link-components, link-external, and link-http', () => {
+  it('returns graph not found from link-components', () => {
     expect(
       new LinkComponents(new RiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
@@ -169,6 +170,9 @@ describe('command error path coverage', () => {
         type: undefined,
       }).result,
     ).toMatchObject({ code: 'GRAPH_NOT_FOUND', success: false })
+  })
+
+  it('returns graph not found from link-external', () => {
     expect(
       new LinkExternal(new RiviereProjectRepository()).execute({
         from: 'orders:core:api:source',
@@ -179,6 +183,9 @@ describe('command error path coverage', () => {
         type: undefined,
       }).result,
     ).toMatchObject({ code: 'GRAPH_NOT_FOUND', success: false })
+  })
+
+  it('returns graph not found from link-http', () => {
     expect(
       new LinkHttp(new RiviereProjectRepository()).execute({
         graphFileLocation: graphLocation(),

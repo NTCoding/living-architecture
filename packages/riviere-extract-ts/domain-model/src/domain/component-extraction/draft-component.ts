@@ -21,22 +21,22 @@ export class DraftComponent {
 
   static parse(
     params: unknown,
-  ): { success: true; data: DraftComponent } | { success: false; error: string } {
+  ): { success: true; draftComponent: DraftComponent } | { success: false; error: string } {
     if (!isDraftComponentParameters(params))
       return { success: false, error: 'Invalid draft component' }
-    return { success: true, data: new DraftComponent(params) }
+    return { success: true, draftComponent: new DraftComponent(params) }
   }
 
   static parseOrThrow(params: unknown): DraftComponent {
     const result = DraftComponent.parse(params)
     if (!result.success) throw new InvalidDraftComponentError(result.error)
-    return result.data
+    return result.draftComponent
   }
 
   static parseMany(values: unknown):
     | {
         success: true
-        data: readonly DraftComponent[]
+        draftComponents: readonly DraftComponent[]
       }
     | { success: false; error: string } {
     if (!Array.isArray(values)) {
@@ -46,9 +46,9 @@ export class DraftComponent {
     for (const value of values) {
       const parsed = DraftComponent.parse(value)
       if (!parsed.success) return { success: false, error: parsed.error }
-      components.push(parsed.data)
+      components.push(parsed.draftComponent)
     }
-    return { success: true, data: components }
+    return { success: true, draftComponents: components }
   }
 
   private constructor(params: DraftComponentParameters) {

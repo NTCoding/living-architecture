@@ -25,10 +25,6 @@ export function createWorkflowRoutes(dependencies: CreateWorkflowRoutesEntrypoin
     recordBranch: (workflow, branch) => workflow.executeRecording('record-branch', branch),
     recordReviewerStatus: (workflow, reviewer, status) =>
       workflow.recordReviewerStatus(reviewer, status),
-    createPullRequest: (workflow, args) => {
-      const parsed = dependencies.parsePullRequestDescriptionOptions(args)
-      if (!parsed.ok) return { pass: false, reason: parsed.reason }
-      return workflow.createPr(parsed.input)
-    },
+    parsePullRequestDescriptionOptions: dependencies.parsePullRequestDescriptionOptions,
   }).routes
 }

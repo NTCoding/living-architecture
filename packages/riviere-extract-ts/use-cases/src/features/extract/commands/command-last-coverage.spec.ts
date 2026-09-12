@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import {
   type TestContext,
@@ -28,8 +28,9 @@ function createProject(): RiviereProject {
 describe('final command coverage', () => {
   const ctx: TestContext = createTestContext()
   setupCommandTest(ctx)
+  afterEach(() => vi.restoreAllMocks())
 
-  it('returns invalid component type and component not found from enrich', () => {
+  it('returns invalid component type from enrich', () => {
     const project = createProject()
     const { id } = project.amendGraph((builder) =>
       builder.addUI({
@@ -55,6 +56,22 @@ describe('final command coverage', () => {
     expect(
       new EnrichComponent(new RiviereProjectRepository()).execute({ ...empty, id }).result,
     ).toMatchObject({ code: 'INVALID_COMPONENT_TYPE', success: false })
+  })
+
+  it('returns component not found from enrich', () => {
+    const project = createProject()
+    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    const empty = {
+      businessRules: [],
+      entity: undefined,
+      emits: [],
+      graphFileLocation: join(ctx.testDir, '.riviere', 'graph.json'),
+      modifies: [],
+      reads: [],
+      signature: undefined,
+      stateChanges: [],
+      validates: [],
+    }
     expect(
       new EnrichComponent(new RiviereProjectRepository()).execute({
         ...empty,

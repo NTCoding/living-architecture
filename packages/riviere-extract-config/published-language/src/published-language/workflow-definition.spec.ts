@@ -82,6 +82,7 @@ describe('parseWorkflowDefinition', () => {
 
   it.each([
     ['unsupported api version', { ...validWorkflow, apiVersion: 'v2' }],
+    ['missing api version', { ...validWorkflow, apiVersion: undefined }],
     ['missing name', { ...validWorkflow, name: undefined }],
     ['empty name', { ...validWorkflow, name: '' }],
     ['missing output', { ...validWorkflow, output: undefined }],
@@ -115,6 +116,10 @@ describe('parseWorkflowDefinition', () => {
     [
       'configured stage missing config',
       { ...validWorkflow, stages: [{ kind: 'code-extraction', name: 'stage' }] },
+    ],
+    [
+      'configured stage with blank name',
+      { ...validWorkflow, stages: [{ kind: 'code-extraction', name: '', config: 'orders.yaml' }] },
     ],
     [
       'schema-validate stage with config',

@@ -1,21 +1,34 @@
+import { assert } from 'vitest'
 import { buildTestWorkflow, makeDeps } from './__fixtures__/workflow-test-fixtures'
 import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
-import type { PullRequestDescriptionInput } from './pull-request-description'
+import {
+  CommitType,
+  PullRequestCreationDetails,
+  PullRequestDescription,
+  PullRequestTitle,
+} from './pull-request-description'
 import { WorkflowState } from './workflow-types'
 class GitHubPullRequestError extends Error {}
-const VALID_PULL_REQUEST_DESCRIPTION_INPUT: PullRequestDescriptionInput = {
-  commitType: 'feat',
+const commitType = CommitType.from('feat')
+const title = PullRequestTitle.from('restore agent drafted pull requests')
+const description = PullRequestDescription.from(
+  'The workflow now restores the agent drafted pull request description so the submitted pull request explains the completed work clearly.',
+)
+assert(commitType.ok)
+assert(title.ok)
+assert(description.ok)
+const VALID_PULL_REQUEST_DESCRIPTION_INPUT = PullRequestCreationDetails.from({
+  commitType: commitType.value,
   commitScope: 'workflow',
-  title: 'Restore agent drafted pull requests',
-  description:
-    'The workflow now restores the agent drafted pull request description so the submitted pull request explains the completed work clearly.',
+  title: title.value,
+  description: description.value,
   problem: 'Fixed pull request metadata did not explain the completed work.',
   acceptanceCriteria: '- Pull requests include the drafted workflow description.',
   keyChanges: '- Restore structured pull request creation.',
   architectureImpact: 'None.',
   validation: '- pnpm nx test dev-workflow-v2-domain-model',
   notes: 'None.',
-}
+})
 describe('pull request creation', () => {
   it('rejects create-pr while still implementing with the operation gate reason', () => {
     const workflow = buildTestWorkflow(

@@ -4,11 +4,17 @@ import { describe, expect, it, vi } from 'vitest'
 import { CreateWorkflowRoutes } from './create-workflow-routes'
 import { Reviewer } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
 
-function createRoutes() {
+function createRoutes(
+  inputOverrides: Partial<{
+    commitType: string
+    title: string
+    description: string
+    parseFailure: boolean
+  }> = {},
+) {
   const recordIssue = vi.fn(() => ({ pass: true as const }))
   const recordBranch = vi.fn(() => ({ pass: true as const }))
   const recordReviewerStatus = vi.fn(() => ({ pass: true as const }))
-  const createPullRequest = vi.fn(() => ({ pass: true as const }))
   const routes = new CreateWorkflowRoutes(
     { getSchema: () => z.enum(['IMPLEMENTING', 'REVIEWING']) },
     defineRoutes,
@@ -19,9 +25,26 @@ function createRoutes() {
     recordIssue,
     recordBranch,
     recordReviewerStatus,
-    createPullRequest,
+    parsePullRequestDescriptionOptions: () =>
+      inputOverrides.parseFailure
+        ? { ok: false as const, reason: 'Expected pull request options.' }
+        : {
+            ok: true as const,
+            input: {
+              commitType: inputOverrides.commitType ?? 'feat',
+              commitScope: 'workflow',
+              title: inputOverrides.title ?? 'restore review agents',
+              description: inputOverrides.description ?? 'A'.repeat(100),
+              problem: 'Problem',
+              acceptanceCriteria: 'Criteria',
+              keyChanges: 'Changes',
+              architectureImpact: 'Impact',
+              validation: 'Validation',
+              notes: 'Notes',
+            },
+          },
   }).routes
-  return { routes, recordIssue, recordBranch, recordReviewerStatus, createPullRequest }
+  return { routes, recordIssue, recordBranch, recordReviewerStatus }
 }
 
 describe('CreateWorkflowRoutes', () => {
@@ -48,13 +71,64 @@ describe('CreateWorkflowRoutes', () => {
     )
   })
 
-  it('delegates pull request creation with parsed string arguments', () => {
-    const { routes, createPullRequest } = createRoutes()
-    const workflow = Object.create({})
+  it('creates a pull request from parsed command input', () => {
+    const { routes } = createRoutes()
+    const createPr = vi.fn(() => ({ pass: true as const }))
+    const workflow = Object.create({ createPr })
 
     routes['create-pr'].handler(workflow, ['--title', 'Restore review agents'])
 
-    expect(createPullRequest).toHaveBeenCalledWith(workflow, ['--title', 'Restore review agents'])
+    expect(createPr).toHaveBeenCalledOnce()
+  })
+
+  it('rejects an unsupported commit type', () => {
+    const { routes } = createRoutes({ commitType: 'unsupported' })
+    const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
+
+    expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
+      pass: false,
+      reason: expect.stringContaining('Expected --commit-type'),
+    })
+  })
+
+  it('rejects a composed pull request title longer than 100 characters', () => {
+    const { routes } = createRoutes({ title: 'a'.repeat(90) })
+    const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
+
+    expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
+      pass: false,
+      reason: 'Expected composed pull request title to be at most 100 characters.',
+    })
+  })
+
+  it('rejects an invalid pull request title', () => {
+    const { routes } = createRoutes({ title: 'Invalid title' })
+    const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
+
+    expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
+      pass: false,
+      reason: 'Expected --title to use lower case.',
+    })
+  })
+
+  it('rejects an invalid pull request description', () => {
+    const { routes } = createRoutes({ description: 'short' })
+    const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
+
+    expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
+      pass: false,
+      reason: 'Expected --description to be at least 100 characters.',
+    })
+  })
+
+  it('rejects unparseable pull request options', () => {
+    const { routes } = createRoutes({ parseFailure: true })
+    const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
+
+    expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
+      pass: false,
+      reason: 'Expected pull request options.',
+    })
   })
 
   it('rejects unknown reviewer names and statuses', () => {

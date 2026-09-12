@@ -87,18 +87,21 @@ describe('RiviereProjectRepository load errors', () => {
     const spy = vi.spyOn(gitModule, 'getRepositoryInfo').mockImplementation(() => {
       throw new UnexpectedGitFailure()
     })
-    withWorkspace((dir) => {
-      writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
-      writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
-      expect(() =>
-        loadProject({
-          configPath: join(dir, 'extract.config.yml'),
-          projectRoot: dir,
-          useTsConfig: false,
-        }),
-      ).toThrow('boom')
-    })
-    spy.mockRestore()
+    try {
+      withWorkspace((dir) => {
+        writeFileSync(join(dir, 'component.ts'), 'export class Order {}')
+        writeFileSync(join(dir, 'extract.config.yml'), VALID_CONFIG)
+        expect(() =>
+          loadProject({
+            configPath: join(dir, 'extract.config.yml'),
+            projectRoot: dir,
+            useTsConfig: false,
+          }),
+        ).toThrow('boom')
+      })
+    } finally {
+      spy.mockRestore()
+    }
   })
 
   it('load throws ExtractionConfigError for invalid YAML', () => {

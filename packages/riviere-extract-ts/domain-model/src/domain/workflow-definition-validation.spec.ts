@@ -5,7 +5,7 @@ import { configuration } from './__fixtures__/workflow-fixtures'
 
 describe('Workflow definition validation', () => {
   it('rejects an invalid Workflow name', () => {
-    const result = Workflow.start({
+    const result = Workflow.build({
       name: 'Build Graph',
       outputPath: 'graph.json',
       runLogDirectory: 'logs',
@@ -20,7 +20,7 @@ describe('Workflow definition validation', () => {
   })
 
   it('rejects a workflow without stages', () => {
-    const result = Workflow.start({
+    const result = Workflow.build({
       name: 'build-graph',
       outputPath: 'graph.json',
       runLogDirectory: 'logs',
@@ -35,7 +35,7 @@ describe('Workflow definition validation', () => {
   })
 
   it('rejects duplicate stage names across different stage kinds', () => {
-    const result = Workflow.start({
+    const result = Workflow.build({
       name: 'build-graph',
       outputPath: 'graph.json',
       runLogDirectory: 'logs',

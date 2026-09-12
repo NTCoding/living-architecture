@@ -53,7 +53,7 @@ function allStages() {
 }
 
 function workflow(stages = allStages()): Workflow {
-  const result = Workflow.start({
+  const result = Workflow.build({
     name: 'build-graph',
     outputPath: '.riviere/graph.json',
     runLogDirectory: '.riviere/logs',
@@ -71,7 +71,7 @@ const successfulStage = {
 
 describe('Workflow stage language', () => {
   it('reports its workflow name', () => {
-    const result = Workflow.start({
+    const result = Workflow.build({
       name: 'build',
       outputPath: 'graph.json',
       runLogDirectory: 'logs',

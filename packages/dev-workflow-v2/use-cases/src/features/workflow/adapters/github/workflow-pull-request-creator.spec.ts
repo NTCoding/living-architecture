@@ -16,6 +16,10 @@ it('pushes the branch and translates workflow pull request details into a GitHub
   })
 
   expect(pushBranch).toHaveBeenCalledWith('issue-42')
+  expect([pushBranch.mock.invocationCallOrder, client.mock.invocationCallOrder]).toStrictEqual([
+    [1],
+    [2],
+  ])
   expect(client).toHaveBeenCalledWith({
     branch: 'issue-42',
     body: 'Description',

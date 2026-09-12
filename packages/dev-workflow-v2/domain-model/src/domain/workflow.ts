@@ -11,7 +11,7 @@ import {
 import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowState } from './workflow-types'
-import type { PullRequestDescriptionInput } from './pull-request-description'
+import type { PullRequestCreationDetails } from './pull-request-description'
 import { MaintainerWorkflowRegistry } from './registry'
 import { ReviewingState } from './states/reviewing'
 import { SubmittingPrState } from './states/submitting-pr'
@@ -178,7 +178,7 @@ export class MaintainerWorkflow {
     return pass()
   }
 
-  createPr(input: PullRequestDescriptionInput): PreconditionResult {
+  createPr(input: PullRequestCreationDetails): PreconditionResult {
     const gate = checkOperationGate('create-pr', this.state, this.registryDefinition)
     if (!gate.pass) return gate
     if (this.state.prNumber !== undefined) {
@@ -187,7 +187,7 @@ export class MaintainerWorkflow {
     return this.submitPullRequest(input)
   }
 
-  private submitPullRequest(input: PullRequestDescriptionInput): PreconditionResult {
+  private submitPullRequest(input: PullRequestCreationDetails): PreconditionResult {
     try {
       const submission = this.getSubmissionDetails()
       const pullRequest = this.deps.createPullRequest(
@@ -206,15 +206,17 @@ export class MaintainerWorkflow {
   }
 
   private pullRequestCreationRequest(
-    input: PullRequestDescriptionInput,
+    input: PullRequestCreationDetails,
     githubIssue: number,
     branch: string,
   ): Parameters<CreateWorkflowPullRequest>[0] {
     return {
       branch,
-      title: `${input.commitType}(${input.commitScope}): ${normalisePullRequestSubject(input.title)}`,
+      title: `${input.commitType.name()}(${input.commitScope}): ${normalisePullRequestSubject(
+        input.title.value(),
+      )}`,
       body: [
-        formatSection('Description', input.description),
+        formatSection('Description', input.description.value()),
         formatSection('Linked Issue', `Closes #${githubIssue}`),
         formatSection('What Problem Does This PR Solve?', input.problem),
         formatSection('Acceptance Criteria', input.acceptanceCriteria),

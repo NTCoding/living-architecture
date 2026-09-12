@@ -32,6 +32,7 @@ export type {
   InClassWithPredicateInput,
   LiteralExtractionRuleInput,
   ModuleRef,
+  ModuleRules,
   NameEndsWithPredicateInput,
   NameMatchesPredicateInput,
   NotUsedInput,
@@ -94,6 +95,10 @@ export {
   type ModuleRulesSource,
 } from './published-language/module-defaults'
 export { ValidatedModule } from './published-language/validated-module'
+export {
+  ExtractionConfig,
+  type ExtractionConfigParseResult,
+} from './published-language/extraction-config'
 export {
   parseExtractionConfigSchema,
   parseExtractionConfig,

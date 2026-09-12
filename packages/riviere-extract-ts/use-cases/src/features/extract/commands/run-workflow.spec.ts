@@ -1,4 +1,3 @@
-import { resolve } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({ loadMock: vi.fn(), rebuildGraph: vi.fn() }))
@@ -23,13 +22,13 @@ describe('RunWorkflow', () => {
     mocks.rebuildGraph.mockReturnValue({ success: true, graph: { metadata: {} } })
   })
 
-  it('loads the named workflow and delegates the complete run to the project', () => {
-    const input = { projectRoot: '/project', workflowName: 'combined' }
+  it('loads the workflow file and delegates the complete run to the project', () => {
+    const input = { workflowPath: '/project/.riviere/workflows/combined.yaml' }
     const result = new RunWorkflow(new RiviereProjectRepository()).execute(input)
 
     expect(mocks.loadMock).toHaveBeenCalledWith({
       kind: 'workflow',
-      workflowPath: resolve('/project', '.riviere', 'workflows', 'combined.yaml'),
+      workflowPath: '/project/.riviere/workflows/combined.yaml',
     })
     expect(mocks.rebuildGraph).toHaveBeenCalledWith()
     expect(result).toStrictEqual({ result: { success: true, graph: { metadata: {} } } })
@@ -45,8 +44,7 @@ describe('RunWorkflow', () => {
 
     expect(
       new RunWorkflow(new RiviereProjectRepository()).execute({
-        projectRoot: '/project',
-        workflowName: 'combined',
+        workflowPath: '/project/.riviere/workflows/combined.yaml',
       }),
     ).toStrictEqual({
       result: {
@@ -67,8 +65,7 @@ describe('RunWorkflow', () => {
 
     expect(() =>
       new RunWorkflow(new RiviereProjectRepository()).execute({
-        projectRoot: '/project',
-        workflowName: 'combined',
+        workflowPath: '/project/.riviere/workflows/combined.yaml',
       }),
     ).toThrow('unexpected')
   })

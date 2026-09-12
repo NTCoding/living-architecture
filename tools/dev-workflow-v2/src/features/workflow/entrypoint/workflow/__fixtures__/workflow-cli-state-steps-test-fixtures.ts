@@ -5,7 +5,7 @@ export const CREATE_PULL_REQUEST = [
   '--commit-scope',
   'workflow',
   '--title',
-  'Restore workflow review agents',
+  'restore workflow review agents',
   '--description',
   'This pull request restores the main agent review hand off and ensures submitted pull requests contain a useful description of the completed work.',
   '--problem',

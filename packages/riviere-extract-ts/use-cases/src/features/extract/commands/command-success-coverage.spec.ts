@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { assert, describe, expect, it, vi } from 'vitest'
+import { afterEach, assert, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
 import {
@@ -68,10 +68,24 @@ function createProjectWithApi(): RiviereProject {
 describe('command success path coverage', () => {
   const ctx: TestContext = createTestContext()
   setupCommandTest(ctx)
+  afterEach(() => vi.restoreAllMocks())
 
   function graphLocation(): string {
     return join(ctx.testDir, '.riviere', 'graph.json')
   }
+
+  const addComponentBase = {
+    componentType: 'UseCase',
+    domain: 'orders',
+    filePath: 'src/component.ts',
+    graphFileLocation: graphLocation(),
+    module: 'core',
+    name: 'Component',
+    repository: 'https://github.com/org/repo',
+  }
+  const runAddComponent = (input: Partial<AddComponentInput>) =>
+    new AddComponent(new RiviereProjectRepository()).execute({ ...addComponentBase, ...input })
+      .result
 
   it('initializes a new graph', () => {
     const result = new InitGraph(new RiviereProjectRepository()).execute({
@@ -124,14 +138,53 @@ describe('command success path coverage', () => {
       graphFileLocation: graphLocation(),
       repository: 'https://github.com/org/payments',
     })
-    expect(result.result.success).toBe(true)
+    expect(result.result).toStrictEqual({
+      repository: 'https://github.com/org/payments',
+      success: true,
+    })
   })
 
-  it('reports an inconsistent graph', () => {
+  it('reports an inconsistent graph', async () => {
+    const { mkdir, writeFile } = await import('node:fs/promises')
+    await mkdir(join(ctx.testDir, '.riviere'), { recursive: true })
+    await writeFile(
+      join(ctx.testDir, '.riviere', 'graph.json'),
+      JSON.stringify({
+        components: [
+          {
+            id: 'orders:core:usecase:orphan',
+            name: 'Orphan',
+            domain: 'orders',
+            module: 'core',
+            type: 'UseCase',
+            sourceLocation: {
+              repository: 'https://github.com/org/repo',
+              filePath: 'src/orphan.ts',
+            },
+          },
+        ],
+        links: [],
+        metadata: {
+          domains: { orders: { description: 'Orders', systemType: 'domain' } },
+          sources: [{ repository: 'https://github.com/org/repo' }],
+        },
+        version: '1.0',
+      }),
+      'utf-8',
+    )
     const result = new CheckConsistency(new RiviereProjectRepository()).execute({
       graphFileLocation: graphLocation(),
     })
-    expect(result.result).toMatchObject({ success: false })
+    expect(result.result).toMatchObject({
+      success: true,
+      consistent: false,
+      warnings: [
+        {
+          code: 'ORPHAN_COMPONENT',
+          componentId: 'orders:core:usecase:orphan',
+        },
+      ],
+    })
   })
 
   it('validates a graph', async () => {
@@ -174,21 +227,11 @@ describe('command success path coverage', () => {
     expect(result.result.success).toBe(true)
   })
 
-  it('adds api, use-case, and domain-op components', () => {
+  it('adds an api component', () => {
     const project = createProject()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const base = {
-      domain: 'orders',
-      filePath: 'src/component.ts',
-      graphFileLocation: graphLocation(),
-      module: 'core',
-      repository: 'https://github.com/org/repo',
-    }
-    const run = (input: AddComponentInput) =>
-      new AddComponent(new RiviereProjectRepository()).execute(input).result
     expect(
-      run({
-        ...base,
+      runAddComponent({
         apiType: 'REST',
         componentType: 'API',
         httpMethod: 'POST',
@@ -196,32 +239,32 @@ describe('command success path coverage', () => {
         name: 'CreateOrder',
       }),
     ).toMatchObject({ success: true })
-    expect(run({ ...base, componentType: 'UseCase', name: 'Place Order' })).toMatchObject({
+  })
+
+  it('adds a use-case component', () => {
+    const project = createProject()
+    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
+    expect(runAddComponent({ componentType: 'UseCase', name: 'Place Order' })).toMatchObject({
       success: true,
     })
+  })
+
+  it('adds a domain-op component', () => {
+    const project = createProject()
+    vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
     expect(
-      run({ ...base, componentType: 'DomainOp', name: 'place order', operationName: 'place' }),
+      runAddComponent({ componentType: 'DomainOp', name: 'place order', operationName: 'place' }),
     ).toMatchObject({ success: true })
   })
 
   it('adds event and event-handler components', () => {
     const project = createProject()
     vi.spyOn(RiviereProjectRepository.prototype, 'load').mockReturnValue(project)
-    const base = {
-      domain: 'orders',
-      filePath: 'src/component.ts',
-      graphFileLocation: graphLocation(),
-      module: 'core',
-      repository: 'https://github.com/org/repo',
-    }
-    const run = (input: AddComponentInput) =>
-      new AddComponent(new RiviereProjectRepository()).execute(input).result
     expect(
-      run({ ...base, componentType: 'Event', eventName: 'order.placed', name: 'order placed' }),
+      runAddComponent({ componentType: 'Event', eventName: 'order.placed', name: 'order placed' }),
     ).toMatchObject({ success: true })
     expect(
-      run({
-        ...base,
+      runAddComponent({
         componentType: 'EventHandler',
         name: 'on placed',
         subscribedEvents: 'order.placed',

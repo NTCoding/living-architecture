@@ -1,12 +1,15 @@
 import { arg } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { defineRoutes, RouteMap } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { MaintainerWorkflow as Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
+import {
+  CommitType,
+  PullRequestCreationDetails,
+  PullRequestDescription,
+  PullRequestTitle,
+} from '@living-architecture/dev-workflow-v2-domain-model/domain/pull-request-description'
 import { Reviewer } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
 import { ReviewStatuses } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/statuses'
-import type { PullRequestDescriptionInput } from '@living-architecture/dev-workflow-v2-domain-model/domain/pull-request-description'
 import type { ZodType } from 'zod'
-
-export type { PullRequestDescriptionInput }
 
 interface ZodSchemaProvider<T> {
   getSchema(): ZodType<T>
@@ -19,6 +22,20 @@ type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
 
 type WorkflowResult = ReturnType<Workflow['executeRecording']>
 type ReviewerStatus = Parameters<Workflow['recordReviewerStatus']>[1]
+
+/** @riviere-role command-use-case-input */
+export interface CreatePullRequestInput {
+  readonly commitType: string
+  readonly commitScope: string
+  readonly title: string
+  readonly description: string
+  readonly problem: string
+  readonly acceptanceCriteria: string
+  readonly keyChanges: string
+  readonly architectureImpact: string
+  readonly validation: string
+  readonly notes: string
+}
 
 class InvalidReviewerStatusError extends Error {}
 
@@ -42,7 +59,11 @@ export interface CreateWorkflowRoutesInput {
     reviewer: Reviewer,
     status: ReviewerStatus,
   ) => WorkflowResult
-  readonly createPullRequest: (workflow: RoutedWorkflow, args: readonly string[]) => WorkflowResult
+  readonly parsePullRequestDescriptionOptions: (
+    args: readonly string[],
+  ) =>
+    | { readonly ok: true; readonly input: CreatePullRequestInput }
+    | { readonly ok: false; readonly reason: string }
 }
 
 interface WorkflowRouteDefinitions extends RouteMap<RoutedWorkflow, RoutedWorkflowState> {
@@ -82,6 +103,40 @@ export interface CreateWorkflowRoutesResult {
   readonly routes: WorkflowRouteDefinitions
 }
 
+function createPullRequestDetails(
+  input: CreatePullRequestInput,
+):
+  | { readonly ok: true; readonly value: PullRequestCreationDetails }
+  | { readonly ok: false; readonly reason: string } {
+  const commitType = CommitType.from(input.commitType)
+  if (!commitType.ok) return commitType
+  const title = PullRequestTitle.from(input.title)
+  if (!title.ok) return title
+  const description = PullRequestDescription.from(input.description)
+  if (!description.ok) return description
+  if (`${commitType.value.name()}(${input.commitScope}): ${input.title}`.length > 100) {
+    return {
+      ok: false,
+      reason: 'Expected composed pull request title to be at most 100 characters.',
+    }
+  }
+  return {
+    ok: true,
+    value: PullRequestCreationDetails.from({
+      commitType: commitType.value,
+      commitScope: input.commitScope,
+      title: title.value,
+      description: description.value,
+      problem: input.problem,
+      acceptanceCriteria: input.acceptanceCriteria,
+      keyChanges: input.keyChanges,
+      architectureImpact: input.architectureImpact,
+      validation: input.validation,
+      notes: input.notes,
+    }),
+  }
+}
+
 /** @riviere-role command-use-case */
 export class CreateWorkflowRoutes {
   constructor(
@@ -112,8 +167,13 @@ export class CreateWorkflowRoutes {
       'create-pr': {
         type: 'transaction' as const,
         args: [arg.rest()] as const,
-        handler: (workflow: RoutedWorkflow, args: unknown) =>
-          input.createPullRequest(workflow, input.parseStringArguments(args)),
+        handler: (workflow: RoutedWorkflow, args: unknown) => {
+          const parsed = input.parsePullRequestDescriptionOptions(input.parseStringArguments(args))
+          if (!parsed.ok) return { pass: false, reason: parsed.reason }
+          const details = createPullRequestDetails(parsed.input)
+          if (!details.ok) return { pass: false, reason: details.reason }
+          return workflow.createPr(details.value)
+        },
       },
       'record-reviewer-status': {
         type: 'transaction' as const,

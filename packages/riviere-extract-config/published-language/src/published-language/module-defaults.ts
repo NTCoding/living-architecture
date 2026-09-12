@@ -2,18 +2,48 @@ import type {
   ComponentRuleInput,
   CustomTypesInput,
   DraftConfiguration,
+  ModuleRules,
   ValidatedModuleInput,
 } from './extraction-config-schema'
 import { parseExtractionConfigSchema } from './validation'
+import { z } from 'zod'
 
 const NOT_USED = { notUsed: true } as const
+
+const MODULES_CONFIG_SCHEMA = z.looseObject({
+  modules: z.array(z.unknown()),
+})
+
+const COMPONENT_RULE_SCHEMA = z.custom<ComponentRuleInput>((value) => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
+  if ('notUsed' in value) return value.notUsed === true
+  return 'find' in value
+})
+
+const CUSTOM_TYPES_SCHEMA = z.custom<CustomTypesInput>((value) => {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+})
+
+const MODULE_RULES_SOURCE_SCHEMA = z.looseObject({
+  api: COMPONENT_RULE_SCHEMA.optional(),
+  useCase: COMPONENT_RULE_SCHEMA.optional(),
+  domainOp: COMPONENT_RULE_SCHEMA.optional(),
+  event: COMPONENT_RULE_SCHEMA.optional(),
+  eventHandler: COMPONENT_RULE_SCHEMA.optional(),
+  ui: COMPONENT_RULE_SCHEMA.optional(),
+  customTypes: CUSTOM_TYPES_SCHEMA.optional(),
+  modules: z.never().optional(),
+})
+
+type ModuleRulesWithCustomTypes = ModuleRules & Readonly<{ customTypes?: CustomTypesInput }>
 
 /** @riviere-role value-object */
 export class ModuleDefaults {
   declare private readonly brand: 'ModuleDefaults'
 
   static parse(source: unknown): ModuleDefaultsParseResult {
-    if (hasModulesArray(source)) {
+    const modulesConfig = MODULES_CONFIG_SCHEMA.safeParse(source)
+    if (modulesConfig.success) {
       const parsed = parseExtractionConfigSchema(source)
       if (!parsed.success) {
         return {
@@ -23,7 +53,8 @@ export class ModuleDefaults {
       }
       return { success: true, source: { kind: 'configuration', config: parsed.configuration } }
     }
-    if (!isRulesSource(source)) {
+    const rulesSource = MODULE_RULES_SOURCE_SCHEMA.safeParse(source)
+    if (!rulesSource.success) {
       return { success: false, issues: ['expected an object with component rules'] }
     }
     return {
@@ -31,13 +62,15 @@ export class ModuleDefaults {
       source: {
         kind: 'rules',
         defaults: new ModuleDefaults({
-          api: source.api ?? NOT_USED,
-          useCase: source.useCase ?? NOT_USED,
-          domainOp: source.domainOp ?? NOT_USED,
-          event: source.event ?? NOT_USED,
-          eventHandler: source.eventHandler ?? NOT_USED,
-          ui: source.ui ?? NOT_USED,
-          ...(source.customTypes === undefined ? {} : { customTypes: source.customTypes }),
+          api: rulesSource.data.api ?? NOT_USED,
+          useCase: rulesSource.data.useCase ?? NOT_USED,
+          domainOp: rulesSource.data.domainOp ?? NOT_USED,
+          event: rulesSource.data.event ?? NOT_USED,
+          eventHandler: rulesSource.data.eventHandler ?? NOT_USED,
+          ui: rulesSource.data.ui ?? NOT_USED,
+          ...(rulesSource.data.customTypes === undefined
+            ? {}
+            : { customTypes: rulesSource.data.customTypes }),
         }),
       },
     }
@@ -67,43 +100,21 @@ export class ModuleDefaults {
     }>,
   ) {}
 
-  get api(): ComponentRuleInput {
-    return this.rules.api
+  mergeWith(module: Readonly<Partial<ValidatedModuleInput>>): ModuleRulesWithCustomTypes {
+    const mergedCustomTypes =
+      this.rules.customTypes === undefined && module.customTypes === undefined
+        ? undefined
+        : { ...this.rules.customTypes, ...module.customTypes }
+    return {
+      api: module.api ?? this.rules.api,
+      useCase: module.useCase ?? this.rules.useCase,
+      domainOp: module.domainOp ?? this.rules.domainOp,
+      event: module.event ?? this.rules.event,
+      eventHandler: module.eventHandler ?? this.rules.eventHandler,
+      ui: module.ui ?? this.rules.ui,
+      ...(mergedCustomTypes === undefined ? {} : { customTypes: mergedCustomTypes }),
+    }
   }
-
-  get useCase(): ComponentRuleInput {
-    return this.rules.useCase
-  }
-
-  get domainOp(): ComponentRuleInput {
-    return this.rules.domainOp
-  }
-
-  get event(): ComponentRuleInput {
-    return this.rules.event
-  }
-
-  get eventHandler(): ComponentRuleInput {
-    return this.rules.eventHandler
-  }
-
-  get ui(): ComponentRuleInput {
-    return this.rules.ui
-  }
-
-  get customTypes(): CustomTypesInput | undefined {
-    return this.rules.customTypes
-  }
-}
-
-function hasModulesArray(value: unknown): boolean {
-  return typeof value === 'object' && value !== null && !Array.isArray(value) && 'modules' in value
-}
-
-function isRulesSource(value: unknown): value is Partial<ValidatedModuleInput> {
-  return (
-    typeof value === 'object' && value !== null && !Array.isArray(value) && !('modules' in value)
-  )
 }
 
 /** @riviere-role published-language-schema */
