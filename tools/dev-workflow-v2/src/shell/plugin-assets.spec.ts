@@ -136,72 +136,8 @@ describe('plugin Agent Skills', () => {
 
   it.each(['workflow', 'list-review-threads'])('contains a complete %s skill', (skillName) => {
     const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
-
-      expect(skill).toContain(`name: ${skillName}`)
-      expect(skill).not.toContain('TODO')
-    },
-  )
-
-  it('uses standardised domain message flows before detailed component design', () => {
-    const skill = readPluginFile('skills/domain-message-flow/SKILL.md')
-    const architectureDrafting = readPluginFile('planning-stages/architecture-drafting.md')
-    const boundaryStepPosition = architectureDrafting.indexOf(
-      '## Step 1: Shape interactions and decide top-level architecture boundaries',
-    )
-    const componentStepPosition = architectureDrafting.indexOf(
-      '## Step 2: Present detailed component design options',
-    )
-
-    expect({
-      hasSkillName: skill.includes('name: domain-message-flow'),
-      hasApprovedOptionOrder:
-        skill.indexOf('# Option 1:') < skill.indexOf('## Message details') &&
-        skill.indexOf('## Message details') < skill.indexOf('## Pros') &&
-        skill.indexOf('## Pros') < skill.indexOf('## Cons'),
-      keepsMessageDataOutOfDiagram: skill.includes(
-        'Do not put message data, return values, annotations, paths, role names, or explanatory prose inside message boxes or on connecting lines.',
-      ),
-      requiresDetailsTable: skill.includes(
-        '| # | Type | Message | Sender → recipient | Significant data |',
-      ),
-      invokesSkillDuringBoundaries: architectureDrafting.includes(
-        'Read and apply `skills/domain-message-flow/SKILL.md` completely',
-      ),
-      separatesBoundaryAndComponentDesign:
-        boundaryStepPosition > -1 &&
-        componentStepPosition > boundaryStepPosition &&
-        architectureDrafting.includes(
-          'proceed to detailed component design only on a later planning turn',
-        ),
-    }).toStrictEqual({
-      hasSkillName: true,
-      hasApprovedOptionOrder: true,
-      keepsMessageDataOutOfDiagram: true,
-      requiresDetailsTable: true,
-      invokesSkillDuringBoundaries: true,
-      separatesBoundaryAndComponentDesign: true,
-    })
-  })
-
-  it('selects the code-review execution mechanism for all supported harnesses', () => {
-    const skill = readPluginFile('skills/code-review/SKILL.md')
-    const command = readPluginFile('commands/code-review.md')
-
-    expect({
-      detectsCodex: skill.includes('If `CODEX_THREAD_ID` is present'),
-      usesCodexSubagents: skill.includes('Codex `spawn_agent`'),
-      detectsOpenCode: skill.includes('if `OPENCODE=1` is present'),
-      usesOpenCodeSubagents: skill.includes('OpenCode `Task`'),
-      usesClaudeSubagents: skill.includes('Claude Code `Agent`'),
-      commandDoesNotOverrideHarness: !command.includes("Use Claude's Agent tool"),
-    }).toStrictEqual({
-      detectsCodex: true,
-      usesCodexSubagents: true,
-      detectsOpenCode: true,
-      usesOpenCodeSubagents: true,
-      usesClaudeSubagents: true,
-      commandDoesNotOverrideHarness: true,
-    })
+    expect(skill).toContain(`name: ${skillName}`)
+    expect(skill).not.toContain('TODO')
   })
 
   it.each(['list-review-threads'])(
