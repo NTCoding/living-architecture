@@ -17,8 +17,9 @@ import { MaintainerWorkflowRegistry } from './registry'
 import { ReviewingState } from './states/reviewing'
 import { SubmittingPrState } from './states/submitting-pr'
 import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
-import type { ReadWorkflowGitStatus } from './ports/read-git-status'
 import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
+import type { ReadWorkflowGitStatus } from './ports/read-git-status'
+import { reviewCycleOutcomes, waitForCodeRabbitCompletion } from './review-cycle'
 import type { Reviewer } from './reviews/reviewers'
 import { Reviewer as ReviewerValue } from './reviews/reviewers'
 import type { ReviewerStatus } from './reviews/statuses'
@@ -35,6 +36,13 @@ import {
 import { WorkflowTransitionContext } from './workflow-transition-context'
 type StateName = WorkflowState['currentStateMachineState']
 type LivingArchitectureReviewType = StoredReview['reviewType']
+type ReviewInputs = {
+  readonly pr: unknown
+  readonly linkedIssues: unknown
+  readonly reviewThreads: unknown
+  readonly decisionHistory: unknown
+  readonly range: string
+}
 const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
   'record-issue': {
     event: 'issue-recorded',
@@ -58,6 +66,11 @@ export type WorkflowDeps = {
   readonly getPrFeedback: ReadWorkflowPullRequestFeedback
   readonly createPullRequest: CreateWorkflowPullRequest
   readonly listSessionReviews: () => readonly StoredReview[]
+  readonly getReviewInputs: (
+    prNumber: number,
+    previousReviewedCommit: string | undefined,
+  ) => ReviewInputs
+  readonly postPullRequestComment: (prNumber: number, body: string) => void
   readonly sleepMs: (milliseconds: number) => void
   readonly now: () => string
 }
@@ -100,6 +113,40 @@ export class MaintainerWorkflow {
     if (this.state.prNumber === undefined)
       throw new WorkflowStateError('Workflow has no recorded pull request.')
     return this.state.prNumber
+  }
+
+  getPrContext(): PreconditionResult {
+    if (this.state.currentStateMachineState !== 'ADDRESSING_FEEDBACK')
+      return fail('get-pr-context can only run in ADDRESSING_FEEDBACK.')
+    if (this.state.prNumber === undefined || this.state.prUrl === undefined)
+      return fail('Workflow has no recorded pull request.')
+    this.state = this.state.withReviewInputs({
+      prNumber: this.state.prNumber,
+      prUrl: this.state.prUrl,
+    })
+    return pass()
+  }
+
+  getReviewInputs(): PreconditionResult {
+    if (this.state.currentStateMachineState !== 'REVIEWING')
+      return fail('get-review-inputs can only run in REVIEWING.')
+    if (this.state.prNumber === undefined || this.state.prUrl === undefined)
+      return fail('Workflow has no recorded pull request.')
+    const inputs = this.deps.getReviewInputs(this.state.prNumber, this.state.reviewedCommit)
+    this.state = this.state.withReviewInputs({
+      pr: inputs.pr,
+      reviewCycle: {
+        number: this.state.reviewCycleNumber,
+        previousReviewedCommit: this.state.reviewedCommit ?? null,
+        range: inputs.range,
+      },
+      includedReviewers: this.state.includedReviewers,
+      excludedReviewers: this.state.excludedReviewers,
+      linkedIssues: inputs.linkedIssues,
+      reviewThreads: inputs.reviewThreads,
+      decisionHistory: inputs.decisionHistory,
+    })
+    return pass()
   }
 
   getSubmissionDetails(): { readonly githubIssue: number; readonly featureBranch: string } {
@@ -300,6 +347,12 @@ export class MaintainerWorkflow {
       }),
     )
     const capReached = REVIEW_CYCLE_LIMIT.isReached(this.state.reviewCycleNumber)
+    if (hasOpenFeedback && capReached) {
+      this.deps.postPullRequestComment(
+        this.getPullRequestNumber(),
+        '[main-agent] 3 review cycles were completed before all reviewers had approved.',
+      )
+    }
     if (hasOpenFeedback && !capReached) return this.transition('ADDRESSING_FEEDBACK')
     return this.transition('HUMAN_REVIEWING', {
       reviewCycleCapReached: hasOpenFeedback && capReached,
@@ -359,50 +412,6 @@ function formatSection(heading: string, content: string): string {
 
 const REVIEW_RUNNERS = ['architecture-review', 'code-review', 'bug-scanner', 'task-check'] as const
 const REVIEW_CYCLE_LIMIT = ReviewCycleLimit.singleton()
-const CODERABBIT_POLL_INTERVAL_MS = 15_000
-const MAX_REVIEW_COMPLETION_POLLS = 120
-
-function waitForCodeRabbitCompletion(
-  deps: WorkflowDeps,
-  prNumber: number,
-  remainingPolls: number = MAX_REVIEW_COMPLETION_POLLS,
-): ReturnType<ReadWorkflowPullRequestFeedback> {
-  const feedback = deps.getPrFeedback(prNumber)
-  if (feedback.coderabbitReviewSeen || feedback.coderabbitRateLimited) return feedback
-  if (remainingPolls === 1) return feedback
-  deps.sleepMs(CODERABBIT_POLL_INTERVAL_MS)
-  return waitForCodeRabbitCompletion(deps, prNumber, remainingPolls - 1)
-}
-
-function reviewCycleOutcomes(
-  feedback: ReturnType<ReadWorkflowPullRequestFeedback>,
-  includedReviewers: readonly string[],
-): Readonly<Record<string, string>> {
-  const outcomes: Record<string, string> = {}
-  for (const reviewer of REVIEW_RUNNERS) {
-    if (!includedReviewers.includes(reviewer)) continue
-    outcomes[reviewer] = feedback.reviewerStatuses[reviewer]
-  }
-  outcomes['coderabbit'] = codeRabbitOutcome(feedback)
-  return outcomes
-}
-
-function codeRabbitOutcome(
-  feedback: ReturnType<ReadWorkflowPullRequestFeedback>,
-): 'PENDING' | 'RATE_LIMITED' | 'OPEN_FEEDBACK' | 'APPROVED' {
-  if (feedback.coderabbitRateLimited) return 'RATE_LIMITED'
-  if (!feedback.coderabbitReviewSeen) return 'PENDING'
-  const hasOpenCodeRabbitThread = feedback.threads.some(
-    (thread) =>
-      !thread.isResolved &&
-      !thread.isOutdated &&
-      thread.comments.some(
-        (comment) =>
-          comment.author?.login === 'coderabbitai' || comment.author?.login === 'coderabbitai[bot]',
-      ),
-  )
-  return hasOpenCodeRabbitThread ? 'OPEN_FEEDBACK' : 'APPROVED'
-}
 
 function normalisePullRequestSubject(subject: string): string {
   return subject.charAt(0).toLowerCase() + subject.slice(1)

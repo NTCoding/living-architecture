@@ -126,8 +126,9 @@ export class WorkflowState {
   readonly excludedReviewers: Readonly<Record<string, string>>
   readonly preBlockedState?: string
   readonly transcriptPath?: string
+  readonly reviewInputs?: unknown
 
-  private constructor(value: WorkflowStateValue) {
+  private constructor(value: WorkflowStateValue, reviewInputs?: unknown) {
     this.currentStateMachineState = value.currentStateMachineState
     this.reviewerStatuses = ReviewerStatuses.parse(value.reviewerStatuses)
     this.reviewCycleNumber = value.reviewCycleNumber ?? 0
@@ -142,6 +143,7 @@ export class WorkflowState {
     if (value.prUrl !== undefined) this.prUrl = value.prUrl
     if (value.preBlockedState !== undefined) this.preBlockedState = value.preBlockedState
     if (value.transcriptPath !== undefined) this.transcriptPath = value.transcriptPath
+    this.reviewInputs = reviewInputs
   }
 
   static parse(value: unknown): WorkflowState {
@@ -177,6 +179,10 @@ export class WorkflowState {
       ...this.toJSON(),
       ...changes,
     })
+  }
+
+  withReviewInputs(reviewInputs: unknown): WorkflowState {
+    return new WorkflowState(WORKFLOW_STATE_SCHEMA.parse(this.toJSON()), reviewInputs)
   }
 
   apply(event: WorkflowEvent): WorkflowState {

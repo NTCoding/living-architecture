@@ -25,6 +25,8 @@ type StateName = WorkflowState['currentStateMachineState']
 type WorkflowOperation =
   | 'record-issue'
   | 'record-branch'
+  | 'get-review-inputs'
+  | 'get-pr-context'
   | 'record-reviewer-status'
   | 'create-pr'
   | 'wait-for-coderabbit-and-close-review-cycle'

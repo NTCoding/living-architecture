@@ -55,6 +55,8 @@ Domain model package: `@living-architecture/dev-workflow-v2-domain-model`
   - `getPendingEvents`
   - `getState`
   - `getPullRequestNumber`
+  - `getPrContext`
+  - `getReviewInputs`
   - `getSubmissionDetails`
   - `registry`
   - `getAgentInstructions`

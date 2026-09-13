@@ -12,6 +12,10 @@ describe('getOperationBody', () => {
   it('capitalizes single-hyphen operations like record-review', () => {
     expect(getOperationBody('record-review')).toBe('Record review')
   })
+
+  it('serializes validated read-only operation input', () => {
+    expect(getOperationBody('get-review-inputs', { reviewInputs: { pr: 99 } })).toBe('{"pr":99}')
+  })
 })
 
 describe('getTransitionTitle', () => {

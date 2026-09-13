@@ -66,6 +66,8 @@ describe('CreateWorkflowRoutes', () => {
       'record-issue',
       'record-branch',
       'create-pr',
+      'get-review-inputs',
+      'get-pr-context',
       'record-reviewer-status',
       'wait-for-coderabbit-and-close-review-cycle',
     ])
@@ -90,6 +92,26 @@ describe('CreateWorkflowRoutes', () => {
     routes['wait-for-coderabbit-and-close-review-cycle'].handler(workflow)
 
     expect(waitForCodeRabbitAndCloseReviewCycle).toHaveBeenCalledWith()
+  })
+
+  it('delegates reading review inputs to the workflow', () => {
+    const { routes } = createRoutes()
+    const getReviewInputs = vi.fn(() => ({ pass: true as const }))
+    const workflow = Object.create({ getReviewInputs })
+
+    routes['get-review-inputs'].handler(workflow)
+
+    expect(getReviewInputs).toHaveBeenCalledWith()
+  })
+
+  it('delegates reading the pull request context to the workflow', () => {
+    const { routes } = createRoutes()
+    const getPrContext = vi.fn(() => ({ pass: true as const }))
+    const workflow = Object.create({ getPrContext })
+
+    routes['get-pr-context'].handler(workflow)
+
+    expect(getPrContext).toHaveBeenCalledWith()
   })
 
   it('creates a pull request from parsed command input', () => {

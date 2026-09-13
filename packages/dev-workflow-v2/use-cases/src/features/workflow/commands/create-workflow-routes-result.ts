@@ -24,6 +24,16 @@ interface WorkflowRouteDefinitions extends RouteMap<Workflow, ReturnType<Workflo
     readonly args: readonly [ReturnType<typeof arg.rest>]
     readonly handler: (workflow: Workflow, args: unknown) => WorkflowResult
   }
+  readonly 'get-review-inputs': {
+    readonly type: 'transaction'
+    readonly args: readonly []
+    readonly handler: (workflow: Workflow) => WorkflowResult
+  }
+  readonly 'get-pr-context': {
+    readonly type: 'transaction'
+    readonly args: readonly []
+    readonly handler: (workflow: Workflow) => WorkflowResult
+  }
   readonly 'record-reviewer-status': {
     readonly type: 'transaction'
     readonly args: readonly [ReturnType<typeof arg.string>, ReturnType<typeof arg.string>]

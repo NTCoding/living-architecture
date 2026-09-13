@@ -199,17 +199,17 @@ describe('reusable pull request orchestration', () => {
 
     expect({
       workflowDelegates: reviewing.includes('commands/review-pull-request.md'),
-      usesGraphql: pullRequestReview.includes('gh api graphql'),
+      usesReviewInputs: pullRequestReview.includes('get-review-inputs'),
       reviewsDiff: pullRequestReview.includes('git diff'),
-      readsClosingIssues: pullRequestReview.includes('closingIssuesReferences(first: 100)'),
+      suppliesValidatedRange: pullRequestReview.includes('reviewCycle.range'),
       launchesInParallel: pullRequestReview.includes('`runs.all`'),
       publishesDiagnosticRecord: pullRequestReview.includes('[workflow-orchestrator]'),
       doesNotUseWorkflowCommand: !pullRequestReview.includes('$dev-workflow-v2:workflow'),
     }).toStrictEqual({
       workflowDelegates: true,
-      usesGraphql: true,
+      usesReviewInputs: true,
       reviewsDiff: true,
-      readsClosingIssues: true,
+      suppliesValidatedRange: true,
       launchesInParallel: true,
       publishesDiagnosticRecord: true,
       doesNotUseWorkflowCommand: true,
@@ -220,15 +220,15 @@ describe('reusable pull request orchestration', () => {
     const pullRequestReview = readPluginFile('commands/review-pull-request.md')
 
     expect({
-      skipsTaskCheck: pullRequestReview.includes('do not launch `task-check`'),
-      namesReason: pullRequestReview.includes('task-check: no linked issue'),
-      waitsForLaunches: pullRequestReview.includes(
-        'after every applicable reviewer has been launched successfully',
+      limitsTaskCheck: pullRequestReview.includes(
+        'only when it is included and linked issues exist',
+      ),
+      usesIncludedReviewers: pullRequestReview.includes(
+        'only the reviewers named by `includedReviewers`',
       ),
     }).toStrictEqual({
-      skipsTaskCheck: true,
-      namesReason: true,
-      waitsForLaunches: true,
+      limitsTaskCheck: true,
+      usesIncludedReviewers: true,
     })
   })
 

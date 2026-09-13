@@ -6,20 +6,20 @@ Create the pull request from the recorded branch and issue.
 2. Draft a specific title and a description of at least 100 characters from the diff. Include the problem, acceptance criteria, key changes, architecture impact or `None`, validation, and notes or `None`. Write the title subject in lower case without a full stop, and keep the composed title within 100 characters.
 3. Run the `create-pr` workflow operation with each field as a separate option:
 
-```text
---commit-type <build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test>
---commit-scope <component>
---title <title>
---description <description>
---problem <problem>
---acceptance-criteria <acceptance criteria>
---key-changes <key changes>
---architecture-impact <architecture impact or None>
---validation <validation commands and results>
---notes <follow-ups, caveats, or None>
-```
+   ```text
+   --commit-type <build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test>
+   --commit-scope <component>
+   --title <title>
+   --description <description>
+   --problem <problem>
+   --acceptance-criteria <acceptance criteria>
+   --key-changes <key changes>
+   --architecture-impact <architecture impact or None>
+   --validation <validation commands and results>
+   --notes <follow-ups, caveats, or None>
+   ```
 
-1. Transition to `REVIEWING` after the pull request is recorded.
+4. Transition to `REVIEWING` after the pull request is recorded.
 
 ## Constraints
 

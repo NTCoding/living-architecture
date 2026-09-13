@@ -29,6 +29,8 @@ type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
 type StateName = WorkflowState['currentStateMachineState']
 type WorkflowOperation =
   | Parameters<MaintainerWorkflow['executeRecording']>[0]
+  | 'get-review-inputs'
+  | 'get-pr-context'
   | 'record-reviewer-status'
   | 'wait-for-coderabbit-and-close-review-cycle'
 /** @riviere-role command-use-case-result */

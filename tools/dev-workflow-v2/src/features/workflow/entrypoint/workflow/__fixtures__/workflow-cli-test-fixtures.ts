@@ -77,6 +77,14 @@ export function buildTestContext(
         isDraft: false,
       })),
     listSessionReviews: () => store.listSessionReviews(sessionId),
+    getReviewInputs: () => ({
+      pr: {},
+      linkedIssues: [],
+      reviewThreads: [],
+      decisionHistory: [],
+      range: 'base..head',
+    }),
+    postPullRequestComment: () => undefined,
     sleepMs: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
   }

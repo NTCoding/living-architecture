@@ -52,6 +52,16 @@ export class CreateWorkflowRoutes {
           return workflow.createPr(details.value)
         },
       },
+      'get-review-inputs': {
+        type: 'transaction' as const,
+        args: [] as const,
+        handler: (workflow: RoutedWorkflow) => workflow.getReviewInputs(),
+      },
+      'get-pr-context': {
+        type: 'transaction' as const,
+        args: [] as const,
+        handler: (workflow: RoutedWorkflow) => workflow.getPrContext(),
+      },
       'record-reviewer-status': {
         type: 'transaction' as const,
         args: [arg.string('reviewer'), arg.string('status')] as const,

@@ -13,11 +13,11 @@ You are implementing the task. Write code, commit often.
 - [ ] Implement the task following project conventions.
 - [ ] Write tests — 100% coverage is mandatory
 - [ ] Commit your changes (working tree must be clean before transitioning)
-- [ ] Transition to REVIEWING: `/dev-workflow-v2:workflow transition REVIEWING`
+- [ ] Transition to SUBMITTING_PR: `/dev-workflow-v2:workflow transition SUBMITTING_PR`
 
 ## Pre-review self-check (mandatory)
 
-Before transitioning to `REVIEWING`, audit your own diff against the rules the reviewers enforce. This is a self-check, not a second review.
+Before transitioning to `SUBMITTING_PR`, audit your own diff against the rules the reviewers enforce. This is a self-check, not a second review.
 
 - Re-read `docs/conventions/software-design.md`, `docs/conventions/standard-patterns.md`, `docs/conventions/anti-patterns.md`, `docs/conventions/testing.md`, and `docs/conventions/review-feedback-checks.md`.
 - Walk the diff and confirm every changed declaration obeys the applicable `SD-*`, `AP-*`, `TS-*`, and `RFC-*` rules. Fix any violation before transitioning.
@@ -26,7 +26,7 @@ Before transitioning to `REVIEWING`, audit your own diff against the rules the r
 - Run the repository checks for the projects you changed, for example `pnpm nx run-many -t lint typecheck test -p <project>`, and `pnpm nx run @living-architecture/source:role-check` where roles apply.
 - Confirm the working tree is clean and every change is committed.
 
-Do not transition to `REVIEWING` while any known rule violation remains in the diff. If a rule cannot be satisfied, transition to `BLOCKED` and explain why.
+Do not transition to `SUBMITTING_PR` while any known rule violation remains in the diff. If a rule cannot be satisfied, transition to `BLOCKED` and explain why.
 
 ## Constraints
 

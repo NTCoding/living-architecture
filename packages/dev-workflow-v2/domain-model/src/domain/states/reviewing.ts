@@ -25,6 +25,7 @@ export class ReviewingState {
   readonly canTransitionTo = ['ADDRESSING_FEEDBACK', 'HUMAN_REVIEWING', 'BLOCKED'] as const
   readonly forbidden = { write: true } as const
   readonly allowedWorkflowOperations = [
+    'get-review-inputs',
     'record-reviewer-status',
     'wait-for-coderabbit-and-close-review-cycle',
   ] as const

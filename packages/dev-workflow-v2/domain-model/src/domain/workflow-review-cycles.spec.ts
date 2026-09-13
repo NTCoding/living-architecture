@@ -170,15 +170,26 @@ describe('waitForCodeRabbitAndCloseReviewCycle', () => {
     expect(workflow.getState().reviewCycleCapReached).toBe(false)
   })
 
-  it('moves to human review when the cycle limit is reached with open feedback', () => {
+  it('posts the cap notice once when the final cycle closes with open feedback', () => {
+    const postPullRequestComment = vi.fn()
     const workflow = reviewingAtCycle(
       3,
-      makeDeps({ getPrFeedback: () => feedbackWithOpenFinding() }),
+      makeDeps({
+        getPrFeedback: () => feedbackWithOpenFinding(),
+        postPullRequestComment,
+      }),
     )
 
     expect(workflow.waitForCodeRabbitAndCloseReviewCycle()).toStrictEqual({ pass: true })
-    expect(workflow.getState().currentStateMachineState).toBe('HUMAN_REVIEWING')
-    expect(workflow.getState().reviewCycleCapReached).toBe(true)
+    expect(workflow.getState()).toMatchObject({
+      currentStateMachineState: 'HUMAN_REVIEWING',
+      reviewCycleCapReached: true,
+    })
+    expect(postPullRequestComment).toHaveBeenCalledOnce()
+    expect(postPullRequestComment).toHaveBeenCalledWith(
+      99,
+      '[main-agent] 3 review cycles were completed before all reviewers had approved.',
+    )
   })
 
   it('does not mark the cycle limit as reached when the final cycle approves', () => {

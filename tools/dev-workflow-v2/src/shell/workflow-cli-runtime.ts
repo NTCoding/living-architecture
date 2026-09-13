@@ -14,6 +14,9 @@ import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-c
 import { readGitRepositoryStatus } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/git-client'
 import { createGithubPullRequestClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/create-pull-request'
 import { createGithubPullRequestFeedbackClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-pr-feedback'
+import { createGithubReviewInputsClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/get-review-inputs'
+import { createGithubPullRequestCommentClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/post-pull-request-comment'
+import { createReviewRangeReader } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/review-range'
 import { pushGitBranch } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/push-git-branch'
 import { runGh } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/github-cli'
 import { createWorkflowRoutes } from '../features/workflow/entrypoint/workflow/entrypoint'
@@ -88,6 +91,18 @@ function buildWorkflowDeps(platform: PlatformContext) {
       pushGitBranch,
     ),
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
+    getReviewInputs: (prNumber: number, previousReviewedCommit: string | undefined) => {
+      const inputs = createGithubReviewInputsClient(runGh)(prNumber)
+      return {
+        ...inputs,
+        range: createReviewRangeReader()(
+          inputs.pr.baseRef,
+          inputs.pr.headCommit,
+          previousReviewedCommit,
+        ),
+      }
+    },
+    postPullRequestComment: createGithubPullRequestCommentClient(runGh),
     sleepMs,
     now: platform.now,
   }
