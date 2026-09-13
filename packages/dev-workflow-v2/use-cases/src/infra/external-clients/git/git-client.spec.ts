@@ -21,11 +21,12 @@ describe('readGitRepositoryStatus', () => {
       const command = args.join(' ')
       const outputs: Record<string, string> = {
         'symbolic-ref refs/remotes/origin/HEAD --short': 'origin/trunk',
+        'rev-parse --verify origin/trunk^{commit}': 'default123',
         'rev-parse --abbrev-ref HEAD': 'feature/example',
         'status --porcelain': '',
         'rev-parse HEAD': 'abc123',
-        'diff --name-only trunk HEAD': 'src/a.ts\n\nsrc/b.ts',
-        'rev-list HEAD ^trunk': 'abc123',
+        'diff --name-only origin/trunk...HEAD': 'src/a.ts\n\nsrc/b.ts',
+        'rev-list origin/trunk..HEAD': 'abc123',
       }
       const output = outputs[command]
       if (output === undefined) throw new UnexpectedGitCommandError(command)
@@ -46,28 +47,26 @@ describe('readGitRepositoryStatus', () => {
     ])
   })
 
-  it('falls back to main and reports a dirty branch with no commits', () => {
+  it('reports default branch discovery failure instead of assuming local main', () => {
     const executeGit = vi.fn((_binary: string, args: readonly string[]) => {
       const command = args.join(' ')
-      if (command.startsWith('symbolic-ref')) {
-        throw new MissingRemoteHeadError()
-      }
-      if (command === 'status --porcelain') return ' M src/a.ts'
-      if (
-        command === 'rev-parse --abbrev-ref HEAD' ||
-        command === 'rev-parse HEAD' ||
-        command === 'diff --name-only main HEAD' ||
-        command === 'rev-list HEAD ^main'
-      )
-        return ''
+      if (command.startsWith('symbolic-ref')) throw new MissingRemoteHeadError()
       throw new UnexpectedGitCommandError(command)
     })
 
-    expect(readGitRepositoryStatus('git', executeGit)).toMatchObject({
-      changedFilesVsDefault: [],
-      hasCommitsVsDefault: false,
-      workingTreeClean: false,
+    expect(() => readGitRepositoryStatus('git', executeGit)).toThrow(MissingRemoteHeadError)
+  })
+
+  it('reports an unresolved remote default reference before reading status', () => {
+    const executeGit = vi.fn((_binary: string, args: readonly string[]) => {
+      const command = args.join(' ')
+      if (command === 'symbolic-ref refs/remotes/origin/HEAD --short') return 'origin/main'
+      if (command === 'rev-parse --verify origin/main^{commit}') {
+        throw new MissingRemoteHeadError()
+      }
+      throw new UnexpectedGitCommandError(command)
     })
-    expect(executeGit).toHaveBeenCalledWith('git', ['diff', '--name-only', 'main', 'HEAD'])
+
+    expect(() => readGitRepositoryStatus('git', executeGit)).toThrow(MissingRemoteHeadError)
   })
 })

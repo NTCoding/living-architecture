@@ -1,4 +1,8 @@
 export { RiviereBuilder } from './published-language/riviere-builder'
+export {
+  BuilderOptions,
+  type BuilderOptionsInput,
+} from './published-language/riviere-graph-definition-input'
 export { GraphDiagnostics } from './published-language/graph-diagnostics'
 export type {
   DuplicateLinkWarning,

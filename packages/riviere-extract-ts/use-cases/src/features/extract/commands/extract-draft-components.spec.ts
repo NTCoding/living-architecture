@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 
 const mocks = vi.hoisted(() => ({
   extractDraftComponentsMethodMock: vi.fn(),
@@ -7,17 +8,16 @@ const mocks = vi.hoisted(() => ({
     filePaths,
     missingFilePaths: [],
   })),
-  loadByExtractionConfigPathMock: vi.fn(),
+  loadMock: vi.fn(),
 }))
 
 vi.mock('../data-access/riviere-project/riviere-project-repository', () => ({
   RiviereProjectRepository: class {
-    loadByExtractionConfigPath = mocks.loadByExtractionConfigPathMock
+    load = mocks.loadMock
   },
 }))
 
 import { ExtractDraftComponents } from './extract-draft-components'
-import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
 import { ExtractionConfigError } from '../data-access/riviere-project/riviere-config-error'
 import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-error'
@@ -33,7 +33,7 @@ class UnexpectedLoadingError extends Error {}
 
 function createExtractDraftComponents(now: () => number = () => 0): ExtractDraftComponents {
   return new ExtractDraftComponents(
-    new RiviereProjectRepository(),
+    createRiviereProjectRepository(),
     mocks.findChangedSourceFilesMock,
     mocks.findSpecifiedSourceFilesMock,
     now,
@@ -44,7 +44,7 @@ describe('extractDraftComponents', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     mocks.findChangedSourceFilesMock.mockReturnValue({ filePaths: [], warnings: [] })
-    mocks.loadByExtractionConfigPathMock.mockReturnValue({
+    mocks.loadMock.mockReturnValue({
       extractDraftComponents: mocks.extractDraftComponentsMethodMock,
     })
     mocks.extractDraftComponentsMethodMock.mockReturnValue(DRAFT_ONLY_RESULT.result)
@@ -60,7 +60,8 @@ describe('extractDraftComponents', () => {
         useTsConfig: false,
       })
 
-      expect(mocks.loadByExtractionConfigPathMock).toHaveBeenCalledWith({
+      expect(mocks.loadMock).toHaveBeenCalledWith({
+        kind: 'extraction',
         projectRoot: process.cwd(),
         configPath: 'config.yml',
         useTsConfig: false,
@@ -76,7 +77,8 @@ describe('extractDraftComponents', () => {
         useTsConfig: false,
       })
 
-      expect(mocks.loadByExtractionConfigPathMock).toHaveBeenCalledWith({
+      expect(mocks.loadMock).toHaveBeenCalledWith({
+        kind: 'extraction',
         projectRoot: process.cwd(),
         configPath: 'config.yml',
         useTsConfig: false,
@@ -94,7 +96,8 @@ describe('extractDraftComponents', () => {
         useTsConfig: true,
       })
 
-      expect(mocks.loadByExtractionConfigPathMock).toHaveBeenCalledWith({
+      expect(mocks.loadMock).toHaveBeenCalledWith({
+        kind: 'extraction',
         projectRoot: process.cwd(),
         configPath: 'config.yml',
         useTsConfig: true,
@@ -110,7 +113,8 @@ describe('extractDraftComponents', () => {
         useTsConfig: true,
       })
 
-      expect(mocks.loadByExtractionConfigPathMock).toHaveBeenCalledWith({
+      expect(mocks.loadMock).toHaveBeenCalledWith({
+        kind: 'extraction',
         projectRoot: process.cwd(),
         configPath: 'config.yml',
         useTsConfig: true,
@@ -128,7 +132,8 @@ describe('extractDraftComponents', () => {
         useTsConfig: true,
       })
 
-      expect(mocks.loadByExtractionConfigPathMock).toHaveBeenCalledWith({
+      expect(mocks.loadMock).toHaveBeenCalledWith({
+        kind: 'extraction',
         projectRoot: process.cwd(),
         configPath: 'config.yml',
         useTsConfig: true,
@@ -265,7 +270,7 @@ describe('extractDraftComponents', () => {
     })
 
     it('returns config failure when loading the extraction config fails', () => {
-      mocks.loadByExtractionConfigPathMock.mockImplementation(() => {
+      mocks.loadMock.mockImplementation(() => {
         throw new ExtractionConfigError('CONFIG_NOT_FOUND', 'Config file not found')
       })
 
@@ -315,7 +320,7 @@ describe('extractDraftComponents', () => {
     })
 
     it('rethrows unexpected loading errors', () => {
-      mocks.loadByExtractionConfigPathMock.mockImplementation(() => {
+      mocks.loadMock.mockImplementation(() => {
         throw new UnexpectedLoadingError('Unexpected failure')
       })
 
@@ -332,7 +337,7 @@ describe('extractDraftComponents', () => {
   })
 
   it('returns data access failure when loading the project fails', () => {
-    mocks.loadByExtractionConfigPathMock.mockImplementation(() => {
+    mocks.loadMock.mockImplementation(() => {
       throw new ExtractionDataAccessError('FILE_READ_ERROR', 'Could not read project')
     })
 

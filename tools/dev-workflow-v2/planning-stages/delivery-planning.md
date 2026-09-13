@@ -109,6 +109,353 @@ Lower-level architectural checks are allowed, but they must not replace the prim
 
 Do not invent unapproved implementation APIs, roles, loaders, materialisers, repositories, services, or persistence concepts to make a delivery slice sound complete. If the approved architecture does not define the implementation shape clearly enough for task creation, stop and ask for clarification or return to architecture rather than filling the gap.
 
+## Acceptance criteria
+
+Every criterion has two parts, in this order.
+
+**Rules**
+
+A rule states the behaviour. A rule contains no values and no file contents.
+
+**Example**
+
+An example is one case. Write it in Gherkin.
+
+- `Given` states a pre-condition.
+- `When` states an action.
+- `Then` describes the result.
+
+## Example
+
+**Rule:** EventCatalog services are added as `UseCase` components in a Riviere graph.
+
+**Example:** `OrdersService` is added as the `PlaceOrder` use case.
+
+Given the EventCatalog source `specs/eventcatalog`
+
+```json
+{
+  "domains": [],
+  "services": [
+    { "id": "OrdersService", "name": "Orders", "produces": ["OrderCreated"], "consumes": [] }
+  ],
+  "events": [{ "id": "OrderCreated", "name": "Order Created" }]
+}
+```
+
+And the configuration file `specs/eventcatalog-import.yaml`
+
+```yaml
+source: ./eventcatalog
+mappings: ./eventcatalog-mappings.yaml
+allow-unmapped: false
+```
+
+And the configuration file `specs/eventcatalog-mappings.yaml`
+
+```yaml
+services:
+  OrdersService:
+    type: UseCase
+    domain: orders
+    module: checkout
+    name: PlaceOrder
+```
+
+When running the `eventcatalog-import` stage of the workflow
+
+Then the following item is added to the Riviere graph
+
+```json
+{
+  "id": "orders:checkout:usecase:placeorder",
+  "type": "UseCase",
+  "name": "PlaceOrder",
+  "domain": "orders",
+  "module": "checkout",
+  "sourceLocation": {
+    "repository": "https://github.com/ntcoding/ecommerce-demo-app",
+    "filePath": "specs/eventcatalog"
+  }
+}
+```
+
+**Rule:** EventCatalog events are added as `Event` components in a Riviere graph.
+
+**Example:** `OrderCreated` is added as the `OrderPlaced` event.
+
+Given the EventCatalog source `specs/eventcatalog`
+
+```json
+{
+  "domains": [],
+  "services": [
+    { "id": "OrdersService", "name": "Orders", "produces": ["OrderCreated"], "consumes": [] }
+  ],
+  "events": [{ "id": "OrderCreated", "name": "Order Created" }]
+}
+```
+
+And the configuration file `specs/eventcatalog-mappings.yaml`
+
+```yaml
+services:
+  OrdersService:
+    type: UseCase
+    domain: orders
+    module: checkout
+    name: PlaceOrder
+events:
+  OrderCreated:
+    name: OrderPlaced
+```
+
+When running the `eventcatalog-import` stage of the workflow
+
+Then the following item is added to the Riviere graph
+
+```json
+{
+  "id": "orders:checkout:event:orderplaced",
+  "type": "Event",
+  "name": "OrderPlaced",
+  "eventName": "OrderPlaced",
+  "domain": "orders",
+  "module": "checkout",
+  "sourceLocation": {
+    "repository": "https://github.com/ntcoding/ecommerce-demo-app",
+    "filePath": "specs/eventcatalog"
+  }
+}
+```
+
+**Rule:** A service that produces an event is linked to that event's component, with type `async`.
+
+**Example:** `OrdersService` produces `OrderCreated`.
+
+Given the EventCatalog source `specs/eventcatalog`
+
+```json
+{
+  "domains": [],
+  "services": [
+    { "id": "OrdersService", "name": "Orders", "produces": ["OrderCreated"], "consumes": [] }
+  ],
+  "events": [{ "id": "OrderCreated", "name": "Order Created" }]
+}
+```
+
+And the configuration file `specs/eventcatalog-mappings.yaml`
+
+```yaml
+services:
+  OrdersService:
+    type: UseCase
+    domain: orders
+    module: checkout
+    name: PlaceOrder
+events:
+  OrderCreated:
+    name: OrderPlaced
+```
+
+When running the `eventcatalog-import` stage of the workflow
+
+Then the following item is added to the Riviere graph
+
+```json
+{
+  "source": "orders:checkout:usecase:placeorder",
+  "target": "orders:checkout:event:orderplaced",
+  "type": "async"
+}
+```
+
+**Rule:** A service that consumes an event is linked from that event's component, with type `async`.
+
+**Example:** `ShippingService` consumes `OrderCreated`.
+
+Given the EventCatalog source `specs/eventcatalog`
+
+```json
+{
+  "domains": [],
+  "services": [
+    { "id": "OrdersService", "name": "Orders", "produces": ["OrderCreated"], "consumes": [] },
+    { "id": "ShippingService", "name": "Shipping", "produces": [], "consumes": ["OrderCreated"] }
+  ],
+  "events": [{ "id": "OrderCreated", "name": "Order Created" }]
+}
+```
+
+And the configuration file `specs/eventcatalog-mappings.yaml`
+
+```yaml
+services:
+  OrdersService:
+    type: UseCase
+    domain: orders
+    module: checkout
+    name: PlaceOrder
+  ShippingService:
+    type: UseCase
+    domain: shipping
+    module: fulfillment
+    name: ShipOrder
+events:
+  OrderCreated:
+    name: OrderPlaced
+```
+
+When running the `eventcatalog-import` stage of the workflow
+
+Then the following items are added to the Riviere graph
+
+```json
+{
+  "id": "orders:checkout:usecase:placeorder",
+  "type": "UseCase",
+  "name": "PlaceOrder",
+  "domain": "orders",
+  "module": "checkout",
+  "sourceLocation": {
+    "repository": "https://github.com/ntcoding/ecommerce-demo-app",
+    "filePath": "specs/eventcatalog"
+  }
+}
+```
+
+```json
+{
+  "id": "shipping:fulfillment:usecase:shiporder",
+  "type": "UseCase",
+  "name": "ShipOrder",
+  "domain": "shipping",
+  "module": "fulfillment",
+  "sourceLocation": {
+    "repository": "https://github.com/ntcoding/ecommerce-demo-app",
+    "filePath": "specs/eventcatalog"
+  }
+}
+```
+
+```json
+{
+  "id": "orders:checkout:event:orderplaced",
+  "type": "Event",
+  "name": "OrderPlaced",
+  "eventName": "OrderPlaced",
+  "domain": "orders",
+  "module": "checkout",
+  "sourceLocation": {
+    "repository": "https://github.com/ntcoding/ecommerce-demo-app",
+    "filePath": "specs/eventcatalog"
+  }
+}
+```
+
+```json
+{
+  "source": "orders:checkout:usecase:placeorder",
+  "target": "orders:checkout:event:orderplaced",
+  "type": "async"
+}
+```
+
+```json
+{
+  "source": "orders:checkout:event:orderplaced",
+  "target": "shipping:fulfillment:usecase:shiporder",
+  "type": "async"
+}
+```
+
+**Rule:** A record with no mapping fails the stage when `allow-unmapped` is `false`.
+
+**Example:** `OrdersService` has no mapping and `allow-unmapped` is `false`.
+
+Given the EventCatalog source `specs/eventcatalog`
+
+```json
+{
+  "domains": [],
+  "services": [
+    { "id": "OrdersService", "name": "Orders", "produces": [], "consumes": [] }
+  ],
+  "events": []
+}
+```
+
+And the configuration file `specs/eventcatalog-import.yaml`
+
+```yaml
+source: ./eventcatalog
+mappings: ./eventcatalog-mappings.yaml
+allow-unmapped: false
+```
+
+And the configuration file `specs/eventcatalog-mappings.yaml`
+
+```yaml
+services: {}
+events: {}
+```
+
+When running the `eventcatalog-import` stage of the workflow
+
+Then the stage fails with
+
+```text
+Unmapped EventCatalog records: service 'OrdersService'
+```
+
+and `.riviere/ecommerce-architecture.json` is unchanged.
+
+**Rule:** A record with no mapping is skipped and recorded as a diagnostic when `allow-unmapped` is `true`.
+
+**Example:** `OrdersService` and `OrderCreated` have no mapping and `allow-unmapped` is `true`.
+
+Given the EventCatalog source `specs/eventcatalog`
+
+```json
+{
+  "domains": [],
+  "services": [
+    { "id": "OrdersService", "name": "Orders", "produces": [], "consumes": [] }
+  ],
+  "events": [{ "id": "OrderCreated", "name": "Order Created" }]
+}
+```
+
+And the configuration file `specs/eventcatalog-import.yaml`
+
+```yaml
+source: ./eventcatalog
+mappings: ./eventcatalog-mappings.yaml
+allow-unmapped: true
+```
+
+And the configuration file `specs/eventcatalog-mappings.yaml`
+
+```yaml
+services: {}
+events: {}
+```
+
+When running the `eventcatalog-import` stage of the workflow
+
+Then the run result contains
+
+```json
+{ "kind": "unmapped-record", "recordKind": "service", "recordId": "OrdersService" }
+```
+
+and
+
+```json
+{ "kind": "unmapped-record", "recordKind": "event", "recordId": "OrderCreated" }
+```
+
 ## Conversation flow
 
 The prompts below are internal objectives, not user-facing scripts. Ask naturally. Avoid prompt IDs and stage mechanics.

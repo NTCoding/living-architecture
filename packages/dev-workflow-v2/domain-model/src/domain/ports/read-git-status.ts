@@ -1,6 +1,6 @@
 /**
  * @riviere-role domain-port
- * @riviere-role-justification MaintainerWorkflow reads current Git facts through this capability when evaluating workflow behaviour. The facts are not previously created MaintainerWorkflow state.
+ * @riviere-role-justification MaintainerWorkflow reads current Git facts through this capability when evaluating workflow behaviour. The facts are not previously created workflow state.
  */
 export type ReadWorkflowGitStatus = () => {
   readonly changedFilesVsDefault: readonly string[]

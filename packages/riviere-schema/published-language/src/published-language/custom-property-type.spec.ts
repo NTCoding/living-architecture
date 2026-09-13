@@ -15,20 +15,11 @@ describe('CustomPropertyType', () => {
     },
   )
 
-  it('returns the invalid value when parsing fails', () => {
+  it('returns the invalid value and valid names when parsing fails', () => {
     expect(CustomPropertyType.parse('date')).toStrictEqual({
       success: false,
       invalidValue: 'date',
+      validNames: ['string', 'number', 'boolean', 'array', 'object'],
     })
-  })
-
-  it('lists every supported property type name', () => {
-    expect(CustomPropertyType.names()).toStrictEqual([
-      'string',
-      'number',
-      'boolean',
-      'array',
-      'object',
-    ])
   })
 })

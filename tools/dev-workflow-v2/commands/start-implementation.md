@@ -8,11 +8,9 @@ The user provides a **GitHub issue number** — use `123`, not `#123`.
 
 ## Step 1: Set up the branch
 
-The session is already in a worktree (started via `claude -w`). Rename the auto-generated worktree branch to match our convention:
+Derive the conventional branch name, then use the tested branch preparation command. It supports both a primary checkout and a linked worktree. It never renames the current branch or overwrites existing work:
 
 ```bash
-git fetch origin main
-
 ISSUE_TITLE=$(gh issue view <N> --json title -q .title)
 SHORT_DESC=$(printf '%s\n' "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30 | sed 's/-$//')
 if [ -z "$SHORT_DESC" ]; then
@@ -20,7 +18,8 @@ if [ -z "$SHORT_DESC" ]; then
   exit 1
 fi
 
-git branch -m "issue-<N>-${SHORT_DESC}"
+TARGET_BRANCH="issue-<N>-${SHORT_DESC}"
+pnpm --dir "$(git rev-parse --show-toplevel)/tools/dev-workflow-v2" run prepare-implementation-branch -- "$TARGET_BRANCH"
 ```
 
 ## Step 2: Read the issue
@@ -50,11 +49,9 @@ Record the issue immediately:
 After init, read the state instruction file that the workflow loads. It will guide you through:
 
 1. **IMPLEMENTING** — Read requirements, plan, implement, test, commit
-2. **REVIEWING** — Spawn review agents, record each verdict individually
-3. **SUBMITTING_PR** — Push branch, create PR, record PR number
-4. **AWAITING_CI** — Wait for CI, record result
-5. **AWAITING_PR_FEEDBACK** — Wait for CodeRabbit review and auto-route based on PR feedback
-6. **REFLECTING** — Write a reflection on the work
-7. **COMPLETE** — Done
+2. **SUBMITTING_PR** — Push branch, create PR, record PR number
+3. **REVIEWING** — Spawn review agents, record each verdict individually
+4. **ADDRESSING_FEEDBACK** — Fix open feedback, commit, push, and return to reviewing
+5. **HUMAN_REVIEWING** — All reviewers approve; wait for the human to review or merge
 
 Each state's instruction file tells you exactly what to do and which workflow commands to run. Follow them.

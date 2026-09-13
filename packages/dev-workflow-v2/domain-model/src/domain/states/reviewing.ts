@@ -1,11 +1,19 @@
-import type {
-  PreconditionResult,
-  TransitionContext,
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { z } from 'zod'
+import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import type { WorkflowTransitionContext } from '../workflow-transition-context'
 import type { WorkflowState } from '../workflow-types'
+import { ReviewCycleLimit } from '../review-cycle-limit'
 
-type StateName = WorkflowState['currentStateMachineState']
+/** @riviere-role domain-port
+ * @riviere-role-justification State entry receives the aggregate operation that opens a review cycle; it does not load previously created workflow state.
+ */
+export type ReviewingDependencies = {
+  readonly workflow: {
+    getState(): WorkflowState
+    startReviewCycle(): { readonly pass: boolean; readonly reason?: string }
+  }
+}
 
 /** @riviere-role value-object */
 export class ReviewingState {
@@ -14,41 +22,48 @@ export class ReviewingState {
   readonly name: 'REVIEWING'
   readonly emoji = '📋'
   readonly agentInstructions = 'states/reviewing.md'
-  readonly canTransitionTo = ['SUBMITTING_PR', 'IMPLEMENTING', 'BLOCKED'] as const
+  readonly canTransitionTo = ['ADDRESSING_FEEDBACK', 'HUMAN_REVIEWING', 'BLOCKED'] as const
   readonly forbidden = { write: true } as const
-  readonly allowedWorkflowOperations = ['record-review'] as const
+  readonly allowedWorkflowOperations = [
+    'record-reviewer-status',
+    'wait-for-coderabbit-and-close-review-cycle',
+  ] as const
 
-  private constructor(name: 'REVIEWING') {
+  private readonly dependencies: ReviewingDependencies | undefined
+
+  private constructor(name: 'REVIEWING', dependencies?: ReviewingDependencies) {
     this.name = name
+    this.dependencies = dependencies
   }
 
-  static parse(value: unknown): ReviewingState {
+  static parse(value: unknown, dependencies?: ReviewingDependencies): ReviewingState {
     z.literal('REVIEWING').parse(value)
-    return new ReviewingState('REVIEWING')
+    return new ReviewingState('REVIEWING', dependencies)
   }
 
-  transitionGuard(context: TransitionContext<WorkflowState, StateName>): PreconditionResult {
-    const taskCheckRequired = context.state.githubIssue !== undefined
-    const allPassed =
-      context.state.architectureReviewPassed &&
-      context.state.codeReviewPassed &&
-      context.state.bugScannerPassed &&
-      (!taskCheckRequired || context.state.taskCheckPassed)
-
-    if (context.to === 'SUBMITTING_PR' && !allPassed) {
+  transitionGuard(
+    context: Parameters<typeof WorkflowTransitionContext.from>[0],
+  ): PreconditionResult {
+    const statuses = [...context.state.reviewerStatuses.statusByReviewer().values()]
+    const allApproved = statuses.every((status) => status.isApproved())
+    const hasOpenFeedback = statuses.some((status) => status.isOpenFeedback())
+    const capReached = ReviewCycleLimit.singleton().isReached(context.state.reviewCycleNumber)
+    if (context.to === 'HUMAN_REVIEWING' && !allApproved && !capReached)
       return {
         pass: false,
-        reason: taskCheckRequired
-          ? 'Not all reviews passed. Each of architecture-review, code-review, bug-scanner, and task-check must pass.'
-          : 'Not all reviews passed. Each of architecture-review, code-review, and bug-scanner must pass.',
+        reason: 'All reviewers and CodeRabbit must approve before human review.',
       }
-    }
-    if (context.to === 'IMPLEMENTING' && allPassed) {
-      return {
-        pass: false,
-        reason: 'All reviews passed. Transition to SUBMITTING_PR, not IMPLEMENTING.',
-      }
-    }
+    if (context.to === 'ADDRESSING_FEEDBACK' && !hasOpenFeedback)
+      return { pass: false, reason: 'No reviewer has open feedback to address.' }
     return { pass: true }
+  }
+
+  afterEntry(): void {
+    if (this.dependencies === undefined)
+      throw new WorkflowStateError('Reviewing entry dependencies have not been configured.')
+    if (this.dependencies.workflow.getState().reviewCycleOpen) return
+    const result = this.dependencies.workflow.startReviewCycle()
+    if (!result.pass)
+      throw new WorkflowStateError(result.reason ?? 'Unable to start a review cycle.')
   }
 }

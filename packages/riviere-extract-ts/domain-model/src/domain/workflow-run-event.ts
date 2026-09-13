@@ -1,3 +1,5 @@
+import type { WorkflowStageValue } from './workflow-stage'
+
 type WorkflowRunEventType =
   | 'WorkflowStarted'
   | 'StageStarted'
@@ -42,7 +44,7 @@ export class WorkflowRunEvent {
   private constructor(
     readonly type: WorkflowRunEventType,
     readonly stageName?: string,
-    readonly stageType?: 'extract' | 'link' | 'validate',
+    readonly stageKind?: WorkflowStageValue['kind'],
     readonly stageIndex?: number,
     readonly failure?: Readonly<{ reason: string; errorCode: string }>,
   ) {}
@@ -50,6 +52,6 @@ export class WorkflowRunEvent {
 
 type WorkflowStageEventValues = Readonly<{
   name: string
-  kind: 'extract' | 'link' | 'validate'
+  kind: WorkflowStageValue['kind']
   index: number
 }>

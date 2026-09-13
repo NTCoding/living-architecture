@@ -18,7 +18,10 @@ export class LinkExternal {
     if (!parsedInput.success) return parsedInput.result
 
     try {
-      const project = this.repository.loadByGraphPath(input.graphFileLocation)
+      const project = this.repository.load({
+        kind: 'graph',
+        graphFileLocation: input.graphFileLocation,
+      })
       const externalLinkInput = {
         from: parsedInput.sourceId.toString(),
         target: {
@@ -28,7 +31,9 @@ export class LinkExternal {
         },
         ...(parsedInput.linkType === undefined ? {} : { type: parsedInput.linkType.value }),
       }
-      const { link: externalLink } = project.linkExternal(externalLinkInput)
+      const { link: externalLink } = project.amendGraph((builder) =>
+        builder.linkExternal(externalLinkInput),
+      )
       this.repository.save(input.graphFileLocation, project)
       return {
         result: {

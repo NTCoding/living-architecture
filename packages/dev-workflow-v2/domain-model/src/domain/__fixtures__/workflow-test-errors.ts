@@ -4,3 +4,10 @@ export class GitHubUnavailableTestError extends Error {
     this.name = 'GitHubUnavailableTestError'
   }
 }
+
+export class GitUnavailableTestError extends Error {
+  constructor() {
+    super('Git unavailable')
+    this.name = 'GitUnavailableTestError'
+  }
+}

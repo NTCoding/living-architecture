@@ -1,42 +1,17 @@
 import { arg } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
 import type { MaintainerWorkflow as Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
+import { Reviewer } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
+import { ReviewerStatus } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/statuses'
 import type { ZodType } from 'zod'
-
+import type { CreateWorkflowRoutesInput } from './create-workflow-routes-input'
+import type { CreateWorkflowRoutesResult } from './create-workflow-routes-result'
+import { PullRequestCreationDetails } from '@living-architecture/dev-workflow-v2-domain-model/domain/pull-request-description'
 interface ZodSchemaProvider<T> {
   getSchema(): ZodType<T>
 }
-
 type DefineWorkflowRoutes = typeof defineRoutes
-
 type RoutedWorkflow = Workflow
-type RoutedWorkflowState = ReturnType<RoutedWorkflow['getState']>
-
-type WorkflowResult = ReturnType<Workflow['executeRecording']>
-
-/** @riviere-role command-use-case-result */
-export interface CreateWorkflowRoutesResult {
-  readonly routes: ReturnType<typeof defineRoutes<RoutedWorkflow, RoutedWorkflowState>>
-}
-
-/** @riviere-role command-use-case-input */
-export interface CreateWorkflowRoutesInput {
-  readonly parseNumberArgument: (value: unknown) => number
-  readonly parseStringArgument: (value: unknown) => string
-  readonly parseOptionalStringArgument: (value: unknown) => string | undefined
-  readonly parseStringArguments: (value: unknown) => readonly string[]
-  readonly recordIssue: (workflow: RoutedWorkflow, issueNumber: number) => WorkflowResult
-  readonly recordBranch: (workflow: RoutedWorkflow, branch: string) => WorkflowResult
-  readonly recordPullRequest: (
-    workflow: RoutedWorkflow,
-    number: number,
-    url: string | undefined,
-  ) => WorkflowResult
-  readonly createPullRequest: (workflow: RoutedWorkflow, args: readonly string[]) => WorkflowResult
-  readonly recordCiPassed: (workflow: RoutedWorkflow) => WorkflowResult
-  readonly recordCiFailed: (workflow: RoutedWorkflow, output: string) => WorkflowResult
-  readonly verifyFeedbackAddressed: (workflow: RoutedWorkflow) => WorkflowResult
-}
 
 /** @riviere-role command-use-case */
 export class CreateWorkflowRoutes {
@@ -47,58 +22,58 @@ export class CreateWorkflowRoutes {
 
   execute(input: CreateWorkflowRoutesInput): CreateWorkflowRoutesResult {
     const stateNameSchema = this.stateNameSchemaProvider.getSchema()
+    const routes = {
+      init: { type: 'session-start' as const },
+      transition: {
+        type: 'transition' as const,
+        args: [arg.state('STATE', stateNameSchema)] as const,
+      },
+      'record-issue': {
+        type: 'transaction' as const,
+        args: [arg.number('number')] as const,
+        handler: (workflow: RoutedWorkflow, issueNumber: unknown) =>
+          input.recordIssue(workflow, input.parseNumberArgument(issueNumber)),
+      },
+      'record-branch': {
+        type: 'transaction' as const,
+        args: [arg.string('branch')] as const,
+        handler: (workflow: RoutedWorkflow, branch: unknown) =>
+          input.recordBranch(workflow, input.parseStringArgument(branch)),
+      },
+      'create-pr': {
+        type: 'transaction' as const,
+        args: [arg.rest()] as const,
+        handler: (workflow: RoutedWorkflow, args: unknown) => {
+          const parsed = input.parsePullRequestDescriptionOptions(input.parseStringArguments(args))
+          if (!parsed.ok) return { pass: false, reason: parsed.reason }
+          const details = PullRequestCreationDetails.from(parsed.input)
+          if (!details.ok)
+            return { pass: false, reason: input.formatPullRequestDetailsFailure(details) }
+          return workflow.createPr(details.value)
+        },
+      },
+      'record-reviewer-status': {
+        type: 'transaction' as const,
+        args: [arg.string('reviewer'), arg.string('status')] as const,
+        handler: (workflow: RoutedWorkflow, reviewer: unknown, status: unknown) => {
+          const parsedStatus = ReviewerStatus.fromName(input.parseStringArgument(status))
+          if (!parsedStatus.ok) return { pass: false, reason: parsedStatus.reason }
+          return input.recordReviewerStatus(
+            workflow,
+            Reviewer.fromName(input.parseStringArgument(reviewer)),
+            parsedStatus.value.name(),
+          )
+        },
+      },
+      'wait-for-coderabbit-and-close-review-cycle': {
+        type: 'transaction' as const,
+        args: [] as const,
+        handler: (workflow: RoutedWorkflow) => workflow.waitForCodeRabbitAndCloseReviewCycle(),
+      },
+    }
+    this.defineRoutes<RoutedWorkflow, ReturnType<RoutedWorkflow['getState']>>(routes)
     return {
-      routes: this.defineRoutes<RoutedWorkflow, RoutedWorkflowState>({
-        init: { type: 'session-start' },
-        transition: {
-          type: 'transition',
-          args: [arg.state('STATE', stateNameSchema)],
-        },
-        'record-issue': {
-          type: 'transaction',
-          args: [arg.number('number')],
-          handler: (workflow, issueNumber) =>
-            input.recordIssue(workflow, input.parseNumberArgument(issueNumber)),
-        },
-        'record-branch': {
-          type: 'transaction',
-          args: [arg.string('branch')],
-          handler: (workflow, branch) =>
-            input.recordBranch(workflow, input.parseStringArgument(branch)),
-        },
-        'record-pr': {
-          type: 'transaction',
-          args: [arg.number('number'), arg.string('url').optional()],
-          handler: (workflow, number, url) =>
-            input.recordPullRequest(
-              workflow,
-              input.parseNumberArgument(number),
-              input.parseOptionalStringArgument(url),
-            ),
-        },
-        'create-pr': {
-          type: 'transaction',
-          args: [arg.rest()],
-          handler: (workflow, args) =>
-            input.createPullRequest(workflow, input.parseStringArguments(args)),
-        },
-        'record-ci-passed': {
-          type: 'transaction',
-          args: [],
-          handler: (workflow) => input.recordCiPassed(workflow),
-        },
-        'record-ci-failed': {
-          type: 'transaction',
-          args: [arg.string('output')],
-          handler: (workflow, output) =>
-            input.recordCiFailed(workflow, input.parseStringArgument(output)),
-        },
-        'verify-feedback-addressed': {
-          type: 'transaction',
-          args: [],
-          handler: (workflow) => input.verifyFeedbackAddressed(workflow),
-        },
-      }),
+      routes,
     }
   }
 }

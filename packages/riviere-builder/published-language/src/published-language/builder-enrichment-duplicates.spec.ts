@@ -1,3 +1,4 @@
+import { BuilderOptions } from './riviere-graph-definition-input'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { RiviereBuilder } from './riviere-builder'
 
@@ -11,7 +12,7 @@ function findComponent(builder: RiviereBuilder, id: string) {
 }
 
 function createValidOptions() {
-  return {
+  return BuilderOptions.parse({
     sources: [
       {
         repository: 'test/repo',
@@ -24,7 +25,7 @@ function createValidOptions() {
         systemType: 'domain',
       },
     },
-  } as const
+  } as const)
 }
 
 function createSourceLocation() {
@@ -36,7 +37,7 @@ function createSourceLocation() {
 
 describe('RiviereBuilder enrichComponent duplicate rejection', () => {
   it('skips duplicate stateChange when enriching with same from:to', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     const domainOp = builder.addDomainOp({
       name: 'Place Order',
       domain: 'orders',
@@ -72,7 +73,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
   })
 
   it('skips duplicate stateChange including trigger field', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     const domainOp = builder.addDomainOp({
       name: 'Place Order',
       domain: 'orders',
@@ -111,7 +112,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
   })
 
   it('adds stateChange when trigger differs', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     const domainOp = builder.addDomainOp({
       name: 'Place Order',
       domain: 'orders',
@@ -153,7 +154,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
   })
 
   it('skips duplicate businessRule', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     const domainOp = builder.addDomainOp({
       name: 'Place Order',
       domain: 'orders',
@@ -170,7 +171,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
   })
 
   it('skips duplicate behavior.reads', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     const domainOp = builder.addDomainOp({
       name: 'Place Order',
       domain: 'orders',
@@ -187,7 +188,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
   })
 
   it('skips duplicate behavior.validates', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     const domainOp = builder.addDomainOp({
       name: 'Place Order',
       domain: 'orders',
@@ -204,7 +205,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
   })
 
   it('skips duplicate behavior.modifies', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     const domainOp = builder.addDomainOp({
       name: 'Place Order',
       domain: 'orders',
@@ -221,7 +222,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
   })
 
   it('skips duplicate behavior.emits', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     const domainOp = builder.addDomainOp({
       name: 'Place Order',
       domain: 'orders',
@@ -238,7 +239,7 @@ describe('RiviereBuilder enrichComponent duplicate rejection', () => {
   })
 
   it('adds only new values when mix of existing and new provided', () => {
-    const builder = RiviereBuilder.new(createValidOptions())
+    const builder = RiviereBuilder.parse(createValidOptions())
     const domainOp = builder.addDomainOp({
       name: 'Place Order',
       domain: 'orders',

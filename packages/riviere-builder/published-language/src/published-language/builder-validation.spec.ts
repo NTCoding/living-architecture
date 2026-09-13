@@ -5,7 +5,7 @@ import { createValidOptions, createSourceLocation } from '../__fixtures__/builde
 describe('RiviereBuilder', () => {
   describe('validate', () => {
     it('returns valid=true when graph has no issues', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -34,7 +34,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('returns INVALID_LINK_TARGET error when link references non-existent target', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -59,7 +59,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('returns multiple errors when graph has multiple issues', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -84,7 +84,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('returns valid=true when graph has no components or links', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const result = builder.validate()
 
@@ -93,7 +93,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('returns valid=true when graph has custom types defined', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       builder.defineCustomType({
         name: 'Database',
@@ -128,7 +128,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('returns valid=true when graph has external links', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Payment Service',

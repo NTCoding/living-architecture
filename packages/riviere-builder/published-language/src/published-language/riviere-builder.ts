@@ -32,7 +32,8 @@ import { RiviereGraphDefinition } from './riviere-graph-definition'
 import { RiviereGraphSnapshot } from './riviere-graph-snapshot'
 import { Link } from './link'
 import {
-  type BuilderOptions,
+  BuilderOptions,
+  type BuilderOptionsInput,
   type CustomTypeInput,
   type DomainInput,
   type RelationshipTypeInput,
@@ -81,15 +82,6 @@ export class RiviereBuilder {
   }
 
   /**
-   * Restores a builder from a previously serialized graph.
-   * @param graph - Graph to resume from.
-   * @returns A builder with the graph state restored.
-   */
-  static resume(graph: RiviereGraph): RiviereBuilder {
-    return RiviereBuilder.fromGraph(graph)
-  }
-
-  /**
    * Creates a builder from persisted graph values.
    * @param graph - Graph values used to reconstruct the builder.
    * @returns A builder with equivalent graph construction state.
@@ -97,12 +89,15 @@ export class RiviereBuilder {
   static fromGraph(graph: RiviereGraph, options?: BuilderOptions): RiviereBuilder {
     if (graph.metadata.sources === undefined || graph.metadata.sources.length === 0)
       throw new InvalidGraphError('missing sources')
-    const graphOptions = options ?? RiviereBuilder.graphOptionsFrom(graph)
+    const graphOptions = options ?? BuilderOptions.fromGraph(graph)
     return new RiviereBuilder(
       graph.version,
       RiviereGraphDefinition.parse({
         ...graph.metadata,
-        ...graphOptions,
+        ...(graphOptions.name === undefined ? {} : { name: graphOptions.name }),
+        ...(graphOptions.description === undefined
+          ? {}
+          : { description: graphOptions.description }),
         sources: [...graphOptions.sources],
         domains: { ...graphOptions.domains },
       }),
@@ -110,26 +105,13 @@ export class RiviereBuilder {
     )
   }
 
-  static graphOptionsFrom(graph: RiviereGraph): BuilderOptions {
-    const sources = graph.metadata.sources
-    if (sources === undefined || sources.length === 0)
-      throw new InvalidGraphError('missing sources')
-    return {
-      ...(graph.metadata.name === undefined ? {} : { name: graph.metadata.name }),
-      ...(graph.metadata.description === undefined
-        ? {}
-        : { description: graph.metadata.description }),
-      sources: [...sources],
-      domains: { ...graph.metadata.domains },
-    }
-  }
-
   /**
    * Creates a new builder with its initial graph definition.
    * @param options - Initial sources, domains, and descriptive values.
    * @returns A new builder.
    */
-  static new(options: BuilderOptions): RiviereBuilder {
+  static parse(input: BuilderOptionsInput): RiviereBuilder {
+    const options = BuilderOptions.parse(input)
     if (options.sources.length === 0) throw new MissingSourcesError()
     if (Object.keys(options.domains).length === 0) throw new MissingDomainsError()
     return new RiviereBuilder(
@@ -146,12 +128,14 @@ export class RiviereBuilder {
   /** Returns empty construction state with the same project graph definition. */
   fresh(): RiviereBuilder {
     const definition = this.metadata.published()
-    return RiviereBuilder.new({
-      ...(definition.name === undefined ? {} : { name: definition.name }),
-      ...(definition.description === undefined ? {} : { description: definition.description }),
-      sources: definition.sources,
-      domains: definition.domains,
-    })
+    return RiviereBuilder.parse(
+      BuilderOptions.parse({
+        ...(definition.name === undefined ? {} : { name: definition.name }),
+        ...(definition.description === undefined ? {} : { description: definition.description }),
+        sources: definition.sources,
+        domains: definition.domains,
+      }),
+    )
   }
 
   /**

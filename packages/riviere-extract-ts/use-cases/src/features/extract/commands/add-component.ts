@@ -3,6 +3,7 @@ import {
   CustomTypeNotFoundError,
   DomainNotFoundError,
   DuplicateComponentError,
+  RiviereBuilder,
 } from '@living-architecture/riviere-builder-published-language'
 import { GraphCorruptedError } from '../data-access/riviere-project/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-project/graph-not-found-error'
@@ -32,8 +33,13 @@ export class AddComponent {
     try {
       const definition = ComponentDefinition.parse(input)
       if (!definition.success) return failure('VALIDATION_ERROR', definition.message)
-      const project = this.repository.loadByGraphPath(input.graphFileLocation)
-      const componentId = project.addComponent(definition.data.value)
+      const project = this.repository.load({
+        kind: 'graph',
+        graphFileLocation: input.graphFileLocation,
+      })
+      const componentId = project.amendGraph((builder) =>
+        addComponent(builder, definition.data.value),
+      )
       this.repository.save(input.graphFileLocation, project)
       return {
         result: {
@@ -73,5 +79,24 @@ function failure(code: AddComponentErrorCode, message: string): AddComponentResu
       code,
       message,
     },
+  }
+}
+
+function addComponent(builder: RiviereBuilder, definition: ComponentDefinition['value']): string {
+  switch (definition.type) {
+    case 'UI':
+      return builder.addUI(definition.input).id
+    case 'API':
+      return builder.addApi(definition.input).id
+    case 'UseCase':
+      return builder.addUseCase(definition.input).id
+    case 'DomainOp':
+      return builder.addDomainOp(definition.input).id
+    case 'Event':
+      return builder.addEvent(definition.input).id
+    case 'EventHandler':
+      return builder.addEventHandler(definition.input).id
+    case 'Custom':
+      return builder.addCustom(definition.input).id
   }
 }

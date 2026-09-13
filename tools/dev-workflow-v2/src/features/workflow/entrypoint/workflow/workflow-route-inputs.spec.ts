@@ -1,92 +1,31 @@
-import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
-import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
-import { defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
-import { createWorkflowRoutes } from './entrypoint'
+import { describe, expect, it } from 'vitest'
 import {
   parseNumberArgument,
   parseOptionalStringArgument,
   parseStringArgument,
   parseStringArguments,
 } from './workflow-route-inputs'
-import { ZodSchemaProvider } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/zod/zod-schema-provider'
-
-type WorkflowDeps = Parameters<ReturnType<typeof configureWorkflow>['buildWorkflow']>[1]
-
-function buildWorkflow(
-  definition: ReturnType<typeof configureWorkflow>,
-): ReturnType<typeof definition.buildWorkflow> {
-  const deps: WorkflowDeps = {
-    getGitInfo: () => ({
-      currentBranch: 'main',
-      workingTreeClean: true,
-      headCommit: 'abc123',
-      changedFilesVsDefault: [],
-      hasCommitsVsDefault: false,
-    }),
-    getPrFeedback: () => ({
-      reviewDecision: null,
-      coderabbitReviewSeen: true,
-      unresolvedCount: 0,
-      threads: [],
-    }),
-    createPullRequest: () => ({
-      prNumber: 1,
-      prUrl: 'https://github.com/example/repo/pull/1',
-      isDraft: false,
-    }),
-    listSessionReviews: () => [],
-    sleepMs: () => undefined,
-    now: () => '2026-01-01T00:00:00Z',
-  }
-  return definition.buildWorkflow(definition.initialState(), deps)
-}
-
-function transactionHandler(definition: ReturnType<typeof configureWorkflow>, routeName: string) {
-  const route = createWorkflowRoutes({
-    createWorkflowRoutes: new CreateWorkflowRoutes(
-      new ZodSchemaProvider(definition.stateSchema),
-      defineRoutes,
-    ),
-    parseNumberArgument,
-    parseStringArgument,
-    parseOptionalStringArgument,
-    parseStringArguments,
-  })[routeName]
-  if (route?.type !== 'transaction') return expect.fail(`Expected transaction route: ${routeName}`)
-  return route.handler
-}
 
 describe('workflow route input boundary', () => {
-  const definition = configureWorkflow({})
-  const workflow = buildWorkflow(definition)
-
-  it('rejects a non-number received for a numeric argument', () => {
-    const handler = transactionHandler(definition, 'record-issue')
-
-    expect(() => handler(workflow, 'not-a-number')).toThrow('Expected parsed number')
+  it('accepts numeric and string route arguments', () => {
+    expect(parseNumberArgument(1)).toBe(1)
+    expect(parseStringArgument('branch')).toBe('branch')
   })
 
-  it('rejects a non-string received for a string argument', () => {
-    const handler = transactionHandler(definition, 'record-branch')
-
-    expect(() => handler(workflow, 2)).toThrow('Expected parsed string')
+  it('accepts optional and rest route arguments', () => {
+    expect(parseOptionalStringArgument(undefined)).toBeUndefined()
+    expect(parseOptionalStringArgument('url')).toBe('url')
+    expect(parseStringArguments(['one', 'two'])).toStrictEqual(['one', 'two'])
   })
 
-  it('rejects a non-string optional URL received from the framework', () => {
-    const handler = transactionHandler(definition, 'record-pr')
-
-    expect(() => handler(workflow, 1, 2)).toThrow('Expected parsed optional string')
+  it('rejects invalid numeric, string, and optional arguments', () => {
+    expect(() => parseNumberArgument('one')).toThrow('Expected parsed number')
+    expect(() => parseStringArgument(1)).toThrow('Expected parsed string')
+    expect(() => parseOptionalStringArgument(1)).toThrow('Expected parsed optional string')
   })
 
-  it('rejects non-array rest arguments received from the framework', () => {
-    const handler = transactionHandler(definition, 'create-pr')
-
-    expect(() => handler(workflow, 'not-an-array')).toThrow('Expected parsed string arguments')
-  })
-
-  it('rejects non-string values inside rest arguments received from the framework', () => {
-    const handler = transactionHandler(definition, 'create-pr')
-
-    expect(() => handler(workflow, ['valid', 2])).toThrow('Expected parsed string arguments')
+  it('rejects invalid rest arguments', () => {
+    expect(() => parseStringArguments('one')).toThrow('Expected parsed string arguments')
+    expect(() => parseStringArguments(['one', 2])).toThrow('Expected parsed string arguments')
   })
 })

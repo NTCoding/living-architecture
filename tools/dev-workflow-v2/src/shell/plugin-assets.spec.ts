@@ -14,25 +14,26 @@ const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readPluginFile = (path: string): string => readFileSync(join(pluginRoot, path), 'utf8')
 
 describe('plugin Agent Skills', () => {
-  it('tells agents to push fixes directly, wait for CodeRabbit, and reflect after clean verification', () => {
+  it('delegates workflow feedback handling to the reusable procedure before returning to reviewing', () => {
     const addressingFeedback = readPluginFile('states/addressing_feedback.md')
 
-    expect(addressingFeedback).toContain('Push the recorded feature branch: `git push`')
-    expect(addressingFeedback).toContain('Wait for CodeRabbit to process the pushed commit')
-    expect(addressingFeedback).toContain('transitions directly to `REFLECTING`')
+    expect(addressingFeedback).toContain('commands/address-pull-request-feedback.md')
+    expect(addressingFeedback).toContain('transition to `REVIEWING`')
   })
 
   it('registers Pi commands and loads their instruction assets', async () => {
-    const packageManifest = readPluginFile('package.json')
+    const packageManifest: { pi?: { extensions?: string[] }; skills?: unknown } = JSON.parse(
+      readPluginFile('package.json'),
+    )
     const piProjectSettings = readPluginFile('../../.pi/settings.json')
     const commandNames = [
+      'address-pull-request-feedback',
       'choose-next-task',
-      'code-review',
       'continue-planning',
-      'create-pr',
       'list-review-threads',
       'optimize-factory',
       'planning-status',
+      'review-pull-request',
       'start-implementation',
       'start-planning',
     ]
@@ -47,20 +48,23 @@ describe('plugin Agent Skills', () => {
     function sendUserMessage(...argumentsList: Parameters<ExtensionAPI['sendUserMessage']>): void {
       sentMessages(...argumentsList)
     }
-    const pi = Object.create({ registerCommand, sendUserMessage })
+    const pi = Object.create({
+      registerCommand,
+      sendUserMessage,
+    })
     const extension = (await import('./pi-plugin')).default
 
     extension(pi)
 
     expect({
-      extension: packageManifest.includes('"extensions": ["./src/shell/pi-plugin.ts"]'),
+      extension: packageManifest.pi?.extensions,
       projectPackage: piProjectSettings.includes('"../tools/dev-workflow-v2"'),
-      skills: packageManifest.includes('"skills": ["./skills"]'),
+      codexSkillsExcluded: packageManifest.skills === undefined,
       commands: [...registeredCommands.keys()],
     }).toStrictEqual({
-      extension: true,
+      extension: expect.arrayContaining(['./src/shell/pi-plugin.ts']),
       projectPackage: true,
-      skills: true,
+      codexSkillsExcluded: true,
       commands: commandNames.map((commandName) => `dev-workflow-v2:${commandName}`),
     })
 
@@ -77,12 +81,44 @@ describe('plugin Agent Skills', () => {
         undefined,
       )
     }
+  })
+
+  it('renders Pi branch preparation without Claude or Codex startup assumptions', async () => {
+    const registeredCommands = new Map<string, Parameters<ExtensionAPI['registerCommand']>[1]>()
+    const sentMessages = vi.fn()
+    function registerCommand(
+      name: string,
+      command: Parameters<ExtensionAPI['registerCommand']>[1],
+    ): void {
+      registeredCommands.set(name, command)
+    }
+    function sendUserMessage(...argumentsList: Parameters<ExtensionAPI['sendUserMessage']>): void {
+      sentMessages(...argumentsList)
+    }
+    const pi = Object.create({ registerCommand, sendUserMessage })
+    const extension = (await import('./pi-plugin')).default
+    extension(pi)
 
     await registeredCommands
-      .get('dev-workflow-v2:code-review')
-      ?.handler('example arguments', Object.create({ isIdle: () => false }))
+      .get('dev-workflow-v2:start-implementation')
+      ?.handler('42', Object.create({ isIdle: () => true }))
 
-    expect(sentMessages).toHaveBeenLastCalledWith(expect.any(String), { deliverAs: 'followUp' })
+    const instruction = sentMessages.mock.calls[0]?.[0]
+    expect({
+      callCount: sentMessages.mock.calls.length,
+      instruction,
+      containsBranchRename: String(instruction).includes('git branch -m'),
+      containsClaudeStartup: String(instruction).includes('claude -w'),
+      containsCodexSession: String(instruction).includes('CODEX_THREAD_ID'),
+    }).toStrictEqual({
+      callCount: 1,
+      instruction: expect.stringMatching(
+        /prepare-implementation-branch[\s\S]*the `workflow` tool init/,
+      ),
+      containsBranchRename: false,
+      containsClaudeStartup: false,
+      containsCodexSession: false,
+    })
   })
 
   it('provides an Agent Skill for every plugin command', () => {
@@ -98,10 +134,8 @@ describe('plugin Agent Skills', () => {
     )
   })
 
-  it.each(['workflow', 'code-review', 'create-pr', 'list-review-threads'])(
-    'contains a complete %s skill',
-    (skillName) => {
-      const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
+  it.each(['workflow', 'list-review-threads'])('contains a complete %s skill', (skillName) => {
+    const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
 
       expect(skill).toContain(`name: ${skillName}`)
       expect(skill).not.toContain('TODO')
@@ -170,37 +204,7 @@ describe('plugin Agent Skills', () => {
     })
   })
 
-  it('validates reviewer result types before recording them', () => {
-    const skill = readPluginFile('skills/code-review/SKILL.md')
-    const validationPosition = skill.indexOf('`verdict` equal to `PASS` or `FAIL`')
-    const recordingPosition = skill.indexOf('`record-review` workflow operation')
-
-    expect({
-      validatesSummary: skill.includes('`summary` as a string'),
-      validatesFindings: skill.includes('`findings` as an array'),
-      blocksInvalidResults: skill.includes('stop before recording any invalid result'),
-      validatesBeforeRecording: validationPosition > -1 && validationPosition < recordingPosition,
-    }).toStrictEqual({
-      validatesSummary: true,
-      validatesFindings: true,
-      blocksInvalidResults: true,
-      validatesBeforeRecording: true,
-    })
-  })
-
-  it('prohibits direct pushes while creating a pull request', () => {
-    const skill = readPluginFile('skills/create-pr/SKILL.md')
-
-    expect({
-      prohibitsDirectPush: skill.includes('Do not call `git push`'),
-      containsDirectPushCommand: skill.includes('git push -u origin'),
-    }).toStrictEqual({
-      prohibitsDirectPush: true,
-      containsDirectPushCommand: false,
-    })
-  })
-
-  it.each(['code-review', 'create-pr', 'list-review-threads'])(
+  it.each(['list-review-threads'])(
     'does not translate Codex skill syntax in the %s command adapter',
     (commandName) => {
       const command = readPluginFile(`commands/${commandName}.md`)
@@ -215,19 +219,23 @@ describe('plugin Agent Skills', () => {
     },
   )
 
-  it.each(['create-pr', 'list-review-threads'])(
+  it.each(['list-review-threads'])(
     'selects workflow execution for Codex or slash-command harnesses in %s',
     (skillName) => {
       const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
 
       expect({
         detectsCodex: skill.includes('If `CODEX_THREAD_ID` is present'),
+        detectsPi: skill.includes('if `PI_CODING_AGENT=true` is present'),
+        usesPiWorkflowTool: skill.includes('with the `workflow` tool'),
         usesCodexRunner: skill.includes(
           'pnpm --dir tools/dev-workflow-v2 run codex-workflow <operation> [args]',
         ),
         usesSlashCommand: skill.includes('/dev-workflow-v2:workflow <operation> [args]'),
       }).toStrictEqual({
         detectsCodex: true,
+        detectsPi: true,
+        usesPiWorkflowTool: true,
         usesCodexRunner: true,
         usesSlashCommand: true,
       })
@@ -235,31 +243,148 @@ describe('plugin Agent Skills', () => {
   )
 })
 
-describe('reviewer workflow preflight', () => {
+describe('reusable pull request orchestration', () => {
+  it('configures pi-subagents to discover the four repository reviewers', () => {
+    const piProjectSettings = readPluginFile('../../.pi/settings.json')
+
+    expect(JSON.parse(piProjectSettings)).toMatchObject({
+      packages: expect.arrayContaining(['npm:pi-subagents']),
+      subagents: {
+        agentScanDirs: ['tools/dev-workflow-v2/agents'],
+        defaultSubagentContext: 'fresh',
+      },
+    })
+  })
+
+  it('uses one canonical procedure from both standalone and workflow review entry points', () => {
+    const reviewing = readPluginFile('states/reviewing.md')
+    const pullRequestReview = readPluginFile('commands/review-pull-request.md')
+
+    expect({
+      workflowDelegates: reviewing.includes('commands/review-pull-request.md'),
+      usesGraphql: pullRequestReview.includes('gh api graphql'),
+      reviewsDiff: pullRequestReview.includes('git diff'),
+      readsClosingIssues: pullRequestReview.includes('closingIssuesReferences(first: 100)'),
+      launchesInParallel: pullRequestReview.includes('`runs.all`'),
+      publishesDiagnosticRecord: pullRequestReview.includes('[workflow-orchestrator]'),
+      doesNotUseWorkflowCommand: !pullRequestReview.includes('$dev-workflow-v2:workflow'),
+    }).toStrictEqual({
+      workflowDelegates: true,
+      usesGraphql: true,
+      reviewsDiff: true,
+      readsClosingIssues: true,
+      launchesInParallel: true,
+      publishesDiagnosticRecord: true,
+      doesNotUseWorkflowCommand: true,
+    })
+  })
+
+  it('does not launch task-check without linked issues and records why', () => {
+    const pullRequestReview = readPluginFile('commands/review-pull-request.md')
+
+    expect({
+      skipsTaskCheck: pullRequestReview.includes('do not launch `task-check`'),
+      namesReason: pullRequestReview.includes('task-check: no linked issue'),
+      waitsForLaunches: pullRequestReview.includes(
+        'after every applicable reviewer has been launched successfully',
+      ),
+    }).toStrictEqual({
+      skipsTaskCheck: true,
+      namesReason: true,
+      waitsForLaunches: true,
+    })
+  })
+
+  it('plans feedback before making changes and preserves human direction', () => {
+    const feedbackProcedure = readPluginFile('commands/address-pull-request-feedback.md')
+
+    expect({
+      workflowIndependent: !feedbackProcedure.includes('$dev-workflow-v2:workflow'),
+      checksHeadBranch: feedbackProcedure.includes('pull request head branch'),
+      waitsForApproval: feedbackProcedure.includes('Wait for explicit approval'),
+      hasClearFixes: feedbackProcedure.includes('**Clear fixes**'),
+      hasDiscussion: feedbackProcedure.includes('**Discussion needed**'),
+      hasHumanDirection: feedbackProcedure.includes('**Human direction**'),
+      recoversPersistedDecisions: feedbackProcedure.includes(
+        'Recover persisted `[main-agent]` decisions from the thread history',
+      ),
+      resumesRecordedFixes: feedbackProcedure.includes(
+        'then start at step 2. Do not post a duplicate planning reply',
+      ),
+      recordsPlanBeforeChanges:
+        feedbackProcedure.includes('respond to each approved GitHub review') &&
+        feedbackProcedure.includes(
+          'thread with the agreed follow up action before changing any code',
+        ),
+      explainsWhyBeforeWhatAndHow: feedbackProcedure.includes(
+        'must start by explaining why the feedback is valid, then state what outcome',
+      ),
+      publishesRepliesImmediately: feedbackProcedure.includes(
+        'This endpoint publishes the reply immediately',
+      ),
+      usesSubmittedRestReplies:
+        feedbackProcedure.includes(
+          'pulls/<PR_NUMBER>/comments/<ROOT_COMMENT_DATABASE_ID>/replies',
+        ) && !feedbackProcedure.includes('addPullRequestReviewThreadReply(input'),
+      readsRootCommentDatabaseId: feedbackProcedure.includes(
+        'REST database ID of its root comment',
+      ),
+      recordsCompletion: feedbackProcedure.includes(
+        '[main-agent] Done as planned: <what changed and how it was verified>',
+      ),
+      resolvesAfterCompletion:
+        feedbackProcedure.indexOf('Done as planned:') <
+        feedbackProcedure.indexOf('Resolve the thread only after'),
+      rejectsAndResolvesImmediately:
+        feedbackProcedure.includes('When a technically justified rejection') &&
+        feedbackProcedure.includes('Immediately after the reply succeeds, resolve'),
+      doesNotResolveHumanDecisions: feedbackProcedure.includes('do not resolve it'),
+    }).toStrictEqual({
+      workflowIndependent: true,
+      checksHeadBranch: true,
+      waitsForApproval: true,
+      hasClearFixes: true,
+      hasDiscussion: true,
+      hasHumanDirection: true,
+      recoversPersistedDecisions: true,
+      resumesRecordedFixes: true,
+      recordsPlanBeforeChanges: true,
+      explainsWhyBeforeWhatAndHow: true,
+      publishesRepliesImmediately: true,
+      usesSubmittedRestReplies: true,
+      readsRootCommentDatabaseId: true,
+      recordsCompletion: true,
+      resolvesAfterCompletion: true,
+      rejectsAndResolvesImmediately: true,
+      doesNotResolveHumanDecisions: true,
+    })
+  })
+
   it.each(['architecture-review', 'code-review', 'bug-scanner', 'task-check'])(
-    'checks REVIEWING state before %s reads project files',
+    'keeps %s as a direct GitHub publisher that does not use workflow state',
     (reviewerName) => {
       const reviewer = readPluginFile(`agents/${reviewerName}.md`)
-      const codexPreflightPosition = reviewer.indexOf('$dev-workflow-v2:workflow get-state')
-      const slashPreflightPosition = reviewer.indexOf('/dev-workflow-v2:workflow get-state')
-      const projectReadPosition = reviewer.indexOf('You will return structured JSON')
 
       expect({
-        hasCodexInvocation: codexPreflightPosition > -1,
-        hasSlashInvocation: slashPreflightPosition > -1,
-        hasStateField: reviewer.includes('currentStateMachineState'),
-        hasReviewingGuard: reviewer.includes('is not `REVIEWING`'),
-        hasRefusal: reviewer.includes('{"refused":true,"reason":"Workflow is not in REVIEWING."}'),
-        preflightBeforeReview:
-          codexPreflightPosition < projectReadPosition &&
-          slashPreflightPosition < projectReadPosition,
+        hasGitHubPublishing: reviewer.includes('## GitHub Review Output'),
+        hasBash: reviewer.includes('tools: read, grep, find, ls, bash'),
+        doesNotQueryWorkflow: reviewer.includes('Do not query or change workflow state.'),
+        returnsCompletionReceipt: reviewer.includes(
+          'Return a short completion receipt to the workflow caller only after GitHub publication.',
+        ),
+        hasDecisionHistory: reviewer.includes('Read the decision history supplied in your task'),
+        bindsSettledDecisions: reviewer.includes('binding to you'),
+        statesExpectedOutcome: reviewer.includes(
+          'Every finding must also state what good looks like',
+        ),
       }).toStrictEqual({
-        hasCodexInvocation: true,
-        hasSlashInvocation: true,
-        hasStateField: true,
-        hasReviewingGuard: true,
-        hasRefusal: true,
-        preflightBeforeReview: true,
+        hasGitHubPublishing: true,
+        hasBash: true,
+        doesNotQueryWorkflow: true,
+        returnsCompletionReceipt: true,
+        hasDecisionHistory: true,
+        bindsSettledDecisions: true,
+        statesExpectedOutcome: true,
       })
     },
   )

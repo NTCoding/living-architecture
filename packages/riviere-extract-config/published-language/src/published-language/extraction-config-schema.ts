@@ -318,7 +318,9 @@ interface ModuleIdentity {
   customTypes?: CustomTypesInput
 }
 
-interface ModuleRules {
+/** The six required component rules of a module. */
+/** @riviere-role published-language-data-structure */
+export interface ModuleRules {
   api: ComponentRuleInput
   useCase: ComponentRuleInput
   domainOp: ComponentRuleInput
@@ -332,10 +334,13 @@ export interface StandaloneDraftModule extends ModuleIdentity, ModuleRules {
   extends?: never
 }
 
+/** @riviere-role published-language-data-structure */
+export interface ExtendingDraftModuleInput extends ModuleIdentity, Partial<ModuleRules> {
+  extends: string
+}
+
 /** @riviere-role published-language-union */
-export type DraftModule =
-  | StandaloneDraftModule
-  | (ModuleIdentity & Partial<ModuleRules> & { extends: string })
+export type DraftModule = StandaloneDraftModule | ExtendingDraftModuleInput
 
 /**
  * A fully resolved module with all component rules.

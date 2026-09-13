@@ -106,6 +106,8 @@ export class BuiltRole<N extends string = string> {
   declare readonly requiresPrivateConstructor?: true
   declare readonly requiredStaticFactoryMethodNamePrefixes?: readonly string[]
   declare readonly requiresStaticFactoryMethodParameters?: true
+  declare readonly forbidNonFactoryStaticMethods?: true
+  declare readonly allowedStaticMethodNames?: readonly string[]
   declare readonly requiresIndexedAccessTypeFromRole?: string
   declare readonly requiresDecoratorSignature?: true
   declare readonly mustBeDataStructure?: true

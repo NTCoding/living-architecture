@@ -9,5 +9,4 @@ export type CreateWorkflowPullRequest = (request: {
 }) => {
   readonly prNumber: number
   readonly prUrl: string
-  readonly isDraft: boolean
 }

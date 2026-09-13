@@ -1,3 +1,4 @@
+import { BuilderOptions } from './riviere-graph-definition-input'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { RiviereBuilder } from './riviere-builder'
 import { InvalidGraphError } from './construction-errors'
@@ -8,7 +9,7 @@ function parseGraph(builder: RiviereBuilder): RiviereGraph {
 }
 
 function createValidOptions() {
-  return {
+  return BuilderOptions.parse({
     sources: [
       {
         repository: 'my-org/my-repo',
@@ -21,7 +22,7 @@ function createValidOptions() {
         systemType: 'domain',
       },
     },
-  } as const
+  } as const)
 }
 
 describe('RiviereBuilder', () => {
@@ -42,7 +43,7 @@ describe('RiviereBuilder', () => {
         },
       } as const
 
-      const builder = RiviereBuilder.new(options)
+      const builder = RiviereBuilder.parse(options)
 
       expect(builder).toBeInstanceOf(RiviereBuilder)
     })
@@ -58,7 +59,7 @@ describe('RiviereBuilder', () => {
         },
       } as const
 
-      expect(() => RiviereBuilder.new(options)).toThrow('At least one source required')
+      expect(() => RiviereBuilder.parse(options)).toThrow('At least one source required')
     })
 
     it('throws when domains object is empty', () => {
@@ -67,7 +68,7 @@ describe('RiviereBuilder', () => {
         domains: {},
       } as const
 
-      expect(() => RiviereBuilder.new(options)).toThrow('At least one domain required')
+      expect(() => RiviereBuilder.parse(options)).toThrow('At least one domain required')
     })
 
     it('configures graph metadata from options', () => {
@@ -88,7 +89,7 @@ describe('RiviereBuilder', () => {
         },
       } as const
 
-      const builder = RiviereBuilder.new(options)
+      const builder = RiviereBuilder.parse(options)
 
       expect(parseGraph(builder).metadata.name).toBe('my-service')
       expect(parseGraph(builder).metadata.description).toBe('Service description')
@@ -107,7 +108,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('creates fresh empty construction state with the same graph definition', () => {
-      const builder = RiviereBuilder.new({
+      const builder = RiviereBuilder.parse({
         ...createValidOptions(),
         name: 'Shop',
         description: 'Shop graph',
@@ -133,7 +134,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('creates fresh state when optional graph metadata is absent', () => {
-      const freshGraph = RiviereBuilder.new(createValidOptions()).fresh().build()
+      const freshGraph = RiviereBuilder.parse(createValidOptions()).fresh().build()
 
       expect(freshGraph.metadata).not.toHaveProperty('name')
       expect(freshGraph.metadata).not.toHaveProperty('description')
@@ -141,14 +142,26 @@ describe('RiviereBuilder', () => {
   })
 
   describe('graphOptionsFrom', () => {
+    it('reconstructs a builder with and without optional graph metadata', () => {
+      const named = RiviereBuilder.parse({
+        ...createValidOptions().toJSON(),
+        name: 'Shop',
+        description: 'Shop graph',
+      })
+      expect(RiviereBuilder.fromGraph(named.build())).toBeInstanceOf(RiviereBuilder)
+
+      const unnamed = RiviereBuilder.parse(createValidOptions())
+      expect(RiviereBuilder.fromGraph(unnamed.build())).toBeInstanceOf(RiviereBuilder)
+    })
+
     it('returns graph construction options from persisted metadata', () => {
-      const builder = RiviereBuilder.new({
+      const builder = RiviereBuilder.parse({
         ...createValidOptions(),
         name: 'Shop',
         description: 'Shop graph',
       })
 
-      expect(RiviereBuilder.graphOptionsFrom(builder.build())).toStrictEqual({
+      expect(BuilderOptions.fromGraph(builder.build()).toJSON()).toStrictEqual({
         name: 'Shop',
         description: 'Shop graph',
         sources: createValidOptions().sources,
@@ -157,9 +170,9 @@ describe('RiviereBuilder', () => {
     })
 
     it('omits absent optional graph metadata', () => {
-      const graph = RiviereBuilder.new(createValidOptions()).build()
+      const graph = RiviereBuilder.parse(createValidOptions()).build()
 
-      expect(RiviereBuilder.graphOptionsFrom(graph)).toStrictEqual(createValidOptions())
+      expect(BuilderOptions.fromGraph(graph).toJSON()).toStrictEqual(createValidOptions().toJSON())
     })
 
     it('rejects persisted metadata without sources', () => {
@@ -170,16 +183,14 @@ describe('RiviereBuilder', () => {
         links: [],
       }
 
-      expect(() => RiviereBuilder.graphOptionsFrom(graph)).toThrowError(InvalidGraphError)
-      expect(() => RiviereBuilder.graphOptionsFrom(graph)).toThrowError(
-        'Invalid graph: missing sources',
-      )
+      expect(() => BuilderOptions.fromGraph(graph)).toThrowError(InvalidGraphError)
+      expect(() => BuilderOptions.fromGraph(graph)).toThrowError('Invalid graph: missing sources')
     })
   })
 
   describe('addSource', () => {
     it('appends source to metadata sources', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       builder.addSource({
         repository: 'another-org/another-repo',
@@ -199,7 +210,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('allows adding source without commit', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       builder.addSource({ repository: 'no-commit-repo' })
 
@@ -207,7 +218,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('is idempotent when adding an identical source', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       builder.addSource({
         repository: 'my-org/my-repo',
@@ -218,7 +229,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('throws when same repository has different source metadata', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       expect(() =>
         builder.addSource({
@@ -231,7 +242,7 @@ describe('RiviereBuilder', () => {
 
   describe('addDomain', () => {
     it('adds domain to metadata domains', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       builder.addDomain({
         name: 'shipping',
@@ -246,7 +257,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('is idempotent when domain name already exists with identical metadata', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       builder.addDomain({
         name: 'orders',
@@ -261,7 +272,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('throws when domain name already exists with different metadata', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       expect(() =>
         builder.addDomain({

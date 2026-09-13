@@ -11,7 +11,7 @@ function createBuilder(): RiviereBuilder {
       },
     },
   } as const
-  return RiviereBuilder.new(options)
+  return RiviereBuilder.parse(options)
 }
 
 function addSource(builder: RiviereBuilder) {
@@ -155,7 +155,7 @@ describe('RiviereBuilder Link occurrences', () => {
     const graph = builder.build()
     replaceFirstLinkId(graph, 'legacy-link-id')
 
-    const resumed = RiviereBuilder.resume(graph)
+    const resumed = RiviereBuilder.fromGraph(graph)
 
     expect(() => resumed.link(input)).toThrow(
       `Link with ID '${source.id}->${source.id}@src/create-order.ts:12:5' already exists`,
@@ -173,7 +173,7 @@ describe('RiviereBuilder Link occurrences', () => {
     const graph = builder.build()
     replaceFirstLinkId(graph, 'legacy-link-id')
 
-    const resumed = RiviereBuilder.resume(graph)
+    const resumed = RiviereBuilder.fromGraph(graph)
 
     expect(() => resumed.link(input)).toThrow(
       `Link with ID '${source.id}->${source.id}' already exists`,

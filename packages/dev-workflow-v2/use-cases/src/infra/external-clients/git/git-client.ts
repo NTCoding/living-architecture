@@ -30,26 +30,23 @@ export function readGitRepositoryStatus(
     changedFilesVsDefault: runGit(executeGit, gitBinary, [
       'diff',
       '--name-only',
-      defaultBranch,
-      'HEAD',
+      `${defaultBranch}...HEAD`,
     ])
       .split('\n')
       .filter((f: string) => f.length > 0),
     hasCommitsVsDefault:
-      runGit(executeGit, gitBinary, ['rev-list', 'HEAD', `^${defaultBranch}`]).length > 0,
+      runGit(executeGit, gitBinary, ['rev-list', `${defaultBranch}..HEAD`]).length > 0,
   }
 }
 
 function detectDefaultBranch(executeGit: GitExecutor, gitBinary: string): string {
-  try {
-    return runGit(executeGit, gitBinary, [
-      'symbolic-ref',
-      'refs/remotes/origin/HEAD',
-      '--short',
-    ]).replace('origin/', '')
-  } catch {
-    return 'main'
-  }
+  const defaultBranch = runGit(executeGit, gitBinary, [
+    'symbolic-ref',
+    'refs/remotes/origin/HEAD',
+    '--short',
+  ])
+  runGit(executeGit, gitBinary, ['rev-parse', '--verify', `${defaultBranch}^{commit}`])
+  return defaultBranch
 }
 
 function runGit(

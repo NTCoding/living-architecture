@@ -1,12 +1,6 @@
-import type {
-  PreconditionResult,
-  TransitionContext,
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { z } from 'zod'
-import type { WorkflowState } from '../workflow-types'
-
-type StateName = WorkflowState['currentStateMachineState']
-
+import type { WorkflowTransitionContext } from '../workflow-transition-context'
 /** @riviere-role value-object */
 export class SubmittingPrState {
   declare private readonly brand: 'SubmittingPrState'
@@ -14,8 +8,8 @@ export class SubmittingPrState {
   readonly name: 'SUBMITTING_PR'
   readonly emoji = '🚀'
   readonly agentInstructions = 'states/submitting_pr.md'
-  readonly canTransitionTo = ['AWAITING_CI', 'BLOCKED'] as const
-  readonly allowedWorkflowOperations = ['record-pr', 'create-pr'] as const
+  readonly canTransitionTo = ['REVIEWING', 'BLOCKED'] as const
+  readonly allowedWorkflowOperations = ['create-pr'] as const
   readonly forbidden = { write: true } as const
 
   private constructor(name: 'SUBMITTING_PR') {
@@ -27,11 +21,13 @@ export class SubmittingPrState {
     return new SubmittingPrState('SUBMITTING_PR')
   }
 
-  transitionGuard(context: TransitionContext<WorkflowState, StateName>): PreconditionResult {
-    if (!context.state.prNumber) {
+  transitionGuard(
+    context: Parameters<typeof WorkflowTransitionContext.from>[0],
+  ): PreconditionResult {
+    if (context.to === 'REVIEWING' && context.state.prNumber === undefined) {
       return {
         pass: false,
-        reason: 'prNumber not set. Run record-pr first.',
+        reason: 'Pull request creation did not record a pull request.',
       }
     }
     return { pass: true }

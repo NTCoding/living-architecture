@@ -1,7 +1,8 @@
+import { BuilderOptions } from './riviere-graph-definition-input'
 import { RiviereBuilder } from './riviere-builder'
 
 function createValidOptions() {
-  return {
+  return BuilderOptions.parse({
     sources: [
       {
         repository: 'my-org/my-repo',
@@ -14,13 +15,13 @@ function createValidOptions() {
         systemType: 'domain',
       },
     },
-  } as const
+  } as const)
 }
 
 describe('RiviereBuilder components', () => {
   describe('addUI', () => {
     it('returns UIComponent with generated ID when given valid input', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addUI({
         name: 'Checkout Page',
@@ -48,7 +49,7 @@ describe('RiviereBuilder components', () => {
     })
 
     it('includes optional description when provided', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addUI({
         name: 'Checkout Page',
@@ -66,7 +67,7 @@ describe('RiviereBuilder components', () => {
     })
 
     it('throws when domain does not exist', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       expect(() =>
         builder.addUI({
@@ -83,7 +84,7 @@ describe('RiviereBuilder components', () => {
     })
 
     it('throws when component with same ID already exists', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const input = {
         name: 'Checkout Page',
         domain: 'orders',
@@ -105,7 +106,7 @@ describe('RiviereBuilder components', () => {
 
   describe('addApi', () => {
     it('returns APIComponent with generated ID for REST endpoint', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addApi({
         name: 'Create Order',
@@ -137,7 +138,7 @@ describe('RiviereBuilder components', () => {
     })
 
     it('returns APIComponent with generated ID for GraphQL operation', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addApi({
         name: 'Create Order Mutation',
@@ -167,7 +168,7 @@ describe('RiviereBuilder components', () => {
     })
 
     it('includes optional description when provided', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addApi({
         name: 'Create Order',
@@ -189,7 +190,7 @@ describe('RiviereBuilder components', () => {
 
   describe('addUseCase', () => {
     it('returns UseCaseComponent with generated ID', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addUseCase({
         name: 'Place Order',
@@ -215,7 +216,7 @@ describe('RiviereBuilder components', () => {
     })
 
     it('includes optional description when provided', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addUseCase({
         name: 'Place Order',
@@ -234,7 +235,7 @@ describe('RiviereBuilder components', () => {
 
   describe('addDomainOp', () => {
     it('returns DomainOpComponent with generated ID', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addDomainOp({
         name: 'Place Order',
@@ -264,7 +265,7 @@ describe('RiviereBuilder components', () => {
     })
 
     it('includes all optional fields when provided', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addDomainOp({
         name: 'Place Order',
@@ -327,7 +328,7 @@ describe('RiviereBuilder components', () => {
 
   describe('addEvent', () => {
     it('returns EventComponent with generated ID', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addEvent({
         name: 'Order Placed',
@@ -355,7 +356,7 @@ describe('RiviereBuilder components', () => {
     })
 
     it('includes optional eventSchema when provided', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addEvent({
         name: 'Order Placed',
@@ -377,7 +378,7 @@ describe('RiviereBuilder components', () => {
 
   describe('addEventHandler', () => {
     it('returns EventHandlerComponent with generated ID', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addEventHandler({
         name: 'Send Order Confirmation',
@@ -405,7 +406,7 @@ describe('RiviereBuilder components', () => {
     })
 
     it('includes optional description when provided', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const component = builder.addEventHandler({
         name: 'Send Order Confirmation',

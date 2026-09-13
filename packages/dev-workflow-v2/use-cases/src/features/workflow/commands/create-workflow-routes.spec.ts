@@ -1,209 +1,193 @@
-import { defineWorkflowRoutes } from '../../../infra/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
-import { ZodSchemaProvider } from '../../../infra/external-clients/zod/zod-schema-provider'
-import { configureWorkflow } from './configure-workflow'
-import type { MaintainerWorkflow as Workflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
-import { describe, expect, it, vi } from 'vitest'
-import {
-  CreateWorkflowRoutes,
-  type CreateWorkflowRoutesInput,
-  type CreateWorkflowRoutesResult,
-} from './create-workflow-routes'
+import { defineRoutes } from '@nt-ai-lab/deterministic-agent-workflow-cli'
+import { z } from 'zod'
+import { assert, describe, expect, it, vi } from 'vitest'
+import { PullRequestCreationDetails } from '@living-architecture/dev-workflow-v2-domain-model/domain/pull-request-description'
+import { Reviewer } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
+import { CreateWorkflowRoutes } from './create-workflow-routes'
 
-const workflowResult: ReturnType<Workflow['executeRecording']> = { pass: true }
-
-class UnexpectedRouteError extends Error {}
-
-interface RouteCalls {
-  recordIssue: unknown[][]
-  recordBranch: unknown[][]
-  recordPullRequest: unknown[][]
-  createPullRequest: unknown[][]
-  recordCiPassed: unknown[][]
-  recordCiFailed: unknown[][]
-  verifyFeedbackAddressed: unknown[][]
+function createRoutes(
+  inputOverrides: Partial<{
+    commitType: string
+    title: string
+    description: string
+    parseFailure: boolean
+  }> = {},
+) {
+  const recordIssue = vi.fn(() => ({ pass: true as const }))
+  const recordBranch = vi.fn(() => ({ pass: true as const }))
+  const recordReviewerStatus = vi.fn(() => ({ pass: true as const }))
+  const routes = new CreateWorkflowRoutes(
+    { getSchema: () => z.enum(['IMPLEMENTING', 'REVIEWING']) },
+    defineRoutes,
+  ).execute({
+    parseNumberArgument: (value) => Number(value),
+    parseStringArgument: (value) => String(value),
+    parseStringArguments: (value) => z.array(z.string()).parse(value),
+    recordIssue,
+    recordBranch,
+    recordReviewerStatus,
+    formatPullRequestDetailsFailure: (failure) => `formatted:${failure.type}`,
+    parsePullRequestDescriptionOptions: (args) =>
+      inputOverrides.parseFailure
+        ? { ok: false as const, reason: 'Expected pull request options.' }
+        : {
+            ok: true as const,
+            input: {
+              commitType: inputOverrides.commitType ?? optionValue(args, '--commit-type', 'feat'),
+              commitScope: optionValue(args, '--commit-scope', 'workflow'),
+              title: inputOverrides.title ?? optionValue(args, '--title', 'restore review agents'),
+              description: inputOverrides.description ?? 'A'.repeat(100),
+              problem: 'Problem',
+              acceptanceCriteria: 'Criteria',
+              keyChanges: 'Changes',
+              architectureImpact: 'Impact',
+              validation: 'Validation',
+              notes: 'Notes',
+            },
+          },
+  }).routes
+  return { routes, recordIssue, recordBranch, recordReviewerStatus }
 }
 
-function createInput(): {
-  input: CreateWorkflowRoutesInput
-  calls: RouteCalls
-} {
-  const calls: RouteCalls = {
-    recordIssue: [],
-    recordBranch: [],
-    recordPullRequest: [],
-    createPullRequest: [],
-    recordCiPassed: [],
-    recordCiFailed: [],
-    verifyFeedbackAddressed: [],
-  }
-  return {
-    input: {
-      parseNumberArgument: vi.fn(() => 1),
-      parseStringArgument: vi.fn(() => 'value'),
-      parseOptionalStringArgument: vi.fn(() => undefined),
-      parseStringArguments: vi.fn(() => []),
-      recordIssue: (workflow, issueNumber) => {
-        calls.recordIssue.push([workflow, issueNumber])
-        return workflowResult
-      },
-      recordBranch: (workflow, branch) => {
-        calls.recordBranch.push([workflow, branch])
-        return workflowResult
-      },
-      recordPullRequest: (workflow, number, url) => {
-        calls.recordPullRequest.push([workflow, number, url])
-        return workflowResult
-      },
-      createPullRequest: (workflow, args) => {
-        calls.createPullRequest.push([workflow, args])
-        return workflowResult
-      },
-      recordCiPassed: (workflow) => {
-        calls.recordCiPassed.push([workflow])
-        return workflowResult
-      },
-      recordCiFailed: (workflow, output) => {
-        calls.recordCiFailed.push([workflow, output])
-        return workflowResult
-      },
-      verifyFeedbackAddressed: (workflow) => {
-        calls.verifyFeedbackAddressed.push([workflow])
-        return workflowResult
-      },
-    },
-    calls,
-  }
-}
-
-function createWorkflow(definition: ReturnType<typeof configureWorkflow>) {
-  return definition.buildWorkflow(definition.initialState(), {
-    getGitInfo: () => ({
-      currentBranch: 'main',
-      workingTreeClean: true,
-      headCommit: 'abc123',
-      changedFilesVsDefault: [],
-      hasCommitsVsDefault: false,
-    }),
-    getPrFeedback: () => ({
-      reviewDecision: null,
-      coderabbitReviewSeen: true,
-      unresolvedCount: 0,
-      threads: [],
-    }),
-    createPullRequest: () => ({
-      prNumber: 1,
-      prUrl: 'https://github.com/example/repo/pull/1',
-      isDraft: false,
-    }),
-    listSessionReviews: () => [],
-    sleepMs: () => undefined,
-    now: () => '2026-01-01T00:00:00Z',
-  })
-}
-
-function transactionHandler(routes: CreateWorkflowRoutesResult['routes'], name: string) {
-  const route = routes[name]
-  if (route?.type !== 'transaction') {
-    throw new UnexpectedRouteError(`Expected transaction route: ${name}`)
-  }
-  return route.handler
-}
-
-function stateArgument(routes: CreateWorkflowRoutesResult['routes']) {
-  const transition = routes['transition']
-  if (transition?.type !== 'transition') {
-    throw new UnexpectedRouteError('Expected transition route')
-  }
-  const argument = transition.args?.[0]
-  if (!argument) throw new UnexpectedRouteError('Expected state argument')
-  return argument
+function optionValue(args: readonly string[], optionName: string, defaultValue: string): string {
+  const optionIndex = args.indexOf(optionName)
+  if (optionIndex === -1) return defaultValue
+  const value = args[optionIndex + 1]
+  assert(value !== undefined, `Expected value for ${optionName}.`)
+  return value
 }
 
 describe('CreateWorkflowRoutes', () => {
-  it('creates the complete workflow route map', () => {
-    const workflowDefinition = configureWorkflow({})
-    const createWorkflowRoutes = new CreateWorkflowRoutes(
-      new ZodSchemaProvider(workflowDefinition.stateSchema),
-      defineWorkflowRoutes,
-    )
-
-    const { input } = createInput()
-    const { routes } = createWorkflowRoutes.execute(input)
-
+  it('creates the workflow routes and delegates recordings', () => {
+    const { routes, recordIssue, recordBranch, recordReviewerStatus } = createRoutes()
     expect(Object.keys(routes)).toStrictEqual([
       'init',
       'transition',
       'record-issue',
       'record-branch',
-      'record-pr',
       'create-pr',
-      'record-ci-passed',
-      'record-ci-failed',
-      'verify-feedback-addressed',
+      'record-reviewer-status',
+      'wait-for-coderabbit-and-close-review-cycle',
     ])
-
-    expect(routes['init']).toStrictEqual({ type: 'session-start' })
-    expect(routes['transition']?.type).toBe('transition')
+    const workflow = Object.create({})
+    routes['record-issue'].handler(workflow, '42')
+    routes['record-branch'].handler(workflow, 'issue-42')
+    routes['record-reviewer-status'].handler(workflow, 'code-review', 'OPEN_FEEDBACK')
+    expect(recordIssue).toHaveBeenCalledWith(workflow, 42)
+    expect(recordBranch).toHaveBeenCalledWith(workflow, 'issue-42')
+    expect(recordReviewerStatus).toHaveBeenCalledWith(
+      workflow,
+      Reviewer.fromName('code-review'),
+      'OPEN_FEEDBACK',
+    )
   })
 
-  it('binds the authoritative workflow state schema to the transition argument', () => {
-    const workflowDefinition = configureWorkflow({})
-    const createWorkflowRoutes = new CreateWorkflowRoutes(
-      new ZodSchemaProvider(workflowDefinition.stateSchema),
-      defineWorkflowRoutes,
-    )
+  it('delegates closing the review cycle to the workflow', () => {
+    const { routes } = createRoutes()
+    const waitForCodeRabbitAndCloseReviewCycle = vi.fn(() => ({ pass: true as const }))
+    const workflow = Object.create({ waitForCodeRabbitAndCloseReviewCycle })
 
-    const { input } = createInput()
-    const { routes } = createWorkflowRoutes.execute(input)
-    const argument = stateArgument(routes)
+    routes['wait-for-coderabbit-and-close-review-cycle'].handler(workflow)
 
-    expect({
-      valid: argument.parse(['IMPLEMENTING'], 0, 'transition'),
-      invalid: argument.parse(['NOT_A_STATE'], 0, 'transition').ok,
-    }).toStrictEqual({
-      valid: {
-        ok: true,
-        value: 'IMPLEMENTING',
-      },
-      invalid: false,
+    expect(waitForCodeRabbitAndCloseReviewCycle).toHaveBeenCalledWith()
+  })
+
+  it('creates a pull request from parsed command input', () => {
+    const { routes } = createRoutes()
+    const createPr = vi.fn(() => ({ pass: true as const }))
+    const workflow = Object.create({ createPr })
+
+    routes['create-pr'].handler(workflow, ['--title', 'publish workflow command'])
+
+    const expectedDetails = PullRequestCreationDetails.from({
+      commitType: 'feat',
+      commitScope: 'workflow',
+      title: 'publish workflow command',
+      description: 'A'.repeat(100),
+      problem: 'Problem',
+      acceptanceCriteria: 'Criteria',
+      keyChanges: 'Changes',
+      architectureImpact: 'Impact',
+      validation: 'Validation',
+      notes: 'Notes',
+    })
+    assert(expectedDetails.ok)
+    expect(createPr).toHaveBeenCalledOnce()
+    expect(createPr).toHaveBeenCalledWith(expectedDetails.value)
+  })
+
+  it('rejects an unsupported commit type', () => {
+    const { routes } = createRoutes({ commitType: 'unsupported' })
+    const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
+
+    expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
+      pass: false,
+      reason: 'formatted:unsupported-commit-type',
     })
   })
 
-  it('delegates every transaction route to its corresponding callback', () => {
-    const workflowDefinition = configureWorkflow({})
-    const createWorkflowRoutes = new CreateWorkflowRoutes(
-      new ZodSchemaProvider(workflowDefinition.stateSchema),
-      defineWorkflowRoutes,
-    )
-    const { input, calls } = createInput()
-    const { routes } = createWorkflowRoutes.execute(input)
+  it('rejects a composed pull request title longer than 100 characters', () => {
+    const { routes } = createRoutes({ title: 'a'.repeat(90) })
+    const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
 
-    const workflow = createWorkflow(workflowDefinition)
-
-    transactionHandler(routes, 'record-issue')(workflow, 1)
-    transactionHandler(routes, 'record-branch')(workflow, 'branch')
-    transactionHandler(routes, 'record-pr')(workflow, 1, undefined)
-    transactionHandler(routes, 'create-pr')(workflow, [])
-    transactionHandler(routes, 'record-ci-passed')(workflow, undefined, undefined)
-    transactionHandler(routes, 'record-ci-failed')(workflow, 'output')
-    transactionHandler(routes, 'verify-feedback-addressed')(workflow, undefined, undefined)
-
-    expect({
-      recordIssue: calls.recordIssue,
-      recordBranch: calls.recordBranch,
-      recordPullRequest: calls.recordPullRequest,
-      createPullRequest: calls.createPullRequest,
-      recordCiPassed: calls.recordCiPassed,
-      recordCiFailed: calls.recordCiFailed,
-      verifyFeedbackAddressed: calls.verifyFeedbackAddressed,
-    }).toStrictEqual({
-      recordIssue: [[workflow, 1]],
-      recordBranch: [[workflow, 'value']],
-      recordPullRequest: [[workflow, 1, undefined]],
-      createPullRequest: [[workflow, []]],
-      recordCiPassed: [[workflow]],
-      recordCiFailed: [[workflow, 'value']],
-      verifyFeedbackAddressed: [[workflow]],
+    expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
+      pass: false,
+      reason: 'formatted:composed-title-too-long',
     })
+  })
+
+  it.each([
+    { title: '', reason: 'formatted:empty-pull-request-title' },
+    { title: 'ready pull request.', reason: 'formatted:pull-request-title-ends-with-full-stop' },
+    { title: 'Invalid title', reason: 'formatted:pull-request-title-has-uppercase' },
+  ])('rejects an invalid pull request title', ({ title, reason }) => {
+    const { routes } = createRoutes({ title })
+    const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
+
+    expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({ pass: false, reason })
+  })
+
+  it.each(['', '   ', 'workflow\nstate', 'A'.repeat(21)])(
+    'rejects an invalid commit scope',
+    (commitScope) => {
+      const { routes } = createRoutes()
+      const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
+
+      expect(routes['create-pr'].handler(workflow, ['--commit-scope', commitScope])).toStrictEqual({
+        pass: false,
+        reason: 'formatted:invalid-commit-scope',
+      })
+    },
+  )
+
+  it('rejects an invalid pull request description', () => {
+    const { routes } = createRoutes({ description: 'short' })
+    const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
+
+    expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
+      pass: false,
+      reason: 'formatted:pull-request-description-too-short',
+    })
+  })
+
+  it('rejects unparseable pull request options', () => {
+    const { routes } = createRoutes({ parseFailure: true })
+    const workflow = Object.create({ createPr: vi.fn(() => ({ pass: true as const })) })
+
+    expect(routes['create-pr'].handler(workflow, [])).toStrictEqual({
+      pass: false,
+      reason: 'Expected pull request options.',
+    })
+  })
+
+  it('rejects unknown reviewer names and statuses', () => {
+    const { routes } = createRoutes()
+    const workflow = Object.create({})
+    expect(() => routes['record-reviewer-status'].handler(workflow, 'unknown', 'APPROVED')).toThrow(
+      'Unknown reviewer',
+    )
+    expect(
+      routes['record-reviewer-status'].handler(workflow, 'code-review', 'UNKNOWN'),
+    ).toStrictEqual({ pass: false, reason: 'Unknown reviewer status: UNKNOWN' })
   })
 })

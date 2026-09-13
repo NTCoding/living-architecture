@@ -10,8 +10,11 @@ export class CheckConsistency {
 
   execute(input: CheckConsistencyInput): CheckConsistencyResult {
     try {
-      const project = this.repository.loadByGraphPath(input.graphFileLocation)
-      const warnings = project.warnings()
+      const project = this.repository.load({
+        kind: 'graph',
+        graphFileLocation: input.graphFileLocation,
+      })
+      const warnings = project.amendGraph((builder) => builder.warnings())
       return {
         result: {
           consistent: warnings.length === 0,

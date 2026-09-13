@@ -1,176 +1,135 @@
 import { z } from 'zod'
-import type {
-  DomainMetadata,
-  SourceInfo,
+import {
+  SYSTEM_TYPES,
+  type DomainMetadata,
+  type SourceInfo,
 } from '@living-architecture/riviere-schema-published-language/schema'
 
-/** @riviere-role published-language-data-structure */
-export interface WorkflowGraphDefinition {
-  readonly name?: string
-  readonly description?: string
-  readonly sources: readonly SourceInfo[]
-  readonly domains: Readonly<Record<string, DomainMetadata>>
-  readonly outputPath: string
-}
+/** @riviere-role published-language-enumeration */
+export const WORKFLOW_STAGE_KINDS = [
+  'code-extraction',
+  'eventcatalog-import',
+  'asyncapi-import',
+  'ai-extract',
+  'ai-enrich',
+  'schema-validate',
+] as const
+
+/** @riviere-role published-language-enumeration-type */
+export type WorkflowStageKind = (typeof WORKFLOW_STAGE_KINDS)[number]
 
 /** @riviere-role published-language-data-structure */
-export interface WorkflowRunLogDefinition {
-  readonly directory: string
-}
-
-/** @riviere-role published-language-data-structure */
-export interface WorkflowExtractStageDefinition {
-  readonly kind: 'extract'
+export interface ConfiguredWorkflowStageDefinition {
+  readonly kind: Exclude<WorkflowStageKind, 'schema-validate'>
   readonly name: string
-  readonly configPath: string
-  readonly useTsConfig: boolean
+  readonly config: string
 }
 
 /** @riviere-role published-language-data-structure */
-export interface WorkflowLinkStageDefinition {
-  readonly kind: 'link'
-  readonly name: 'link'
-  readonly configPath: string
-  readonly useTsConfig: boolean
-}
-
-/** @riviere-role published-language-data-structure */
-export interface WorkflowValidateStageDefinition {
-  readonly kind: 'validate'
-  readonly name: 'validate'
+export interface SchemaValidateWorkflowStageDefinition {
+  readonly kind: 'schema-validate'
+  readonly name: string
 }
 
 /** @riviere-role published-language-union */
 export type WorkflowStageDefinition =
-  | WorkflowExtractStageDefinition
-  | WorkflowLinkStageDefinition
-  | WorkflowValidateStageDefinition
+  | ConfiguredWorkflowStageDefinition
+  | SchemaValidateWorkflowStageDefinition
 
 /** @riviere-role published-language-schema */
 export interface WorkflowDefinition {
-  readonly version: 1
-  readonly graph: WorkflowGraphDefinition
-  readonly runLog: WorkflowRunLogDefinition
+  readonly apiVersion: 'v1'
+  readonly name: string
+  readonly description?: string
+  readonly output: string
+  readonly sources: readonly SourceInfo[]
+  readonly domains: Readonly<Record<string, DomainMetadata>>
   readonly stages: readonly WorkflowStageDefinition[]
 }
 
-/** @riviere-role published-language-data-structure */
-export interface WorkflowDefinitionParseSuccess {
-  readonly success: true
-  readonly definition: WorkflowDefinition
-}
-
-/** @riviere-role published-language-data-structure */
-export interface WorkflowDefinitionParseFailure {
-  readonly success: false
-  readonly issues: readonly string[]
-}
-
-/** @riviere-role published-language-union */
-export type WorkflowDefinitionParseResult =
-  | WorkflowDefinitionParseSuccess
-  | WorkflowDefinitionParseFailure
-
 const nonEmptyString = z.string().trim().min(1)
-const systemType = z.enum(['domain', 'bff', 'ui', 'external-service', 'other'])
-const graphSchema = z
-  .strictObject({
-    name: nonEmptyString.optional(),
-    description: nonEmptyString.optional(),
-    sources: z
-      .array(
-        z.strictObject({
-          name: nonEmptyString.optional(),
-          repository: nonEmptyString,
-        }),
-      )
-      .min(1),
-    domains: z
-      .array(
-        z.strictObject({
-          name: nonEmptyString,
-          description: nonEmptyString.optional(),
-          systemType: systemType.optional(),
-        }),
-      )
-      .min(1),
-    outputPath: nonEmptyString,
-  })
-  .transform(
-    (graph): WorkflowGraphDefinition => ({
-      ...(graph.name === undefined ? {} : { name: graph.name }),
-      ...(graph.description === undefined ? {} : { description: graph.description }),
-      sources: graph.sources.map((source) => ({ repository: source.repository })),
-      domains: Object.fromEntries(
-        graph.domains.map((domain) => [
-          domain.name,
-          {
-            description: domain.description ?? `${domain.name} domain`,
-            systemType: domain.systemType ?? 'domain',
-          },
-        ]),
-      ),
-      outputPath: graph.outputPath,
-    }),
-  )
 
-const stageSchema = z.union([
-  z
-    .strictObject({
-      extract: z.strictObject({
-        name: nonEmptyString,
-        config: nonEmptyString,
-        useTsConfig: z.boolean().optional(),
-      }),
-    })
-    .transform(
-      ({ extract }): WorkflowExtractStageDefinition => ({
-        kind: 'extract',
-        name: extract.name,
-        configPath: extract.config,
-        useTsConfig: extract.useTsConfig ?? true,
-      }),
-    ),
-  z
-    .strictObject({
-      link: z.strictObject({
-        config: nonEmptyString,
-        useTsConfig: z.boolean().optional(),
-      }),
-    })
-    .transform(
-      ({ link }): WorkflowLinkStageDefinition => ({
-        kind: 'link',
-        name: 'link',
-        configPath: link.config,
-        useTsConfig: link.useTsConfig ?? true,
-      }),
-    ),
-  z
-    .strictObject({ validate: z.strictObject({}) })
-    .transform((): WorkflowValidateStageDefinition => ({ kind: 'validate', name: 'validate' })),
-])
-
-const workflowDefinitionSchema: z.ZodType<WorkflowDefinition> = z.strictObject({
-  version: z.literal(1),
-  graph: graphSchema,
-  runLog: z.strictObject({ directory: nonEmptyString }),
-  stages: z.array(stageSchema).min(1),
+const sourceSchema = z.strictObject({
+  name: nonEmptyString.optional(),
+  repository: nonEmptyString,
 })
+
+const domainSchema = z.strictObject({
+  description: nonEmptyString,
+  systemType: z.enum(SYSTEM_TYPES).optional(),
+})
+
+const domainsSchema = z.record(z.string(), domainSchema).refine(
+  (domains) => {
+    const names = Object.keys(domains)
+    return names.length >= 1 && names.every((name) => name.trim().length >= 1)
+  },
+  { message: 'domains must be a non-empty object with non-empty names' },
+)
+
+const configuredStageSchema = z.strictObject({
+  name: nonEmptyString,
+  kind: z.enum(WORKFLOW_STAGE_KINDS).refine((kind) => kind !== 'schema-validate', {
+    message:
+      "kind must be one of 'code-extraction', 'eventcatalog-import', 'asyncapi-import', 'ai-extract', 'ai-enrich'",
+  }),
+  config: nonEmptyString,
+})
+
+const schemaValidateStageSchema = z.strictObject({
+  name: nonEmptyString,
+  kind: z.literal('schema-validate'),
+})
+
+const stagesSchema = z
+  .array(z.union([configuredStageSchema, schemaValidateStageSchema]))
+  .min(1)
+  .refine((stages) => new Set(stages.map((stage) => stage.name)).size === stages.length, {
+    message: 'workflow stage names must be unique',
+  })
+
+const workflowDefinitionSchema = z
+  .strictObject({
+    apiVersion: z.literal('v1'),
+    name: nonEmptyString,
+    description: nonEmptyString.optional(),
+    output: nonEmptyString,
+    sources: z.array(sourceSchema).min(1),
+    domains: domainsSchema,
+    stages: stagesSchema,
+  })
+  .transform((definition) => ({
+    apiVersion: definition.apiVersion,
+    name: definition.name,
+    ...(definition.description === undefined ? {} : { description: definition.description }),
+    output: definition.output,
+    sources: definition.sources,
+    domains: Object.fromEntries(
+      Object.entries(definition.domains).map(([name, domain]) => [
+        name,
+        { description: domain.description, systemType: domain.systemType ?? 'domain' },
+      ]),
+    ),
+    stages: definition.stages,
+  }))
 
 /** @riviere-role published-language-parser */
 export function parseWorkflowDefinition(
   value: unknown,
 ):
-  | { readonly success: true; readonly definition: WorkflowDefinition }
-  | { readonly success: false; readonly issues: readonly string[] } {
+  | { success: true; definition: WorkflowDefinition }
+  | { success: false; issues: readonly string[] } {
   const result = workflowDefinitionSchema.safeParse(value)
-  if (!result.success)
+  if (!result.success) {
     return {
       success: false,
       issues: result.error.issues.map(
         (issue) => `${issue.path.length === 0 ? '/' : issue.path.join('.')}: ${issue.message}`,
       ),
     }
-  return { success: true, definition: result.data }
+  }
+  return {
+    success: true,
+    definition: result.data,
+  }
 }

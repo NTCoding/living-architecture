@@ -10,7 +10,7 @@ class TestAssertionError extends Error {
 }
 
 function createGraphDiagnostics(): GraphDiagnostics {
-  const builder = RiviereBuilder.new({
+  const builder = RiviereBuilder.parse({
     sources: [
       {
         repository: 'test/repo',

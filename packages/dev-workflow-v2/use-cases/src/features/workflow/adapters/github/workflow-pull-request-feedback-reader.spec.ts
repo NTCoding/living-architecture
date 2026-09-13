@@ -3,6 +3,13 @@ import { createWorkflowPullRequestFeedbackReader } from './workflow-pull-request
 
 it('translates GitHub feedback into workflow feedback', () => {
   const readFeedback = createWorkflowPullRequestFeedbackReader(() => ({
+    reviewerStatuses: {
+      'architecture-review': 'APPROVED',
+      'code-review': 'APPROVED',
+      'bug-scanner': 'APPROVED',
+      'task-check': 'APPROVED',
+      coderabbit: 'APPROVED',
+    },
     coderabbitReviewSeen: true,
     coderabbitRateLimited: false,
     reviewDecision: 'CHANGES_REQUESTED',
@@ -30,6 +37,13 @@ it('translates GitHub feedback into workflow feedback', () => {
   }))
 
   expect(readFeedback(42)).toStrictEqual({
+    reviewerStatuses: {
+      'architecture-review': 'APPROVED',
+      'code-review': 'APPROVED',
+      'bug-scanner': 'APPROVED',
+      'task-check': 'APPROVED',
+      coderabbit: 'APPROVED',
+    },
     coderabbitReviewSeen: true,
     coderabbitRateLimited: false,
     reviewDecision: 'CHANGES_REQUESTED',
@@ -59,6 +73,13 @@ it('translates GitHub feedback into workflow feedback', () => {
 
 it('preserves CodeRabbit rate limiting', () => {
   const readFeedback = createWorkflowPullRequestFeedbackReader(() => ({
+    reviewerStatuses: {
+      'architecture-review': 'APPROVED',
+      'code-review': 'APPROVED',
+      'bug-scanner': 'APPROVED',
+      'task-check': 'APPROVED',
+      coderabbit: 'APPROVED',
+    },
     coderabbitReviewSeen: true,
     coderabbitRateLimited: true,
     reviewDecision: null,

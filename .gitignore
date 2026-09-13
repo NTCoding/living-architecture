@@ -7,6 +7,8 @@ out-tsc
 
 # dependencies
 node_modules
+/patches/
+.pi/npm/
 
 # IDEs and editors
 /.idea
@@ -55,6 +57,8 @@ packages/*/scripts/*.d.ts.map
 
 # Local review directory
 reviews/
+!packages/dev-workflow-v2/domain-model/src/domain/reviews/
+!packages/dev-workflow-v2/domain-model/src/domain/reviews/*.ts
 
 .obsidian
 .claude/worktrees

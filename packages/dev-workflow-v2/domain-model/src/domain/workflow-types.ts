@@ -1,21 +1,49 @@
-import { z } from 'zod'
+import { z, type ZodType } from 'zod'
 import type { WorkflowEvent } from './workflow-events'
+import { Reviewer, Reviewers } from './reviews/reviewers'
+import { ReviewerStatus, ReviewStatuses } from './reviews/statuses'
+import { ReviewerStatuses } from './reviews/reviewer-statuses'
 
 const STATE_NAMES = [
   'IMPLEMENTING',
-  'REVIEWING',
   'SUBMITTING_PR',
-  'AWAITING_CI',
-  'AWAITING_PR_FEEDBACK',
+  'REVIEWING',
   'ADDRESSING_FEEDBACK',
-  'REFLECTING',
-  'COMPLETE',
+  'HUMAN_REVIEWING',
   'BLOCKED',
 ] as const
 
-type StateName = (typeof STATE_NAMES)[number]
+/**
+ * @riviere-role domain-port
+ * @riviere-role-justification The workflow engine consumes state names as its state machine contract, so the closed set is the contract the domain exposes to the engine.
+ */
+export type StateName = (typeof STATE_NAMES)[number]
 
-const STATE_NAME_SCHEMA = z.enum(STATE_NAMES)
+/** @riviere-role value-object */
+export class StateNames {
+  declare private readonly brand: 'StateNames'
+
+  private constructor(private readonly names: readonly [StateName, ...StateName[]]) {}
+
+  static singleton(): StateNames {
+    return new StateNames(STATE_NAMES)
+  }
+
+  asZodSchema(): ZodType<StateName> {
+    return z.enum(this.names)
+  }
+}
+
+const REVIEWER_STATUS_SCHEMA = ReviewStatuses.singleton().asZodSchema()
+const REVIEWER_STATUSES_SCHEMA = z
+  .object({
+    'architecture-review': REVIEWER_STATUS_SCHEMA,
+    'code-review': REVIEWER_STATUS_SCHEMA,
+    'bug-scanner': REVIEWER_STATUS_SCHEMA,
+    'task-check': REVIEWER_STATUS_SCHEMA,
+    coderabbit: REVIEWER_STATUS_SCHEMA,
+  })
+  .strict()
 
 /**
  * @riviere-role domain-service
@@ -29,15 +57,13 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
     featureBranch: z.string().optional(),
     prNumber: z.number().int().positive().optional(),
     prUrl: z.string().optional(),
-    architectureReviewPassed: z.boolean(),
-    codeReviewPassed: z.boolean(),
-    bugScannerPassed: z.boolean(),
-    taskCheckPassed: z.boolean(),
-    ciPassed: z.boolean(),
-    feedbackClean: z.boolean(),
-    feedbackAddressed: z.boolean(),
-    feedbackUnresolvedCount: z.number().optional(),
-    prFeedbackVerificationFailedReason: z.string().optional(),
+    reviewerStatuses: REVIEWER_STATUSES_SCHEMA,
+    reviewCycleNumber: z.number().int().nonnegative().optional(),
+    reviewCycleOpen: z.boolean().optional(),
+    reviewCycleCapReached: z.boolean().default(false),
+    reviewedCommit: z.string().optional(),
+    includedReviewers: z.array(z.string()).optional(),
+    excludedReviewers: z.record(z.string(), z.string()).optional(),
     preBlockedState: z.string().optional(),
     transcriptPath: z.string().optional(),
   })
@@ -45,51 +71,41 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
 
 const WORKFLOW_STATE_SCHEMA = createWorkflowStateSchema(STATE_NAMES)
 
-function applyRecordedReviewVerdict(
-  state: WorkflowState,
-  event: Extract<WorkflowEvent, { type: 'review-recorded' }>,
-): WorkflowState {
-  const parsedReviewType = z
-    .enum(['architecture-review', 'code-review', 'bug-scanner', 'task-check'])
-    .safeParse(event.reviewType)
-  if (!parsedReviewType.success) return state
+type WorkflowStateValue = z.infer<typeof WORKFLOW_STATE_SCHEMA>
 
-  const passed = event.verdict === 'PASS'
-  switch (parsedReviewType.data) {
-    case 'architecture-review':
-      return state.with({ architectureReviewPassed: passed })
-    case 'code-review':
-      return state.with({ codeReviewPassed: passed })
-    case 'bug-scanner':
-      return state.with({ bugScannerPassed: passed })
-    case 'task-check':
-      return state.with({ taskCheckPassed: passed })
-  }
+type WorkflowStateJson = {
+  readonly currentStateMachineState: StateName
+  readonly githubIssue?: number | undefined
+  readonly featureBranch?: string | undefined
+  readonly prNumber?: number | undefined
+  readonly prUrl?: string | undefined
+  readonly reviewerStatuses: Readonly<Record<string, string>>
+  readonly reviewCycleNumber?: number | undefined
+  readonly reviewCycleOpen?: boolean | undefined
+  readonly reviewCycleCapReached?: boolean | undefined
+  readonly reviewedCommit?: string | undefined
+  readonly includedReviewers?: readonly string[] | undefined
+  readonly excludedReviewers?: Readonly<Record<string, string>> | undefined
+  readonly preBlockedState?: string | undefined
+  readonly transcriptPath?: string | undefined
 }
 
 function applyReviewEvent(state: WorkflowState, event: WorkflowEvent): WorkflowState | undefined {
-  switch (event.type) {
-    case 'architecture-review-completed':
-      return state.with({ architectureReviewPassed: event.passed })
-    case 'code-review-completed':
-      return state.with({ codeReviewPassed: event.passed })
-    case 'bug-scanner-completed':
-      return state.with({ bugScannerPassed: event.passed })
-    case 'ci-completed':
-      return state.with({ ciPassed: event.passed })
-    case 'feedback-checked':
-      return state.with({
-        feedbackClean: event.clean,
-        feedbackUnresolvedCount: event.unresolvedCount,
-      })
-    case 'feedback-addressed':
-      return state.with({ feedbackAddressed: true })
-    case 'pr-feedback-verification-failed':
-      return state.with({ prFeedbackVerificationFailedReason: event.reason })
-    case 'review-recorded':
-      return applyRecordedReviewVerdict(state, event)
-  }
+  if (event.type === 'reviewer-status-recorded')
+    return applyReviewerStatus(state, event.reviewer, event.status)
   return undefined
+}
+
+function applyReviewerStatus(
+  state: WorkflowState,
+  reviewerName: string,
+  statusName: string,
+): WorkflowState {
+  return state.with({
+    reviewerStatuses: state.reviewerStatuses
+      .withReviewer(Reviewer.fromName(reviewerName), ReviewerStatus.parse(statusName))
+      .toJSON(),
+  })
 }
 
 /** @riviere-role value-object */
@@ -101,60 +117,64 @@ export class WorkflowState {
   readonly featureBranch?: string
   readonly prNumber?: number
   readonly prUrl?: string
-  readonly architectureReviewPassed: boolean
-  readonly codeReviewPassed: boolean
-  readonly bugScannerPassed: boolean
-  readonly taskCheckPassed: boolean
-  readonly ciPassed: boolean
-  readonly feedbackClean: boolean
-  readonly feedbackAddressed: boolean
-  readonly feedbackUnresolvedCount?: number
-  readonly prFeedbackVerificationFailedReason?: string
+  readonly reviewerStatuses: ReviewerStatuses
+  readonly reviewCycleNumber: number
+  readonly reviewCycleOpen: boolean
+  readonly reviewCycleCapReached: boolean
+  readonly reviewedCommit?: string
+  readonly includedReviewers: readonly string[]
+  readonly excludedReviewers: Readonly<Record<string, string>>
   readonly preBlockedState?: string
   readonly transcriptPath?: string
 
-  private constructor(value: z.infer<typeof WORKFLOW_STATE_SCHEMA>) {
+  private constructor(value: WorkflowStateValue) {
     this.currentStateMachineState = value.currentStateMachineState
-    this.architectureReviewPassed = value.architectureReviewPassed
-    this.codeReviewPassed = value.codeReviewPassed
-    this.bugScannerPassed = value.bugScannerPassed
-    this.taskCheckPassed = value.taskCheckPassed
-    this.ciPassed = value.ciPassed
-    this.feedbackClean = value.feedbackClean
-    this.feedbackAddressed = value.feedbackAddressed
+    this.reviewerStatuses = ReviewerStatuses.parse(value.reviewerStatuses)
+    this.reviewCycleNumber = value.reviewCycleNumber ?? 0
+    this.reviewCycleOpen = value.reviewCycleOpen ?? false
+    this.reviewCycleCapReached = value.reviewCycleCapReached
+    if (value.reviewedCommit !== undefined) this.reviewedCommit = value.reviewedCommit
+    this.includedReviewers = value.includedReviewers ?? []
+    this.excludedReviewers = value.excludedReviewers ?? {}
     if (value.githubIssue !== undefined) this.githubIssue = value.githubIssue
     if (value.featureBranch !== undefined) this.featureBranch = value.featureBranch
     if (value.prNumber !== undefined) this.prNumber = value.prNumber
     if (value.prUrl !== undefined) this.prUrl = value.prUrl
-    if (value.feedbackUnresolvedCount !== undefined) {
-      this.feedbackUnresolvedCount = value.feedbackUnresolvedCount
-    }
-    if (value.prFeedbackVerificationFailedReason !== undefined) {
-      this.prFeedbackVerificationFailedReason = value.prFeedbackVerificationFailedReason
-    }
     if (value.preBlockedState !== undefined) this.preBlockedState = value.preBlockedState
     if (value.transcriptPath !== undefined) this.transcriptPath = value.transcriptPath
   }
 
   static parse(value: unknown): WorkflowState {
+    if (value instanceof WorkflowState) return value
     return new WorkflowState(WORKFLOW_STATE_SCHEMA.parse(value))
   }
 
-  static stateNameSchema() {
-    return STATE_NAME_SCHEMA
+  static from(events: readonly WorkflowEvent[]): WorkflowState {
+    return events.reduce((state, event) => state.apply(event), INITIAL_STATE)
   }
 
-  static initial(): WorkflowState {
-    return INITIAL_STATE
+  toJSON(): WorkflowStateJson {
+    return {
+      currentStateMachineState: this.currentStateMachineState,
+      reviewerStatuses: this.reviewerStatuses.toJSON(),
+      reviewCycleNumber: this.reviewCycleNumber,
+      reviewCycleOpen: this.reviewCycleOpen,
+      reviewCycleCapReached: this.reviewCycleCapReached,
+      ...(this.reviewedCommit === undefined ? {} : { reviewedCommit: this.reviewedCommit }),
+      includedReviewers: [...this.includedReviewers],
+      excludedReviewers: { ...this.excludedReviewers },
+      ...(this.githubIssue === undefined ? {} : { githubIssue: this.githubIssue }),
+      ...(this.featureBranch === undefined ? {} : { featureBranch: this.featureBranch }),
+      ...(this.prNumber === undefined ? {} : { prNumber: this.prNumber }),
+      ...(this.prUrl === undefined ? {} : { prUrl: this.prUrl }),
+      ...(this.preBlockedState === undefined ? {} : { preBlockedState: this.preBlockedState }),
+      ...(this.transcriptPath === undefined ? {} : { transcriptPath: this.transcriptPath }),
+    }
   }
 
-  static replay(events: readonly WorkflowEvent[]): WorkflowState {
-    return events.reduce((state, event) => state.apply(event), WorkflowState.initial())
-  }
-
-  with(changes: Partial<z.infer<typeof WORKFLOW_STATE_SCHEMA>>): WorkflowState {
+  with(changes: Partial<WorkflowStateJson>): WorkflowState {
     return WorkflowState.parse({
-      ...this,
+      ...this.toJSON(),
       ...changes,
     })
   }
@@ -178,8 +198,24 @@ export class WorkflowState {
         return this.with({ featureBranch: event.branch })
       case 'pr-recorded':
         return this.with({ prNumber: event.prNumber, prUrl: event.prUrl })
-      case 'task-check-passed':
-        return this.with({ taskCheckPassed: true })
+      case 'review-cycle-started':
+        return this.with({
+          reviewCycleNumber: event.cycleNumber,
+          reviewCycleOpen: true,
+          reviewCycleCapReached: false,
+          includedReviewers: [...event.includedReviewers],
+          excludedReviewers: { ...event.excludedReviewers },
+        })
+      case 'review-cycle-closed': {
+        const withOutcomes = Object.entries(event.outcomes).reduce<WorkflowState>(
+          (state, [reviewer, status]) => applyReviewerStatus(state, reviewer, status),
+          this,
+        )
+        return withOutcomes.with({
+          reviewCycleOpen: false,
+          reviewedCommit: event.reviewedCommit,
+        })
+      }
       case 'session-started':
         return this.with({
           ...(event.transcriptPath !== undefined && { transcriptPath: event.transcriptPath }),
@@ -190,15 +226,17 @@ export class WorkflowState {
   }
 }
 
+function pendingReviewerStatus(): ReviewerStatus {
+  return ReviewerStatus.parse('PENDING')
+}
+
+function initialReviewerStatuses(): ReviewerStatuses {
+  return ReviewerStatuses.fromInitialState(Reviewers.singleton().all(), pendingReviewerStatus())
+}
+
 const INITIAL_STATE = WorkflowState.parse({
   currentStateMachineState: 'IMPLEMENTING',
-  architectureReviewPassed: false,
-  codeReviewPassed: false,
-  bugScannerPassed: false,
-  taskCheckPassed: false,
-  ciPassed: false,
-  feedbackClean: false,
-  feedbackAddressed: false,
+  reviewerStatuses: initialReviewerStatuses().toJSON(),
 })
 
 /**
@@ -214,5 +252,5 @@ export function getWorkflowStateNames() {
  * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function getInitialWorkflowState(): WorkflowState {
-  return WorkflowState.initial()
+  return INITIAL_STATE
 }

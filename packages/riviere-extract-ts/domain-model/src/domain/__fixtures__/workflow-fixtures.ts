@@ -3,9 +3,17 @@ import { ValidatedConfiguration } from '@living-architecture/riviere-extract-con
 import { Project } from 'ts-morph'
 import { assert } from 'vitest'
 import { ExtractionConfiguration } from '../extraction-configuration'
+import type {
+  EventCatalogSource,
+  RiviereProjectCollaborators,
+} from '../ports/load-event-catalog-source'
 import { type MetadataValue, EnrichedComponent } from '../value-extraction/enriched-component'
-import { Workflow } from '../workflow'
-import { WorkflowStage } from '../workflow-stage'
+
+export function collaborators(
+  source: EventCatalogSource = { domains: [], services: [], events: [] },
+): RiviereProjectCollaborators {
+  return { loadEventCatalogSource: () => Promise.resolve(source), repositoryName: 'shop' }
+}
 
 export function configuration(customType?: string): ExtractionConfiguration {
   const parsed = ValidatedConfiguration.parse({
@@ -48,7 +56,7 @@ export function configuration(customType?: string): ExtractionConfiguration {
 }
 
 export function builder(): RiviereBuilder {
-  return RiviereBuilder.new({
+  return RiviereBuilder.parse({
     name: 'Shop',
     description: 'Shop graph',
     sources: [{ repository: 'shop' }],
@@ -70,23 +78,4 @@ export function component(
     metadata,
     _missing: undefined,
   })
-}
-
-export function workflow(stages = stagesFor(configuration())): Workflow {
-  const result = Workflow.start({
-    name: 'build-graph',
-    outputPath: '.riviere/graph.json',
-    runLogDirectory: '.riviere/logs/workflows',
-    stages,
-  })
-  assert(result.success)
-  return result.data
-}
-
-export function stagesFor(config: ExtractionConfiguration) {
-  return [
-    WorkflowStage.fromExtraction('extract', config),
-    WorkflowStage.fromLink('link', config),
-    WorkflowStage.fromValidation('validate'),
-  ]
 }

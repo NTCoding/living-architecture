@@ -1,105 +1,175 @@
-import { createWorkflowStateSchema, getWorkflowStateNames, WorkflowState } from './workflow-types'
+import {
+  WorkflowState,
+  createWorkflowStateSchema,
+  getInitialWorkflowState,
+  getWorkflowStateNames,
+} from './workflow-types'
+import {
+  BashChecked,
+  ReviewCycleClosed,
+  ReviewCycleStarted,
+  ReviewerStatusRecorded,
+} from './workflow-events'
 
-const STATE_NAMES = getWorkflowStateNames()
-const STATE_NAME_SCHEMA = WorkflowState.stateNameSchema()
-const workflowStateSchema = createWorkflowStateSchema(STATE_NAMES)
+const REVIEWERS = {
+  'architecture-review': 'PENDING',
+  'code-review': 'PENDING',
+  'bug-scanner': 'PENDING',
+  'task-check': 'PENDING',
+  coderabbit: 'PENDING',
+} as const
 
-describe('STATE_NAME_SCHEMA', () => {
-  it('accepts all valid state names', () => {
-    STATE_NAMES.forEach((s) => expect(STATE_NAME_SCHEMA.parse(s)).toStrictEqual(s))
-  })
-
-  it('rejects unknown state names', () => {
-    expect(() => STATE_NAME_SCHEMA.parse('UNKNOWN')).toThrow('Invalid enum value')
-  })
-
-  it('rejects non-string values', () => {
-    expect(() => STATE_NAME_SCHEMA.parse(42)).toThrow('received number')
-  })
-})
-
-describe('createWorkflowStateSchema — WorkflowState', () => {
-  it('parses valid minimal state', () => {
-    const raw = {
+describe('WorkflowState', () => {
+  it('starts with all named reviewers pending', () => {
+    expect(getInitialWorkflowState()).toMatchObject({
       currentStateMachineState: 'IMPLEMENTING',
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
-    }
-    const parsed = workflowStateSchema.parse(raw)
-    expect(parsed.currentStateMachineState).toStrictEqual('IMPLEMENTING')
+    })
+    expect(getInitialWorkflowState().reviewerStatuses.toJSON()).toStrictEqual(REVIEWERS)
   })
 
-  it('parses state with all optional fields', () => {
-    const raw = {
-      currentStateMachineState: 'SUBMITTING_PR',
-      architectureReviewPassed: true,
-      codeReviewPassed: true,
-      bugScannerPassed: true,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
+  it('requires reviewer statuses when parsing persisted state', () => {
+    expect(() => WorkflowState.parse({ currentStateMachineState: 'IMPLEMENTING' })).toThrow(
+      'Required',
+    )
+  })
+
+  it('requires exactly the known reviewer roster', () => {
+    expect(() =>
+      WorkflowState.parse({
+        currentStateMachineState: 'IMPLEMENTING',
+        reviewerStatuses: {},
+      }),
+    ).toThrow('reviewerStatuses')
+    expect(() =>
+      WorkflowState.parse({
+        currentStateMachineState: 'IMPLEMENTING',
+        reviewerStatuses: { ...REVIEWERS, unknown: 'PENDING' },
+      }),
+    ).toThrow('Unrecognized key')
+    expect(
+      WorkflowState.parse({
+        currentStateMachineState: 'IMPLEMENTING',
+        reviewerStatuses: REVIEWERS,
+      }).reviewerStatuses.toJSON(),
+    ).toStrictEqual(REVIEWERS)
+  })
+
+  it('replays reviewer status records', () => {
+    expect(
+      WorkflowState.from([
+        ReviewerStatusRecorded.parse({
+          type: 'reviewer-status-recorded',
+          at: '2026-01-01T00:00:00Z',
+          reviewer: 'code-review',
+          status: 'APPROVED',
+        }),
+      ]).reviewerStatuses.toJSON(),
+    ).toStrictEqual({ ...REVIEWERS, 'code-review': 'APPROVED' })
+  })
+
+  it('uses the configured state names for state schemas', () => {
+    const schema = createWorkflowStateSchema(['ONE', 'TWO'])
+    expect(
+      schema.parse({ currentStateMachineState: 'ONE', reviewerStatuses: REVIEWERS }),
+    ).toMatchObject({
+      currentStateMachineState: 'ONE',
+    })
+  })
+
+  it('preserves optional state fields and ignores non state events', () => {
+    const state = WorkflowState.parse({
+      currentStateMachineState: 'IMPLEMENTING',
+      reviewerStatuses: REVIEWERS,
       githubIssue: 42,
       featureBranch: 'issue-42',
-      prNumber: 7,
-      prUrl: 'https://github.com/owner/repo/pull/7',
-      preBlockedState: 'IMPLEMENTING',
-      feedbackUnresolvedCount: 3,
-    }
-    const parsed = workflowStateSchema.parse(raw)
-    expect(parsed.githubIssue).toStrictEqual(42)
-    expect(parsed.prNumber).toStrictEqual(7)
-    expect(parsed.preBlockedState).toStrictEqual('IMPLEMENTING')
-    expect(parsed.feedbackUnresolvedCount).toStrictEqual(3)
+      prNumber: 1,
+      prUrl: 'https://example.test/pr/1',
+      preBlockedState: 'REVIEWING',
+      transcriptPath: '/workspace/transcript',
+    })
+    expect(state.toJSON()).toMatchObject({
+      preBlockedState: 'REVIEWING',
+      transcriptPath: '/workspace/transcript',
+    })
+    expect(
+      state.apply(
+        BashChecked.parse({
+          type: 'bash-checked',
+          at: '2026-01-01T00:00:00Z',
+          tool: 'bash',
+          command: 'git status',
+          allowed: true,
+        }),
+      ),
+    ).toBe(state)
+    expect(getWorkflowStateNames()).toContain('HUMAN_REVIEWING')
   })
 
-  it('rejects invalid state name', () => {
-    const raw = {
-      currentStateMachineState: 'INVALID',
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
-    }
-    expect(() => workflowStateSchema.parse(raw)).toThrow('Invalid enum value')
+  it('defaults the cycle cap flag and round-trips it', () => {
+    expect(getInitialWorkflowState().reviewCycleCapReached).toBe(false)
+    expect(
+      WorkflowState.parse({
+        currentStateMachineState: 'HUMAN_REVIEWING',
+        reviewerStatuses: REVIEWERS,
+        reviewCycleCapReached: true,
+      }).toJSON().reviewCycleCapReached,
+    ).toBe(true)
   })
 
-  it('rejects negative githubIssue', () => {
-    const raw = {
-      currentStateMachineState: 'IMPLEMENTING',
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
-      githubIssue: -1,
-    }
-    expect(() => workflowStateSchema.parse(raw)).toThrow('greater than 0')
+  it('opens a review cycle from a cycle-started event', () => {
+    const state = WorkflowState.from([
+      ReviewCycleStarted.parse({
+        type: 'review-cycle-started',
+        at: '2026-01-01T00:00:00Z',
+        cycleNumber: 2,
+        includedReviewers: ['code-review'],
+        excludedReviewers: { 'task-check': 'already-approved' },
+      }),
+    ])
+
+    expect(state.reviewCycleNumber).toBe(2)
+    expect(state.reviewCycleOpen).toBe(true)
+    expect(state.includedReviewers).toStrictEqual(['code-review'])
+    expect(state.excludedReviewers).toStrictEqual({ 'task-check': 'already-approved' })
   })
 
-  it('accepts optional preBlockedState', () => {
-    const raw = {
-      currentStateMachineState: 'BLOCKED',
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
-      preBlockedState: 'IMPLEMENTING',
-    }
-    const parsed = workflowStateSchema.parse(raw)
-    expect(parsed.preBlockedState).toStrictEqual('IMPLEMENTING')
+  it('closes a review cycle from a cycle-closed event', () => {
+    const state = WorkflowState.from([
+      ReviewCycleClosed.parse({
+        type: 'review-cycle-closed',
+        at: '2026-01-01T00:00:00Z',
+        cycleNumber: 1,
+        reviewedCommit: 'abc123',
+        outcomes: {},
+      }),
+    ])
+
+    expect(state.reviewCycleOpen).toBe(false)
+    expect(state.reviewedCommit).toBe('abc123')
+  })
+
+  it('records review cycle outcomes as reviewer statuses', () => {
+    const state = WorkflowState.from([
+      ReviewCycleClosed.parse({
+        type: 'review-cycle-closed',
+        at: '2026-01-01T00:00:00Z',
+        cycleNumber: 1,
+        reviewedCommit: 'abc123',
+        outcomes: { 'code-review': 'APPROVED', 'task-check': 'OPEN_FEEDBACK' },
+      }),
+    ])
+
+    expect(state.reviewerStatuses.toJSON()['code-review']).toBe('APPROVED')
+    expect(state.reviewerStatuses.toJSON()['task-check']).toBe('OPEN_FEEDBACK')
+  })
+
+  it('round-trips the reviewed commit', () => {
+    expect(
+      WorkflowState.parse({
+        currentStateMachineState: 'REVIEWING',
+        reviewerStatuses: REVIEWERS,
+        reviewedCommit: 'abc123',
+      }).toJSON().reviewedCommit,
+    ).toBe('abc123')
   })
 })

@@ -1,8 +1,9 @@
+import { BuilderOptions } from './riviere-graph-definition-input'
 import { describe, it, expect } from 'vitest'
 import { RiviereBuilder } from './riviere-builder'
 
 function createValidOptions() {
-  return {
+  return BuilderOptions.parse({
     sources: [
       {
         repository: 'test/repo',
@@ -15,13 +16,13 @@ function createValidOptions() {
         systemType: 'domain',
       },
     },
-  } as const
+  } as const)
 }
 
 describe('RiviereBuilder', () => {
   describe('link', () => {
     it('creates link when source and target components exist', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -54,7 +55,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('throws immediately when source component does not exist', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       expect(() =>
         builder.link({
@@ -65,7 +66,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('reports an invalid source component ID without attempting suggestions', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       expect(() =>
         builder.link({
@@ -76,7 +77,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('includes near-match suggestions when source has typo', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       builder.addUseCase({
         name: 'Create Order',
@@ -97,7 +98,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('succeeds when target does not exist (deferred validation)', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -119,7 +120,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('includes type when specified as sync', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -141,7 +142,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('includes type when specified as async', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -163,7 +164,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('omits type when not specified', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -186,7 +187,7 @@ describe('RiviereBuilder', () => {
 
   describe('linkExternal', () => {
     it('creates external link when source exists', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -212,7 +213,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('throws with near-match suggestions when source not found', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       builder.addUseCase({
         name: 'Create Order',
@@ -233,7 +234,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('stores target URL when provided', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -257,7 +258,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('includes optional fields when provided', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -289,7 +290,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('deduplicates duplicate external links and records DUPLICATE_LINK_SKIPPED warning', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -332,7 +333,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('uses unspecified marker for duplicate external links without explicit type', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
 
       const source = builder.addUseCase({
         name: 'Create Order',
@@ -371,7 +372,7 @@ describe('RiviereBuilder', () => {
     })
 
     it('records a duplicate external target without a repository', () => {
-      const builder = RiviereBuilder.new(createValidOptions())
+      const builder = RiviereBuilder.parse(createValidOptions())
       const source = builder.addUseCase({
         name: 'Create Order',
         domain: 'orders',

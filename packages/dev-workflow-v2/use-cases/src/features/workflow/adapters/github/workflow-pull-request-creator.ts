@@ -7,15 +7,17 @@ import type { CreateWorkflowPullRequest } from '@living-architecture/dev-workflo
 /** @riviere-role domain-port-adapter */
 export function createWorkflowPullRequestCreator(
   createGithubPullRequest: (input: GithubPullRequestCreationInput) => GithubPullRequest,
+  pushBranch: (branch: string) => void,
 ): CreateWorkflowPullRequest {
   return (request) => {
+    pushBranch(request.branch)
     const pullRequest = createGithubPullRequest({
       branch: request.branch,
       body: request.body,
       title: request.title,
+      draft: false,
     })
     return {
-      isDraft: pullRequest.isDraft,
       prNumber: pullRequest.prNumber,
       prUrl: pullRequest.prUrl,
     }

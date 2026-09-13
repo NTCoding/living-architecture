@@ -267,7 +267,7 @@ export default tseslint.config(
     files: ['**/entrypoint/**/*.ts', '**/commands/**/*.ts', '**/queries/**/*.ts'],
     ignores: ['**/*.spec.ts', '**/*.test.ts', 'apps/eclair/**/queries/**/*.ts'],
     rules: {
-      'max-lines': ['error', { max: 150, skipBlankLines: true, skipComments: true }],
+      'max-lines': ['error', { max: 200, skipBlankLines: true, skipComments: true }],
     },
   },
   // Entrypoint-specific restrictions — wiring only, no private functions

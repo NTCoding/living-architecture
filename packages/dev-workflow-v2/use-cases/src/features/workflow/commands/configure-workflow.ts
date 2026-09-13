@@ -1,6 +1,5 @@
 import type { BaseEvent, WorkflowRegistry } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import type { TransitionContext } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import {
   getOperationBody,
   getTransitionTitle,
@@ -8,38 +7,48 @@ import {
 import { MaintainerWorkflowRegistry } from '@living-architecture/dev-workflow-v2-domain-model/domain/registry'
 import { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
 import { AddressingFeedbackState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/addressing-feedback'
-import { AwaitingCiState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/awaiting-ci'
-import { AwaitingPrFeedbackState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/awaiting-pr-feedback'
 import { BlockedState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/blocked'
-import { CompleteState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/complete'
 import { ImplementingState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/implementing'
-import { ReflectingState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/reflecting'
+import { HumanReviewingState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/human-reviewing'
 import { ReviewingState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/reviewing'
 import { SubmittingPrState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/submitting-pr'
 import {
   getKnownWorkflowEventTypes,
   parseWorkflowEvent,
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-events'
-import { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
+import {
+  getInitialWorkflowState,
+  StateNames,
+  WorkflowState,
+} from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
+import { WorkflowTransitionContext } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-transition-context'
 import { isWriteAllowed } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-predicates'
 import type { ZodType } from 'zod'
 
 type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
 type StateName = WorkflowState['currentStateMachineState']
-type WorkflowOperation = Parameters<MaintainerWorkflow['executeRecording']>[0]
+type WorkflowOperation =
+  | Parameters<MaintainerWorkflow['executeRecording']>[0]
+  | 'record-reviewer-status'
+  | 'wait-for-coderabbit-and-close-review-cycle'
 /** @riviere-role command-use-case-result */
 export interface ConfigureWorkflowResult {
   fold(state: WorkflowState, event: BaseEvent): WorkflowState
   buildWorkflow(state: WorkflowState, deps: WorkflowDeps): MaintainerWorkflow
   stateSchema: ZodType<StateName>
   initialState(): WorkflowState
-  getRegistry(): WorkflowRegistry<WorkflowState, StateName, WorkflowOperation>
+  getRegistry(): WorkflowRegistry<
+    WorkflowState,
+    StateName,
+    WorkflowOperation,
+    WorkflowTransitionContext
+  >
   buildTransitionContext(
     state: WorkflowState,
     from: StateName,
     to: StateName,
     deps: WorkflowDeps,
-  ): TransitionContext<WorkflowState, StateName>
+  ): WorkflowTransitionContext
   buildTransitionEvent(
     from: StateName,
     to: StateName,
@@ -61,10 +70,10 @@ function diffStateOverrides(
   stateAfter: WorkflowState,
 ): Record<string, unknown> {
   const overrides: Record<string, unknown> = {}
-  const beforeEntries = new Map(Object.entries(stateBefore))
-  for (const [key, value] of Object.entries(stateAfter)) {
+  const beforeEntries = new Map(Object.entries(stateBefore.toJSON()))
+  for (const [key, value] of Object.entries(stateAfter.toJSON())) {
     if (key === 'currentStateMachineState') continue
-    if (value !== beforeEntries.get(key)) overrides[key] = value
+    if (JSON.stringify(value) !== JSON.stringify(beforeEntries.get(key))) overrides[key] = value
   }
   return overrides
 }
@@ -76,13 +85,11 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
     IMPLEMENTING: ImplementingState.parse('IMPLEMENTING'),
     REVIEWING: ReviewingState.parse('REVIEWING'),
     SUBMITTING_PR: SubmittingPrState.parse('SUBMITTING_PR'),
-    AWAITING_CI: AwaitingCiState.parse('AWAITING_CI'),
-    AWAITING_PR_FEEDBACK: AwaitingPrFeedbackState.parse('AWAITING_PR_FEEDBACK'),
     ADDRESSING_FEEDBACK: AddressingFeedbackState.parse('ADDRESSING_FEEDBACK'),
-    REFLECTING: ReflectingState.parse('REFLECTING'),
-    COMPLETE: CompleteState.parse('COMPLETE'),
+    HUMAN_REVIEWING: HumanReviewingState.parse('HUMAN_REVIEWING'),
     BLOCKED: BlockedState.parse('BLOCKED'),
   })
+  const activeRegistry = { value: registry }
   return {
     fold(state: WorkflowState, event: BaseEvent): WorkflowState {
       try {
@@ -95,18 +102,25 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
       }
     },
     buildWorkflow(state: WorkflowState, deps: WorkflowDeps): MaintainerWorkflow {
-      return MaintainerWorkflow.build(registry, deps, state)
+      const workflow = MaintainerWorkflow.build(registry, deps, state)
+      activeRegistry.value = workflow.registry()
+      return workflow
     },
-    stateSchema: WorkflowState.stateNameSchema(),
-    initialState: WorkflowState.initial,
-    getRegistry: () => registry,
+    stateSchema: StateNames.singleton().asZodSchema(),
+    initialState: getInitialWorkflowState,
+    getRegistry: () => activeRegistry.value,
     buildTransitionContext(
       state: WorkflowState,
       from: StateName,
       to: StateName,
       deps: WorkflowDeps,
-    ): TransitionContext<WorkflowState, StateName> {
-      return { state, gitInfo: deps.getGitInfo(), from, to }
+    ): WorkflowTransitionContext {
+      return WorkflowTransitionContext.from({
+        state,
+        gitInfo: deps.getGitInfo(),
+        from,
+        to,
+      })
     },
     buildTransitionEvent(
       from: StateName,

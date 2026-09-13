@@ -1,8 +1,8 @@
 import { writeFile, mkdir } from 'node:fs/promises'
+import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { AddComponent } from './add-component'
-import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
 import type { AddComponentErrorCode } from './add-component-result'
 import {
   type TestContext,
@@ -51,7 +51,7 @@ describe('addComponent command', () => {
       ['special chars', 'UI<script>'],
       ['typo', 'UseCasee'],
     ])('returns VALIDATION_ERROR when componentType is %s', async (_label, value) => {
-      const result = new AddComponent(new RiviereProjectRepository()).execute({
+      const result = new AddComponent(createRiviereProjectRepository()).execute({
         ...inputWithGraphPath(),
         componentType: value,
       })
@@ -72,7 +72,7 @@ describe('addComponent command', () => {
       ['zero', 0],
       ['unsafe integer', Number.MAX_SAFE_INTEGER + 1],
     ])('returns VALIDATION_ERROR when lineNumber is %s', async (_label, value) => {
-      const result = new AddComponent(new RiviereProjectRepository()).execute({
+      const result = new AddComponent(createRiviereProjectRepository()).execute({
         ...inputWithGraphPath(),
         lineNumber: value,
       })
@@ -87,7 +87,7 @@ describe('addComponent command', () => {
       ['typical', 42],
       ['large', Number.MAX_SAFE_INTEGER],
     ])('valid lineNumber (%s) reaches graph check', async (_label, value) => {
-      const result = new AddComponent(new RiviereProjectRepository()).execute({
+      const result = new AddComponent(createRiviereProjectRepository()).execute({
         ...inputWithGraphPath(),
         lineNumber: value,
       })
@@ -106,7 +106,7 @@ describe('addComponent command', () => {
       ['zero', 0],
       ['unsafe integer', Number.MAX_SAFE_INTEGER + 1],
     ])('returns VALIDATION_ERROR when columnNumber is %s', async (_label, value) => {
-      const result = new AddComponent(new RiviereProjectRepository()).execute({
+      const result = new AddComponent(createRiviereProjectRepository()).execute({
         ...inputWithGraphPath(),
         columnNumber: value,
       })
@@ -121,7 +121,7 @@ describe('addComponent command', () => {
       ['typical', 42],
       ['large', Number.MAX_SAFE_INTEGER],
     ])('valid columnNumber (%s) reaches graph check', async (_label, value) => {
-      const result = new AddComponent(new RiviereProjectRepository()).execute({
+      const result = new AddComponent(createRiviereProjectRepository()).execute({
         ...inputWithGraphPath(),
         columnNumber: value,
       })
@@ -136,7 +136,9 @@ describe('addComponent command', () => {
       await mkdir(graphDir, { recursive: true })
       await writeFile(join(graphDir, 'graph.json'), 'not valid json {{{', 'utf-8')
 
-      const result = new AddComponent(new RiviereProjectRepository()).execute(inputWithGraphPath())
+      const result = new AddComponent(createRiviereProjectRepository()).execute(
+        inputWithGraphPath(),
+      )
 
       expect(result).toMatchObject(
         failureShape('VALIDATION_ERROR', expect.stringContaining('invalid JSON')),
@@ -148,7 +150,9 @@ describe('addComponent command', () => {
     it('returns componentId for UI component in valid graph', async () => {
       await createGraphWithDomain(ctx.testDir, 'test-domain')
 
-      const result = new AddComponent(new RiviereProjectRepository()).execute(inputWithGraphPath())
+      const result = new AddComponent(createRiviereProjectRepository()).execute(
+        inputWithGraphPath(),
+      )
 
       expect(result).toMatchObject({
         result: {
@@ -163,7 +167,9 @@ describe('addComponent command', () => {
     it('returns DOMAIN_NOT_FOUND when domain does not exist', async () => {
       await createGraphWithDomain(ctx.testDir, 'other-domain')
 
-      const result = new AddComponent(new RiviereProjectRepository()).execute(inputWithGraphPath())
+      const result = new AddComponent(createRiviereProjectRepository()).execute(
+        inputWithGraphPath(),
+      )
 
       expect(result).toMatchObject(failureShape('DOMAIN_NOT_FOUND'))
     })

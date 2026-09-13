@@ -1,445 +1,185 @@
-import { parseWorkflowEvent, type WorkflowEvent } from './workflow-events'
+import { getKnownWorkflowEventTypes, parseWorkflowEvent } from './workflow-events'
+import { Reviewer, Reviewers } from './reviews/reviewers'
+import { ReviewStatuses } from './reviews/statuses'
 
 const AT = '2026-01-01T00:00:00Z'
 
-describe('parseWorkflowEvent — session-started', () => {
-  it('accepts valid payload', () => {
-    const result: WorkflowEvent = parseWorkflowEvent({
-      type: 'session-started',
-      at: AT,
-    })
-    expect(result.type).toStrictEqual('session-started')
+describe('workflow events', () => {
+  it('lists the events used by the GitHub review workflow', () => {
+    expect(getKnownWorkflowEventTypes()).toStrictEqual([
+      'session-started',
+      'transitioned',
+      'issue-recorded',
+      'branch-recorded',
+      'pr-recorded',
+      'review-cycle-started',
+      'review-cycle-closed',
+      'reviewer-status-recorded',
+      'bash-checked',
+      'write-checked',
+    ])
   })
 
-  it('accepts optional repository', () => {
-    const result = parseWorkflowEvent({
-      type: 'session-started',
-      at: AT,
-      repository: 'owner/repo',
+  it('parses a started review cycle with its included and excluded reviewers', () => {
+    expect(
+      parseWorkflowEvent({
+        type: 'review-cycle-started',
+        at: AT,
+        cycleNumber: 2,
+        includedReviewers: ['code-review', 'architecture-review'],
+        excludedReviewers: { 'task-check': 'already-approved' },
+      }),
+    ).toMatchObject({
+      cycleNumber: 2,
+      includedReviewers: ['code-review', 'architecture-review'],
+      excludedReviewers: { 'task-check': 'already-approved' },
     })
-    expect(result.type).toStrictEqual('session-started')
-  })
-})
-
-describe('parseWorkflowEvent — issue-recorded', () => {
-  it('accepts valid payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'issue-recorded',
-      at: AT,
-      issueNumber: 42,
-    })
-    expect(result.type).toStrictEqual('issue-recorded')
   })
 
-  it('rejects missing issueNumber', () => {
+  it('parses a closed review cycle with its outcomes', () => {
+    expect(
+      parseWorkflowEvent({
+        type: 'review-cycle-closed',
+        at: AT,
+        cycleNumber: 2,
+        reviewedCommit: 'abc123',
+        outcomes: { 'code-review': 'APPROVED', coderabbit: 'APPROVED' },
+      }),
+    ).toMatchObject({
+      cycleNumber: 2,
+      reviewedCommit: 'abc123',
+      outcomes: { 'code-review': 'APPROVED', coderabbit: 'APPROVED' },
+    })
+  })
+
+  it('rejects a review cycle event whose cycle number is not a positive integer', () => {
+    for (const cycleNumber of [0, -1, 1.5]) {
+      expect(() =>
+        parseWorkflowEvent({
+          type: 'review-cycle-started',
+          at: AT,
+          cycleNumber,
+          includedReviewers: ['code-review'],
+          excludedReviewers: {},
+        }),
+      ).toThrow(/Number must be greater than 0|Expected integer/)
+    }
+  })
+
+  it('rejects a started review cycle with an unknown included reviewer', () => {
     expect(() =>
       parseWorkflowEvent({
-        type: 'issue-recorded',
+        type: 'review-cycle-started',
         at: AT,
+        cycleNumber: 1,
+        includedReviewers: ['unknown-reviewer'],
+        excludedReviewers: {},
       }),
-    ).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — branch-recorded', () => {
-  it('accepts valid payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'branch-recorded',
-      at: AT,
-      branch: 'feature/foo',
-    })
-    expect(result.type).toStrictEqual('branch-recorded')
+    ).toThrow('Unknown reviewer: unknown-reviewer')
   })
 
-  it('rejects missing branch', () => {
+  it('rejects a started review cycle with an unknown excluded reviewer', () => {
     expect(() =>
       parseWorkflowEvent({
-        type: 'branch-recorded',
+        type: 'review-cycle-started',
         at: AT,
+        cycleNumber: 1,
+        includedReviewers: [],
+        excludedReviewers: { 'unknown-reviewer': 'already-approved' },
       }),
-    ).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — architecture-review-completed', () => {
-  it('accepts passed payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'architecture-review-completed',
-      at: AT,
-      passed: true,
-    })
-    expect(result.type).toStrictEqual('architecture-review-completed')
+    ).toThrow('Unknown reviewer: unknown-reviewer')
   })
 
-  it('rejects missing passed', () => {
+  it('rejects a closed review cycle with an unknown reviewer outcome', () => {
     expect(() =>
       parseWorkflowEvent({
-        type: 'architecture-review-completed',
+        type: 'review-cycle-closed',
         at: AT,
+        cycleNumber: 1,
+        reviewedCommit: 'abc123',
+        outcomes: { 'code-review': 'UNKNOWN' },
       }),
-    ).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — code-review-completed', () => {
-  it('accepts passed payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'code-review-completed',
-      at: AT,
-      passed: true,
-    })
-    expect(result.type).toStrictEqual('code-review-completed')
+    ).toThrow('Unknown reviewer status: UNKNOWN')
   })
 
-  it('rejects missing passed', () => {
+  it('rejects a closed review cycle with an unknown reviewer', () => {
     expect(() =>
       parseWorkflowEvent({
-        type: 'code-review-completed',
+        type: 'review-cycle-closed',
         at: AT,
+        cycleNumber: 1,
+        reviewedCommit: 'abc123',
+        outcomes: { 'unknown-reviewer': 'APPROVED' },
       }),
-    ).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — bug-scanner-completed', () => {
-  it('accepts passed payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'bug-scanner-completed',
-      at: AT,
-      passed: true,
-    })
-    expect(result.type).toStrictEqual('bug-scanner-completed')
+    ).toThrow('Unknown reviewer: unknown-reviewer')
   })
 
-  it('rejects missing passed', () => {
+  it('parses a reviewer status record', () => {
+    expect(
+      parseWorkflowEvent({
+        type: 'reviewer-status-recorded',
+        at: AT,
+        reviewer: 'architecture-review',
+        status: 'OPEN_FEEDBACK',
+      }),
+    ).toMatchObject({ reviewer: 'architecture-review', status: 'OPEN_FEEDBACK' })
+  })
+
+  it('rejects a reviewer status record with an unknown reviewer', () => {
     expect(() =>
       parseWorkflowEvent({
-        type: 'bug-scanner-completed',
+        type: 'reviewer-status-recorded',
         at: AT,
+        reviewer: 'unknown',
+        status: 'APPROVED',
       }),
-    ).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — pr-recorded', () => {
-  it('accepts valid payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'pr-recorded',
-      at: AT,
-      prNumber: 7,
-    })
-    expect(result.type).toStrictEqual('pr-recorded')
+    ).toThrow('Unknown reviewer')
   })
 
-  it('accepts optional prUrl', () => {
-    const result = parseWorkflowEvent({
-      type: 'pr-recorded',
-      at: AT,
-      prNumber: 7,
-      prUrl: 'https://github.com/x/y/pull/7',
-    })
-    expect(result.type).toStrictEqual('pr-recorded')
-  })
-
-  it('rejects missing prNumber', () => {
+  it('rejects a reviewer status record with an unknown status', () => {
     expect(() =>
       parseWorkflowEvent({
-        type: 'pr-recorded',
+        type: 'reviewer-status-recorded',
         at: AT,
+        reviewer: 'architecture-review',
+        status: 'DONE',
       }),
-    ).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — ci-completed', () => {
-  it('accepts passed payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'ci-completed',
-      at: AT,
-      passed: true,
-    })
-    expect(result.type).toStrictEqual('ci-completed')
+    ).toThrow('Unknown reviewer status')
   })
 
-  it('accepts failed payload with output', () => {
-    const result = parseWorkflowEvent({
-      type: 'ci-completed',
-      at: AT,
-      passed: false,
-      output: 'test failures',
-    })
-    expect(result.type).toStrictEqual('ci-completed')
+  it('parses the review domain value objects', () => {
+    expect(Reviewer.fromName('code-review').name()).toBe('code-review')
+    expect(Reviewers.parse(['code-review']).values).toStrictEqual(['code-review'])
+    expect(ReviewStatuses.parse(['APPROVED']).values).toStrictEqual(['APPROVED'])
   })
 
-  it('rejects missing passed', () => {
-    expect(() =>
-      parseWorkflowEvent({
-        type: 'ci-completed',
-        at: AT,
-      }),
-    ).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — feedback-checked', () => {
-  it('accepts clean payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'feedback-checked',
-      at: AT,
-      clean: true,
-    })
-    expect(result.type).toStrictEqual('feedback-checked')
+  it('rejects an unknown reviewer name', () => {
+    expect(() => Reviewer.fromName('unknown')).toThrow('Unknown reviewer: unknown')
   })
 
-  it('accepts dirty payload with unresolvedCount', () => {
-    const result = parseWorkflowEvent({
-      type: 'feedback-checked',
-      at: AT,
-      clean: false,
-      unresolvedCount: 3,
-      reviewDecision: 'CHANGES_REQUESTED',
-    })
-    expect(result.type).toStrictEqual('feedback-checked')
+  it.each([
+    ['branch-recorded', { branch: undefined }],
+    ['pr-recorded', { prNumber: undefined }],
+    ['bash-checked', { tool: undefined, command: 'git status', allowed: true }],
+    ['write-checked', { tool: 'write', filePath: undefined, allowed: true }],
+  ] as const)('rejects malformed %s events', (type, payload) => {
+    expect(() => parseWorkflowEvent({ type, at: AT, ...payload })).toThrow('Required')
   })
 
-  it('accepts dirty payload with null reviewDecision', () => {
-    const result = parseWorkflowEvent({
-      type: 'feedback-checked',
-      at: AT,
-      clean: false,
-      unresolvedCount: 0,
-      reviewDecision: null,
-    })
-    expect(result.type).toStrictEqual('feedback-checked')
+  it.each([
+    { type: 'session-started' },
+    { type: 'transitioned', from: 'IMPLEMENTING', to: 'REVIEWING' },
+    { type: 'issue-recorded', issueNumber: 42 },
+    { type: 'branch-recorded', branch: 'issue-42' },
+    { type: 'pr-recorded', prNumber: 1, prUrl: 'https://example.test/pr/1' },
+    { type: 'reviewer-status-recorded', reviewer: 'code-review', status: 'APPROVED' },
+    { type: 'bash-checked', tool: 'bash', command: 'git status', allowed: true, reason: 'ok' },
+    { type: 'write-checked', tool: 'write', filePath: 'a.ts', allowed: false, reason: 'no' },
+  ] as const)('parses a %s event', (event) => {
+    expect(parseWorkflowEvent({ at: AT, ...event })).toMatchObject({ type: event.type })
   })
 
-  it('rejects missing clean', () => {
-    expect(() =>
-      parseWorkflowEvent({
-        type: 'feedback-checked',
-        at: AT,
-      }),
-    ).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — feedback-addressed', () => {
-  it('accepts valid payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'feedback-addressed',
-      at: AT,
-    })
-    expect(result.type).toStrictEqual('feedback-addressed')
-  })
-
-  it('rejects missing at', () => {
-    const malformedEvent = { type: 'feedback-addressed', at: AT }
-    Reflect.deleteProperty(malformedEvent, 'at')
-
-    expect(() => parseWorkflowEvent(malformedEvent)).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — task-check-passed', () => {
-  it('accepts valid payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'task-check-passed',
-      at: AT,
-    })
-    expect(result.type).toStrictEqual('task-check-passed')
-  })
-
-  it('rejects missing at', () => {
-    const malformedEvent = { type: 'task-check-passed', at: AT }
-    Reflect.deleteProperty(malformedEvent, 'at')
-
-    expect(() => parseWorkflowEvent(malformedEvent)).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — review-recorded', () => {
-  it('accepts pass verdict payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'review-recorded',
-      at: AT,
-      reviewId: 1,
-      reviewType: 'task-check',
-      verdict: 'PASS',
-    })
-    expect(result.type).toStrictEqual('review-recorded')
-  })
-
-  it('accepts fail verdict payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'review-recorded',
-      at: AT,
-      reviewId: 2,
-      reviewType: 'code-review',
-      verdict: 'FAIL',
-    })
-    expect(result.type).toStrictEqual('review-recorded')
-  })
-
-  it('rejects missing reviewType', () => {
-    expect(() =>
-      parseWorkflowEvent({
-        type: 'review-recorded',
-        at: AT,
-        reviewId: 1,
-        verdict: 'PASS',
-      }),
-    ).toThrow('Required')
-  })
-
-  it('rejects unknown verdict', () => {
-    expect(() =>
-      parseWorkflowEvent({
-        type: 'review-recorded',
-        at: AT,
-        reviewId: 1,
-        reviewType: 'task-check',
-        verdict: 'MAYBE',
-      }),
-    ).toThrow('Invalid enum value')
-  })
-})
-
-describe('parseWorkflowEvent — bash-checked', () => {
-  it('accepts valid payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'bash-checked',
-      at: AT,
-      tool: 'Bash',
-      command: 'pnpm test',
-      allowed: true,
-    })
-    expect(result.type).toStrictEqual('bash-checked')
-  })
-
-  it('accepts optional reason', () => {
-    const result = parseWorkflowEvent({
-      type: 'bash-checked',
-      at: AT,
-      tool: 'Bash',
-      command: 'git push',
-      allowed: false,
-      reason: 'forbidden',
-    })
-    expect(result.type).toStrictEqual('bash-checked')
-  })
-
-  it('rejects missing command', () => {
-    expect(() =>
-      parseWorkflowEvent({
-        type: 'bash-checked',
-        at: AT,
-        tool: 'Bash',
-        allowed: true,
-      }),
-    ).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — write-checked', () => {
-  it('accepts valid payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'write-checked',
-      at: AT,
-      tool: 'Write',
-      filePath: '/test-output/x.ts',
-      allowed: true,
-    })
-    expect(result.type).toStrictEqual('write-checked')
-  })
-
-  it('accepts optional reason', () => {
-    const result = parseWorkflowEvent({
-      type: 'write-checked',
-      at: AT,
-      tool: 'Write',
-      filePath: '/test-output/x.ts',
-      allowed: false,
-      reason: 'blocked',
-    })
-    expect(result.type).toStrictEqual('write-checked')
-  })
-
-  it('rejects missing filePath', () => {
-    expect(() =>
-      parseWorkflowEvent({
-        type: 'write-checked',
-        at: AT,
-        tool: 'Write',
-        allowed: true,
-      }),
-    ).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — transitioned', () => {
-  it('accepts valid payload', () => {
-    const result = parseWorkflowEvent({
-      type: 'transitioned',
-      at: AT,
-      from: 'IMPLEMENTING',
-      to: 'REVIEWING',
-    })
-    expect(result.type).toStrictEqual('transitioned')
-  })
-
-  it('accepts optional preBlockedState', () => {
-    const result = parseWorkflowEvent({
-      type: 'transitioned',
-      at: AT,
-      from: 'IMPLEMENTING',
-      to: 'BLOCKED',
-      preBlockedState: 'IMPLEMENTING',
-    })
-    expect(result.type).toStrictEqual('transitioned')
-  })
-
-  it('rejects missing from', () => {
-    expect(() =>
-      parseWorkflowEvent({
-        type: 'transitioned',
-        at: AT,
-        to: 'REVIEWING',
-      }),
-    ).toThrow('Required')
-  })
-
-  it('rejects missing to', () => {
-    expect(() =>
-      parseWorkflowEvent({
-        type: 'transitioned',
-        at: AT,
-        from: 'IMPLEMENTING',
-      }),
-    ).toThrow('Required')
-  })
-})
-
-describe('parseWorkflowEvent — discriminant validation', () => {
-  it('rejects unknown type discriminant', () => {
-    expect(() =>
-      parseWorkflowEvent({
-        type: 'unknown-event',
-        at: AT,
-      }),
-    ).toThrow('Invalid discriminator value')
-  })
-
-  it('rejects missing type field', () => {
-    const malformedEvent = { type: 'session-started', at: AT }
-    Reflect.deleteProperty(malformedEvent, 'type')
-
-    expect(() => parseWorkflowEvent(malformedEvent)).toThrow('Invalid discriminator value')
-  })
-
-  it('rejects missing at when type is present', () => {
-    const malformedEvent = { type: 'session-started', at: AT }
-    Reflect.deleteProperty(malformedEvent, 'at')
-
-    expect(() => parseWorkflowEvent(malformedEvent)).toThrow('Required')
+  it('rejects an unknown event type', () => {
+    expect(() => parseWorkflowEvent({ type: 'unknown', at: AT })).toThrow('unknown type')
   })
 })

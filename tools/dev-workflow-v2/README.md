@@ -1,8 +1,8 @@
 # dev-workflow-v2
 
-An event-sourced state machine plugin for Claude Code that enforces a structured task lifecycle: planning, implementation, verification, review, submit PR, await CI, await PR feedback, reflect, complete.
+An event-sourced state machine plugin for Claude Code, Codex, OpenCode, and Pi that enforces a structured task lifecycle: planning, implementation, verification, review, submit PR, await CI, await PR feedback, reflect, complete.
 
-## How to Start
+## How to Start with Claude Code
 
 Start a new session in a worktree:
 
@@ -27,9 +27,9 @@ $dev-workflow-continue-planning
 $dev-workflow-choose-next-task
 $dev-workflow-start-implementation <issue-number>
 $dev-workflow-optimize-factory
-$dev-workflow-v2:code-review
+$dev-workflow-address-pull-request-feedback <pr-number>
+$dev-workflow-review-pull-request <pr-number>
 $dev-workflow-v2:list-review-threads
-$dev-workflow-v2:create-pr
 ```
 
 Agent Skills are the canonical procedures. Provider-specific commands adapt those procedures for their harness. Codex's shared workflow runner reads `CODEX_THREAD_ID`, so workflow operations use the active task session without copying an ID from hook output.
@@ -54,14 +54,14 @@ Pi exposes the same lifecycle commands as Claude Code:
 /dev-workflow-v2:continue-planning
 /dev-workflow-v2:choose-next-task
 /dev-workflow-v2:start-implementation <issue-number>
-/dev-workflow-v2:code-review
+/dev-workflow-v2:address-pull-request-feedback <pr-number>
+/dev-workflow-v2:review-pull-request <pr-number>
 /dev-workflow-v2:list-review-threads
-/dev-workflow-v2:create-pr
 /dev-workflow-v2:optimize-factory
 /dev-workflow-v2:workflow <operation> [args]
 ```
 
-The Pi extension provides the `workflow` tool for the agent. It uses the same event-sourced workflow state, write policy, GitHub integration, and state instructions as the other providers.
+The Pi extension provides the `workflow` tool for the agent. It uses the same event-sourced workflow state, write policy, GitHub integration, and state instructions as the other providers. Pi loads the lifecycle commands but does not register the Codex-oriented Agent Skills as native Pi skills. Commands which use a shared procedure select Pi's `Task` and `workflow` tools explicitly.
 
 ### Planning lifecycle
 
@@ -166,27 +166,29 @@ Analyzes parallel work streams across approved delivery plans, including complet
 /dev-workflow-v2:start-implementation <issue-number>
 ```
 
-Renames the worktree branch to match the issue, reads the issue details, initializes the workflow state machine, and begins the IMPLEMENTING state.
+Prepares an issue branch from the refreshed remote default branch, reads the issue details, initializes the workflow state machine, and begins the IMPLEMENTING state.
 
-### Reusable workflow actions
+Branch preparation supports both a primary checkout and a linked worktree. It leaves the local default branch and any automatically created linked-worktree branch reference unchanged. It stops rather than overwriting work when the checkout is dirty or detached, the current branch contains commits absent from the remote default, the target branch is stale or contains commits, or another worktree already has the target branch checked out.
+
+### Reusable review actions
 
 ```bash
-/dev-workflow-v2:code-review
+/dev-workflow-v2:address-pull-request-feedback <pr-number>
 ```
 
-Runs the required workflow review bundle and records each valid verdict.
+Plans and addresses feedback on the specified pull request without reading or changing workflow state. It requires the current worktree to be on the pull request head branch. Before changing code, it presents a plan for human approval. It replies as `[main-agent]`, resolves addressed threads, and stops for human input on design decisions or disputed human direction.
+
+```bash
+/dev-workflow-v2:review-pull-request <pr-number>
+```
+
+Runs the repository review agents for the specified pull request without reading or changing workflow state. It posts a diagnostic comment after the applicable agents start. `task-check` runs against every GitHub issue resolved by the pull request; when no issue is linked, it is not started and the diagnostic comment records why.
 
 ```bash
 /dev-workflow-v2:list-review-threads
 ```
 
 Lists unresolved review threads for the pull request recorded in workflow state.
-
-```bash
-/dev-workflow-v2:create-pr
-```
-
-Pushes the recorded feature branch, then delegates standard PR creation and recording to the workflow.
 
 ### Workflow (internal)
 
@@ -209,25 +211,18 @@ This returns the current workflow state as JSON so state instructions can extrac
 ```mermaid
 stateDiagram-v2
     [*] --> IMPLEMENTING
-    IMPLEMENTING --> REVIEWING
-    REVIEWING --> SUBMITTING_PR : all reviews passed
-    REVIEWING --> IMPLEMENTING : review failed
-    SUBMITTING_PR --> AWAITING_CI
-    AWAITING_CI --> AWAITING_PR_FEEDBACK : CI passed
-    AWAITING_CI --> IMPLEMENTING : CI failed
-    AWAITING_PR_FEEDBACK --> REFLECTING : no feedback
-    AWAITING_PR_FEEDBACK --> ADDRESSING_FEEDBACK : feedback exists
-    ADDRESSING_FEEDBACK --> REFLECTING : fixes pushed and feedback verified clean
-    REFLECTING --> COMPLETE
-    COMPLETE --> [*]
+    IMPLEMENTING --> SUBMITTING_PR
+    SUBMITTING_PR --> REVIEWING : PR created
+    REVIEWING --> ADDRESSING_FEEDBACK : GitHub feedback exists
+    ADDRESSING_FEEDBACK --> REVIEWING : fixes pushed
+    REVIEWING --> HUMAN_REVIEWING : all reviewers approve
+    HUMAN_REVIEWING --> ADDRESSING_FEEDBACK : human feedback
 
     IMPLEMENTING --> BLOCKED
     REVIEWING --> BLOCKED
     SUBMITTING_PR --> BLOCKED
-    AWAITING_CI --> BLOCKED
-    AWAITING_PR_FEEDBACK --> BLOCKED
     ADDRESSING_FEEDBACK --> BLOCKED
-    REFLECTING --> BLOCKED
+    HUMAN_REVIEWING --> BLOCKED
     BLOCKED --> IMPLEMENTING : returns to pre-blocked state
 ```
 

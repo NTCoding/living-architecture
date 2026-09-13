@@ -172,6 +172,7 @@ Write the solution in this order:
 1. Start with the high-level purpose of the change.
 2. Add the relevant capability detail and clarification.
 3. Explain why the resulting capability matters to the user or customer.
+4. State how this capability fits with the neighbouring capabilities: which stage or command runs immediately before it, which runs immediately after it, and what this capability contributes that they do not. Name the neighbouring capability and the exact handover between them, such as the file, type, or state that passes across. Do not describe delivery order, ticket dependencies, or why the slice was sequenced this way. That belongs in `## Dependencies`.
 
 High-level purpose does not mean abstract wording. The first sentence must name the product capability, the action the user takes, and the result the user needs. Never use an undefined reference such as “the Workflow”, “the demo”, “the customer journey”, “the result”, “all capabilities”, “everything”, or “works together”. At the point of reference, name the file, stages, sources, commands, outputs, or decision involved, or link to the exact source that defines it. For a Workflow deliverable, an agent must write `riviere-workflow.yaml` with its named stages, not “the Workflow”.
 
@@ -234,8 +235,17 @@ Include role and location decisions from the approved architecture and `.riviere
 
 When the ticket touches role-enforced TypeScript code, include a table with:
 
-| Proposed Element | Kind | Role | Sublocation | Confidence | Notes |
-|------------------|------|------|-------------|------------|-------|
+| Proposed Element | Kind | Role | Sublocation | Change | Confidence | Notes |
+|------------------|------|------|-------------|--------|------------|-------|
+
+The `Change` column value is one of `new`, `changed`, `removed`, or `unchanged`.
+
+| Proposed Element | Kind | Role | Sublocation | Change | Confidence | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| LoadEventCatalogSource | type/interface | `domain-port` | extract domain-model domain/ports/ | new | High | Domain-owned external-fact contract |
+| EventCatalogSourceAdapter | function/class | `domain-port-adapter` | extract use-cases features/extract/adapters/ | new | High | Translates SDK client results |
+| EventCatalogClient | function/class | `external-client-service` | extract use-cases infra/external-clients/eventcatalog/ | new | High | Only location importing the SDK |
+| RiviereProject | class | `aggregate` | extract domain-model domain/ | changed | High | Owns mapping and Builder mutation |
 
 The table must name concrete proposed elements from the approved architecture. Do not replace role/location decisions with prose.
 
@@ -291,6 +301,351 @@ This section must contain these subsections in this order:
 #### Product
 
 List observable product/system behaviour that proves the ticket's problem slice is solved. Include happy paths and source-backed unhappy paths.
+
+Every criterion has two parts, in this order.
+
+**Rules**
+
+A rule states the behaviour. A rule contains no values and no file contents.
+
+**Example**
+
+An example is one case. Write it in Gherkin.
+
+- `Given` states a pre-condition.
+- `When` states an action.
+- `Then` describes the result.
+
+Here is the worked example. Each rule below is followed by its example.
+
+**Rule:** EventCatalog services are added as `UseCase` components in a Riviere graph.
+
+**Example:** `OrdersService` is added as the `PlaceOrder` use case.
+
+Given the EventCatalog source `specs/eventcatalog`
+
+```json
+{
+  "domains": [],
+  "services": [
+    { "id": "OrdersService", "name": "Orders", "produces": ["OrderCreated"], "consumes": [] }
+  ],
+  "events": [{ "id": "OrderCreated", "name": "Order Created" }]
+}
+```
+
+And the configuration file `specs/eventcatalog-import.yaml`
+
+```yaml
+source: ./eventcatalog
+mappings: ./eventcatalog-mappings.yaml
+allow-unmapped: false
+```
+
+And the configuration file `specs/eventcatalog-mappings.yaml`
+
+```yaml
+services:
+  OrdersService:
+    type: UseCase
+    domain: orders
+    module: checkout
+    name: PlaceOrder
+```
+
+When running the `eventcatalog-import` stage of the workflow
+
+Then the following item is added to the Riviere graph
+
+```json
+{
+  "id": "orders:checkout:usecase:placeorder",
+  "type": "UseCase",
+  "name": "PlaceOrder",
+  "domain": "orders",
+  "module": "checkout",
+  "sourceLocation": {
+    "repository": "https://github.com/ntcoding/ecommerce-demo-app",
+    "filePath": "specs/eventcatalog"
+  }
+}
+```
+
+**Rule:** EventCatalog events are added as `Event` components in a Riviere graph.
+
+**Example:** `OrderCreated` is added as the `OrderPlaced` event.
+
+Given the EventCatalog source `specs/eventcatalog`
+
+```json
+{
+  "domains": [],
+  "services": [
+    { "id": "OrdersService", "name": "Orders", "produces": ["OrderCreated"], "consumes": [] }
+  ],
+  "events": [{ "id": "OrderCreated", "name": "Order Created" }]
+}
+```
+
+And the configuration file `specs/eventcatalog-mappings.yaml`
+
+```yaml
+services:
+  OrdersService:
+    type: UseCase
+    domain: orders
+    module: checkout
+    name: PlaceOrder
+events:
+  OrderCreated:
+    name: OrderPlaced
+```
+
+When running the `eventcatalog-import` stage of the workflow
+
+Then the following item is added to the Riviere graph
+
+```json
+{
+  "id": "orders:checkout:event:orderplaced",
+  "type": "Event",
+  "name": "OrderPlaced",
+  "eventName": "OrderPlaced",
+  "domain": "orders",
+  "module": "checkout",
+  "sourceLocation": {
+    "repository": "https://github.com/ntcoding/ecommerce-demo-app",
+    "filePath": "specs/eventcatalog"
+  }
+}
+```
+
+**Rule:** A service that produces an event is linked to that event's component, with type `async`.
+
+**Example:** `OrdersService` produces `OrderCreated`.
+
+Given the EventCatalog source `specs/eventcatalog`
+
+```json
+{
+  "domains": [],
+  "services": [
+    { "id": "OrdersService", "name": "Orders", "produces": ["OrderCreated"], "consumes": [] }
+  ],
+  "events": [{ "id": "OrderCreated", "name": "Order Created" }]
+}
+```
+
+And the configuration file `specs/eventcatalog-mappings.yaml`
+
+```yaml
+services:
+  OrdersService:
+    type: UseCase
+    domain: orders
+    module: checkout
+    name: PlaceOrder
+events:
+  OrderCreated:
+    name: OrderPlaced
+```
+
+When running the `eventcatalog-import` stage of the workflow
+
+Then the following item is added to the Riviere graph
+
+```json
+{
+  "source": "orders:checkout:usecase:placeorder",
+  "target": "orders:checkout:event:orderplaced",
+  "type": "async"
+}
+```
+
+**Rule:** A service that consumes an event is linked from that event's component, with type `async`.
+
+**Example:** `ShippingService` consumes `OrderCreated`.
+
+Given the EventCatalog source `specs/eventcatalog`
+
+```json
+{
+  "domains": [],
+  "services": [
+    { "id": "OrdersService", "name": "Orders", "produces": ["OrderCreated"], "consumes": [] },
+    { "id": "ShippingService", "name": "Shipping", "produces": [], "consumes": ["OrderCreated"] }
+  ],
+  "events": [{ "id": "OrderCreated", "name": "Order Created" }]
+}
+```
+
+And the configuration file `specs/eventcatalog-mappings.yaml`
+
+```yaml
+services:
+  OrdersService:
+    type: UseCase
+    domain: orders
+    module: checkout
+    name: PlaceOrder
+  ShippingService:
+    type: UseCase
+    domain: shipping
+    module: fulfillment
+    name: ShipOrder
+events:
+  OrderCreated:
+    name: OrderPlaced
+```
+
+When running the `eventcatalog-import` stage of the workflow
+
+Then the following items are added to the Riviere graph
+
+```json
+{
+  "id": "orders:checkout:usecase:placeorder",
+  "type": "UseCase",
+  "name": "PlaceOrder",
+  "domain": "orders",
+  "module": "checkout",
+  "sourceLocation": {
+    "repository": "https://github.com/ntcoding/ecommerce-demo-app",
+    "filePath": "specs/eventcatalog"
+  }
+}
+```
+
+```json
+{
+  "id": "shipping:fulfillment:usecase:shiporder",
+  "type": "UseCase",
+  "name": "ShipOrder",
+  "domain": "shipping",
+  "module": "fulfillment",
+  "sourceLocation": {
+    "repository": "https://github.com/ntcoding/ecommerce-demo-app",
+    "filePath": "specs/eventcatalog"
+  }
+}
+```
+
+```json
+{
+  "id": "orders:checkout:event:orderplaced",
+  "type": "Event",
+  "name": "OrderPlaced",
+  "eventName": "OrderPlaced",
+  "domain": "orders",
+  "module": "checkout",
+  "sourceLocation": {
+    "repository": "https://github.com/ntcoding/ecommerce-demo-app",
+    "filePath": "specs/eventcatalog"
+  }
+}
+```
+
+```json
+{
+  "source": "orders:checkout:usecase:placeorder",
+  "target": "orders:checkout:event:orderplaced",
+  "type": "async"
+}
+```
+
+```json
+{
+  "source": "orders:checkout:event:orderplaced",
+  "target": "shipping:fulfillment:usecase:shiporder",
+  "type": "async"
+}
+```
+
+**Rule:** A record with no mapping fails the stage when `allow-unmapped` is `false`.
+
+**Example:** `OrdersService` has no mapping and `allow-unmapped` is `false`.
+
+Given the EventCatalog source `specs/eventcatalog`
+
+```json
+{
+  "domains": [],
+  "services": [
+    { "id": "OrdersService", "name": "Orders", "produces": [], "consumes": [] }
+  ],
+  "events": []
+}
+```
+
+And the configuration file `specs/eventcatalog-import.yaml`
+
+```yaml
+source: ./eventcatalog
+mappings: ./eventcatalog-mappings.yaml
+allow-unmapped: false
+```
+
+And the configuration file `specs/eventcatalog-mappings.yaml`
+
+```yaml
+services: {}
+events: {}
+```
+
+When running the `eventcatalog-import` stage of the workflow
+
+Then the stage fails with
+
+```text
+Unmapped EventCatalog records: service 'OrdersService'
+```
+
+and `.riviere/ecommerce-architecture.json` is unchanged.
+
+**Rule:** A record with no mapping is skipped and recorded as a diagnostic when `allow-unmapped` is `true`.
+
+**Example:** `OrdersService` and `OrderCreated` have no mapping and `allow-unmapped` is `true`.
+
+Given the EventCatalog source `specs/eventcatalog`
+
+```json
+{
+  "domains": [],
+  "services": [
+    { "id": "OrdersService", "name": "Orders", "produces": [], "consumes": [] }
+  ],
+  "events": [{ "id": "OrderCreated", "name": "Order Created" }]
+}
+```
+
+And the configuration file `specs/eventcatalog-import.yaml`
+
+```yaml
+source: ./eventcatalog
+mappings: ./eventcatalog-mappings.yaml
+allow-unmapped: true
+```
+
+And the configuration file `specs/eventcatalog-mappings.yaml`
+
+```yaml
+services: {}
+events: {}
+```
+
+When running the `eventcatalog-import` stage of the workflow
+
+Then the run result contains
+
+```json
+{ "kind": "unmapped-record", "recordKind": "service", "recordId": "OrdersService" }
+```
+
+and
+
+```json
+{ "kind": "unmapped-record", "recordKind": "event", "recordId": "OrderCreated" }
+```
 
 #### Design
 
@@ -425,17 +780,34 @@ This section must name the concrete exclusions that stop the ticket drifting int
 
 ### Glossary
 
-Populate from the source-of-truth glossary at `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`.
+Populate from the terminology source: the PRD terminology section, and the source-of-truth glossary at `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`.
 
 This section must:
 
-- reference `docs/architecture/domain-terminology/contextive/definitions.glossary.yml` as the source glossary
-- include only key domain or architecture terms used in the issue body
-- use the exact term name and definition from the source glossary
+- reference the terminology source files
+- copy into the issue every term that the terminology source defines and that appears in the issue body
+- copy each definition word for word
+- use the exact term name from the terminology source
 
 Do not invent inline glossary definitions inside the issue.
 
-If the issue needs a domain or architecture term that is not already in the source glossary, add the term to `docs/architecture/domain-terminology/contextive/definitions.glossary.yml` first using source-backed wording from approved planning artefacts. If the definition cannot be populated from approved artefacts, block task creation rather than inventing it.
+If the issue uses a term that the terminology source does not define, add the term to the terminology source first using source-backed wording from approved planning artefacts. If the definition cannot be populated from approved artefacts, block task creation rather than inventing it.
+
+Example:
+
+```markdown
+## Glossary
+
+Source: `docs/architecture/domain-terminology/contextive/definitions.glossary.yml`, and `docs/project/PRD/active/PRD-phase-13-extraction-workflows.md` §12.
+
+**Component**: A discrete unit of software functionality in a Riviere graph. Has a type, belongs to a domain, and connects to other components via links.
+
+**Link**: A directed relationship from one source Component to one target Component. Each Link represents one source occurrence and may have a Relationship Type, condition, sync or async type, and Source Location.
+
+**Domain**: A logical grouping of related components. Each component belongs to exactly one domain. Domains have a systemType (domain, bff, ui, external-service, other).
+
+**Canonical Identity**: The final Riviere component identity produced by stage mappings/config and Project behaviour before the Builder sees it. Upsert happens only after identity is established.
+```
 
 ## Step 4: ensure GitHub milestone and label exist
 
@@ -520,6 +892,13 @@ Block task creation if any of these are true:
 34. a dogfooding ticket presents source files, configurations, fixtures, tooling, or README changes as its solution instead of naming the user action, product capabilities, and observable result it demonstrates
 35. a dogfooding ticket claims to demonstrate a capability that the product cannot yet run through the demo
 36. `## Solution` uses an undefined reference such as “the Workflow”, “the demo”, “the customer journey”, “the result”, “all capabilities”, “everything”, or “works together” instead of naming the file, stages, sources, commands, outputs, decision, or exact source reference at the point of reference
+37. `## Solution` does not state how the capability fits with the stages or commands immediately before and after it, and what passes between them
+38. a criterion has no example, or describes an item in words that could be shown
+39. a criterion uses the word `scenario`
+40. the role and location table has no `Change` column, or uses a value other than `new`, `changed`, `removed`, or `unchanged`
+41. a code or configuration sample has no sentence saying what the file is, who writes it, where it lives, and whether it is whole or part of a file
+42. the issue uses a term that the terminology source does not define
+43. a term defined by the terminology source appears in the issue body but is missing from `## Glossary`
 
 If blocked, the current planning command must produce:
 

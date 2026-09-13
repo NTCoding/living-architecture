@@ -11,3 +11,11 @@ export class GraphStateUnavailableError extends Error {
     super('Graph state is unavailable for this project operation')
   }
 }
+
+/** @riviere-role domain-error */
+export class InvalidWorkflowDefinitionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'InvalidWorkflowDefinitionError'
+  }
+}

@@ -3,7 +3,7 @@ export type CustomPropertyTypeName = 'string' | 'number' | 'boolean' | 'array' |
 
 type CustomPropertyTypeParseResult =
   | { success: true; propertyType: CustomPropertyType }
-  | { success: false; invalidValue: string }
+  | { success: false; invalidValue: string; validNames: readonly CustomPropertyTypeName[] }
 
 const CUSTOM_PROPERTY_TYPE_NAMES: readonly CustomPropertyTypeName[] = [
   'string',
@@ -22,15 +22,11 @@ export class CustomPropertyType {
   static parse(value: string): CustomPropertyTypeParseResult {
     const propertyTypeName = CUSTOM_PROPERTY_TYPE_NAMES.find((candidate) => candidate === value)
     return propertyTypeName === undefined
-      ? { success: false, invalidValue: value }
+      ? { success: false, invalidValue: value, validNames: CUSTOM_PROPERTY_TYPE_NAMES }
       : { success: true, propertyType: new CustomPropertyType(propertyTypeName) }
   }
 
   name(): CustomPropertyTypeName {
     return this.propertyTypeName
-  }
-
-  static names(): readonly CustomPropertyTypeName[] {
-    return CUSTOM_PROPERTY_TYPE_NAMES
   }
 }

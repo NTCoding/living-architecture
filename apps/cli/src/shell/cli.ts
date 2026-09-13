@@ -35,6 +35,7 @@ import { LinkComponents } from '@living-architecture/riviere-extract-ts-use-case
 import { LinkExternal } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/link-external'
 import { LinkHttp } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/link-http'
 import { ValidateGraph } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/validate-graph'
+import { createEventCatalogSourceAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/eventcatalog/event-catalog-source-adapter'
 import { createAddComponentCommand } from '../features/builder/entrypoint/add-component/entrypoint'
 import { createAddDomainCommand } from '../features/builder/entrypoint/add-domain/entrypoint'
 import { createAddSourceCommand } from '../features/builder/entrypoint/add-source/entrypoint'
@@ -129,7 +130,8 @@ const packageJson = loadPackageJson()
  * @returns Configured Rivière CLI program
  */
 export function createProgram(): Command {
-  const riviereProjectRepository = new RiviereProjectRepository()
+  const eventCatalogSourceLoader = createEventCatalogSourceAdapter()
+  const riviereProjectRepository = new RiviereProjectRepository(eventCatalogSourceLoader)
   const defaultGraphFileLocation = join(process.cwd(), '.riviere', 'graph.json')
   const program = new Command()
 
@@ -168,7 +170,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createInitCommand({
-      initGraph: new InitGraph(riviereProjectRepository),
+      initGraph: new InitGraph(riviereProjectRepository, eventCatalogSourceLoader),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,

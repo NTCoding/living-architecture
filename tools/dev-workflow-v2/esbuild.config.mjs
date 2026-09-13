@@ -27,3 +27,13 @@ await esbuild.build({
     '@nt-ai-lab/deterministic-agent-workflow-engine',
   ],
 })
+
+await esbuild.build({
+  entryPoints: ['src/shell/prepare-implementation-branch.ts'],
+  bundle: true,
+  platform: 'node',
+  target: 'node20',
+  format: 'esm',
+  outfile: 'dist/prepare-implementation-branch.js',
+  banner: { js: executableBanner },
+})

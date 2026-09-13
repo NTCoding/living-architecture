@@ -94,7 +94,9 @@ Do not duplicate the domain's allowed values in an entrypoint union or validator
 
 `entrypoint/_platform` contains entrypoint code shared only within that feature's entrypoint location. The `_platform` location is importable anywhere within its parent location and nowhere outside it.
 
-Root `infra` contains generic technical code. It cannot import application or domain code. CLI presentation formats or writes generic responses. CLI input parsing remains in the entrypoint layer, including shared parsers under a feature's private `entrypoint/_platform/cli` location.
+Root `infra` contains generic technical code. It cannot import application or domain code. CLI presentation formats or writes generic responses. A `cli-output` is fully formatted presentation data ready for a `cli-response-writer`; its role does not prescribe an application's output shape. Entry-point-specific `cli-output-formatter` functions decide what to present, generic `cli-response-formatter` functions may add a shared response envelope, and writers own the output side effect. CLI input parsing remains in the entrypoint layer, including shared parsers under a feature's private `entrypoint/_platform/cli` location.
+
+Existing writers may temporarily accept command results or query models while the migration in GitHub issue #523 is completed. New and changed code follows the formatter → `cli-output` → writer lifecycle.
 
 `shell` wires the application. It may construct external clients and adapters, then pass them into app entrypoints or subdomain use cases. It contains no business decisions.
 

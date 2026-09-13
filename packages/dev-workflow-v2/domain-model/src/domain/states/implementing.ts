@@ -1,11 +1,10 @@
-import type {
-  PreconditionResult,
-  TransitionContext,
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
+import type { PreconditionResult } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import { z } from 'zod'
+import { Reviewers } from '../reviews/reviewers'
+import { ReviewerStatus } from '../reviews/statuses'
+import { ReviewerStatuses } from '../reviews/reviewer-statuses'
 import type { WorkflowState } from '../workflow-types'
-
-type StateName = WorkflowState['currentStateMachineState']
+import type { WorkflowTransitionContext } from '../workflow-transition-context'
 
 /** @riviere-role value-object */
 export class ImplementingState {
@@ -14,7 +13,7 @@ export class ImplementingState {
   readonly name: 'IMPLEMENTING'
   readonly emoji = '🔨'
   readonly agentInstructions = 'states/implementing.md'
-  readonly canTransitionTo = ['REVIEWING', 'BLOCKED'] as const
+  readonly canTransitionTo = ['SUBMITTING_PR', 'BLOCKED'] as const
   readonly allowedWorkflowOperations = ['record-issue', 'record-branch'] as const
   readonly forbidden = { write: true } as const
 
@@ -27,8 +26,16 @@ export class ImplementingState {
     return new ImplementingState('IMPLEMENTING')
   }
 
-  transitionGuard(context: TransitionContext<WorkflowState, StateName>): PreconditionResult {
+  transitionGuard(
+    context: Parameters<typeof WorkflowTransitionContext.from>[0],
+  ): PreconditionResult {
     if (context.to === 'BLOCKED') return { pass: true }
+    if (context.state.prNumber !== undefined) {
+      return {
+        pass: false,
+        reason: 'A pull request has already been recorded. Submitting another is not allowed.',
+      }
+    }
     if (!context.gitInfo.hasCommitsVsDefault) {
       return {
         pass: false,
@@ -42,20 +49,26 @@ export class ImplementingState {
       }
     }
     if (!context.state.githubIssue) {
-      return { pass: false, reason: 'No issue recorded. Run record-issue first.' }
+      return {
+        pass: false,
+        reason: 'No issue recorded. Run record-issue first.',
+      }
+    }
+    if (context.state.featureBranch === undefined) {
+      return {
+        pass: false,
+        reason: 'No branch recorded. Run record-branch first.',
+      }
     }
     return { pass: true }
   }
 
   onEntry(state: WorkflowState): WorkflowState {
     return state.with({
-      architectureReviewPassed: false,
-      codeReviewPassed: false,
-      bugScannerPassed: false,
-      taskCheckPassed: false,
-      ciPassed: false,
-      feedbackClean: false,
-      feedbackAddressed: false,
+      reviewerStatuses: ReviewerStatuses.fromInitialState(
+        Reviewers.singleton().all(),
+        ReviewerStatus.parse('PENDING'),
+      ).toJSON(),
     })
   }
 }

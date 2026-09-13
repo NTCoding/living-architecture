@@ -42,13 +42,14 @@ function isSubagentSession(payload: JsonRecord): boolean {
   return isRecord(subagent['thread_spawn'])
 }
 
-function findTranscriptPath(directory: string, threadId: string): string | undefined {
+/** @riviere-role external-client-service */
+export function findCodexTranscriptPath(directory: string, threadId: string): string | undefined {
   if (!existsSync(directory)) return undefined
 
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name)
     if (entry.isDirectory()) {
-      const transcriptPath = findTranscriptPath(path, threadId)
+      const transcriptPath = findCodexTranscriptPath(path, threadId)
       if (transcriptPath !== undefined) return transcriptPath
       continue
     }
@@ -82,7 +83,7 @@ export class CodexSessionMetadataError extends Error {
 /** @riviere-role external-client-service */
 export function readCodexParentThreadId(threadId: string, codexHome: string): string | undefined {
   const transcriptsDirectory = join(codexHome, 'sessions')
-  const transcriptPath = findTranscriptPath(transcriptsDirectory, threadId)
+  const transcriptPath = findCodexTranscriptPath(transcriptsDirectory, threadId)
   if (transcriptPath === undefined) return undefined
 
   const metadata = readSessionMetadata(transcriptPath)

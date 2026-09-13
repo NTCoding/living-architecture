@@ -1,35 +1,43 @@
 # cli-response-writer
 
 ## Purpose
-A function that writes an already-created CLI response to the CLI output boundary.
 
-## Behavioral Contract
-1. Accept an already-formatted CLI response or enough information to create one directly
-2. Write the response to stdout, stderr, or a configured output file
-3. May terminate the process when the response represents a terminal CLI failure
-4. Does NOT decide entrypoint-specific presentation
-5. Does NOT handle regular domain/application control flow
+A function that writes fully formatted `cli-output` to a CLI output boundary consistently.
 
-## Examples
+## Behavioural Contract
 
-### Canonical Example
+1. Accept `cli-output` that is ready to write.
+2. Perform output mechanics such as serialisation, stream selection, file writing, or process exit.
+3. Apply those mechanics consistently for every response it supports.
+4. Make no entrypoint-specific presentation decisions.
+5. Handle no regular domain or application control flow.
+
+## Example
+
+The fields below are an application choice, not a role rule.
+
 ```typescript
 /** @riviere-role cli-response-writer */
-export function outputResult<T>(data: SuccessOutput<T>, options: OutputOptions): void {
-  console.log(JSON.stringify(data))
+export function writeResponse(output: TextOutput): void {
+  if (output.stream === 'stdout') process.stdout.write(output.message)
+  else process.stderr.write(output.message)
 }
 ```
 
 ## Anti-Patterns
 
-### Common Misclassifications
-- **Not a cli-output-formatter**: output formatters decide what to present; response writers perform the output side effect
-- **Not a cli-error-handler**: error handlers classify uncaught exceptions; response writers write responses
-
-### Mixed Responsibility Signals
-- If the function switches on a command result shape — entrypoint output formatting is leaking in
-- If the function imports domain errors — use-case failure handling is leaking into CLI response writing
+- Accepting a command result, query model, primitive, `unknown`, `object`, or broad generic input.
+- Switching on a command-specific result shape.
+- Formatting command-specific messages.
+- Loading data or calling a use case.
+- Using a type assertion to make unrelated data look like `cli-output`.
 
 ## Decision Guidance
-- Is it writing a CLI response to stdout, stderr, a file, or exiting after writing? → cli-response-writer
-- Is it creating the generic response object? → cli-response-formatter
+
+- Does it decide what one command should say? → `cli-output-formatter`.
+- Does it create a reusable response envelope? → `cli-response-formatter`.
+- Does it only emit fully formatted output? → `cli-response-writer`.
+
+## Transitional Enforcement
+
+The executable rule temporarily permits existing writers to accept command results and query models. GitHub issue #523 tracks their migration and removal of that allowance. New and changed writers must accept only `cli-output`.

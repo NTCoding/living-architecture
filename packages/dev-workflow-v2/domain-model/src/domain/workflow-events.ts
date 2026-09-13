@@ -1,8 +1,308 @@
 import { z } from 'zod'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import { WorkflowState } from './workflow-types'
+import { Reviewer } from './reviews/reviewers'
+import { ReviewerStatus } from './reviews/statuses'
+import { StateNames, type StateName } from './workflow-types'
 
-const STATE_NAME_SCHEMA = WorkflowState.stateNameSchema()
+/** @riviere-role domain-error */
+export class WorkflowEventError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'WorkflowEventError'
+  }
+}
+
+function requiredString(value: unknown): string {
+  return z.string().parse(value)
+}
+
+function optionalString(value: unknown): string | undefined {
+  return z.string().optional().parse(value)
+}
+
+function requiredNumber(value: unknown): number {
+  return z.number().parse(value)
+}
+
+function requiredCycleNumber(value: unknown): number {
+  return z.number().int().positive().parse(value)
+}
+
+function requiredBoolean(value: unknown): boolean {
+  return z.boolean().parse(value)
+}
+
+function requiredStateName(value: unknown): StateName {
+  return StateNames.singleton().asZodSchema().parse(value)
+}
+
+function optionalStateOverrides(value: unknown): Readonly<Record<string, unknown>> | undefined {
+  return z.record(z.unknown()).optional().parse(value)
+}
+
+function requiredStringArray(value: unknown): readonly string[] {
+  return z.array(z.string()).parse(value)
+}
+
+function requiredStringRecord(value: unknown): Readonly<Record<string, string>> {
+  return z.record(z.string(), z.string()).parse(value)
+}
+
+function requiredReviewerStatusRecord(value: unknown): Readonly<Record<string, string>> {
+  const record = requiredStringRecord(value)
+  const validated: Record<string, string> = {}
+  for (const [reviewerName, statusName] of Object.entries(record)) {
+    validated[Reviewer.fromName(reviewerName).name()] = ReviewerStatus.parse(statusName).name()
+  }
+  return validated
+}
+
+function requiredReviewerNameArray(value: unknown): readonly string[] {
+  return requiredStringArray(value).map((name) => Reviewer.fromName(name).name())
+}
+
+function requiredReviewerNameRecord(value: unknown): Readonly<Record<string, string>> {
+  const record = requiredStringRecord(value)
+  const validated: Record<string, string> = {}
+  for (const [reviewerName, reason] of Object.entries(record)) {
+    validated[Reviewer.fromName(reviewerName).name()] = reason
+  }
+  return validated
+}
+
+/** @riviere-role value-object */
+export class SessionStarted {
+  declare private readonly brand: 'SessionStarted';
+  [key: string]: unknown
+  readonly type = 'session-started'
+
+  private constructor(
+    readonly at: string,
+    readonly transcriptPath?: string,
+    readonly repository?: string,
+  ) {}
+
+  static parse(event: BaseEvent): SessionStarted {
+    return new SessionStarted(
+      requiredString(event['at']),
+      optionalString(event['transcriptPath']),
+      optionalString(event['repository']),
+    )
+  }
+}
+
+/** @riviere-role value-object */
+export class Transitioned {
+  declare private readonly brand: 'Transitioned';
+  [key: string]: unknown
+  readonly type = 'transitioned'
+
+  private constructor(
+    readonly at: string,
+    readonly from: StateName,
+    readonly to: StateName,
+    readonly preBlockedState?: string,
+    readonly stateOverrides?: Readonly<Record<string, unknown>>,
+  ) {}
+
+  static parse(event: BaseEvent): Transitioned {
+    return new Transitioned(
+      requiredString(event['at']),
+      requiredStateName(event['from']),
+      requiredStateName(event['to']),
+      optionalString(event['preBlockedState']),
+      optionalStateOverrides(event['stateOverrides']),
+    )
+  }
+}
+
+/** @riviere-role value-object */
+export class IssueRecorded {
+  declare private readonly brand: 'IssueRecorded';
+  [key: string]: unknown
+  readonly type = 'issue-recorded'
+
+  private constructor(
+    readonly at: string,
+    readonly issueNumber: number,
+  ) {}
+
+  static parse(event: BaseEvent): IssueRecorded {
+    return new IssueRecorded(requiredString(event['at']), requiredNumber(event['issueNumber']))
+  }
+}
+
+/** @riviere-role value-object */
+export class BranchRecorded {
+  declare private readonly brand: 'BranchRecorded';
+  [key: string]: unknown
+  readonly type = 'branch-recorded'
+
+  private constructor(
+    readonly at: string,
+    readonly branch: string,
+  ) {}
+
+  static parse(event: BaseEvent): BranchRecorded {
+    return new BranchRecorded(requiredString(event['at']), requiredString(event['branch']))
+  }
+}
+
+/** @riviere-role value-object */
+export class PrRecorded {
+  declare private readonly brand: 'PrRecorded';
+  [key: string]: unknown
+  readonly type = 'pr-recorded'
+
+  private constructor(
+    readonly at: string,
+    readonly prNumber: number,
+    readonly prUrl?: string,
+  ) {}
+
+  static parse(event: BaseEvent): PrRecorded {
+    return new PrRecorded(
+      requiredString(event['at']),
+      requiredNumber(event['prNumber']),
+      optionalString(event['prUrl']),
+    )
+  }
+}
+
+/** @riviere-role value-object */
+export class ReviewCycleStarted {
+  declare private readonly brand: 'ReviewCycleStarted';
+  [key: string]: unknown
+  readonly type = 'review-cycle-started'
+
+  private constructor(
+    readonly at: string,
+    readonly cycleNumber: number,
+    readonly includedReviewers: readonly string[],
+    readonly excludedReviewers: Readonly<Record<string, string>>,
+  ) {}
+
+  static parse(event: BaseEvent): ReviewCycleStarted {
+    return new ReviewCycleStarted(
+      requiredString(event['at']),
+      requiredCycleNumber(event['cycleNumber']),
+      requiredReviewerNameArray(event['includedReviewers']),
+      requiredReviewerNameRecord(event['excludedReviewers']),
+    )
+  }
+}
+
+/** @riviere-role value-object */
+export class ReviewCycleClosed {
+  declare private readonly brand: 'ReviewCycleClosed';
+  [key: string]: unknown
+  readonly type = 'review-cycle-closed'
+
+  private constructor(
+    readonly at: string,
+    readonly cycleNumber: number,
+    readonly reviewedCommit: string,
+    readonly outcomes: Readonly<Record<string, string>>,
+  ) {}
+
+  static parse(event: BaseEvent): ReviewCycleClosed {
+    return new ReviewCycleClosed(
+      requiredString(event['at']),
+      requiredCycleNumber(event['cycleNumber']),
+      requiredString(event['reviewedCommit']),
+      requiredReviewerStatusRecord(event['outcomes']),
+    )
+  }
+}
+
+/** @riviere-role value-object */
+export class ReviewerStatusRecorded {
+  declare private readonly brand: 'ReviewerStatusRecorded';
+  [key: string]: unknown
+  readonly type = 'reviewer-status-recorded'
+
+  private constructor(
+    readonly at: string,
+    readonly reviewer: string,
+    readonly status: string,
+  ) {}
+
+  static parse(event: BaseEvent): ReviewerStatusRecorded {
+    const reviewerName = requiredString(event['reviewer'])
+    const statusName = requiredString(event['status'])
+    return new ReviewerStatusRecorded(
+      requiredString(event['at']),
+      Reviewer.fromName(reviewerName).name(),
+      ReviewerStatus.parse(statusName).name(),
+    )
+  }
+}
+
+/** @riviere-role value-object */
+export class BashChecked {
+  declare private readonly brand: 'BashChecked';
+  [key: string]: unknown
+  readonly type = 'bash-checked'
+
+  private constructor(
+    readonly at: string,
+    readonly tool: string,
+    readonly command: string,
+    readonly allowed: boolean,
+    readonly reason?: string,
+  ) {}
+
+  static parse(event: BaseEvent): BashChecked {
+    return new BashChecked(
+      requiredString(event['at']),
+      requiredString(event['tool']),
+      requiredString(event['command']),
+      requiredBoolean(event['allowed']),
+      optionalString(event['reason']),
+    )
+  }
+}
+
+/** @riviere-role value-object */
+export class WriteChecked {
+  declare private readonly brand: 'WriteChecked';
+  [key: string]: unknown
+  readonly type = 'write-checked'
+
+  private constructor(
+    readonly at: string,
+    readonly tool: string,
+    readonly filePath: string,
+    readonly allowed: boolean,
+    readonly reason?: string,
+  ) {}
+
+  static parse(event: BaseEvent): WriteChecked {
+    return new WriteChecked(
+      requiredString(event['at']),
+      requiredString(event['tool']),
+      requiredString(event['filePath']),
+      requiredBoolean(event['allowed']),
+      optionalString(event['reason']),
+    )
+  }
+}
+
+/**
+ * @riviere-role domain-port
+ * @riviere-role-justification The workflow state machine, replay, and event persistence all consume the closed workflow event union, so it is the contract the domain exposes to those consumers.
+ */
+export type WorkflowEvent =
+  | SessionStarted
+  | Transitioned
+  | IssueRecorded
+  | BranchRecorded
+  | PrRecorded
+  | ReviewCycleStarted
+  | ReviewCycleClosed
+  | ReviewerStatusRecorded
+  | BashChecked
+  | WriteChecked
 
 const KNOWN_WORKFLOW_EVENT_TYPES = [
   'session-started',
@@ -10,154 +310,44 @@ const KNOWN_WORKFLOW_EVENT_TYPES = [
   'issue-recorded',
   'branch-recorded',
   'pr-recorded',
-  'ci-completed',
-  'feedback-checked',
-  'feedback-addressed',
-  'pr-feedback-verification-failed',
-  'task-check-passed',
-  'review-recorded',
+  'review-cycle-started',
+  'review-cycle-closed',
+  'reviewer-status-recorded',
   'bash-checked',
   'write-checked',
 ] as const
-
-const SESSION_STARTED_SCHEMA = z.object({
-  type: z.literal('session-started'),
-  at: z.string(),
-  transcriptPath: z.string().optional(),
-  repository: z.string().optional(),
-})
-
-const TRANSITIONED_SCHEMA = z.object({
-  type: z.literal('transitioned'),
-  at: z.string(),
-  from: STATE_NAME_SCHEMA,
-  to: STATE_NAME_SCHEMA,
-  preBlockedState: z.string().optional(),
-  stateOverrides: z.record(z.unknown()).optional(),
-})
-
-const ISSUE_RECORDED_SCHEMA = z.object({
-  type: z.literal('issue-recorded'),
-  at: z.string(),
-  issueNumber: z.number(),
-})
-
-const BRANCH_RECORDED_SCHEMA = z.object({
-  type: z.literal('branch-recorded'),
-  at: z.string(),
-  branch: z.string(),
-})
-
-const ARCHITECTURE_REVIEW_COMPLETED_SCHEMA = z.object({
-  type: z.literal('architecture-review-completed'),
-  at: z.string(),
-  passed: z.boolean(),
-})
-
-const CODE_REVIEW_COMPLETED_SCHEMA = z.object({
-  type: z.literal('code-review-completed'),
-  at: z.string(),
-  passed: z.boolean(),
-})
-
-const BUG_SCANNER_COMPLETED_SCHEMA = z.object({
-  type: z.literal('bug-scanner-completed'),
-  at: z.string(),
-  passed: z.boolean(),
-})
-
-const PR_RECORDED_SCHEMA = z.object({
-  type: z.literal('pr-recorded'),
-  at: z.string(),
-  prNumber: z.number(),
-  prUrl: z.string().optional(),
-})
-
-const CI_COMPLETED_SCHEMA = z.object({
-  type: z.literal('ci-completed'),
-  at: z.string(),
-  passed: z.boolean(),
-  output: z.string().optional(),
-})
-
-const FEEDBACK_CHECKED_SCHEMA = z.object({
-  type: z.literal('feedback-checked'),
-  at: z.string(),
-  clean: z.boolean(),
-  unresolvedCount: z.number().optional(),
-  reviewDecision: z.string().nullable().optional(),
-})
-
-const FEEDBACK_ADDRESSED_SCHEMA = z.object({
-  type: z.literal('feedback-addressed'),
-  at: z.string(),
-})
-
-const PR_FEEDBACK_VERIFICATION_FAILED_SCHEMA = z.object({
-  type: z.literal('pr-feedback-verification-failed'),
-  at: z.string(),
-  reason: z.string().min(1),
-})
-
-const TASK_CHECK_PASSED_SCHEMA = z.object({
-  type: z.literal('task-check-passed'),
-  at: z.string(),
-})
-
-const REVIEW_RECORDED_EVENT_SCHEMA = z.object({
-  type: z.literal('review-recorded'),
-  at: z.string(),
-  reviewId: z.number().int().nonnegative(),
-  reviewType: z.string(),
-  verdict: z.enum(['PASS', 'FAIL']),
-})
-
-const BASH_CHECKED_SCHEMA = z.object({
-  type: z.literal('bash-checked'),
-  at: z.string(),
-  tool: z.string(),
-  command: z.string(),
-  allowed: z.boolean(),
-  reason: z.string().optional(),
-})
-
-const WRITE_CHECKED_SCHEMA = z.object({
-  type: z.literal('write-checked'),
-  at: z.string(),
-  tool: z.string(),
-  filePath: z.string(),
-  allowed: z.boolean(),
-  reason: z.string().optional(),
-})
-
-const WORKFLOW_EVENT_SCHEMA = z.discriminatedUnion('type', [
-  SESSION_STARTED_SCHEMA,
-  TRANSITIONED_SCHEMA,
-  ISSUE_RECORDED_SCHEMA,
-  BRANCH_RECORDED_SCHEMA,
-  ARCHITECTURE_REVIEW_COMPLETED_SCHEMA,
-  CODE_REVIEW_COMPLETED_SCHEMA,
-  BUG_SCANNER_COMPLETED_SCHEMA,
-  PR_RECORDED_SCHEMA,
-  CI_COMPLETED_SCHEMA,
-  FEEDBACK_CHECKED_SCHEMA,
-  FEEDBACK_ADDRESSED_SCHEMA,
-  PR_FEEDBACK_VERIFICATION_FAILED_SCHEMA,
-  TASK_CHECK_PASSED_SCHEMA,
-  REVIEW_RECORDED_EVENT_SCHEMA,
-  BASH_CHECKED_SCHEMA,
-  WRITE_CHECKED_SCHEMA,
-])
-
-/** @riviere-role domain-event */
-export type WorkflowEvent = z.infer<typeof WORKFLOW_EVENT_SCHEMA>
 
 /**
  * @riviere-role domain-service
  * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
 export function parseWorkflowEvent(event: BaseEvent): WorkflowEvent {
-  return WORKFLOW_EVENT_SCHEMA.parse(event)
+  switch (event['type']) {
+    case 'session-started':
+      return SessionStarted.parse(event)
+    case 'transitioned':
+      return Transitioned.parse(event)
+    case 'issue-recorded':
+      return IssueRecorded.parse(event)
+    case 'branch-recorded':
+      return BranchRecorded.parse(event)
+    case 'pr-recorded':
+      return PrRecorded.parse(event)
+    case 'review-cycle-started':
+      return ReviewCycleStarted.parse(event)
+    case 'review-cycle-closed':
+      return ReviewCycleClosed.parse(event)
+    case 'reviewer-status-recorded':
+      return ReviewerStatusRecorded.parse(event)
+    case 'bash-checked':
+      return BashChecked.parse(event)
+    case 'write-checked':
+      return WriteChecked.parse(event)
+    default:
+      throw new WorkflowEventError(
+        `Malformed workflow event: unknown type "${String(event['type'])}".`,
+      )
+  }
 }
 
 /**

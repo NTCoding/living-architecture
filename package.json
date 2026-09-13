@@ -20,6 +20,7 @@
     "prepare": "husky"
   },
   "lint-staged": {
+    "patches/**": "node -e \"console.error('Dependency patches are forbidden'); process.exit(1)\"",
     "*.ts": [
       "npx prettier --write",
       "eslint --fix"

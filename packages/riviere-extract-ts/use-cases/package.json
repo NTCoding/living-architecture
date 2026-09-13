@@ -1,6 +1,6 @@
 {
   "name": "@living-architecture/riviere-extract-ts-use-cases",
-  "version": "0.6.6",
+  "version": "0.6.14",
   "publishConfig": {
     "access": "public"
   },
@@ -40,6 +40,7 @@
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
+    "@eventcatalog/sdk": "2.29.0",
     "@living-architecture/riviere-builder-published-language": "workspace:*",
     "@living-architecture/riviere-extract-config-published-language": "workspace:*",
     "@living-architecture/riviere-extract-ts-domain-model": "workspace:*",

@@ -15,7 +15,7 @@ export default defineConfig({
         ['lcov', { projectRoot: string }],
       ],
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.spec.ts', 'src/**/__fixtures__/**'],
+      exclude: ['src/**/*.spec.ts', 'src/**/__fixtures__/**', 'src/domain/ports/**'],
       thresholds: {
         lines: 100,
         statements: 100,

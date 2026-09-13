@@ -21,7 +21,10 @@ export class LinkComponents {
     if (!parsedInput.success) return parsedInput.result
 
     try {
-      const project = this.repository.loadByGraphPath(input.graphFileLocation)
+      const project = this.repository.load({
+        kind: 'graph',
+        graphFileLocation: input.graphFileLocation,
+      })
       const linkInput: {
         from: string
         to: string
@@ -50,7 +53,7 @@ export class LinkComponents {
       if (input.sourceLocation !== undefined) {
         linkInput.sourceLocation = input.sourceLocation
       }
-      const link = project.link(linkInput)
+      const link = project.amendGraph((builder) => builder.link(linkInput))
       this.repository.save(input.graphFileLocation, project)
       return {
         result: {

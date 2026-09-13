@@ -14,7 +14,10 @@ export class EnrichComponent {
 
   execute(input: EnrichComponentInput): EnrichComponentResult {
     try {
-      const project = this.repository.loadByGraphPath(input.graphFileLocation)
+      const project = this.repository.load({
+        kind: 'graph',
+        graphFileLocation: input.graphFileLocation,
+      })
       const enrichmentInput = {
         ...buildBehavior(input),
         ...(input.businessRules.length > 0 ? { businessRules: input.businessRules } : {}),
@@ -22,7 +25,7 @@ export class EnrichComponent {
         ...(input.entity === undefined ? {} : { entity: input.entity }),
         ...(input.signature === undefined ? {} : { signature: input.signature }),
       }
-      project.enrichComponent(input.id, enrichmentInput)
+      project.amendGraph((builder) => builder.enrichComponent(input.id, enrichmentInput))
       this.repository.save(input.graphFileLocation, project)
       return {
         result: {

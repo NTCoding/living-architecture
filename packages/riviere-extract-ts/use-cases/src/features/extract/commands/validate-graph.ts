@@ -10,14 +10,17 @@ export class ValidateGraph {
 
   execute(input: ValidateGraphInput): ValidateGraphResult {
     try {
-      const project = this.repository.loadByGraphPath(input.graphFileLocation)
-      const validationResult = project.validate()
+      const project = this.repository.load({
+        kind: 'graph',
+        graphFileLocation: input.graphFileLocation,
+      })
+      const validationResult = project.amendGraph((builder) => builder.validate())
       return {
         result: {
           errors: validationResult.errors,
           success: true,
           valid: validationResult.valid,
-          warnings: project.warnings(),
+          warnings: project.amendGraph((builder) => builder.warnings()),
         },
       }
     } catch (error) {
