@@ -1,0 +1,21 @@
+asyncapi: 3.0.0
+info:
+  title: Ecommerce broker
+  version: 1.0.0
+channels:
+  orderPlaced:
+    address: orders.placed
+    messages:
+      orderPlaced:
+        $ref: '#/components/messages/OrderPlacedMessage'
+operations:
+  processOrder:
+    action: send
+    channel:
+      $ref: '#/channels/orderPlaced'
+components:
+  messages:
+    OrderPlacedMessage:
+      name: OrderPlacedMessage
+      payload:
+        type: object

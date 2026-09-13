@@ -7,6 +7,7 @@ import {
   type TestContext,
   createGraphWithDomain,
   collaborators,
+  createInitGraph,
   createTestContext,
   setupCommandTest,
 } from '../../../__fixtures__/command-test-fixtures'
@@ -19,7 +20,6 @@ import { DefineCustomType } from './define-custom-type'
 import { DefineRelationshipType } from './define-relationship-type'
 import { EnrichComponent } from './enrich-component'
 import { FinalizeGraph } from './finalize-graph'
-import { InitGraph } from './init-graph'
 import { LinkComponents } from './link-components'
 import { LinkExternal } from './link-external'
 import { ValidateGraph } from './validate-graph'
@@ -92,10 +92,7 @@ describe('command success path coverage', () => {
       .result
 
   it('initializes a new graph', () => {
-    const result = new InitGraph(
-      createRiviereProjectRepository(),
-      collaborators().loadEventCatalogSource,
-    ).execute({
+    const result = createInitGraph(createRiviereProjectRepository()).execute({
       domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],
       graphFileLocation: graphLocation(),
       name: 'Combined graph',
@@ -105,10 +102,7 @@ describe('command success path coverage', () => {
   })
 
   it('returns a validation error when no source is declared', () => {
-    const result = new InitGraph(
-      createRiviereProjectRepository(),
-      collaborators().loadEventCatalogSource,
-    ).execute({
+    const result = createInitGraph(createRiviereProjectRepository()).execute({
       domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],
       graphFileLocation: graphLocation(),
       name: 'Combined graph',
@@ -124,21 +118,13 @@ describe('command success path coverage', () => {
       name: 'combined',
       sources: ['https://github.com/org/repo'],
     }
-    new InitGraph(createRiviereProjectRepository(), collaborators().loadEventCatalogSource).execute(
-      input,
-    )
-    const result = new InitGraph(
-      createRiviereProjectRepository(),
-      collaborators().loadEventCatalogSource,
-    ).execute(input)
+    createInitGraph(createRiviereProjectRepository()).execute(input)
+    const result = createInitGraph(createRiviereProjectRepository()).execute(input)
     expect(result.result).toMatchObject({ code: 'GRAPH_EXISTS', success: false })
   })
 
   it('returns a validation error from init-graph for an unsupported system type', () => {
-    const result = new InitGraph(
-      createRiviereProjectRepository(),
-      collaborators().loadEventCatalogSource,
-    ).execute({
+    const result = createInitGraph(createRiviereProjectRepository()).execute({
       domains: [{ description: 'Orders', name: 'orders', systemType: 'unsupported' }],
       graphFileLocation: graphLocation(),
       name: 'combined',

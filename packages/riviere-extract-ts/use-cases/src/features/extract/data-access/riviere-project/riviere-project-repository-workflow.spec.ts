@@ -223,14 +223,46 @@ describe('RiviereProjectRepository workflow loading', () => {
     expect(project.build().metadata.name).toBe('previous-graph')
   })
 })
-it.each([
-  ['asyncapi-import', 'source: imported.json\nmappings: mappings.json\nallow-unmapped: false\n'],
-] as const)('materializes an %s stage', (kind, configYaml) => {
+it('materializes an asyncapi-import stage with validated mappings', () => {
   const directory = workspace()
-  writeFileSync(join(directory, '.riviere', 'workflows', 'import.yaml'), configYaml)
-  writeWorkflow(directory, `  - kind: ${kind}\n    name: import\n    config: import.yaml`)
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'import.yaml'),
+    'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
+  )
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'mappings.yaml'),
+    [
+      'messages:',
+      '  OrderPlacedMessage:',
+      '    domain: orders',
+      '    module: infrastructure',
+      '    name: OrderPlaced',
+      'operations:',
+      '  processOrder:',
+      '    type: UseCase',
+      '    domain: orders',
+      '    module: checkout',
+      '    name: ProcessOrder',
+    ].join('\n'),
+  )
+  writeWorkflow(directory, '  - kind: asyncapi-import\n    name: import\n    config: import.yaml')
 
-  expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
+  expect(loadWorkflow(directory, 'combined').build().metadata.name).toBe('combined-graph')
+})
+
+it('rejects asyncapi-import mappings with unknown keys', () => {
+  const directory = workspace()
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'import.yaml'),
+    'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
+  )
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'mappings.yaml'),
+    ['messages: {}', 'operations: {}', 'unexpected: true'].join('\n'),
+  )
+  writeWorkflow(directory, '  - kind: asyncapi-import\n    name: import\n    config: import.yaml')
+
+  expect(() => loadWorkflow(directory, 'combined')).toThrow(/Invalid AsyncAPI mappings/)
 })
 
 it('materializes an eventcatalog-import stage with validated mappings', () => {

@@ -26,7 +26,8 @@ const eventCatalogConfig: EventCatalogImportConfig = {
 }
 const asyncApiConfig: AsyncApiImportConfig = {
   source: 'asyncapi.yaml',
-  mappings: 'asyncapi-mappings.yaml',
+  sourceFilePath: 'asyncapi.yaml',
+  mappings: { messages: {}, operations: {} },
   allowUnmapped: false,
 }
 const aiExtractConfig: AiExtractConfig = {

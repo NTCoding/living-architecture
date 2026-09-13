@@ -5,6 +5,7 @@ import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-m
 import {
   type TestContext,
   collaborators,
+  createInitGraph,
   createTestContext,
   setupCommandTest,
 } from '../../../__fixtures__/command-test-fixtures'
@@ -12,7 +13,6 @@ import { AddDomain } from './add-domain'
 import { AddSource } from './add-source'
 import { EnrichComponent } from './enrich-component'
 import { FinalizeGraph } from './finalize-graph'
-import { InitGraph } from './init-graph'
 import { LinkComponents } from './link-components'
 import { LinkExternal } from './link-external'
 import { LinkHttp } from './link-http'
@@ -187,10 +187,7 @@ describe('command unexpected error propagation', () => {
       throw new UnexpectedBuilderFailure('init boom')
     })
     expect(() =>
-      new InitGraph(
-        createRiviereProjectRepository(),
-        collaborators().loadEventCatalogSource,
-      ).execute({
+      createInitGraph(createRiviereProjectRepository()).execute({
         domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],
         graphFileLocation: graphLocation(),
         name: 'combined',

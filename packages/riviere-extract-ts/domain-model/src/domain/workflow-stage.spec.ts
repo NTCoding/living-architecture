@@ -122,7 +122,8 @@ describe('WorkflowStage', () => {
   it('copies asyncapi import configuration from its input', () => {
     const config: AsyncApiImportConfig = {
       source: 'asyncapi.yaml',
-      mappings: 'asyncapi-mappings.yaml',
+      sourceFilePath: 'asyncapi.yaml',
+      mappings: { messages: {}, operations: {} },
       allowUnmapped: false,
     }
     const stage = WorkflowStage.fromAsyncApiImport('import-asyncapi', config)

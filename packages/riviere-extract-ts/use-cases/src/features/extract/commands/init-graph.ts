@@ -1,5 +1,6 @@
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import type { LoadEventCatalogSource } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
+import type { LoadAsyncApiDocument } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-asyncapi-document'
 import { GraphCorruptedError } from '../data-access/riviere-project/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-project/graph-not-found-error'
 import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
@@ -12,6 +13,7 @@ export class InitGraph {
   constructor(
     private readonly repository: RiviereProjectRepository,
     private readonly loadEventCatalogSource: LoadEventCatalogSource,
+    private readonly loadAsyncApiDocument: LoadAsyncApiDocument,
   ) {}
 
   execute(input: InitGraphInput): InitGraphResult {
@@ -77,6 +79,7 @@ export class InitGraph {
           { graphDefinition: builderOptions },
           {
             loadEventCatalogSource: this.loadEventCatalogSource,
+            loadAsyncApiDocument: this.loadAsyncApiDocument,
             repositoryName: primarySource,
           },
         ).project

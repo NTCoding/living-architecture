@@ -3,6 +3,7 @@ import { ValidatedConfiguration } from '@living-architecture/riviere-extract-con
 import { Project } from 'ts-morph'
 import { assert } from 'vitest'
 import { ExtractionConfiguration } from '../extraction-configuration'
+import type { AsyncApiDocument, LoadAsyncApiDocument } from '../ports/load-asyncapi-document'
 import type {
   EventCatalogSource,
   RiviereProjectCollaborators,
@@ -11,9 +12,20 @@ import { type MetadataValue, EnrichedComponent } from '../value-extraction/enric
 
 export function collaborators(
   source: EventCatalogSource = { domains: [], services: [], events: [] },
+  asyncApiDocument: AsyncApiDocument = { messages: [], operations: [] },
 ): RiviereProjectCollaborators {
-  return { loadEventCatalogSource: () => Promise.resolve(source), repositoryName: 'shop' }
+  return {
+    loadEventCatalogSource: () => Promise.resolve(source),
+    loadAsyncApiDocument: () => Promise.resolve(asyncApiDocument),
+    repositoryName: 'shop',
+  }
 }
+
+export function asyncApiCollaborators(document: AsyncApiDocument): RiviereProjectCollaborators {
+  return collaborators({ domains: [], services: [], events: [] }, document)
+}
+
+export type { LoadAsyncApiDocument }
 
 export function configuration(customType?: string): ExtractionConfiguration {
   const parsed = ValidatedConfiguration.parse({

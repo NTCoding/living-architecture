@@ -21,6 +21,7 @@ import { type EnrichedComponent, EnrichmentResult } from './value-extraction/enr
 import type { ExtractionConfiguration } from './extraction-configuration'
 import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
 import { executeEventCatalogImportStage } from './event-catalog/execute-event-catalog-import-stage'
+import { executeAsyncApiImportStage } from './asyncapi/execute-asyncapi-import-stage'
 import type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
 import { RiviereModule } from './riviere-module'
 import {
@@ -173,8 +174,9 @@ export class RiviereProject {
         return this.executeSchemaValidationStage()
       case 'eventcatalog-import':
         return executeEventCatalogImportStage(this.graphBuilder(), stage.config, this.collaborators)
-      case 'code-extraction':
       case 'asyncapi-import':
+        return executeAsyncApiImportStage(this.graphBuilder(), stage.config, this.collaborators)
+      case 'code-extraction':
       case 'ai-extract':
       case 'ai-enrich':
         return {

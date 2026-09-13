@@ -414,6 +414,7 @@ describe('executeEventCatalogImportStage', () => {
   it('fails with the EventCatalog error code when the source loader rejects', async () => {
     const outcome = await executeEventCatalogImportStage(builder(), importConfig(), {
       loadEventCatalogSource: () => Promise.reject(new SourceLoadFailure('boom')),
+      loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
       repositoryName: 'shop',
     })
 

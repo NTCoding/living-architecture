@@ -52,14 +52,16 @@ describe('RiviereProjectRepository EventCatalog workflow', () => {
   it('runs an EventCatalog import stage through the supplied port', async () => {
     const directory = workspace()
     writeWorkflow(directory)
-    const repository = new RiviereProjectRepository(() =>
-      Promise.resolve({
-        domains: [],
-        services: [
-          { id: 'OrdersService', name: 'Orders', produces: ['OrderCreated'], consumes: [] },
-        ],
-        events: [{ id: 'OrderCreated', name: 'Order Created' }],
-      }),
+    const repository = new RiviereProjectRepository(
+      () =>
+        Promise.resolve({
+          domains: [],
+          services: [
+            { id: 'OrdersService', name: 'Orders', produces: ['OrderCreated'], consumes: [] },
+          ],
+          events: [{ id: 'OrderCreated', name: 'Order Created' }],
+        }),
+      () => Promise.resolve({ messages: [], operations: [] }),
     )
 
     const project = repository.load({

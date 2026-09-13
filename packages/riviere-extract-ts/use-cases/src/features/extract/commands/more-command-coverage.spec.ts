@@ -7,13 +7,13 @@ import { RiviereBuilder } from '@living-architecture/riviere-builder-published-l
 import {
   type TestContext,
   collaborators,
+  createInitGraph,
   createTestContext,
   setupCommandTest,
 } from '../../../__fixtures__/command-test-fixtures'
 import { DefineCustomType } from './define-custom-type'
 import { EnrichComponent } from './enrich-component'
 import { FinalizeGraph } from './finalize-graph'
-import { InitGraph } from './init-graph'
 import { LinkComponents } from './link-components'
 import { LinkExternal } from './link-external'
 import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
@@ -319,7 +319,7 @@ describe('additional builder command coverage', () => {
     ).toThrow('unexpected')
 
     expect(() =>
-      new InitGraph(repo, collaborators().loadEventCatalogSource).execute({
+      createInitGraph(repo).execute({
         domains: [
           {
             description: 'Orders',

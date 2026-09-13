@@ -117,10 +117,19 @@ export {
   type AiExtractConfig,
   type AiExtractionGap,
   type AsyncApiImportConfig,
+  type AsyncApiImportFileConfig,
   type CodeExtractionConfig,
   type EventCatalogImportConfig,
   type EventCatalogImportFileConfig,
 } from './published-language/workflow-stage-config'
+export {
+  ASYNCAPI_OPERATION_TYPES,
+  parseAsyncApiMappings,
+  type AsyncApiMappings,
+  type AsyncApiMessageMapping,
+  type AsyncApiOperationMapping,
+  type AsyncApiOperationType,
+} from './published-language/asyncapi-mappings'
 export {
   parseEventCatalogMappings,
   type EventCatalogEventMapping,

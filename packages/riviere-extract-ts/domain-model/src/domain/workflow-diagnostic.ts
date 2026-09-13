@@ -14,7 +14,7 @@ type WorkflowDiagnosticValue =
     }>
   | Readonly<{
       kind: 'unmapped-record'
-      recordKind: 'service' | 'event'
+      recordKind: 'service' | 'event' | 'message' | 'operation'
       recordId: string
     }>
 
@@ -43,7 +43,10 @@ export class WorkflowDiagnostic {
 
   private constructor(readonly value: WorkflowDiagnosticValue) {}
 
-  static fromUnmappedRecord(recordKind: 'service' | 'event', recordId: string): WorkflowDiagnostic {
+  static fromUnmappedRecord(
+    recordKind: 'service' | 'event' | 'message' | 'operation',
+    recordId: string,
+  ): WorkflowDiagnostic {
     return new WorkflowDiagnostic({ kind: 'unmapped-record', recordKind, recordId })
   }
 }

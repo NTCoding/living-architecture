@@ -4,6 +4,7 @@ import {
   type Component,
 } from '@living-architecture/riviere-schema-published-language/schema'
 import type { ValidatedConfiguration } from './validated-configuration'
+import type { AsyncApiMappings } from './asyncapi-mappings'
 import type { EventCatalogMappings } from './eventcatalog-mappings'
 
 /** @riviere-role published-language-data-structure */
@@ -30,6 +31,14 @@ export interface EventCatalogImportFileConfig {
 
 /** @riviere-role published-language-schema */
 export interface AsyncApiImportConfig {
+  readonly source: string
+  readonly sourceFilePath: string
+  readonly mappings: AsyncApiMappings
+  readonly allowUnmapped: boolean
+}
+
+/** @riviere-role published-language-schema */
+export interface AsyncApiImportFileConfig {
   readonly source: string
   readonly mappings: string
   readonly allowUnmapped: boolean
@@ -199,7 +208,9 @@ export function parseEventCatalogImportConfig(
 /** @riviere-role published-language-parser */
 export function parseAsyncApiImportConfig(
   value: unknown,
-): { success: true; config: AsyncApiImportConfig } | { success: false; issues: readonly string[] } {
+):
+  | { success: true; config: AsyncApiImportFileConfig }
+  | { success: false; issues: readonly string[] } {
   return parseImportConfig(value)
 }
 

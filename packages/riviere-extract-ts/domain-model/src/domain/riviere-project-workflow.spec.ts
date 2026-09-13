@@ -88,6 +88,56 @@ describe('RiviereProject Workflow rebuild', () => {
     ])
   })
 
+  it('runs an asyncapi-import stage through the project', async () => {
+    const started = RiviereProject.start(
+      {
+        graphDefinition: {
+          name: 'Shop',
+          description: 'Shop graph',
+          sources: [{ repository: 'shop' }],
+          domains: { 'orders-domain': { description: 'Orders', systemType: 'domain' } },
+        },
+        workflowInput: {
+          name: 'build-graph',
+          outputPath: '/project/.riviere/graph.json',
+          runLogDirectory: '/project/.riviere/logs',
+          stages: [
+            WorkflowStage.fromAsyncApiImport('import-asyncapi', {
+              source: '/specs/asyncapi.yaml',
+              sourceFilePath: 'specs/asyncapi.yaml',
+              mappings: {
+                messages: {
+                  OrderPlacedMessage: {
+                    domain: 'orders-domain',
+                    module: 'infrastructure',
+                    name: 'OrderPlaced',
+                  },
+                },
+                operations: {},
+              },
+              allowUnmapped: false,
+            }),
+          ],
+        },
+      },
+      collaborators(
+        { domains: [], services: [], events: [] },
+        {
+          messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
+          operations: [],
+        },
+      ),
+    )
+    assert(started.success)
+
+    const result = await started.project.rebuildGraph()
+
+    assert(result.success)
+    expect(result.graph.components.map((component) => component.id)).toStrictEqual([
+      'orders-domain:infrastructure:event:orderplaced',
+    ])
+  })
+
   it('retains Workflow graph metadata when rebuilding', async () => {
     const subject = project([WorkflowStage.fromSchemaValidation('validate')])
     subject.amendGraph((builder) => {
