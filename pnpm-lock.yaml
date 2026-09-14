@@ -148,6 +148,9 @@ importers:
 
   apps/cli:
     dependencies:
+      '@asyncapi/parser':
+        specifier: 3.6.3
+        version: 3.6.3
       '@living-architecture/riviere-builder-use-cases':
         specifier: workspace:*
         version: link:../../packages/riviere-builder/use-cases
@@ -12230,7 +12233,7 @@ snapshots:
 
   '@stoplight/json-ref-readers@1.2.2':
     dependencies:
-      node-fetch: 2.6.7
+      node-fetch: 2.7.0
       tslib: 1.14.1
     transitivePeerDependencies:
       - encoding
