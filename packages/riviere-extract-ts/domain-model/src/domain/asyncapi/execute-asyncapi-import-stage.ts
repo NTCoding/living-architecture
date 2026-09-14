@@ -91,7 +91,9 @@ export async function executeAsyncApiImportStage(
       config,
       collaborators.repositoryName,
     )
-    applyLinks(builder, outcome.links)
+    for (const link of outcome.links) {
+      builder.upsertLink({ from: link.from, to: link.to, type: 'async' })
+    }
     return { success: true, diagnostics: outcome.diagnostics, warnings }
   } catch (error) {
     return {
@@ -294,20 +296,6 @@ function upsertComponent(
     case 'EventHandler':
       return builder.upsertEventHandler({ ...common, subscribedEvents: [] })
   }
-}
-
-function applyLinks(builder: RiviereBuilder, links: readonly AsyncApiCanonicalLink[]): void {
-  const existing = new Set(builder.links().map((link) => linkKey(link.source, link.target)))
-  for (const link of links) {
-    const key = linkKey(link.from, link.to)
-    if (existing.has(key)) continue
-    builder.link({ from: link.from, to: link.to, type: 'async' })
-    existing.add(key)
-  }
-}
-
-function linkKey(source: string, target: string): string {
-  return `${source}->${target}`
 }
 
 export type { AsyncApiCanonicalComponent, AsyncApiCanonicalLink }
