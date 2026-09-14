@@ -23,7 +23,7 @@ import {
 import { BuilderOptions } from '@living-architecture/riviere-builder-published-language'
 import * as fileReader from '../../../../infra/external-clients/filesystem/file-reader'
 import { fileExists } from '../../../../infra/external-clients/filesystem/file-existence'
-import { writeSerializedGraph } from '../../../../infra/external-clients/filesystem/serialized-graph-writer'
+import { writeTextFile } from '../../../../infra/external-clients/filesystem/text-file-writer'
 import { readConfigYaml } from '../../../../infra/external-clients/config/config-file-reader'
 import { resolveAiConfig } from '../../../../infra/external-clients/config/config-path-resolution'
 import { resolveFileOrPackagePath } from '../../../../infra/external-clients/node-modules/node-module-file-resolver'
@@ -56,7 +56,7 @@ export class RiviereProjectRepository {
   ) {}
 
   save(graphFileLocation: string, project: RiviereProject): void {
-    writeSerializedGraph(graphFileLocation, project.serialize())
+    writeTextFile(graphFileLocation, project.serialize())
   }
 
   load(input: RiviereProjectLoadInput): RiviereProject {
