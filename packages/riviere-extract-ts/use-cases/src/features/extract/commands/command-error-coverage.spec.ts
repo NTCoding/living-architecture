@@ -5,6 +5,7 @@ import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-m
 import {
   type TestContext,
   collaborators,
+  createInitGraph,
   createTestContext,
   setupCommandTest,
 } from '../../../__fixtures__/command-test-fixtures'
@@ -13,7 +14,6 @@ import { AddComponent } from './add-component'
 import { DefineCustomType } from './define-custom-type'
 import { DefineRelationshipType } from './define-relationship-type'
 import { FinalizeGraph } from './finalize-graph'
-import { InitGraph } from './init-graph'
 import { LinkComponents } from './link-components'
 import { LinkExternal } from './link-external'
 import { LinkHttp } from './link-http'
@@ -66,10 +66,7 @@ describe('command error path coverage', () => {
     const { mkdir, writeFile } = await import('node:fs/promises')
     await mkdir(join(ctx.testDir, '.riviere'), { recursive: true })
     await writeFile(graphLocation(), '{invalid', 'utf-8')
-    const result = new InitGraph(
-      createRiviereProjectRepository(),
-      collaborators().loadEventCatalogSource,
-    ).execute({
+    const result = createInitGraph(createRiviereProjectRepository()).execute({
       domains: [{ description: 'Orders', name: 'orders', systemType: 'domain' }],
       graphFileLocation: graphLocation(),
       name: 'combined',

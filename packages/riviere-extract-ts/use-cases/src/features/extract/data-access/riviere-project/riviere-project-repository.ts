@@ -1,4 +1,3 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, relative, resolve } from 'node:path'
 import {
   ExtendingDraftModule,
@@ -7,11 +6,11 @@ import {
   parseAiEnrichConfig,
   parseAiExtractConfig,
   parseAsyncApiImportConfig,
+  parseAsyncApiMappings,
   parseEventCatalogImportConfig,
   parseEventCatalogMappings,
   parseWorkflowDefinition,
   ValidatedConfiguration,
-  type CodeExtractionConfig,
   type ConfiguredWorkflowStageDefinition,
   type DraftConfiguration,
   type DraftModule,
@@ -22,16 +21,11 @@ import {
   type WorkflowStageDefinition,
 } from '@living-architecture/riviere-extract-config-published-language'
 import { BuilderOptions } from '@living-architecture/riviere-builder-published-language'
-import {
-  FileReadError,
-  readJsonFile,
-} from '../../../../infra/external-clients/filesystem/file-reader'
+import * as fileReader from '../../../../infra/external-clients/filesystem/file-reader'
 import { fileExists } from '../../../../infra/external-clients/filesystem/file-existence'
+import { writeTextFile } from '../../../../infra/external-clients/filesystem/text-file-writer'
 import { readConfigYaml } from '../../../../infra/external-clients/config/config-file-reader'
-import {
-  resolveAiConfig,
-  resolveImportConfig,
-} from '../../../../infra/external-clients/config/config-path-resolution'
+import { resolveAiConfig } from '../../../../infra/external-clients/config/config-path-resolution'
 import { resolveFileOrPackagePath } from '../../../../infra/external-clients/node-modules/node-module-file-resolver'
 import { globSourceFiles } from '../../../../infra/external-clients/glob/glob-source-files'
 import { GitError } from '../../../../infra/external-clients/git/git-errors'
@@ -51,23 +45,18 @@ import { parseRiviereGraph } from '@living-architecture/riviere-schema-published
 import { GraphCorruptedError } from './graph-corrupted-error'
 import { GraphNotFoundError } from './graph-not-found-error'
 
-type LoadParameters = Readonly<{
-  projectRoot: string
-  configPath: string
-  useTsConfig: boolean
-  draftComponentsPath?: string
-}>
+type LoadParameters = Extract<RiviereProjectLoadInput, { kind: 'extraction' }>
 type ParsedConfigState = Readonly<{ configDir: string; configuration: ValidatedConfiguration }>
 
 /** @riviere-role aggregate-repository */
 export class RiviereProjectRepository {
   constructor(
     private readonly loadEventCatalogSource: RiviereProjectCollaborators['loadEventCatalogSource'],
+    private readonly loadAsyncApiDocument: RiviereProjectCollaborators['loadAsyncApiDocument'],
   ) {}
 
   save(graphFileLocation: string, project: RiviereProject): void {
-    mkdirSync(dirname(graphFileLocation), { recursive: true })
-    writeFileSync(graphFileLocation, project.serialize(), 'utf-8')
+    writeTextFile(graphFileLocation, project.serialize())
   }
 
   load(input: RiviereProjectLoadInput): RiviereProject {
@@ -89,6 +78,7 @@ export class RiviereProjectRepository {
     const graphPath = resolve(workflowDirectory, definition.output)
     const collaborators = {
       loadEventCatalogSource: this.loadEventCatalogSource,
+      loadAsyncApiDocument: this.loadAsyncApiDocument,
       repositoryName: this.repositoryName(workflowDirectory),
     }
     const workflowInput = {
@@ -135,9 +125,9 @@ export class RiviereProjectRepository {
 
   private readExistingGraph(graphPath: string): unknown {
     try {
-      return readJsonFile(graphPath, 'Rivière graph')
+      return fileReader.readJsonFile(graphPath, 'Rivière graph')
     } catch (error) {
-      if (error instanceof FileReadError)
+      if (error instanceof fileReader.FileReadError)
         throw new ExtractionConfigError(
           'VALIDATION_ERROR',
           `Invalid existing graph: ${error.message}`,
@@ -180,7 +170,7 @@ export class RiviereProjectRepository {
         return {
           kind: 'code-extraction',
           name: stage.name,
-          config: codeExtractionConfig(this.loadParsedConfigState(configPath)),
+          config: this.loadParsedConfigState(configPath).configuration,
         }
       case 'eventcatalog-import': {
         const config = parseEventCatalogImportConfig(file)
@@ -210,10 +200,24 @@ export class RiviereProjectRepository {
         const config = parseAsyncApiImportConfig(file)
         if (!config.success)
           throw new ExtractionConfigError('VALIDATION_ERROR', config.issues.join('\n'))
+        const mappings = parseAsyncApiMappings(
+          this.readConfigYaml(resolve(configDirectory, config.config.mappings)),
+        )
+        if (!mappings.success)
+          throw new ExtractionConfigError(
+            'VALIDATION_ERROR',
+            `Invalid AsyncAPI mappings: ${mappings.issues.join('\n')}`,
+          )
+        const source = resolve(configDirectory, config.config.source)
         return {
           kind: 'asyncapi-import',
           name: stage.name,
-          config: resolveImportConfig(config.config, configDirectory),
+          config: {
+            source,
+            sourceFilePath: relative(workflowDirectory, source),
+            mappings: mappings.mappings,
+            allowUnmapped: config.config.allowUnmapped,
+          },
         }
       }
       case 'ai-extract': {
@@ -249,6 +253,7 @@ export class RiviereProjectRepository {
       { configuration, draftComponents },
       {
         loadEventCatalogSource: this.loadEventCatalogSource,
+        loadAsyncApiDocument: this.loadAsyncApiDocument,
         repositoryName: configuration.repositoryName,
       },
     )
@@ -259,15 +264,16 @@ export class RiviereProjectRepository {
   private loadGraph(graphFileLocation: string): RiviereProject {
     if (!fileExists(graphFileLocation)) throw new GraphNotFoundError(graphFileLocation)
     try {
-      const result = parseRiviereGraph(readJsonFile(graphFileLocation, 'Rivière graph'))
+      const result = parseRiviereGraph(fileReader.readJsonFile(graphFileLocation, 'Rivière graph'))
       if (!result.success)
         throw new GraphCorruptedError(graphFileLocation, { cause: result.issues })
       return RiviereProject.rehydrate(result.graph, {
         loadEventCatalogSource: this.loadEventCatalogSource,
+        loadAsyncApiDocument: this.loadAsyncApiDocument,
         repositoryName: graphFileLocation,
       })
     } catch (error) {
-      if (!(error instanceof FileReadError)) throw error
+      if (!(error instanceof fileReader.FileReadError)) throw error
       throw new GraphCorruptedError(graphFileLocation, { cause: error })
     }
   }
@@ -308,11 +314,12 @@ export class RiviereProjectRepository {
 
   private loadDraftComponents(path: string): readonly DraftComponent[] {
     try {
-      const parsed = DraftComponent.parseMany(readJsonFile(path, 'Draft components'))
+      const parsed = DraftComponent.parseMany(fileReader.readJsonFile(path, 'Draft components'))
       if (!parsed.success) throw new DraftComponentsLoadError(`${parsed.error}: ${path}`)
       return parsed.draftComponents
     } catch (error) {
-      if (error instanceof FileReadError) throw new DraftComponentsLoadError(error.message)
+      if (error instanceof fileReader.FileReadError)
+        throw new DraftComponentsLoadError(error.message)
       throw error
     }
   }
@@ -411,13 +418,5 @@ export class RiviereProjectRepository {
           `\nConfig directory: ${state.configDir}`,
       )
     return sourceFilesByModule
-  }
-}
-
-function codeExtractionConfig(state: ParsedConfigState): CodeExtractionConfig {
-  return {
-    modules: state.configuration.modules,
-    connections: state.configuration.connections,
-    schema: state.configuration.schema,
   }
 }

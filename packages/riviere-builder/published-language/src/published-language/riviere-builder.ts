@@ -38,7 +38,11 @@ import {
   type DomainInput,
   type RelationshipTypeInput,
 } from './riviere-graph-definition-input'
-import { type LinkExternalResult, type UpsertResult } from './riviere-builder-result'
+import {
+  type LinkExternalResult,
+  type UpsertLinkResult,
+  type UpsertResult,
+} from './riviere-builder-result'
 
 type Publishable<T> = { published(): T }
 
@@ -352,6 +356,25 @@ export class RiviereBuilder {
     this.linksByStoredIdentity.set(link.storedIdentity(), link)
     this.linksByOccurrenceIdentity.set(link.occurrenceIdentity(), link)
     return link.published()
+  }
+
+  /**
+   * Adds a link between two components, returning the existing link when one is already present.
+   * @param input - Link values.
+   * @returns The added or existing link.
+   */
+  upsertLink(input: LinkInput): UpsertLinkResult {
+    this.component(input.from)
+    if (input.relationshipType !== undefined)
+      this.metadata.ensureRelationshipTypeExists(input.relationshipType)
+    const link = Link.parseNew(input)
+    const existing =
+      this.linksByStoredIdentity.get(link.storedIdentity()) ??
+      this.linksByOccurrenceIdentity.get(link.occurrenceIdentity())
+    if (existing !== undefined) return { link: existing.published(), created: false }
+    this.linksByStoredIdentity.set(link.storedIdentity(), link)
+    this.linksByOccurrenceIdentity.set(link.occurrenceIdentity(), link)
+    return { link: link.published(), created: true }
   }
 
   /**

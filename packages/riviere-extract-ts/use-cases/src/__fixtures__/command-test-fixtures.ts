@@ -3,12 +3,20 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, vi } from 'vitest'
 import type { RiviereProjectCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
+import type { RiviereProjectRepository } from '../features/extract/data-access/riviere-project/riviere-project-repository'
+import { InitGraph } from '../features/extract/commands/init-graph'
 
 export function collaborators(): RiviereProjectCollaborators {
   return {
     loadEventCatalogSource: () => Promise.resolve({ domains: [], services: [], events: [] }),
+    loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
     repositoryName: 'test',
   }
+}
+
+export function createInitGraph(repository: RiviereProjectRepository): InitGraph {
+  const loaders = collaborators()
+  return new InitGraph(repository, loaders.loadEventCatalogSource, loaders.loadAsyncApiDocument)
 }
 
 export interface TestContext {

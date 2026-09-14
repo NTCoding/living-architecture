@@ -37,6 +37,9 @@
       ],
       "project": [
         "src/**/*.ts"
+      ],
+      "ignoreDependencies": [
+        "@asyncapi/parser"
       ]
     },
     "packages/riviere-role-enforcement/domain-model": {
