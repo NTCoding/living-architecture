@@ -1,5 +1,5 @@
 import { assert, describe, expect, it } from 'vitest'
-import { collaborators } from '../__fixtures__/workflow-fixtures'
+import { asyncApiCollaborators } from '../__fixtures__/workflow-fixtures'
 import type { AsyncApiDocument } from '../ports/load-asyncapi-document'
 import {
   asyncApiBuilder,
@@ -15,6 +15,14 @@ const document: AsyncApiDocument = {
   ],
 }
 
+function expectAsyncApiFailure(outcome: unknown, reason: string) {
+  expect(outcome).toStrictEqual({
+    success: false,
+    errorCode: 'ASYNCAPI_IMPORT_FAILED',
+    reason,
+  })
+}
+
 async function runStage(
   overrides: Parameters<typeof asyncApiImportConfig>[0] = {},
   doc: AsyncApiDocument = document,
@@ -23,7 +31,7 @@ async function runStage(
   const outcome = await executeAsyncApiImportStage(
     graphBuilder,
     asyncApiImportConfig(overrides),
-    collaborators({ domains: [], services: [], events: [] }, doc),
+    asyncApiCollaborators(doc),
   )
   return { graphBuilder, outcome }
 }
@@ -137,20 +145,17 @@ describe('executeAsyncApiImportStage', () => {
           },
         },
       }),
-      collaborators(
-        { domains: [], services: [], events: [] },
-        {
-          messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
-          operations: [
-            {
-              id: 'handleOrderPlaced',
-              action: 'receive',
-              messageIds: ['OrderPlacedMessage'],
-              hasReply: false,
-            },
-          ],
-        },
-      ),
+      asyncApiCollaborators({
+        messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
+        operations: [
+          {
+            id: 'handleOrderPlaced',
+            action: 'receive',
+            messageIds: ['OrderPlacedMessage'],
+            hasReply: false,
+          },
+        ],
+      }),
     )
 
     expect(outcome.success).toBe(true)
@@ -173,28 +178,23 @@ describe('executeAsyncApiImportStage', () => {
     const outcome = await executeAsyncApiImportStage(
       asyncApiBuilder(),
       asyncApiImportConfig({ mappings: orderPlacedMappings() }),
-      collaborators(
-        { domains: [], services: [], events: [] },
-        {
-          messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
-          operations: [
-            {
-              id: 'processOrder',
-              action: 'send',
-              messageIds: ['OrderPlacedMessage'],
-              hasReply: true,
-            },
-          ],
-        },
-      ),
+      asyncApiCollaborators({
+        messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
+        operations: [
+          {
+            id: 'processOrder',
+            action: 'send',
+            messageIds: ['OrderPlacedMessage'],
+            hasReply: true,
+          },
+        ],
+      }),
     )
 
-    expect(outcome).toStrictEqual({
-      success: false,
-      errorCode: 'ASYNCAPI_IMPORT_FAILED',
-      reason:
-        "asyncapi request/reply pattern not supported in Phase 13 (operation: 'processOrder')",
-    })
+    expectAsyncApiFailure(
+      outcome,
+      "asyncapi request/reply pattern not supported in Phase 13 (operation: 'processOrder')",
+    )
   })
 
   it('adds no components when an operation declares a reply', async () => {
@@ -203,20 +203,17 @@ describe('executeAsyncApiImportStage', () => {
     await executeAsyncApiImportStage(
       graphBuilder,
       asyncApiImportConfig({ mappings: orderPlacedMappings() }),
-      collaborators(
-        { domains: [], services: [], events: [] },
-        {
-          messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
-          operations: [
-            {
-              id: 'processOrder',
-              action: 'send',
-              messageIds: ['OrderPlacedMessage'],
-              hasReply: true,
-            },
-          ],
-        },
-      ),
+      asyncApiCollaborators({
+        messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
+        operations: [
+          {
+            id: 'processOrder',
+            action: 'send',
+            messageIds: ['OrderPlacedMessage'],
+            hasReply: true,
+          },
+        ],
+      }),
     )
 
     expect(graphBuilder.components()).toStrictEqual([])
@@ -226,53 +223,36 @@ describe('executeAsyncApiImportStage', () => {
     const outcome = await executeAsyncApiImportStage(
       asyncApiBuilder(),
       asyncApiImportConfig(),
-      collaborators(
-        { domains: [], services: [], events: [] },
-        {
-          messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
-          operations: [],
-        },
-      ),
+      asyncApiCollaborators({
+        messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
+        operations: [],
+      }),
     )
 
-    expect(outcome).toStrictEqual({
-      success: false,
-      errorCode: 'ASYNCAPI_IMPORT_FAILED',
-      reason: "Unmapped AsyncAPI records: message 'OrderPlacedMessage'",
-    })
+    expectAsyncApiFailure(outcome, "Unmapped AsyncAPI records: message 'OrderPlacedMessage'")
   })
 
   it('fails in strict mode when an operation has no mapping', async () => {
     const outcome = await executeAsyncApiImportStage(
       asyncApiBuilder(),
       asyncApiImportConfig(),
-      collaborators(
-        { domains: [], services: [], events: [] },
-        {
-          messages: [],
-          operations: [{ id: 'processOrder', action: 'send', messageIds: [], hasReply: false }],
-        },
-      ),
+      asyncApiCollaborators({
+        messages: [],
+        operations: [{ id: 'processOrder', action: 'send', messageIds: [], hasReply: false }],
+      }),
     )
 
-    expect(outcome).toStrictEqual({
-      success: false,
-      errorCode: 'ASYNCAPI_IMPORT_FAILED',
-      reason: "Unmapped AsyncAPI records: operation 'processOrder'",
-    })
+    expectAsyncApiFailure(outcome, "Unmapped AsyncAPI records: operation 'processOrder'")
   })
 
   it('skips an unmapped message and records an unmapped-record diagnostic in lenient mode', async () => {
     const outcome = await executeAsyncApiImportStage(
       asyncApiBuilder(),
       asyncApiImportConfig({ allowUnmapped: true }),
-      collaborators(
-        { domains: [], services: [], events: [] },
-        {
-          messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
-          operations: [],
-        },
-      ),
+      asyncApiCollaborators({
+        messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
+        operations: [],
+      }),
     )
 
     assert(outcome.success)
@@ -285,13 +265,10 @@ describe('executeAsyncApiImportStage', () => {
     const outcome = await executeAsyncApiImportStage(
       asyncApiBuilder(),
       asyncApiImportConfig({ allowUnmapped: true }),
-      collaborators(
-        { domains: [], services: [], events: [] },
-        {
-          messages: [],
-          operations: [{ id: 'processOrder', action: 'send', messageIds: [], hasReply: false }],
-        },
-      ),
+      asyncApiCollaborators({
+        messages: [],
+        operations: [{ id: 'processOrder', action: 'send', messageIds: [], hasReply: false }],
+      }),
     )
 
     assert(outcome.success)
@@ -311,14 +288,10 @@ describe('executeAsyncApiImportStage', () => {
           operations: {},
         },
       }),
-      collaborators({ domains: [], services: [], events: [] }, { messages: [], operations: [] }),
+      asyncApiCollaborators({ messages: [], operations: [] }),
     )
 
-    expect(outcome).toStrictEqual({
-      success: false,
-      errorCode: 'ASYNCAPI_IMPORT_FAILED',
-      reason: "AsyncAPI mappings reference unknown message 'GhostMessage'",
-    })
+    expectAsyncApiFailure(outcome, "AsyncAPI mappings reference unknown message 'GhostMessage'")
   })
 
   it('fails when a mapping references an unknown operation', async () => {
@@ -337,14 +310,10 @@ describe('executeAsyncApiImportStage', () => {
           },
         },
       }),
-      collaborators({ domains: [], services: [], events: [] }, { messages: [], operations: [] }),
+      asyncApiCollaborators({ messages: [], operations: [] }),
     )
 
-    expect(outcome).toStrictEqual({
-      success: false,
-      errorCode: 'ASYNCAPI_IMPORT_FAILED',
-      reason: "AsyncAPI mappings reference unknown operation 'ghostOperation'",
-    })
+    expectAsyncApiFailure(outcome, "AsyncAPI mappings reference unknown operation 'ghostOperation'")
   })
 
   it('adds no components to the graph when the stage fails', async () => {
@@ -353,13 +322,10 @@ describe('executeAsyncApiImportStage', () => {
     await executeAsyncApiImportStage(
       graphBuilder,
       asyncApiImportConfig(),
-      collaborators(
-        { domains: [], services: [], events: [] },
-        {
-          messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
-          operations: [],
-        },
-      ),
+      asyncApiCollaborators({
+        messages: [{ id: 'OrderPlacedMessage', name: 'OrderPlacedMessage' }],
+        operations: [],
+      }),
     )
 
     expect(graphBuilder.components()).toStrictEqual([])
@@ -384,7 +350,7 @@ describe('executeAsyncApiImportStage', () => {
           },
         },
       }),
-      collaborators({ domains: [], services: [], events: [] }, document),
+      asyncApiCollaborators(document),
     )
 
     expect(outcome.success).toBe(true)
@@ -394,7 +360,7 @@ describe('executeAsyncApiImportStage', () => {
   it('skips a duplicate async link already present in the graph', async () => {
     const graphBuilder = asyncApiBuilder()
     const config = asyncApiImportConfig({ mappings: orderPlacedMappings() })
-    const dependency = collaborators({ domains: [], services: [], events: [] }, document)
+    const dependency = asyncApiCollaborators(document)
 
     await executeAsyncApiImportStage(graphBuilder, config, dependency)
     const rerun = await executeAsyncApiImportStage(graphBuilder, config, dependency)

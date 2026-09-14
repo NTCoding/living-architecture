@@ -19,6 +19,10 @@ vi.mock('@asyncapi/parser', () => ({
 
 vi.mock('node:fs', () => ({ readFileSync: fileSystem.readFileSync }))
 
+async function expectUnreadable(promise: Promise<unknown>) {
+  await expect(promise).rejects.toThrow(AsyncApiUnreadableError)
+}
+
 describe('readAsyncApiDocument', () => {
   it('maps parser messages and operations into client documents', async () => {
     parser.parse.mockResolvedValue({
@@ -91,17 +95,13 @@ describe('readAsyncApiDocument', () => {
       diagnostics: [{ severity: 0, message: 'required file not found' }],
     })
 
-    await expect(readAsyncApiDocument('/specs/asyncapi.yaml')).rejects.toThrow(
-      AsyncApiUnreadableError,
-    )
+    await expectUnreadable(readAsyncApiDocument('/specs/asyncapi.yaml'))
   })
 
   it('fails when the parser produces no document', async () => {
     parser.parse.mockResolvedValue({ document: undefined, diagnostics: [] })
 
-    await expect(readAsyncApiDocument('/specs/asyncapi.yaml')).rejects.toThrow(
-      AsyncApiUnreadableError,
-    )
+    await expectUnreadable(readAsyncApiDocument('/specs/asyncapi.yaml'))
   })
 
   it('fails when the source file cannot be read', async () => {
@@ -109,9 +109,7 @@ describe('readAsyncApiDocument', () => {
       throw new SourceReadFailure()
     })
 
-    await expect(readAsyncApiDocument('/missing/asyncapi.yaml')).rejects.toThrow(
-      AsyncApiUnreadableError,
-    )
+    await expectUnreadable(readAsyncApiDocument('/missing/asyncapi.yaml'))
   })
 
   it('fails when an operation has neither an id nor an operationId', async () => {
@@ -120,9 +118,7 @@ describe('readAsyncApiDocument', () => {
       diagnostics: [],
     })
 
-    await expect(readAsyncApiDocument('/specs/asyncapi.yaml')).rejects.toThrow(
-      AsyncApiUnreadableError,
-    )
+    await expectUnreadable(readAsyncApiDocument('/specs/asyncapi.yaml'))
   })
 
   it.each(['publish', 'subscribe'] as const)(
@@ -130,9 +126,7 @@ describe('readAsyncApiDocument', () => {
     async (action) => {
       parser.parse.mockResolvedValue({ document: documentStub({ action }), diagnostics: [] })
 
-      await expect(readAsyncApiDocument('/specs/asyncapi.yaml')).rejects.toThrow(
-        AsyncApiUnreadableError,
-      )
+      await expectUnreadable(readAsyncApiDocument('/specs/asyncapi.yaml'))
     },
   )
 })
