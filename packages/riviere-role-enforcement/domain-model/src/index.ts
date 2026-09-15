@@ -1,4 +1,4 @@
-export { PackageFilterError, filterConfigByPackage } from './domain/filter-config-by-package'
+export { PackageConfigFilter, PackageFilterError } from './domain/package-config-filter'
 export { PackageManifestRequirements } from './domain/package-manifest-requirements'
 export {
   BuiltRole,

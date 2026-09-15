@@ -8,18 +8,7 @@ import { DraftComponent } from './component-extraction/draft-component'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
 import { InvalidModuleSourcesError, MissingModuleSourceError } from './extraction-errors'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
-import { detectEventPublisherConnections } from './connection-detection/async-detection/detect-event-publisher-connections'
-import { detectSubscribeConnections } from './connection-detection/async-detection/detect-subscribe-connections'
-import { detectConnectionsFromCalls } from './connection-detection/call-graph/detect-connections-from-calls'
-import {
-  resolveHttpLinks,
-  stripResolvedCustomTypes,
-} from './connection-detection/resolve-http-links'
-import { detectCodeExtractionConnections } from './code-extraction/detect-code-extraction-connections'
-import { extractCodeExtraction } from './code-extraction/extract-code-extraction'
 import { ExtractionConfiguration } from './extraction-configuration'
-import { executeEventCatalogImportStage } from './event-catalog/execute-event-catalog-import-stage'
-import { executeAsyncApiImportStage } from './asyncapi/execute-asyncapi-import-stage'
 import type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
 import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
 import { CodeExtractionModules } from './ports/code-extraction-modules'
@@ -29,7 +18,6 @@ import {
   GraphStateUnavailableError,
 } from './riviere-project-errors'
 import { Workflow, WorkflowRunMode } from './workflow'
-import { applyCodeExtractionToBuilder } from './code-extraction/apply-code-extraction-to-builder'
 import {
   ExtractionProjectStartInput,
   GraphOnlyProjectStartInput,
@@ -38,11 +26,15 @@ import {
 } from './riviere-project-start-inputs'
 import type { WorkflowStageValue } from './workflow-stage'
 
-export type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
+export type {
+  RiviereProjectCollaborators,
+  RiviereProjectRepositoryCollaborators,
+} from './ports/load-event-catalog-source'
 type RiviereProjectStartInput =
   | ExtractionProjectStartInput
   | GraphOnlyProjectStartInput
   | GraphWithWorkflowStartInput
+
 /** @riviere-role aggregate */
 export class RiviereProject {
   private constructor(
@@ -81,7 +73,11 @@ export class RiviereProject {
     }
     const sourceErrors = RiviereModule.configurationSourceErrors(input.configuration)
     if (sourceErrors.length > 0) throw new InvalidModuleSourcesError(sourceErrors.join('\n'))
-    const modules = RiviereModule.fromConfiguration(input.configuration, input.draftComponents)
+    const modules = RiviereModule.fromConfiguration(
+      input.configuration,
+      input.draftComponents,
+      collaborators.moduleExtractionRules,
+    )
     const unassignedDraftComponents = input.draftComponents.filter(
       (component) => !new Set(modules.flatMap((module) => module.draftComponents())).has(component),
     )
@@ -159,9 +155,17 @@ export class RiviereProject {
         }
       }
       case 'eventcatalog-import':
-        return executeEventCatalogImportStage(this.graphBuilder(), stage.config, this.collaborators)
+        return this.collaborators.extractionBehaviour.executeEventCatalogImportStage(
+          this.graphBuilder(),
+          stage.config,
+          this.collaborators,
+        )
       case 'asyncapi-import':
-        return executeAsyncApiImportStage(this.graphBuilder(), stage.config, this.collaborators)
+        return this.collaborators.extractionBehaviour.executeAsyncApiImportStage(
+          this.graphBuilder(),
+          stage.config,
+          this.collaborators,
+        )
       case 'code-extraction':
         return this.executeCodeExtractionStage(stage)
       case 'ai-extract':
@@ -176,17 +180,13 @@ export class RiviereProject {
   private executeCodeExtractionStage(
     stage: Extract<WorkflowStageValue, { kind: 'code-extraction' }>,
   ) {
-    const configPath = stage.configPath
-    if (configPath === undefined) {
-      return {
-        success: false as const,
-        errorCode: 'CODE_EXTRACTION_CONFIG_UNAVAILABLE',
-        reason: `Code-extraction stage '${stage.name}' has no source configuration path`,
-      }
-    }
     try {
-      const extraction = this.loadStageExtraction(stage.config, configPath)
-      const modules = RiviereModule.fromConfiguration(extraction, [])
+      const extraction = this.loadStageExtraction(stage.config, stage.configPath)
+      const modules = RiviereModule.fromConfiguration(
+        extraction,
+        [],
+        this.collaborators.moduleExtractionRules,
+      )
       modules.forEach((module) => module.extractAllDraftComponents())
       const completion = this.extractFrom(extraction, modules, {})
       if (completion.kind === 'fieldFailure') {
@@ -196,7 +196,7 @@ export class RiviereProject {
           reason: `Extraction failed for fields: ${completion.failedFields.join(', ')}`,
         }
       }
-      const warnings = applyCodeExtractionToBuilder(
+      const warnings = this.collaborators.extractionBehaviour.applyCodeExtractionToBuilder(
         this.graphBuilder(),
         this.collaborators.repositoryName,
         completion.components,
@@ -287,7 +287,7 @@ export class RiviereProject {
     },
   ) {
     this.assertNoUnassignedDraftComponents()
-    const completion = extractCodeExtraction({
+    const completion = this.collaborators.extractionBehaviour.extractCodeExtraction({
       extraction,
       modules: CodeExtractionModules.from(modules),
       ...(options.allowIncomplete === undefined
@@ -305,7 +305,7 @@ export class RiviereProject {
     if (completion.kind === 'fieldFailure') return completion
     return {
       ...completion,
-      components: stripResolvedCustomTypes(
+      components: this.collaborators.extractionBehaviour.stripResolvedCustomTypes(
         completion.components,
         extraction.resolvedConfig.connections?.httpLinks ?? [],
         completion.links,
@@ -332,16 +332,17 @@ export class RiviereProject {
     allowIncomplete: boolean,
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase,
   ) {
-    return detectCodeExtractionConnections({
+    const behaviour = this.collaborators.extractionBehaviour
+    return behaviour.detectCodeExtractionConnections({
       extraction: configuration,
       modules,
       components: enrichedComponents,
       allowIncomplete,
       ...(observeConnectionDetectionPhase === undefined ? {} : { observeConnectionDetectionPhase }),
-      detectEventPublisherConnections,
-      detectSubscribeConnections,
-      detectConnectionsFromCalls,
-      resolveHttpLinks,
+      detectEventPublisherConnections: behaviour.detectEventPublisherConnections,
+      detectSubscribeConnections: behaviour.detectSubscribeConnections,
+      detectConnectionsFromCalls: behaviour.detectConnectionsFromCalls,
+      resolveHttpLinks: behaviour.resolveHttpLinks,
     })
   }
   private assertEveryConfiguredModuleHasAnEntity(): void {

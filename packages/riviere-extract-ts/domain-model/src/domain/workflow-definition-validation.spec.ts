@@ -33,7 +33,7 @@ describe('Workflow definition validation', () => {
         outputPath: 'graph.json',
         runLogDirectory: 'logs',
         stages: [
-          WorkflowStage.fromCodeExtraction('same', configuration().resolvedConfig),
+          WorkflowStage.fromCodeExtraction('same', configuration().resolvedConfig, 'extraction.yml'),
           WorkflowStage.fromSchemaValidation('same'),
         ],
       }),

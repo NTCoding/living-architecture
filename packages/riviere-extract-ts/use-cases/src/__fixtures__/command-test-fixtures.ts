@@ -5,6 +5,7 @@ import { afterEach, beforeEach, vi } from 'vitest'
 import type { RiviereProjectCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
 import type { RiviereProjectRepository } from '../features/extract/data-access/riviere-project/riviere-project-repository'
 import { InitGraph } from '../features/extract/commands/init-graph'
+import { configureExtraction } from '../features/extract/commands/configure-extraction'
 import { createCodeExtractionAdapter } from '../features/extract/adapters/ts-morph/code-extraction-adapter'
 
 class CodeExtractionUnavailableError extends Error {
@@ -15,6 +16,7 @@ class CodeExtractionUnavailableError extends Error {
 }
 
 export function collaborators(): RiviereProjectCollaborators {
+  const extractionConfiguration = configureExtraction({})
   return {
     loadEventCatalogSource: () => Promise.resolve({ domains: [], services: [], events: [] }),
     loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
@@ -22,17 +24,20 @@ export function collaborators(): RiviereProjectCollaborators {
       throw new CodeExtractionUnavailableError()
     },
     repositoryName: 'test',
+    extractionBehaviour: extractionConfiguration.extractionBehaviour(),
+    moduleExtractionRules: extractionConfiguration.moduleExtractionRules(),
   }
 }
 
 export function createInitGraph(repository: RiviereProjectRepository): InitGraph {
   const loaders = collaborators()
-  return new InitGraph(
-    repository,
-    loaders.loadEventCatalogSource,
-    loaders.loadAsyncApiDocument,
-    createCodeExtractionAdapter(),
-  )
+  return new InitGraph(repository, {
+    loadEventCatalogSource: loaders.loadEventCatalogSource,
+    loadAsyncApiDocument: loaders.loadAsyncApiDocument,
+    loadCodeExtraction: createCodeExtractionAdapter(),
+    extractionBehaviour: loaders.extractionBehaviour,
+    moduleExtractionRules: loaders.moduleExtractionRules,
+  })
 }
 
 export interface TestContext {

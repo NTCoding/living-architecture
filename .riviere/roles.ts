@@ -105,6 +105,16 @@ export const allRoles = [
   role('data-access-error', { targets: ['class'] }),
   role('aggregate', {
     targets: ['interface', 'type-alias', 'class'],
+    allowedDependencyRoles: [
+      'aggregate-entity',
+      'domain-error',
+      'domain-event',
+      'domain-port',
+      'domain-service',
+      'value-object',
+      ...publishedLanguageRoles,
+    ],
+    forbiddenImportedFunctionCalls: true,
     minPublicMethods: 1,
     requiresPrivateDataMembers: true,
     approvedInstances: [
@@ -124,7 +134,15 @@ export const allRoles = [
   }),
   role('aggregate-entity', {
     targets: ['class'],
+    allowedDependencyRoles: [
+      'aggregate',
+      'domain-error',
+      'domain-service',
+      'value-object',
+      ...publishedLanguageRoles,
+    ],
     allowedDependentRoles: ['aggregate'],
+    forbiddenImportedFunctionCalls: true,
     requiresPrivateConstructor: true,
     requiresDataMembers: true,
     requiresPrivateDataMembers: true,

@@ -26,11 +26,11 @@ function codeExtractionConfig() {
   }
 }
 
-function codeExtractionStage(configPath?: string): WorkflowStage {
+function codeExtractionStage(configPath: string): WorkflowStage {
   return WorkflowStage.fromMaterialized({
     kind: 'code-extraction',
     name: 'extract-code',
-    ...(configPath === undefined ? {} : { configPath }),
+    configPath,
     config: codeExtractionConfig(),
   })
 }
@@ -61,13 +61,6 @@ describe('RiviereProject code-extraction stage', () => {
 
     assert(result.success)
     expect(result.graph.components).toHaveLength(0)
-  })
-
-  it('fails a code-extraction stage when the config path is absent', async () => {
-    const result = await projectWithStage(codeExtractionStage()).rebuildGraph()
-
-    assert(!result.success)
-    expect(result.errorCode).toBe('CODE_EXTRACTION_CONFIG_UNAVAILABLE')
   })
 
   it('fails a code-extraction stage when loading throws', async () => {

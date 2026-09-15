@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   location,
   locationConfiguration,
+  PackageConfigFilter,
   role,
   RoleEnforcementConfiguration,
   RoleEnforcementExecutionError,
@@ -21,7 +22,7 @@ const minimalConfig = RoleEnforcementConfiguration.parse({
 })
 
 function createRepository(configModule: unknown = { config: minimalConfig }) {
-  return new RoleEnforcementProjectRepository({
+  return new RoleEnforcementProjectRepository(new PackageConfigFilter(), {
     findFilesMatchingPatterns: vi.fn((): string[] => []),
     loadTypeScriptModule: vi.fn(() => configModule),
     readDirectory: vi.fn((): [] => []),
@@ -45,7 +46,7 @@ function configurationWithPackageAssignments(params: {
 describe('RoleEnforcementProjectRepository', () => {
   it('discovers every package declared by the workspace.', () => {
     const findFilesMatchingPatterns = vi.fn((): string[] => [])
-    const repository = new RoleEnforcementProjectRepository({
+    const repository = new RoleEnforcementProjectRepository(new PackageConfigFilter(), {
       findFilesMatchingPatterns,
       loadTypeScriptModule: vi.fn(() => ({ config })),
       readWorkspacePackagePatterns: vi.fn(() => ({
@@ -83,7 +84,7 @@ describe('RoleEnforcementProjectRepository', () => {
       .fn()
       .mockReturnValueOnce(['packages/pkg-a/package.json', 'packages/new-package/package.json'])
       .mockReturnValueOnce([])
-    const repository = new RoleEnforcementProjectRepository({
+    const repository = new RoleEnforcementProjectRepository(new PackageConfigFilter(), {
       findFilesMatchingPatterns,
       loadTypeScriptModule: vi.fn(() => ({ config })),
       readDirectory: vi.fn((): [] => []),
@@ -106,7 +107,7 @@ describe('RoleEnforcementProjectRepository', () => {
       .fn()
       .mockReturnValueOnce(['packages/pkg-a/package.json', 'apps/eclair/package.json'])
       .mockReturnValueOnce([])
-    const repository = new RoleEnforcementProjectRepository({
+    const repository = new RoleEnforcementProjectRepository(new PackageConfigFilter(), {
       findFilesMatchingPatterns,
       loadTypeScriptModule: vi.fn(() => ({ config })),
       readDirectory: vi.fn((): [] => []),
@@ -127,7 +128,7 @@ describe('RoleEnforcementProjectRepository', () => {
       .fn()
       .mockReturnValueOnce(['packages/pkg-a/package.json'])
       .mockReturnValueOnce([])
-    const repository = new RoleEnforcementProjectRepository({
+    const repository = new RoleEnforcementProjectRepository(new PackageConfigFilter(), {
       findFilesMatchingPatterns,
       loadTypeScriptModule: vi.fn(() => ({ config })),
       readDirectory: vi.fn((): [] => []),
@@ -150,7 +151,7 @@ describe('RoleEnforcementProjectRepository', () => {
       .fn()
       .mockReturnValueOnce(['packages/pkg-a/package.json'])
       .mockReturnValueOnce([])
-    const repository = new RoleEnforcementProjectRepository({
+    const repository = new RoleEnforcementProjectRepository(new PackageConfigFilter(), {
       findFilesMatchingPatterns,
       loadTypeScriptModule: vi.fn(() => ({ config })),
       readDirectory: vi.fn((): [] => []),
@@ -231,7 +232,7 @@ describe('RoleEnforcementProjectRepository', () => {
   })
 
   it('rejects a role without a Markdown definition', () => {
-    const repository = new RoleEnforcementProjectRepository({
+    const repository = new RoleEnforcementProjectRepository(new PackageConfigFilter(), {
       findFilesMatchingPatterns: vi.fn((): string[] => []),
       loadTypeScriptModule: vi.fn(() => ({ config: minimalConfig })),
       readDirectory: vi.fn((): [] => []),
@@ -246,7 +247,7 @@ describe('RoleEnforcementProjectRepository', () => {
   })
 
   it('rejects a Markdown definition that has no configured role', () => {
-    const repository = new RoleEnforcementProjectRepository({
+    const repository = new RoleEnforcementProjectRepository(new PackageConfigFilter(), {
       findFilesMatchingPatterns: vi.fn((): string[] => []),
       loadTypeScriptModule: vi.fn(() => ({ config: minimalConfig })),
       readDirectory: vi.fn((): [] => []),

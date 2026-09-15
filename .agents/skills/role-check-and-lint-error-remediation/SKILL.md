@@ -13,7 +13,7 @@ Role-check and lint errors are design feedback. Do not see them as constraints t
   role before choosing one.
 - Never invent a new role, all role changes require user approval.
 
-Always look in `/project-memory/` for related refactoring examples that show how similar errors were previously resolved.
+Always look in `project-memory/` for related refactoring examples that show how similar errors were previously resolved.
 
 ## Find the seam
 
@@ -57,7 +57,7 @@ class BookingScheduler {
 }
 ```
 
-This is an easy and obvious way to split the large file and improve the design by making an implicit concept explicit with a dedicated `DateRage` value object. The `parseDateRange` helper function in the `BookingScheduler` is it's constructor. It becomes a static `parse` method on the new value object.
+This is an easy and obvious way to split the large file and improve the design by making an implicit concept explicit with a dedicated `DateRange` value object. The `parseDateRange` helper function in the `BookingScheduler` is it's constructor. It becomes a static `parse` method on the new value object.
 
 ```typescript
 class BookingScheduler {

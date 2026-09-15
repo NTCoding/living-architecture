@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { filterConfigByPackage, PackageFilterError } from './filter-config-by-package'
+import { PackageConfigFilter, PackageFilterError } from './package-config-filter'
 import {
   location,
   locationConfiguration,
@@ -37,11 +37,11 @@ function createMultiPackageConfig(): RoleEnforcementConfiguration {
   })
 }
 
-describe('filterConfigByPackage', () => {
+describe('PackageConfigFilter.forPackage', () => {
   it('filters include patterns to the specified package', () => {
     const config = createMultiPackageConfig()
 
-    const result = filterConfigByPackage(config, 'packages/riviere-cli')
+    const result = new PackageConfigFilter().forPackage(config, 'packages/riviere-cli')
 
     expect(result.include).toStrictEqual([
       'packages/riviere-cli/src/**/*.ts',
@@ -52,7 +52,7 @@ describe('filterConfigByPackage', () => {
   it('filters the location hierarchy to the specified package', () => {
     const config = createMultiPackageConfig()
 
-    const result = filterConfigByPackage(config, 'packages/riviere-cli')
+    const result = new PackageConfigFilter().forPackage(config, 'packages/riviere-cli')
 
     expect(
       result.locationHierarchy.every((location) => location.packagePath === 'packages/riviere-cli'),
@@ -62,7 +62,7 @@ describe('filterConfigByPackage', () => {
   it('preserves ignorePatterns unchanged', () => {
     const config = createMultiPackageConfig()
 
-    const result = filterConfigByPackage(config, 'packages/riviere-cli')
+    const result = new PackageConfigFilter().forPackage(config, 'packages/riviere-cli')
 
     expect(result.ignorePatterns).toStrictEqual(['**/*.spec.ts'])
   })
@@ -70,7 +70,7 @@ describe('filterConfigByPackage', () => {
   it('preserves roles unchanged', () => {
     const config = createMultiPackageConfig()
 
-    const result = filterConfigByPackage(config, 'packages/riviere-cli')
+    const result = new PackageConfigFilter().forPackage(config, 'packages/riviere-cli')
 
     expect(result.roles).toBe(testRoles)
   })
@@ -78,7 +78,7 @@ describe('filterConfigByPackage', () => {
   it('preserves roleDefinitionsDir unchanged', () => {
     const config = createMultiPackageConfig()
 
-    const result = filterConfigByPackage(config, 'packages/riviere-cli')
+    const result = new PackageConfigFilter().forPackage(config, 'packages/riviere-cli')
 
     expect(result.roleDefinitionsDir).toBe('.riviere/role-definitions')
   })
@@ -86,7 +86,7 @@ describe('filterConfigByPackage', () => {
   it('strips trailing slashes from package path', () => {
     const config = createMultiPackageConfig()
 
-    const result = filterConfigByPackage(config, 'packages/riviere-cli/')
+    const result = new PackageConfigFilter().forPackage(config, 'packages/riviere-cli/')
 
     expect(result.include).toStrictEqual([
       'packages/riviere-cli/src/**/*.ts',
@@ -97,19 +97,19 @@ describe('filterConfigByPackage', () => {
   it('throws PackageFilterError when package matches no include patterns', () => {
     const config = createMultiPackageConfig()
 
-    expect(() => filterConfigByPackage(config, 'apps/nonexistent')).toThrow(PackageFilterError)
+    expect(() => new PackageConfigFilter().forPackage(config, 'apps/nonexistent')).toThrow(PackageFilterError)
   })
 
   it('includes available packages in error message', () => {
     const config = createMultiPackageConfig()
 
-    expect(() => filterConfigByPackage(config, 'apps/nonexistent')).toThrow(/packages\/\{package\}/)
+    expect(() => new PackageConfigFilter().forPackage(config, 'apps/nonexistent')).toThrow(/packages\/\{package\}/)
   })
 
   it('filters to the other package when specified', () => {
     const config = createMultiPackageConfig()
 
-    const result = filterConfigByPackage(config, 'packages/riviere-extract-ts')
+    const result = new PackageConfigFilter().forPackage(config, 'packages/riviere-extract-ts')
 
     expect(result.include).toStrictEqual([
       'packages/riviere-extract-ts/src/**/*.ts',
@@ -130,7 +130,7 @@ describe('filterConfigByPackage', () => {
       }),
     )
 
-    const result = filterConfigByPackage(config, 'packages/riviere-cli')
+    const result = new PackageConfigFilter().forPackage(config, 'packages/riviere-cli')
 
     expect(result.include).toStrictEqual(['packages/*'])
   })

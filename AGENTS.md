@@ -101,7 +101,7 @@ After generating a new project:
 3. Add vitest.config.ts if tests are needed with 100% coverage as the default
 4. If importing from another project, add its published package name with `"workspace:*"` to dependencies
 5. Run `pnpm nx sync` to update TypeScript project references
-6. Update this CLAUDE.md "Current packages" section
+6. Update this AGENTS.md "Current packages" section
 
 ## Task Workflow
 

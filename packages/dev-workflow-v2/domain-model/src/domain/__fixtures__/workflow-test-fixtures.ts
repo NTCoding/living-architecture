@@ -1,6 +1,7 @@
 import { workflowSpec } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { defineRecordingOps } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type { WorkflowEvent } from '../workflow-events'
-import { BranchRecorded, IssueRecorded, Transitioned } from '../workflow-events'
+import { BranchRecorded, IssueRecorded, parseWorkflowEvent, Transitioned } from '../workflow-events'
 import {
   getInitialWorkflowState,
   type WorkflowStateNameValue,
@@ -66,6 +67,9 @@ export function makeDeps(overrides: Partial<WorkflowDependencies> = {}): Workflo
     listSessionReviews: overrides.listSessionReviews ?? (() => []),
     sleepMs: overrides.sleepMs ?? (() => undefined),
     now: overrides.now ?? (() => AT),
+    parseWorkflowEvent: overrides.parseWorkflowEvent ?? parseWorkflowEvent,
+    readInitialWorkflowState: overrides.readInitialWorkflowState ?? getInitialWorkflowState,
+    buildRecordingOperations: overrides.buildRecordingOperations ?? defineRecordingOps,
   })
 }
 
@@ -149,5 +153,10 @@ export const spec = workflowSpec<WorkflowEvent, WorkflowState, WorkflowDeps, Mai
       listSessionReviews: overrides.listSessionReviews ?? defaults.listSessionReviews,
       sleepMs: overrides.sleepMs ?? defaults.sleepMs,
       now: overrides.now ?? defaults.now,
+      parseWorkflowEvent: overrides.parseWorkflowEvent ?? defaults.parseWorkflowEvent,
+      readInitialWorkflowState:
+        overrides.readInitialWorkflowState ?? defaults.readInitialWorkflowState,
+      buildRecordingOperations:
+        overrides.buildRecordingOperations ?? defaults.buildRecordingOperations,
     }),
 })

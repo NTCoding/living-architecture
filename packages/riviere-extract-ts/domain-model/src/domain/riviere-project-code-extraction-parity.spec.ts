@@ -30,6 +30,7 @@ const lenient = configuration(undefined, true)
 function codeExtractionConfig(source = shared) {
   const resolved = source.resolvedConfig
   return {
+    ...(resolved.allowIncomplete ? { allowIncomplete: true } : {}),
     modules: [mustBeDefined(resolved.modules[0], 'module')],
     connections: resolved.connections,
     schema: resolved.schema,
@@ -199,7 +200,12 @@ describe('code-extraction parity and composition', () => {
 
   it('turns lenient incomplete state into a workflow diagnostic keyed by canonical identity', async () => {
     vi.spyOn(RiviereModule.prototype, 'enrichDraftComponents').mockReturnValue(
-      enrichment(enriched('PlaceOrder', ['route'])),
+      EnrichmentResult.parse({
+        components: [enriched('PlaceOrder', ['route'])],
+        failures: [
+          EnrichmentFailure.parse({ component: draft(), field: 'route', error: 'missing' }),
+        ],
+      }),
     )
 
     const run = await workflowProject(
@@ -211,7 +217,7 @@ describe('code-extraction parity and composition', () => {
     const diagnostics = run.transitions.flatMap((transition) => transition.value.state.diagnostics)
     expect(diagnostics.map((diagnostic) => diagnostic.value)).toContainEqual({
       kind: 'missing-field',
-      componentId: 'PlaceOrder',
+      componentId: 'orders:orders:useCase:placeorder',
       field: 'route',
     })
   })

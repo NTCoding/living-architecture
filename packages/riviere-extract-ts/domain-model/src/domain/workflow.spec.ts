@@ -52,7 +52,7 @@ const aiEnrichConfig: AiEnrichConfig = {
 
 function allStages() {
   return [
-    WorkflowStage.fromCodeExtraction('extract-code', codeExtractionConfig),
+    WorkflowStage.fromCodeExtraction('extract-code', codeExtractionConfig, 'extraction.yml'),
     WorkflowStage.fromEventCatalogImport('import-eventcatalog', eventCatalogConfig),
     WorkflowStage.fromAsyncApiImport('import-asyncapi', asyncApiConfig),
     WorkflowStage.fromAiExtract('discover-gaps', aiExtractConfig),
@@ -107,6 +107,7 @@ describe('Workflow stage language', () => {
         {
           kind: 'code-extraction',
           name: 'extract-code',
+          configPath: 'extraction.yml',
           config: retainedCodeExtractionConfig,
         },
         { kind: 'eventcatalog-import', name: 'import-eventcatalog', config: eventCatalogConfig },

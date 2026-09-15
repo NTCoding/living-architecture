@@ -2,22 +2,13 @@ import type {
   PreconditionResult,
   RecordingOpDefinition,
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
-import {
-  pass,
-  fail,
-  defineRecordingOps,
-  checkOperationGate,
-} from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import {
-  getInitialWorkflowState,
-  type WorkflowStateNameValue,
-  WorkflowState,
-} from './workflow-types'
+import { type WorkflowStateNameValue, WorkflowState } from './workflow-types'
 import { ReviewCycleLimit } from './review-cycle-limit'
 import type { PullRequestCreationDetails } from './pull-request-description'
 import { MaintainerWorkflowRegistry } from './registry'
+import type { MaintainerWorkflowOperationValue } from './maintainer-workflow-operation'
 import { ReviewingState } from './states/reviewing'
 import { SubmittingPrState } from './states/submitting-pr'
 import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
@@ -30,9 +21,8 @@ export { WorkflowDependencies } from './workflow-dependencies'
 import type { Reviewer } from './reviews/reviewers'
 import { Reviewer as ReviewerValue } from './reviews/reviewers'
 import type { ReviewerStatus } from './reviews/statuses'
-import type { WorkflowEvent } from './workflow-events'
 import {
-  parseWorkflowEvent,
+  type WorkflowEvent,
   PrRecorded,
   ReviewCycleClosed,
   ReviewCycleStarted,
@@ -77,9 +67,13 @@ export class MaintainerWorkflow {
   static build(
     registry: MaintainerWorkflowRegistry,
     deps: WorkflowDependencies,
-    state: unknown = getInitialWorkflowState(),
+    state?: unknown,
   ): MaintainerWorkflow {
-    return new MaintainerWorkflow(WorkflowState.parse(state), registry, deps)
+    return new MaintainerWorkflow(
+      WorkflowState.parse(state === undefined ? deps.readInitialWorkflowState() : state),
+      registry,
+      deps,
+    )
   }
   getPendingEvents(): readonly WorkflowEvent[] {
     return this.pendingEvents
@@ -108,7 +102,7 @@ export class MaintainerWorkflow {
     return `${pluginRoot}/${this.registryDefinition.state(this.state.currentStateName()).agentInstructions}`
   }
   appendEvent(event: BaseEvent): void {
-    const workflowEvent = parseWorkflowEvent(event)
+    const workflowEvent = this.deps.parseWorkflowEvent(event)
     this.append(workflowEvent)
   }
   startSession(transcriptPath: string, repository: string | undefined): void {
@@ -150,26 +144,41 @@ export class MaintainerWorkflow {
   registerAgent(agentType: string, agentId: string): PreconditionResult {
     void agentType
     void agentId
-    return pass()
+    return this.operationPassed()
   }
   handleTeammateIdle(agentName: string): PreconditionResult {
     void agentName
-    return pass()
+    return this.operationPassed()
   }
+  private operationPassed(): PreconditionResult {
+    return { pass: true }
+  }
+
+  private operationFailed(reason: string): PreconditionResult {
+    return { pass: false, reason }
+  }
+
+  private operationGate(op: MaintainerWorkflowOperationValue): PreconditionResult {
+    const stateName = this.state.currentStateName()
+    const definition = this.registryDefinition.state(stateName)
+    if (definition.allowedWorkflowOperations.includes(op)) return this.operationPassed()
+    return this.operationFailed(`${op} is not allowed in state ${stateName.name()}.`)
+  }
+
   executeRecording(op: RecordingOperation, ...args: readonly unknown[]): PreconditionResult {
-    const recordingOps = defineRecordingOps<
+    const recordingOps = this.deps.buildRecordingOperations<
       WorkflowStateNameValue,
       WorkflowState,
       RecordingOperation
     >(this.registryDefinition, RECORDING_OPS_MAP)
     const result = recordingOps.executeOp(op, this.state, this.deps.now(), args)
-    if (!result.pass) return fail(result.reason)
+    if (!result.pass) return this.operationFailed(result.reason)
     this.appendEvent(result.event)
-    return pass()
+    return this.operationPassed()
   }
 
   recordReviewerStatus(reviewer: Reviewer, status: ReviewerStatus): PreconditionResult {
-    const gate = checkOperationGate('record-reviewer-status', this.state, this.registryDefinition)
+    const gate = this.operationGate('record-reviewer-status')
     if (!gate.pass) return gate
     this.append(
       ReviewerStatusRecorded.parse({
@@ -179,14 +188,14 @@ export class MaintainerWorkflow {
         status: status.name(),
       }),
     )
-    return pass()
+    return this.operationPassed()
   }
 
   createPr(input: PullRequestCreationDetails): PreconditionResult {
-    const gate = checkOperationGate('create-pr', this.state, this.registryDefinition)
+    const gate = this.operationGate('create-pr')
     if (!gate.pass) return gate
     if (this.state.prNumber !== undefined) {
-      return fail('A pull request has already been recorded for this workflow.')
+      return this.operationFailed('A pull request has already been recorded for this workflow.')
     }
     return this.submitPullRequest(input)
   }
@@ -205,9 +214,9 @@ export class MaintainerWorkflow {
           prUrl: pullRequest.prUrl,
         }),
       )
-      return pass()
+      return this.operationPassed()
     } catch (error) {
-      return fail(`Unable to create PR: ${String(error)}`)
+      return this.operationFailed(`Unable to create PR: ${String(error)}`)
     }
   }
 
@@ -236,14 +245,14 @@ export class MaintainerWorkflow {
 
   recordPullRequest(prNumber: number, prUrl: string): PreconditionResult {
     this.append(PrRecorded.parse({ type: 'pr-recorded', at: this.deps.now(), prNumber, prUrl }))
-    return pass()
+    return this.operationPassed()
   }
 
   startReviewCycle(): PreconditionResult {
     if (this.state.currentStateMachineState !== 'REVIEWING') {
-      return fail('A review cycle can only start in REVIEWING.')
+      return this.operationFailed('A review cycle can only start in REVIEWING.')
     }
-    if (this.state.reviewCycleOpen) return fail('A review cycle is already open.')
+    if (this.state.reviewCycleOpen) return this.operationFailed('A review cycle is already open.')
     const includedReviewers: string[] = []
     const excludedReviewers: Record<string, string> = {}
     for (const reviewer of REVIEW_RUNNERS) {
@@ -263,22 +272,18 @@ export class MaintainerWorkflow {
         excludedReviewers,
       }),
     )
-    return pass()
+    return this.operationPassed()
   }
 
   waitForCodeRabbitAndCloseReviewCycle(): PreconditionResult {
-    const gate = checkOperationGate(
-      'wait-for-coderabbit-and-close-review-cycle',
-      this.state,
-      this.registryDefinition,
-    )
+    const gate = this.operationGate('wait-for-coderabbit-and-close-review-cycle')
     if (!gate.pass) return gate
-    if (!this.state.reviewCycleOpen) return fail('No review cycle is open.')
+    if (!this.state.reviewCycleOpen) return this.operationFailed('No review cycle is open.')
     const feedback = waitForCodeRabbitCompletion(this.deps, this.getPullRequestNumber())
     const outcomes = reviewCycleOutcomes(feedback, this.state.includedReviewers)
     const statuses = Object.values(outcomes)
     if (statuses.includes('PENDING')) {
-      return fail('Every reviewer must return a result before the review cycle can close.')
+      return this.operationFailed('Every reviewer must return a result before the review cycle can close.')
     }
     const hasOpenFeedback = statuses.includes('OPEN_FEEDBACK')
     this.append(
@@ -304,7 +309,7 @@ export class MaintainerWorkflow {
     const current = this.state.currentStateName()
     const definition = this.registryDefinition.state(current)
     if (!definition.canTransitionTo.includes(target))
-      return fail(`Illegal transition ${current.name()} -> ${target}.`)
+      return this.operationFailed(`Illegal transition ${current.name()} -> ${target}.`)
     if (definition.transitionGuard !== undefined) {
       const guard = definition.transitionGuard(
         WorkflowTransitionContext.from({
@@ -325,7 +330,7 @@ export class MaintainerWorkflow {
         ...(stateOverrides === undefined ? {} : { stateOverrides }),
       }),
     )
-    return pass()
+    return this.operationPassed()
   }
 
   reviewOutcome(options: { readonly ignoreCodeRabbit?: boolean } = {}): AggregateReviewOutcome {

@@ -102,3 +102,67 @@ export function createPaymentAuthorizer(): PaymentAuthorizer {
     rmSync(workspaceDir, { force: true, recursive: true })
   }
 })
+
+it('rejects a domain port whose adapter imports it without referencing it', () => {
+  const workspaceDir = mkdtempSync(join(tmpdir(), 'role-enforcement-plugin-'))
+  const entrypointDir = join(workspaceDir, 'packages/example/src/entrypoint')
+  const portPath = join(entrypointDir, 'payment-port.ts')
+  const adapterPath = join(entrypointDir, 'payment-adapter.ts')
+  const portSource = `/** @riviere-role domain-port */
+export interface PaymentAuthorizer {
+  authorize(): void
+}
+`
+
+  try {
+    mkdirSync(entrypointDir, { recursive: true })
+    writeFileSync(portPath, portSource, { encoding: 'utf8', flag: 'w' })
+    writeFileSync(
+      adapterPath,
+      `import type { PaymentAuthorizer } from './payment-port'
+
+/** @riviere-role domain-port-adapter */
+export function createPaymentAuthorizer(): void {
+  return undefined
+}
+`,
+      { encoding: 'utf8', flag: 'w' },
+    )
+
+    const messages = enforce(portSource, { configDir: workspaceDir, filename: portPath })
+
+    expect(messages).toHaveLength(1)
+    expect(messages[0]?.message).toContain(
+      "Role 'domain-port' must be implemented by at least one 'domain-port-adapter' declaration.",
+    )
+  } finally {
+    rmSync(workspaceDir, { force: true, recursive: true })
+  }
+})
+
+it('allows a domain port implemented by an adapter in the same file', () => {
+  const workspaceDir = mkdtempSync(join(tmpdir(), 'role-enforcement-plugin-'))
+  const entrypointDir = join(workspaceDir, 'packages/example/src/entrypoint')
+  const portPath = join(entrypointDir, 'payment-port.ts')
+  const portSource = `/** @riviere-role domain-port */
+export interface PaymentAuthorizer {
+  authorize(): void
+}
+
+/** @riviere-role domain-port-adapter */
+export function createPaymentAuthorizer(): PaymentAuthorizer {
+  return { authorize() {} }
+}
+`
+
+  try {
+    mkdirSync(entrypointDir, { recursive: true })
+    writeFileSync(portPath, portSource, { encoding: 'utf8', flag: 'w' })
+
+    const messages = enforce(portSource, { configDir: workspaceDir, filename: portPath })
+
+    expect(messages).toStrictEqual([])
+  } finally {
+    rmSync(workspaceDir, { force: true, recursive: true })
+  }
+})

@@ -3,7 +3,6 @@ import type {
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { ClassDeclaration, MethodDeclaration, Project } from 'ts-morph'
-import { extractComponents, resolveModuleName } from './component-extraction/extractor'
 import type { DraftComponent } from './component-extraction/draft-component'
 import {
   EnrichedComponent,
@@ -12,26 +11,17 @@ import {
   type MetadataValue,
 } from './value-extraction/enriched-component'
 import { ExtractionError } from './value-extraction/literal-detection'
-import {
-  evaluateFromClassDecoratorArgRule,
-  evaluateFromClassNameRule,
-  evaluateFromDecoratorArgRule,
-  evaluateFromDecoratorNameRule,
-  evaluateFromFilePathRule,
-  evaluateFromMethodNameRule,
-} from './value-extraction/evaluate-extraction-rule'
-import { evaluateFromPropertyRule } from './value-extraction/evaluate-property-extraction-rule'
-import { evaluateFromGenericArgRule } from './value-extraction/evaluate-extraction-rule-generic'
-import { evaluateFromParameterTypeRule } from './value-extraction/evaluate-extraction-rule-method'
 import { ExtractionResult } from './value-extraction/extraction-result'
 import type { ExtractionConfiguration } from './extraction-configuration'
 import { MissingModuleSourceError } from './extraction-errors'
+import type { RiviereModuleExtractionRules } from './ports/riviere-module-extraction-rules'
 
 type RiviereModuleInput = {
   readonly configuration: ValidatedModule
   readonly project: Project
   readonly sourceFiles: readonly string[]
   readonly candidateDraftComponents: readonly DraftComponent[]
+  readonly extractionRules: RiviereModuleExtractionRules
 }
 
 type ComponentEnrichment = {
@@ -57,10 +47,17 @@ export class RiviereModule {
     private readonly project: Project,
     private readonly files: readonly string[],
     private draftComponentsState: readonly DraftComponent[],
+    private readonly extractionRules: RiviereModuleExtractionRules,
   ) {}
 
   static build(input: RiviereModuleInput): RiviereModule {
-    const module = new RiviereModule(input.configuration, input.project, input.sourceFiles, [])
+    const module = new RiviereModule(
+      input.configuration,
+      input.project,
+      input.sourceFiles,
+      [],
+      input.extractionRules,
+    )
     module.draftComponentsState = input.candidateDraftComponents.filter((component) =>
       module.owns(component),
     )
@@ -70,6 +67,7 @@ export class RiviereModule {
   static fromConfiguration(
     configuration: ExtractionConfiguration,
     candidateDraftComponents: readonly DraftComponent[],
+    extractionRules: RiviereModuleExtractionRules,
   ): readonly RiviereModule[] {
     const contexts = new Map(
       configuration.moduleContexts.map((context) => [context.module, context] as const),
@@ -82,6 +80,7 @@ export class RiviereModule {
         project: context.project,
         sourceFiles: context.files,
         candidateDraftComponents,
+        extractionRules,
       })
     })
   }
@@ -125,7 +124,7 @@ export class RiviereModule {
     const moduleName =
       this.files.length === 0
         ? this.configuration.name
-        : resolveModuleName(component.location.file, this.configuration)
+        : this.extractionRules.resolveModuleName(component.location.file, this.configuration)
     return moduleName === component.module
   }
 
@@ -151,7 +150,7 @@ export class RiviereModule {
   }
 
   private replaceDraftComponents(sourceFiles: readonly string[]): readonly DraftComponent[] {
-    this.draftComponentsState = extractComponents(
+    this.draftComponentsState = this.extractionRules.extractComponents(
       this.project,
       [...sourceFiles],
       this.configuration,
@@ -204,27 +203,27 @@ export class RiviereModule {
       case 'literal':
         return ExtractionResult.parse({ value: rule.value })
       case 'fromFilePath':
-        return evaluateFromFilePathRule(rule, draft.location.file)
+        return this.extractionRules.evaluateFromFilePathRule(rule, draft.location.file)
       case 'fromMethodName':
-        return evaluateFromMethodNameRule(rule, findMethodAtLine(this.project, draft))
+        return this.extractionRules.evaluateFromMethodNameRule(rule, findMethodAtLine(this.project, draft))
       case 'fromDecoratorArg': {
         const method = requireMethodForDecoratorRule(this.project, draft, rule.kind)
-        return evaluateFromDecoratorArgRule(rule, findDecoratorOnMethod(method, rule.decoratorName))
+        return this.extractionRules.evaluateFromDecoratorArgRule(rule, findDecoratorOnMethod(method, rule.decoratorName))
       }
       case 'fromClassDecoratorArg':
-        return evaluateFromClassDecoratorArgRule(rule, findMethodAtLine(this.project, draft))
+        return this.extractionRules.evaluateFromClassDecoratorArgRule(rule, findMethodAtLine(this.project, draft))
       case 'fromDecoratorName': {
         const method = requireMethodForDecoratorRule(this.project, draft, rule.kind)
-        return evaluateFromDecoratorNameRule(rule, findDecoratorOnMethod(method))
+        return this.extractionRules.evaluateFromDecoratorNameRule(rule, findDecoratorOnMethod(method))
       }
       case 'fromParameterType':
-        return evaluateFromParameterTypeRule(rule, findMethodAtLine(this.project, draft))
+        return this.extractionRules.evaluateFromParameterTypeRule(rule, findMethodAtLine(this.project, draft))
       case 'fromGenericArg':
-        return evaluateFromGenericArgRule(rule, findContainingClass(this.project, draft))
+        return this.extractionRules.evaluateFromGenericArgRule(rule, findContainingClass(this.project, draft))
       case 'fromProperty':
-        return evaluateFromPropertyRule(rule, findContainingClass(this.project, draft))
+        return this.extractionRules.evaluateFromPropertyRule(rule, findContainingClass(this.project, draft))
       case 'fromClassName':
-        return evaluateFromClassNameRule(rule, findClassAtLine(this.project, draft))
+        return this.extractionRules.evaluateFromClassNameRule(rule, findClassAtLine(this.project, draft))
     }
   }
 }

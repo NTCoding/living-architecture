@@ -1,5 +1,6 @@
 import type { BaseEvent, WorkflowRegistry } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { buildRecordingOperations } from '@living-architecture/dev-workflow-v2-domain-model/domain/recording-operations'
 import {
   getOperationBody,
   getTransitionTitle,
@@ -64,6 +65,8 @@ export interface ConfigureWorkflowResult {
   getOperationBody(op: string, state: WorkflowState): string
   getTransitionTitle(to: WorkflowStateNameValue, state: WorkflowState): string
   isWriteAllowed: typeof isWriteAllowed
+  parseEvent: typeof parseWorkflowEvent
+  buildRecordingOperations: typeof buildRecordingOperations
 }
 const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(getKnownWorkflowEventTypes())
 
@@ -146,5 +149,7 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
     getOperationBody,
     getTransitionTitle,
     isWriteAllowed,
+    parseEvent: parseWorkflowEvent,
+    buildRecordingOperations,
   }
 }

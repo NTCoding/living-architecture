@@ -1165,18 +1165,23 @@ export default {
           if (callableText === null) {
             return new Set()
           }
-          const functionPattern = new RegExp(
-            String.raw`export\s+function\s+${escapeRegExp(callableReference.exportedName)}\s*\(\s*\w+\s*:\s*(\w+)`,
+          const functionDeclaration = findExportedDeclaration(
+            callableText,
+            callableReference.exportedName,
           )
-          const dependencyTypeName = functionPattern.exec(callableText)?.[1]
-          if (dependencyTypeName === undefined) {
+          const dependencyTypeName =
+            functionDeclaration?.keyword === 'function'
+              ? readSingleParameterTypeName(callableText, functionDeclaration.bodyIndex)
+              : null
+          if (dependencyTypeName === null) {
             return new Set()
           }
-          const interfacePattern = new RegExp(
-            String.raw`export\s+interface\s+${escapeRegExp(dependencyTypeName)}\s*\{([\s\S]*?)\n\}`,
-          )
-          const interfaceBody = interfacePattern.exec(callableText)?.[1]
-          if (interfaceBody === undefined) {
+          const interfaceDeclaration = findExportedDeclaration(callableText, dependencyTypeName)
+          const interfaceBody =
+            interfaceDeclaration?.keyword === 'interface'
+              ? readInterfaceBody(callableText, interfaceDeclaration.bodyIndex)
+              : null
+          if (interfaceBody === null) {
             return new Set()
           }
           return new Set(
@@ -2695,16 +2700,11 @@ export default {
           if (sourceText === null) {
             return null
           }
-          const escapedName = escapeRegExp(exportedName)
-          const exportPattern = new RegExp(
-            String.raw`export\s+(?:async\s+)?(?:interface|type|function|class)\s+${escapedName}\b`,
-            'm',
-          )
-          const exportMatch = exportPattern.exec(sourceText)
-          if (exportMatch === null) {
+          const declaration = findExportedDeclaration(sourceText, exportedName)
+          if (declaration === null) {
             return null
           }
-          const prefix = sourceText.slice(0, exportMatch.index)
+          const prefix = sourceText.slice(0, declaration.exportIndex)
           const jsDocComments = [...prefix.matchAll(/\/\*\*[\s\S]*?\*\//g)]
           const commentMatch = jsDocComments.at(-1)
           if (commentMatch?.[0] === undefined) {
@@ -2724,23 +2724,13 @@ export default {
             return null
           }
 
-          const escapedName = escapeRegExp(exportedName)
-          const exportPattern = new RegExp(
-            String.raw`export\s+(?:async\s+)?(?:interface|type|function|class)\s+${escapedName}\b`,
-            'm',
-          )
-          const exportMatch = exportPattern.exec(sourceText)
-          if (exportMatch !== null) {
+          if (findExportedDeclaration(sourceText, exportedName) !== null) {
             return filePath
           }
 
-          const namedReExportPattern = new RegExp(
-            String.raw`export\s*(?:type\s*)?\{[^}]*\b${escapedName}\b[^}]*\}\s*from\s*['"]([^'"]+)['"]`,
-            'm',
-          )
-          const namedReExportMatch = namedReExportPattern.exec(sourceText)
-          if (namedReExportMatch !== null) {
-            const resolvedPath = resolveTypeFile(filePath, namedReExportMatch[1])
+          const namedReExport = findNamedReExport(sourceText, exportedName)
+          if (namedReExport !== null) {
+            const resolvedPath = resolveTypeFile(filePath, namedReExport.sourcePath)
             if (resolvedPath !== null) {
               return resolveExportedFile(resolvedPath, exportedName, visited)
             }
@@ -2831,19 +2821,58 @@ function buildWorkspaceImplementers(configDir, ignorePatterns, importAliases) {
     if (sourceText === null) {
       continue
     }
-    const roles = new Set(readRoleDeclarations(sourceText).map((declaration) => declaration.role))
-    if (roles.size === 0) {
+    const declarations = readRoleDeclarations(sourceText)
+    if (declarations.length === 0) {
       continue
     }
-    for (const imported of readImportedDeclarationKeys(filePath, sourceText, configDir, importAliases)) {
-      for (const roleName of roles) {
-        const existing = importedByRole.get(roleName) ?? new Set()
-        existing.add(imported)
-        importedByRole.set(roleName, existing)
-      }
+    const importedReferences = readImportedReferences(filePath, sourceText, configDir, importAliases)
+    for (const declaration of declarations) {
+      collectDeclarationImplementerKeys(
+        importedByRole,
+        declaration,
+        declarations,
+        importedReferences,
+        filePath,
+      )
     }
   }
   return importedByRole
+}
+
+function collectDeclarationImplementerKeys(
+  importedByRole,
+  declaration,
+  declarations,
+  importedReferences,
+  filePath,
+) {
+  const referencedNames = readReferencedIdentifiers(declaration.region)
+  for (const reference of importedReferences) {
+    if (!referencedNames.has(reference.localName)) {
+      continue
+    }
+    addImplementerKeys(importedByRole, declaration.role, reference.keys)
+  }
+  for (const sibling of declarations) {
+    if (sibling === declaration || !referencedNames.has(sibling.name)) {
+      continue
+    }
+    addImplementerKeys(importedByRole, declaration.role, [
+      `${normalizePath(filePath)}::${sibling.name}`,
+    ])
+  }
+}
+
+function addImplementerKeys(importedByRole, roleName, keys) {
+  const existing = importedByRole.get(roleName) ?? new Set()
+  for (const key of keys) {
+    existing.add(key)
+  }
+  importedByRole.set(roleName, existing)
+}
+
+function readReferencedIdentifiers(region) {
+  return new Set(region.match(/[A-Za-z_$][\w$]*/g) ?? [])
 }
 
 function collectWorkspaceSourceFiles(configDir, ignorePatterns) {
@@ -2871,38 +2900,54 @@ function collectWorkspaceSourceFiles(configDir, ignorePatterns) {
 }
 
 function readRoleDeclarations(sourceText) {
-  const declarations = []
   const lines = sourceText.split('\n')
+  const annotations = []
   for (let i = 0; i < lines.length; i++) {
     const roleName = parseSingleRoleName(lines[i], 'workspace scan')
-    if (roleName === null) {
+    if (roleName !== null) {
+      annotations.push({ role: roleName, line: i })
+    }
+  }
+  const declarations = []
+  for (let index = 0; index < annotations.length; index++) {
+    const annotation = annotations[index]
+    const name = readRoleDeclarationName(lines, annotation.line)
+    if (name === null) {
       continue
     }
-    for (let j = i + 1; j < lines.length; j++) {
-      const trimmed = lines[j].trim()
-      if (
-        trimmed === '' ||
-        trimmed.startsWith('*') ||
-        trimmed.startsWith('/**') ||
-        trimmed.startsWith('//')
-      ) {
-        continue
-      }
-      const match =
-        /^export\s+(?:declare\s+)?(?:interface|type|function|class|const|enum)\s+([A-Za-z_$][\w$]*)/.exec(
-          trimmed,
-        )
-      if (match !== null) {
-        declarations.push({ role: roleName, name: match[1] })
-      }
-      break
-    }
+    const nextAnnotation = annotations[index + 1]
+    const regionEnd = nextAnnotation === undefined ? lines.length : nextAnnotation.line
+    declarations.push({
+      role: annotation.role,
+      name,
+      region: lines.slice(annotation.line, regionEnd).join('\n'),
+    })
   }
   return declarations
 }
 
-function readImportedDeclarationKeys(filePath, sourceText, configDir, importAliases) {
-  const keys = []
+function readRoleDeclarationName(lines, annotationLine) {
+  for (let j = annotationLine + 1; j < lines.length; j++) {
+    const trimmed = lines[j].trim()
+    if (
+      trimmed === '' ||
+      trimmed.startsWith('*') ||
+      trimmed.startsWith('/**') ||
+      trimmed.startsWith('//')
+    ) {
+      continue
+    }
+    const match =
+      /^export\s+(?:declare\s+)?(?:interface|type|function|class|const|enum)\s+([A-Za-z_$][\w$]*)/.exec(
+        trimmed,
+      )
+    return match === null ? null : match[1]
+  }
+  return null
+}
+
+function readImportedReferences(filePath, sourceText, configDir, importAliases) {
+  const references = []
   let searchIndex = 0
   while (searchIndex < sourceText.length) {
     const importIndex = sourceText.indexOf('import ', searchIndex)
@@ -2923,19 +2968,36 @@ function readImportedDeclarationKeys(filePath, sourceText, configDir, importAlia
     if (resolvedFile === null) {
       continue
     }
-    for (const name of readNamedImportBindings(sourceText.slice(importIndex, fromIndex))) {
-      for (const origin of resolveImportedOrigins(
-        resolvedFile,
-        name,
-        configDir,
-        importAliases,
-        new Set(),
-      )) {
-        keys.push(`${normalizePath(origin.file)}::${origin.name}`)
-      }
-    }
+    const clause = sourceText.slice(importIndex, fromIndex)
+    references.push(...readImportReferenceBindings(clause, resolvedFile, configDir, importAliases))
   }
-  return keys
+  return references
+}
+
+function readImportReferenceBindings(clause, resolvedFile, configDir, importAliases) {
+  const importedNames = readNamedImportBindings(clause)
+  const localNames = readNamedImportLocalNames(clause)
+  return importedNames.map((name, index) => ({
+    localName: localNames[index] ?? name,
+    keys: resolveImportedOrigins(resolvedFile, name, configDir, importAliases, new Set()).map(
+      (origin) => `${normalizePath(origin.file)}::${origin.name}`,
+    ),
+  }))
+}
+
+function readNamedImportLocalNames(clause) {
+  const openIndex = clause.indexOf('{')
+  const closeIndex = clause.indexOf('}', openIndex + 1)
+  if (openIndex < 0 || closeIndex < 0) {
+    return []
+  }
+  return clause
+    .slice(openIndex + 1, closeIndex)
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part !== '')
+    .map((part) => (part.startsWith('type ') ? part.slice('type '.length) : part))
+    .map((part) => part.split(' as ').at(-1).trim())
 }
 
 function resolveImportedOrigins(filePath, exportedName, configDir, importAliases, visited) {
@@ -2974,11 +3036,26 @@ function resolveImportedOrigins(filePath, exportedName, configDir, importAliases
 }
 
 function declaresExport(sourceText, exportedName) {
-  const pattern = new RegExp(
-    `^export\\s+(?:declare\\s+)?(?:interface|type|function|class|const|enum)\\s+${escapeRegExp(exportedName)}\\b`,
-    'm',
-  )
-  return pattern.test(sourceText)
+  for (const rawLine of sourceText.split('\n')) {
+    const line = rawLine.trim()
+    if (!line.startsWith('export ')) {
+      continue
+    }
+    const declaration = line.slice('export '.length).replace(/^declare\s+/, '')
+    const keywordMatch = /^(interface|type|function|class|const|enum)\s+/.exec(declaration)
+    if (keywordMatch === null) {
+      continue
+    }
+    const remainder = declaration.slice(keywordMatch[0].length)
+    if (!remainder.startsWith(exportedName)) {
+      continue
+    }
+    const followingCharacter = remainder.charAt(exportedName.length)
+    if (followingCharacter === '' || !/\w/.test(followingCharacter)) {
+      return true
+    }
+  }
+  return false
 }
 
 function readReexportStatements(sourceText) {
@@ -3453,8 +3530,167 @@ function readRelativeFilePath(filename, configDir) {
   return path.isAbsolute(filename) ? path.relative(configDir, filename) : filename
 }
 
-function escapeRegExp(value) {
-  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)
+const EXPORTED_DECLARATION_KEYWORDS = ['interface', 'type', 'function', 'class']
+
+function isWordCharacter(character) {
+  if (character === undefined) {
+    return false
+  }
+  return /\w/.test(character)
+}
+
+function skipWhitespace(text, index) {
+  let cursor = index
+  while (cursor < text.length && /\s/.test(text[cursor])) {
+    cursor += 1
+  }
+  return cursor
+}
+
+function matchesKeywordAt(text, index, keyword) {
+  return (
+    text.startsWith(keyword, index) &&
+    !isWordCharacter(text[index - 1]) &&
+    !isWordCharacter(text[index + keyword.length])
+  )
+}
+
+function readIdentifierEnd(text, index) {
+  let cursor = index
+  while (cursor < text.length && isWordCharacter(text[cursor])) {
+    cursor += 1
+  }
+  return cursor
+}
+
+function containsWholeWord(text, word) {
+  let index = text.indexOf(word)
+  while (index >= 0) {
+    if (!isWordCharacter(text[index - 1]) && !isWordCharacter(text[index + word.length])) {
+      return true
+    }
+    index = text.indexOf(word, index + 1)
+  }
+  return false
+}
+
+function matchAsyncKeyword(text, index) {
+  if (!matchesKeywordAt(text, index, 'async')) {
+    return index
+  }
+  const afterAsync = skipWhitespace(text, index + 'async'.length)
+  return afterAsync === index + 'async'.length ? index : afterAsync
+}
+
+function readExportedDeclarationAt(text, exportIndex, exportedName) {
+  const afterExport = skipWhitespace(text, exportIndex + 'export'.length)
+  if (afterExport === exportIndex + 'export'.length) {
+    return null
+  }
+  const keywordIndex = skipWhitespace(text, matchAsyncKeyword(text, afterExport))
+  const keyword = EXPORTED_DECLARATION_KEYWORDS.find((candidate) =>
+    matchesKeywordAt(text, keywordIndex, candidate),
+  )
+  if (keyword === undefined) {
+    return null
+  }
+  const nameIndex = skipWhitespace(text, keywordIndex + keyword.length)
+  if (nameIndex === keywordIndex + keyword.length) {
+    return null
+  }
+  if (!text.startsWith(exportedName, nameIndex)) {
+    return null
+  }
+  if (isWordCharacter(text[nameIndex + exportedName.length])) {
+    return null
+  }
+  return {
+    bodyIndex: skipWhitespace(text, nameIndex + exportedName.length),
+    exportIndex,
+    keyword,
+  }
+}
+
+function findExportedDeclaration(text, exportedName) {
+  let searchFrom = 0
+  while (true) {
+    const exportIndex = text.indexOf('export', searchFrom)
+    if (exportIndex < 0) {
+      return null
+    }
+    searchFrom = exportIndex + 1
+    const declaration = readExportedDeclarationAt(text, exportIndex, exportedName)
+    if (declaration !== null) {
+      return declaration
+    }
+  }
+}
+
+function readSingleParameterTypeName(text, index) {
+  let cursor = skipWhitespace(text, index)
+  if (text[cursor] !== '(') {
+    return null
+  }
+  cursor = skipWhitespace(text, cursor + 1)
+  const parameterEnd = readIdentifierEnd(text, cursor)
+  if (parameterEnd === cursor) {
+    return null
+  }
+  cursor = skipWhitespace(text, parameterEnd)
+  if (text[cursor] !== ':') {
+    return null
+  }
+  cursor = skipWhitespace(text, cursor + 1)
+  const typeEnd = readIdentifierEnd(text, cursor)
+  return typeEnd === cursor ? null : text.slice(cursor, typeEnd)
+}
+
+function readInterfaceBody(text, index) {
+  if (text[index] !== '{') {
+    return null
+  }
+  const bodyEnd = text.indexOf('\n}', index + 1)
+  return bodyEnd < 0 ? null : text.slice(index + 1, bodyEnd)
+}
+
+function matchNamedReExportAt(text, exportIndex, exportedName) {
+  let cursor = skipWhitespace(text, exportIndex + 'export'.length)
+  if (matchesKeywordAt(text, cursor, 'type')) {
+    cursor = skipWhitespace(text, cursor + 'type'.length)
+  }
+  if (text[cursor] !== '{') {
+    return null
+  }
+  const clauseEnd = text.indexOf('}', cursor + 1)
+  if (clauseEnd < 0 || !containsWholeWord(text.slice(cursor + 1, clauseEnd), exportedName)) {
+    return null
+  }
+  const fromIndex = skipWhitespace(text, clauseEnd + 1)
+  if (!matchesKeywordAt(text, fromIndex, 'from')) {
+    return null
+  }
+  const quoteIndex = skipWhitespace(text, fromIndex + 'from'.length)
+  const quote = text[quoteIndex]
+  if (quote !== "'" && quote !== '"') {
+    return null
+  }
+  const quoteEnd = text.indexOf(quote, quoteIndex + 1)
+  return quoteEnd < 0 ? null : { sourcePath: text.slice(quoteIndex + 1, quoteEnd) }
+}
+
+function findNamedReExport(text, exportedName) {
+  let searchFrom = 0
+  while (true) {
+    const exportIndex = text.indexOf('export', searchFrom)
+    if (exportIndex < 0) {
+      return null
+    }
+    searchFrom = exportIndex + 1
+    const namedReExport = matchNamedReExportAt(text, exportIndex, exportedName)
+    if (namedReExport !== null) {
+      return namedReExport
+    }
+  }
 }
 
 function readImportDeclarationReference(

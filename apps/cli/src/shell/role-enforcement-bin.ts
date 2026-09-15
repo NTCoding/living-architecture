@@ -3,6 +3,7 @@ import { performance } from 'node:perf_hooks'
 import { fileURLToPath } from 'node:url'
 import {
   createOxlintRoleEnforcementRunner,
+  PackageConfigFilter,
   RoleEnforcementProjectRepository,
   RunRoleEnforcement,
   runOxlint,
@@ -23,7 +24,7 @@ if (configModulePath === undefined) {
   )
   const application = new RunRoleEnforcement({
     now: () => performance.now(),
-    projectRepository: new RoleEnforcementProjectRepository(),
+    projectRepository: new RoleEnforcementProjectRepository(new PackageConfigFilter()),
     runner: createOxlintRoleEnforcementRunner(runOxlint, pluginPath),
   })
   process.exitCode = main({

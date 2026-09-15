@@ -5,6 +5,7 @@ import {
   RoleEnforcementConfiguration,
 } from './role-enforcement-builder'
 import { RoleEnforcementProject } from './role-enforcement-project'
+import { PackageConfigFilter } from './package-config-filter'
 
 const config: RoleEnforcementConfiguration = RoleEnforcementConfiguration.parse({
   configurations: {
@@ -23,10 +24,12 @@ it('executes the complete project when no package filter is provided', () => {
     stderr: '',
     stdout: '',
   }))
-  const project = new RoleEnforcementProject(config, '/repo', [
-    'packages/pkg-a/src/index.ts',
-    'packages/pkg-b/src/index.ts',
-  ])
+  const project = new RoleEnforcementProject(
+    config,
+    '/repo',
+    ['packages/pkg-a/src/index.ts', 'packages/pkg-b/src/index.ts'],
+    new PackageConfigFilter(),
+  )
 
   project.execute(runner)
 
@@ -43,11 +46,16 @@ it('selects package configuration and targets during execution', () => {
     stderr: '',
     stdout: '',
   }))
-  const project = new RoleEnforcementProject(config, '/repo', [
-    'packages/pkg-a/src/index.ts',
-    'packages/pkg-a/src/index.spec.ts',
-    'packages/pkg-b/src/index.ts',
-  ])
+  const project = new RoleEnforcementProject(
+    config,
+    '/repo',
+    [
+      'packages/pkg-a/src/index.ts',
+      'packages/pkg-a/src/index.spec.ts',
+      'packages/pkg-b/src/index.ts',
+    ],
+    new PackageConfigFilter(),
+  )
 
   project.execute(runner, 'packages/pkg-a')
 

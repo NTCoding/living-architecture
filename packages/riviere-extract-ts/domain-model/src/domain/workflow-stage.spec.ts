@@ -27,7 +27,7 @@ describe('WorkflowStage', () => {
       connections: { eventPublishers: [eventPublisher], httpLinks: [httpLink] },
       schema: 'schema.json',
     }
-    const stage = WorkflowStage.fromCodeExtraction('extract', config)
+    const stage = WorkflowStage.fromCodeExtraction('extract', config, 'orders.yml')
 
     modules.length = 0
     eventPublisher.metadataKey = 'changed'
@@ -37,6 +37,7 @@ describe('WorkflowStage', () => {
     expect(stage.value).toStrictEqual({
       kind: 'code-extraction',
       name: 'extract',
+      configPath: 'orders.yml',
       config: {
         modules: validatedConfig.modules,
         connections: {
@@ -56,15 +57,20 @@ describe('WorkflowStage', () => {
 
   it('retains an empty connection configuration', () => {
     const validatedConfig = configuration().resolvedConfig
-    const stage = WorkflowStage.fromCodeExtraction('extract', {
-      modules: validatedConfig.modules,
-      connections: {},
-      schema: undefined,
-    })
+    const stage = WorkflowStage.fromCodeExtraction(
+      'extract',
+      {
+        modules: validatedConfig.modules,
+        connections: {},
+        schema: undefined,
+      },
+      'orders.yml',
+    )
 
     expect(stage.value).toStrictEqual({
       kind: 'code-extraction',
       name: 'extract',
+      configPath: 'orders.yml',
       config: {
         modules: validatedConfig.modules,
         connections: {},
@@ -75,16 +81,21 @@ describe('WorkflowStage', () => {
 
   it('copies a code extraction config with undefined connections and allowIncomplete', () => {
     const validatedConfig = configuration().resolvedConfig
-    const stage = WorkflowStage.fromCodeExtraction('extract', {
-      allowIncomplete: true,
-      modules: validatedConfig.modules,
-      connections: undefined,
-      schema: undefined,
-    })
+    const stage = WorkflowStage.fromCodeExtraction(
+      'extract',
+      {
+        allowIncomplete: true,
+        modules: validatedConfig.modules,
+        connections: undefined,
+        schema: undefined,
+      },
+      'orders.yml',
+    )
 
     expect(stage.value).toStrictEqual({
       kind: 'code-extraction',
       name: 'extract',
+      configPath: 'orders.yml',
       config: {
         allowIncomplete: true,
         modules: validatedConfig.modules,

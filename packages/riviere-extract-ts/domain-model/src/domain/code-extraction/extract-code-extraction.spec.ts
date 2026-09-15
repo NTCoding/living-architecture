@@ -79,8 +79,8 @@ describe('extractCodeExtraction', () => {
 
     assert(result.kind === 'full')
     expect(result.diagnostics.map((diagnostic) => diagnostic.value)).toStrictEqual([
-      { kind: 'missing-field', componentId: 'PlaceOrder', field: 'route' },
-      { kind: 'missing-field', componentId: 'PlaceOrder', field: 'operationName' },
+      { kind: 'missing-field', componentId: 'orders:orders:useCase:placeorder', field: 'route' },
+      { kind: 'missing-field', componentId: 'orders:orders:useCase:placeorder', field: 'operationName' },
       {
         kind: 'uncertain-link',
         source: 'a',
@@ -114,5 +114,19 @@ describe('extractCodeExtraction', () => {
     assert(result.kind === 'full')
     expect(result.failedFields).toStrictEqual(['route'])
     expect(result.components).toHaveLength(1)
+  })
+
+  it('honours an explicit strict caller override over a lenient configuration', () => {
+    const result = extractCodeExtraction({
+      extraction: configuration(undefined, true),
+      modules: modulesPort([enriched([])], [failure('route')]),
+      allowIncomplete: false,
+      detectConnections: noLinks,
+    })
+
+    expect(result).toStrictEqual({
+      kind: 'fieldFailure',
+      failedFields: ['route'],
+    })
   })
 })

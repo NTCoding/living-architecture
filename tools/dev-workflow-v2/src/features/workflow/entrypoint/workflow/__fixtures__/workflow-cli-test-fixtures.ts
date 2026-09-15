@@ -4,9 +4,11 @@ import { tmpdir } from 'node:os'
 import { type WorkflowEngineDeps } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { createStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store'
 import type { RunnerResult } from '@nt-ai-lab/deterministic-agent-workflow-cli'
-import { WorkflowDependencies } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
+import { configureWorkflow, WorkflowDependencies } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
 import { STATE_STEPS } from './workflow-cli-state-steps-test-fixtures'
 import { runner } from './workflow-cli-test-runner'
+
+const workflowDefinition = configureWorkflow({})
 
 class WorkflowProgressionTestError extends Error {}
 
@@ -72,6 +74,9 @@ export function buildTestContext(overrides: WorkflowCliOverrides = {}): TestCont
     listSessionReviews: () => store.listSessionReviews(sessionId),
     sleepMs: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
+    parseWorkflowEvent: workflowDefinition.parseEvent,
+    readInitialWorkflowState: workflowDefinition.initialState,
+    buildRecordingOperations: workflowDefinition.buildRecordingOperations,
   })
 
   return {

@@ -21,6 +21,7 @@ const document: AsyncApiDocument = {
 describe('executeAsyncApiImportStage failures', () => {
   it('reports a document load failure as a typed stage failure', async () => {
     const outcome = await executeAsyncApiImportStage(asyncApiBuilder(), asyncApiImportConfig(), {
+      ...collaborators(),
       loadEventCatalogSource: () => Promise.resolve({ domains: [], services: [], events: [] }),
       loadAsyncApiDocument: () => Promise.reject(new DocumentLoadFailure('boom')),
       loadCodeExtraction: () => {

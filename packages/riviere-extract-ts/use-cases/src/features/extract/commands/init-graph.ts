@@ -1,10 +1,6 @@
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { GraphOnlyProjectStartInput } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project-start-inputs'
-import type {
-  LoadEventCatalogSource,
-  RiviereProjectCollaborators,
-} from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
-import type { LoadAsyncApiDocument } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-asyncapi-document'
+import type { RiviereProjectRepositoryCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
 import { GraphCorruptedError } from '../data-access/riviere-project/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-project/graph-not-found-error'
 import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
@@ -16,9 +12,7 @@ import type { InitGraphResult } from './init-graph-result'
 export class InitGraph {
   constructor(
     private readonly repository: RiviereProjectRepository,
-    private readonly loadEventCatalogSource: LoadEventCatalogSource,
-    private readonly loadAsyncApiDocument: LoadAsyncApiDocument,
-    private readonly loadCodeExtraction: RiviereProjectCollaborators['loadCodeExtraction'],
+    private readonly collaborators: RiviereProjectRepositoryCollaborators,
   ) {}
 
   execute(input: InitGraphInput): InitGraphResult {
@@ -81,9 +75,7 @@ export class InitGraph {
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
         const project = RiviereProject.start(GraphOnlyProjectStartInput.from(builderOptions), {
-          loadEventCatalogSource: this.loadEventCatalogSource,
-          loadAsyncApiDocument: this.loadAsyncApiDocument,
-          loadCodeExtraction: this.loadCodeExtraction,
+          ...this.collaborators,
           repositoryName: primarySource,
         })
         this.repository.save(input.graphFileLocation, project)

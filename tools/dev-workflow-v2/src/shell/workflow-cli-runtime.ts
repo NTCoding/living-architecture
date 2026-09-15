@@ -93,6 +93,9 @@ function buildWorkflowDeps(platform: PlatformContext): WorkflowDependencies {
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,
+    parseWorkflowEvent: workflowDefinition.parseEvent,
+    readInitialWorkflowState: workflowDefinition.initialState,
+    buildRecordingOperations: workflowDefinition.buildRecordingOperations,
   })
 }
 

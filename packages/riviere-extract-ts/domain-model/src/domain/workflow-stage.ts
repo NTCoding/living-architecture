@@ -10,7 +10,7 @@ type CodeExtractionStage = Readonly<{
   kind: 'code-extraction'
   name: string
   config: CodeExtractionConfig
-  configPath?: string
+  configPath: string
 }>
 
 type EventCatalogImportStage = Readonly<{
@@ -54,11 +54,16 @@ type WorkflowStageValue =
 export class WorkflowStage {
   declare private readonly brand: 'WorkflowStage'
 
-  static fromCodeExtraction(name: string, config: CodeExtractionConfig): WorkflowStage {
+  static fromCodeExtraction(
+    name: string,
+    config: CodeExtractionConfig,
+    configPath: string,
+  ): WorkflowStage {
     return new WorkflowStage({
       kind: 'code-extraction',
       name,
       config: copyCodeExtractionConfig(config),
+      configPath,
     })
   }
 

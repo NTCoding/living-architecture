@@ -36,11 +36,25 @@ function defaultReadRoleDefinitionFileNames(directoryPath: string): readonly str
     .map((entry) => entry.name)
 }
 
+type RoleEnforcementConfigurationFiltering = {
+  forPackage(
+    config: RoleEnforcementConfiguration,
+    packagePath: string,
+  ): RoleEnforcementConfiguration
+  selectLintTargets(
+    lintTargets: readonly string[],
+    config: RoleEnforcementConfiguration,
+  ): readonly string[]
+}
+
 /** @riviere-role aggregate-repository */
 export class RoleEnforcementProjectRepository {
   private readonly dependencies: typeof defaultDependencies
 
-  constructor(dependencies: Partial<typeof defaultDependencies> = {}) {
+  constructor(
+    private readonly packageConfigFilter: RoleEnforcementConfigurationFiltering,
+    dependencies: Partial<typeof defaultDependencies> = {},
+  ) {
     this.dependencies = {
       ...defaultDependencies,
       ...dependencies,
@@ -80,7 +94,12 @@ export class RoleEnforcementProjectRepository {
       config.ignorePatterns,
       this.dependencies.readDirectory,
     )
-    return new RoleEnforcementProject(config, canonicalConfigDir, lintTargets)
+    return new RoleEnforcementProject(
+      config,
+      canonicalConfigDir,
+      lintTargets,
+      this.packageConfigFilter,
+    )
   }
 }
 

@@ -6,6 +6,7 @@ import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, assert, describe, expect, it } from 'vitest'
 import { RiviereProjectRepository } from './riviere-project-repository'
+import { configureExtraction } from '../../commands/configure-extraction'
 
 function writeWorkflow(directory: string): void {
   writeFileSync(
@@ -52,8 +53,9 @@ describe('RiviereProjectRepository EventCatalog workflow', () => {
   it('runs an EventCatalog import stage through the supplied port', async () => {
     const directory = workspace()
     writeWorkflow(directory)
-    const repository = new RiviereProjectRepository(
-      () =>
+    const extractionConfiguration = configureExtraction({})
+    const repository = new RiviereProjectRepository({
+      loadEventCatalogSource: () =>
         Promise.resolve({
           domains: [],
           services: [
@@ -61,9 +63,11 @@ describe('RiviereProjectRepository EventCatalog workflow', () => {
           ],
           events: [{ id: 'OrderCreated', name: 'Order Created' }],
         }),
-      () => Promise.resolve({ messages: [], operations: [] }),
-      () => [],
-    )
+      loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
+      loadCodeExtraction: () => [],
+      extractionBehaviour: extractionConfiguration.extractionBehaviour(),
+      moduleExtractionRules: extractionConfiguration.moduleExtractionRules(),
+    })
 
     const project = repository.load({
       kind: 'workflow',

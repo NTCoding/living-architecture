@@ -1,4 +1,5 @@
 import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
+import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
 import type { ExtractedLink } from '../connection-detection/extracted-link'
 import type { ExtractionConfiguration } from '../extraction-configuration'
 import type { CodeExtractionModules } from '../ports/code-extraction-modules'
@@ -36,7 +37,7 @@ export function extractCodeExtraction(input: {
     allowIncomplete: boolean
   }) => ConnectionDetection
 }): CodeExtractionCompletion {
-  const allowIncomplete = input.allowIncomplete === true || input.extraction.allowIncomplete
+  const allowIncomplete = input.allowIncomplete ?? input.extraction.allowIncomplete
   const enrichment = input.modules
     .filter((module) => module.draftComponents().length > 0)
     .map((module) => module.enrichDraftComponents())
@@ -70,7 +71,7 @@ function codeExtractionDiagnostics(
   return [
     ...components.flatMap((component) =>
       (component._missing ?? []).map((field) =>
-        WorkflowDiagnostic.fromMissingField(component.name, field),
+        WorkflowDiagnostic.fromMissingField(ComponentId.parseFromParts(component).toString(), field),
       ),
     ),
     ...links.flatMap((link) =>

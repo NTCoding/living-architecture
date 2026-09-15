@@ -8,8 +8,9 @@ import {
 } from '@living-architecture/riviere-builder-published-language'
 import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest'
-import { RiviereProject } from './riviere-project'
+import { RiviereProject, type RiviereProjectCollaborators } from './riviere-project'
 import { InvalidWorkflowDefinitionError } from './riviere-project-errors'
+import { MissingModuleSourceError } from './extraction-errors'
 import { WorkflowRunMode } from './workflow'
 import { WorkflowStage } from './workflow-stage'
 import { collaborators, configuration } from './__fixtures__/workflow-fixtures'
@@ -38,23 +39,36 @@ function graphDefinition() {
   }
 }
 
-function project(stages?: readonly WorkflowStage[]): RiviereProject {
-  const result =
-    stages === undefined
-      ? RiviereProject.start(GraphOnlyProjectStartInput.from(graphDefinition()), collaborators())
-      : RiviereProject.start(
-          GraphWithWorkflowStartInput.from(
-            graphDefinition(),
-            WorkflowStartInput.from({
-              name: 'build-graph',
-              outputPath: '/project/.riviere/graph.json',
-              runLogDirectory: '/project/.riviere/logs',
-              stages,
-            }),
-          ),
-          collaborators(),
-        )
-  return result
+function project(
+  stages?: readonly WorkflowStage[],
+  loadCodeExtraction?: RiviereProjectCollaborators['loadCodeExtraction'],
+): RiviereProject {
+  if (stages === undefined) {
+    return RiviereProject.start(
+      GraphOnlyProjectStartInput.from(graphDefinition()),
+      collaborators(),
+    )
+  }
+  return RiviereProject.start(
+    GraphWithWorkflowStartInput.from(
+      graphDefinition(),
+      WorkflowStartInput.from({
+        name: 'build-graph',
+        outputPath: '/project/.riviere/graph.json',
+        runLogDirectory: '/project/.riviere/logs',
+        stages,
+      }),
+    ),
+    withCodeExtractionLoader(loadCodeExtraction),
+  )
+}
+
+function withCodeExtractionLoader(
+  loadCodeExtraction?: RiviereProjectCollaborators['loadCodeExtraction'],
+): RiviereProjectCollaborators {
+  return loadCodeExtraction === undefined
+    ? collaborators()
+    : { ...collaborators(), loadCodeExtraction }
 }
 
 function addExistingComponent(subject: RiviereProject): void {
@@ -162,10 +176,19 @@ describe('RiviereProject Workflow rebuild', () => {
   })
 
   it('retains completed transition evidence after a later failure', async () => {
-    const subject = project([
-      WorkflowStage.fromSchemaValidation('validate'),
-      WorkflowStage.fromCodeExtraction('extract', configuration().resolvedConfig),
-    ])
+    const subject = project(
+      [
+        WorkflowStage.fromSchemaValidation('validate'),
+        WorkflowStage.fromCodeExtraction(
+          'extract',
+          configuration().resolvedConfig,
+          'extraction.yml',
+        ),
+      ],
+      () => {
+        throw new MissingModuleSourceError('orders')
+      },
+    )
 
     const result = await subject.rebuildGraph()
 
@@ -177,10 +200,19 @@ describe('RiviereProject Workflow rebuild', () => {
   })
 
   it('restores prior state after a later failure', async () => {
-    const subject = project([
-      WorkflowStage.fromSchemaValidation('validate'),
-      WorkflowStage.fromCodeExtraction('extract', configuration().resolvedConfig),
-    ])
+    const subject = project(
+      [
+        WorkflowStage.fromSchemaValidation('validate'),
+        WorkflowStage.fromCodeExtraction(
+          'extract',
+          configuration().resolvedConfig,
+          'extraction.yml',
+        ),
+      ],
+      () => {
+        throw new MissingModuleSourceError('orders')
+      },
+    )
     addExistingComponent(subject)
 
     const result = await subject.rebuildGraph()
@@ -282,7 +314,11 @@ describe('RiviereProject Workflow rebuild', () => {
           outputPath: 'graph.json',
           runLogDirectory: 'logs',
           stages: [
-            WorkflowStage.fromCodeExtraction('same', configuration().resolvedConfig),
+            WorkflowStage.fromCodeExtraction(
+              'same',
+              configuration().resolvedConfig,
+              'extraction.yml',
+            ),
             WorkflowStage.fromSchemaValidation('same'),
           ],
         }),
@@ -297,7 +333,11 @@ describe('RiviereProject Workflow rebuild', () => {
         outputPath: 'graph.json',
         runLogDirectory: 'logs',
         stages: [
-          WorkflowStage.fromCodeExtraction('same', configuration().resolvedConfig),
+          WorkflowStage.fromCodeExtraction(
+            'same',
+            configuration().resolvedConfig,
+            'extraction.yml',
+          ),
           WorkflowStage.fromSchemaValidation('same'),
         ],
       }),

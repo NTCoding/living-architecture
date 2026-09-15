@@ -5,7 +5,7 @@ import { ExtractionConfiguration } from './extraction-configuration'
 import { MissingModuleSourceError } from './extraction-errors'
 import { RiviereModule } from './riviere-module'
 import { RiviereProject } from './riviere-project'
-import { collaborators } from './__fixtures__/workflow-fixtures'
+import { collaborators, moduleExtractionRules } from './__fixtures__/workflow-fixtures'
 import {
   ExtractionProjectStartInput,
   GraphOnlyProjectStartInput,
@@ -195,8 +195,8 @@ describe('RiviereProject graph behaviour', () => {
     const configuration = extractionConfiguration()
     Object.assign(configuration, { moduleContexts: [] })
 
-    expect(() => RiviereModule.fromConfiguration(configuration, [])).toThrowError(
-      new MissingModuleSourceError('orders'),
-    )
+    expect(() =>
+      RiviereModule.fromConfiguration(configuration, [], moduleExtractionRules()),
+    ).toThrowError(new MissingModuleSourceError('orders'))
   })
 })
