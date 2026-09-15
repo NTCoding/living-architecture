@@ -31,7 +31,7 @@ import { globSourceFiles } from '../../../../infra/external-clients/glob/glob-so
 import { GitError } from '../../../../infra/external-clients/git/git-errors'
 import { getRepositoryInfo } from '../../../../infra/external-clients/git/git-repository-info'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
-import type { RiviereProjectCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
+import type { RiviereProjectCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { ExtractionConfiguration } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-configuration'
 import { ExtractionConfigError } from './riviere-config-error'
 import { ExtractionDataAccessError } from './riviere-project-error'
@@ -133,11 +133,10 @@ export class RiviereProjectRepository {
   }
   private loadWorkflowDefinition(workflowPath: string): WorkflowDefinition {
     const definition = parseWorkflowDefinition(this.readConfigYaml(workflowPath))
-    if (!definition.success)
-      throw new ExtractionConfigError(
-        'VALIDATION_ERROR',
-        `Invalid workflow: ${definition.issues.join('\n')}`,
-      )
+    if (!definition.success) {
+      const reason = `Invalid workflow: ${definition.issues.join('\n')}`
+      throw new ExtractionConfigError('VALIDATION_ERROR', reason)
+    }
     return definition.definition
   }
 
@@ -161,15 +160,13 @@ export class RiviereProjectRepository {
     const configDirectory = dirname(configPath)
     const file = this.readConfigYaml(configPath)
     switch (stage.kind) {
-      case 'code-extraction': {
-        const configuration = this.loadParsedConfigState(configPath).configuration
+      case 'code-extraction':
         return {
           kind: 'code-extraction',
           name: stage.name,
           configPath,
-          config: configuration,
+          config: this.loadParsedConfigState(configPath).configuration,
         }
-      }
       case 'eventcatalog-import': {
         const config = parseEventCatalogImportConfig(file)
         if (!config.success)
@@ -282,19 +279,17 @@ export class RiviereProjectRepository {
     const configPath = resolve(params.projectRoot, params.configPath)
     const state = this.loadParsedConfigState(configPath)
     this.resolveSourceFilePaths(state)
-    const repositoryName = this.repositoryName(params.projectRoot)
-    const useTsConfig = params.useTsConfig
     return ExtractionConfiguration.parse({
       name: configPath,
       configPath,
-      useTsConfig,
-      repositoryName,
+      useTsConfig: params.useTsConfig,
+      repositoryName: this.repositoryName(params.projectRoot),
       resolvedConfig: state.configuration,
       moduleContexts: this.loadCodeExtraction({
         config: state.configuration,
         configPath,
-        repositoryName,
-        useTsConfig,
+        repositoryName: this.repositoryName(params.projectRoot),
+        useTsConfig: params.useTsConfig,
       }),
     })
   }
@@ -347,7 +342,13 @@ export class RiviereProjectRepository {
     }
   }
 
-  private readConfigYaml(path: string): unknown { const result = readConfigYaml(path); if (!result.success) { throw new ExtractionConfigError(result.code, result.message) } return result.value }
+  private readConfigYaml(path: string): unknown {
+    const result = readConfigYaml(path)
+    if (!result.success) {
+      throw new ExtractionConfigError(result.code, result.message)
+    }
+    return result.value
+  }
 
   private resolveConfiguration(
     config: DraftConfiguration,

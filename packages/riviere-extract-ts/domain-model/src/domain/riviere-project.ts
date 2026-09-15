@@ -2,29 +2,28 @@ import {
   BuilderOptions,
   RiviereBuilder,
 } from '@living-architecture/riviere-builder-published-language'
+import type { CodeExtractionConfig } from '@living-architecture/riviere-extract-config-published-language'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { DraftComponent } from './component-extraction/draft-component'
-import { AsyncDetectionOptions } from './connection-detection/async-detection/async-detection-options'
+import type { EnrichedComponent } from './value-extraction/enriched-component'
+import { MissingModuleSourceError } from './extraction-errors'
+import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import { detectEventPublisherConnections } from './connection-detection/async-detection/detect-event-publisher-connections'
 import { detectSubscribeConnections } from './connection-detection/async-detection/detect-subscribe-connections'
-import { ComponentIndex } from './connection-detection/component-index'
-import { ConnectionDetectionResult } from './connection-detection/connection-detection-result'
 import { detectConnectionsFromCalls } from './connection-detection/call-graph/detect-connections-from-calls'
-import { ScopedCallGraph } from './connection-detection/call-graph/scoped-call-graph'
 import {
   resolveHttpLinks,
   stripResolvedCustomTypes,
 } from './connection-detection/resolve-http-links'
-import { type EnrichedComponent, EnrichmentResult } from './value-extraction/enriched-component'
+import { detectCodeExtractionConnections } from './code-extraction/detect-code-extraction-connections'
+import { extractCodeExtraction } from './code-extraction/extract-code-extraction'
 import { ExtractionConfiguration } from './extraction-configuration'
 import { executeEventCatalogImportStage } from './event-catalog/execute-event-catalog-import-stage'
 import { executeAsyncApiImportStage } from './asyncapi/execute-asyncapi-import-stage'
 import type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
+import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
+import type { CodeExtractionModules } from './ports/code-extraction-modules'
 import { RiviereModule } from './riviere-module'
-import {
-  assertEveryConfiguredModuleHasAnEntity,
-  assertNoUnassignedDraftComponents,
-} from './riviere-project-validation'
 import {
   ExtractionConfigurationUnavailableError,
   GraphStateUnavailableError,
@@ -32,21 +31,18 @@ import {
 } from './riviere-project-errors'
 import { Workflow, WorkflowRunMode } from './workflow'
 import { applyCodeExtractionToBuilder } from './code-extraction/apply-code-extraction-to-builder'
-import { executeCodeExtractionStage } from './code-extraction/execute-code-extraction-stage'
-import {
-  type CodeExtractionModule,
-  type ExtractionProjectStartInput,
-  type GraphOnlyProjectStartInput,
-  type GraphWithWorkflowStartInput,
-  type RiviereProjectStartInput,
-  type RiviereProjectStartResult,
-  type RiviereProjectStartSuccess,
-  type SourceFileSelection,
-  type WorkflowStartInput,
-  type WorkflowStageValue,
-  type ObserveConnectionDetectionPhase,
-  observePhase,
-} from './riviere-project-types'
+import type {
+  ExtractionProjectStartInput,
+  GraphOnlyProjectStartInput,
+  GraphWithWorkflowStartInput,
+  RiviereProjectStartInput,
+  RiviereProjectStartResult,
+  RiviereProjectStartSuccess,
+  WorkflowStartInput,
+} from './riviere-project-start-inputs'
+import type { WorkflowStageValue } from './workflow-stage'
+
+export type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
 /** @riviere-role aggregate */
 export class RiviereProject {
   private constructor(
@@ -209,35 +205,25 @@ export class RiviereProject {
       }
     }
     try {
-      const config = stage.config
-      const repositoryName = this.collaborators.repositoryName
-      const extraction = ExtractionConfiguration.parse({
-        name: configPath,
-        configPath,
-        useTsConfig: true,
-        repositoryName,
-        resolvedConfig: config,
-        moduleContexts: this.collaborators.loadCodeExtraction({
-          config,
-          configPath,
-          repositoryName,
-          useTsConfig: true,
-        }),
-      })
-      const result = this.extractFrom(extraction)
-      const components = stripResolvedCustomTypes(
-        result.components,
-        stage.config.connections?.httpLinks ?? [],
-        result.links,
-      )
+      const extraction = this.loadStageExtraction(stage.config, configPath)
+      const modules = RiviereModule.fromConfiguration(extraction, [])
+      modules.forEach((module) => module.extractAllDraftComponents())
+      const completion = this.extractFrom(extraction, modules, {})
+      if (completion.kind === 'fieldFailure') {
+        return {
+          success: false as const,
+          errorCode: 'EXTRACTION_FIELD_FAILURE',
+          reason: `Extraction failed for fields: ${completion.failedFields.join(', ')}`,
+        }
+      }
       const warnings = applyCodeExtractionToBuilder(
         this.graphBuilder(),
         this.collaborators.repositoryName,
-        components,
-        result.links,
-        result.externalLinks,
+        completion.components,
+        completion.links,
+        completion.externalLinks,
       )
-      return { success: true as const, diagnostics: result.diagnostics, warnings }
+      return { success: true as const, diagnostics: completion.diagnostics, warnings }
     } catch (error) {
       return {
         success: false as const,
@@ -246,88 +232,104 @@ export class RiviereProject {
       }
     }
   }
-  private extractFrom(extraction: ExtractionConfiguration) {
-    return executeCodeExtractionStage({
-      extraction,
-      createModules: (loadedExtraction) => RiviereModule.fromConfiguration(loadedExtraction, []),
-      detectConnections: (loadedExtraction, modules, components, allowIncomplete) =>
-        this.detectConnectionsUsing(loadedExtraction, modules, components, allowIncomplete),
+  private loadStageExtraction(
+    config: CodeExtractionConfig,
+    configPath: string,
+  ): ExtractionConfiguration {
+    const repositoryName = this.collaborators.repositoryName
+    const useTsConfig = true
+    return ExtractionConfiguration.parse({
+      name: configPath,
+      configPath,
+      useTsConfig,
+      repositoryName,
+      resolvedConfig: config,
+      moduleContexts: this.collaborators.loadCodeExtraction({
+        config,
+        configPath,
+        repositoryName,
+        useTsConfig,
+      }),
     })
   }
   extractDraftComponents(options: {
-    sourceFileSelection?: SourceFileSelection
+    sourceFileSelection?:
+      | { readonly kind: 'all' }
+      | { readonly kind: 'files'; readonly filePaths: readonly string[] }
     allowIncomplete?: boolean
     includeConnections: boolean
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
   }) {
-    assertEveryConfiguredModuleHasAnEntity(this.extractionConfiguration(), this.modules)
+    this.assertEveryConfiguredModuleHasAnEntity()
     const selection = options.sourceFileSelection ?? { kind: 'all' as const }
-    const draftComponents = this.modules.flatMap((module) =>
+    this.modules.forEach((module) =>
       selection.kind === 'all'
         ? module.extractAllDraftComponents()
         : module.extractDraftComponentsFrom(new Set(selection.filePaths)),
     )
     this.unassignedDraftComponents = []
-    return this.finishExtraction(draftComponents, options)
+    return this.finishExtraction(options)
   }
   enrichDraftComponents(options: {
     allowIncomplete?: boolean
     includeConnections: boolean
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
   }) {
-    assertEveryConfiguredModuleHasAnEntity(this.extractionConfiguration(), this.modules)
-    const draftComponents = this.modules.flatMap((module) => module.draftComponents())
-    return this.finishExtraction(draftComponents, options)
+    this.assertEveryConfiguredModuleHasAnEntity()
+    return this.finishExtraction(options)
   }
-  private finishExtraction(
-    draftComponents: readonly DraftComponent[],
-    options: {
-      allowIncomplete?: boolean
-      includeConnections: boolean
-      observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
-    },
-  ) {
+  private finishExtraction(options: {
+    allowIncomplete?: boolean
+    includeConnections: boolean
+    observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
+  }) {
     if (!options.includeConnections) {
-      return { kind: 'draftOnly' as const, components: draftComponents }
+      return {
+        kind: 'draftOnly' as const,
+        components: this.modules.flatMap((module) => module.draftComponents()),
+      }
     }
-    return this.enrichDraftComponentsAndDetectConnections({
-      allowIncomplete:
-        options.allowIncomplete === true || this.configuration?.allowIncomplete === true,
+    return this.extractFrom(this.extractionConfiguration(), this.modules, {
+      ...(options.allowIncomplete === undefined
+        ? {}
+        : { allowIncomplete: options.allowIncomplete }),
       ...(options.observeConnectionDetectionPhase === undefined
         ? {}
         : { observeConnectionDetectionPhase: options.observeConnectionDetectionPhase }),
     })
   }
-  private enrichDraftComponentsAndDetectConnections(options: {
-    allowIncomplete: boolean
-    observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
-  }) {
-    assertNoUnassignedDraftComponents(this.unassignedDraftComponents, this.modules)
-    const enrichment = EnrichmentResult.from(
-      this.modules
-        .filter((module) => module.draftComponents().length > 0)
-        .map((module) => module.enrichDraftComponents()),
-    )
-    const failedFields = enrichment.failedFieldNames()
-    if (enrichment.hasFailures() && !options.allowIncomplete) {
-      return { kind: 'fieldFailure' as const, failedFields }
-    }
-    const connectionResult = this.detectConnections(
-      enrichment.components,
-      options.allowIncomplete,
-      options.observeConnectionDetectionPhase,
-    )
-    const httpLinks = this.extractionConfiguration().resolvedConfig.connections?.httpLinks ?? []
+  private extractFrom(
+    extraction: ExtractionConfiguration,
+    modules: readonly RiviereModule[],
+    options: {
+      allowIncomplete?: boolean
+      observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
+    },
+  ) {
+    this.assertNoUnassignedDraftComponents()
+    const completion = extractCodeExtraction({
+      extraction,
+      modules,
+      ...(options.allowIncomplete === undefined
+        ? {}
+        : { allowIncomplete: options.allowIncomplete }),
+      detectConnections: (input) =>
+        this.detectConnectionsUsing(
+          input.extraction,
+          input.modules,
+          input.components,
+          input.allowIncomplete,
+          options.observeConnectionDetectionPhase,
+        ),
+    })
+    if (completion.kind === 'fieldFailure') return completion
     return {
-      kind: 'full' as const,
+      ...completion,
       components: stripResolvedCustomTypes(
-        enrichment.components,
-        httpLinks,
-        connectionResult.links,
+        completion.components,
+        extraction.resolvedConfig.connections?.httpLinks ?? [],
+        completion.links,
       ),
-      failedFields,
-      links: connectionResult.links,
-      externalLinks: connectionResult.externalLinks,
     }
   }
   public detectConnections(
@@ -345,63 +347,37 @@ export class RiviereProject {
   }
   private detectConnectionsUsing(
     configuration: ExtractionConfiguration,
-    modules: readonly CodeExtractionModule[],
+    modules: CodeExtractionModules,
     enrichedComponents: readonly EnrichedComponent[],
     allowIncomplete: boolean,
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase,
   ) {
-    return observePhase(observeConnectionDetectionPhase, 'total', () => {
-      const componentIndex = observePhase(observeConnectionDetectionPhase, 'setup', () =>
-        ComponentIndex.parse(enrichedComponents),
-      )
-      const strict = !allowIncomplete
-      const scopedCallGraphs = observePhase(observeConnectionDetectionPhase, 'callGraph', () =>
-        this.buildScopedCallGraphs(modules, enrichedComponents, componentIndex, strict),
-      )
-      return observePhase(observeConnectionDetectionPhase, 'detection', () => {
-        const connectionsDetectedFromCalls = scopedCallGraphs.flatMap((graph) =>
-          detectConnectionsFromCalls(graph, configuration.repositoryName),
-        )
-        const asyncOptions = AsyncDetectionOptions.parse({
-          strict,
-          repository: configuration.repositoryName,
-        })
-        const connectionsDetectedFromEvents = [
-          ...detectEventPublisherConnections(
-            enrichedComponents,
-            configuration.resolvedConfig.connections?.eventPublishers ?? [],
-            asyncOptions,
-          ),
-          ...detectSubscribeConnections(enrichedComponents, asyncOptions),
-        ]
-        const resolvedHttpConnections = resolveHttpLinks(
-          connectionsDetectedFromCalls,
-          enrichedComponents,
-          configuration.resolvedConfig.connections?.httpLinks ?? [],
-        )
-        return ConnectionDetectionResult.parse({
-          links: [...resolvedHttpConnections.links, ...connectionsDetectedFromEvents],
-          externalLinks: resolvedHttpConnections.externalLinks,
-        })
-      })
+    return detectCodeExtractionConnections({
+      extraction: configuration,
+      modules,
+      components: enrichedComponents,
+      allowIncomplete,
+      ...(observeConnectionDetectionPhase === undefined ? {} : { observeConnectionDetectionPhase }),
+      detectEventPublisherConnections,
+      detectSubscribeConnections,
+      detectConnectionsFromCalls,
+      resolveHttpLinks,
     })
   }
-  private buildScopedCallGraphs(
-    modules: readonly CodeExtractionModule[],
-    enrichedComponents: readonly EnrichedComponent[],
-    componentIndex: ComponentIndex,
-    strict: boolean,
-  ): ScopedCallGraph[] {
-    return modules.map((module) => {
-      const components = enrichedComponents.filter((component) => module.owns(component))
-      return ScopedCallGraph.from({
-        project: module.typeScriptProject(),
-        sourceFilePaths: module.sourceFilePaths(),
-        components,
-        componentIndex,
-        strict,
-      })
-    })
+  private assertEveryConfiguredModuleHasAnEntity(): void {
+    for (const configuredModule of this.extractionConfiguration().resolvedConfig.modules) {
+      if (!this.modules.some((module) => module.name() === configuredModule.name)) {
+        throw new MissingModuleSourceError(configuredModule.name)
+      }
+    }
+  }
+  private assertNoUnassignedDraftComponents(): void {
+    if (this.unassignedDraftComponents.length === 0) return
+    throw new OrphanedDraftComponentError(
+      [...new Set(this.unassignedDraftComponents.map((draft) => draft.domain))],
+      this.modules.map((module) => module.domain()),
+      'domains',
+    )
   }
   private extractionConfiguration(): ExtractionConfiguration {
     if (this.configuration === undefined) {

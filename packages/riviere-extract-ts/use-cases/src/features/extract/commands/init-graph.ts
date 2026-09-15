@@ -1,7 +1,9 @@
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
-import type { LoadEventCatalogSource } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
+import type {
+  LoadEventCatalogSource,
+  RiviereProjectCollaborators,
+} from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
 import type { LoadAsyncApiDocument } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-asyncapi-document'
-import type { RiviereProjectCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
 import { GraphCorruptedError } from '../data-access/riviere-project/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-project/graph-not-found-error'
 import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
