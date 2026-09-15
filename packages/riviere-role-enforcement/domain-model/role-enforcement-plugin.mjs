@@ -445,7 +445,22 @@ export default {
           })
 
           validateRoleJustification(node, role, name, annotationNode)
+          validateImplementerRole(node, role, name)
           validateRoleContract(node, target, role, name)
+        }
+
+        function validateImplementerRole(node, role, name) {
+          if (typeof role.requiresImplementerRole !== 'string') {
+            return
+          }
+          const implementers = readWorkspaceImplementers(options).get(role.requiresImplementerRole)
+          if (implementers !== undefined && implementers.has(`${normalizePath(filename)}::${name}`)) {
+            return
+          }
+          report(
+            node,
+            `Role '${role.name}' must be implemented by at least one '${role.requiresImplementerRole}' declaration. No '${role.requiresImplementerRole}' references '${name}'. ${referenceForKnownRole(options, role.name)}`,
+          )
         }
 
         function validateRoleJustification(node, role, name, annotationNode) {
@@ -2722,6 +2737,271 @@ export default {
 
 function matchesAnyPattern(filePath, patterns) {
   return patterns.some((pattern) => minimatch(filePath, pattern, { dot: true }))
+}
+
+const WORKSPACE_IGNORED_DIRECTORIES = new Set([
+  'node_modules',
+  'dist',
+  'out-tsc',
+  'test-output',
+  'coverage',
+])
+
+const workspaceImplementerCache = new Map()
+
+function readWorkspaceFileText(filePath) {
+  try {
+    return fs.readFileSync(filePath, 'utf8')
+  } catch {
+    return null
+  }
+}
+
+function readWorkspaceImplementers(options) {
+  const cacheKey = `${options.configDir}|${JSON.stringify(options.ignorePatterns ?? [])}|${JSON.stringify(options.importAliases ?? {})}`
+  const cached = workspaceImplementerCache.get(cacheKey)
+  if (cached !== undefined) {
+    return cached
+  }
+  const implementers = buildWorkspaceImplementers(
+    options.configDir,
+    options.ignorePatterns ?? [],
+    options.importAliases ?? {},
+  )
+  workspaceImplementerCache.set(cacheKey, implementers)
+  return implementers
+}
+
+function buildWorkspaceImplementers(configDir, ignorePatterns, importAliases) {
+  const importedByRole = new Map()
+  for (const filePath of collectWorkspaceSourceFiles(configDir, ignorePatterns)) {
+    const sourceText = readWorkspaceFileText(filePath)
+    if (sourceText === null) {
+      continue
+    }
+    const roles = new Set(readRoleDeclarations(sourceText).map((declaration) => declaration.role))
+    if (roles.size === 0) {
+      continue
+    }
+    for (const imported of readImportedDeclarationKeys(filePath, sourceText, configDir, importAliases)) {
+      for (const roleName of roles) {
+        const existing = importedByRole.get(roleName) ?? new Set()
+        existing.add(imported)
+        importedByRole.set(roleName, existing)
+      }
+    }
+  }
+  return importedByRole
+}
+
+function collectWorkspaceSourceFiles(configDir, ignorePatterns) {
+  const files = []
+  const visit = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        if (!WORKSPACE_IGNORED_DIRECTORIES.has(entry.name)) {
+          visit(path.join(directory, entry.name))
+        }
+        continue
+      }
+      if (!/\.tsx?$/.test(entry.name) || entry.name.endsWith('.d.ts')) {
+        continue
+      }
+      const filePath = path.join(directory, entry.name)
+      const relativePath = normalizePath(path.relative(configDir, filePath))
+      if (!matchesAnyPattern(relativePath, ignorePatterns)) {
+        files.push(filePath)
+      }
+    }
+  }
+  visit(configDir)
+  return files
+}
+
+function readRoleDeclarations(sourceText) {
+  const declarations = []
+  const lines = sourceText.split('\n')
+  for (let i = 0; i < lines.length; i++) {
+    const roleName = parseSingleRoleName(lines[i], 'workspace scan')
+    if (roleName === null) {
+      continue
+    }
+    for (let j = i + 1; j < lines.length; j++) {
+      const trimmed = lines[j].trim()
+      if (
+        trimmed === '' ||
+        trimmed.startsWith('*') ||
+        trimmed.startsWith('/**') ||
+        trimmed.startsWith('//')
+      ) {
+        continue
+      }
+      const match =
+        /^export\s+(?:declare\s+)?(?:interface|type|function|class|const|enum)\s+([A-Za-z_$][\w$]*)/.exec(
+          trimmed,
+        )
+      if (match !== null) {
+        declarations.push({ role: roleName, name: match[1] })
+      }
+      break
+    }
+  }
+  return declarations
+}
+
+function readImportedDeclarationKeys(filePath, sourceText, configDir, importAliases) {
+  const keys = []
+  let searchIndex = 0
+  while (searchIndex < sourceText.length) {
+    const importIndex = sourceText.indexOf('import ', searchIndex)
+    if (importIndex < 0) {
+      break
+    }
+    searchIndex = importIndex + 'import '.length
+    const fromIndex = sourceText.indexOf(' from ', importIndex)
+    const statementEnd = sourceText.indexOf(';', importIndex)
+    if (fromIndex < 0 || (statementEnd >= 0 && statementEnd < fromIndex)) {
+      continue
+    }
+    const source = readModuleSpecifier(sourceText.slice(fromIndex + ' from '.length))
+    if (source === null) {
+      continue
+    }
+    const resolvedFile = resolveImportFile(filePath, source, configDir, importAliases)
+    if (resolvedFile === null) {
+      continue
+    }
+    for (const name of readNamedImportBindings(sourceText.slice(importIndex, fromIndex))) {
+      for (const origin of resolveImportedOrigins(
+        resolvedFile,
+        name,
+        configDir,
+        importAliases,
+        new Set(),
+      )) {
+        keys.push(`${normalizePath(origin.file)}::${origin.name}`)
+      }
+    }
+  }
+  return keys
+}
+
+function resolveImportedOrigins(filePath, exportedName, configDir, importAliases, visited) {
+  const visitKey = `${normalizePath(filePath)}::${exportedName}`
+  if (visited.has(visitKey)) {
+    return []
+  }
+  visited.add(visitKey)
+  const sourceText = readWorkspaceFileText(filePath)
+  if (sourceText === null) {
+    return []
+  }
+  if (declaresExport(sourceText, exportedName)) {
+    return [{ file: filePath, name: exportedName }]
+  }
+  const origins = []
+  for (const reexport of readReexportStatements(sourceText)) {
+    const names =
+      reexport.names === null
+        ? [{ local: exportedName, exported: exportedName }]
+        : reexport.names.filter((entry) => entry.exported === exportedName)
+    if (names.length === 0) {
+      continue
+    }
+    const resolvedFile = resolveImportFile(filePath, reexport.source, configDir, importAliases)
+    if (resolvedFile === null) {
+      continue
+    }
+    for (const entry of names) {
+      origins.push(
+        ...resolveImportedOrigins(resolvedFile, entry.local, configDir, importAliases, visited),
+      )
+    }
+  }
+  return origins
+}
+
+function declaresExport(sourceText, exportedName) {
+  const pattern = new RegExp(
+    `^export\\s+(?:declare\\s+)?(?:interface|type|function|class|const|enum)\\s+${escapeRegExp(exportedName)}\\b`,
+    'm',
+  )
+  return pattern.test(sourceText)
+}
+
+function readReexportStatements(sourceText) {
+  const statements = []
+  let searchIndex = 0
+  while (searchIndex < sourceText.length) {
+    const exportIndex = sourceText.indexOf('export ', searchIndex)
+    if (exportIndex < 0) {
+      break
+    }
+    searchIndex = exportIndex + 'export '.length
+    const fromIndex = sourceText.indexOf(' from ', exportIndex)
+    const statementEnd = sourceText.indexOf(';', exportIndex)
+    if (fromIndex < 0 || (statementEnd >= 0 && statementEnd < fromIndex)) {
+      continue
+    }
+    const source = readModuleSpecifier(sourceText.slice(fromIndex + ' from '.length))
+    if (source === null) {
+      continue
+    }
+    statements.push({
+      names: readReexportBindings(sourceText.slice(exportIndex, fromIndex)),
+      source,
+    })
+  }
+  return statements
+}
+
+function readReexportBindings(clause) {
+  if (clause.includes('*')) {
+    return null
+  }
+  const openIndex = clause.indexOf('{')
+  const closeIndex = clause.indexOf('}', openIndex + 1)
+  if (openIndex < 0 || closeIndex < 0) {
+    return null
+  }
+  return clause
+    .slice(openIndex + 1, closeIndex)
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part !== '')
+    .map((part) => (part.startsWith('type ') ? part.slice('type '.length) : part))
+    .map((part) => {
+      const [local, exported] = part.split(' as ')
+      return { local, exported: exported ?? local }
+    })
+}
+
+function readModuleSpecifier(text) {
+  const quoteIndex = text.search(/['"]/)
+  if (quoteIndex < 0) {
+    return null
+  }
+  const quote = text[quoteIndex]
+  const endIndex = text.indexOf(quote, quoteIndex + 1)
+  if (endIndex < 0) {
+    return null
+  }
+  return text.slice(quoteIndex + 1, endIndex)
+}
+
+function readNamedImportBindings(clause) {
+  const openIndex = clause.indexOf('{')
+  const closeIndex = clause.indexOf('}', openIndex + 1)
+  if (openIndex < 0 || closeIndex < 0) {
+    return []
+  }
+  return clause
+    .slice(openIndex + 1, closeIndex)
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part !== '')
+    .map((part) => (part.startsWith('type ') ? part.slice('type '.length) : part))
+    .map((part) => part.split(' as ')[0].trim())
 }
 
 function resolveLocationChain(filePath, locations) {

@@ -118,6 +118,7 @@ export class BuiltRole<N extends string = string> {
   declare readonly requiresPrivateDataMembers?: true
   declare readonly requiresReadonlyDataMembers?: true
   declare readonly requiresJustification?: string
+  declare readonly requiresImplementerRole?: string
   declare readonly maxPublicMethods?: number
   declare readonly nameMatches?: string
   declare readonly minPublicMethods?: number

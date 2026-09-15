@@ -149,6 +149,7 @@ export const allRoles = [
   }),
   role('domain-port', {
     targets: ['interface', 'type-alias'],
+    requiresImplementerRole: 'domain-port-adapter',
     requiresJustification:
       'If the aggregate using this port loads any data through it, explain why that data is not previously created aggregate state that its repository should load as part of the aggregate.',
   }),

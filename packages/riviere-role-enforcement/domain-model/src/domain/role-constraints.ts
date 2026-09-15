@@ -71,6 +71,7 @@ interface RoleConstraintsInput<R extends string = string> {
   readonly requiresPrivateDataMembers?: true
   readonly requiresReadonlyDataMembers?: true
   readonly requiresJustification?: string
+  readonly requiresImplementerRole?: R
   readonly nameMatches?: string
   readonly maxPublicMethods?: number
   readonly minPublicMethods?: number
@@ -108,6 +109,7 @@ export class RoleConstraints<R extends string = string> {
   declare readonly requiresPrivateDataMembers?: true
   declare readonly requiresReadonlyDataMembers?: true
   declare readonly requiresJustification?: string
+  declare readonly requiresImplementerRole?: R
   declare readonly nameMatches?: string
   declare readonly maxPublicMethods?: number
   declare readonly minPublicMethods?: number
