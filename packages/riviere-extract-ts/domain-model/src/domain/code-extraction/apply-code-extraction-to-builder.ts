@@ -1,11 +1,18 @@
-import { ComponentDefinition, RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
+import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
+import type { ComponentDefinitionValue } from '@living-architecture/riviere-builder-published-language/component-definition'
 import type { OperationWarning } from '@living-architecture/riviere-builder-published-language'
 import type { ExternalLink } from '@living-architecture/riviere-schema-published-language/schema'
 import type { ExtractedLink } from '../connection-detection/extracted-link'
 import type { EnrichedComponent } from '../value-extraction/enriched-component'
 
-type ComponentDefinitionValue = ComponentDefinition['value']
-type LinkInput = Parameters<RiviereBuilder['link']>[0]
+type LinkInput = Readonly<{
+  from: string
+  to: string
+  type?: string
+  relationshipType?: string
+  condition?: string
+  sourceLocation?: ExternalLink['sourceLocation']
+}>
 
 type ComponentIdentity = Readonly<{
   type: string
@@ -27,14 +34,15 @@ export function applyCodeExtractionToBuilder(
 ): readonly OperationWarning[] {
   applyComponents(builder, repositoryName, components)
   applyLinks(builder, links)
-  return externalLinks.flatMap((link) =>
-    builder.linkExternal({
-      from: link.source,
-      target: link.target,
-      ...(link.type === undefined ? {} : { type: link.type }),
-      ...(link.description === undefined ? {} : { description: link.description }),
-      ...(link.sourceLocation === undefined ? {} : { sourceLocation: link.sourceLocation }),
-    }).warnings,
+  return externalLinks.flatMap(
+    (link) =>
+      builder.linkExternal({
+        from: link.source,
+        target: link.target,
+        ...(link.type === undefined ? {} : { type: link.type }),
+        ...(link.description === undefined ? {} : { description: link.description }),
+        ...(link.sourceLocation === undefined ? {} : { sourceLocation: link.sourceLocation }),
+      }).warnings,
   )
 }
 

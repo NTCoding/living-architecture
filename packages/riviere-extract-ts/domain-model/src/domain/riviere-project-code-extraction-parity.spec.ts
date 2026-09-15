@@ -12,6 +12,11 @@ import {
 } from './value-extraction/enriched-component'
 import { mustBeDefined } from '../__fixtures__/missing-test-fixture-error'
 import type { LoadCodeExtraction } from './ports/load-code-extraction'
+import {
+  ExtractionProjectStartInput,
+  GraphWithWorkflowStartInput,
+  WorkflowStartInput,
+} from './riviere-project-start-inputs'
 
 const detection = vi.hoisted(() => ({ links: new Array<unknown>() }))
 
@@ -76,12 +81,7 @@ function enrichment(...components: EnrichedComponent[]): EnrichmentResult {
 }
 
 function directProject(): RiviereProject {
-  const started = RiviereProject.start(
-    { configuration: shared, draftComponents: [] },
-    collaborators(),
-  )
-  assert(started.success)
-  return started.project
+  return RiviereProject.start(ExtractionProjectStartInput.from(shared, []), collaborators())
 }
 
 function workflowProject(
@@ -89,19 +89,18 @@ function workflowProject(
   loader: LoadCodeExtraction = () => shared.moduleContexts,
 ): RiviereProject {
   const started = RiviereProject.start(
-    {
-      graphDefinition: graphDefinition(),
-      workflowInput: {
+    GraphWithWorkflowStartInput.from(
+      graphDefinition(),
+      WorkflowStartInput.from({
         name: 'build-graph',
         outputPath: '/project/.riviere/graph.json',
         runLogDirectory: '/project/.riviere/logs',
         stages: [...stages],
-      },
-    },
+      }),
+    ),
     { ...collaborators(), loadCodeExtraction: loader },
   )
-  assert(started.success)
-  return started.project
+  return started
 }
 
 function componentIdentities(
@@ -222,12 +221,11 @@ describe('code-extraction parity and composition', () => {
       enrichment(enriched('PlaceOrder', ['route'])),
     )
     const started = RiviereProject.start(
-      { configuration: lenient, draftComponents: [] },
+      ExtractionProjectStartInput.from(lenient, []),
       collaborators(),
     )
-    assert(started.success)
 
-    const result = started.project.extractDraftComponents({ includeConnections: true })
+    const result = started.extractDraftComponents({ includeConnections: true })
 
     assert(result.kind === 'full')
     expect(result.diagnostics).toHaveLength(1)

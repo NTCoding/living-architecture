@@ -3,16 +3,17 @@ import {
   COMPONENT_TYPES,
   type Component,
 } from '@living-architecture/riviere-schema-published-language/schema'
-import type { ValidatedConfiguration } from './validated-configuration'
+import type { ConnectionsConfig } from './extraction-config-schema'
+import type { ValidatedModule } from './validated-module'
 import type { AsyncApiMappings } from './asyncapi-mappings'
 import type { EventCatalogMappings } from './eventcatalog-mappings'
 
 /** @riviere-role published-language-data-structure */
 export interface CodeExtractionConfig {
   readonly allowIncomplete?: boolean
-  readonly modules: ValidatedConfiguration['modules']
-  readonly connections: ValidatedConfiguration['connections']
-  readonly schema: ValidatedConfiguration['schema']
+  readonly modules: readonly ValidatedModule[]
+  readonly connections: ConnectionsConfig | undefined
+  readonly schema: string | undefined
 }
 
 /** @riviere-role published-language-schema */

@@ -2,8 +2,9 @@ import {
   type OperationWarning,
   RiviereBuilder,
 } from '@living-architecture/riviere-builder-published-language'
+import type { Component } from '@living-architecture/riviere-schema-published-language/schema'
 import type { CodeExtractionConfig } from '@living-architecture/riviere-extract-config-published-language'
-import { WorkflowDefinitionFailure } from './workflow-definition-failure'
+import type { WorkflowStartInput } from './riviere-project-start-inputs'
 import type { WorkflowDiagnostic } from './workflow-diagnostic'
 import { WorkflowRunEvent } from './workflow-run-event'
 import type { WorkflowStage, WorkflowStageValue } from './workflow-stage'
@@ -63,12 +64,8 @@ export class WorkflowRunResult {
   private constructor(readonly value: WorkflowRunResultValue) {}
 }
 
-type WorkflowStartResult =
-  | Readonly<{ success: true; workflow: Workflow }>
-  | Readonly<{ success: false; error: WorkflowDefinitionFailure }>
-
 type WorkflowStageContext = Readonly<{
-  components: ReturnType<RiviereBuilder['components']>
+  components: readonly Component[]
   diagnostics: readonly WorkflowDiagnostic[]
 }>
 
@@ -85,18 +82,8 @@ export class Workflow {
   private runDiagnostics: WorkflowDiagnostic[] = []
   private runTransitions: WorkflowTransitionSnapshot[] = []
 
-  static build(input: {
-    name: string
-    outputPath: string
-    runLogDirectory: string
-    stages: readonly WorkflowStage[]
-  }): WorkflowStartResult {
-    const failure = validateWorkflow(input.name, input.stages)
-    if (failure !== undefined) return { success: false, error: failure }
-    return {
-      success: true,
-      workflow: new Workflow(input.name, input.outputPath, input.runLogDirectory, input.stages),
-    }
+  static build(input: WorkflowStartInput): Workflow {
+    return new Workflow(input.name, input.outputPath, input.runLogDirectory, input.stages)
   }
 
   private constructor(
@@ -258,37 +245,4 @@ function isAiStage(stage: WorkflowStageValue): boolean {
     case 'schema-validate':
       return false
   }
-}
-
-function validateWorkflow(
-  name: string,
-  stages: readonly WorkflowStage[],
-): WorkflowDefinitionFailure | undefined {
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(name)) {
-    return WorkflowDefinitionFailure.parse(
-      'INVALID_WORKFLOW_NAME',
-      `Workflow name '${name}' must match [a-z0-9][a-z0-9-]*`,
-    )
-  }
-  if (stages.length === 0) {
-    return WorkflowDefinitionFailure.parse(
-      'MISSING_WORKFLOW_STAGE',
-      'Workflow must define at least one stage',
-    )
-  }
-  const duplicateName = findDuplicateStageName(stages)
-  if (duplicateName === undefined) return undefined
-  return WorkflowDefinitionFailure.parse(
-    'DUPLICATE_STAGE_NAME',
-    `Duplicate workflow stage name '${duplicateName}'`,
-  )
-}
-
-function findDuplicateStageName(stages: readonly WorkflowStage[]): string | undefined {
-  const names = new Set<string>()
-  for (const stage of stages) {
-    if (names.has(stage.value.name)) return stage.value.name
-    names.add(stage.value.name)
-  }
-  return undefined
 }

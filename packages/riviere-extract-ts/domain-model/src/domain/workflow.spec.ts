@@ -10,6 +10,7 @@ import { Workflow, WorkflowRunMode } from './workflow'
 import { WorkflowDiagnostic } from './workflow-diagnostic'
 import { WorkflowStage } from './workflow-stage'
 import { builder, configuration } from './__fixtures__/workflow-fixtures'
+import { WorkflowStartInput } from './riviere-project-start-inputs'
 
 const codeExtractionConfig = configuration().resolvedConfig
 const eventCatalogConfig: EventCatalogImportConfig = {
@@ -61,14 +62,14 @@ function allStages() {
 }
 
 function workflow(stages = allStages()): Workflow {
-  const result = Workflow.build({
-    name: 'build-graph',
-    outputPath: '.riviere/graph.json',
-    runLogDirectory: '.riviere/logs',
-    stages,
-  })
-  assert(result.success)
-  return result.workflow
+  return Workflow.build(
+    WorkflowStartInput.from({
+      name: 'build-graph',
+      outputPath: '.riviere/graph.json',
+      runLogDirectory: '.riviere/logs',
+      stages,
+    }),
+  )
 }
 
 const successfulStage = {
@@ -79,14 +80,15 @@ const successfulStage = {
 
 describe('Workflow stage language', () => {
   it('reports its workflow name', () => {
-    const result = Workflow.build({
-      name: 'build',
-      outputPath: 'graph.json',
-      runLogDirectory: 'logs',
-      stages: [WorkflowStage.fromSchemaValidation('validate')],
-    })
-    assert(result.success)
-    expect(result.workflow.name()).toBe('build')
+    const result = Workflow.build(
+      WorkflowStartInput.from({
+        name: 'build',
+        outputPath: 'graph.json',
+        runLogDirectory: 'logs',
+        stages: [WorkflowStage.fromSchemaValidation('validate')],
+      }),
+    )
+    expect(result.name()).toBe('build')
   })
 
   it('retains every closed stage variant and its typed configuration', () => {

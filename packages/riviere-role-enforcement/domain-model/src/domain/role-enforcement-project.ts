@@ -1,9 +1,6 @@
 import { minimatch } from 'minimatch'
 import { filterConfigByPackage } from './filter-config-by-package'
-import type {
-  RoleEnforcementRunner,
-  RoleEnforcementRunnerResult,
-} from './ports/role-enforcement-runner'
+import type { RoleEnforcementRunner } from './ports/role-enforcement-runner'
 import type { RoleEnforcementConfiguration } from './role-enforcement-builder'
 
 /** @riviere-role aggregate */
@@ -14,7 +11,10 @@ export class RoleEnforcementProject {
     private readonly lintTargets: readonly string[],
   ) {}
 
-  execute(runner: RoleEnforcementRunner, packageFilter?: string): RoleEnforcementRunnerResult {
+  execute(
+    runner: RoleEnforcementRunner,
+    packageFilter?: string,
+  ): { readonly exitCode: number; readonly stderr: string; readonly stdout: string } {
     if (packageFilter === undefined) {
       return runner({
         config: this.config,

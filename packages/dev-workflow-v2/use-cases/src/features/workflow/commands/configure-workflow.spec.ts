@@ -1,19 +1,18 @@
 import { configureWorkflow } from './configure-workflow'
-import { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
+import { WorkflowDependencies } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-dependencies'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import {
   getInitialWorkflowState,
+  type WorkflowStateNameValue,
   WorkflowState,
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
 
-type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
-type StateName = WorkflowState['currentStateMachineState']
 const ALL_PENDING = getInitialWorkflowState().reviewerStatuses.toJSON()
 const WORKFLOW_DEFINITION = configureWorkflow({})
 
-function makeWorkflowDeps(): WorkflowDeps {
-  return {
+function makeWorkflowDeps(): WorkflowDependencies {
+  return WorkflowDependencies.from({
     getGitInfo: () => ({
       currentBranch: 'main',
       workingTreeClean: true,
@@ -42,12 +41,12 @@ function makeWorkflowDeps(): WorkflowDeps {
     listSessionReviews: () => [],
     sleepMs: () => undefined,
     now: () => '2026-01-01T00:00:00Z',
-  }
+  })
 }
 
 function buildTransitionEvent(
-  from: StateName,
-  to: StateName,
+  from: WorkflowStateNameValue,
+  to: WorkflowStateNameValue,
   stateBefore: WorkflowState,
   stateAfter: WorkflowState,
   now: string,

@@ -10,15 +10,23 @@ import {
 } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type { BaseEvent, StoredReview } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
-import { getInitialWorkflowState, WorkflowState } from './workflow-types'
+import {
+  getInitialWorkflowState,
+  type WorkflowStateNameValue,
+  WorkflowState,
+} from './workflow-types'
 import { ReviewCycleLimit } from './review-cycle-limit'
 import type { PullRequestCreationDetails } from './pull-request-description'
 import { MaintainerWorkflowRegistry } from './registry'
 import { ReviewingState } from './states/reviewing'
 import { SubmittingPrState } from './states/submitting-pr'
 import type { CreateWorkflowPullRequest } from './ports/create-pull-request'
-import type { ReadWorkflowGitStatus } from './ports/read-git-status'
 import type { ReadWorkflowPullRequestFeedback } from './ports/read-pull-request-feedback'
+import { AggregateReviewOutcome } from './aggregate-review-outcome'
+import { WorkflowDependencies } from './workflow-dependencies'
+
+export { AggregateReviewOutcome } from './aggregate-review-outcome'
+export { WorkflowDependencies } from './workflow-dependencies'
 import type { Reviewer } from './reviews/reviewers'
 import { Reviewer as ReviewerValue } from './reviews/reviewers'
 import type { ReviewerStatus } from './reviews/statuses'
@@ -33,7 +41,6 @@ import {
   Transitioned,
 } from './workflow-events'
 import { WorkflowTransitionContext } from './workflow-transition-context'
-type StateName = WorkflowState['currentStateMachineState']
 type LivingArchitectureReviewType = StoredReview['reviewType']
 const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>> = {
   'record-issue': {
@@ -46,32 +53,18 @@ const RECORDING_OPS_MAP: Record<string, RecordingOpDefinition<readonly never[]>>
   },
 }
 type RecordingOperation = keyof typeof RECORDING_OPS_MAP
-/** @riviere-role domain-port
- * @riviere-role-justification Review outcome is the aggregate's contract for the result of evaluating external reviewer statuses.
- */
-export type ReviewOutcome = 'PENDING' | 'OPEN_FEEDBACK' | 'APPROVED'
-/** @riviere-role domain-port
- * @riviere-role-justification The aggregate receives current Git and GitHub capabilities at construction time; they are external observations and effects, not previously created workflow state.
- */
-export type WorkflowDeps = {
-  readonly getGitInfo: ReadWorkflowGitStatus
-  readonly getPrFeedback: ReadWorkflowPullRequestFeedback
-  readonly createPullRequest: CreateWorkflowPullRequest
-  readonly listSessionReviews: () => readonly StoredReview[]
-  readonly sleepMs: (milliseconds: number) => void
-  readonly now: () => string
-}
+
 /** @riviere-role aggregate */
 export class MaintainerWorkflow {
   private state: WorkflowState
   private readonly registryDefinition: MaintainerWorkflowRegistry
-  private readonly deps: WorkflowDeps
+  private readonly deps: WorkflowDependencies
   private pendingEvents: WorkflowEvent[] = []
 
   private constructor(
     state: WorkflowState,
     registry: MaintainerWorkflowRegistry,
-    deps: WorkflowDeps,
+    deps: WorkflowDependencies,
   ) {
     this.state = state
     this.deps = deps
@@ -83,7 +76,7 @@ export class MaintainerWorkflow {
   }
   static build(
     registry: MaintainerWorkflowRegistry,
-    deps: WorkflowDeps,
+    deps: WorkflowDependencies,
     state: unknown = getInitialWorkflowState(),
   ): MaintainerWorkflow {
     return new MaintainerWorkflow(WorkflowState.parse(state), registry, deps)
@@ -112,7 +105,7 @@ export class MaintainerWorkflow {
   }
 
   getAgentInstructions(pluginRoot: string): string {
-    return `${pluginRoot}/${this.registryDefinition.state(this.state.currentStateMachineState).agentInstructions}`
+    return `${pluginRoot}/${this.registryDefinition.state(this.state.currentStateName()).agentInstructions}`
   }
   appendEvent(event: BaseEvent): void {
     const workflowEvent = parseWorkflowEvent(event)
@@ -164,20 +157,18 @@ export class MaintainerWorkflow {
     return pass()
   }
   executeRecording(op: RecordingOperation, ...args: readonly unknown[]): PreconditionResult {
-    const recordingOps = defineRecordingOps<StateName, WorkflowState, RecordingOperation>(
-      this.registryDefinition,
-      RECORDING_OPS_MAP,
-    )
+    const recordingOps = defineRecordingOps<
+      WorkflowStateNameValue,
+      WorkflowState,
+      RecordingOperation
+    >(this.registryDefinition, RECORDING_OPS_MAP)
     const result = recordingOps.executeOp(op, this.state, this.deps.now(), args)
     if (!result.pass) return fail(result.reason)
     this.appendEvent(result.event)
     return pass()
   }
 
-  recordReviewerStatus(
-    reviewer: Reviewer,
-    status: ReturnType<ReviewerStatus['name']>,
-  ): PreconditionResult {
+  recordReviewerStatus(reviewer: Reviewer, status: ReviewerStatus): PreconditionResult {
     const gate = checkOperationGate('record-reviewer-status', this.state, this.registryDefinition)
     if (!gate.pass) return gate
     this.append(
@@ -185,7 +176,7 @@ export class MaintainerWorkflow {
         type: 'reviewer-status-recorded',
         at: this.deps.now(),
         reviewer: reviewer.name(),
-        status,
+        status: status.name(),
       }),
     )
     return pass()
@@ -307,18 +298,18 @@ export class MaintainerWorkflow {
   }
 
   transition(
-    target: StateName,
+    target: WorkflowStateNameValue,
     stateOverrides?: Readonly<Record<string, unknown>>,
   ): PreconditionResult {
-    const current = this.state.currentStateMachineState
+    const current = this.state.currentStateName()
     const definition = this.registryDefinition.state(current)
     if (!definition.canTransitionTo.includes(target))
-      return fail(`Illegal transition ${current} -> ${target}.`)
+      return fail(`Illegal transition ${current.name()} -> ${target}.`)
     if (definition.transitionGuard !== undefined) {
       const guard = definition.transitionGuard(
         WorkflowTransitionContext.from({
           state: this.state,
-          from: current,
+          from: current.name(),
           to: target,
           gitInfo: this.deps.getGitInfo(),
         }),
@@ -329,7 +320,7 @@ export class MaintainerWorkflow {
       Transitioned.parse({
         type: 'transitioned',
         at: this.deps.now(),
-        from: current,
+        from: current.name(),
         to: target,
         ...(stateOverrides === undefined ? {} : { stateOverrides }),
       }),
@@ -337,15 +328,17 @@ export class MaintainerWorkflow {
     return pass()
   }
 
-  reviewOutcome(options: { readonly ignoreCodeRabbit?: boolean } = {}): ReviewOutcome {
+  reviewOutcome(options: { readonly ignoreCodeRabbit?: boolean } = {}): AggregateReviewOutcome {
     const statuses = [...this.state.reviewerStatuses.statusByReviewer()]
       .filter(
         ([reviewer]) => !(options.ignoreCodeRabbit === true && reviewer.name() === 'coderabbit'),
       )
       .map(([, status]) => status)
-    if (statuses.some((status) => status.isOpenFeedback())) return 'OPEN_FEEDBACK'
-    if (statuses.some((status) => status.isPending())) return 'PENDING'
-    return 'APPROVED'
+    if (statuses.some((status) => status.isOpenFeedback()))
+      return AggregateReviewOutcome.fromName('OPEN_FEEDBACK')
+    if (statuses.some((status) => status.isPending()))
+      return AggregateReviewOutcome.fromName('PENDING')
+    return AggregateReviewOutcome.fromName('APPROVED')
   }
   private append(event: WorkflowEvent): void {
     this.pendingEvents = [...this.pendingEvents, event]
@@ -363,7 +356,7 @@ const CODERABBIT_POLL_INTERVAL_MS = 15_000
 const MAX_REVIEW_COMPLETION_POLLS = 120
 
 function waitForCodeRabbitCompletion(
-  deps: WorkflowDeps,
+  deps: WorkflowDependencies,
   prNumber: number,
   remainingPolls: number = MAX_REVIEW_COMPLETION_POLLS,
 ): ReturnType<ReadWorkflowPullRequestFeedback> {

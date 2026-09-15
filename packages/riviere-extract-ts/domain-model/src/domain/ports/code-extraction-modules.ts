@@ -1,10 +1,6 @@
 import type { EnrichedComponent, EnrichmentFailure } from '../value-extraction/enriched-component'
 
-/**
- * @riviere-role domain-port
- * @riviere-role-justification This port exposes stage-local parser-backed module operations to the shared extraction behaviour; these are runtime extraction collaborators, not previously created aggregate state that repository loading should persist.
- */
-export type CodeExtractionModules = readonly {
+interface CodeExtractionModule {
   extractAllDraftComponents(): void
   draftComponents(): readonly object[]
   owns(component: { domain: string; location: { file: string }; module: string }): boolean
@@ -14,4 +10,19 @@ export type CodeExtractionModules = readonly {
     components: EnrichedComponent[]
     failures: readonly EnrichmentFailure[]
   }
-}[]
+}
+
+/** @riviere-role value-object */
+export class CodeExtractionModules {
+  declare private readonly brand: 'CodeExtractionModules'
+  private constructor(private readonly modules: readonly CodeExtractionModule[]) {}
+  static from(modules: readonly CodeExtractionModule[]): CodeExtractionModules {
+    return new CodeExtractionModules([...modules])
+  }
+  map<T>(transform: (module: CodeExtractionModule) => T): T[] {
+    return this.modules.map(transform)
+  }
+  filter(predicate: (module: CodeExtractionModule) => boolean): CodeExtractionModules {
+    return CodeExtractionModules.from(this.modules.filter(predicate))
+  }
+}

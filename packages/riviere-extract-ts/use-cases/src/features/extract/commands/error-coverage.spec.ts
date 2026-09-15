@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 import { join } from 'node:path'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
+import { GraphOnlyProjectStartInput } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project-start-inputs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   type TestContext,
@@ -40,19 +41,17 @@ async function createInvalidGraphPath(testDir: string): Promise<string> {
 
 function createLoadedProject(): RiviereProject {
   return RiviereProject.start(
-    {
-      graphDefinition: {
-        domains: {
-          orders: {
-            description: 'Orders',
-            systemType: 'domain',
-          },
+    GraphOnlyProjectStartInput.from({
+      domains: {
+        orders: {
+          description: 'Orders',
+          systemType: 'domain',
         },
-        sources: [{ repository: 'https://github.com/org/repo' }],
       },
-    },
+      sources: [{ repository: 'https://github.com/org/repo' }],
+    }),
     collaborators(),
-  ).project
+  )
 }
 
 describe('builder command coverage', () => {

@@ -60,6 +60,7 @@ import { RiviereProjectRepository } from '@living-architecture/riviere-extract-t
 import { createCodeExtractionAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ts-morph/code-extraction-adapter'
 import { createGitChangedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/git/create-git-changed-source-file-finder'
 import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-specified-source-file-finder'
+import { createConnectionDetectionTimer } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/time/create-connection-detection-timer'
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
 import { parseSourceFileSelection } from '../features/extract/entrypoint/extract/parse-source-file-selection'
 import { detectChangedTypeScriptFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/git-changed-files'
@@ -357,11 +358,11 @@ export function createProgram(): Command {
         riviereProjectRepository,
         createGitChangedSourceFileFinder(process.cwd(), detectChangedTypeScriptFiles),
         createSpecifiedSourceFileFinder(process.cwd(), findSpecifiedSourceFiles),
-        readNodePerformanceTimeInMilliseconds,
+        createConnectionDetectionTimer(readNodePerformanceTimeInMilliseconds),
       ),
       enrichDraftComponents: new EnrichDraftComponents(
         riviereProjectRepository,
-        readNodePerformanceTimeInMilliseconds,
+        createConnectionDetectionTimer(readNodePerformanceTimeInMilliseconds),
       ),
       parseFlagCombinations,
       createExtractDraftComponentsInput,

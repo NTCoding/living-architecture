@@ -1,14 +1,16 @@
-import type { PullRequestArchitectureDiff } from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
+import {
+  ArchitectureRelationship,
+  type ArchitectureItem,
+  type ArchitectureLayerChanges,
+} from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
 import {
   compareArchitectureText,
   renderArchitectureChangeCount,
 } from './architecture-review-markdown'
 import { renderArchitecturePrimary } from './architecture-review-primary-item'
 
-type Diff = ReturnType<PullRequestArchitectureDiff['changes']>
-type LayerChanges = Diff['subdomains'][number]['layers']['entrypoints']
-type ArchitectureItem = LayerChanges['added']['items'][number]
-type Relationship = NonNullable<ArchitectureItem['relatedTo']>[number]
+type LayerChanges = ArchitectureLayerChanges
+type Relationship = ArchitectureRelationship
 
 type ArchitecturePrimaryChangeCounts = {
   readonly added: number
@@ -102,8 +104,10 @@ function primaryChangeCounts(
 
 function primaryRelationships(items: readonly ArchitectureItem[]): readonly Relationship[] {
   const relationships = items.flatMap((item): readonly Relationship[] => [
-    ...(isPrimaryRole(item.role) ? [{ name: item.name, role: item.role }] : []),
-    ...(item.relatedTo ?? []).filter((relationship) => isPrimaryRole(relationship.role)),
+    ...(isPrimaryRole(item.role)
+      ? [ArchitectureRelationship.from({ name: item.name, role: item.role })]
+      : []),
+    ...item.relatedTo.filter((relationship) => isPrimaryRole(relationship.role)),
   ])
   const unique = new Map(
     relationships.map((relationship) => [relationshipKey(relationship), relationship]),

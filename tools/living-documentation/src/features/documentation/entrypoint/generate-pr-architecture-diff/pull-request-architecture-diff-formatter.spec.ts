@@ -1,12 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import type { PullRequestArchitectureDiff } from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
+import {
+  ArchitectureAggregateChanges,
+  ArchitectureChanges,
+  ArchitectureItem,
+  ArchitectureLayerChanges,
+  SubdomainArchitectureChanges,
+  type PullRequestArchitectureDiff,
+} from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
 import { renderArchitectureCodeSpan } from './architecture-review-markdown'
 import { formatPullRequestArchitectureDiff } from './pull-request-architecture-diff-formatter'
 
-type Diff = ReturnType<PullRequestArchitectureDiff['changes']>
-type Subdomain = Diff['subdomains'][number]
-type Layer = Subdomain['layers']['domain']
-type Item = Layer['added']['items'][number]
+type Subdomain = SubdomainArchitectureChanges
+type Layer = ArchitectureLayerChanges
+type Item = ArchitectureItem
+type Aggregate = ArchitectureAggregateChanges
 
 describe('pull request architecture diff formatter', () => {
   it('marks a new subdomain and groups entry points and use cases around their main item', () => {
@@ -142,15 +149,7 @@ describe('pull request architecture diff formatter', () => {
       subdomain('orders`[]()\n## forged', 'changed', {
         domain: layer(
           [],
-          [
-            {
-              entities: [item('Line', 'aggregate-entity')],
-              methods: ['cancel'],
-              name: 'Order',
-              packageKind: 'domain-model',
-            },
-            { entities: [], methods: [], name: 'Empty', packageKind: 'domain-model' },
-          ],
+          [aggregate('Order', ['cancel'], [item('Line', 'aggregate-entity')]), aggregate('Empty')],
           [item(String.raw`one\|pipe`, String.raw`many\\|pipes`)],
         ),
         entrypoints: layer([], [], [item(entrypoint.name, entrypoint.role)]),
@@ -291,12 +290,7 @@ No architecture changes detected.
     const query = { name: 'ReadOrders', role: 'query-model-use-case' } as const
     const report = format(
       subdomain('orders', 'changed', {
-        domain: layer(
-          [],
-          [],
-          [],
-          [{ entities: [], methods: [], name: 'Order', packageKind: 'domain-model' }],
-        ),
+        domain: layer([], [], [], [aggregate('Order')]),
         entrypoints: layer([item('Dependencies', 'cli-entrypoint-dependencies')]),
         useCases: layer([
           item(query.name, query.role),
@@ -331,7 +325,10 @@ No architecture changes detected.
 
 function format(...subdomains: readonly Subdomain[]): string {
   const diff = {
-    changes: (): Diff => ({ subdomains }),
+    changes: (): ArchitectureChanges =>
+      ArchitectureChanges.from({
+        subdomains: subdomains.map((subdomain) => subdomain.snapshot()),
+      }),
     outputPath: 'review.md',
   } satisfies Pick<PullRequestArchitectureDiff, 'changes' | 'outputPath'>
   return formatPullRequestArchitectureDiff(diff)
@@ -339,47 +336,66 @@ function format(...subdomains: readonly Subdomain[]): string {
 
 function subdomain(
   name: string,
-  change: Subdomain['change'],
+  change: 'added' | 'changed' | 'removed',
   layers: {
     readonly domain?: Layer
     readonly entrypoints?: Layer
     readonly useCases?: Layer
   },
 ): Subdomain {
-  return {
+  return SubdomainArchitectureChanges.from({
     change,
     layers: {
-      domain: layers.domain ?? layer(),
-      entrypoints: layers.entrypoints ?? layer(),
-      'use-cases': layers.useCases ?? layer(),
+      domain: (layers.domain ?? layer()).snapshot(),
+      entrypoints: (layers.entrypoints ?? layer()).snapshot(),
+      'use-cases': (layers.useCases ?? layer()).snapshot(),
     },
     name,
-  }
+  })
 }
 
 function layer(
   addedItems: readonly Item[] = [],
-  removedAggregates: Layer['removed']['aggregates'] = [],
+  removedAggregates: readonly Aggregate[] = [],
   removedItems: readonly Item[] = [],
-  addedAggregates: Layer['added']['aggregates'] = [],
+  addedAggregates: readonly Aggregate[] = [],
 ): Layer {
-  return {
-    added: { aggregates: addedAggregates, items: addedItems },
-    removed: { aggregates: removedAggregates, items: removedItems },
-  }
+  return ArchitectureLayerChanges.from({
+    added: {
+      aggregates: addedAggregates.map((aggregate) => aggregate.snapshot()),
+      items: addedItems.map((item) => item.snapshot()),
+    },
+    removed: {
+      aggregates: removedAggregates.map((aggregate) => aggregate.snapshot()),
+      items: removedItems.map((item) => item.snapshot()),
+    },
+  })
+}
+
+function aggregate(
+  name: string,
+  methods: readonly string[] = [],
+  entities: readonly Item[] = [],
+): Aggregate {
+  return ArchitectureAggregateChanges.from({
+    entities: entities.map((entity) => entity.snapshot()),
+    methods,
+    name,
+    packageKind: 'domain-model',
+  })
 }
 
 function item(
   name: string,
   role: string,
-  relatedTo?: Item['relatedTo'],
+  relatedTo?: readonly { readonly name: string; readonly role: string }[],
   externalClient?: string,
 ): Item {
-  return {
+  return ArchitectureItem.from({
     ...(externalClient === undefined ? {} : { externalClient }),
     name,
     packageKind: role.startsWith('cli-') ? 'application' : 'use-cases',
     ...(relatedTo === undefined ? {} : { relatedTo }),
     role,
-  }
+  })
 }

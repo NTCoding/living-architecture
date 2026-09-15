@@ -6,7 +6,7 @@ import type { CodeExtractionConfig } from '@living-architecture/riviere-extract-
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { DraftComponent } from './component-extraction/draft-component'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
-import { MissingModuleSourceError } from './extraction-errors'
+import { InvalidModuleSourcesError, MissingModuleSourceError } from './extraction-errors'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import { detectEventPublisherConnections } from './connection-detection/async-detection/detect-event-publisher-connections'
 import { detectSubscribeConnections } from './connection-detection/async-detection/detect-subscribe-connections'
@@ -22,27 +22,27 @@ import { executeEventCatalogImportStage } from './event-catalog/execute-event-ca
 import { executeAsyncApiImportStage } from './asyncapi/execute-asyncapi-import-stage'
 import type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
 import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
-import type { CodeExtractionModules } from './ports/code-extraction-modules'
+import { CodeExtractionModules } from './ports/code-extraction-modules'
 import { RiviereModule } from './riviere-module'
 import {
   ExtractionConfigurationUnavailableError,
   GraphStateUnavailableError,
-  InvalidWorkflowDefinitionError,
 } from './riviere-project-errors'
 import { Workflow, WorkflowRunMode } from './workflow'
 import { applyCodeExtractionToBuilder } from './code-extraction/apply-code-extraction-to-builder'
-import type {
+import {
   ExtractionProjectStartInput,
   GraphOnlyProjectStartInput,
   GraphWithWorkflowStartInput,
-  RiviereProjectStartInput,
-  RiviereProjectStartResult,
-  RiviereProjectStartSuccess,
-  WorkflowStartInput,
+  type WorkflowStartInput,
 } from './riviere-project-start-inputs'
 import type { WorkflowStageValue } from './workflow-stage'
 
 export type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
+type RiviereProjectStartInput =
+  | ExtractionProjectStartInput
+  | GraphOnlyProjectStartInput
+  | GraphWithWorkflowStartInput
 /** @riviere-role aggregate */
 export class RiviereProject {
   private constructor(
@@ -56,57 +56,41 @@ export class RiviereProject {
   static start(
     input: GraphOnlyProjectStartInput,
     collaborators: RiviereProjectCollaborators,
-  ): RiviereProjectStartSuccess
+  ): RiviereProject
   static start(
     input: GraphWithWorkflowStartInput,
     collaborators: RiviereProjectCollaborators,
-  ): RiviereProjectStartResult
+  ): RiviereProject
   static start(
     input: ExtractionProjectStartInput,
     collaborators: RiviereProjectCollaborators,
-  ): RiviereProjectStartResult
+  ): RiviereProject
   static start(
     input: RiviereProjectStartInput,
     collaborators: RiviereProjectCollaborators,
-  ): RiviereProjectStartResult {
-    if (input.graphDefinition !== undefined) {
+  ): RiviereProject {
+    if (
+      input instanceof GraphOnlyProjectStartInput ||
+      input instanceof GraphWithWorkflowStartInput
+    ) {
       const builder = RiviereBuilder.parse(input.graphDefinition)
-      if (input.workflowInput === undefined) {
-        return {
-          success: true as const,
-          project: new RiviereProject(undefined, [], [], collaborators, builder),
-        }
-      }
-      const workflowResult = Workflow.build(input.workflowInput)
-      if (!workflowResult.success)
-        return { success: false as const, error: workflowResult.error.message }
-      return {
-        success: true as const,
-        project: new RiviereProject(
-          undefined,
-          [],
-          [],
-          collaborators,
-          builder,
-          workflowResult.workflow,
-        ),
-      }
+      if (input instanceof GraphOnlyProjectStartInput)
+        return new RiviereProject(undefined, [], [], collaborators, builder)
+      const workflow = Workflow.build(input.workflowInput)
+      return new RiviereProject(undefined, [], [], collaborators, builder, workflow)
     }
     const sourceErrors = RiviereModule.configurationSourceErrors(input.configuration)
-    if (sourceErrors.length > 0) return { success: false, error: sourceErrors.join('\n') }
+    if (sourceErrors.length > 0) throw new InvalidModuleSourcesError(sourceErrors.join('\n'))
     const modules = RiviereModule.fromConfiguration(input.configuration, input.draftComponents)
     const unassignedDraftComponents = input.draftComponents.filter(
       (component) => !new Set(modules.flatMap((module) => module.draftComponents())).has(component),
     )
-    return {
-      success: true as const,
-      project: new RiviereProject(
-        input.configuration,
-        modules,
-        unassignedDraftComponents,
-        collaborators,
-      ),
-    }
+    return new RiviereProject(
+      input.configuration,
+      modules,
+      unassignedDraftComponents,
+      collaborators,
+    )
   }
   static rehydrate(
     graph: RiviereGraph,
@@ -122,11 +106,7 @@ export class RiviereProject {
       RiviereBuilder.fromGraph(graph, graphOptions),
     )
     if (workflowInput === undefined) return project
-    const workflowResult = Workflow.build(workflowInput)
-    if (!workflowResult.success) {
-      throw new InvalidWorkflowDefinitionError(workflowResult.error.message)
-    }
-    project.workflow = workflowResult.workflow
+    project.workflow = Workflow.build(workflowInput)
     return project
   }
   amendGraph<T>(amend: (builder: RiviereBuilder) => T): T {
@@ -309,7 +289,7 @@ export class RiviereProject {
     this.assertNoUnassignedDraftComponents()
     const completion = extractCodeExtraction({
       extraction,
-      modules,
+      modules: CodeExtractionModules.from(modules),
       ...(options.allowIncomplete === undefined
         ? {}
         : { allowIncomplete: options.allowIncomplete }),
@@ -339,7 +319,7 @@ export class RiviereProject {
   ) {
     return this.detectConnectionsUsing(
       this.extractionConfiguration(),
-      this.modules,
+      CodeExtractionModules.from(this.modules),
       enrichedComponents,
       allowIncomplete,
       observeConnectionDetectionPhase,

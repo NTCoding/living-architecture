@@ -8,6 +8,7 @@ import {
 } from '@living-architecture/riviere-extract-config-published-language'
 import { DraftComponent } from './component-extraction/draft-component'
 import { RiviereProject } from './riviere-project'
+import { ExtractionProjectStartInput } from './riviere-project-start-inputs'
 import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import { collaborators } from './__fixtures__/workflow-fixtures'
 import { RiviereModule } from './riviere-module'
@@ -113,13 +114,15 @@ function enrichmentFailure(field: string): EnrichmentFailure {
   })
 }
 
+type TestModuleContext = Readonly<{
+  files: string[]
+  moduleName: string
+  modules?: string
+  project: Project
+}>
+
 function createRiviereProject(
-  moduleContexts: Array<{
-    files: string[]
-    moduleName: string
-    modules?: string
-    project: Project
-  }>,
+  moduleContexts: readonly TestModuleContext[],
   draftComponents: readonly DraftComponent[],
 ): RiviereProject {
   const configurationResult = ValidatedConfiguration.parse({
@@ -144,13 +147,14 @@ function createRiviereProject(
     resolvedConfig: configurationResult.data,
     moduleContexts: stageContexts,
   })
-  const projectResult = RiviereProject.start({ configuration, draftComponents }, collaborators())
-  assert(projectResult.success)
-  return projectResult.project
+  return RiviereProject.start(
+    ExtractionProjectStartInput.from(configuration, draftComponents),
+    collaborators(),
+  )
 }
 
 function enrichDraftComponents(
-  moduleContexts: Parameters<typeof createRiviereProject>[0],
+  moduleContexts: readonly TestModuleContext[],
   draftComponents: readonly DraftComponent[],
   options: {
     allowIncomplete: boolean
@@ -259,11 +263,15 @@ describe('RiviereProject.enrichDraftComponents', () => {
     enrichmentSpy().mockReturnValue(enrichmentResult([enrichedComponent('orders', 'A')]))
     const phases: string[] = []
 
-    const result = enrichDraftComponents([createModuleContext('orders')], [createDraft('orders', 'A')], {
-      allowIncomplete: false,
-      includeConnections: true,
-      observeConnectionDetectionPhase: (observation) => phases.push(observation.phase),
-    })
+    const result = enrichDraftComponents(
+      [createModuleContext('orders')],
+      [createDraft('orders', 'A')],
+      {
+        allowIncomplete: false,
+        includeConnections: true,
+        observeConnectionDetectionPhase: (observation) => phases.push(observation.phase),
+      },
+    )
 
     assert(result.kind === 'full')
     expect(phases).toContain('setup')

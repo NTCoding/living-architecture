@@ -450,4 +450,3 @@ export class Statuses {
     "requires allowed static 'singleton' on 'Statuses' to return 'Statuses'",
   )
 })
-

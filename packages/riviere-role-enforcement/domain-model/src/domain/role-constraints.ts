@@ -49,6 +49,7 @@ interface RoleConstraintsInput<R extends string = string> {
   readonly outputMethodNameMatches?: string
   readonly approvedInstances?: readonly ApprovedInstanceInput[]
   readonly forbiddenCallableDataMembers?: true
+  readonly forbiddenIndexedAccessType?: true
   readonly forbiddenInlineCallableMembers?: true
   readonly forbiddenInlineFunctionImplementations?: true
   readonly requiresRoleDependencies?: true

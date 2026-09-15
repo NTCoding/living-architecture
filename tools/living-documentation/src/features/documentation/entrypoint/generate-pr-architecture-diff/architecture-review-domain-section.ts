@@ -1,15 +1,18 @@
-import type { PullRequestArchitectureDiff } from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
+import type {
+  ArchitectureAggregateChanges,
+  ArchitectureChangeSet,
+  ArchitectureItem,
+  ArchitectureLayerChanges,
+} from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
 import {
   renderArchitectureChangeCount,
   renderArchitectureCodeSpan,
   renderArchitectureHtmlText,
 } from './architecture-review-markdown'
 
-type Diff = ReturnType<PullRequestArchitectureDiff['changes']>
-type LayerChanges = Diff['subdomains'][number]['layers']['domain']
-type ChangeSet = LayerChanges['added']
-type ArchitectureItem = ChangeSet['items'][number]
-type AggregateChanges = ChangeSet['aggregates'][number]
+type LayerChanges = ArchitectureLayerChanges
+type ChangeSet = ArchitectureChangeSet
+type AggregateChanges = ArchitectureAggregateChanges
 
 type ArchitectureDomainChangeCounts = {
   readonly added: number

@@ -273,4 +273,3 @@ return RiviereProject.start(input, collaborators)
 
 Overload 1 already returned the project directly for the infallible graph-only
 case, so this brought the other start modes into line.
-

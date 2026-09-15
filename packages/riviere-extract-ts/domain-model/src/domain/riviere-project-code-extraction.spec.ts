@@ -4,6 +4,7 @@ import { WorkflowStage } from './workflow-stage'
 import { MissingModuleSourceError } from './extraction-errors'
 import { collaborators, configuration } from './__fixtures__/workflow-fixtures'
 import { mustBeDefined } from '../__fixtures__/missing-test-fixture-error'
+import { GraphWithWorkflowStartInput, WorkflowStartInput } from './riviere-project-start-inputs'
 
 function graphDefinition() {
   return {
@@ -38,24 +39,20 @@ function loadCodeExtraction() {
   return sharedConfiguration.moduleContexts
 }
 
-function projectWithStage(
-  stage: WorkflowStage,
-  loader = loadCodeExtraction,
-): RiviereProject {
+function projectWithStage(stage: WorkflowStage, loader = loadCodeExtraction): RiviereProject {
   const started = RiviereProject.start(
-    {
-      graphDefinition: graphDefinition(),
-      workflowInput: {
+    GraphWithWorkflowStartInput.from(
+      graphDefinition(),
+      WorkflowStartInput.from({
         name: 'build-graph',
         outputPath: '/project/.riviere/graph.json',
         runLogDirectory: '/project/.riviere/logs',
         stages: [stage],
-      },
-    },
+      }),
+    ),
     { ...collaborators(), loadCodeExtraction: loader },
   )
-  assert(started.success)
-  return started.project
+  return started
 }
 
 describe('RiviereProject code-extraction stage', () => {

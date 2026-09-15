@@ -1,7 +1,7 @@
 import { assert, describe, expect, it } from 'vitest'
 import { Project } from 'ts-morph'
 import { extractCodeExtraction } from './extract-code-extraction'
-import type { CodeExtractionModules } from '../ports/code-extraction-modules'
+import { CodeExtractionModules } from '../ports/code-extraction-modules'
 import { DraftComponent } from '../component-extraction/draft-component'
 import { ExtractedLink } from '../connection-detection/extracted-link'
 import { EnrichedComponent, EnrichmentFailure } from '../value-extraction/enriched-component'
@@ -38,7 +38,7 @@ function modulesPort(
   failures: readonly EnrichmentFailure[] = [],
 ): CodeExtractionModules {
   const project = new Project()
-  return [
+  return CodeExtractionModules.from([
     {
       extractAllDraftComponents: () => undefined,
       draftComponents: () => [draft()],
@@ -47,7 +47,7 @@ function modulesPort(
       sourceFilePaths: () => [],
       enrichDraftComponents: () => ({ components: [...components], failures: [...failures] }),
     },
-  ]
+  ])
 }
 
 const noLinks = () => ({ links: [], externalLinks: [] })

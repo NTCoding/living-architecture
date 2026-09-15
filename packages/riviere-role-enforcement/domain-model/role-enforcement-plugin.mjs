@@ -98,6 +98,9 @@ export default {
           VariableDeclaration(node) {
             validateVariableDeclaration(node)
           },
+          TSIndexedAccessType(node) {
+            validateForbiddenIndexedAccessType(node)
+          },
           ImportDeclaration(node) {
             if (isTestFile) {
               return
@@ -147,6 +150,55 @@ export default {
             validateForbiddenMethodCalls()
           validateForbiddenSameFileRoleCalls()
           },
+        }
+
+        function validateForbiddenIndexedAccessType(node) {
+          const objectRole = readIndexedAccessObjectRole(node.objectType)
+          if (objectRole === null || roleMap.get(objectRole)?.forbiddenIndexedAccessType !== true) {
+            return
+          }
+          report(
+            node,
+            `Role '${objectRole}' forbids indexed access types. Define and use an explicit named public type or value object instead. ${referenceForKnownRole(options, objectRole)}`,
+          )
+        }
+
+        function readIndexedAccessObjectRole(objectType) {
+          const objectName = readIndexedAccessObjectName(objectType)
+          if (objectName === null) {
+            return null
+          }
+          const localDeclaration = roleDeclarations.find(
+            (declaration) => readDeclarationName(declaration.node) === objectName,
+          )
+          if (localDeclaration !== undefined) {
+            return localDeclaration.roleName
+          }
+          const importedReference = readImportedReference(objectName, filename)
+          if (importedReference !== null) {
+            return readExportedRole(importedReference.filePath, importedReference.exportedName)
+          }
+          return readExportedRole(filename, objectName)
+        }
+
+        function readIndexedAccessObjectName(objectType) {
+          if (objectType.type === 'TSTypeReference' && objectType.typeName.type === 'Identifier') {
+            return objectType.typeName.name
+          }
+          if (objectType.type !== 'TSTypeQuery') {
+            return null
+          }
+          if (objectType.exprName.type === 'Identifier') {
+            return objectType.exprName.name
+          }
+          if (objectType.exprName.type === 'TSQualifiedName') {
+            let root = objectType.exprName
+            while (root.left.type === 'TSQualifiedName') {
+              root = root.left
+            }
+            return root.left.type === 'Identifier' ? root.left.name : null
+          }
+          return null
         }
 
         function validateVariableDeclaration(node) {

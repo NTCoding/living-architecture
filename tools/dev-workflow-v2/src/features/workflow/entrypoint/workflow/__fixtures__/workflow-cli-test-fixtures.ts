@@ -4,31 +4,24 @@ import { tmpdir } from 'node:os'
 import { type WorkflowEngineDeps } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { createStore } from '@nt-ai-lab/deterministic-agent-workflow-event-store'
 import type { RunnerResult } from '@nt-ai-lab/deterministic-agent-workflow-cli'
-import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
+import { WorkflowDependencies } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
 import { STATE_STEPS } from './workflow-cli-state-steps-test-fixtures'
 import { runner } from './workflow-cli-test-runner'
 
-type WorkflowDefinition = ReturnType<typeof configureWorkflow>
-type WorkflowDeps = Parameters<WorkflowDefinition['buildWorkflow']>[1]
-
 class WorkflowProgressionTestError extends Error {}
+
+type WorkflowCliOverrides = Partial<WorkflowDependencies> &
+  Partial<{ readonly sessionId: string; readonly transcriptPath: string }>
 
 export type TestContext = {
   readonly engineDeps: WorkflowEngineDeps
-  readonly workflowDeps: WorkflowDeps
+  readonly workflowDeps: WorkflowDependencies
   readonly dbPath: string
   readonly sessionId: string
   readonly transcriptPath: string
 }
 
-export function buildTestContext(
-  overrides: Partial<{
-    readonly sessionId: string
-    readonly transcriptPath: string
-    readonly getPrFeedback: WorkflowDeps['getPrFeedback']
-    readonly createPullRequest: WorkflowDeps['createPullRequest']
-  }> = {},
-): TestContext {
+export function buildTestContext(overrides: WorkflowCliOverrides = {}): TestContext {
   const tempDir = mkdtempSync(join(tmpdir(), 'wf-cli-'))
   const dbPath = join(tempDir, 'test.db')
   const store = createStore(dbPath)
@@ -46,7 +39,7 @@ export function buildTestContext(
     transcriptReader: { readMessages: () => [] },
   }
 
-  const workflowDeps: WorkflowDeps = {
+  const workflowDeps: WorkflowDependencies = WorkflowDependencies.from({
     getGitInfo: () => ({
       currentBranch: 'feat/test',
       workingTreeClean: true,
@@ -79,7 +72,7 @@ export function buildTestContext(
     listSessionReviews: () => store.listSessionReviews(sessionId),
     sleepMs: () => undefined,
     now: () => '2024-01-01T00:00:00Z',
-  }
+  })
 
   return {
     engineDeps,

@@ -5,10 +5,7 @@ import type { WorkflowTransitionContext } from '../workflow-transition-context'
 import type { WorkflowState } from '../workflow-types'
 import { ReviewCycleLimit } from '../review-cycle-limit'
 
-/** @riviere-role domain-port
- * @riviere-role-justification State entry receives the aggregate operation that opens a review cycle; it does not load previously created workflow state.
- */
-export type ReviewingDependencies = {
+type ReviewingDependencies = {
   readonly workflow: {
     getState(): WorkflowState
     startReviewCycle(): { readonly pass: boolean; readonly reason?: string }

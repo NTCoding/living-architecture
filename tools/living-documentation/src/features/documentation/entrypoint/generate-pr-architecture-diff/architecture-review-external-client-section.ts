@@ -1,4 +1,7 @@
-import type { PullRequestArchitectureDiff } from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
+import type {
+  ArchitectureItem,
+  ArchitectureLayerChanges,
+} from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
 import {
   compareArchitectureText,
   renderArchitectureChangeCount,
@@ -7,9 +10,7 @@ import {
   renderArchitectureHtmlText,
 } from './architecture-review-markdown'
 
-type Diff = ReturnType<PullRequestArchitectureDiff['changes']>
-type LayerChanges = Diff['subdomains'][number]['layers']['domain']
-type ArchitectureItem = LayerChanges['added']['items'][number]
+type LayerChanges = ArchitectureLayerChanges
 type ExternalClientItem = ArchitectureItem & { readonly externalClient: string }
 
 type ArchitectureExternalClientChangeSummary = {
@@ -111,7 +112,7 @@ function externalClientItems(items: readonly ArchitectureItem[]): readonly Exter
 function isUngroupedUseCaseItem(item: ArchitectureItem): boolean {
   return (
     !isUseCaseRole(item.role) &&
-    !(item.relatedTo ?? []).some((relationship) => isUseCaseRole(relationship.role))
+    !item.relatedTo.some((relationship) => isUseCaseRole(relationship.role))
   )
 }
 

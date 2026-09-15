@@ -12,6 +12,7 @@ A class that represents a domain concept defined by its attributes rather than i
 6. May expose instance methods such as `equals`, `add`, or `toString`
 7. Does not store functions in instance data members
 8. Used as a building block within aggregates, inputs, and results
+9. Consumers use explicit named public types and value-object methods; they must not derive a member type with indexed access such as `Money['amount']` or `ReturnType<Money['format']>`.
 
 ### Static Members
 

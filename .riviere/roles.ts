@@ -134,6 +134,7 @@ export const allRoles = [
     allowedStaticMethodNames: ['singleton'],
     forbidNonFactoryStaticMethods: true,
     forbiddenCallableDataMembers: true,
+    forbiddenIndexedAccessType: true,
     forbiddenSupertypes: ['Error'],
     requiredPrivateMembers: ['brand'],
     requiresPrivateConstructor: true,
@@ -161,6 +162,7 @@ export const allRoles = [
   }),
   role('domain-facade', {
     targets: ['class'],
+    forbiddenIndexedAccessType: true,
     allowedDependencyRoles: ['domain-service', 'domain-error', ...publishedLanguageRoles],
     allowedDependentRoles: ['command-use-case', 'query-model', 'query-model-value'],
     approvedInstances: [

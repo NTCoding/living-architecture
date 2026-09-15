@@ -91,6 +91,7 @@ export class BuiltRole<N extends string = string> {
   declare readonly outputMethodNameMatches?: string
   declare readonly approvedInstances?: readonly ApprovedInstance[]
   declare readonly forbiddenCallableDataMembers?: true
+  declare readonly forbiddenIndexedAccessType?: true
   declare readonly forbiddenInlineCallableMembers?: true
   declare readonly forbiddenInlineFunctionImplementations?: true
   declare readonly requiresRoleDependencies?: true
@@ -195,12 +196,32 @@ interface WorkspacePackage {
   readonly path: string
 }
 
+interface ConfiguredLocationValue {
+  readonly allowAnySubLocations: boolean
+  readonly allowedRoles: readonly string[]
+  readonly importRules?: Readonly<{
+    allow?: Partial<
+      Record<
+        'sibling' | 'root' | 'ownSubdomain' | 'anySubdomain',
+        readonly (string | Readonly<Record<string, readonly string[]>>)[]
+      >
+    >
+    inheritParentImportRules?: false
+  }>
+  readonly id: string
+  readonly name: string
+  readonly packagePath: string
+  readonly parentId?: string
+  readonly pathTemplate: string
+  readonly roleEnforcement: boolean
+}
+
 interface RoleEnforcementConfigurationDefinition {
   readonly assignedPackages: readonly string[]
   readonly ignorePatterns: readonly string[]
   readonly importAliases?: Readonly<Record<string, string>>
   readonly include: readonly string[]
-  readonly locationHierarchy: LocationHierarchy['values']
+  readonly locationHierarchy: readonly ConfiguredLocationValue[]
   readonly packageManifestRequirements: PackageManifestRequirements
   readonly roleDefinitionsDir: string
   readonly roles: readonly BuiltRole[]
@@ -219,7 +240,7 @@ export class RoleEnforcementConfiguration {
   declare readonly ignorePatterns: readonly string[]
   declare readonly importAliases?: Readonly<Record<string, string>>
   declare readonly include: readonly string[]
-  declare readonly locationHierarchy: LocationHierarchy['values']
+  declare readonly locationHierarchy: readonly ConfiguredLocationValue[]
   declare readonly packageManifestRequirements: PackageManifestRequirements
   declare readonly roleDefinitionsDir: string
   declare readonly roles: readonly BuiltRole[]

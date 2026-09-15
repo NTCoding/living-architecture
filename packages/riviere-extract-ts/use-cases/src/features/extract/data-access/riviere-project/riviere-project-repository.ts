@@ -32,6 +32,11 @@ import { GitError } from '../../../../infra/external-clients/git/git-errors'
 import { getRepositoryInfo } from '../../../../infra/external-clients/git/git-repository-info'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import type { RiviereProjectCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
+import {
+  ExtractionProjectStartInput,
+  GraphWithWorkflowStartInput,
+  WorkflowStartInput,
+} from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project-start-inputs'
 import { ExtractionConfiguration } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-configuration'
 import { ExtractionConfigError } from './riviere-config-error'
 import { ExtractionDataAccessError } from './riviere-project-error'
@@ -46,6 +51,22 @@ import { GraphNotFoundError } from './graph-not-found-error'
 
 type LoadParameters = Extract<RiviereProjectLoadInput, { kind: 'extraction' }>
 type ParsedConfigState = Readonly<{ configDir: string; configuration: ValidatedConfiguration }>
+
+type StageConfigParseResult<TSuccess> =
+  | (TSuccess & { readonly success: true })
+  | { readonly success: false; readonly issues: readonly string[] }
+
+function requireStageConfig<TSuccess>(
+  result: StageConfigParseResult<TSuccess>,
+  failureLabel = '',
+): TSuccess {
+  if (!result.success)
+    throw new ExtractionConfigError(
+      'VALIDATION_ERROR',
+      `${failureLabel}${result.issues.join('\n')}`,
+    )
+  return result
+}
 
 /** @riviere-role aggregate-repository */
 export class RiviereProjectRepository {
@@ -79,31 +100,29 @@ export class RiviereProjectRepository {
       loadCodeExtraction: this.loadCodeExtraction,
       repositoryName: this.repositoryName(workflowDirectory),
     }
-    const workflowInput = {
+    const workflowInput = WorkflowStartInput.from({
       name: definition.name,
       outputPath: graphPath,
       runLogDirectory: dirname(graphPath),
       stages,
-    }
+    })
     if (fileExists(graphPath)) return this.rehydrateGraph(graphPath, workflowInput, collaborators)
-    const started = RiviereProject.start(
-      {
-        graphDefinition: {
+    return RiviereProject.start(
+      GraphWithWorkflowStartInput.from(
+        {
           name: definition.name,
           ...(definition.description === undefined ? {} : { description: definition.description }),
           sources: definition.sources,
           domains: definition.domains,
         },
         workflowInput,
-      },
+      ),
       collaborators,
     )
-    if (!started.success) throw new ExtractionConfigError('VALIDATION_ERROR', started.error)
-    return started.project
   }
   private rehydrateGraph(
     graphPath: string,
-    workflowInput: NonNullable<Parameters<typeof RiviereProject.rehydrate>[3]>,
+    workflowInput: WorkflowStartInput,
     collaborators: RiviereProjectCollaborators,
   ): RiviereProject {
     const parsed = parseRiviereGraph(this.readExistingGraph(graphPath))
@@ -168,17 +187,13 @@ export class RiviereProjectRepository {
           config: this.loadParsedConfigState(configPath).configuration,
         }
       case 'eventcatalog-import': {
-        const config = parseEventCatalogImportConfig(file)
-        if (!config.success)
-          throw new ExtractionConfigError('VALIDATION_ERROR', config.issues.join('\n'))
-        const mappings = parseEventCatalogMappings(
-          this.readConfigYaml(resolve(configDirectory, config.config.mappings)),
+        const config = requireStageConfig(parseEventCatalogImportConfig(file))
+        const mappings = requireStageConfig(
+          parseEventCatalogMappings(
+            this.readConfigYaml(resolve(configDirectory, config.config.mappings)),
+          ),
+          'Invalid EventCatalog mappings: ',
         )
-        if (!mappings.success)
-          throw new ExtractionConfigError(
-            'VALIDATION_ERROR',
-            `Invalid EventCatalog mappings: ${mappings.issues.join('\n')}`,
-          )
         const source = resolve(configDirectory, config.config.source)
         return {
           kind: 'eventcatalog-import',
@@ -192,17 +207,13 @@ export class RiviereProjectRepository {
         }
       }
       case 'asyncapi-import': {
-        const config = parseAsyncApiImportConfig(file)
-        if (!config.success)
-          throw new ExtractionConfigError('VALIDATION_ERROR', config.issues.join('\n'))
-        const mappings = parseAsyncApiMappings(
-          this.readConfigYaml(resolve(configDirectory, config.config.mappings)),
+        const config = requireStageConfig(parseAsyncApiImportConfig(file))
+        const mappings = requireStageConfig(
+          parseAsyncApiMappings(
+            this.readConfigYaml(resolve(configDirectory, config.config.mappings)),
+          ),
+          'Invalid AsyncAPI mappings: ',
         )
-        if (!mappings.success)
-          throw new ExtractionConfigError(
-            'VALIDATION_ERROR',
-            `Invalid AsyncAPI mappings: ${mappings.issues.join('\n')}`,
-          )
         const source = resolve(configDirectory, config.config.source)
         return {
           kind: 'asyncapi-import',
@@ -216,9 +227,7 @@ export class RiviereProjectRepository {
         }
       }
       case 'ai-extract': {
-        const config = parseAiExtractConfig(file)
-        if (!config.success)
-          throw new ExtractionConfigError('VALIDATION_ERROR', config.issues.join('\n'))
+        const config = requireStageConfig(parseAiExtractConfig(file))
         return {
           kind: 'ai-extract',
           name: stage.name,
@@ -226,9 +235,7 @@ export class RiviereProjectRepository {
         }
       }
       case 'ai-enrich': {
-        const config = parseAiEnrichConfig(file)
-        if (!config.success)
-          throw new ExtractionConfigError('VALIDATION_ERROR', config.issues.join('\n'))
+        const config = requireStageConfig(parseAiEnrichConfig(file))
         return {
           kind: 'ai-enrich',
           name: stage.name,
@@ -244,17 +251,12 @@ export class RiviereProjectRepository {
       input.draftComponentsPath === undefined
         ? []
         : this.loadDraftComponents(input.draftComponentsPath)
-    const started = RiviereProject.start(
-      { configuration, draftComponents },
-      {
-        loadEventCatalogSource: this.loadEventCatalogSource,
-        loadAsyncApiDocument: this.loadAsyncApiDocument,
-        loadCodeExtraction: this.loadCodeExtraction,
-        repositoryName: configuration.repositoryName,
-      },
-    )
-    if (!started.success) throw new ExtractionConfigError('VALIDATION_ERROR', started.error)
-    return started.project
+    return RiviereProject.start(ExtractionProjectStartInput.from(configuration, draftComponents), {
+      loadEventCatalogSource: this.loadEventCatalogSource,
+      loadAsyncApiDocument: this.loadAsyncApiDocument,
+      loadCodeExtraction: this.loadCodeExtraction,
+      repositoryName: configuration.repositoryName,
+    })
   }
 
   private loadGraph(graphFileLocation: string): RiviereProject {

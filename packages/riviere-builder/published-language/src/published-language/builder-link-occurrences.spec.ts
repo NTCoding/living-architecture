@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { RiviereBuilder } from './riviere-builder'
+import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 
 function createBuilder(): RiviereBuilder {
   const options = {
@@ -26,7 +27,7 @@ function addSource(builder: RiviereBuilder) {
   })
 }
 
-function replaceFirstLinkId(graph: ReturnType<RiviereBuilder['build']>, id: string): void {
+function replaceFirstLinkId(graph: RiviereGraph, id: string): void {
   graph.links = graph.links.map((link, index) =>
     index === 0
       ? {

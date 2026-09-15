@@ -1,11 +1,18 @@
 import type { BuiltRole } from './role-enforcement-builder'
 import type { LocationHierarchy } from './location-hierarchy'
-import type { LocationBuilder } from './location-configuration'
 import { RoleEnforcementExecutionError } from './role-enforcement-execution-error'
 
 interface ConfiguredLocation {
   readonly allowedRoles: readonly string[]
-  readonly importRules?: LocationBuilder<string>['importRules']
+  readonly importRules?: Readonly<{
+    allow?: Partial<
+      Record<
+        'sibling' | 'root' | 'ownSubdomain' | 'anySubdomain',
+        readonly (string | Readonly<Record<string, readonly string[]>>)[]
+      >
+    >
+    inheritParentImportRules?: false
+  }>
   readonly name: string
 }
 

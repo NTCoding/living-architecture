@@ -49,6 +49,7 @@ const aggregateRepository = role('aggregate-repository', {
 })
 
 const valueObject = role('value-object', {
+  forbiddenIndexedAccessType: true,
   allowedStaticMethodNames: ['singleton'],
   forbidNonFactoryStaticMethods: true,
   requiredStaticFactoryMethodNamePrefixes: ['parse', 'from'],

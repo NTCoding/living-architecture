@@ -1,5 +1,3 @@
-# AGENTS.md
-
 # living-architecture
 
 > ⚠️ **NEW WORKTREE?** Run `pnpm install --frozen-lockfile` before running tests or verification.
@@ -186,7 +184,6 @@ The CLI (`riviere-cli`) bundles several packages via esbuild. To ensure users al
 - **Cross-project imports** use package names (e.g., `import { X } from '@living-architecture/[pkg-name]'`), not relative paths.
 - **Adding dependencies between projects** requires adding `"@living-architecture/[pkg-name]": "workspace:*"` to the consuming project's package.json.
 - **Browser debugging** - When building new UI features or debugging browser issues, use Chrome MCP tools instead of guessing from code inspection.
-
 
 If you are not explicitly working as part of the maintainer team, read and follow @CONTRIBUTING.md. That public contribution guide replaces the Maintainer Workflow in @CLAUDE.md. Do not create an issue or install the maintainer harness; make the change and raise a pull request whose description is the specification.
 

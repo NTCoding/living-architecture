@@ -5,6 +5,7 @@ import {
   DuplicateComponentError,
   RiviereBuilder,
 } from '@living-architecture/riviere-builder-published-language'
+import type { ComponentDefinitionValue } from '@living-architecture/riviere-builder-published-language/component-definition'
 import { GraphCorruptedError } from '../data-access/riviere-project/graph-corrupted-error'
 import { GraphNotFoundError } from '../data-access/riviere-project/graph-not-found-error'
 import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
@@ -82,7 +83,7 @@ function failure(code: AddComponentErrorCode, message: string): AddComponentResu
   }
 }
 
-function addComponent(builder: RiviereBuilder, definition: ComponentDefinition['value']): string {
+function addComponent(builder: RiviereBuilder, definition: ComponentDefinitionValue): string {
   switch (definition.type) {
     case 'UI':
       return builder.addUI(definition.input).id

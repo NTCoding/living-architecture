@@ -1,71 +1,90 @@
-import type { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
+import type { BuilderOptionsInput } from '@living-architecture/riviere-builder-published-language'
 import type { DraftComponent } from './component-extraction/draft-component'
 import type { ExtractionConfiguration } from './extraction-configuration'
-import type { RiviereProject } from './riviere-project'
 import type { WorkflowStage } from './workflow-stage'
+import { InvalidWorkflowDefinitionError } from './riviere-project-errors'
 
-/**
- * @riviere-role domain-port
- * @riviere-role-justification The Project aggregate accepts this construction contract. It is caller-supplied input that builds the aggregate, not previously created aggregate state that the repository should load.
- */
-export type ExtractionProjectStartInput = Readonly<{
-  configuration: ExtractionConfiguration
-  draftComponents: readonly DraftComponent[]
-  graphDefinition?: undefined
-}>
+/** @riviere-role value-object */
+export class ExtractionProjectStartInput {
+  declare private readonly brand: 'ExtractionProjectStartInput'
+  private constructor(
+    readonly configuration: ExtractionConfiguration,
+    readonly draftComponents: readonly DraftComponent[],
+  ) {}
+  static from(
+    configuration: ExtractionConfiguration,
+    draftComponents: readonly DraftComponent[],
+  ): ExtractionProjectStartInput {
+    return new ExtractionProjectStartInput(configuration, [...draftComponents])
+  }
+}
 
-/**
- * @riviere-role domain-port
- * @riviere-role-justification The Project aggregate accepts this construction contract. It is caller-supplied input that builds the aggregate, not previously created aggregate state that the repository should load.
- */
-export type WorkflowStartInput = Readonly<{
-  name: string
-  outputPath: string
-  runLogDirectory: string
-  stages: readonly WorkflowStage[]
-}>
+/** @riviere-role value-object */
+export class WorkflowStartInput {
+  declare private readonly brand: 'WorkflowStartInput'
+  private constructor(
+    readonly name: string,
+    readonly outputPath: string,
+    readonly runLogDirectory: string,
+    readonly stages: readonly WorkflowStage[],
+  ) {}
+  static from(input: {
+    readonly name: string
+    readonly outputPath: string
+    readonly runLogDirectory: string
+    readonly stages: readonly WorkflowStage[]
+  }): WorkflowStartInput {
+    validateWorkflow(input.name, input.stages)
+    return new WorkflowStartInput(input.name, input.outputPath, input.runLogDirectory, [
+      ...input.stages,
+    ])
+  }
+}
 
-/**
- * @riviere-role domain-port
- * @riviere-role-justification The Project aggregate accepts this construction contract. It is caller-supplied input that builds the aggregate, not previously created aggregate state that the repository should load.
- */
-export type GraphOnlyProjectStartInput = Readonly<{
-  graphDefinition: Parameters<typeof RiviereBuilder.parse>[0]
-  workflowInput?: undefined
-  configuration?: undefined
-  draftComponents?: undefined
-}>
+function validateWorkflow(name: string, stages: readonly WorkflowStage[]): void {
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(name)) {
+    throw new InvalidWorkflowDefinitionError(
+      `Workflow name '${name}' must match [a-z0-9][a-z0-9-]*`,
+    )
+  }
+  if (stages.length === 0) {
+    throw new InvalidWorkflowDefinitionError('Workflow must define at least one stage')
+  }
+  const duplicateName = findDuplicateStageName(stages)
+  if (duplicateName !== undefined) {
+    throw new InvalidWorkflowDefinitionError(`Duplicate workflow stage name '${duplicateName}'`)
+  }
+}
 
-/**
- * @riviere-role domain-port
- * @riviere-role-justification The Project aggregate accepts this construction contract. It is caller-supplied input that builds the aggregate, not previously created aggregate state that the repository should load.
- */
-export type GraphWithWorkflowStartInput = Readonly<{
-  graphDefinition: Parameters<typeof RiviereBuilder.parse>[0]
-  workflowInput: WorkflowStartInput
-  configuration?: undefined
-  draftComponents?: undefined
-}>
+function findDuplicateStageName(stages: readonly WorkflowStage[]): string | undefined {
+  const names = new Set<string>()
+  for (const stage of stages) {
+    if (names.has(stage.value.name)) return stage.value.name
+    names.add(stage.value.name)
+  }
+  return undefined
+}
 
-/**
- * @riviere-role domain-port
- * @riviere-role-justification The Project aggregate accepts this construction contract. It is caller-supplied input that builds the aggregate, not previously created aggregate state that the repository should load.
- */
-export type RiviereProjectStartInput =
-  | ExtractionProjectStartInput
-  | GraphOnlyProjectStartInput
-  | GraphWithWorkflowStartInput
+/** @riviere-role value-object */
+export class GraphOnlyProjectStartInput {
+  declare private readonly brand: 'GraphOnlyProjectStartInput'
+  private constructor(readonly graphDefinition: BuilderOptionsInput) {}
+  static from(graphDefinition: BuilderOptionsInput): GraphOnlyProjectStartInput {
+    return new GraphOnlyProjectStartInput(graphDefinition)
+  }
+}
 
-/**
- * @riviere-role domain-port
- * @riviere-role-justification The Project aggregate returns this construction result contract. It is the outcome of building the aggregate, not previously created aggregate state that the repository should load.
- */
-export type RiviereProjectStartSuccess = Readonly<{ success: true; project: RiviereProject }>
-
-/**
- * @riviere-role domain-port
- * @riviere-role-justification The Project aggregate returns this construction result contract. It is the outcome of building the aggregate, not previously created aggregate state that the repository should load.
- */
-export type RiviereProjectStartResult =
-  | RiviereProjectStartSuccess
-  | Readonly<{ success: false; error: string }>
+/** @riviere-role value-object */
+export class GraphWithWorkflowStartInput {
+  declare private readonly brand: 'GraphWithWorkflowStartInput'
+  private constructor(
+    readonly graphDefinition: BuilderOptionsInput,
+    readonly workflowInput: WorkflowStartInput,
+  ) {}
+  static from(
+    graphDefinition: BuilderOptionsInput,
+    workflowInput: WorkflowStartInput,
+  ): GraphWithWorkflowStartInput {
+    return new GraphWithWorkflowStartInput(graphDefinition, workflowInput)
+  }
+}

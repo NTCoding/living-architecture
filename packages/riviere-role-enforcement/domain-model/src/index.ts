@@ -11,7 +11,6 @@ export type { LocationBuilder, LocationConfiguration } from './domain/role-enfor
 export type {
   RoleEnforcementRunner,
   RoleEnforcementRunnerInput,
-  RoleEnforcementRunnerResult,
 } from './domain/ports/role-enforcement-runner'
 export { RoleEnforcementExecutionError } from './domain/role-enforcement-execution-error'
 export { RoleEnforcementProject } from './domain/role-enforcement-project'

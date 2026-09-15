@@ -1,4 +1,5 @@
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
+import { GraphOnlyProjectStartInput } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project-start-inputs'
 import type {
   LoadEventCatalogSource,
   RiviereProjectCollaborators,
@@ -79,15 +80,12 @@ export class InitGraph {
       }
     } catch (error) {
       if (error instanceof GraphNotFoundError) {
-        const project = RiviereProject.start(
-          { graphDefinition: builderOptions },
-          {
-            loadEventCatalogSource: this.loadEventCatalogSource,
-            loadAsyncApiDocument: this.loadAsyncApiDocument,
-            loadCodeExtraction: this.loadCodeExtraction,
-            repositoryName: primarySource,
-          },
-        ).project
+        const project = RiviereProject.start(GraphOnlyProjectStartInput.from(builderOptions), {
+          loadEventCatalogSource: this.loadEventCatalogSource,
+          loadAsyncApiDocument: this.loadAsyncApiDocument,
+          loadCodeExtraction: this.loadCodeExtraction,
+          repositoryName: primarySource,
+        })
         this.repository.save(input.graphFileLocation, project)
         return {
           result: {

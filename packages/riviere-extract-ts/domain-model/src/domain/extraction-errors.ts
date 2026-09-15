@@ -13,3 +13,11 @@ export class MissingModuleSourceError extends Error {
     this.name = 'MissingModuleSourceError'
   }
 }
+
+/** @riviere-role domain-error */
+export class InvalidModuleSourcesError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'InvalidModuleSourcesError'
+  }
+}

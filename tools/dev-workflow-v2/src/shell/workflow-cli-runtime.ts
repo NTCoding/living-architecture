@@ -9,7 +9,10 @@ import { defineWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-c
 import { createWorkflowGitStatusReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/git/workflow-git-status-reader'
 import { createWorkflowPullRequestCreator } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-creator'
 import { createWorkflowPullRequestFeedbackReader } from '@living-architecture/dev-workflow-v2-use-cases/adapters/github/workflow-pull-request-feedback-reader'
-import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
+import {
+  configureWorkflow,
+  WorkflowDependencies,
+} from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
 import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
 import { readGitRepositoryStatus } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/git/git-client'
 import { createGithubPullRequestClient } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/github/create-pull-request'
@@ -77,8 +80,8 @@ function sleepMs(milliseconds: number): void {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds)
 }
 
-function buildWorkflowDeps(platform: PlatformContext) {
-  return {
+function buildWorkflowDeps(platform: PlatformContext): WorkflowDependencies {
+  return WorkflowDependencies.from({
     getGitInfo: createWorkflowGitStatusReader(readGitRepositoryStatus),
     getPrFeedback: createWorkflowPullRequestFeedbackReader(
       createGithubPullRequestFeedbackClient(runGh),
@@ -90,7 +93,7 @@ function buildWorkflowDeps(platform: PlatformContext) {
     listSessionReviews: () => platform.store.listSessionReviews(platform.getSessionId()),
     sleepMs,
     now: platform.now,
-  }
+  })
 }
 
 /** @riviere-role main */
