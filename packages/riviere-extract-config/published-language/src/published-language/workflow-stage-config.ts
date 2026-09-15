@@ -9,6 +9,7 @@ import type { EventCatalogMappings } from './eventcatalog-mappings'
 
 /** @riviere-role published-language-data-structure */
 export interface CodeExtractionConfig {
+  readonly allowIncomplete?: boolean
   readonly modules: ValidatedConfiguration['modules']
   readonly connections: ValidatedConfiguration['connections']
   readonly schema: ValidatedConfiguration['schema']

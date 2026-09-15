@@ -5,18 +5,34 @@ import { afterEach, beforeEach, vi } from 'vitest'
 import type { RiviereProjectCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
 import type { RiviereProjectRepository } from '../features/extract/data-access/riviere-project/riviere-project-repository'
 import { InitGraph } from '../features/extract/commands/init-graph'
+import { createCodeExtractionAdapter } from '../features/extract/adapters/ts-morph/code-extraction-adapter'
+
+class CodeExtractionUnavailableError extends Error {
+  constructor() {
+    super('Code extraction is not used by this fixture')
+    this.name = 'CodeExtractionUnavailableError'
+  }
+}
 
 export function collaborators(): RiviereProjectCollaborators {
   return {
     loadEventCatalogSource: () => Promise.resolve({ domains: [], services: [], events: [] }),
     loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
+    loadCodeExtraction: () => {
+      throw new CodeExtractionUnavailableError()
+    },
     repositoryName: 'test',
   }
 }
 
 export function createInitGraph(repository: RiviereProjectRepository): InitGraph {
   const loaders = collaborators()
-  return new InitGraph(repository, loaders.loadEventCatalogSource, loaders.loadAsyncApiDocument)
+  return new InitGraph(
+    repository,
+    loaders.loadEventCatalogSource,
+    loaders.loadAsyncApiDocument,
+    createCodeExtractionAdapter(),
+  )
 }
 
 export interface TestContext {

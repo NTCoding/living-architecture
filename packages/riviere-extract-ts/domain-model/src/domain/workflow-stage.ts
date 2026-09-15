@@ -10,6 +10,7 @@ type CodeExtractionStage = Readonly<{
   kind: 'code-extraction'
   name: string
   config: CodeExtractionConfig
+  configPath?: string
 }>
 
 type EventCatalogImportStage = Readonly<{
@@ -94,6 +95,7 @@ export class WorkflowStage {
 
 function copyCodeExtractionConfig(config: CodeExtractionConfig): CodeExtractionConfig {
   return {
+    ...(config.allowIncomplete === true ? { allowIncomplete: true } : {}),
     modules: [...config.modules],
     ...(config.connections === undefined
       ? { connections: undefined }

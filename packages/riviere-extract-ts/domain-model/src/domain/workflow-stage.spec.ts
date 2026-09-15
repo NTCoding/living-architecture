@@ -73,6 +73,27 @@ describe('WorkflowStage', () => {
     })
   })
 
+  it('copies a code extraction config with undefined connections and allowIncomplete', () => {
+    const validatedConfig = configuration().resolvedConfig
+    const stage = WorkflowStage.fromCodeExtraction('extract', {
+      allowIncomplete: true,
+      modules: validatedConfig.modules,
+      connections: undefined,
+      schema: undefined,
+    })
+
+    expect(stage.value).toStrictEqual({
+      kind: 'code-extraction',
+      name: 'extract',
+      config: {
+        allowIncomplete: true,
+        modules: validatedConfig.modules,
+        connections: undefined,
+        schema: undefined,
+      },
+    })
+  })
+
   it('copies event catalog import configuration from its input', () => {
     const config: EventCatalogImportConfig = {
       source: 'eventcatalog',

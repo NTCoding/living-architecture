@@ -31,9 +31,8 @@ import { globSourceFiles } from '../../../../infra/external-clients/glob/glob-so
 import { GitError } from '../../../../infra/external-clients/git/git-errors'
 import { getRepositoryInfo } from '../../../../infra/external-clients/git/git-repository-info'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
-import type { RiviereProjectCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
+import type { RiviereProjectCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
 import { ExtractionConfiguration } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-configuration'
-import { createTypeScriptProjects } from '../../../../infra/external-clients/ts-morph/create-typescript-projects'
 import { ExtractionConfigError } from './riviere-config-error'
 import { ExtractionDataAccessError } from './riviere-project-error'
 import { DraftComponent } from '@living-architecture/riviere-extract-ts-domain-model/domain/component-extraction/draft-component'
@@ -53,12 +52,11 @@ export class RiviereProjectRepository {
   constructor(
     private readonly loadEventCatalogSource: RiviereProjectCollaborators['loadEventCatalogSource'],
     private readonly loadAsyncApiDocument: RiviereProjectCollaborators['loadAsyncApiDocument'],
+    private readonly loadCodeExtraction: RiviereProjectCollaborators['loadCodeExtraction'],
   ) {}
-
   save(graphFileLocation: string, project: RiviereProject): void {
     writeTextFile(graphFileLocation, project.serialize())
   }
-
   load(input: RiviereProjectLoadInput): RiviereProject {
     switch (input.kind) {
       case 'workflow':
@@ -69,7 +67,6 @@ export class RiviereProjectRepository {
         return this.loadGraph(input.graphFileLocation)
     }
   }
-
   private loadWorkflow(workflowPath: string): RiviereProject {
     const workflowFile = resolve(workflowPath)
     const workflowDirectory = dirname(workflowFile)
@@ -79,6 +76,7 @@ export class RiviereProjectRepository {
     const collaborators = {
       loadEventCatalogSource: this.loadEventCatalogSource,
       loadAsyncApiDocument: this.loadAsyncApiDocument,
+      loadCodeExtraction: this.loadCodeExtraction,
       repositoryName: this.repositoryName(workflowDirectory),
     }
     const workflowInput = {
@@ -103,7 +101,6 @@ export class RiviereProjectRepository {
     if (!started.success) throw new ExtractionConfigError('VALIDATION_ERROR', started.error)
     return started.project
   }
-
   private rehydrateGraph(
     graphPath: string,
     workflowInput: NonNullable<Parameters<typeof RiviereProject.rehydrate>[3]>,
@@ -122,7 +119,6 @@ export class RiviereProjectRepository {
       workflowInput,
     )
   }
-
   private readExistingGraph(graphPath: string): unknown {
     try {
       return fileReader.readJsonFile(graphPath, 'Rivière graph')
@@ -135,7 +131,6 @@ export class RiviereProjectRepository {
       throw error
     }
   }
-
   private loadWorkflowDefinition(workflowPath: string): WorkflowDefinition {
     const definition = parseWorkflowDefinition(this.readConfigYaml(workflowPath))
     if (!definition.success)
@@ -166,12 +161,15 @@ export class RiviereProjectRepository {
     const configDirectory = dirname(configPath)
     const file = this.readConfigYaml(configPath)
     switch (stage.kind) {
-      case 'code-extraction':
+      case 'code-extraction': {
+        const configuration = this.loadParsedConfigState(configPath).configuration
         return {
           kind: 'code-extraction',
           name: stage.name,
-          config: this.loadParsedConfigState(configPath).configuration,
+          configPath,
+          config: configuration,
         }
+      }
       case 'eventcatalog-import': {
         const config = parseEventCatalogImportConfig(file)
         if (!config.success)
@@ -254,6 +252,7 @@ export class RiviereProjectRepository {
       {
         loadEventCatalogSource: this.loadEventCatalogSource,
         loadAsyncApiDocument: this.loadAsyncApiDocument,
+        loadCodeExtraction: this.loadCodeExtraction,
         repositoryName: configuration.repositoryName,
       },
     )
@@ -270,6 +269,7 @@ export class RiviereProjectRepository {
       return RiviereProject.rehydrate(result.graph, {
         loadEventCatalogSource: this.loadEventCatalogSource,
         loadAsyncApiDocument: this.loadAsyncApiDocument,
+        loadCodeExtraction: this.loadCodeExtraction,
         repositoryName: graphFileLocation,
       })
     } catch (error) {
@@ -281,23 +281,21 @@ export class RiviereProjectRepository {
   private loadExtractionConfiguration(params: LoadParameters): ExtractionConfiguration {
     const configPath = resolve(params.projectRoot, params.configPath)
     const state = this.loadParsedConfigState(configPath)
-    const sourceFilesByModule = this.resolveSourceFilePaths(state)
-    const moduleSources = createTypeScriptProjects(
-      state.configDir,
-      sourceFilesByModule,
-      params.useTsConfig,
-    )
+    this.resolveSourceFilePaths(state)
+    const repositoryName = this.repositoryName(params.projectRoot)
+    const useTsConfig = params.useTsConfig
     return ExtractionConfiguration.parse({
       name: configPath,
       configPath,
-      useTsConfig: params.useTsConfig,
-      repositoryName: this.repositoryName(params.projectRoot),
+      useTsConfig,
+      repositoryName,
       resolvedConfig: state.configuration,
-      moduleContexts: [...moduleSources.entries()].map(([module, source]) => ({
-        module,
-        files: source.files,
-        project: source.project,
-      })),
+      moduleContexts: this.loadCodeExtraction({
+        config: state.configuration,
+        configPath,
+        repositoryName,
+        useTsConfig,
+      }),
     })
   }
 
@@ -349,11 +347,7 @@ export class RiviereProjectRepository {
     }
   }
 
-  private readConfigYaml(path: string): unknown {
-    const result = readConfigYaml(path)
-    if (!result.success) throw new ExtractionConfigError(result.code, result.message)
-    return result.value
-  }
+  private readConfigYaml(path: string): unknown { const result = readConfigYaml(path); if (!result.success) { throw new ExtractionConfigError(result.code, result.message) } return result.value }
 
   private resolveConfiguration(
     config: DraftConfiguration,

@@ -1,4 +1,5 @@
 import type { LoadAsyncApiDocument } from './load-asyncapi-document'
+import type { LoadCodeExtraction } from './load-code-extraction'
 
 type EventCatalogDomainRecord = Readonly<{
   id: string
@@ -34,6 +35,7 @@ export type LoadEventCatalogSource = (sourcePath: string) => Promise<EventCatalo
 type RiviereProjectCollaborators = Readonly<{
   loadEventCatalogSource: LoadEventCatalogSource
   loadAsyncApiDocument: LoadAsyncApiDocument
+  loadCodeExtraction: LoadCodeExtraction
   repositoryName: string
 }>
 

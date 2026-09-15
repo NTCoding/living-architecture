@@ -23,6 +23,9 @@ describe('executeAsyncApiImportStage failures', () => {
     const outcome = await executeAsyncApiImportStage(asyncApiBuilder(), asyncApiImportConfig(), {
       loadEventCatalogSource: () => Promise.resolve({ domains: [], services: [], events: [] }),
       loadAsyncApiDocument: () => Promise.reject(new DocumentLoadFailure('boom')),
+      loadCodeExtraction: () => {
+        throw new DocumentLoadFailure('Code extraction is not used by this fixture')
+      },
       repositoryName: 'shop',
     })
 

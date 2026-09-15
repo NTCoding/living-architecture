@@ -62,6 +62,7 @@ describe('RiviereProjectRepository EventCatalog workflow', () => {
           events: [{ id: 'OrderCreated', name: 'Order Created' }],
         }),
       () => Promise.resolve({ messages: [], operations: [] }),
+      () => [],
     )
 
     const project = repository.load({

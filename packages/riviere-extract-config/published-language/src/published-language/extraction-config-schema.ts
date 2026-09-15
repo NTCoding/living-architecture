@@ -357,6 +357,9 @@ export interface ValidatedModuleInput extends ModuleIdentity, ModuleRules {}
 /** @riviere-role published-language-schema */
 export interface DraftConfiguration {
   $schema?: string
+  /** Emit unresolved extraction results instead of failing the extraction. */
+  'allow-incomplete'?: boolean
+  allowIncomplete?: boolean
   modules: [DraftModule, ...DraftModule[]]
   connections?: ConnectionsConfig
 }
@@ -368,6 +371,8 @@ export interface DraftConfiguration {
 /** @riviere-role published-language-data-structure */
 export interface ValidatedConfigurationInput {
   $schema?: string
+  /** Emit unresolved extraction results instead of failing the extraction. */
+  allowIncomplete?: boolean
   modules: ValidatedModuleInput[]
   connections?: ConnectionsConfig
 }

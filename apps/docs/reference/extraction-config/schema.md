@@ -15,6 +15,7 @@ Configuration for extracting architectural components from source code
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `$schema` | `string` | No | JSON Schema reference |
+| `allow-incomplete` | `boolean` | No | Output components and connections with unresolved fields as lenient extraction results |
 | `modules` | `(module \| moduleRef)[]` | **Yes** | Module definitions for component extraction |
 | `connections` | `connectionsConfig` | No | Connection detection configuration |
 

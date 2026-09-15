@@ -4,6 +4,7 @@ import { Project } from 'ts-morph'
 import { assert } from 'vitest'
 import { ExtractionConfiguration } from '../extraction-configuration'
 import type { AsyncApiDocument, LoadAsyncApiDocument } from '../ports/load-asyncapi-document'
+import type { LoadCodeExtraction } from '../ports/load-code-extraction'
 import type {
   EventCatalogSource,
   RiviereProjectCollaborators,
@@ -14,9 +15,11 @@ export function collaborators(
   source: EventCatalogSource = { domains: [], services: [], events: [] },
   asyncApiDocument: AsyncApiDocument = { messages: [], operations: [] },
 ): RiviereProjectCollaborators {
+  const loadCodeExtraction: LoadCodeExtraction = () => configuration().moduleContexts
   return {
     loadEventCatalogSource: () => Promise.resolve(source),
     loadAsyncApiDocument: () => Promise.resolve(asyncApiDocument),
+    loadCodeExtraction,
     repositoryName: 'shop',
   }
 }
@@ -27,7 +30,7 @@ export function asyncApiCollaborators(document: AsyncApiDocument): RiviereProjec
 
 export type { LoadAsyncApiDocument }
 
-export function configuration(customType?: string): ExtractionConfiguration {
+export function configuration(customType?: string, allowIncomplete = false): ExtractionConfiguration {
   const parsed = ValidatedConfiguration.parse({
     modules: [
       {
@@ -53,6 +56,7 @@ export function configuration(customType?: string): ExtractionConfiguration {
             }),
       },
     ],
+    ...(allowIncomplete ? { allowIncomplete: true } : {}),
   })
   assert(parsed.success)
   const module = parsed.data.modules[0]

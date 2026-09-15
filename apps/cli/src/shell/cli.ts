@@ -57,6 +57,7 @@ import { createValidateCommand } from '../features/builder/entrypoint/validate/e
 import { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
 import { RiviereProjectRepository } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/data-access/riviere-project/riviere-project-repository'
+import { createCodeExtractionAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ts-morph/code-extraction-adapter'
 import { createGitChangedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/git/create-git-changed-source-file-finder'
 import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-specified-source-file-finder'
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
@@ -133,9 +134,11 @@ const packageJson = loadPackageJson()
 export function createProgram(): Command {
   const eventCatalogSourceLoader = createEventCatalogSourceAdapter()
   const asyncApiDocumentLoader = createAsyncApiDocumentAdapter()
+  const codeExtractionLoader = createCodeExtractionAdapter()
   const riviereProjectRepository = new RiviereProjectRepository(
     eventCatalogSourceLoader,
     asyncApiDocumentLoader,
+    codeExtractionLoader,
   )
   const defaultGraphFileLocation = join(process.cwd(), '.riviere', 'graph.json')
   const program = new Command()
@@ -179,6 +182,7 @@ export function createProgram(): Command {
         riviereProjectRepository,
         eventCatalogSourceLoader,
         asyncApiDocumentLoader,
+        codeExtractionLoader,
       ),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,

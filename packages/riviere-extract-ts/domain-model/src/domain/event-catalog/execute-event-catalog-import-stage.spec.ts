@@ -415,6 +415,9 @@ describe('executeEventCatalogImportStage', () => {
     const outcome = await executeEventCatalogImportStage(builder(), importConfig(), {
       loadEventCatalogSource: () => Promise.reject(new SourceLoadFailure('boom')),
       loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
+      loadCodeExtraction: () => {
+        throw new SourceLoadFailure('Code extraction is not used by this fixture')
+      },
       repositoryName: 'shop',
     })
 
