@@ -28,7 +28,7 @@ pnpm --dir "$(git rev-parse --show-toplevel)/tools/dev-workflow-v2" run prepare-
 gh issue view <N>
 ```
 
-Summarize the requirements from the issue body.
+Read the requirements from the issue body. Do not summarise them in the conversation. After workflow initialisation, the IMPLEMENTING state instructions define the permitted responses.
 
 ## Step 3: Initialize the workflow
 

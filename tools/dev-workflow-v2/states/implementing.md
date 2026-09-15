@@ -1,5 +1,17 @@
 # IMPLEMENTING State
 
+## Required response prefix
+
+Every response in this state must begin with `🔨 IMPLEMENTING`. It must be the first thing in the response. Do not place whitespace, Markdown, a heading, an explanation, or any other text before it. The workflow engine rejects tool use until it has received this exact state prefix.
+
+When the engine asks for the prefix, send `🔨 IMPLEMENTING` as the complete response, then continue with the current procedure.
+
+## Silent execution
+
+After the user has approved the implementation plan, work silently. Do not send progress updates, implementation commentary, or summaries while completing the task.
+
+Respond only when the user sends a new message that requires an answer, when approval is required before writing code, or when blocked. Every permitted response must still begin with `🔨 IMPLEMENTING`.
+
 You are implementing the task. Write code, commit often.
 
 ## TODO
