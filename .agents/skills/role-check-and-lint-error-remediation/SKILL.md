@@ -7,13 +7,13 @@ description: Remediate role-check, role-enforcement, and lint failures by improv
 
 Role-check and lint errors are design feedback. Do not see them as constraints to workaround. Step back and review the design.
 
-## Stance
-
 - Never silence an error or look forhacky workarounds. 
 - Read the failing role's definition in `.riviere/role-definitions/<role>.md`
   and `.riviere/role-selection-guide.md` before editing. Read every candidate
   role before choosing one.
 - Never invent a new role, all role changes require user approval.
+
+Always look in `/project-memory/` for related refactoring examples that show how similar errors were previously resolved.
 
 
 ## Find the seam
@@ -29,6 +29,8 @@ A value object is the most common seam. Look for one or more pieces of data and 
 
 - an aggregate, entity, domain service, repository (or other object) has validation and construction logic for one or a group of related fields
 - an aggregate, entity, domain service, repository (or other object) needs an input or output data structure for one of it's methods
+
+If the thing you are dealing with involves data, chances are very high that it's a value object. So start there and try to solve the problem with VOs. Look for relevant project memories showing value object refactorings.
 
 
 ### The contract in this repository
