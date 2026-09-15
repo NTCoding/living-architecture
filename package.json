@@ -67,7 +67,7 @@
     "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "npm:typescript@5.9.3",
     "typescript-eslint": "^8.50.1",
-    "verdaccio": "6.10.0",
+    "verdaccio": "6.10.3",
     "vite": "^7.0.0",
     "vitepress": "^1.5.0",
     "vitest": "^4.0.8",
