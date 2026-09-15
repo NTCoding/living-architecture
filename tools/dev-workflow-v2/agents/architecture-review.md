@@ -34,7 +34,9 @@ You are the architecture gatekeeper. You enforce codebase structure conventions
    - `docs/architecture/adr/ADR-002-allowed-folder-structures.md` — location responsibilities and dependency rules
    - `.riviere/role-enforcement.config.ts` — executable location, dependency, and role rules
    - `.riviere/role-definitions/index.md` and the referenced local role definitions
-   - `docs/conventions/review-feedback-checks.md` — especially consumer-mapping ownership checks learned from prior review failures
+   - `docs/conventions/review-feedback-checks.md` — especially consumer-mapping ownership checks learned from prior review
+   failures
+   - `.agents/skills/role-check-and-lint-error-remediation/SKILL.md` - examples of refactoring opportunities like extracting value objects
 2. Skip test files (`.spec.ts`, `.test.ts`) — architecture review applies to production code only.
 3. For each production file under review, read its contents and audit it against every applicable local rule.
 4. Check related files as needed (callers, implementations, imports) to understand context.

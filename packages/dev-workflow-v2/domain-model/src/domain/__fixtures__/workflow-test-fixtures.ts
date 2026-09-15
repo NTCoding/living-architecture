@@ -1,8 +1,14 @@
 import { workflowSpec } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { defineRecordingOps } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 import type { WorkflowEvent } from '../workflow-events'
-import { BranchRecorded, IssueRecorded, Transitioned } from '../workflow-events'
-import { getInitialWorkflowState, WorkflowState } from '../workflow-types'
+import { BranchRecorded, IssueRecorded, parseWorkflowEvent, Transitioned } from '../workflow-events'
+import {
+  getInitialWorkflowState,
+  type WorkflowStateNameValue,
+  WorkflowState,
+} from '../workflow-types'
 import { MaintainerWorkflow } from '../workflow'
+import { WorkflowDependencies } from '../workflow-dependencies'
 import { MaintainerWorkflowRegistry } from '../registry'
 import { AddressingFeedbackState } from '../states/addressing-feedback'
 import { BlockedState } from '../states/blocked'
@@ -12,8 +18,7 @@ import { ReviewingState } from '../states/reviewing'
 import { SubmittingPrState } from '../states/submitting-pr'
 import type { GitInfo } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
 
-type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
-type StateName = WorkflowState['currentStateMachineState']
+type WorkflowDeps = WorkflowDependencies
 
 const AT = '2026-01-01T00:00:00Z'
 
@@ -34,32 +39,38 @@ const cleanGit: GitInfo = {
   hasCommitsVsDefault: true,
 }
 
-export function makeDeps(overrides?: Partial<WorkflowDeps>): WorkflowDeps {
-  return {
-    getGitInfo: () => cleanGit,
-    getPrFeedback: () => ({
-      reviewerStatuses: {
-        'architecture-review': 'APPROVED',
-        'code-review': 'APPROVED',
-        'bug-scanner': 'APPROVED',
-        'task-check': 'APPROVED',
-        coderabbit: 'APPROVED',
-      },
-      reviewDecision: null,
-      coderabbitReviewSeen: true,
-      unresolvedCount: 0,
-      threads: [],
-    }),
-    createPullRequest: () => ({
-      prNumber: 99,
-      prUrl: 'https://github.com/example/repo/pull/99',
-      isDraft: false,
-    }),
-    listSessionReviews: () => [],
-    sleepMs: () => undefined,
-    now: () => AT,
-    ...overrides,
-  }
+export function makeDeps(overrides: Partial<WorkflowDependencies> = {}): WorkflowDependencies {
+  return WorkflowDependencies.from({
+    getGitInfo: overrides.getGitInfo ?? (() => cleanGit),
+    getPrFeedback:
+      overrides.getPrFeedback ??
+      (() => ({
+        reviewerStatuses: {
+          'architecture-review': 'APPROVED',
+          'code-review': 'APPROVED',
+          'bug-scanner': 'APPROVED',
+          'task-check': 'APPROVED',
+          coderabbit: 'APPROVED',
+        },
+        reviewDecision: null,
+        coderabbitReviewSeen: true,
+        unresolvedCount: 0,
+        threads: [],
+      })),
+    createPullRequest:
+      overrides.createPullRequest ??
+      (() => ({
+        prNumber: 99,
+        prUrl: 'https://github.com/example/repo/pull/99',
+        isDraft: false,
+      })),
+    listSessionReviews: overrides.listSessionReviews ?? (() => []),
+    sleepMs: overrides.sleepMs ?? (() => undefined),
+    now: overrides.now ?? (() => AT),
+    parseWorkflowEvent: overrides.parseWorkflowEvent ?? parseWorkflowEvent,
+    readInitialWorkflowState: overrides.readInitialWorkflowState ?? getInitialWorkflowState,
+    buildRecordingOperations: overrides.buildRecordingOperations ?? defineRecordingOps,
+  })
 }
 
 export function buildTestWorkflow(
@@ -93,8 +104,8 @@ function branchRecorded(b: string): WorkflowEvent {
 }
 
 export function transitioned(
-  from: StateName,
-  to: StateName,
+  from: WorkflowStateNameValue,
+  to: WorkflowStateNameValue,
   stateOverrides?: Record<string, unknown>,
 ): WorkflowEvent {
   return Transitioned.parse({
@@ -134,8 +145,18 @@ export const spec = workflowSpec<WorkflowEvent, WorkflowState, WorkflowDeps, Mai
   defaultDeps: makeDeps,
   getPendingEvents: (wf) => wf.getPendingEvents(),
   getState: (wf) => wf.getState(),
-  mergeDeps: (defaults, overrides) => ({
-    ...defaults,
-    ...overrides,
-  }),
+  mergeDeps: (defaults, overrides) =>
+    WorkflowDependencies.from({
+      getGitInfo: overrides.getGitInfo ?? defaults.getGitInfo,
+      getPrFeedback: overrides.getPrFeedback ?? defaults.getPrFeedback,
+      createPullRequest: overrides.createPullRequest ?? defaults.createPullRequest,
+      listSessionReviews: overrides.listSessionReviews ?? defaults.listSessionReviews,
+      sleepMs: overrides.sleepMs ?? defaults.sleepMs,
+      now: overrides.now ?? defaults.now,
+      parseWorkflowEvent: overrides.parseWorkflowEvent ?? defaults.parseWorkflowEvent,
+      readInitialWorkflowState:
+        overrides.readInitialWorkflowState ?? defaults.readInitialWorkflowState,
+      buildRecordingOperations:
+        overrides.buildRecordingOperations ?? defaults.buildRecordingOperations,
+    }),
 })

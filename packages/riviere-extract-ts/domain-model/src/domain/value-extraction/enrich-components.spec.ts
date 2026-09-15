@@ -9,6 +9,7 @@ import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
 import { RiviereModule } from '../riviere-module'
+import { moduleExtractionRules } from '../__fixtures__/workflow-fixtures'
 import { createValidatedModule } from '../../__fixtures__/test-fixtures'
 import { TestFixtureError } from './literal-detection'
 
@@ -91,6 +92,7 @@ function enrich(drafts: DraftComponent[], modules: ValidatedModule[]) {
   }
   return RiviereModule.build({
     configuration: module,
+    extractionRules: moduleExtractionRules(),
     project: sharedProject,
     sourceFiles: [],
     candidateDraftComponents: drafts,

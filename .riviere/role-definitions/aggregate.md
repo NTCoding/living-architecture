@@ -13,6 +13,7 @@ An aggregate:
 4. **Encapsulates state** — all instance state is private. Application code tells the aggregate to make domain decisions; it does not read aggregate state to make them itself.
 5. **Is loaded/saved through a repository** — never created ad-hoc in commands or services
 6. **Exposes mutation** — at least one public method modifies or replaces the aggregate's state. A class with only read-only methods is NOT an aggregate.
+7. **Receives every dependency through its constructor** — it must not call imported free functions, including `domain-service` functions, to perform work. Collaborators are injected and invoked on the instance.
 
 ## Examples
 
@@ -52,6 +53,7 @@ export class RiviereProject {
 - If the class makes direct calls to external libraries (fs, git, HTTP) — infrastructure leaking in, extract to external-client-service
 - If the class loads its own state from disk/database — repository responsibility leaking in
 - If the class formats output for display — cli-output-formatter responsibility leaking in
+- If the class calls an imported free function, including a `domain-service` — dependency inversion is violated. Inject the capability and invoke it through the injected collaborator.
 
 ## Decision Guidance
 - **vs value-object**: Does it enforce invariants and own behavior? → aggregate. Is it a simple data structure with no behavior? → value-object

@@ -1,9 +1,10 @@
 import type { GitInfo, TransitionContext } from '@nt-ai-lab/deterministic-agent-workflow-dsl'
-import type { WorkflowState } from './workflow-types'
+import { type WorkflowStateNameValue, type WorkflowState } from './workflow-types'
 
-type StateName = WorkflowState['currentStateMachineState']
-
-interface WorkflowTransitionContextValues extends TransitionContext<WorkflowState, StateName> {
+interface WorkflowTransitionContextValues extends TransitionContext<
+  WorkflowState,
+  WorkflowStateNameValue
+> {
   readonly gitInfo: GitInfo
 }
 
@@ -13,8 +14,8 @@ export class WorkflowTransitionContext {
 
   private constructor(
     readonly state: WorkflowState,
-    readonly from: StateName,
-    readonly to: StateName,
+    readonly from: WorkflowStateNameValue,
+    readonly to: WorkflowStateNameValue,
     readonly gitInfo: GitInfo,
   ) {}
 

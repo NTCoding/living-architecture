@@ -49,10 +49,20 @@ const aggregateRepository = role('aggregate-repository', {
 })
 
 const valueObject = role('value-object', {
+  forbiddenIndexedAccessType: true,
   allowedStaticMethodNames: ['singleton'],
   forbidNonFactoryStaticMethods: true,
   requiredStaticFactoryMethodNamePrefixes: ['parse', 'from'],
   targets: ['class'],
+})
+
+const domainPort = role('domain-port', {
+  requiresImplementerRole: 'domain-port-adapter',
+  targets: ['interface', 'type-alias'],
+})
+
+const domainPortAdapter = role('domain-port-adapter', {
+  targets: ['function', 'class'],
 })
 
 const config = RoleEnforcementConfiguration.parse({
@@ -69,6 +79,8 @@ const config = RoleEnforcementConfiguration.parse({
           'aggregate',
           'aggregate-repository',
           'value-object',
+          'domain-port',
+          'domain-port-adapter',
         ]),
       ),
     },
@@ -85,6 +97,8 @@ const config = RoleEnforcementConfiguration.parse({
     aggregate,
     aggregateRepository,
     valueObject,
+    domainPort,
+    domainPortAdapter,
   ],
 })
 

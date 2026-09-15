@@ -1,3 +1,15 @@
+import { ArchitectureChanges } from './architecture-changes'
+
+export {
+  ArchitectureChanges,
+  ArchitectureRelationship,
+  ArchitectureItem,
+  ArchitectureAggregateChanges,
+  ArchitectureChangeSet,
+  ArchitectureLayerChanges,
+  SubdomainArchitectureChanges,
+} from './architecture-changes'
+
 type ArchitectureLayerName = 'entrypoints' | 'use-cases' | 'domain'
 type ArchitecturePackageKind = 'application' | 'use-cases' | 'domain-model' | 'published-language'
 
@@ -99,8 +111,8 @@ export class ArchitectureDiff {
     return new ArchitectureDiff(compareArchitectureValues(base.snapshot(), head.snapshot()))
   }
 
-  changes(): ArchitectureDiffValue {
-    return copyArchitectureDiff(this.value)
+  changes(): ArchitectureChanges {
+    return ArchitectureChanges.from(this.value)
   }
 }
 
@@ -330,34 +342,6 @@ function copyItem(item: ArchitectureItemValue): ArchitectureItemValue {
     packageKind: item.packageKind,
     ...(relatedTo.length === 0 ? {} : { relatedTo }),
     role: item.role,
-  }
-}
-
-function copyArchitectureDiff(value: ArchitectureDiffValue): ArchitectureDiffValue {
-  return {
-    subdomains: value.subdomains.map((subdomain) => ({
-      change: subdomain.change,
-      layers: {
-        domain: copyLayerChanges(subdomain.layers.domain),
-        entrypoints: copyLayerChanges(subdomain.layers.entrypoints),
-        'use-cases': copyLayerChanges(subdomain.layers['use-cases']),
-      },
-      name: subdomain.name,
-    })),
-  }
-}
-
-function copyLayerChanges(changes: ArchitectureLayerChangesValue): ArchitectureLayerChangesValue {
-  return {
-    added: copyChangeSet(changes.added),
-    removed: copyChangeSet(changes.removed),
-  }
-}
-
-function copyChangeSet(changes: ArchitectureChangeSetValue): ArchitectureChangeSetValue {
-  return {
-    aggregates: changes.aggregates.map(copyAggregate),
-    items: changes.items.map(copyItem),
   }
 }
 

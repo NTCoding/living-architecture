@@ -4,7 +4,7 @@ import { Reviewer, Reviewers } from './reviews/reviewers'
 import { ReviewerStatus, ReviewStatuses } from './reviews/statuses'
 import { ReviewerStatuses } from './reviews/reviewer-statuses'
 
-const STATE_NAMES = [
+const WORKFLOW_STATE_NAMES = [
   'IMPLEMENTING',
   'SUBMITTING_PR',
   'REVIEWING',
@@ -13,26 +13,63 @@ const STATE_NAMES = [
   'BLOCKED',
 ] as const
 
-/**
- * @riviere-role domain-port
- * @riviere-role-justification The workflow engine consumes state names as its state machine contract, so the closed set is the contract the domain exposes to the engine.
- */
-export type StateName = (typeof STATE_NAMES)[number]
+const WORKFLOW_STATE_NAME_SCHEMA = z.enum(WORKFLOW_STATE_NAMES)
 
-/** @riviere-role value-object */
-export class StateNames {
-  declare private readonly brand: 'StateNames'
+type WorkflowStateNameValue = z.infer<typeof WORKFLOW_STATE_NAME_SCHEMA>
 
-  private constructor(private readonly names: readonly [StateName, ...StateName[]]) {}
-
-  static singleton(): StateNames {
-    return new StateNames(STATE_NAMES)
-  }
-
-  asZodSchema(): ZodType<StateName> {
-    return z.enum(this.names)
+/** @riviere-role domain-error */
+export class InvalidWorkflowStateName extends Error {
+  constructor(value: string) {
+    super(`Unknown workflow state name: ${value}`)
+    this.name = 'InvalidWorkflowStateName'
   }
 }
+
+/** @riviere-role value-object */
+export class WorkflowStateName {
+  declare private readonly brand: 'WorkflowStateName'
+
+  private constructor(private readonly stateName: WorkflowStateNameValue) {}
+
+  static fromName(value: string): WorkflowStateName {
+    const result = WORKFLOW_STATE_NAME_SCHEMA.safeParse(value)
+    if (!result.success) {
+      throw new InvalidWorkflowStateName(value)
+    }
+    return new WorkflowStateName(result.data)
+  }
+
+  static parse(value: unknown): WorkflowStateName {
+    return new WorkflowStateName(WORKFLOW_STATE_NAME_SCHEMA.parse(value))
+  }
+
+  name(): WorkflowStateNameValue {
+    return this.stateName
+  }
+}
+
+/** @riviere-role value-object */
+export class WorkflowStateNames {
+  declare private readonly brand: 'WorkflowStateNames'
+
+  private constructor(private readonly names: readonly WorkflowStateName[]) {}
+
+  static singleton(): WorkflowStateNames {
+    return new WorkflowStateNames(
+      WORKFLOW_STATE_NAME_SCHEMA.options.map((name) => WorkflowStateName.fromName(name)),
+    )
+  }
+
+  asZodSchema(): ZodType<WorkflowStateNameValue> {
+    return WORKFLOW_STATE_NAME_SCHEMA
+  }
+
+  all(): readonly WorkflowStateName[] {
+    return [...this.names]
+  }
+}
+
+export type { WorkflowStateNameValue }
 
 const REVIEWER_STATUS_SCHEMA = ReviewStatuses.singleton().asZodSchema()
 const REVIEWER_STATUSES_SCHEMA = z
@@ -69,12 +106,12 @@ export function createWorkflowStateSchema<T extends readonly [string, ...string[
   })
 }
 
-const WORKFLOW_STATE_SCHEMA = createWorkflowStateSchema(STATE_NAMES)
+const WORKFLOW_STATE_SCHEMA = createWorkflowStateSchema(WORKFLOW_STATE_NAMES)
 
 type WorkflowStateValue = z.infer<typeof WORKFLOW_STATE_SCHEMA>
 
 type WorkflowStateJson = {
-  readonly currentStateMachineState: StateName
+  readonly currentStateMachineState: WorkflowStateNameValue
   readonly githubIssue?: number | undefined
   readonly featureBranch?: string | undefined
   readonly prNumber?: number | undefined
@@ -112,7 +149,7 @@ function applyReviewerStatus(
 export class WorkflowState {
   declare private readonly brand: 'WorkflowState'
 
-  readonly currentStateMachineState: StateName
+  readonly currentStateMachineState: WorkflowStateNameValue
   readonly githubIssue?: number
   readonly featureBranch?: string
   readonly prNumber?: number
@@ -151,6 +188,10 @@ export class WorkflowState {
 
   static from(events: readonly WorkflowEvent[]): WorkflowState {
     return events.reduce((state, event) => state.apply(event), INITIAL_STATE)
+  }
+
+  currentStateName(): WorkflowStateName {
+    return WorkflowStateName.fromName(this.currentStateMachineState)
   }
 
   toJSON(): WorkflowStateJson {
@@ -238,14 +279,6 @@ const INITIAL_STATE = WorkflowState.parse({
   currentStateMachineState: 'IMPLEMENTING',
   reviewerStatuses: initialReviewerStatuses().toJSON(),
 })
-
-/**
- * @riviere-role domain-service
- * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
- */
-export function getWorkflowStateNames() {
-  return STATE_NAMES
-}
 
 /**
  * @riviere-role domain-service

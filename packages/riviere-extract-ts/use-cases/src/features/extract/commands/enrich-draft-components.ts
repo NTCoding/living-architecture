@@ -5,16 +5,14 @@ import type { EnrichDraftComponentsInput } from './enrich-draft-components-input
 import type { EnrichDraftComponentsResult } from './enrich-draft-components-result'
 import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
 import { ConnectionTimings } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-values'
-import type { ObserveConnectionDetectionPhase } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/observe-connection-detection-phase'
 import { DraftComponentsLoadError } from '../data-access/riviere-project/draft-components-load-error'
-
-type ConnectionDetectionPhase = Parameters<ObserveConnectionDetectionPhase>[0]['phase']
+import type { StartConnectionDetectionTimer } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/connection-detection-timer'
 
 /** @riviere-role command-use-case */
 export class EnrichDraftComponents {
   constructor(
     private readonly riviereProjectRepository: RiviereProjectRepository,
-    private readonly now: () => number,
+    private readonly startConnectionDetectionTimer: StartConnectionDetectionTimer,
   ) {}
 
   execute(enrichDraftComponentsInput: EnrichDraftComponentsInput): EnrichDraftComponentsResult {
@@ -27,14 +25,20 @@ export class EnrichDraftComponents {
         useTsConfig: enrichDraftComponentsInput.useTsConfig,
       })
 
-      const timing = measureConnectionDetection(this.now)
+      const timing = this.startConnectionDetectionTimer()
       const result = riviereProject.enrichDraftComponents({
         allowIncomplete: enrichDraftComponentsInput.allowIncomplete,
         includeConnections: enrichDraftComponentsInput.includeConnections,
         observeConnectionDetectionPhase: timing.observe,
       })
       return {
-        result: result.kind === 'full' ? { ...result, timings: [timing.result()] } : result,
+        result:
+          result.kind === 'full'
+            ? {
+                ...result,
+                timings: [ConnectionTimings.parse(timing.phaseDurationsInMilliseconds())],
+              }
+            : result,
         ...(enrichDraftComponentsInput.output === undefined
           ? {}
           : { outputPath: enrichDraftComponentsInput.output }),
@@ -65,28 +69,5 @@ export class EnrichDraftComponents {
       }
       throw error
     }
-  }
-}
-
-function measureConnectionDetection(now: () => number) {
-  const startedAt = new Map<ConnectionDetectionPhase, number>()
-  const durationMs = new Map<ConnectionDetectionPhase, number>()
-  const observe: ObserveConnectionDetectionPhase = (event) => {
-    if (event.status === 'started') {
-      startedAt.set(event.phase, now())
-      return
-    }
-    const started = startedAt.get(event.phase)
-    if (started !== undefined) durationMs.set(event.phase, now() - started)
-  }
-  return {
-    observe,
-    result: () =>
-      ConnectionTimings.parse({
-        setupMs: durationMs.get('setup') ?? 0,
-        callGraphMs: durationMs.get('callGraph') ?? 0,
-        asyncDetectionMs: durationMs.get('detection') ?? 0,
-        totalMs: durationMs.get('total') ?? 0,
-      }),
   }
 }

@@ -8,11 +8,17 @@ import {
 } from '@living-architecture/riviere-builder-published-language'
 import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest'
-import { RiviereProject } from './riviere-project'
+import { RiviereProject, type RiviereProjectCollaborators } from './riviere-project'
 import { InvalidWorkflowDefinitionError } from './riviere-project-errors'
+import { MissingModuleSourceError } from './extraction-errors'
 import { WorkflowRunMode } from './workflow'
 import { WorkflowStage } from './workflow-stage'
 import { collaborators, configuration } from './__fixtures__/workflow-fixtures'
+import {
+  GraphOnlyProjectStartInput,
+  GraphWithWorkflowStartInput,
+  WorkflowStartInput,
+} from './riviere-project-start-inputs'
 
 const aiExtractConfig: AiExtractConfig = {
   command: 'claude',
@@ -33,24 +39,36 @@ function graphDefinition() {
   }
 }
 
-function project(stages?: readonly WorkflowStage[]): RiviereProject {
-  const result =
-    stages === undefined
-      ? RiviereProject.start({ graphDefinition: graphDefinition() }, collaborators())
-      : RiviereProject.start(
-          {
-            graphDefinition: graphDefinition(),
-            workflowInput: {
-              name: 'build-graph',
-              outputPath: '/project/.riviere/graph.json',
-              runLogDirectory: '/project/.riviere/logs',
-              stages,
-            },
-          },
-          collaborators(),
-        )
-  assert(result.success)
-  return result.project
+function project(
+  stages?: readonly WorkflowStage[],
+  loadCodeExtraction?: RiviereProjectCollaborators['loadCodeExtraction'],
+): RiviereProject {
+  if (stages === undefined) {
+    return RiviereProject.start(
+      GraphOnlyProjectStartInput.from(graphDefinition()),
+      collaborators(),
+    )
+  }
+  return RiviereProject.start(
+    GraphWithWorkflowStartInput.from(
+      graphDefinition(),
+      WorkflowStartInput.from({
+        name: 'build-graph',
+        outputPath: '/project/.riviere/graph.json',
+        runLogDirectory: '/project/.riviere/logs',
+        stages,
+      }),
+    ),
+    withCodeExtractionLoader(loadCodeExtraction),
+  )
+}
+
+function withCodeExtractionLoader(
+  loadCodeExtraction?: RiviereProjectCollaborators['loadCodeExtraction'],
+): RiviereProjectCollaborators {
+  return loadCodeExtraction === undefined
+    ? collaborators()
+    : { ...collaborators(), loadCodeExtraction }
 }
 
 function addExistingComponent(subject: RiviereProject): void {
@@ -90,14 +108,14 @@ describe('RiviereProject Workflow rebuild', () => {
 
   it('runs an asyncapi-import stage through the project', async () => {
     const started = RiviereProject.start(
-      {
-        graphDefinition: {
+      GraphWithWorkflowStartInput.from(
+        {
           name: 'Shop',
           description: 'Shop graph',
           sources: [{ repository: 'shop' }],
           domains: { 'orders-domain': { description: 'Orders', systemType: 'domain' } },
         },
-        workflowInput: {
+        WorkflowStartInput.from({
           name: 'build-graph',
           outputPath: '/project/.riviere/graph.json',
           runLogDirectory: '/project/.riviere/logs',
@@ -118,8 +136,8 @@ describe('RiviereProject Workflow rebuild', () => {
               allowUnmapped: false,
             }),
           ],
-        },
-      },
+        }),
+      ),
       collaborators(
         { domains: [], services: [], events: [] },
         {
@@ -128,9 +146,7 @@ describe('RiviereProject Workflow rebuild', () => {
         },
       ),
     )
-    assert(started.success)
-
-    const result = await started.project.rebuildGraph()
+    const result = await started.rebuildGraph()
 
     assert(result.success)
     expect(result.graph.components.map((component) => component.id)).toStrictEqual([
@@ -160,10 +176,19 @@ describe('RiviereProject Workflow rebuild', () => {
   })
 
   it('retains completed transition evidence after a later failure', async () => {
-    const subject = project([
-      WorkflowStage.fromSchemaValidation('validate'),
-      WorkflowStage.fromCodeExtraction('extract', configuration().resolvedConfig),
-    ])
+    const subject = project(
+      [
+        WorkflowStage.fromSchemaValidation('validate'),
+        WorkflowStage.fromCodeExtraction(
+          'extract',
+          configuration().resolvedConfig,
+          'extraction.yml',
+        ),
+      ],
+      () => {
+        throw new MissingModuleSourceError('orders')
+      },
+    )
 
     const result = await subject.rebuildGraph()
 
@@ -175,10 +200,19 @@ describe('RiviereProject Workflow rebuild', () => {
   })
 
   it('restores prior state after a later failure', async () => {
-    const subject = project([
-      WorkflowStage.fromSchemaValidation('validate'),
-      WorkflowStage.fromCodeExtraction('extract', configuration().resolvedConfig),
-    ])
+    const subject = project(
+      [
+        WorkflowStage.fromSchemaValidation('validate'),
+        WorkflowStage.fromCodeExtraction(
+          'extract',
+          configuration().resolvedConfig,
+          'extraction.yml',
+        ),
+      ],
+      () => {
+        throw new MissingModuleSourceError('orders')
+      },
+    )
     addExistingComponent(subject)
 
     const result = await subject.rebuildGraph()
@@ -252,12 +286,12 @@ describe('RiviereProject Workflow rebuild', () => {
       graph,
       collaborators(),
       BuilderOptions.fromGraph(graph),
-      {
+      WorkflowStartInput.from({
         name: 'build-graph',
         outputPath: 'graph.json',
         runLogDirectory: 'logs',
         stages: [WorkflowStage.fromSchemaValidation('validate')],
-      },
+      }),
     )
 
     const result = await rehydrated.rebuildGraph()
@@ -271,39 +305,43 @@ describe('RiviereProject Workflow rebuild', () => {
     const graph = subject.build()
 
     expect(() =>
-      RiviereProject.rehydrate(graph, collaborators(), BuilderOptions.fromGraph(graph), {
-        name: 'duplicate-stages',
-        outputPath: 'graph.json',
-        runLogDirectory: 'logs',
-        stages: [
-          WorkflowStage.fromCodeExtraction('same', configuration().resolvedConfig),
-          WorkflowStage.fromSchemaValidation('same'),
-        ],
-      }),
-    ).toThrowError(new InvalidWorkflowDefinitionError("Duplicate workflow stage name 'same'"))
-  })
-
-  it('does not start a project with a Workflow that has duplicate stage names', async () => {
-    const result = RiviereProject.start(
-      {
-        graphDefinition: graphDefinition(),
-        workflowInput: {
+      RiviereProject.rehydrate(
+        graph,
+        collaborators(),
+        BuilderOptions.fromGraph(graph),
+        WorkflowStartInput.from({
           name: 'duplicate-stages',
           outputPath: 'graph.json',
           runLogDirectory: 'logs',
           stages: [
-            WorkflowStage.fromCodeExtraction('same', configuration().resolvedConfig),
+            WorkflowStage.fromCodeExtraction(
+              'same',
+              configuration().resolvedConfig,
+              'extraction.yml',
+            ),
             WorkflowStage.fromSchemaValidation('same'),
           ],
-        },
-      },
-      collaborators(),
-    )
+        }),
+      ),
+    ).toThrowError(new InvalidWorkflowDefinitionError("Duplicate workflow stage name 'same'"))
+  })
 
-    expect(result).toMatchObject({
-      success: false,
-      error: "Duplicate workflow stage name 'same'",
-    })
+  it('does not start a project with a Workflow that has duplicate stage names', async () => {
+    expect(() =>
+      WorkflowStartInput.from({
+        name: 'duplicate-stages',
+        outputPath: 'graph.json',
+        runLogDirectory: 'logs',
+        stages: [
+          WorkflowStage.fromCodeExtraction(
+            'same',
+            configuration().resolvedConfig,
+            'extraction.yml',
+          ),
+          WorkflowStage.fromSchemaValidation('same'),
+        ],
+      }),
+    ).toThrowError(new InvalidWorkflowDefinitionError("Duplicate workflow stage name 'same'"))
   })
 
   it('executes an EventCatalog import stage when rebuilding', async () => {
@@ -325,15 +363,15 @@ describe('RiviereProject Workflow rebuild', () => {
       },
     }
     const started = RiviereProject.start(
-      {
-        graphDefinition: graphDefinition(),
-        workflowInput: {
+      GraphWithWorkflowStartInput.from(
+        graphDefinition(),
+        WorkflowStartInput.from({
           name: 'build-graph',
           outputPath: 'graph.json',
           runLogDirectory: 'logs',
           stages: [WorkflowStage.fromEventCatalogImport('import', eventCatalogConfig)],
-        },
-      },
+        }),
+      ),
       collaborators({
         domains: [],
         services: [
@@ -342,9 +380,7 @@ describe('RiviereProject Workflow rebuild', () => {
         events: [{ id: 'OrderCreated', name: 'Order Created' }],
       }),
     )
-    assert(started.success)
-
-    const result = await started.project.rebuildGraph()
+    const result = await started.rebuildGraph()
 
     assert(result.success)
     expect(result.graph.components.map((component) => component.id)).toStrictEqual([

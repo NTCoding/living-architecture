@@ -6,6 +6,7 @@ import {
   TEST_WORKFLOW_REGISTRY,
 } from './__fixtures__/workflow-test-fixtures'
 import { Reviewer } from './reviews/reviewers'
+import { ReviewerStatus } from './reviews/statuses'
 import { BranchRecorded, IssueRecorded } from './workflow-events'
 describe('Workflow', () => {
   describe('createFresh', () => {
@@ -155,7 +156,12 @@ describe('Workflow', () => {
     it('records a named reviewer status only while reviewing', () => {
       const { result, state } = spec
         .given(...eventsToReviewing())
-        .when((wf) => wf.recordReviewerStatus(Reviewer.fromName('code-review'), 'OPEN_FEEDBACK'))
+        .when((wf) =>
+          wf.recordReviewerStatus(
+            Reviewer.fromName('code-review'),
+            ReviewerStatus.parse('OPEN_FEEDBACK'),
+          ),
+        )
       expect(result).toStrictEqual({ pass: true })
       expect(state.reviewerStatuses.statusFor(Reviewer.fromName('code-review'))?.name()).toBe(
         'OPEN_FEEDBACK',
@@ -163,9 +169,12 @@ describe('Workflow', () => {
     })
     it('rejects reviewer status recording outside reviewing', () => {
       const workflow = buildTestWorkflow(makeDeps())
-      expect(workflow.recordReviewerStatus(Reviewer.fromName('code-review'), 'APPROVED').pass).toBe(
-        false,
-      )
+      expect(
+        workflow.recordReviewerStatus(
+          Reviewer.fromName('code-review'),
+          ReviewerStatus.parse('APPROVED'),
+        ).pass,
+      ).toBe(false)
     })
   })
   describe('getPullRequestNumber', () => {
@@ -290,7 +299,7 @@ describe('Workflow', () => {
         'task-check',
         'coderabbit',
       ] as const)
-        workflow.recordReviewerStatus(Reviewer.fromName(reviewer), 'APPROVED')
+        workflow.recordReviewerStatus(Reviewer.fromName(reviewer), ReviewerStatus.parse('APPROVED'))
       expect(workflow.transition('HUMAN_REVIEWING')).toStrictEqual({ pass: true })
       expect(workflow.transition('BLOCKED')).toStrictEqual({ pass: true })
     })
@@ -305,42 +314,51 @@ describe('Workflow', () => {
           'task-check',
           'coderabbit',
         ] as const)
-          wf.recordReviewerStatus(Reviewer.fromName(reviewer), 'APPROVED')
+          wf.recordReviewerStatus(Reviewer.fromName(reviewer), ReviewerStatus.parse('APPROVED'))
         return wf.reviewOutcome()
       })
-      expect(result).toBe('APPROVED')
+      expect(result.name()).toBe('APPROVED')
     })
     it('returns OPEN_FEEDBACK when any reviewer has open feedback', () => {
       const { result } = spec.given(...eventsToReviewing()).when((wf) => {
-        wf.recordReviewerStatus(Reviewer.fromName('code-review'), 'OPEN_FEEDBACK')
+        wf.recordReviewerStatus(
+          Reviewer.fromName('code-review'),
+          ReviewerStatus.parse('OPEN_FEEDBACK'),
+        )
         return wf.reviewOutcome()
       })
-      expect(result).toBe('OPEN_FEEDBACK')
+      expect(result.name()).toBe('OPEN_FEEDBACK')
     })
     it('prioritises OPEN_FEEDBACK over PENDING', () => {
       const { result } = spec.given(...eventsToReviewing()).when((wf) => {
-        wf.recordReviewerStatus(Reviewer.fromName('code-review'), 'OPEN_FEEDBACK')
+        wf.recordReviewerStatus(
+          Reviewer.fromName('code-review'),
+          ReviewerStatus.parse('OPEN_FEEDBACK'),
+        )
         return wf.reviewOutcome()
       })
-      expect(result).toBe('OPEN_FEEDBACK')
+      expect(result.name()).toBe('OPEN_FEEDBACK')
     })
     it('returns PENDING when a reviewer has not responded', () => {
       const { result } = spec.given(...eventsToReviewing()).when((wf) => wf.reviewOutcome())
-      expect(result).toBe('PENDING')
+      expect(result.name()).toBe('PENDING')
     })
     it('ignores CodeRabbit when asked', () => {
       const { result } = spec.given(...eventsToReviewing()).when((wf) => {
-        wf.recordReviewerStatus(Reviewer.fromName('coderabbit'), 'OPEN_FEEDBACK')
+        wf.recordReviewerStatus(
+          Reviewer.fromName('coderabbit'),
+          ReviewerStatus.parse('OPEN_FEEDBACK'),
+        )
         for (const reviewer of [
           'architecture-review',
           'code-review',
           'bug-scanner',
           'task-check',
         ] as const)
-          wf.recordReviewerStatus(Reviewer.fromName(reviewer), 'APPROVED')
+          wf.recordReviewerStatus(Reviewer.fromName(reviewer), ReviewerStatus.parse('APPROVED'))
         return wf.reviewOutcome({ ignoreCodeRabbit: true })
       })
-      expect(result).toBe('APPROVED')
+      expect(result.name()).toBe('APPROVED')
     })
   })
 })

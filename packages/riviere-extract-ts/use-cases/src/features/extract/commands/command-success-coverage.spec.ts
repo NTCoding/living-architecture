@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
 import { afterEach, assert, describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
+import { GraphOnlyProjectStartInput } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project-start-inputs'
 import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
 import {
   type TestContext,
@@ -27,14 +28,12 @@ import { RiviereProjectRepository } from '../data-access/riviere-project/riviere
 
 function createProject(): RiviereProject {
   return RiviereProject.start(
-    {
-      graphDefinition: {
-        domains: { orders: { description: 'Orders', systemType: 'domain' } },
-        sources: [{ repository: 'https://github.com/org/repo' }],
-      },
-    },
+    GraphOnlyProjectStartInput.from({
+      domains: { orders: { description: 'Orders', systemType: 'domain' } },
+      sources: [{ repository: 'https://github.com/org/repo' }],
+    }),
     collaborators(),
-  ).project
+  )
 }
 
 function createProjectWithType(): { project: RiviereProject; id: string } {

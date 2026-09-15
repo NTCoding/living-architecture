@@ -5,6 +5,7 @@ import { RiviereProject } from './riviere-project'
 import { collaborators } from './__fixtures__/workflow-fixtures'
 import { ExtractionConfiguration } from './extraction-configuration'
 import { MissingModuleSourceError } from './extraction-errors'
+import { ExtractionProjectStartInput } from './riviere-project-start-inputs'
 
 function createProject(): RiviereProject {
   const configurationResult = ValidatedConfiguration.parse({
@@ -34,9 +35,7 @@ function createProject(): RiviereProject {
     resolvedConfig: configurationResult.data,
     moduleContexts: [{ module, project: new Project(), files: ['test.ts'] }],
   })
-  const result = RiviereProject.start({ configuration, draftComponents: [] }, collaborators())
-  assert(result.success)
-  return result.project
+  return RiviereProject.start(ExtractionProjectStartInput.from(configuration, []), collaborators())
 }
 
 function expectMissingSource(operation: (project: RiviereProject) => unknown): void {
@@ -113,11 +112,10 @@ describe('RiviereProject.start', () => {
       moduleContexts: [{ module: billing, project: new Project(), files: [] }],
     })
 
-    expect(
-      RiviereProject.start({ configuration, draftComponents: [] }, collaborators()),
-    ).toStrictEqual({
-      success: false,
-      error: "Missing source for module 'orders'\nSource supplied for unknown module 'billing'",
-    })
+    expect(() =>
+      RiviereProject.start(ExtractionProjectStartInput.from(configuration, []), collaborators()),
+    ).toThrowError(
+      "Missing source for module 'orders'\nSource supplied for unknown module 'billing'",
+    )
   })
 })

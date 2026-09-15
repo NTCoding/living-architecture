@@ -1,10 +1,10 @@
-import type { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
+import type { GraphWarning } from '@living-architecture/riviere-builder-published-language'
 
 /** @riviere-role command-use-case-result-value */
 export type CheckConsistencyErrorCode = 'GRAPH_CORRUPTED' | 'GRAPH_NOT_FOUND'
 
 /** @riviere-role command-use-case-result-value */
-export type BuilderWarnings = ReturnType<RiviereBuilder['warnings']>
+export type BuilderWarnings = readonly GraphWarning[]
 
 /** @riviere-role command-use-case-result */
 export interface CheckConsistencyResult {

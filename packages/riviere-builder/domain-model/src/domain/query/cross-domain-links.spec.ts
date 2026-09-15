@@ -8,7 +8,7 @@ import {
 import { queryCrossDomainLinks } from './cross-domain-queries'
 import { RiviereQuery } from './RiviereQuery'
 
-function plainLinks(links: ReturnType<RiviereQuery['crossDomainLinks']>) {
+function plainLinks(links: readonly import('./cross-domain-link').CrossDomainLink[]) {
   return links.map(({ targetDomain, linkType }) => ({
     targetDomain: targetDomain.value,
     linkType,

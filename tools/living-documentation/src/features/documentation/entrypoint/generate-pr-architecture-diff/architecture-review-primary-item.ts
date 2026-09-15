@@ -1,13 +1,13 @@
-import type { PullRequestArchitectureDiff } from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
+import type {
+  ArchitectureItem,
+  ArchitectureRelationship,
+} from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
 import {
   renderArchitectureCodeSpan,
   renderArchitectureHtmlText,
 } from './architecture-review-markdown'
 
-type Diff = ReturnType<PullRequestArchitectureDiff['changes']>
-type LayerChanges = Diff['subdomains'][number]['layers']['entrypoints']
-type ArchitectureItem = LayerChanges['added']['items'][number]
-type Relationship = NonNullable<ArchitectureItem['relatedTo']>[number]
+type Relationship = ArchitectureRelationship
 
 /** @riviere-role cli-output-formatter */
 export function renderArchitecturePrimary(
@@ -15,7 +15,7 @@ export function renderArchitecturePrimary(
   items: readonly ArchitectureItem[],
 ): readonly string[] {
   const components = items.filter((item) =>
-    (item.relatedTo ?? []).some(
+    item.relatedTo.some(
       (relationship) => relationshipKey(relationship) === relationshipKey(primary),
     ),
   )
