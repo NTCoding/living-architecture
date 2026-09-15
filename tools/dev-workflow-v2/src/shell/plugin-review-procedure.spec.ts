@@ -54,6 +54,58 @@ describe('review procedure assets', () => {
     }).toStrictEqual({ auditsDiff: true, runsChecks: true })
   })
 
+  it('requires the exact IMPLEMENTING prefix before any state response', () => {
+    const implementing = readPluginFile('states/implementing.md')
+
+    expect({
+      requiresPrefix: implementing.includes('must begin with `🔨 IMPLEMENTING`'),
+      requiresPrefixFirst: implementing.includes('It must be the first thing in the response.'),
+      namesCommandFailure: implementing.includes(
+        'rejects tool use until it has received this exact state prefix',
+      ),
+      definesPrefixOnlyResponse: implementing.includes(
+        'send `🔨 IMPLEMENTING` as the complete response',
+      ),
+    }).toStrictEqual({
+      requiresPrefix: true,
+      requiresPrefixFirst: true,
+      namesCommandFailure: true,
+      definesPrefixOnlyResponse: true,
+    })
+  })
+
+  it('requires silent execution after implementation plan approval', () => {
+    const implementing = readPluginFile('states/implementing.md')
+
+    expect({
+      worksSilently: implementing.includes(
+        'After the user has approved the implementation plan, work silently.',
+      ),
+      prohibitsProgressUpdates: implementing.includes('Do not send progress updates'),
+      limitsResponses: implementing.includes('Respond only when the user sends a new message'),
+    }).toStrictEqual({
+      worksSilently: true,
+      prohibitsProgressUpdates: true,
+      limitsResponses: true,
+    })
+  })
+
+  it('does not require issue summaries before workflow initialisation', () => {
+    const startImplementation = readPluginFile('commands/start-implementation.md')
+
+    expect({
+      readsRequirements: startImplementation.includes('Read the requirements from the issue body.'),
+      prohibitsSummary: startImplementation.includes('Do not summarise them in the conversation.'),
+      doesNotRequireSummary: !startImplementation.includes(
+        'Summarize the requirements from the issue body.',
+      ),
+    }).toStrictEqual({
+      readsRequirements: true,
+      prohibitsSummary: true,
+      doesNotRequireSummary: true,
+    })
+  })
+
   it('records an approved scope amendment in the pull request description', () => {
     const feedbackProcedure = readPluginFile('commands/address-pull-request-feedback.md')
 
