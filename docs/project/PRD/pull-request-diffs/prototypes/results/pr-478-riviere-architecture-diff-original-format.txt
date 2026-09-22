@@ -1,0 +1,455 @@
+<!-- pull-request-architecture-review -->
+# Pull request architecture changes
+
+## Changed subdomains
+
+- [`riviere-builder`](#subdomain-riviere-builder)
+- [`riviere-extract-config`](#subdomain-riviere-extract-config)
+- [`riviere-extract-ts`](#subdomain-riviere-extract-ts)
+
+## Subdomain: `riviere-builder`
+
+### Entry points
+
+#### Removed
+
+| Name | Role |
+| --- | --- |
+| `createAddComponentCommand` | `cli-entrypoint` |
+| `CreateAddComponentCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createAddDomainCommand` | `cli-entrypoint` |
+| `CreateAddDomainCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createAddSourceCommand` | `cli-entrypoint` |
+| `CreateAddSourceCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createCheckConsistencyCommand` | `cli-entrypoint` |
+| `CreateCheckConsistencyCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createDefineCustomTypeCommand` | `cli-entrypoint` |
+| `CreateDefineCustomTypeCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createDefineRelationshipTypeCommand` | `cli-entrypoint` |
+| `CreateDefineRelationshipTypeCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createEnrichCommand` | `cli-entrypoint` |
+| `CreateEnrichCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createFinalizeCommand` | `cli-entrypoint` |
+| `CreateFinalizeCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createFinalizeGraphInput` | `command-input-factory` |
+| `createInitCommand` | `cli-entrypoint` |
+| `CreateInitCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createLinkCommand` | `cli-entrypoint` |
+| `CreateLinkCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createLinkExternalCommand` | `cli-entrypoint` |
+| `CreateLinkExternalCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createLinkHttpCommand` | `cli-entrypoint` |
+| `CreateLinkHttpCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createValidateCommand` | `cli-entrypoint` |
+| `CreateValidateCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `parseAddComponentInput` | `entrypoint-cli-input-parser` |
+| `parseDomainJson` | `entrypoint-cli-input-parser` |
+| `parseLinkSourceLocation` | `entrypoint-cli-input-parser` |
+| `parsePropertySpecs` | `entrypoint-cli-input-parser` |
+| `parseSignature` | `entrypoint-cli-input-parser` |
+| `parseStateChanges` | `entrypoint-cli-input-parser` |
+| `writeFinalizedGraph` | `cli-response-writer` |
+
+### Use cases
+
+#### Added
+
+| Name | Role |
+| --- | --- |
+| `ChecklistComponent` | `query-model-value` |
+| `ComponentChecklist` | `query-model-use-case` |
+| `ComponentChecklistErrorCode` | `query-model-value` |
+| `ComponentChecklistInput` | `query-model-use-case-input` |
+| `ComponentChecklistLoader` | `query-model-loader` |
+| `ComponentChecklistResult` | `query-model` |
+| `ComponentSummary` | `query-model-use-case` |
+| `ComponentSummaryErrorCode` | `query-model-value` |
+| `ComponentSummaryInput` | `query-model-use-case-input` |
+| `ComponentSummaryLoader` | `query-model-loader` |
+| `ComponentSummaryResult` | `query-model` |
+
+#### Removed
+
+| Name | Role |
+| --- | --- |
+| `AddComponent` | `command-use-case` |
+| `AddComponentErrorCode` | `command-use-case-result-value` |
+| `AddComponentInput` | `command-use-case-input` |
+| `AddComponentResult` | `command-use-case-result` |
+| `AddDomain` | `command-use-case` |
+| `AddDomainErrorCode` | `command-use-case-result-value` |
+| `AddDomainInput` | `command-use-case-input` |
+| `AddDomainResult` | `command-use-case-result` |
+| `AddSource` | `command-use-case` |
+| `AddSourceErrorCode` | `command-use-case-result-value` |
+| `AddSourceInput` | `command-use-case-input` |
+| `AddSourceResult` | `command-use-case-result` |
+| `BuilderWarnings` | `command-use-case-result-value` |
+| `CheckConsistency` | `command-use-case` |
+| `CheckConsistencyErrorCode` | `command-use-case-result-value` |
+| `CheckConsistencyInput` | `command-use-case-input` |
+| `CheckConsistencyResult` | `command-use-case-result` |
+| `ChecklistComponent` | `command-use-case-result-value` |
+| `ComponentChecklist` | `command-use-case` |
+| `ComponentChecklistErrorCode` | `command-use-case-result-value` |
+| `ComponentChecklistInput` | `command-use-case-input` |
+| `ComponentChecklistResult` | `command-use-case-result` |
+| `ComponentSummary` | `command-use-case` |
+| `ComponentSummaryErrorCode` | `command-use-case-result-value` |
+| `ComponentSummaryInput` | `command-use-case-input` |
+| `ComponentSummaryResult` | `command-use-case-result` |
+| `DefineCustomType` | `command-use-case` |
+| `DefineCustomTypeErrorCode` | `command-use-case-result-value` |
+| `DefineCustomTypeInput` | `command-use-case-input` |
+| `DefineCustomTypeResult` | `command-use-case-result` |
+| `DefineRelationshipType` | `command-use-case` |
+| `DefineRelationshipTypeErrorCode` | `command-use-case-result-value` |
+| `DefineRelationshipTypeInput` | `command-use-case-input` |
+| `DefineRelationshipTypeResult` | `command-use-case-result` |
+| `EnrichComponent` | `command-use-case` |
+| `EnrichComponentErrorCode` | `command-use-case-result-value` |
+| `EnrichComponentInput` | `command-use-case-input` |
+| `EnrichComponentResult` | `command-use-case-result` |
+| `FinalizedGraph` | `command-use-case-result-value` |
+| `FinalizeGraph` | `command-use-case` |
+| `FinalizeGraphErrorCode` | `command-use-case-result-value` |
+| `FinalizeGraphInput` | `command-use-case-input` |
+| `FinalizeGraphResult` | `command-use-case-result` |
+| `InitDomainInput` | `command-use-case-input` |
+| `InitGraph` | `command-use-case` |
+| `InitGraphErrorCode` | `command-use-case-result-value` |
+| `InitGraphInput` | `command-use-case-input` |
+| `InitGraphResult` | `command-use-case-result` |
+| `LinkComponents` | `command-use-case` |
+| `LinkComponentsErrorCode` | `command-use-case-result-value` |
+| `LinkComponentsInput` | `command-use-case-input` |
+| `LinkComponentsResult` | `command-use-case-result` |
+| `LinkExternal` | `command-use-case` |
+| `LinkExternalErrorCode` | `command-use-case-result-value` |
+| `LinkExternalInput` | `command-use-case-input` |
+| `LinkExternalResult` | `command-use-case-result` |
+| `LinkHttp` | `command-use-case` |
+| `LinkHttpErrorCode` | `command-use-case-result-value` |
+| `LinkHttpInput` | `command-use-case-input` |
+| `LinkHttpResult` | `command-use-case-result` |
+| `MatchedApi` | `command-use-case-result-value` |
+| `RiviereBuilderRepository` | `aggregate-repository` |
+| `ValidateGraph` | `command-use-case` |
+| `ValidateGraphErrorCode` | `command-use-case-result-value` |
+| `ValidateGraphInput` | `command-use-case-input` |
+| `ValidateGraphResult` | `command-use-case-result` |
+| `ValidationData` | `command-use-case-result-value` |
+| `writeUtf8File` | `external-client-service` |
+
+### Domain
+
+#### Added
+
+| Name | Role | Package |
+| --- | --- | --- |
+| `ApiDefinition` | `value-object` | `published-language` |
+| `BuildValidationError` | `domain-error` | `published-language` |
+| `BusinessRules` | `value-object` | `published-language` |
+| `Component` | `value-object` | `published-language` |
+| `ComponentDefinition` | `value-object` | `published-language` |
+| `ComponentNotFoundError` | `domain-error` | `published-language` |
+| `ComponentType` | `value-object` | `published-language` |
+| `ComponentTypeMismatchError` | `domain-error` | `published-language` |
+| `CustomComponentDefinition` | `value-object` | `published-language` |
+| `CustomComponentProperties` | `value-object` | `published-language` |
+| `CustomTypeAlreadyDefinedError` | `domain-error` | `published-language` |
+| `CustomTypeNotFoundError` | `domain-error` | `published-language` |
+| `DomainNotFoundError` | `domain-error` | `published-language` |
+| `DomainOperationBehavior` | `value-object` | `published-language` |
+| `DuplicateComponentError` | `domain-error` | `published-language` |
+| `DuplicateDomainError` | `domain-error` | `published-language` |
+| `DuplicateLinkError` | `domain-error` | `published-language` |
+| `DuplicateLinkWarning` | `published-language-data-structure` | `published-language` |
+| `ExistingValuePreference` | `value-object` | `published-language` |
+| `ExternalLink` | `value-object` | `published-language` |
+| `GraphDiagnostics` | `value-object` | `published-language` |
+| `GraphWarning` | `published-language-union` | `published-language` |
+| `HttpMethod` | `value-object` | `published-language` |
+| `InvalidEnrichmentTargetError` | `domain-error` | `published-language` |
+| `InvalidGraphError` | `domain-error` | `published-language` |
+| `Link` | `value-object` | `published-language` |
+| `LinkType` | `value-object` | `published-language` |
+| `MissingDomainsError` | `domain-error` | `published-language` |
+| `MissingRequiredPropertiesError` | `domain-error` | `published-language` |
+| `MissingSourcesError` | `domain-error` | `published-language` |
+| `NearMatchMismatch` | `published-language-data-structure` | `published-language` |
+| `NearMatchOptions` | `published-language-data-structure` | `published-language` |
+| `NearMatchQuery` | `published-language-data-structure` | `published-language` |
+| `NearMatchResult` | `published-language-data-structure` | `published-language` |
+| `OperationWarning` | `published-language-union` | `published-language` |
+| `OrphanComponentWarning` | `published-language-data-structure` | `published-language` |
+| `RelationshipTypeAlreadyDefinedError` | `domain-error` | `published-language` |
+| `RelationshipTypeNotFoundError` | `domain-error` | `published-language` |
+| `RiviereBuilder` | `value-object` | `published-language` |
+| `RiviereGraphDefinition` | `value-object` | `published-language` |
+| `ScalarOverwriteWarning` | `published-language-data-structure` | `published-language` |
+| `SourceConflictError` | `domain-error` | `published-language` |
+| `StateTransitions` | `value-object` | `published-language` |
+| `SubscribedEvents` | `value-object` | `published-language` |
+| `SystemType` | `value-object` | `published-language` |
+| `UnusedDomainWarning` | `published-language-data-structure` | `published-language` |
+
+#### Removed
+
+##### Aggregate: `RiviereBuilder` (`domain-model`)
+
+- Methods
+    - `addApi`
+    - `addCustom`
+    - `addDomain`
+    - `addDomainOp`
+    - `addEvent`
+    - `addEventHandler`
+    - `addSource`
+    - `addUI`
+    - `addUseCase`
+    - `build`
+    - `defineCustomType`
+    - `defineRelationshipType`
+    - `enrichComponent`
+    - `link`
+    - `linkExternal`
+    - `nearMatches`
+    - `new`
+    - `orphans`
+    - `resume`
+    - `serialize`
+    - `stats`
+    - `upsertApi`
+    - `upsertCustom`
+    - `upsertDomainOp`
+    - `upsertEvent`
+    - `upsertEventHandler`
+    - `upsertUI`
+    - `upsertUseCase`
+    - `validate`
+    - `warnings`
+
+| Name | Role | Package |
+| --- | --- | --- |
+| `ApiDefinition` | `value-object` | `domain-model` |
+| `BuildValidationError` | `domain-error` | `domain-model` |
+| `BusinessRules` | `value-object` | `domain-model` |
+| `calculateStats` | `domain-service` | `domain-model` |
+| `Component` | `aggregate-entity` | `domain-model` |
+| `ComponentDefinition` | `value-object` | `domain-model` |
+| `ComponentType` | `value-object` | `domain-model` |
+| `ComponentTypeMismatchError` | `domain-error` | `domain-model` |
+| `CustomComponentDefinition` | `value-object` | `domain-model` |
+| `CustomComponentProperties` | `value-object` | `domain-model` |
+| `CustomTypeAlreadyDefinedError` | `domain-error` | `domain-model` |
+| `CustomTypeNotFoundError` | `domain-error` | `domain-model` |
+| `detectOrphanComponents` | `domain-service` | `domain-model` |
+| `DomainNotFoundError` | `domain-error` | `domain-model` |
+| `DomainOperationBehavior` | `value-object` | `domain-model` |
+| `DuplicateComponentError` | `domain-error` | `domain-model` |
+| `DuplicateDomainError` | `domain-error` | `domain-model` |
+| `DuplicateLinkError` | `domain-error` | `domain-model` |
+| `ExistingValuePreference` | `value-object` | `domain-model` |
+| `ExternalLink` | `value-object` | `domain-model` |
+| `findNearMatches` | `domain-service` | `domain-model` |
+| `findOrphans` | `domain-service` | `domain-model` |
+| `findWarnings` | `domain-service` | `domain-model` |
+| `HttpMethod` | `value-object` | `domain-model` |
+| `InvalidEnrichmentTargetError` | `domain-error` | `domain-model` |
+| `InvalidGraphError` | `domain-error` | `domain-model` |
+| `Link` | `value-object` | `domain-model` |
+| `LinkType` | `value-object` | `domain-model` |
+| `MissingDomainsError` | `domain-error` | `domain-model` |
+| `MissingRequiredPropertiesError` | `domain-error` | `domain-model` |
+| `MissingSourcesError` | `domain-error` | `domain-model` |
+| `RelationshipTypeAlreadyDefinedError` | `domain-error` | `domain-model` |
+| `RelationshipTypeNotFoundError` | `domain-error` | `domain-model` |
+| `RiviereGraphDefinition` | `value-object` | `domain-model` |
+| `SourceConflictError` | `domain-error` | `domain-model` |
+| `StateTransitions` | `value-object` | `domain-model` |
+| `SubscribedEvents` | `value-object` | `domain-model` |
+| `SystemType` | `value-object` | `domain-model` |
+
+## Subdomain: `riviere-extract-config`
+
+### Domain
+
+#### Added
+
+| Name | Role | Package |
+| --- | --- | --- |
+| `parseWorkflowDefinition` | `published-language-parser` | `published-language` |
+| `WorkflowDefinition` | `published-language-schema` | `published-language` |
+| `WorkflowDefinitionParseFailure` | `published-language-data-structure` | `published-language` |
+| `WorkflowDefinitionParseResult` | `published-language-union` | `published-language` |
+| `WorkflowDefinitionParseSuccess` | `published-language-data-structure` | `published-language` |
+| `WorkflowExtractStageDefinition` | `published-language-data-structure` | `published-language` |
+| `WorkflowGraphDefinition` | `published-language-data-structure` | `published-language` |
+| `WorkflowLinkStageDefinition` | `published-language-data-structure` | `published-language` |
+| `WorkflowRunLogDefinition` | `published-language-data-structure` | `published-language` |
+| `WorkflowStageDefinition` | `published-language-union` | `published-language` |
+| `WorkflowValidateStageDefinition` | `published-language-data-structure` | `published-language` |
+
+## Subdomain: `riviere-extract-ts`
+
+### Entry points
+
+#### Added
+
+| Name | Role |
+| --- | --- |
+| `createAddComponentCommand` | `cli-entrypoint` |
+| `CreateAddComponentCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createAddDomainCommand` | `cli-entrypoint` |
+| `CreateAddDomainCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createAddSourceCommand` | `cli-entrypoint` |
+| `CreateAddSourceCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createCheckConsistencyCommand` | `cli-entrypoint` |
+| `CreateCheckConsistencyCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createDefineCustomTypeCommand` | `cli-entrypoint` |
+| `CreateDefineCustomTypeCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createDefineRelationshipTypeCommand` | `cli-entrypoint` |
+| `CreateDefineRelationshipTypeCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createEnrichCommand` | `cli-entrypoint` |
+| `CreateEnrichCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createFinalizeCommand` | `cli-entrypoint` |
+| `CreateFinalizeCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createFinalizeGraphInput` | `command-input-factory` |
+| `createInitCommand` | `cli-entrypoint` |
+| `CreateInitCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createLinkCommand` | `cli-entrypoint` |
+| `CreateLinkCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createLinkExternalCommand` | `cli-entrypoint` |
+| `CreateLinkExternalCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createLinkHttpCommand` | `cli-entrypoint` |
+| `CreateLinkHttpCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `createValidateCommand` | `cli-entrypoint` |
+| `CreateValidateCommandEntrypointDependencies` | `cli-entrypoint-dependencies` |
+| `parseAddComponentInput` | `entrypoint-cli-input-parser` |
+| `parseDomainJson` | `entrypoint-cli-input-parser` |
+| `parseLinkSourceLocation` | `entrypoint-cli-input-parser` |
+| `parsePropertySpecs` | `entrypoint-cli-input-parser` |
+| `parseSignature` | `entrypoint-cli-input-parser` |
+| `parseStateChanges` | `entrypoint-cli-input-parser` |
+| `writeFinalizedGraph` | `cli-response-writer` |
+
+### Use cases
+
+#### Added
+
+| Name | Role |
+| --- | --- |
+| `AddComponent` | `command-use-case` |
+| `AddComponentErrorCode` | `command-use-case-result-value` |
+| `AddComponentInput` | `command-use-case-input` |
+| `AddComponentResult` | `command-use-case-result` |
+| `AddDomain` | `command-use-case` |
+| `AddDomainErrorCode` | `command-use-case-result-value` |
+| `AddDomainInput` | `command-use-case-input` |
+| `AddDomainResult` | `command-use-case-result` |
+| `AddSource` | `command-use-case` |
+| `AddSourceErrorCode` | `command-use-case-result-value` |
+| `AddSourceInput` | `command-use-case-input` |
+| `AddSourceResult` | `command-use-case-result` |
+| `BuilderWarnings` | `command-use-case-result-value` |
+| `CheckConsistency` | `command-use-case` |
+| `CheckConsistencyErrorCode` | `command-use-case-result-value` |
+| `CheckConsistencyInput` | `command-use-case-input` |
+| `CheckConsistencyResult` | `command-use-case-result` |
+| `createTypeScriptProjects` | `external-client-service` |
+| `DefineCustomType` | `command-use-case` |
+| `DefineCustomTypeErrorCode` | `command-use-case-result-value` |
+| `DefineCustomTypeInput` | `command-use-case-input` |
+| `DefineCustomTypeResult` | `command-use-case-result` |
+| `DefineRelationshipType` | `command-use-case` |
+| `DefineRelationshipTypeErrorCode` | `command-use-case-result-value` |
+| `DefineRelationshipTypeInput` | `command-use-case-input` |
+| `DefineRelationshipTypeResult` | `command-use-case-result` |
+| `EnrichComponent` | `command-use-case` |
+| `EnrichComponentErrorCode` | `command-use-case-result-value` |
+| `EnrichComponentInput` | `command-use-case-input` |
+| `EnrichComponentResult` | `command-use-case-result` |
+| `FinalizedGraph` | `command-use-case-result-value` |
+| `FinalizeGraph` | `command-use-case` |
+| `FinalizeGraphErrorCode` | `command-use-case-result-value` |
+| `FinalizeGraphInput` | `command-use-case-input` |
+| `FinalizeGraphResult` | `command-use-case-result` |
+| `globSourceFiles` | `external-client-service` |
+| `GraphCorruptedError` | `data-access-error` |
+| `GraphNotFoundError` | `data-access-error` |
+| `InitDomainInput` | `command-use-case-input` |
+| `InitGraph` | `command-use-case` |
+| `InitGraphErrorCode` | `command-use-case-result-value` |
+| `InitGraphInput` | `command-use-case-input` |
+| `InitGraphResult` | `command-use-case-result` |
+| `LinkComponents` | `command-use-case` |
+| `LinkComponentsErrorCode` | `command-use-case-result-value` |
+| `LinkComponentsInput` | `command-use-case-input` |
+| `LinkComponentsResult` | `command-use-case-result` |
+| `LinkExternal` | `command-use-case` |
+| `LinkExternalErrorCode` | `command-use-case-result-value` |
+| `LinkExternalInput` | `command-use-case-input` |
+| `LinkExternalResult` | `command-use-case-result` |
+| `LinkHttp` | `command-use-case` |
+| `LinkHttpErrorCode` | `command-use-case-result-value` |
+| `LinkHttpInput` | `command-use-case-input` |
+| `LinkHttpResult` | `command-use-case-result` |
+| `MatchedApi` | `command-use-case-result-value` |
+| `RunWorkflow` | `command-use-case` |
+| `RunWorkflowInput` | `command-use-case-input` |
+| `RunWorkflowResult` | `command-use-case-result` |
+| `ValidateGraph` | `command-use-case` |
+| `ValidateGraphErrorCode` | `command-use-case-result-value` |
+| `ValidateGraphInput` | `command-use-case-input` |
+| `ValidateGraphResult` | `command-use-case-result` |
+| `ValidationData` | `command-use-case-result-value` |
+| `YamlDocumentError` | `external-client-error` |
+| `YamlDocumentReader` | `external-client-service` |
+
+### Domain
+
+#### Added
+
+##### Aggregate: `RiviereProject` (`domain-model`)
+
+- Aggregate entities
+    - `Workflow`
+- Methods
+    - `addComponent`
+    - `addDomain`
+    - `addSource`
+    - `addWorkflow`
+    - `build`
+    - `defineCustomType`
+    - `defineRelationshipType`
+    - `enrichComponent`
+    - `link`
+    - `linkExternal`
+    - `rebuildGraph`
+    - `rehydrate`
+    - `serialize`
+    - `start`
+    - `validate`
+    - `warnings`
+
+| Name | Role | Package |
+| --- | --- | --- |
+| `ExtractionConfigurationUnavailableError` | `domain-error` | `domain-model` |
+| `GraphStateUnavailableError` | `domain-error` | `domain-model` |
+| `WorkflowDefinitionFailure` | `value-object` | `domain-model` |
+| `WorkflowRunEvent` | `value-object` | `domain-model` |
+| `WorkflowStage` | `value-object` | `domain-model` |
+
+#### Removed
+
+##### Aggregate: `RiviereProject` (`domain-model`)
+
+- Methods
+    - `parse`
+
+| Name | Role | Package |
+| --- | --- | --- |
+| `detectCallsInCallable` | `domain-service` | `domain-model` |
+| `locateComponentCallables` | `domain-service` | `domain-model` |
+| `resolveCallTargets` | `domain-service` | `domain-model` |

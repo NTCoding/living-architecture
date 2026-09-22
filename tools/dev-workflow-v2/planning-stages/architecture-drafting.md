@@ -138,14 +138,17 @@ Ask the user to approve one of these conclusions:
 
 Stop after this discussion if a loop-back is needed.
 
-## Step 1: Decide top-level architecture ownership
+## Step 1: Shape interactions and decide top-level architecture boundaries
 
-Research the PRD, existing architecture, and relevant architecture memories, then propose ownership options.
-The user owns the decision.
-A recommendation is not approval.
+Research the PRD, existing architecture, and relevant architecture memories, then use domain message flow modelling to shape and compare the interaction and boundary options.
 
-Do not write component internals yet.
-Do not mark an ownership decision approved until the user explicitly approves, rejects, or combines the options.
+Read and apply `skills/domain-message-flow/SKILL.md` completely before drafting any boundary option. Its notation, option template, colours, legend, layout, message table, pros and cons, and validation rules are mandatory.
+
+The user owns every boundary decision. A recommendation is not approval.
+
+Do not write component internals in this step. Do not name classes, functions, repositories, adapters, roles, or files merely to make a boundary option look detailed. Detailed component design happens only after the user approves the interactions and boundaries.
+
+Do not mark a boundary decision approved until the user explicitly approves, rejects, or combines the options.
 
 ### Research inputs
 
@@ -160,33 +163,42 @@ Read:
 
 ### What to identify
 
-- new apps, packages, libraries, tools, or modules
-- existing apps, packages, libraries, tools, or modules that may change
+- the concrete user or system scenario that exposes the unresolved boundary
+- actors, apps, subdomains, and external systems involved in that scenario
+- commands, events, and queries crossing those boundaries
+- significant message data needed by each recipient
 - responsibilities that need an architectural home
+- new or existing apps and subdomains that may own those responsibilities
 - existing boundaries or ADRs that constrain placement
 - approved architecture memories that may inform reasoning, trade-offs, or anti-pattern avoidance
+- assumptions, failure paths, and unresolved interactions that distinguish the options
 
-### Required discussion output
+### Boundary option process
 
-For each major responsibility, present placement options:
+For each unresolved major boundary:
 
-| Option | Bucket placement | What changes there | Trade-off |
-| --- | --- | --- | --- |
-| A | `<app/package/tool/module>` | `<responsibility>` | `<cost/benefit>` |
-| B | `<app/package/tool/module>` | `<responsibility>` | `<cost/benefit>` |
+1. Select one concrete scenario from approved product context. If no approved scenario exposes the boundary, ask the user rather than inventing one.
+2. Keep that scenario fixed while comparing options.
+3. Produce the strongest genuinely different boundary options using the exact option structure from `skills/domain-message-flow/SKILL.md`.
+4. Make the interaction or ownership difference visible in the diagrams, not only in prose.
+5. Include only valid options. Do not pad the set with renamed flows or an option that breaks an approved constraint.
+6. Add one short recommendation after the options, with its specific reason.
+7. Add `Decision status: Waiting for user approval`.
 
-Then add:
+If there is only one valid boundary, still use the message flow template to show it and explain in the cons why the obvious alternatives violate approved constraints or repository boundaries.
 
-```markdown
-Recommendation: <one short reason>
-Decision status: Waiting for user approval
-```
+Write the unapproved options under `## 2. Ownership and boundaries` in `architecturePath`. They are proposals, not approved decisions. Preserve any previously approved boundary decisions in that section.
 
-If there is only one valid bucket, still explain why the other obvious buckets are rejected.
+Stop after presenting the boundary options. Continue only after the user approves, rejects, or combines them.
 
-Stop after this discussion. Continue only after the user approves, rejects, or combines the options.
+After approval:
 
-## Step 2: Present component design options
+- record the approved interaction and boundary direction under `## 2. Ownership and boundaries`;
+- retain concise rejected alternatives and their reasons;
+- mark the relevant boundary decision approved;
+- proceed to detailed component design only on a later planning turn.
+
+## Step 2: Present detailed component design options
 
 Work with the user to design the software components to implement the new capabilities.
 
