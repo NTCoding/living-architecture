@@ -5,4 +5,4 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 pnpm install --frozen-lockfile
-pnpm exec nx run-many -t build -p dev-workflow-v2-use-cases dev-workflow-domain-model dev-workflow-v2
+pnpm exec nx run-many -t build -p dev-workflow-v2-use-cases @living-architecture/dev-workflow-v2-domain-model dev-workflow-v2
