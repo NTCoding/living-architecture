@@ -334,4 +334,63 @@ describe('architecture changes', () => {
       },
     ])
   })
+
+  it('reports a newly annotated design trade-off as removal and addition of the same item', () => {
+    const base = extractArchitecture(
+      ArchitectureSource.from({
+        subdomains: [
+          {
+            layers: {
+              domain: {
+                aggregates: [],
+                items: [{ name: 'Build', packageKind: 'domain-model', role: 'domain-service' }],
+              },
+              entrypoints: { aggregates: [], items: [] },
+              'use-cases': { aggregates: [], items: [] },
+            },
+            name: 'orders',
+          },
+        ],
+      }),
+    )
+    const head = extractArchitecture(
+      ArchitectureSource.from({
+        subdomains: [
+          {
+            layers: {
+              domain: {
+                aggregates: [],
+                items: [
+                  {
+                    designTradeOff: 'Mutates builder.',
+                    name: 'Build',
+                    packageKind: 'domain-model',
+                    role: 'domain-service',
+                  },
+                ],
+              },
+              entrypoints: { aggregates: [], items: [] },
+              'use-cases': { aggregates: [], items: [] },
+            },
+            name: 'orders',
+          },
+        ],
+      }),
+    )
+
+    const changes = ArchitectureDiff.fromArchitectures(base, head).changes()
+    const domain = changes.snapshot().subdomains[0]?.layers.domain
+
+    expect(domain?.removed.items).toStrictEqual([
+      { name: 'Build', packageKind: 'domain-model', role: 'domain-service' },
+    ])
+    expect(domain?.added.items).toStrictEqual([
+      {
+        designTradeOff: 'Mutates builder.',
+        name: 'Build',
+        packageKind: 'domain-model',
+        role: 'domain-service',
+      },
+    ])
+  })
 })

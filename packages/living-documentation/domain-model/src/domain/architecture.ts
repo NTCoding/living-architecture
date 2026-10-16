@@ -14,6 +14,7 @@ type ArchitectureLayerName = 'entrypoints' | 'use-cases' | 'domain'
 type ArchitecturePackageKind = 'application' | 'use-cases' | 'domain-model' | 'published-language'
 
 interface ArchitectureItemValue {
+  readonly designTradeOff?: string
   readonly externalClient?: string
   readonly name: string
   readonly packageKind: ArchitecturePackageKind
@@ -337,6 +338,7 @@ function copyAggregate(aggregate: AggregateValue): AggregateValue {
 function copyItem(item: ArchitectureItemValue): ArchitectureItemValue {
   const relatedTo = canonicalRelationships(item.relatedTo ?? [])
   return {
+    ...(item.designTradeOff === undefined ? {} : { designTradeOff: item.designTradeOff }),
     ...(item.externalClient === undefined ? {} : { externalClient: item.externalClient }),
     name: item.name,
     packageKind: item.packageKind,
@@ -353,7 +355,14 @@ function itemKey(item: ArchitectureItemValue): string {
   const externalClient =
     item.externalClient === undefined ? ([false] as const) : ([true, item.externalClient] as const)
   const relationships = canonicalRelationships(item.relatedTo ?? []).map(relationshipKey)
-  return JSON.stringify([item.packageKind, item.role, item.name, externalClient, relationships])
+  return JSON.stringify([
+    item.packageKind,
+    item.role,
+    item.name,
+    externalClient,
+    relationships,
+    item.designTradeOff === undefined ? 'no-trade-off' : `trade-off:${item.designTradeOff}`,
+  ])
 }
 
 function canonicalRelationships(

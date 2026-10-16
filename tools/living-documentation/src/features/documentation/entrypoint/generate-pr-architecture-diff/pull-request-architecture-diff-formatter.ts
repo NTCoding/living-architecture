@@ -17,6 +17,7 @@ import {
   renderUncategorisedArchitectureChanges,
 } from './architecture-review-role-sections'
 import { renderArchitectureExternalClients } from './architecture-review-external-client-section'
+import { renderArchitectureDesignTradeOffs } from './architecture-review-design-trade-off-section'
 import { renderArchitectureSummary } from './architecture-review-summary'
 
 type PullRequestArchitectureDiffView = Pick<PullRequestArchitectureDiff, 'changes' | 'outputPath'>
@@ -70,6 +71,7 @@ function renderSubdomain(subdomain: SubdomainChanges): readonly string[] {
     ...renderArchitectureDomain(subdomain.layers.domain),
     ...renderArchitectureExternalClients(subdomain.layers['use-cases']),
     ...renderUncategorisedArchitectureChanges(subdomain.layers['use-cases']),
+    ...renderArchitectureDesignTradeOffs(subdomain.layers),
     '</details>',
     '',
   ]

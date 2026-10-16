@@ -103,12 +103,14 @@ export class RoleEnforcementProjectRepository {
   }
 }
 
+const NON_ROLE_DEFINITION_FILES = new Set(['index.md', 'design-trade-off.md'])
+
 function validateRoleDefinitionFiles(
   config: RoleEnforcementConfiguration,
   fileNames: readonly string[],
 ): void {
   const definitionFiles = fileNames.filter(
-    (fileName) => fileName.endsWith('.md') && fileName !== 'index.md',
+    (fileName) => fileName.endsWith('.md') && !NON_ROLE_DEFINITION_FILES.has(fileName),
   )
   const definedRoles = new Set(definitionFiles.map((fileName) => fileName.slice(0, -3)))
   for (const configuredRole of config.roles) {

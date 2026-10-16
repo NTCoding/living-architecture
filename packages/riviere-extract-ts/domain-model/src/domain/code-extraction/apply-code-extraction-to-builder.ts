@@ -23,7 +23,8 @@ type ComponentIdentity = Readonly<{
 
 /**
  * @riviere-role domain-service
- * @riviere-role-justification This pure orchestration applies supplied extraction values to the Project-owned Builder; no state is loaded or retained by the operation.
+ * @riviere-role-justification Applies supplied extraction values to the Project-owned Builder; no state is loaded or retained by the operation.
+ * @riviere-design-trade-off Mutates builder violating pure function rule for domain services. User prefers this approach because it is simpler than having service return a data structure that the aggregate applies to the builder, putting more complexity in the aggregate. This choice adds no risk because neither the builder or aggregate can be put in an invalid state, and additionally the builder is a mutable object (for perf reasons) intended to be gradually built by each step.
  */
 export function applyCodeExtractionToBuilder(
   builder: RiviereBuilder,

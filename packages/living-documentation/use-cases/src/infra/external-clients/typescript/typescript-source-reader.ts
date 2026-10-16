@@ -14,6 +14,7 @@ const EXTERNAL_CLIENT_LOCATION = /[/\\]infra[/\\]external-clients[/\\]([^/\\]+)/
 /** @riviere-role external-client-model */
 export interface TypescriptAnnotatedDeclaration {
   readonly declaration: ts.Declaration
+  readonly designTradeOff?: string
   readonly name: string
   readonly packageKind: TypescriptArchitecturePackageKind
   readonly role: string
@@ -32,8 +33,18 @@ export function findTypescriptAnnotatedDeclarations(
     if (!isNamedArchitectureDeclaration(statement)) return []
     const role = roleAnnotation(statement)
     if (role === undefined || !isExported(statement)) return []
+    const designTradeOff = designTradeOffAnnotation(statement)
     const declarationName = statement.name.text
-    return [{ declaration: statement, name: declarationName, packageKind, role, sourceFile }]
+    return [
+      {
+        declaration: statement,
+        ...(designTradeOff === undefined ? {} : { designTradeOff }),
+        name: declarationName,
+        packageKind,
+        role,
+        sourceFile,
+      },
+    ]
   })
 }
 
@@ -139,6 +150,9 @@ export function toTypescriptArchitectureItem(
   const externalClient = EXTERNAL_CLIENT_LOCATION.exec(declaration.sourceFile.fileName)?.[1]
   const relationships = uniqueRelationships(relatedTo)
   return {
+    ...(declaration.designTradeOff === undefined
+      ? {}
+      : { designTradeOff: declaration.designTradeOff }),
     ...(externalClient === undefined ? {} : { externalClient }),
     name: declaration.name,
     packageKind: declaration.packageKind,
@@ -179,10 +193,20 @@ function annotatedVariables(
 ): readonly TypescriptAnnotatedDeclaration[] {
   const role = roleAnnotation(statement)
   if (role === undefined || !isExported(statement)) return []
+  const designTradeOff = designTradeOffAnnotation(statement)
   return statement.declarationList.declarations.flatMap(
     (declaration): readonly TypescriptAnnotatedDeclaration[] =>
       ts.isIdentifier(declaration.name)
-        ? [{ declaration, name: declaration.name.text, packageKind, role, sourceFile }]
+        ? [
+            {
+              declaration,
+              ...(designTradeOff === undefined ? {} : { designTradeOff }),
+              name: declaration.name.text,
+              packageKind,
+              role,
+              sourceFile,
+            },
+          ]
         : [],
   )
 }
@@ -208,6 +232,13 @@ function isNamedArchitectureDeclaration(
 
 function roleAnnotation(node: ts.Node): string | undefined {
   const tag = ts.getJSDocTags(node).find((candidate) => candidate.tagName.text === 'riviere-role')
+  return typeof tag?.comment === 'string' ? tag.comment.trim() : undefined
+}
+
+function designTradeOffAnnotation(node: ts.Node): string | undefined {
+  const tag = ts
+    .getJSDocTags(node)
+    .find((candidate) => candidate.tagName.text === 'riviere-design-trade-off')
   return typeof tag?.comment === 'string' ? tag.comment.trim() : undefined
 }
 

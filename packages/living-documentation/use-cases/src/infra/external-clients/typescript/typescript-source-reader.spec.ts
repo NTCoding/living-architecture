@@ -71,6 +71,38 @@ describe('TypeScript source reader', () => {
     })
   })
 
+  it('reads a design trade-off annotation from functions and variables', () => {
+    const sourceFile = parse(`
+      /**
+       * @riviere-role domain-service
+       * @riviere-design-trade-off Mutates builder instead of returning operations.
+       */
+      export function apply(builder: object): void {}
+      /**
+       * @riviere-role domain-service
+       * @riviere-design-trade-off Variable level trade-off.
+       */
+      export const applied = 1
+      /** @riviere-role domain-service */ export function plain(): void {}
+    `)
+
+    const declarations = findTypescriptAnnotatedDeclarations(sourceFile, 'domain-model')
+
+    expect(requiredDeclaration(declarations, 'apply').designTradeOff).toStrictEqual(
+      'Mutates builder instead of returning operations.',
+    )
+    expect(requiredDeclaration(declarations, 'applied').designTradeOff).toStrictEqual(
+      'Variable level trade-off.',
+    )
+    expect(requiredDeclaration(declarations, 'plain').designTradeOff).toBeUndefined()
+    expect(toTypescriptArchitectureItem(requiredDeclaration(declarations, 'apply'))).toStrictEqual({
+      designTradeOff: 'Mutates builder instead of returning operations.',
+      name: 'apply',
+      packageKind: 'domain-model',
+      role: 'domain-service',
+    })
+  })
+
   it('reads the external client from its configured source location', () => {
     const sourceFile = ts.createSourceFile(
       '/workspace/packages/orders/use-cases/src/infra/external-clients/typescript/compiler.ts',

@@ -8,6 +8,7 @@ interface ArchitectureRelationshipValue {
 }
 
 interface ArchitectureItemValue {
+  readonly designTradeOff?: string
   readonly externalClient?: string
   readonly name: string
   readonly packageKind: ArchitecturePackageKind
@@ -70,6 +71,7 @@ export class ArchitectureItem {
     readonly packageKind: ArchitecturePackageKind,
     readonly externalClient: string | undefined,
     readonly relatedTo: readonly ArchitectureRelationship[],
+    readonly designTradeOff: string | undefined,
   ) {}
 
   static from(value: ArchitectureItemValue): ArchitectureItem {
@@ -79,12 +81,14 @@ export class ArchitectureItem {
       value.packageKind,
       value.externalClient,
       (value.relatedTo ?? []).map(ArchitectureRelationship.from),
+      value.designTradeOff,
     )
   }
 
   snapshot(): ArchitectureItemValue {
     const relatedTo = this.relatedTo.map((relationship) => relationship.snapshot())
     return {
+      ...(this.designTradeOff === undefined ? {} : { designTradeOff: this.designTradeOff }),
       ...(this.externalClient === undefined ? {} : { externalClient: this.externalClient }),
       name: this.name,
       packageKind: this.packageKind,

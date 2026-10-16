@@ -321,6 +321,39 @@ No architecture changes detected.
       ['`', String.raw`one\\\|two`, '`'].join(''),
     )
   })
+
+  it('flags added declarations carrying a design trade-off for human approval', () => {
+    const report = format(
+      subdomain('riviere-extract-ts', 'changed', {
+        domain: layer([
+          item(
+            'applyCodeExtractionToBuilder',
+            'domain-service',
+            undefined,
+            undefined,
+            'Mutates builder violating pure function rule for domain services.',
+          ),
+        ]),
+      }),
+    )
+
+    expect(report).toContain(`### ⚠️ Design trade-offs (1 added)
+
+Each of these declares \`@riviere-design-trade-off\`, a deliberate deviation from a role principle. **Human approval is required before merge.**
+
+- <span>applyCodeExtractionToBuilder</span> (domain-service, \`Domain\`)
+    - Mutates builder violating pure function rule for domain services.`)
+  })
+
+  it('omits the design trade-offs section when no added declaration carries one', () => {
+    const report = format(
+      subdomain('riviere-extract-ts', 'changed', {
+        domain: layer([item('Build', 'domain-service')]),
+      }),
+    )
+
+    expect(report).not.toContain('Design trade-offs')
+  })
 })
 
 function format(...subdomains: readonly Subdomain[]): string {
@@ -390,8 +423,10 @@ function item(
   role: string,
   relatedTo?: readonly { readonly name: string; readonly role: string }[],
   externalClient?: string,
+  designTradeOff?: string,
 ): Item {
   return ArchitectureItem.from({
+    ...(designTradeOff === undefined ? {} : { designTradeOff }),
     ...(externalClient === undefined ? {} : { externalClient }),
     name,
     packageKind: role.startsWith('cli-') ? 'application' : 'use-cases',
