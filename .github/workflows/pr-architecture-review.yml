@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 1
           path: reporter
           persist-credentials: false
-          ref: 8ceb117bb0ad384c9b103ad5411b2ebd793cd365
+          ref: 8e0ca59fc1951cf725342a5a91decd1a2272844c
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         name: Install pnpm
