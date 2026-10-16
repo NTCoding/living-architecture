@@ -105,6 +105,16 @@ export const allRoles = [
   role('data-access-error', { targets: ['class'] }),
   role('aggregate', {
     targets: ['interface', 'type-alias', 'class'],
+    allowedDependencyRoles: [
+      'aggregate-entity',
+      'domain-error',
+      'domain-event',
+      'domain-port',
+      'domain-service',
+      'value-object',
+      ...publishedLanguageRoles,
+    ],
+    forbiddenImportedFunctionCalls: true,
     minPublicMethods: 1,
     requiresPrivateDataMembers: true,
     approvedInstances: [
@@ -124,7 +134,15 @@ export const allRoles = [
   }),
   role('aggregate-entity', {
     targets: ['class'],
+    allowedDependencyRoles: [
+      'aggregate',
+      'domain-error',
+      'domain-service',
+      'value-object',
+      ...publishedLanguageRoles,
+    ],
     allowedDependentRoles: ['aggregate'],
+    forbiddenImportedFunctionCalls: true,
     requiresPrivateConstructor: true,
     requiresDataMembers: true,
     requiresPrivateDataMembers: true,
@@ -134,6 +152,7 @@ export const allRoles = [
     allowedStaticMethodNames: ['singleton'],
     forbidNonFactoryStaticMethods: true,
     forbiddenCallableDataMembers: true,
+    forbiddenIndexedAccessType: true,
     forbiddenSupertypes: ['Error'],
     requiredPrivateMembers: ['brand'],
     requiresPrivateConstructor: true,
@@ -149,6 +168,7 @@ export const allRoles = [
   }),
   role('domain-port', {
     targets: ['interface', 'type-alias'],
+    requiresImplementerRole: 'domain-port-adapter',
     requiresJustification:
       'If the aggregate using this port loads any data through it, explain why that data is not previously created aggregate state that its repository should load as part of the aggregate.',
   }),
@@ -160,6 +180,7 @@ export const allRoles = [
   }),
   role('domain-facade', {
     targets: ['class'],
+    forbiddenIndexedAccessType: true,
     allowedDependencyRoles: ['domain-service', 'domain-error', ...publishedLanguageRoles],
     allowedDependentRoles: ['command-use-case', 'query-model', 'query-model-value'],
     approvedInstances: [

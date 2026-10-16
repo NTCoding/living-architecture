@@ -413,8 +413,12 @@ describe('executeEventCatalogImportStage', () => {
 
   it('fails with the EventCatalog error code when the source loader rejects', async () => {
     const outcome = await executeEventCatalogImportStage(builder(), importConfig(), {
+      ...collaborators(),
       loadEventCatalogSource: () => Promise.reject(new SourceLoadFailure('boom')),
       loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
+      loadCodeExtraction: () => {
+        throw new SourceLoadFailure('Code extraction is not used by this fixture')
+      },
       repositoryName: 'shop',
     })
 

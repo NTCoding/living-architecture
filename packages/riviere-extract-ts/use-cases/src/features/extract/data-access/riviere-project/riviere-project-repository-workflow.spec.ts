@@ -395,27 +395,36 @@ it.each([
   expect(() => loadWorkflow(directory, 'combined')).toThrow(error)
 })
 
+const CODE_EXTRACTION_CONFIG = [
+  'modules:',
+  '  - name: orders',
+  '    domain: orders',
+  '    path: .',
+  '    glob: "*.ts"',
+  '    api: { notUsed: true }\n    useCase: { notUsed: true }',
+  '    domainOp: { notUsed: true }\n    event: { notUsed: true }',
+  '    eventHandler: { notUsed: true }\n    ui: { notUsed: true }',
+].join('\n')
+
+function writeCodeExtractionConfig(directory: string): void {
+  writeFileSync(join(directory, '.riviere', 'workflows', 'extract.yaml'), CODE_EXTRACTION_CONFIG)
+}
+
 it('materializes a code-extraction stage', () => {
   const directory = workspace()
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'extract.yaml'),
-    [
-      'modules:',
-      '  - name: orders',
-      '    domain: orders',
-      '    path: .',
-      '    glob: "*.ts"',
-      '    api: { notUsed: true }',
-      '    useCase: { notUsed: true }',
-      '    domainOp: { notUsed: true }',
-      '    event: { notUsed: true }',
-      '    eventHandler: { notUsed: true }',
-      '    ui: { notUsed: true }',
-    ].join('\n'),
-  )
+  writeCodeExtractionConfig(directory)
+  writeFileSync(join(directory, '.riviere', 'workflows', 'orders.ts'), 'export const orders = 1\n')
   writeWorkflow(directory, '  - kind: code-extraction\n    name: extract\n    config: extract.yaml')
 
   expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
+})
+
+it('rejects a code-extraction stage whose configuration matches no source files', () => {
+  const directory = workspace()
+  writeCodeExtractionConfig(directory)
+  writeWorkflow(directory, '  - kind: code-extraction\n    name: extract\n    config: extract.yaml')
+
+  expect(() => loadWorkflow(directory, 'combined')).toThrow('No files matched extraction patterns')
 })
 
 it('rejects a workflow whose name is invalid for the workflow runner', () => {

@@ -55,7 +55,7 @@ describe('pull request architecture review', () => {
   it('returns no changes when the architecture metadata is unchanged', () => {
     const workspace = createBaseWorkspace()
 
-    expect(generateArchitectureReview(workspace, workspace)).toStrictEqual({ subdomains: [] })
+    expect(generateArchitectureReview(workspace, workspace).subdomains).toStrictEqual([])
   })
 
   it('fails when an entrypoint cannot be assigned to one subdomain', () => {
@@ -154,6 +154,7 @@ function generateArchitectureReview(baseWorkspaceRoot: string, headWorkspaceRoot
   )
     .execute({ baseWorkspaceRoot, headWorkspaceRoot, outputPath: 'output.md' })
     .changes()
+    .snapshot()
 }
 
 function createBaseWorkspace(): string {

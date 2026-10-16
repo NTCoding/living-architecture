@@ -1,9 +1,5 @@
-import { minimatch } from 'minimatch'
-import { filterConfigByPackage } from './filter-config-by-package'
-import type {
-  RoleEnforcementRunner,
-  RoleEnforcementRunnerResult,
-} from './ports/role-enforcement-runner'
+import { PackageConfigFilter } from './package-config-filter'
+import type { RoleEnforcementRunner } from './ports/role-enforcement-runner'
 import type { RoleEnforcementConfiguration } from './role-enforcement-builder'
 
 /** @riviere-role aggregate */
@@ -12,9 +8,13 @@ export class RoleEnforcementProject {
     private readonly config: RoleEnforcementConfiguration,
     private readonly configDir: string,
     private readonly lintTargets: readonly string[],
+    private readonly packageConfigFilter: PackageConfigFilter,
   ) {}
 
-  execute(runner: RoleEnforcementRunner, packageFilter?: string): RoleEnforcementRunnerResult {
+  execute(
+    runner: RoleEnforcementRunner,
+    packageFilter?: string,
+  ): { readonly exitCode: number; readonly stderr: string; readonly stdout: string } {
     if (packageFilter === undefined) {
       return runner({
         config: this.config,
@@ -23,24 +23,11 @@ export class RoleEnforcementProject {
       })
     }
 
-    const config = filterConfigByPackage(this.config, packageFilter)
+    const config = this.packageConfigFilter.forPackage(this.config, packageFilter)
     return runner({
       config,
       configDir: this.configDir,
-      lintTargets: selectLintTargets(this.lintTargets, config),
+      lintTargets: this.packageConfigFilter.selectLintTargets(this.lintTargets, config),
     })
   }
-}
-
-function selectLintTargets(
-  lintTargets: readonly string[],
-  config: RoleEnforcementConfiguration,
-): string[] {
-  return lintTargets
-    .filter((filePath) => matchesAny(filePath, config.include))
-    .filter((filePath) => !matchesAny(filePath, config.ignorePatterns))
-}
-
-function matchesAny(filePath: string, patterns: readonly string[]): boolean {
-  return patterns.some((pattern) => minimatch(filePath, pattern, { dot: true }))
 }

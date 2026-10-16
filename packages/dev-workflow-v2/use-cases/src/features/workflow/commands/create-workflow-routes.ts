@@ -61,7 +61,7 @@ export class CreateWorkflowRoutes {
           return input.recordReviewerStatus(
             workflow,
             Reviewer.fromName(input.parseStringArgument(reviewer)),
-            parsedStatus.value.name(),
+            parsedStatus.value,
           )
         },
       },

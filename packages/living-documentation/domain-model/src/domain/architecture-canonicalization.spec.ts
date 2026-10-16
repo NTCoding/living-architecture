@@ -105,4 +105,42 @@ describe('architecture canonicalization', () => {
       },
     ])
   })
+
+  it('preserves a design trade-off annotation on items and distinguishes items by its presence', () => {
+    const architecture = extractArchitecture(
+      ArchitectureSource.from({
+        subdomains: [
+          {
+            layers: {
+              domain: {
+                aggregates: [],
+                items: [
+                  { name: 'Order', packageKind: 'domain-model', role: 'aggregate' },
+                  {
+                    designTradeOff: 'Mutates builder instead of returning operations.',
+                    name: 'Order',
+                    packageKind: 'domain-model',
+                    role: 'aggregate',
+                  },
+                ],
+              },
+              entrypoints: { aggregates: [], items: [] },
+              'use-cases': { aggregates: [], items: [] },
+            },
+            name: 'orders',
+          },
+        ],
+      }),
+    )
+
+    expect(architecture.snapshot().subdomains[0]?.layers.domain.items).toStrictEqual([
+      { name: 'Order', packageKind: 'domain-model', role: 'aggregate' },
+      {
+        designTradeOff: 'Mutates builder instead of returning operations.',
+        name: 'Order',
+        packageKind: 'domain-model',
+        role: 'aggregate',
+      },
+    ])
+  })
 })

@@ -1,11 +1,13 @@
 import type { BaseEvent, WorkflowRegistry } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { WorkflowStateError } from '@nt-ai-lab/deterministic-agent-workflow-engine'
+import { buildRecordingOperations } from '@living-architecture/dev-workflow-v2-domain-model/domain/recording-operations'
 import {
   getOperationBody,
   getTransitionTitle,
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/output-messages'
 import { MaintainerWorkflowRegistry } from '@living-architecture/dev-workflow-v2-domain-model/domain/registry'
 import { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
+import { WorkflowDependencies } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-dependencies'
 import { AddressingFeedbackState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/addressing-feedback'
 import { BlockedState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/blocked'
 import { ImplementingState } from '@living-architecture/dev-workflow-v2-domain-model/domain/states/implementing'
@@ -18,47 +20,53 @@ import {
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-events'
 import {
   getInitialWorkflowState,
-  StateNames,
+  type WorkflowStateNameValue,
+  WorkflowStateNames,
   WorkflowState,
 } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
 import { WorkflowTransitionContext } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-transition-context'
 import { isWriteAllowed } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-predicates'
 import type { ZodType } from 'zod'
 
-type WorkflowDeps = Parameters<typeof MaintainerWorkflow.build>[1]
-type StateName = WorkflowState['currentStateMachineState']
-type WorkflowOperation =
-  | Parameters<MaintainerWorkflow['executeRecording']>[0]
-  | 'record-reviewer-status'
-  | 'wait-for-coderabbit-and-close-review-cycle'
+export type { MaintainerWorkflowOperationValue } from '@living-architecture/dev-workflow-v2-domain-model/domain/maintainer-workflow-operation'
+import type { MaintainerWorkflowOperationValue } from '@living-architecture/dev-workflow-v2-domain-model/domain/maintainer-workflow-operation'
+export type { WorkflowStateNameValue } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
+export type { WorkflowState } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow-types'
+export type { MaintainerWorkflow } from '@living-architecture/dev-workflow-v2-domain-model/domain/workflow'
+
+type WorkflowOperation = MaintainerWorkflowOperationValue
+export type { WorkflowOperation }
+export { WorkflowDependencies }
 /** @riviere-role command-use-case-result */
 export interface ConfigureWorkflowResult {
   fold(state: WorkflowState, event: BaseEvent): WorkflowState
-  buildWorkflow(state: WorkflowState, deps: WorkflowDeps): MaintainerWorkflow
-  stateSchema: ZodType<StateName>
+  buildWorkflow(state: WorkflowState, deps: WorkflowDependencies): MaintainerWorkflow
+  stateSchema: ZodType<WorkflowStateNameValue>
   initialState(): WorkflowState
   getRegistry(): WorkflowRegistry<
     WorkflowState,
-    StateName,
+    WorkflowStateNameValue,
     WorkflowOperation,
     WorkflowTransitionContext
   >
   buildTransitionContext(
     state: WorkflowState,
-    from: StateName,
-    to: StateName,
-    deps: WorkflowDeps,
+    from: WorkflowStateNameValue,
+    to: WorkflowStateNameValue,
+    deps: WorkflowDependencies,
   ): WorkflowTransitionContext
   buildTransitionEvent(
-    from: StateName,
-    to: StateName,
+    from: WorkflowStateNameValue,
+    to: WorkflowStateNameValue,
     stateBefore: WorkflowState,
     stateAfter: WorkflowState,
     now: string,
   ): BaseEvent
   getOperationBody(op: string, state: WorkflowState): string
-  getTransitionTitle(to: StateName, state: WorkflowState): string
+  getTransitionTitle(to: WorkflowStateNameValue, state: WorkflowState): string
   isWriteAllowed: typeof isWriteAllowed
+  parseEvent: typeof parseWorkflowEvent
+  buildRecordingOperations: typeof buildRecordingOperations
 }
 const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(getKnownWorkflowEventTypes())
 
@@ -101,19 +109,19 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
         return state
       }
     },
-    buildWorkflow(state: WorkflowState, deps: WorkflowDeps): MaintainerWorkflow {
+    buildWorkflow(state: WorkflowState, deps: WorkflowDependencies): MaintainerWorkflow {
       const workflow = MaintainerWorkflow.build(registry, deps, state)
       activeRegistry.value = workflow.registry()
       return workflow
     },
-    stateSchema: StateNames.singleton().asZodSchema(),
+    stateSchema: WorkflowStateNames.singleton().asZodSchema(),
     initialState: getInitialWorkflowState,
     getRegistry: () => activeRegistry.value,
     buildTransitionContext(
       state: WorkflowState,
-      from: StateName,
-      to: StateName,
-      deps: WorkflowDeps,
+      from: WorkflowStateNameValue,
+      to: WorkflowStateNameValue,
+      deps: WorkflowDependencies,
     ): WorkflowTransitionContext {
       return WorkflowTransitionContext.from({
         state,
@@ -123,8 +131,8 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
       })
     },
     buildTransitionEvent(
-      from: StateName,
-      to: StateName,
+      from: WorkflowStateNameValue,
+      to: WorkflowStateNameValue,
       stateBefore: WorkflowState,
       stateAfter: WorkflowState,
       now: string,
@@ -141,5 +149,7 @@ export function configureWorkflow(input: ConfigureWorkflowInput): ConfigureWorkf
     getOperationBody,
     getTransitionTitle,
     isWriteAllowed,
+    parseEvent: parseWorkflowEvent,
+    buildRecordingOperations,
   }
 }

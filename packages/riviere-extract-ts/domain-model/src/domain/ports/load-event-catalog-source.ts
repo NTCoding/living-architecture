@@ -1,4 +1,7 @@
 import type { LoadAsyncApiDocument } from './load-asyncapi-document'
+import type { LoadCodeExtraction } from './load-code-extraction'
+import type { RiviereProjectExtractionBehaviour } from './riviere-project-extraction-behaviour'
+import type { RiviereModuleExtractionRules } from './riviere-module-extraction-rules'
 
 type EventCatalogDomainRecord = Readonly<{
   id: string
@@ -34,8 +37,13 @@ export type LoadEventCatalogSource = (sourcePath: string) => Promise<EventCatalo
 type RiviereProjectCollaborators = Readonly<{
   loadEventCatalogSource: LoadEventCatalogSource
   loadAsyncApiDocument: LoadAsyncApiDocument
+  loadCodeExtraction: LoadCodeExtraction
   repositoryName: string
+  extractionBehaviour: RiviereProjectExtractionBehaviour
+  moduleExtractionRules: RiviereModuleExtractionRules
 }>
+
+type RiviereProjectRepositoryCollaborators = Omit<RiviereProjectCollaborators, 'repositoryName'>
 
 export type {
   EventCatalogDomainRecord,
@@ -43,4 +51,5 @@ export type {
   EventCatalogServiceRecord,
   EventCatalogSource,
   RiviereProjectCollaborators,
+  RiviereProjectRepositoryCollaborators,
 }

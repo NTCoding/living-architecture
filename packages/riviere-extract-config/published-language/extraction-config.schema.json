@@ -11,6 +11,10 @@
       "type": "string",
       "description": "JSON Schema reference"
     },
+    "allow-incomplete": {
+      "type": "boolean",
+      "description": "Output components and connections with unresolved fields as lenient extraction results"
+    },
     "modules": {
       "type": "array",
       "description": "Module definitions for component extraction",

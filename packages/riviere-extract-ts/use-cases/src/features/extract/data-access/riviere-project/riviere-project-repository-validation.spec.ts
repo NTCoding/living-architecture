@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
+import { InvalidModuleSourcesError } from '@living-architecture/riviere-extract-ts-domain-model/domain/extraction-errors'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 
 const VALID_CONFIG = `modules:
@@ -128,12 +129,11 @@ describe('RiviereProjectRepository validation', () => {
     })
   })
 
-  it('maps an invalid aggregate result to a configuration error', () => {
+  it('propagates an invalid module source failure from project start', () => {
     withWorkspace((directory) => {
       writeFileSync(join(directory, 'extract.yml'), VALID_CONFIG)
-      const start = vi.spyOn(RiviereProject, 'start').mockReturnValueOnce({
-        success: false,
-        error: 'Invalid module sources',
+      const start = vi.spyOn(RiviereProject, 'start').mockImplementationOnce(() => {
+        throw new InvalidModuleSourcesError('Invalid module sources')
       })
       expect(() => load(directory)).toThrow(/Invalid module sources/)
       start.mockRestore()

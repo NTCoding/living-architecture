@@ -33,9 +33,15 @@ export class ExtractionConfig {
     )
     const parsedConfiguration = parseExtractionConfig(expandedConfiguration)
     if (!parsedConfiguration.success) return parsedConfiguration
+    const configuration = parsedConfiguration.configuration
     return {
       success: true,
-      configuration: new ExtractionConfig(parsedConfiguration.configuration),
+      configuration: new ExtractionConfig({
+        ...configuration,
+        ...(configuration['allow-incomplete'] === undefined
+          ? {}
+          : { allowIncomplete: configuration['allow-incomplete'] }),
+      }),
     }
   }
 

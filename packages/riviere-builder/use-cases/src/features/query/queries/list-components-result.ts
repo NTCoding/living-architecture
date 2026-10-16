@@ -1,9 +1,12 @@
 import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
-import type { ComponentType } from '@living-architecture/riviere-schema-published-language/schema'
+import type {
+  Component,
+  ComponentType,
+} from '@living-architecture/riviere-schema-published-language/schema'
 import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 
 /** @riviere-role query-model-value */
-export type ListedComponent = ReturnType<RiviereQuery['components']>[number]
+export type ListedComponent = Component
 
 /** @riviere-role query-model */
 export class ComponentList {

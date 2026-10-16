@@ -1,8 +1,9 @@
 import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
+import type { Domain } from '@living-architecture/riviere-builder-domain-model/query/domain'
 import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 
 /** @riviere-role query-model-value */
-export type DomainSummary = ReturnType<RiviereQuery['domains']>[number]
+export type DomainSummary = Domain
 
 /** @riviere-role query-model */
 export class DomainList {

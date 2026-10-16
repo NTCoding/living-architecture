@@ -6,6 +6,7 @@ import { collaborators } from '../../../__fixtures__/workflow-fixtures'
 import type { ComponentIndex } from '../../component-index'
 import { ExtractionConfiguration } from '../../../extraction-configuration'
 import { RiviereProject } from '../../../riviere-project'
+import { ExtractionProjectStartInput } from '../../../riviere-project-start-inputs'
 import { EnrichedComponent } from '../../../value-extraction/enriched-component'
 
 export class CallGraphOptions {
@@ -112,17 +113,13 @@ export function buildCallGraph(
     moduleContexts: [{ module, project, files: options.sourceFilePaths }],
   })
   const parsedProject = RiviereProject.start(
-    {
-      configuration: extractionConfiguration,
-      draftComponents: [],
-    },
+    ExtractionProjectStartInput.from(extractionConfiguration, []),
     collaborators(),
   )
-  if (!parsedProject.success) assert.fail(parsedProject.error)
   const sourceIds = new Set(
     components.map((component) => ComponentId.parseFromParts(component).toString()),
   )
-  return parsedProject.project
+  return parsedProject
     .detectConnections(allComponents, !options.strict)
     .links.filter((link) => sourceIds.has(link.source))
 }

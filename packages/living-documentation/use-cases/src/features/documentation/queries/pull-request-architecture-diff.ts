@@ -1,4 +1,17 @@
-import type { ArchitectureDiff } from '@living-architecture/living-documentation-domain-model/domain/architecture'
+import type {
+  ArchitectureChanges,
+  ArchitectureDiff,
+} from '@living-architecture/living-documentation-domain-model/domain/architecture'
+
+export { ArchitectureChanges } from '@living-architecture/living-documentation-domain-model/domain/architecture'
+export {
+  ArchitectureAggregateChanges,
+  ArchitectureChangeSet,
+  ArchitectureItem,
+  ArchitectureLayerChanges,
+  ArchitectureRelationship,
+  SubdomainArchitectureChanges,
+} from '@living-architecture/living-documentation-domain-model/domain/architecture'
 
 /** @riviere-role query-model */
 export class PullRequestArchitectureDiff {
@@ -14,7 +27,7 @@ export class PullRequestArchitectureDiff {
     return new PullRequestArchitectureDiff(diff, outputPath)
   }
 
-  changes(): ReturnType<ArchitectureDiff['changes']> {
+  changes(): ArchitectureChanges {
     return this.diff.changes()
   }
 }

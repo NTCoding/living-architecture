@@ -1,5 +1,6 @@
 import { ComponentId as QueryComponentId } from '@living-architecture/riviere-builder-domain-model/query/component-id'
 import { ComponentId } from '@living-architecture/riviere-schema-published-language/component-id'
+import type { LinkId } from '@living-architecture/riviere-schema-published-language/link-id'
 import {
   ComponentNotFoundError,
   RiviereQuery,
@@ -7,7 +8,10 @@ import {
 import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 
 /** @riviere-role query-model-value */
-export type TraceFlowGraph = ReturnType<RiviereQuery['traceFlow']>
+export type TraceFlowGraph = {
+  readonly componentIds: readonly QueryComponentId[]
+  readonly linkIds: readonly LinkId[]
+}
 
 /** @riviere-role query-model */
 export class FoundFlowTrace {

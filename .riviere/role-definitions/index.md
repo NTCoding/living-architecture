@@ -6,6 +6,7 @@ These resources inform how roles are classified and where code should live:
 
 - [ADR-002: Allowed Folder Structures](../../docs/architecture/adr/ADR-002-allowed-folder-structures.md) — Canonical directory layout
 - [Role enforcement configuration](../role-enforcement.config.ts) — Executable location, dependency, and role rules
+- [Design trade-off annotation](design-trade-off.md) — Not a role; records an approved deviation from a role's principles, flagged in the architecture diff
 - [Architecture memory](../../project-memory/architecture/README.md) — Approved local architecture decisions and examples
 - [Software Design Conventions](../../docs/conventions/software-design.md) — SD-001 through SD-023
 

@@ -1,11 +1,14 @@
 import { assert, describe, expect, it } from 'vitest'
 import { Project } from 'ts-morph'
-import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
+import {
+  ValidatedConfiguration,
+  type ValidatedModule,
+} from '@living-architecture/riviere-extract-config-published-language'
 import { ExtractionConfiguration } from './extraction-configuration'
 import { ModuleContextsMismatchError } from './extraction-errors'
 
 type ModuleContext = {
-  module: ValidatedConfiguration['modules'][number]
+  module: ValidatedModule
   files: string[]
   project: Project
 }
@@ -13,10 +16,10 @@ type ModuleContext = {
 function invalidContextsFor(
   createInvalidContexts: (
     context: ModuleContext,
-    foreignModule: ModuleContext['module'],
+    foreignModule: ValidatedModule,
   ) => ModuleContext[],
   context: ModuleContext,
-  foreignModule: ModuleContext['module'],
+  foreignModule: ValidatedModule,
 ): ModuleContext[] {
   return createInvalidContexts(context, foreignModule)
 }

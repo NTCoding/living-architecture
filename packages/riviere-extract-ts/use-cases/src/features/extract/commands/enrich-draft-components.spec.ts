@@ -17,6 +17,7 @@ import { ExtractionConfigError } from '../data-access/riviere-project/riviere-co
 import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-error'
 import { DraftComponentsLoadError } from '../data-access/riviere-project/draft-components-load-error'
+import { createConnectionDetectionTimer } from '../adapters/time/create-connection-detection-timer'
 
 class UnexpectedLoadingError extends Error {}
 
@@ -33,7 +34,10 @@ describe('enrichDraftComponents', () => {
   })
 
   it('returns draft-only results when connections are disabled', () => {
-    const result = new EnrichDraftComponents(createRiviereProjectRepository(), () => 0).execute({
+    const result = new EnrichDraftComponents(
+      createRiviereProjectRepository(),
+      createConnectionDetectionTimer(() => 0),
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -84,7 +88,7 @@ describe('enrichDraftComponents', () => {
 
     const result = new EnrichDraftComponents(
       createRiviereProjectRepository(),
-      () => times.shift() ?? 0,
+      createConnectionDetectionTimer(() => times.shift() ?? 0),
     ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
@@ -122,7 +126,10 @@ describe('enrichDraftComponents', () => {
       },
     )
 
-    const result = new EnrichDraftComponents(createRiviereProjectRepository(), () => 10).execute({
+    const result = new EnrichDraftComponents(
+      createRiviereProjectRepository(),
+      createConnectionDetectionTimer(() => 10),
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -137,7 +144,10 @@ describe('enrichDraftComponents', () => {
   })
 
   it('passes the draft components path to the repository', () => {
-    new EnrichDraftComponents(createRiviereProjectRepository(), () => 0).execute({
+    new EnrichDraftComponents(
+      createRiviereProjectRepository(),
+      createConnectionDetectionTimer(() => 0),
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -153,7 +163,10 @@ describe('enrichDraftComponents', () => {
   })
 
   it('returns the requested output path with a successful result', () => {
-    const result = new EnrichDraftComponents(createRiviereProjectRepository(), () => 0).execute({
+    const result = new EnrichDraftComponents(
+      createRiviereProjectRepository(),
+      createConnectionDetectionTimer(() => 0),
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -169,7 +182,10 @@ describe('enrichDraftComponents', () => {
   })
 
   it('does not put draft components in command input', () => {
-    new EnrichDraftComponents(createRiviereProjectRepository(), () => 0).execute({
+    new EnrichDraftComponents(
+      createRiviereProjectRepository(),
+      createConnectionDetectionTimer(() => 0),
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -188,7 +204,10 @@ describe('enrichDraftComponents', () => {
       failedFields: ['fieldA'],
     })
 
-    const result = new EnrichDraftComponents(createRiviereProjectRepository(), () => 0).execute({
+    const result = new EnrichDraftComponents(
+      createRiviereProjectRepository(),
+      createConnectionDetectionTimer(() => 0),
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -209,7 +228,10 @@ describe('enrichDraftComponents', () => {
       throw new ExtractionConfigError('VALIDATION_ERROR', 'Invalid extraction config')
     })
 
-    const result = new EnrichDraftComponents(createRiviereProjectRepository(), () => 0).execute({
+    const result = new EnrichDraftComponents(
+      createRiviereProjectRepository(),
+      createConnectionDetectionTimer(() => 0),
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -236,7 +258,10 @@ describe('enrichDraftComponents', () => {
       })
     })
 
-    const result = new EnrichDraftComponents(createRiviereProjectRepository(), () => 0).execute({
+    const result = new EnrichDraftComponents(
+      createRiviereProjectRepository(),
+      createConnectionDetectionTimer(() => 0),
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -257,7 +282,10 @@ describe('enrichDraftComponents', () => {
       throw new ExtractionDataAccessError('FILE_READ_ERROR', 'Could not read draft components')
     })
 
-    const result = new EnrichDraftComponents(createRiviereProjectRepository(), () => 0).execute({
+    const result = new EnrichDraftComponents(
+      createRiviereProjectRepository(),
+      createConnectionDetectionTimer(() => 0),
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -279,7 +307,10 @@ describe('enrichDraftComponents', () => {
       throw new DraftComponentsLoadError('Invalid draft components')
     })
 
-    const result = new EnrichDraftComponents(createRiviereProjectRepository(), () => 0).execute({
+    const result = new EnrichDraftComponents(
+      createRiviereProjectRepository(),
+      createConnectionDetectionTimer(() => 0),
+    ).execute({
       allowIncomplete: false,
       configPath: 'config.yml',
       draftComponentsPath: 'draft.json',
@@ -301,7 +332,10 @@ describe('enrichDraftComponents', () => {
     })
 
     expect(() =>
-      new EnrichDraftComponents(createRiviereProjectRepository(), () => 0).execute({
+      new EnrichDraftComponents(
+        createRiviereProjectRepository(),
+        createConnectionDetectionTimer(() => 0),
+      ).execute({
         allowIncomplete: false,
         configPath: 'config.yml',
         draftComponentsPath: 'draft.json',

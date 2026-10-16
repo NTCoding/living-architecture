@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { runOxlint } from '../../../../infra/external-clients/oxlint/oxlint-client'
 import { createOxlintRoleEnforcementRunner } from '../../adapters/oxlint/oxlint-role-enforcement-runner'
 import { RoleEnforcementProjectRepository } from '../../data-access/role-enforcement/role-enforcement-project-repository'
+import { PackageConfigFilter } from '@living-architecture/riviere-role-enforcement-domain-model'
 import { RunRoleEnforcement } from '../run-role-enforcement'
 import { genericTestRoles } from './test-fixture-config'
 
@@ -20,7 +21,7 @@ export function createTestRoleEnforcementApplication(configModule: unknown): Run
   )
   return new RunRoleEnforcement({
     now: () => 0,
-    projectRepository: new RoleEnforcementProjectRepository({
+    projectRepository: new RoleEnforcementProjectRepository(new PackageConfigFilter(), {
       loadTypeScriptModule: () => configModule,
     }),
     runner: createOxlintRoleEnforcementRunner(runOxlint, pluginPath),

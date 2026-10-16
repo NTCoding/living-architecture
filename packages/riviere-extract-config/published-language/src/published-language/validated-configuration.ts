@@ -15,6 +15,7 @@ export class ValidatedConfiguration {
     modules: readonly ValidatedModule[],
     readonly connections: ConnectionsConfig | undefined,
     readonly schema: string | undefined,
+    readonly allowIncomplete: boolean,
   ) {
     this.#modules = modules
   }
@@ -41,7 +42,12 @@ export class ValidatedConfiguration {
 
     return {
       success: true,
-      data: new ValidatedConfiguration(modules, input.connections, input.$schema),
+      data: new ValidatedConfiguration(
+        modules,
+        input.connections,
+        input.$schema,
+        input.allowIncomplete === true,
+      ),
     }
   }
 

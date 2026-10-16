@@ -1,7 +1,20 @@
+import { ArchitectureChanges } from './architecture-changes'
+
+export {
+  ArchitectureChanges,
+  ArchitectureRelationship,
+  ArchitectureItem,
+  ArchitectureAggregateChanges,
+  ArchitectureChangeSet,
+  ArchitectureLayerChanges,
+  SubdomainArchitectureChanges,
+} from './architecture-changes'
+
 type ArchitectureLayerName = 'entrypoints' | 'use-cases' | 'domain'
 type ArchitecturePackageKind = 'application' | 'use-cases' | 'domain-model' | 'published-language'
 
 interface ArchitectureItemValue {
+  readonly designTradeOff?: string
   readonly externalClient?: string
   readonly name: string
   readonly packageKind: ArchitecturePackageKind
@@ -99,8 +112,8 @@ export class ArchitectureDiff {
     return new ArchitectureDiff(compareArchitectureValues(base.snapshot(), head.snapshot()))
   }
 
-  changes(): ArchitectureDiffValue {
-    return copyArchitectureDiff(this.value)
+  changes(): ArchitectureChanges {
+    return ArchitectureChanges.from(this.value)
   }
 }
 
@@ -325,39 +338,12 @@ function copyAggregate(aggregate: AggregateValue): AggregateValue {
 function copyItem(item: ArchitectureItemValue): ArchitectureItemValue {
   const relatedTo = canonicalRelationships(item.relatedTo ?? [])
   return {
+    ...(item.designTradeOff === undefined ? {} : { designTradeOff: item.designTradeOff }),
     ...(item.externalClient === undefined ? {} : { externalClient: item.externalClient }),
     name: item.name,
     packageKind: item.packageKind,
     ...(relatedTo.length === 0 ? {} : { relatedTo }),
     role: item.role,
-  }
-}
-
-function copyArchitectureDiff(value: ArchitectureDiffValue): ArchitectureDiffValue {
-  return {
-    subdomains: value.subdomains.map((subdomain) => ({
-      change: subdomain.change,
-      layers: {
-        domain: copyLayerChanges(subdomain.layers.domain),
-        entrypoints: copyLayerChanges(subdomain.layers.entrypoints),
-        'use-cases': copyLayerChanges(subdomain.layers['use-cases']),
-      },
-      name: subdomain.name,
-    })),
-  }
-}
-
-function copyLayerChanges(changes: ArchitectureLayerChangesValue): ArchitectureLayerChangesValue {
-  return {
-    added: copyChangeSet(changes.added),
-    removed: copyChangeSet(changes.removed),
-  }
-}
-
-function copyChangeSet(changes: ArchitectureChangeSetValue): ArchitectureChangeSetValue {
-  return {
-    aggregates: changes.aggregates.map(copyAggregate),
-    items: changes.items.map(copyItem),
   }
 }
 
@@ -369,7 +355,14 @@ function itemKey(item: ArchitectureItemValue): string {
   const externalClient =
     item.externalClient === undefined ? ([false] as const) : ([true, item.externalClient] as const)
   const relationships = canonicalRelationships(item.relatedTo ?? []).map(relationshipKey)
-  return JSON.stringify([item.packageKind, item.role, item.name, externalClient, relationships])
+  return JSON.stringify([
+    item.packageKind,
+    item.role,
+    item.name,
+    externalClient,
+    relationships,
+    item.designTradeOff === undefined ? 'no-trade-off' : `trade-off:${item.designTradeOff}`,
+  ])
 }
 
 function canonicalRelationships(

@@ -1,8 +1,10 @@
 import {
+  InvalidWorkflowStateName,
   WorkflowState,
+  WorkflowStateName,
+  WorkflowStateNames,
   createWorkflowStateSchema,
   getInitialWorkflowState,
-  getWorkflowStateNames,
 } from './workflow-types'
 import {
   BashChecked,
@@ -18,6 +20,31 @@ const REVIEWERS = {
   'task-check': 'PENDING',
   coderabbit: 'PENDING',
 } as const
+
+describe('WorkflowStateName', () => {
+  it('rejects an unknown state name with the rejected value', () => {
+    expect(() => WorkflowStateName.fromName('UNKNOWN')).toThrow(InvalidWorkflowStateName)
+    expect(() => WorkflowStateName.fromName('UNKNOWN')).toThrow(
+      'Unknown workflow state name: UNKNOWN',
+    )
+  })
+
+  it('exposes the parsed state name', () => {
+    expect(WorkflowStateName.parse('REVIEWING').name()).toBe('REVIEWING')
+  })
+
+  it('exposes the current state name of a workflow state', () => {
+    expect(getInitialWorkflowState().currentStateName().name()).toBe('IMPLEMENTING')
+  })
+})
+
+describe('WorkflowStateNames', () => {
+  it('validates every configured state name through its schema', () => {
+    const schema = WorkflowStateNames.singleton().asZodSchema()
+    expect(schema.parse('BLOCKED')).toBe('BLOCKED')
+    expect(schema.safeParse('UNKNOWN').success).toBe(false)
+  })
+})
 
 describe('WorkflowState', () => {
   it('starts with all named reviewers pending', () => {
@@ -102,7 +129,11 @@ describe('WorkflowState', () => {
         }),
       ),
     ).toBe(state)
-    expect(getWorkflowStateNames()).toContain('HUMAN_REVIEWING')
+    expect(
+      WorkflowStateNames.singleton()
+        .all()
+        .map((name) => name.name()),
+    ).toContain('HUMAN_REVIEWING')
   })
 
   it('defaults the cycle cap flag and round-trips it', () => {

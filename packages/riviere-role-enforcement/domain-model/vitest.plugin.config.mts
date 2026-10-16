@@ -15,6 +15,7 @@ export default defineConfig(() => ({
       'src/domain/role-enforcement-plugin.spec.ts',
       'src/domain/role-enforcement-plugin-forbidden-supertypes.spec.ts',
       'src/domain/role-enforcement-plugin-aggregate-repository.spec.ts',
+      'src/domain/role-enforcement-plugin-domain-port.spec.ts',
     ],
     coverage: {
       enabled: true,

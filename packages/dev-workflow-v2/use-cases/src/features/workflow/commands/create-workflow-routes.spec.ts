@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { assert, describe, expect, it, vi } from 'vitest'
 import { PullRequestCreationDetails } from '@living-architecture/dev-workflow-v2-domain-model/domain/pull-request-description'
 import { Reviewer } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/reviewers'
+import { ReviewerStatus } from '@living-architecture/dev-workflow-v2-domain-model/domain/reviews/statuses'
 import { CreateWorkflowRoutes } from './create-workflow-routes'
 
 function createRoutes(
@@ -78,7 +79,7 @@ describe('CreateWorkflowRoutes', () => {
     expect(recordReviewerStatus).toHaveBeenCalledWith(
       workflow,
       Reviewer.fromName('code-review'),
-      'OPEN_FEEDBACK',
+      ReviewerStatus.parse('OPEN_FEEDBACK'),
     )
   })
 

@@ -42,8 +42,8 @@ type UIDefinition = { type: 'UI'; input: CommonInput & { route: string } }
 type APIDefinition = {
   type: 'API'
   input: CommonInput & {
-    apiType: ApiDefinition['apiType']
-    httpMethod?: NonNullable<ApiDefinition['httpMethod']>
+    apiType: APIComponent['apiType']
+    httpMethod?: NonNullable<APIComponent['httpMethod']>
     path?: string
     operationName?: string
   }
@@ -65,7 +65,8 @@ type CustomDefinition = {
     metadata?: Readonly<Record<string, unknown>>
   }
 }
-type ComponentDefinitionValue =
+/** @riviere-role published-language-union */
+export type ComponentDefinitionValue =
   | UIDefinition
   | APIDefinition
   | UseCaseDefinition

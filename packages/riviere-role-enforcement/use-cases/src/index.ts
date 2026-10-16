@@ -1,3 +1,4 @@
+export { PackageConfigFilter } from '@living-architecture/riviere-role-enforcement-domain-model'
 export { createOxlintRoleEnforcementRunner } from './features/enforcement/adapters/oxlint/oxlint-role-enforcement-runner'
 export { RunRoleEnforcement } from './features/enforcement/commands/run-role-enforcement'
 export type { RunRoleEnforcementInput } from './features/enforcement/commands/run-role-enforcement-input'

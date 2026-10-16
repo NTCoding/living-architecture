@@ -10,6 +10,7 @@ export type TypescriptArchitecturePackageKind =
 
 /** @riviere-role external-client-model */
 export interface TypescriptArchitectureItem {
+  readonly designTradeOff?: string
   readonly externalClient?: string
   readonly name: string
   readonly packageKind: TypescriptArchitecturePackageKind

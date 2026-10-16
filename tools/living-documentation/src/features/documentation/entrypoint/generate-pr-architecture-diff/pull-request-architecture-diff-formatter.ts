@@ -1,4 +1,7 @@
-import type { PullRequestArchitectureDiff } from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
+import type {
+  PullRequestArchitectureDiff,
+  SubdomainArchitectureChanges,
+} from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
 import { renderArchitectureHtmlText } from './architecture-review-markdown'
 import {
   hasVisibleEntrypointChanges,
@@ -14,11 +17,11 @@ import {
   renderUncategorisedArchitectureChanges,
 } from './architecture-review-role-sections'
 import { renderArchitectureExternalClients } from './architecture-review-external-client-section'
+import { renderArchitectureDesignTradeOffs } from './architecture-review-design-trade-off-section'
 import { renderArchitectureSummary } from './architecture-review-summary'
 
-type Diff = ReturnType<PullRequestArchitectureDiff['changes']>
 type PullRequestArchitectureDiffView = Pick<PullRequestArchitectureDiff, 'changes' | 'outputPath'>
-type SubdomainChanges = Diff['subdomains'][number]
+type SubdomainChanges = SubdomainArchitectureChanges
 
 const COMMENT_MARKER = '<!-- pull-request-architecture-review -->'
 
@@ -68,6 +71,7 @@ function renderSubdomain(subdomain: SubdomainChanges): readonly string[] {
     ...renderArchitectureDomain(subdomain.layers.domain),
     ...renderArchitectureExternalClients(subdomain.layers['use-cases']),
     ...renderUncategorisedArchitectureChanges(subdomain.layers['use-cases']),
+    ...renderArchitectureDesignTradeOffs(subdomain.layers),
     '</details>',
     '',
   ]

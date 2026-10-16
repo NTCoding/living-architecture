@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { BaseEvent } from '@nt-ai-lab/deterministic-agent-workflow-engine'
 import { Reviewer } from './reviews/reviewers'
 import { ReviewerStatus } from './reviews/statuses'
-import { StateNames, type StateName } from './workflow-types'
+import { WorkflowStateName, type WorkflowStateNameValue } from './workflow-types'
 
 /** @riviere-role domain-error */
 export class WorkflowEventError extends Error {
@@ -32,8 +32,8 @@ function requiredBoolean(value: unknown): boolean {
   return z.boolean().parse(value)
 }
 
-function requiredStateName(value: unknown): StateName {
-  return StateNames.singleton().asZodSchema().parse(value)
+function requiredStateName(value: unknown): WorkflowStateNameValue {
+  return WorkflowStateName.parse(value).name()
 }
 
 function optionalStateOverrides(value: unknown): Readonly<Record<string, unknown>> | undefined {
@@ -99,8 +99,8 @@ export class Transitioned {
 
   private constructor(
     readonly at: string,
-    readonly from: StateName,
-    readonly to: StateName,
+    readonly from: WorkflowStateNameValue,
+    readonly to: WorkflowStateNameValue,
     readonly preBlockedState?: string,
     readonly stateOverrides?: Readonly<Record<string, unknown>>,
   ) {}
@@ -288,21 +288,56 @@ export class WriteChecked {
   }
 }
 
-/**
- * @riviere-role domain-port
- * @riviere-role-justification The workflow state machine, replay, and event persistence all consume the closed workflow event union, so it is the contract the domain exposes to those consumers.
- */
+/** @riviere-role domain-event */
 export type WorkflowEvent =
-  | SessionStarted
-  | Transitioned
-  | IssueRecorded
-  | BranchRecorded
-  | PrRecorded
-  | ReviewCycleStarted
-  | ReviewCycleClosed
-  | ReviewerStatusRecorded
-  | BashChecked
-  | WriteChecked
+  | Readonly<{
+      type: 'session-started'
+      at: string
+      transcriptPath?: string | undefined
+      repository?: string | undefined
+    }>
+  | Readonly<{
+      type: 'transitioned'
+      at: string
+      from: WorkflowStateNameValue
+      to: WorkflowStateNameValue
+      preBlockedState?: string | undefined
+      stateOverrides?: Readonly<Record<string, unknown>> | undefined
+    }>
+  | Readonly<{ type: 'issue-recorded'; at: string; issueNumber: number }>
+  | Readonly<{ type: 'branch-recorded'; at: string; branch: string }>
+  | Readonly<{ type: 'pr-recorded'; at: string; prNumber: number; prUrl?: string | undefined }>
+  | Readonly<{
+      type: 'review-cycle-started'
+      at: string
+      cycleNumber: number
+      includedReviewers: readonly string[]
+      excludedReviewers: Readonly<Record<string, string>>
+    }>
+  | Readonly<{
+      type: 'review-cycle-closed'
+      at: string
+      cycleNumber: number
+      reviewedCommit: string
+      outcomes: Readonly<Record<string, string>>
+    }>
+  | Readonly<{ type: 'reviewer-status-recorded'; at: string; reviewer: string; status: string }>
+  | Readonly<{
+      type: 'bash-checked'
+      at: string
+      tool: string
+      command: string
+      allowed: boolean
+      reason?: string | undefined
+    }>
+  | Readonly<{
+      type: 'write-checked'
+      at: string
+      tool: string
+      filePath: string
+      allowed: boolean
+      reason?: string | undefined
+    }>
 
 const KNOWN_WORKFLOW_EVENT_TYPES = [
   'session-started',

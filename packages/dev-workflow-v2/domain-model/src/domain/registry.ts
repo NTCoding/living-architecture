@@ -6,7 +6,12 @@ import { ImplementingState } from './states/implementing'
 import { HumanReviewingState } from './states/human-reviewing'
 import { ReviewingState } from './states/reviewing'
 import { SubmittingPrState } from './states/submitting-pr'
-import type { WorkflowState } from './workflow-types'
+import {
+  WorkflowStateName,
+  type WorkflowStateNameValue,
+  type WorkflowState,
+} from './workflow-types'
+import type { MaintainerWorkflowOperationValue } from './maintainer-workflow-operation'
 import type { WorkflowTransitionContext } from './workflow-transition-context'
 
 const MAINTAINER_WORKFLOW_REGISTRY_SCHEMA = z.object({
@@ -21,13 +26,6 @@ const MAINTAINER_WORKFLOW_REGISTRY_SCHEMA = z.object({
 })
 
 type MaintainerWorkflowRegistryValue = z.infer<typeof MAINTAINER_WORKFLOW_REGISTRY_SCHEMA>
-type StateName = WorkflowState['currentStateMachineState']
-type WorkflowOperation =
-  | 'record-issue'
-  | 'record-branch'
-  | 'record-reviewer-status'
-  | 'create-pr'
-  | 'wait-for-coderabbit-and-close-review-cycle'
 
 /** @riviere-role value-object */
 export class MaintainerWorkflowRegistry {
@@ -54,13 +52,13 @@ export class MaintainerWorkflowRegistry {
   }
 
   state(
-    name: StateName,
+    name: WorkflowStateName,
   ): WorkflowStateDefinition<
     WorkflowState,
-    StateName,
-    WorkflowOperation,
+    WorkflowStateNameValue,
+    MaintainerWorkflowOperationValue,
     WorkflowTransitionContext
   > {
-    return this[name]
+    return this[name.name()]
   }
 }

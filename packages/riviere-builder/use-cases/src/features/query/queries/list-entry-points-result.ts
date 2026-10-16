@@ -1,8 +1,9 @@
 import { RiviereQuery } from '@living-architecture/riviere-builder-domain-model/query'
+import type { Component } from '@living-architecture/riviere-schema-published-language/schema'
 import type { QueryGraphLoadFailure } from './query-graph-load-failure'
 
 /** @riviere-role query-model-value */
-export type EntryPointComponent = ReturnType<RiviereQuery['entryPoints']>[number]
+export type EntryPointComponent = Component
 
 /** @riviere-role query-model */
 export class EntryPointList {

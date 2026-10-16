@@ -5,7 +5,11 @@ import { ExtractionConfiguration } from './extraction-configuration'
 import { MissingModuleSourceError } from './extraction-errors'
 import { RiviereModule } from './riviere-module'
 import { RiviereProject } from './riviere-project'
-import { collaborators } from './__fixtures__/workflow-fixtures'
+import { collaborators, moduleExtractionRules } from './__fixtures__/workflow-fixtures'
+import {
+  ExtractionProjectStartInput,
+  GraphOnlyProjectStartInput,
+} from './riviere-project-start-inputs'
 import {
   ExtractionConfigurationUnavailableError,
   GraphStateUnavailableError,
@@ -13,18 +17,15 @@ import {
 
 function graphProject(): RiviereProject {
   const result = RiviereProject.start(
-    {
-      graphDefinition: {
-        sources: [{ repository: 'shop' }],
-        domains: {
-          orders: { description: 'Orders', systemType: 'domain' },
-        },
+    GraphOnlyProjectStartInput.from({
+      sources: [{ repository: 'shop' }],
+      domains: {
+        orders: { description: 'Orders', systemType: 'domain' },
       },
-    },
+    }),
     collaborators(),
   )
-  assert(result.success)
-  return result.project
+  return result
 }
 
 function extractionConfiguration(): ExtractionConfiguration {
@@ -164,19 +165,23 @@ describe('RiviereProject graph behaviour', () => {
 
   it('rejects graph behaviour on an extraction only project', () => {
     const configuration = extractionConfiguration()
-    const started = RiviereProject.start({ configuration, draftComponents: [] }, collaborators())
-    assert(started.success)
+    const started = RiviereProject.start(
+      ExtractionProjectStartInput.from(configuration, []),
+      collaborators(),
+    )
 
-    expect(() => started.project.build()).toThrowError(new GraphStateUnavailableError())
+    expect(() => started.build()).toThrowError(new GraphStateUnavailableError())
   })
 
   it('rejects graph metadata mutations on an extraction only project', () => {
     const configuration = extractionConfiguration()
-    const started = RiviereProject.start({ configuration, draftComponents: [] }, collaborators())
-    assert(started.success)
+    const started = RiviereProject.start(
+      ExtractionProjectStartInput.from(configuration, []),
+      collaborators(),
+    )
 
     expect(() =>
-      started.project.amendGraph((builder) => builder.addSource({ repository: 'catalogue' })),
+      started.amendGraph((builder) => builder.addSource({ repository: 'catalogue' })),
     ).toThrowError(new GraphStateUnavailableError())
   })
 
@@ -190,8 +195,8 @@ describe('RiviereProject graph behaviour', () => {
     const configuration = extractionConfiguration()
     Object.assign(configuration, { moduleContexts: [] })
 
-    expect(() => RiviereModule.fromConfiguration(configuration, [])).toThrowError(
-      new MissingModuleSourceError('orders'),
-    )
+    expect(() =>
+      RiviereModule.fromConfiguration(configuration, [], moduleExtractionRules()),
+    ).toThrowError(new MissingModuleSourceError('orders'))
   })
 })

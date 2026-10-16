@@ -6,6 +6,7 @@ import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { DraftComponent } from '../component-extraction/draft-component'
 import { RiviereModule } from '../riviere-module'
+import { moduleExtractionRules } from '../__fixtures__/workflow-fixtures'
 import { createValidatedModule } from '../../__fixtures__/test-fixtures'
 
 const project = new Project({ useInMemoryFileSystem: true })
@@ -120,6 +121,7 @@ export class FraudClient {}`,
 function enrich(module: ValidatedModule, drafts: readonly DraftComponent[]) {
   return RiviereModule.build({
     configuration: module,
+    extractionRules: moduleExtractionRules(),
     project,
     sourceFiles: [],
     candidateDraftComponents: drafts,

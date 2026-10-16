@@ -21,6 +21,7 @@ import { ExtractDraftComponents } from './extract-draft-components'
 import { ExtractionConfigError } from '../data-access/riviere-project/riviere-config-error'
 import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
 import { ConnectionDetectionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/connection-detection-error'
+import { createConnectionDetectionTimer } from '../adapters/time/create-connection-detection-timer'
 
 const DRAFT_ONLY_RESULT = {
   result: {
@@ -36,7 +37,7 @@ function createExtractDraftComponents(now: () => number = () => 0): ExtractDraft
     createRiviereProjectRepository(),
     mocks.findChangedSourceFilesMock,
     mocks.findSpecifiedSourceFilesMock,
-    now,
+    createConnectionDetectionTimer(now),
   )
 }
 

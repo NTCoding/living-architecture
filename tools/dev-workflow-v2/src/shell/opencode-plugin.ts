@@ -1,6 +1,15 @@
 import { createOpenCodeWorkflowPlugin } from '@nt-ai-lab/deterministic-agent-workflow-opencode'
 import { defineWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/external-clients/deterministic-agent-workflow-cli/define-workflow-routes'
-import { configureWorkflow } from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
+import {
+  configureWorkflow,
+  type WorkflowDependencies,
+  type WorkflowOperation,
+  type WorkflowState,
+  type WorkflowStateNameValue,
+  type MaintainerWorkflow,
+} from '@living-architecture/dev-workflow-v2-use-cases/commands/configure-workflow'
+
+type Workflow = MaintainerWorkflow
 import { CreateWorkflowRoutes } from '@living-architecture/dev-workflow-v2-use-cases/commands/create-workflow-routes'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -35,11 +44,7 @@ const bashForbidden = {
   flags: ['--no-verify', '--force', '--hard'],
 }
 
-type Workflow = ReturnType<typeof workflowDefinition.buildWorkflow>
-type WorkflowState = ReturnType<typeof workflowDefinition.initialState>
-type WorkflowDeps = Parameters<typeof workflowDefinition.buildWorkflow>[1]
-type StateName = Parameters<typeof workflowDefinition.buildTransitionContext>[1]
-type WorkflowOperation = Parameters<NonNullable<typeof workflowDefinition.getOperationBody>>[0]
+type StateName = WorkflowStateNameValue
 
 const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const AGENT_NAMES = [
@@ -124,7 +129,7 @@ function registerReviewSubagents(config: OpenCodeConfigInput): void {
 const basePlugin = createOpenCodeWorkflowPlugin<
   Workflow,
   WorkflowState,
-  WorkflowDeps,
+  WorkflowDependencies,
   StateName,
   WorkflowOperation
 >({

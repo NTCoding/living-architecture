@@ -77,16 +77,13 @@ export function traceFlowFrom(
  * @riviere-role domain-service
  * @riviere-role-justification PLACEHOLDER: Added before justification rule introduced.
  */
-export function queryFlows(
-  graph: RiviereGraph,
-  entryPoints: readonly Component[],
-): Flow[] {
+export function queryFlows(graph: RiviereGraph, entryPoints: readonly Component[]): Flow[] {
   const componentByIdMap = new Map(graph.components.map((c) => [c.id, c]))
   const outgoingEdges = buildOutgoingEdges(graph)
   const externalLinksBySource = buildExternalLinksBySource(graph)
 
-  const traceForward = (entryPointId: string): Flow['steps'] => {
-    const steps: Flow['steps'] = []
+  const traceForward = (entryPointId: string): FlowStep[] => {
+    const steps: FlowStep[] = []
     const visited = new Set<string>()
 
     const traverse = (nodeId: string, depth: number): void => {

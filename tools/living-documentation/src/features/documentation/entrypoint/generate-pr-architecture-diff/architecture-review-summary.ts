@@ -1,4 +1,7 @@
-import type { PullRequestArchitectureDiff } from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
+import type {
+  ArchitectureItem,
+  SubdomainArchitectureChanges,
+} from '@living-architecture/living-documentation-use-cases/features/documentation/queries/pull-request-architecture-diff'
 import { compareArchitectureText, renderArchitectureCodeSpan } from './architecture-review-markdown'
 import {
   architectureEntrypointChangeCounts,
@@ -7,10 +10,8 @@ import {
 import { architectureUncategorisedChangeCounts } from './architecture-review-role-sections'
 import { architectureExternalClientChangeSummaries } from './architecture-review-external-client-section'
 
-type Diff = ReturnType<PullRequestArchitectureDiff['changes']>
-type SubdomainChanges = Diff['subdomains'][number]
+type SubdomainChanges = SubdomainArchitectureChanges
 type ChangeDirection = 'added' | 'removed'
-type ArchitectureItem = SubdomainChanges['layers']['use-cases']['added']['items'][number]
 
 /** @riviere-role cli-output-formatter */
 export function renderArchitectureSummary(
@@ -101,7 +102,7 @@ function ungroupedUseCaseItems(items: readonly ArchitectureItem[]): readonly Arc
   return items.filter(
     (item) =>
       !isUseCaseRole(item.role) &&
-      !(item.relatedTo ?? []).some((relationship) => isUseCaseRole(relationship.role)),
+      !item.relatedTo.some((relationship) => isUseCaseRole(relationship.role)),
   )
 }
 

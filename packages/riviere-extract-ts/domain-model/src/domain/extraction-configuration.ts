@@ -1,5 +1,5 @@
 import type {
-  ValidatedConfiguration,
+  CodeExtractionConfig,
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { Project } from 'ts-morph'
@@ -11,7 +11,7 @@ interface ModuleContext {
   readonly project: Project
 }
 
-type ResolvedExtractionConfig = ValidatedConfiguration
+type ResolvedExtractionConfig = CodeExtractionConfig
 
 interface ExtractionConfigurationParams {
   readonly name: string
@@ -36,6 +36,7 @@ export class ExtractionConfiguration {
     this.configPath = params.configPath
     this.useTsConfig = params.useTsConfig
     this.repositoryName = params.repositoryName
+    this.allowIncomplete = params.resolvedConfig.allowIncomplete === true
     this.resolvedConfig = params.resolvedConfig
     this.moduleContexts = params.moduleContexts
   }
@@ -44,6 +45,7 @@ export class ExtractionConfiguration {
   readonly configPath: string
   readonly useTsConfig: boolean
   readonly repositoryName: string
+  readonly allowIncomplete: boolean
   readonly resolvedConfig: ResolvedExtractionConfig
   readonly moduleContexts: readonly ModuleContext[]
 }

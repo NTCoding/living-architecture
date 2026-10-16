@@ -13,6 +13,10 @@ an aggregate root and consumers cannot use it independently of its aggregate.
 4. Has a private constructor.
 5. Keeps all data members private.
 6. Cannot be used directly by use cases or repositories.
+7. Receives every dependency through its owning aggregate. It must not call
+   imported free functions, including `domain-service` functions, to perform
+   work. Collaborators are supplied by the aggregate and invoked on the
+   instance.
 
 ## Decision guidance
 
@@ -27,3 +31,5 @@ an aggregate root and consumers cannot use it independently of its aggregate.
 - The class has no owned state or lifecycle.
 - A use case or repository uses the class directly.
 - The class exists only to coordinate functions that could not otherwise depend on each other.
+- The class calls an imported free function, including a `domain-service`. The
+  owning aggregate must supply the capability instead.
