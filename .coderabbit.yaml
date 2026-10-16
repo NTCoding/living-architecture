@@ -9,6 +9,14 @@ reviews:
   request_changes_workflow: true
   assess_linked_issues: true
   sequence_diagrams: true
+  instructions: >-
+    Before flagging code as violating the architecture, a boundary, or a
+    workflow contract, verify the intent first: read the linked issue, the
+    ARCH.md sections it references (docs/project/PRD/**/ARCH.md),
+    project-memory/architecture/memories/, and the git history of the code
+    being flagged. If the pattern matches a documented, approved decision,
+    do not flag it. If the evidence is unclear, ask a question and name the
+    document you checked, rather than raising a Major finding.
   auto_review:
     enabled: true
   pre_merge_checks:
