@@ -6,6 +6,7 @@ const repoRoot = path.resolve(__dirname, '../../..')
 export default defineConfig({
   test: {
     globals: true,
+    include: ['src/**/*.spec.ts'],
     coverage: {
       enabled: true,
       reportsDirectory: './test-output/vitest/coverage',

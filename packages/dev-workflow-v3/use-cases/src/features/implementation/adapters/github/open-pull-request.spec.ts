@@ -5,6 +5,7 @@ import { openPullRequestWithGithub } from './open-pull-request'
 describe('openPullRequestWithGithub', () => {
   it('creates the pull request from the worktree', async () => {
     const runCommand = fakeCommands([
+      { stdout: 'https://github.com/o/r/pull/549', stderr: '', exitCode: 0 },
       { stdout: '{"number":549,"url":"https://github.com/o/r/pull/549"}', stderr: '', exitCode: 0 },
     ])
 

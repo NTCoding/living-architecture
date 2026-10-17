@@ -13,6 +13,14 @@ export interface GithubPullRequestCreation {
   readonly url: string
 }
 
+/** @riviere-role external-client-error */
+export class PullRequestNotCreated extends Error {
+  constructor(stderr: string) {
+    super(`The pull request was not created: ${stderr.trim()}`)
+    this.name = 'PullRequestNotCreated'
+  }
+}
+
 /** @riviere-role external-client-service */
 export async function createGithubPullRequest(
   runCommand: (request: CommandRequest) => Promise<CommandOutput>,
@@ -23,8 +31,8 @@ export async function createGithubPullRequest(
     readonly body: string
   },
 ): Promise<GithubPullRequestCreation> {
-  const output = await ghOutput(runCommand, {
-    workingDirectory: request.workingDirectory,
+  const created = await runCommand({
+    command: 'gh',
     arguments: [
       'pr',
       'create',
@@ -34,9 +42,15 @@ export async function createGithubPullRequest(
       request.body,
       '--head',
       request.branch,
-      '--json',
-      'number,url',
     ],
+    workingDirectory: request.workingDirectory,
+  })
+  if (created.exitCode !== 0 && !created.stderr.includes('already exists')) {
+    throw new PullRequestNotCreated(created.stderr)
+  }
+  const output = await ghOutput(runCommand, {
+    workingDirectory: request.workingDirectory,
+    arguments: ['pr', 'view', request.branch, '--json', 'number,url'],
   })
   return PULL_REQUEST_CREATED_SCHEMA.parse(JSON.parse(output))
 }
