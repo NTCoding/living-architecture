@@ -19,14 +19,29 @@ describe('commitWorkWithGit', () => {
     expect(runCommand.requests[1]?.arguments).toStrictEqual(['commit', '--message', 'feat: add it'])
   })
 
-  it('fails when the commit is refused', async () => {
+  it('returns the commit already there when there is nothing to commit', async () => {
     const runCommand = fakeCommands([
       { stdout: '', stderr: '', exitCode: 0 },
-      { stdout: '', stderr: 'nothing to commit', exitCode: 1 },
+      { stdout: '', stderr: 'nothing to commit, working tree clean', exitCode: 1 },
+      { stdout: 'e541fdda0\n', stderr: '', exitCode: 0 },
+    ])
+
+    const commit = await commitWorkWithGit({ runCommand })({
+      worktreePath: '/worktree',
+      message: 'feat: add it',
+    })
+
+    expect(commit).toStrictEqual({ sha: 'e541fdda0' })
+  })
+
+  it('fails when the commit is refused for another reason', async () => {
+    const runCommand = fakeCommands([
+      { stdout: '', stderr: '', exitCode: 0 },
+      { stdout: '', stderr: 'author identity unknown', exitCode: 128 },
     ])
 
     await expect(
       commitWorkWithGit({ runCommand })({ worktreePath: '/worktree', message: 'feat: add it' }),
-    ).rejects.toThrow('nothing to commit')
+    ).rejects.toThrow('The commit was refused: author identity unknown')
   })
 })
