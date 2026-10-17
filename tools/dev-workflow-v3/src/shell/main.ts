@@ -103,7 +103,10 @@ export async function main(argv: readonly string[]): Promise<number> {
     .action(async (issue: string, options: { model: string }) => {
       const model = ModelIdentifier.parse(options.model)
       const issueNumber = IssueNumber.parseFromText(issue)
-      const run = await workflow.createRun({ runId: issueNumber.runId(), resourceId: 'factory' })
+      const run = await workflow.createRun({
+        runId: await nextRunId(workflow, issueNumber.runId()),
+        resourceId: 'factory',
+      })
       const result = await run.start({
         inputData: {
           issueNumber: issueNumber.value(),
@@ -122,7 +125,10 @@ export async function main(argv: readonly string[]): Promise<number> {
     .action(async (issue: string, options: { model: string; approved: string }) => {
       ModelIdentifier.parse(options.model)
       const issueNumber = IssueNumber.parseFromText(issue)
-      const run = await workflow.createRun({ runId: issueNumber.runId(), resourceId: 'factory' })
+      const run = await workflow.createRun({
+        runId: await newestRunId(workflow, issueNumber.runId()),
+        resourceId: 'factory',
+      })
       const result = await run.resume({
         step: 'request-plan-approval',
         resumeData: { approved: options.approved !== 'false', notes: null },
@@ -188,6 +194,41 @@ export async function main(argv: readonly string[]): Promise<number> {
     process.stderr.write(`${String(error)}\n`)
     return 1
   }
+}
+
+async function existingRunIds(workflow: {
+  listWorkflowRuns: (args?: object) => Promise<{ runs: readonly { runId: string }[] }>
+}): Promise<readonly string[]> {
+  const runs = await workflow.listWorkflowRuns({})
+  return runs.runs.map((run) => run.runId)
+}
+
+async function nextRunId(
+  workflow: {
+    listWorkflowRuns: (args?: object) => Promise<{ runs: readonly { runId: string }[] }>
+  },
+  base: string,
+): Promise<string> {
+  const ids = await existingRunIds(workflow)
+  if (!ids.includes(base)) return base
+  const suffixes = ids
+    .filter((id) => id.startsWith(`${base}-`))
+    .map((id) => Number(id.slice(base.length + 1)))
+    .filter((value) => Number.isInteger(value))
+  const highest = suffixes.length === 0 ? 1 : Math.max(...suffixes)
+  return `${base}-${highest + 1}`
+}
+
+async function newestRunId(
+  workflow: {
+    listWorkflowRuns: (args?: object) => Promise<{ runs: readonly { runId: string }[] }>
+  },
+  base: string,
+): Promise<string> {
+  const ids = await existingRunIds(workflow)
+  const matching = ids.filter((id) => id === base || id.startsWith(`${base}-`))
+  const newest = [...matching].sort((left, right) => left.length - right.length).at(-1)
+  return newest ?? base
 }
 
 function worktreeFor(issueNumber: number): string {
