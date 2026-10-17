@@ -226,9 +226,21 @@ async function newestRunId(
   base: string,
 ): Promise<string> {
   const ids = await existingRunIds(workflow)
-  const matching = ids.filter((id) => id === base || id.startsWith(`${base}-`))
-  const newest = [...matching].sort((left, right) => left.length - right.length).at(-1)
-  return newest ?? base
+  const numbered = ids
+    .map((id) => ({ id, number: runNumber(id, base) }))
+    .filter((entry): entry is { id: string; number: number } => entry.number !== undefined)
+  const newest = numbered.reduce<{ id: string; number: number } | undefined>(
+    (chosen, entry) => (chosen === undefined || entry.number > chosen.number ? entry : chosen),
+    undefined,
+  )
+  return newest === undefined ? base : newest.id
+}
+
+function runNumber(id: string, base: string): number | undefined {
+  if (id === base) return 1
+  if (!id.startsWith(`${base}-`)) return undefined
+  const number = Number(id.slice(base.length + 1))
+  return Number.isInteger(number) ? number : undefined
 }
 
 function worktreeFor(issueNumber: number): string {
