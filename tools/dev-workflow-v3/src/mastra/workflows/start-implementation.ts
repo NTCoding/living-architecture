@@ -1,6 +1,8 @@
 import { createStep, createWorkflow } from '@mastra/core/workflows'
+import type { Agent } from '@mastra/core/agent'
 import { z } from 'zod'
 import {
+  ImplementationOutcome,
   ImplementationPlan,
   IssueNumber,
   IssueReference,
@@ -55,8 +57,18 @@ const planApprovalResumeSchema = z.object({
   notes: z.string().nullable(),
 })
 
+const planOutputSchema = z.object({ markdown: z.string().min(1) })
+
+const implementationOutputSchema = z.object({
+  summary: z.string().min(1),
+  blockedReason: z.string().nullable(),
+})
+
 type StartImplementationDependencies = {
   readonly readIssue: ReadIssue
+  readonly readGuidance: () => Promise<string>
+  readonly plannerFor: (model: string) => Agent
+  readonly implementerFor: (model: string, worktreePath: string) => Agent
   readonly prepareBranch: PrepareBranch
   readonly verifyWork: VerifyWork
   readonly commitWork: CommitWork
@@ -98,8 +110,6 @@ export function createStartImplementationWorkflow(dependencies: StartImplementat
     },
   })
 
-  // Stub for slice 4. The guidance is assembled from AGENTS.md, the conventions,
-  // ADR-002, the role config and the glossary, and handed to the planner.
   const readGuidance = createStep({
     id: 'read-guidance',
     inputSchema: runStateSchema,
@@ -107,18 +117,30 @@ export function createStartImplementationWorkflow(dependencies: StartImplementat
     execute: async ({ inputData }) => ({ ...inputData }),
   })
 
-  // Stub for slice 4. The planner agent reads the issue and the guidance, and
-  // returns an ImplementationPlan. It reasons only and writes nothing.
   const draftPlan = createStep({
     id: 'draft-plan',
     inputSchema: runStateSchema,
     outputSchema: runStateSchema,
-    execute: async ({ inputData }) => ({
-      ...inputData,
-      planMarkdown: ImplementationPlan.parse(
-        `1. Read the issue. 2. Make the change on ${inputData.branch}.`,
-      ).markdown(),
-    }),
+    execute: async ({ inputData }) => {
+      const guidance = await dependencies.readGuidance()
+      const response = await dependencies
+        .plannerFor(inputData.model)
+        .generate(
+          [
+            `Issue ${inputData.issueNumber}: ${inputData.issueTitle}`,
+            '',
+            inputData.issueBody,
+            '',
+            'Repository guidance:',
+            guidance,
+          ].join('\n'),
+          { structuredOutput: { schema: planOutputSchema } },
+        )
+      return {
+        ...inputData,
+        planMarkdown: ImplementationPlan.parse(response.object.markdown).markdown(),
+      }
+    },
   })
 
   const requestPlanApproval = createStep({
@@ -139,16 +161,39 @@ export function createStartImplementationWorkflow(dependencies: StartImplementat
     },
   })
 
-  // Stub for slice 4. The implementer agent writes the code in the worktree,
-  // runs the checks, reads the failures and fixes them.
   const implement = createStep({
     id: 'implement',
     inputSchema: runStateSchema,
     outputSchema: runStateSchema,
-    execute: async ({ inputData }) => ({
-      ...inputData,
-      implementationSummary: 'The implementer step is not wired up yet.',
-    }),
+    execute: async ({ inputData }) => {
+      const response = await dependencies
+        .implementerFor(inputData.model, inputData.worktreePath)
+        .generate(
+          [
+            `Implement issue ${inputData.issueNumber} in this workspace.`,
+            '',
+            'Plan:',
+            inputData.planMarkdown,
+            '',
+            'Repository guidance:',
+            await dependencies.readGuidance(),
+          ].join('\n'),
+          {
+            structuredOutput: { schema: implementationOutputSchema },
+            maxSteps: 60,
+            memory: {
+              thread: `issue-${inputData.issueNumber}`,
+              resource: 'factory',
+            },
+            autoResumeSuspendedTools: true,
+          },
+        )
+      const outcome = ImplementationOutcome.from(response.object)
+      if (outcome.isBlocked()) {
+        throw new RunFailed(`The implementer is blocked: ${outcome.reason()}`)
+      }
+      return { ...inputData, implementationSummary: outcome.summary() }
+    },
   })
 
   const verify = createStep({

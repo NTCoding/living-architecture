@@ -63,16 +63,20 @@ export const app = {
       importRules: { allow: {} },
     }),
 
-    location('/mastra', {
+    location('/mastra', mastraRoles, {
       agents: {
+        roles: mastraAgentRoles,
         '{agent}': mastraAgentRoles,
+        importRules: { allow: { sibling: ['tools'] } },
+      },
+      tools: {
+        roles: mastraAgentRoles,
         importRules: { allow: {} },
       },
       workflows: {
         roles: mastraRoles,
         importRules: { allow: {} },
       },
-      roles: ['workspace-configuration'],
       importRules: {
         allow: {
           root: ['infra'],

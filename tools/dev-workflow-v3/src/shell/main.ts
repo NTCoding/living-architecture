@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 import { execFile } from 'node:child_process'
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, readdirSync } from 'node:fs'
+import { createInterface } from 'node:readline'
 import { promisify } from 'node:util'
 import { Command } from 'commander'
 import { Mastra } from '@mastra/core'
 import { LibSQLStore } from '@mastra/libsql'
+import { Memory } from '@mastra/memory'
 import { IssueNumber, ModelIdentifier } from '@living-architecture/dev-workflow-v3-domain-model'
 import { PrepareBranch } from '@living-architecture/dev-workflow-v3-use-cases/commands/prepare-branch'
 import { VerifyWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/verify-work'
@@ -22,6 +24,10 @@ import type {
   CommandRequest,
 } from '@living-architecture/dev-workflow-v3-use-cases/external-clients/process/run-command'
 import { createStartImplementationWorkflow } from '../mastra/workflows/start-implementation'
+import { createPlannerAgent } from '../mastra/agents/planner'
+import { createImplementerAgent } from '../mastra/agents/implementer'
+import { createImplementationWorkspace } from '../mastra/workspace'
+import { readRepositoryGuidance } from '../infra/external-clients/repository/read-guidance'
 
 const execFileAsync = promisify(execFile)
 
@@ -53,8 +59,18 @@ async function runProcess(request: CommandRequest): Promise<CommandOutput> {
 export async function main(argv: readonly string[]): Promise<number> {
   const workingDirectory = process.cwd()
   mkdirSync(`${workingDirectory}/.factory`, { recursive: true })
+  const storage = new LibSQLStore({ id: 'factory', url: 'file:.factory/mastra.db' })
+  const memory = new Memory({ storage })
   const workflow = createStartImplementationWorkflow({
     readIssue: readIssueWithGithub({ runCommand: runProcess, workingDirectory }),
+    readGuidance: () => readRepositoryGuidance(workingDirectory),
+    plannerFor: (model) => createPlannerAgent(ModelIdentifier.parse(model)),
+    implementerFor: (model, worktreePath) =>
+      createImplementerAgent({
+        model: ModelIdentifier.parse(model),
+        workspace: createImplementationWorkspace(worktreePath),
+        memory,
+      }),
     prepareBranch: new PrepareBranch(
       prepareWorktreeWithGit({
         runCommand: runProcess,
@@ -69,7 +85,7 @@ export async function main(argv: readonly string[]): Promise<number> {
   })
   const mastra = new Mastra({
     workflows: { 'start-implementation': workflow },
-    storage: new LibSQLStore({ id: 'factory', url: 'file:.factory/mastra.db' }),
+    storage,
   })
 
   const program = new Command().name('factory')
@@ -124,16 +140,36 @@ export async function main(argv: readonly string[]): Promise<number> {
     if (runs.runs.length === 0) process.stdout.write('No runs yet.\n')
   })
 
-  // Blockers are a conversation with the implementer agent, which arrives in
-  // slice 4. Until then there is no thread to attach to.
   program
     .command('chat')
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
-    .action((issue: string) => {
-      process.stdout.write(
-        `No conversation is open for issue ${issue}. Blockers arrive with the implementer agent.\n`,
-      )
+    .action(async (issue: string, options: { model: string }) => {
+      const model = ModelIdentifier.parse(options.model)
+      const issueNumber = IssueNumber.parseFromText(issue)
+      const thread = `issue-${issueNumber.value()}`
+      const implementer = createImplementerAgent({
+        model,
+        workspace: createImplementationWorkspace(worktreeFor(issueNumber.value())),
+        memory,
+      })
+      const suspended = await implementer.listSuspendedRuns({
+        threadId: thread,
+        resourceId: 'factory',
+      })
+      if (suspended.runs.length === 0) {
+        process.stdout.write(`No conversation is open for issue ${issue}.\n`)
+        return
+      }
+      const lines = createInterface({ input: process.stdin, output: process.stdout })
+      for await (const line of lines) {
+        if (line.trim() === 'exit') break
+        const response = await implementer.generate(line, {
+          memory: { thread, resource: 'factory' },
+          autoResumeSuspendedTools: true,
+        })
+        process.stdout.write(`${response.text}\n`)
+      }
     })
 
   void mastra
@@ -146,6 +182,15 @@ export async function main(argv: readonly string[]): Promise<number> {
     process.stderr.write(`${String(error)}\n`)
     return 1
   }
+}
+
+function worktreeFor(issueNumber: number): string {
+  const worktreesDirectory = `${process.cwd()}/.factory/worktrees`
+  const names = readdirSync(worktreesDirectory, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+  const name = names.find((entry) => entry.startsWith(`issue-${issueNumber}-`))
+  return name === undefined ? worktreesDirectory : `${worktreesDirectory}/${name}`
 }
 
 function noOutput(): string {

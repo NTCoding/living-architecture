@@ -72,9 +72,12 @@
 
 ### Slice 4: the model steps
 
-- [ ] `draft-plan` and the `planner` agent
-- [ ] `implement` and the `implementer` agent
-- [ ] `ask-user` tool, `autoResumeSuspendedTools`, `chat` entrypoint
+- [x] `draft-plan` and the `planner` agent
+- [x] `implement` and the `implementer` agent
+- [x] `ask-user` tool, `autoResumeSuspendedTools`, `chat` entrypoint
+- [x] The workspace refuses `git push`, `gh pr` and `gh api` in a `beforeToolCall` hook
+- [ ] Tests to 100% for the app. The workflow graph and the CLI still have none
+- [ ] A run against a real issue with a real model. This needs a provider key in the environment
 - [ ] Pull request raised, `pnpm verify` green, reviewed and merged
 
 ### Slice 5: the review cycle
