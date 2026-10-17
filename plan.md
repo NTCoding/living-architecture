@@ -3,6 +3,11 @@
 **Status:** Draft, awaiting review
 **Branch:** `dev-workflow-v3-mastra`
 
+> **Known limitation in the first version.** The agent's workspace runs commands on the host with
+> the permissions of this process. That is acceptable while we get v3 working, and it is not
+> acceptable long term. Containers are required before anyone outside the team uses this. Tracked
+> in the Progress list under "After v3 works".
+
 ---
 
 ## Progress
@@ -12,15 +17,19 @@
 - [x] Design discussion, options compared, decisions agreed
 - [x] First draft of this plan
 - [ ] Review this plan
-- [ ] Answer the open questions in section 11
+- [x] Answer the open questions in section 11
 
 ### Decisions needed before slice 3
 
 - [x] Roles for agents, workflows and the workspace configuration, and the `/mastra` location
-- [ ] Aggregate with `approvedInstances`, or value objects only
-- [ ] Sandbox on the host, or in a container
-- [ ] Default model, and one key or one per developer
-- [ ] Test approach for the workflow graphs
+- [x] Aggregate with `approvedInstances`, or value objects only
+- [x] Sandbox on the host, or in a container
+- [x] Default model, and one key or one per developer
+- [x] Test approach for the workflow graphs
+
+### After v3 works
+
+- [ ] Replace the host sandbox with a container sandbox, before anyone outside the team uses this
 
 ### Slice 0: the spike
 
@@ -54,6 +63,7 @@
 - [ ] CLI presentation: output, formatters, writer
 - [ ] `shell/main.ts` and the Mastra instance
 - [ ] `start-implementation` with steps 1 to 14, with the model steps stubbed
+- [ ] `--model` as a required flag on every command that starts or resumes a run
 - [ ] Run id and thread id from the issue number
 - [ ] Tests to 100%
 - [ ] Pull request raised, `pnpm verify` green, reviewed and merged
@@ -95,7 +105,7 @@ The workflow also runs inside an agent session. That means the work and the supe
 A Mastra workflow, started from a command line, that carries a GitHub issue through to a pull request that is ready for a person to review.
 
 ```bash
-pnpm factory start-implementation 455
+pnpm factory start-implementation 455 --model anthropic/claude-sonnet-4-6
 ```
 
 Mastra runs the agents. It edits files in its own workspace, on its own machine. The developer's coding agent is not involved, so nothing has to be dispatched to Claude, Pi, OpenCode or Codex, and no adapter exists for any of them.
@@ -390,11 +400,13 @@ This is how the workflow is started and watched day to day. Studio is for readin
 
 | Command | What it does |
 | --- | --- |
-| `pnpm factory start-implementation <issue>` | Starts a run, prints the run id, and reports each step as it happens |
+| `pnpm factory start-implementation <issue> --model <model>` | Starts a run, prints the run id, and reports each step as it happens |
 | `pnpm factory status` | Lists every run that is waiting, with its question and how long it has waited |
-| `pnpm factory resume <issue>` | Resumes the newest run for the issue at the step that is suspended |
-| `pnpm factory chat <issue>` | Attaches to the conversation thread when a blocker is open |
+| `pnpm factory resume <issue> --model <model>` | Resumes the newest run for the issue at the step that is suspended |
+| `pnpm factory chat <issue> --model <model>` | Attaches to the conversation thread when a blocker is open |
 | `pnpm factory runs` | Lists runs, with the issue number as the resource |
+
+`--model` is required on every command that starts, resumes or talks to a run. There is no default in the repository, so nobody is ever running on a model they did not choose.
 
 `start-implementation` exits with a distinct code when a run stops to wait for a person, so a script can tell that apart from a failure.
 
@@ -427,7 +439,7 @@ No `published-language` package. Nothing here is a contract for another boundary
 
 ### 6.2 domain-model
 
-Roles from `.riviere/role-enforcement.config.ts`: `value-object`, `domain-port`, `domain-error`.
+Roles from `.riviere/role-enforcement.config.ts`: `aggregate`, `value-object`, `domain-port`, `domain-error`.
 
 ```text
 packages/dev-workflow-v3/domain-model/src/domain/
@@ -447,7 +459,7 @@ packages/dev-workflow-v3/domain-model/src/domain/
   reviewer.ts                        value-object
   reviewer-statuses.ts               value-object
   aggregated-review-results.ts       value-object
-  review-cycle.ts                    value-object
+  review-cycle.ts                    aggregate, holds the cycle rules and the cycle limit
   review-cycle-limit.ts              value-object, three as the standard maximum
   model-identifier.ts                value-object, the `--model` value
   ports/
@@ -463,6 +475,10 @@ packages/dev-workflow-v3/domain-model/src/domain/
 ```
 
 Each file gets a sibling `.spec.ts`. Zod is used for parsing, per SD-019, and every value object is branded per SP-001.
+
+`ReviewCycle` is an aggregate, approved by you. It owns the cycle number, which reviewers still hold open feedback, which reviewers already approved, and the three cycle limit. It needs an entry in `approvedInstances` in `.riviere/roles.ts` with `userHasApproved: true`, which I add as part of slice 1.
+
+It has no `aggregate-repository`, because Mastra persists the step outputs and nothing else stores the cycle. The aggregate is rebuilt from the step input at the start of each cycle. That is unusual for an aggregate and may be challenged under ADR-002 review, so it is worth knowing before slice 1 rather than after.
 
 ### 6.3 use-cases
 
@@ -521,7 +537,7 @@ tools/dev-workflow-v3/src/
 
 Mastra's file-based agents mean an agent is a folder of configuration plus markdown, not a class with behaviour. `config.ts` names the model and the options, and `instructions.md` holds the prompt. That is why none of it belongs in `shell`, and why there is almost no code in it.
 
-This layout does not fit ADR-002 today. It needs three new roles in `.riviere/roles.ts` and a `/mastra` location in `.riviere/role-enforcement.config.ts`, with ADR-002 changed at the same time. It needs your approval before slice 3 and is question 1 in section 11.
+This layout does not fit ADR-002 today. It needs three new roles in `.riviere/roles.ts` and a `/mastra` location in `.riviere/role-enforcement.config.ts`, with ADR-002 changed at the same time. You approved this at review time.
 
 ### 6.5 Direction of dependency
 
@@ -556,7 +572,7 @@ A step does not contain a business decision. It calls one command or one agent, 
 
 Test names describe outcomes, per TS-001. Fixtures live in `<module>-test-fixtures.ts`, per TS-009.
 
-The workflow graph file is the one place where a unit test does not fit. It is covered by running the graph with stub agents, which exercises the wiring without a model.
+The workflow graph file is the one place where a unit test does not fit. It is covered by running the graph with stub agents, which exercises the wiring without a model. You have accepted that as the approach.
 
 ## 8. Repository guidance this plan follows
 
@@ -613,13 +629,16 @@ These were agreed during the design discussion and are the source of truth for t
 6. **Everything runs on the developer's own machine.** Each developer has their own storage and their own runs.
 7. **The review cycle is a separate workflow.** `review-cycle` is its own workflow with its own eight steps, and `start-implementation` runs it once per cycle.
 8. **`dev-workflow-v2` is not deleted or changed.** It keeps running while v3 is built.
-9. **Agents, workflows and the workspace configuration live in `/mastra` in the app.** They are neither shell nor use cases. This needs three new roles, `agent-configuration`, `workflow-definition` and `workspace-configuration`, added to `.riviere/roles.ts`, `.riviere/role-enforcement.config.ts` and ADR-002 together.
+9. **The review cycle is an aggregate**, with an entry in `approvedInstances` in `.riviere/roles.ts`. It is rebuilt from the step input each cycle and has no repository, because Mastra holds the state.
+10. **The first version runs commands on the host.** Containers are required before anyone outside the team uses this, and that is written at the top of this plan and in the Progress list.
+11. **`--model` is a required flag** on every command that starts, resumes or talks to a run. There is no default model in the repository.
+12. **A stub agent test is acceptable** for the workflow graph files.
+13. **The CodeRabbit poll stays.**
+14. **This is not a PRD.** It stays as `plan.md`.
+15. **Agents, workflows and the workspace configuration live in `/mastra` in the app.** They are neither shell nor use cases. This needs three new roles, `agent-configuration`, `workflow-definition` and `workspace-configuration`, added to `.riviere/roles.ts`, `.riviere/role-enforcement.config.ts` and ADR-002 together.
 
 ## 11. Blockers, unknowns and questions
 
-1. **Aggregate approval.** Do you want an aggregate for the review cycle, which needs an entry in `approvedInstances` in `.riviere/roles.ts` with your approval, or value objects only? The plan currently assumes value objects only.
-2. **Sandbox.** Mastra's `LocalSandbox` runs commands on the host with the permissions of the process. Do we accept that for v3, or require a container? The deny list is weaker if we accept it.
-3. **Model and key.** Which default model, and is it one shared key or one per developer? The plan assumes a repo default with a `--model` override.
-4. **Coverage of the graph.** Point 7 describes a stub-agent test rather than a unit test for the workflow file. Is that acceptable?
-5. **Keep the CodeRabbit wait?** It is a real poll with a timeout. Worth keeping, worth replacing with a webhook, or drop it?
-6. **Should this become a PRD and an ARCH under `docs/project/PRD/`, plus a GitHub issue per the maintainer workflow?** `plan.md` is a sketch, and `docs/workflow/task-workflow.md` expects more than that before delivery.
+None outstanding. Everything raised during review is answered and recorded in section 10.
+
+The one thing still unproven is Mastra's own behaviour, which slice 0 settles.
