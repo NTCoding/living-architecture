@@ -23,13 +23,17 @@ const REMOTE = 'origin'
 const BASE = 'main'
 
 interface Review {
-  readonly user?: { readonly login?: string }
-  readonly state?: string
-  readonly commitId?: string
+  readonly login: string | undefined
+  readonly state: string | undefined
+  readonly commitId: string | undefined
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function asString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined
 }
 
 function readReview(value: unknown): Review {
@@ -37,13 +41,10 @@ function readReview(value: unknown): Review {
     throw new ReviewerResponseUnreadable('an entry was not an object')
   }
   const user = isRecord(value['user']) ? value['user'] : undefined
-  const login = user?.['login']
-  const state = value['state']
-  const commitId = value['commit_id']
   return {
-    ...(typeof login === 'string' ? { user: { login } } : {}),
-    ...(typeof state === 'string' ? { state } : {}),
-    ...(typeof commitId === 'string' ? { commitId } : {}),
+    login: asString(user?.['login']),
+    state: asString(value['state']),
+    commitId: asString(value['commit_id']),
   }
 }
 
@@ -56,7 +57,7 @@ function readReviews(json: string): readonly Review[] {
 }
 
 function isExternalReviewer(review: Review): boolean {
-  return review.user?.login?.toLowerCase().includes('coderabbit') === true
+  return review.login?.toLowerCase().includes('coderabbit') === true
 }
 
 function pullRequestNumberFrom(url: string): number {

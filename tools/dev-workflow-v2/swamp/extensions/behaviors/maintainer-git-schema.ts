@@ -3,7 +3,6 @@ import { z } from 'npm:zod@4.3.6'
 const SEVERITIES = ['critical', 'high', 'medium', 'low'] as const
 
 export interface BehaviourContext {
-  readonly repoDir: string
   readonly logger: {
     info(message: string): void
     warn(message: string): void

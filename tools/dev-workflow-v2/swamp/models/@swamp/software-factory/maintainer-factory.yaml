@@ -189,12 +189,17 @@ globalArguments:
       maxCycles: 3
       work:
         mode: dispatch
-        skills: [architecture-review, code-review, bug-scanner, task-check]
         systemPrompt: |
-          Review the change on the pull request for this work item. Four angles,
-          each independently: architecture and boundaries, code quality against
-          docs/conventions/, defects and edge cases, and whether the change
-          satisfies the issue.
+          Review the change on the pull request for this work item, once per
+          reviewer role. Read each role's procedure before you start it:
+
+            tools/dev-workflow-v2/agents/architecture-review.md
+            tools/dev-workflow-v2/agents/code-review.md
+            tools/dev-workflow-v2/agents/bug-scanner.md
+            tools/dev-workflow-v2/agents/task-check.md
+
+          `task-check` runs once per GitHub issue the pull request resolves. If
+          no issue is linked, skip that role and say so in the findings.
 
           Read the diff since the previous reviewed commit, not the whole
           repository.
