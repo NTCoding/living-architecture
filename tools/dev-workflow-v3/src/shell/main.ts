@@ -8,6 +8,7 @@ import { Mastra } from '@mastra/core'
 import { LibSQLStore } from '@mastra/libsql'
 import { Memory } from '@mastra/memory'
 import { IssueNumber, ModelIdentifier } from '@living-architecture/dev-workflow-v3-domain-model'
+import { InstallDependencies } from '@living-architecture/dev-workflow-v3-use-cases/commands/install-dependencies'
 import { PrepareBranch } from '@living-architecture/dev-workflow-v3-use-cases/commands/prepare-branch'
 import { VerifyWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/verify-work'
 import { CommitWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/commit-work'
@@ -17,6 +18,7 @@ import { prepareWorktreeWithGit } from '@living-architecture/dev-workflow-v3-use
 import { commitWorkWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/commit-work'
 import { pushBranchWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/push-branch'
 import { readIssueWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-issue'
+import { installDependenciesWithPnpm } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/install-dependencies'
 import { openPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/open-pull-request'
 import { runProjectChecksWithCommands } from '@living-architecture/dev-workflow-v3-use-cases/adapters/checks/run-project-checks'
 import type {
@@ -78,6 +80,9 @@ export async function main(argv: readonly string[]): Promise<number> {
         repositoryPath: workingDirectory,
         worktreesDirectory: `${workingDirectory}/.factory/worktrees`,
       }),
+    ),
+    installDependencies: new InstallDependencies(
+      installDependenciesWithPnpm({ runCommand: runProcess }),
     ),
     verifyWork: new VerifyWork(runProjectChecksWithCommands({ runCommand: runProcess })),
     commitWork: new CommitWork(commitWorkWithGit({ runCommand: runProcess })),

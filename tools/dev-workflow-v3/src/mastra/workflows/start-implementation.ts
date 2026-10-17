@@ -11,6 +11,7 @@ import {
   WorktreeReference,
 } from '@living-architecture/dev-workflow-v3-domain-model'
 import type { ReadIssue } from '@living-architecture/dev-workflow-v3-domain-model/domain/ports/read-issue'
+import type { InstallDependencies } from '@living-architecture/dev-workflow-v3-use-cases/commands/install-dependencies'
 import type { PrepareBranch } from '@living-architecture/dev-workflow-v3-use-cases/commands/prepare-branch'
 import type { VerifyWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/verify-work'
 import type { CommitWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/commit-work'
@@ -70,6 +71,7 @@ type StartImplementationDependencies = {
   readonly plannerFor: (model: string) => Agent
   readonly implementerFor: (model: string, worktreePath: string) => Agent
   readonly prepareBranch: PrepareBranch
+  readonly installDependencies: InstallDependencies
   readonly verifyWork: VerifyWork
   readonly commitWork: CommitWork
   readonly pushBranch: PushBranch
@@ -107,6 +109,17 @@ export function createStartImplementationWorkflow(dependencies: StartImplementat
         worktreesDirectory: inputData.worktreesDirectory,
       })
       return { ...inputData, worktreePath: worktree.path(), branch: worktree.branch() }
+    },
+  })
+
+  // A fresh worktree has no installed dependencies, so the checks cannot run yet.
+  const installDependencies = createStep({
+    id: 'install-dependencies',
+    inputSchema: runStateSchema,
+    outputSchema: runStateSchema,
+    execute: async ({ inputData }) => {
+      await dependencies.installDependencies.execute({ worktree: worktreeOf(inputData) })
+      return { ...inputData }
     },
   })
 
@@ -302,6 +315,7 @@ export function createStartImplementationWorkflow(dependencies: StartImplementat
   })
     .then(loadIssue)
     .then(prepareBranch)
+    .then(installDependencies)
     .then(readGuidance)
     .then(draftPlan)
     .then(requestPlanApproval)
