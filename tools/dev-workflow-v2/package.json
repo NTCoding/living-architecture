@@ -21,7 +21,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@earendil-works/pi-coding-agent": "0.84.4",
     "@living-architecture/dev-workflow-v2-use-cases": "workspace:*",
     "@nt-ai-lab/deterministic-agent-workflow-claude-code": "0.4.8",
     "@nt-ai-lab/deterministic-agent-workflow-cli": "0.4.8",
@@ -39,5 +38,8 @@
     "@vitest/coverage-v8": "^2.0.0",
     "typescript": "npm:typescript@^7.0.2",
     "vitest": "^2.0.0"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
   }
 }
