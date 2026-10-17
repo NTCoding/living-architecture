@@ -75,3 +75,4 @@ tools/dev-workflow-v2/workflow.db-wal
 .nx/polygraph
 .nx/self-healing
 .nx/migrate-runs
+.factory/

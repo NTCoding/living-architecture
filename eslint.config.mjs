@@ -344,6 +344,40 @@ export default tseslint.config(
     },
   },
   {
+    // Mastra names its own package folders. A path under /core is Mastra's
+    // layout, not ours, so the core folder rule does not apply to these imports.
+    files: ['tools/dev-workflow-v3/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['*/utils/*', '*/utils', '*/utilities'],
+              message: 'No utils folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/helpers/*', '*/helpers'],
+              message: 'No helpers folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/common/*', '*/common'],
+              message: 'No common folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/shared/*', '*/shared'],
+              message: 'No shared folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/src/lib/*', '*/src/lib', './lib/*', './lib', '../lib/*', '../lib'],
+              message: 'No lib folders in projects. Use domain-specific names.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
     plugins: { vitest },
     rules: {

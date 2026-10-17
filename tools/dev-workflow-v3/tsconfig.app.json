@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "types": ["node"],
+    "rootDir": "src",
+    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts", "src/**/__fixtures__/**"],
+  "references": [
+    {
+      "path": "../../packages/dev-workflow-v3/use-cases/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/dev-workflow-v3/domain-model/tsconfig.lib.json"
+    }
+  ]
+}

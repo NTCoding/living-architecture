@@ -14,6 +14,9 @@ export const publishedLanguageRoles = [
 ] as const
 
 export const allRoles = [
+  role('agent-configuration', {
+    targets: ['function', 'class', 'variable'],
+  }),
   role('cli-entrypoint', {
     targets: ['function'],
     allowedInputs: ['cli-entrypoint-dependencies'],
@@ -287,6 +290,12 @@ export const allRoles = [
   }),
   role('published-language-union', {
     requiresUnion: true,
+  }),
+  role('workflow-definition', {
+    targets: ['function', 'class', 'variable'],
+  }),
+  role('workspace-configuration', {
+    targets: ['function', 'class', 'variable'],
   }),
 ] as const
 

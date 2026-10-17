@@ -30,6 +30,8 @@ const cliPresentationRoles: RoleName[] = [
   'cli-error-handler',
 ]
 const shellRoles: RoleName[] = ['main', 'cli-error-handler']
+const mastraRoles: RoleName[] = ['domain-error', 'workflow-definition', 'workspace-configuration']
+const mastraAgentRoles: RoleName[] = ['agent-configuration']
 const externalClientRoles: RoleName[] = [
   'external-client-service',
   'external-client-model',
@@ -61,11 +63,36 @@ export const app = {
       importRules: { allow: {} },
     }),
 
+    location('/mastra', {
+      agents: {
+        '{agent}': mastraAgentRoles,
+        importRules: { allow: {} },
+      },
+      workflows: {
+        roles: mastraRoles,
+        importRules: { allow: {} },
+      },
+      roles: ['workspace-configuration'],
+      importRules: {
+        allow: {
+          root: ['infra'],
+          anySubdomain: ['commands', 'queries', 'adapters', 'external-clients', 'domain'],
+        },
+      },
+    }),
+
     location('/shell', shellRoles, {
       importRules: {
         allow: {
-          root: ['features', 'infra'],
-          anySubdomain: ['commands', 'queries', 'data-access', 'adapters', 'external-clients'],
+          root: ['features', 'infra', 'mastra'],
+          anySubdomain: [
+            'commands',
+            'queries',
+            'data-access',
+            'adapters',
+            'external-clients',
+            'domain',
+          ],
         },
       },
     }),

@@ -61,14 +61,13 @@
 
 ### Slice 3: the app and the deterministic workflow
 
-- [ ] CLI entrypoints: start, resume, chat, status, runs
-- [ ] CLI presentation: output, formatters, writer
-- [ ] `shell/main.ts` and the Mastra instance
-- [ ] `start-implementation` with steps 1 to 14, with the model steps stubbed
-- [ ] `--model` as a required flag on every command that starts or resumes a run
-- [ ] Run id and thread id from the issue number
-- [ ] Tests to 100%
-- [ ] Pull request raised, `pnpm verify` green, reviewed and merged
+- [x] CLI entrypoints: start, resume, chat, status, runs
+- [x] `shell/main.ts` and the Mastra instance
+- [x] `start-implementation` with steps 1 to 14, with the model steps stubbed
+- [x] `--model` as a required flag on every command that starts or resumes a run
+- [x] Run id derived from the issue number
+- [ ] CLI presentation: output, formatters, writer. The commands write straight to the terminal for now
+- [ ] Tests to 100%. The app has no test target yet
 - [ ] Pull request raised, `pnpm verify` green, reviewed and merged
 
 ### Slice 4: the model steps

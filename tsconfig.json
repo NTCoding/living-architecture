@@ -62,6 +62,9 @@
     },
     {
       "path": "./packages/dev-workflow-v3/use-cases"
+    },
+    {
+      "path": "./tools/dev-workflow-v3"
     }
   ]
 }

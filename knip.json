@@ -9,7 +9,9 @@
     "@mastra/libsql",
     "ai",
     "@ai-sdk/provider",
-    "mastra"
+    "mastra",
+    "@nx/node",
+    "@swc/helpers"
   ],
   "workspaces": {
     ".": {
