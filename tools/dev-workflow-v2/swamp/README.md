@@ -11,8 +11,8 @@ The consequence is that the agent never runs `git`, `gh` or `pnpm`. It edits fil
 ## What is here
 
 ```text
-maintainer-factory.yaml                  the factory definition, pasted into the model
-maintainer-factory.spec.ts               cross-file checks over the definition and workflows
+  models/@swamp/software-factory/        the factory definition, committed
+  maintainer-factory.spec.ts             cross-file checks over the definition and workflows
 workflows/                               the deterministic stages
   workflow-<uuid>.yaml                   named after their own id, as Swamp requires
 extensions/behaviors/                    one behaviour type: git reads and forge writes
@@ -72,12 +72,10 @@ Agent scaffolding is the exception, and it stays where the harness reads it. The
 export SWAMP_REPO_DIR=tools/dev-workflow-v2/swamp
 
 swamp extension pull @swamp/software-factory
-swamp model create @swamp/software-factory maintainer-factory
 swamp behavior create @living-architecture/maintainer-git maintainer-git
-swamp model edit maintainer-factory
 ```
 
-Paste the contents of `maintainer-factory.yaml` in this directory under the `globalArguments` that `create` wrote, keeping the header, then check it.
+The factory definition is committed at `models/@swamp/software-factory/maintainer-factory.yaml`, so nothing needs creating or pasting. Edit that file to change the workflow. Check it with:
 
 ```bash
 swamp model method run maintainer-factory validate

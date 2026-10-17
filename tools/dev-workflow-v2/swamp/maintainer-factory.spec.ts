@@ -6,6 +6,13 @@ import { InvalidDefinitionDocument } from './extensions/behaviors/maintainer-git
 
 const SWAMP_DIR = import.meta.dirname
 const WORKFLOW_DIR = join(SWAMP_DIR, 'workflows')
+const DEFINITION_PATH = join(
+  SWAMP_DIR,
+  'models',
+  '@swamp',
+  'software-factory',
+  'maintainer-factory.yaml',
+)
 
 const FACTORY_NAME = 'maintainer-factory'
 const BEHAVIOUR_NAME = 'maintainer-git'
@@ -136,11 +143,15 @@ function readStage(record: Record<string, unknown>): Stage {
 }
 
 function readFactory(): readonly Stage[] {
-  const document: unknown = parse(readFileSync(join(SWAMP_DIR, 'maintainer-factory.yaml'), 'utf8'))
+  const document: unknown = parse(readFileSync(DEFINITION_PATH, 'utf8'))
   if (!isRecord(document)) {
     throw new InvalidDefinitionDocument('the factory definition is not a mapping')
   }
-  return readRecords(document, 'stages').map(readStage)
+  const globalArguments = readOptionalRecord(document, 'globalArguments')
+  if (globalArguments === undefined) {
+    throw new InvalidDefinitionDocument('the definition has no globalArguments')
+  }
+  return readRecords(globalArguments, 'stages').map(readStage)
 }
 
 function readWorkflow(file: string): Workflow {
