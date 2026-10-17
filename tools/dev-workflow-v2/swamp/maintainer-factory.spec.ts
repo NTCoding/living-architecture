@@ -352,6 +352,28 @@ describe('the workflows', () => {
   })
 })
 
+describe('the bindings in the definition', () => {
+  const definitionText = readFileSync(DEFINITION_PATH, 'utf8')
+  const bindings = [...definitionText.matchAll(/\$\{\{([^}]*)\}\}/g)]
+    .map((match) => match[1])
+    .filter((expression): expression is string => expression !== undefined)
+
+  it('reads records through attributes, because a data record wraps its payload', () => {
+    const reads = bindings.filter((expression) => expression.includes('data.latest('))
+    expect(reads.length).toBeGreaterThan(0)
+    for (const expression of reads) {
+      expect(expression).toContain('.attributes')
+      expect(expression).not.toContain(').payload')
+    }
+  })
+
+  it('names the work item through self, because a bare workItem is not a binding', () => {
+    for (const expression of bindings) {
+      expect(expression).not.toMatch(/(^|[^.\w])workItem\b/)
+    }
+  })
+})
+
 describe('the behaviour type', () => {
   it('declares every method the workflows call', () => {
     const source = readFileSync(
