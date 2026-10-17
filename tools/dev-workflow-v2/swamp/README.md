@@ -85,7 +85,7 @@ swamp model method run maintainer-factory describe
 swamp workflow validate
 ```
 
-`describe` renders the state machine and the stage and gate tables. `validate` reports the stage count, which is 12.
+`describe` renders the state machine and the stage and gate tables. `validate` reports the stage count, which is 11.
 
 ## Running it
 
@@ -107,8 +107,7 @@ swamp model method run maintainer-factory summary --input workItem=123
 | Stage | Mode | The agent does | Swamp does |
 | --- | --- | --- | --- |
 | `preparing` | workflow | nothing | fetch origin, branch from the default branch, refuse a dirty tree |
-| `change-plan` | interactive | reads the issue and conventions, decides the approach and records a `plan` | nothing |
-| `implementing` | interactive | writes the code and tests the plan describes, records a `change` with the commit message | nothing |
+| `implementing` | interactive | reads the issue and conventions, decides the approach and records a `plan`, then edits code and tests and records a `change` with the commit message | nothing |
 | `committing` | workflow | nothing | `git add`, `git commit` with the recorded message, prove clean and ahead |
 | `verifying` | workflow | nothing | `pnpm verify` |
 | `submitting` | workflow | nothing | `git push`, `gh pr create` with a body composed from the recorded artefacts |
@@ -120,7 +119,7 @@ swamp model method run maintainer-factory summary --input workItem=123
 
 `reviewing` carries `maxCycles: 3`. A fourth entry parks the run and needs a human `cycle-override` approval, which is the review cap expressed as configuration rather than as a counter in code.
 
-`change-plan` is the plan step of this workflow. It has its own agent and its own context window, so the agent decides the approach without the clutter of a half written change, and `implementing` starts from the recorded plan rather than from the conversation that produced it. It is not the planning workflow, which produces a PRD and is out of scope. There is no approval gate on it.
+The plan is a recorded artefact inside `implementing`, not a separate stage. The agent decides its approach and records it before writing code, so a run cannot reach `committing` without one, and the pull request body is composed from it.
 
 ## What the gates enforce
 
