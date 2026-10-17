@@ -51,6 +51,23 @@ The plan's `review-cycle` step takes `ReviewCycleInput` and returns
 one shape in and out, for example `{ runId, cycle }`, or a small mapping step
 sits before the loop.
 
+`check-1c-loop-wider-output.ts` and `check-1d-loop-carried-state.ts` try the other
+shapes.
+
+**A wider output than the input works.** A looped step may return more than it
+takes, because the input schema strips what it does not declare. The loop then
+validates, but each iteration replaces the data, so nothing accumulates.
+
+**Carrying the cycle state works, and it accumulates.** When the shape holds the
+cycle number and the reviewers that already approved, the state travels through
+the loop and each cycle can be rebuilt from the step input. Two details matter.
+Every step the state passes through must declare it in its schema, or the schema
+strips it. And the step before the loop must emit the same shape to seed the first
+iteration.
+
+That last option matches the decision in section 10 that `ReviewCycle` is rebuilt
+from the step input each cycle.
+
 ## Check 2: `autoResumeSuspendedTools` resumes a suspended tool
 
 The tool suspends with `suspend(payload)`, the agent reports

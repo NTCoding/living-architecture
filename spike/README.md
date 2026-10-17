@@ -9,6 +9,8 @@ checks 2 and 4 drive a mock model.
 ```text
 check-1-nested-workflow.ts   a step starts another workflow, and .dountil loops over it
 check-1b-loop-shapes.ts      what happens when a looped step's input and output differ
+check-1c-loop-wider-output.ts  a looped step that returns more than it takes
+check-1d-loop-carried-state.ts a loop that carries the cycle state forward
 check-2-auto-resume.ts       a suspended tool resumes from the next chat message
 check-3-file-agent.ts        a file based agent at src/mastra/agents/{agent}/
 check-4-workspace-hook.ts    a beforeToolCall hook refuses an execute_command call
