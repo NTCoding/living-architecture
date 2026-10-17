@@ -12,7 +12,7 @@ import {
   planSwitchBranch,
   planVerify,
 } from './maintainer-git-commands.ts'
-import { runCommand, runOrThrow } from './maintainer-git-execution.ts'
+import { resolveWorkspaceRoot, runCommand, runOrThrow } from './maintainer-git-execution.ts'
 import { CommandFailed, NoCommitsAhead, WorkingTreeDirty } from './maintainer-git-errors.ts'
 import type { BehaviourContext, MethodResult } from './maintainer-git-schema.ts'
 
@@ -23,22 +23,26 @@ export async function prepareIssue(
   args: { issue: string },
   context: BehaviourContext,
 ): Promise<MethodResult> {
-  const branch = branchNameForIssue(parseIssueNumber(args.issue))
-  await runOrThrow(planFetch(REMOTE), context.signal, 'git fetch')
+  const root = await resolveWorkspaceRoot(context.signal)
+  const issue = parseIssueNumber(args.issue)
+  const branch = branchNameForIssue(issue)
 
-  const existing = await runCommand(planCheckBranchExists(branch), context.signal)
+  await runOrThrow(planFetch(REMOTE), context.signal, 'git fetch', root)
+
+  const existing = await runCommand(planCheckBranchExists(branch), context.signal, root)
   const created = existing.exitCode !== 0
   if (created) {
     await runOrThrow(
       planCreateBranch(branch, `${REMOTE}/${BASE}`),
       context.signal,
       'git switch --create',
+      root,
     )
   } else {
-    await runOrThrow(planSwitchBranch(branch), context.signal, 'git switch')
+    await runOrThrow(planSwitchBranch(branch), context.signal, 'git switch', root)
   }
 
-  const dirty = await runOrThrow(planStatus(), context.signal, 'git status')
+  const dirty = await runOrThrow(planStatus(), context.signal, 'git status', root)
   if (dirty.stdout !== '') {
     throw new WorkingTreeDirty('before starting work', dirty.stdout)
   }
@@ -46,7 +50,7 @@ export async function prepareIssue(
   const handle = await context.writeResource('workspace', 'workspace', {
     branch,
     base: BASE,
-    issue: parseIssueNumber(args.issue),
+    issue,
     created,
   })
   context.logger.info(`prepared ${branch} from ${REMOTE}/${BASE}`)
@@ -57,11 +61,13 @@ export async function commit(
   args: { message: string },
   context: BehaviourContext,
 ): Promise<MethodResult> {
-  await runOrThrow(planStageAll(), context.signal, 'git add')
-  await runOrThrow(planCommit(args.message), context.signal, 'git commit')
+  const root = await resolveWorkspaceRoot(context.signal)
 
-  const sha = await runOrThrow(planHeadSha(), context.signal, 'git rev-parse')
-  const status = await runOrThrow(planStatus(), context.signal, 'git status')
+  await runOrThrow(planStageAll(), context.signal, 'git add', root)
+  await runOrThrow(planCommit(args.message), context.signal, 'git commit', root)
+
+  const sha = await runOrThrow(planHeadSha(), context.signal, 'git rev-parse', root)
+  const status = await runOrThrow(planStatus(), context.signal, 'git status', root)
   if (status.stdout !== '') {
     throw new WorkingTreeDirty('after committing', status.stdout)
   }
@@ -70,6 +76,7 @@ export async function commit(
     planCommitsAhead(`${REMOTE}/${BASE}`),
     context.signal,
     'git rev-list',
+    root,
   )
   const commitsAhead = Number.parseInt(ahead.stdout, 10)
   if (!Number.isInteger(commitsAhead) || commitsAhead < 1) {
@@ -90,7 +97,8 @@ export async function runChecks(
   _args: Record<string, never>,
   context: BehaviourContext,
 ): Promise<MethodResult> {
-  const outcome = await runCommand(planVerify(), context.signal)
+  const root = await resolveWorkspaceRoot(context.signal)
+  const outcome = await runCommand(planVerify(), context.signal, root)
   const passed = outcome.exitCode === 0
   const handle = await context.writeResource('checks', 'checks', {
     passed,

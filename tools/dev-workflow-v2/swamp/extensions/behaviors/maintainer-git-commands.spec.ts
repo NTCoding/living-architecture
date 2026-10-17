@@ -16,6 +16,7 @@ import {
   planCommitsAhead,
   planCreateBranch,
   planCreatePullRequest,
+  planEditPullRequestBody,
   planFetch,
   planHeadSha,
   placeFindings,
@@ -27,6 +28,7 @@ import {
   planSwitchBranch,
   parseIssueNumber,
   planVerify,
+  planViewPullRequest,
 } from './maintainer-git-commands'
 
 describe('commitMessageProblem', () => {
@@ -310,6 +312,23 @@ describe('simple command plans', () => {
       'dev-workflow/issue-1',
       '--title',
       'feat: add a thing',
+      '--body',
+      'Closes #1.',
+    ])
+  })
+
+  it('looks up a pull request for a branch as json', () => {
+    expect(planViewPullRequest('dev-workflow/issue-1')).toStrictEqual({
+      executable: 'gh',
+      args: ['pr', 'view', 'dev-workflow/issue-1', '--json', 'number,url'],
+    })
+  })
+
+  it('edits a pull request body as one argument', () => {
+    expect(planEditPullRequestBody(12, 'Closes #1.').args).toStrictEqual([
+      'pr',
+      'edit',
+      '12',
       '--body',
       'Closes #1.',
     ])

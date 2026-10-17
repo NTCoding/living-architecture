@@ -102,6 +102,14 @@ export function planCreatePullRequest(options: {
   }
 }
 
+export function planViewPullRequest(branch: string): PlannedCommand {
+  return { executable: 'gh', args: ['pr', 'view', branch, '--json', 'number,url'] }
+}
+
+export function planEditPullRequestBody(pr: number, body: string): PlannedCommand {
+  return { executable: 'gh', args: ['pr', 'edit', String(pr), '--body', body] }
+}
+
 export function planCommentOnPullRequest(pr: number, body: string): PlannedCommand {
   return { executable: 'gh', args: ['pr', 'comment', String(pr), '--body', body] }
 }

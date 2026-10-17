@@ -107,6 +107,7 @@ globalArguments:
       artifacts:
         - name: change
           description: The change to commit, including the commit message.
+          reviews: plan
           schema:
             type: object
             additionalProperties: false
@@ -122,8 +123,8 @@ globalArguments:
         - name: record
           to: committing
           gates:
-            - type: artifact-exists
-              config: { artifact: change }
+            - type: artifact-fresh
+              config: { artifact: change, recordedThisCycle: true }
 
     - id: committing
       description: >-
@@ -283,8 +284,10 @@ globalArguments:
         - name: resolved
           to: committing
           gates:
-            - type: artifact-exists
-              config: { artifact: change }
+            - type: artifact-fresh
+              config: { artifact: change, recordedThisCycle: true }
+            - type: findings-clear
+              config: { artifact: review, blocking: [critical, high] }
 
     - id: awaiting-coderabbit
       description: >-
@@ -315,8 +318,8 @@ globalArguments:
           inputs:
             pr: '${{ data.latest("maintainer-git", "pull-request").attributes.number }}'
             headSha: '${{ data.latest("maintainer-git", "pull-request").attributes.headSha }}'
-            findings: '${{ data.latest("maintainer-factory", "artifact-" + workItem + "-review").payload.findings }}'
-            locations: '${{ data.latest("maintainer-factory", "artifact-" + workItem + "-review-locations").payload.locations }}'
+            findings: '${{ data.latest("maintainer-factory", "artifact-" + self.workItem + "-review").attributes.payload.findings }}'
+            locations: '${{ data.latest("maintainer-factory", "artifact-" + self.workItem + "-review-locations").attributes.payload.locations }}'
         resultEvidence: publish-outcome
       transitions:
         - name: posted
