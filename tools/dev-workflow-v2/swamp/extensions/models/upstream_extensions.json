@@ -1,0 +1,29 @@
+{
+  "@swamp/software-factory": {
+    "version": "2026.10.13.1",
+    "pulledAt": "2026-10-17T12:28:48.554Z",
+    "files": [
+      ".swamp/bundles/a324fda6/software_factory.js",
+      ".swamp/pulled-extensions/@swamp/software-factory/files/LICENSE.txt",
+      ".swamp/pulled-extensions/@swamp/software-factory/files/README.md",
+      ".swamp/pulled-extensions/@swamp/software-factory/manifest.yaml",
+      ".swamp/pulled-extensions/@swamp/software-factory/models/_lib/artifact_schema.ts",
+      ".swamp/pulled-extensions/@swamp/software-factory/models/_lib/bindings.ts",
+      ".swamp/pulled-extensions/@swamp/software-factory/models/_lib/definition_schema.ts",
+      ".swamp/pulled-extensions/@swamp/software-factory/models/_lib/gates.ts",
+      ".swamp/pulled-extensions/@swamp/software-factory/models/_lib/graph.ts",
+      ".swamp/pulled-extensions/@swamp/software-factory/models/_lib/mermaid.ts",
+      ".swamp/pulled-extensions/@swamp/software-factory/models/_lib/run_data.ts",
+      ".swamp/pulled-extensions/@swamp/software-factory/models/_lib/run_names.ts",
+      ".swamp/pulled-extensions/@swamp/software-factory/models/_lib/summary.ts",
+      ".swamp/pulled-extensions/@swamp/software-factory/models/software_factory.ts",
+      ".swamp/pulled-extensions/@swamp/software-factory/reports/work_item_summary_report.ts",
+      ".swamp/pulled-extensions/skills/software-factory",
+      ".swamp/report-bundles/637144ef/work_item_summary_report.js"
+    ],
+    "checksum": "73b6a6c6ac891ad6b2d2a0908362b5ed014bfcc141f131b60bb914b546657b2b",
+    "filesChecksum": "bd88c6fde30717cda01bd6cc80adae5fc1661c7c2f4cbd2030ac0c2dde48af80",
+    "serverUrl": "https://swamp-club.com",
+    "publishedChannel": "stable"
+  }
+}

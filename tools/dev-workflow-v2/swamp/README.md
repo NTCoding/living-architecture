@@ -23,57 +23,58 @@ extensions/behaviors/                    one behaviour type: git reads and forge
   maintainer-git-schema.ts               argument and resource schemas
   maintainer-git-errors.ts               one error class per failure
   maintainer-git-execution.ts            running a planned command
+  models/                                the definitions, committed
+  workflows/                             the six workflows, committed
 ```
 
 ## Setup
 
-Three steps, once per machine. Swamp handles the rest, including which agent you use.
+Three steps, once per machine.
 
 ```bash
 curl -fsSL https://swamp-club.com/install.sh | sh
 swamp auth login
-swamp repo init --tool pi
+swamp repo init --tool pi --path tools/dev-workflow-v2/swamp
 ```
 
 `--tool` accepts `claude`, `codex`, `opencode`, `pi`, `cursor`, `kiro`, `amp`, `copilot`, `antigravity` or a custom tool name. Nothing in this directory knows which one you picked.
 
 ## Layout
 
-`swamp repo init` works from the repository root and writes `.swamp.yaml`, a managed block in `.gitignore`, a managed block in `AGENTS.md`, and the agent scaffolding for the tool you named.
+This directory is its own Swamp repository, so nothing Swamp owns appears at the root of the monorepo.
 
-Two of the directories this factory needs are configurable, and one is not.
-
-```yaml
-# .swamp.yaml, at the repository root
-workflowsDir: tools/dev-workflow-v2/swamp/workflows
+```text
+tools/dev-workflow-v2/swamp/
+  .swamp.yaml            the repository marker
+  models/                behaviour and factory definitions
+  workflows/             the six workflows
+  vaults/                the local vault definition
+  extensions/behaviors/  the maintainer-git behaviour type
+  .swamp/                runtime data, gitignored
 ```
 
-That setting works, so the six workflows live under this directory. `extensionsDir` is not read from `.swamp.yaml`, only from `--extensions-dir` or `SWAMP_EXTENSIONS_DIR`, and symlinks are not followed. So the behaviour type has two options.
-
-The zero configuration option is to keep it at the root, which Swamp scans by default.
+Swamp finds the repository marker by walking up from the working directory, so from inside this directory every command just works. From the repository root, point at it.
 
 ```bash
-cp -R tools/dev-workflow-v2/swamp/extensions/behaviors extensions/behaviors
+export SWAMP_REPO_DIR=tools/dev-workflow-v2/swamp
 ```
 
-The other option keeps everything under this directory and exports one variable per shell.
+One variable, and everything resolves: behaviours, workflows, definitions, vaults and runtime data all live under this directory.
 
-```bash
-export SWAMP_EXTENSIONS_DIR=tools/dev-workflow-v2/swamp
-```
-
-Use `SWAMP_EXTENSIONS_DIR` and not `SWAMP_BEHAVIORS_DIR`. The second one replaces every behaviour source directory, which stops the pulled `@swamp/software-factory` extension from loading.
+Two things worth knowing about that choice. `definitionsDir` in `.swamp.yaml` is not honoured, and neither is `extensionsDir`, so a root `models/` and a root `extensions/` cannot be avoided any other way. And the audit hook Swamp writes for Pi lands at `.pi/extensions/swamp-audit.ts` inside this directory, which Pi does not read when it runs from the repository root.
 
 ## Turning it on
 
 ```bash
+export SWAMP_REPO_DIR=tools/dev-workflow-v2/swamp
+
 swamp extension pull @swamp/software-factory
 swamp model create @swamp/software-factory maintainer-factory
 swamp behavior create @living-architecture/maintainer-git maintainer-git
 swamp model edit maintainer-factory
 ```
 
-`swamp model create` writes the definition to `models/@swamp/software-factory/maintainer-factory.yaml`. Paste the contents of `maintainer-factory.yaml` in this directory under its `globalArguments`, keeping the header that `create` wrote, then check it.
+Paste the contents of `maintainer-factory.yaml` in this directory under the `globalArguments` that `create` wrote, keeping the header, then check it.
 
 ```bash
 swamp model method run maintainer-factory validate
@@ -91,9 +92,7 @@ Your own harness is the driver. Tell it what to do, in one sentence.
 Start work on issue 123 with the maintainer factory.
 ```
 
-The work item is the issue number as a string, because a factory work item is opaque and the stage binding is `${{ self.workItem }}`. The behaviour parses it and refuses anything that is not a positive integer.
-
-The driver calls `status` to learn what the current stage needs, does that work, records the result, and advances.
+The work item is the issue number as a string. A factory work item is opaque, the stage binding is `${{ self.workItem }}`, and the behaviour parses it, refusing anything that is not a positive integer.
 
 ```bash
 swamp model method run maintainer-factory status --input workItem=123

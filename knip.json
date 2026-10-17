@@ -156,6 +156,7 @@
     ".opencode/plugins/swamp-audit.js",
     "extensions/**",
     "models/**",
-    "vaults/**"
+    "vaults/**",
+    "**/.swamp/**"
   ]
 }
