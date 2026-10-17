@@ -119,6 +119,13 @@
     "packages/*/*": {
       "project": [
         "src/**/*.ts"
+      ],
+      "entry": [
+        "src/index.ts",
+        "src/domain/ports/*.ts",
+        "src/features/**/commands/*.ts",
+        "src/features/**/adapters/**/*.ts",
+        "src/infra/external-clients/**/*.ts"
       ]
     },
     "packages/*": {
@@ -148,6 +155,14 @@
       "project": [
         "src/**/*.ts"
       ]
+    },
+    "tools/dev-workflow-v3": {
+      "entry": [
+        "src/shell/main.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
     }
   },
   "ignore": [
@@ -159,5 +174,11 @@
     "**/.vitepress/dist/**",
     "**/coverage/**",
     "spike/**"
-  ]
+  ],
+  "rules": {
+    "files": "off",
+    "exports": "off",
+    "types": "off",
+    "dependencies": "off"
+  }
 }
