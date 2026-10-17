@@ -23,8 +23,9 @@ extensions/behaviors/                    one behaviour type: git reads and forge
   maintainer-git-schema.ts               argument and resource schemas
   maintainer-git-errors.ts               one error class per failure
   maintainer-git-execution.ts            running a planned command
-  models/                                the definitions, committed
+  models/                                both definitions, committed
   workflows/                             the six workflows, committed
+  vaults/                                the local vault definition
 ```
 
 ## Setup
@@ -61,7 +62,9 @@ export SWAMP_REPO_DIR=tools/dev-workflow-v2/swamp
 
 One variable, and everything resolves: behaviours, workflows, definitions, vaults and runtime data all live under this directory.
 
-Two things worth knowing about that choice. `definitionsDir` in `.swamp.yaml` is not honoured, and neither is `extensionsDir`, so a root `models/` and a root `extensions/` cannot be avoided any other way. And the audit hook Swamp writes for Pi lands at `.pi/extensions/swamp-audit.ts` inside this directory, which Pi does not read when it runs from the repository root.
+Two things worth knowing about that choice. `definitionsDir` in `.swamp.yaml` is not honoured, and neither is `extensionsDir`, so a root `models/` and a root `extensions/` cannot be avoided any other way.
+
+Agent scaffolding is the exception, and it stays where the harness reads it. The Pi audit hook is committed at `.pi/extensions/swamp-audit.ts` in the repository root, not here, because Pi only loads extensions from the directory it is started in. `swamp repo upgrade` writes a second copy under this directory, which is inert and can be deleted.
 
 ## Turning it on
 
