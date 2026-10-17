@@ -28,9 +28,13 @@
   },
   "private": true,
   "devDependencies": {
+    "@ai-sdk/provider": "4.0.26",
     "@commitlint/cli": "^20.2.0",
     "@commitlint/config-conventional": "^20.2.0",
     "@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",
+    "@mastra/core": "1.75.0",
+    "@mastra/libsql": "1.25.1",
+    "@mastra/memory": "1.36.0",
     "@nx/esbuild": "23.1.1",
     "@nx/eslint": "23.1.1",
     "@nx/eslint-plugin": "23.1.1",
@@ -43,6 +47,7 @@
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/eslint-plugin": "^1.0.1",
+    "ai": "6.0.303",
     "dependency-cruiser": "^17.3.7",
     "esbuild": "^0.27.0",
     "eslint": "^9.39.0",
@@ -56,6 +61,7 @@
     "knip": "^5.21.2",
     "lint-staged": "^16.2.7",
     "markdownlint-cli2": "^0.20.0",
+    "mastra": "1.33.0",
     "medium-zoom": "^1.1.0",
     "nx": "23.1.1",
     "oxlint": "^1.19.0",
@@ -85,6 +91,5 @@
         }
       }
     }
-  },
-  "dependencies": {}
+  }
 }

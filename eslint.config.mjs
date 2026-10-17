@@ -40,6 +40,8 @@ export default tseslint.config(
       '**/api/generated/**',
       '**/.vitepress/cache/**',
       '.riviere/**',
+      // Throwaway spike code, deleted once its findings are acted on.
+      'spike/**',
     ],
   },
   eslintComments.recommended,

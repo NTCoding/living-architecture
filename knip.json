@@ -3,7 +3,13 @@
   "ignoreDependencies": [
     "tailwindcss",
     "oxlint",
-    "tsx"
+    "tsx",
+    "@mastra/core",
+    "@mastra/memory",
+    "@mastra/libsql",
+    "ai",
+    "@ai-sdk/provider",
+    "mastra"
   ],
   "workspaces": {
     ".": {
@@ -149,6 +155,7 @@
     "**/*.d.cts",
     "**/dist/**",
     "**/.vitepress/dist/**",
-    "**/coverage/**"
+    "**/coverage/**",
+    "spike/**"
   ]
 }

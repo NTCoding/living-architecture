@@ -16,7 +16,7 @@
 
 - [x] Design discussion, options compared, decisions agreed
 - [x] First draft of this plan
-- [ ] Review this plan
+- [x] Review this plan
 - [x] Answer the open questions in section 11
 
 ### Decisions needed before slice 3
@@ -33,11 +33,13 @@
 
 ### Slice 0: the spike
 
-- [ ] A step starts another workflow, and `.dountil` loops over it
-- [ ] `autoResumeSuspendedTools` resumes a suspended tool from the next chat message
-- [ ] A file based agent loads from `src/mastra/agents/{agent}/` and passes role check
-- [ ] A workspace `beforeToolCall` hook refuses an `EXECUTE_COMMAND` call with `proceed: false`
-- [ ] Findings recorded, and this plan corrected where the docs were wrong
+- [x] A step starts another workflow, and `.dountil` loops over it, with the loop shape constraint in 5.2
+- [x] `autoResumeSuspendedTools` resumes a suspended tool from the next chat message
+- [x] A file based agent loads from `src/mastra/agents/{agent}/`, but only through `mastra build` or `mastra dev`, see 6.4
+- [ ] The same file based agent passes role check. This waits for the three roles in slice 3
+- [x] A workspace `beforeToolCall` hook refuses an `EXECUTE_COMMAND` call with `proceed: false`
+- [x] Findings recorded in `spike/FINDINGS.md`, and this plan corrected where the docs were wrong
+- [ ] Decide the two questions in section 11 that slice 3 and slice 4 depend on
 
 ### Slice 1: domain-model package
 
@@ -203,6 +205,19 @@ export const reviewCycle = createWorkflow({
 ```
 
 The parent runs it as a step, because `.dountil()` takes a step.
+
+Two constraints were confirmed by the spike in `spike/FINDINGS.md`, and the graph
+above needs to respect both.
+
+**The workflow is found by the key it is registered under.** The key must equal the
+workflow `id`, or `mastra.getWorkflow('review-cycle')` fails.
+
+**A looped step's input must match the previous step's output, and its own output
+is fed back in as the next input.** The step above takes `ReviewCycleInput` and
+returns `ReviewCycleResult`, so the second iteration fails with a step input
+validation error. The looped step needs one shape in and out, for example
+`{ runId, cycle }`, or a small mapping step sits before the loop. Which one we
+choose is an open question in section 11.
 
 ```ts
 const reviewCycleStep = createStep({
@@ -394,6 +409,15 @@ pnpm factory resume 455
 
 A person never types an opaque identifier. `pnpm factory resume 455` resolves to the newest run for that issue.
 
+Agent runs are not the same run. An agent run gets its own identifier from Mastra,
+even when the memory thread is `issue-455`, so the issue derived id belongs to the
+workflow run only.
+
+One behaviour to design around, found in the spike. After a suspended tool is
+resumed, `listSuspendedRuns()` still returns the run, with `status: 'suspended'`
+and the tool call still listed. So `pnpm factory status` cannot be built from
+`listSuspendedRuns()` alone and needs to cross check the run or the thread.
+
 ### 5.8 The command line
 
 This is how the workflow is started and watched day to day. Studio is for reading, not for starting or approving.
@@ -537,6 +561,17 @@ tools/dev-workflow-v3/src/
 
 Mastra's file-based agents mean an agent is a folder of configuration plus markdown, not a class with behaviour. `config.ts` names the model and the options, and `instructions.md` holds the prompt. That is why none of it belongs in `shell`, and why there is almost no code in it.
 
+One correction from the spike. File based discovery only runs through
+`mastra dev` or `mastra build`. A plain import of the Mastra instance finds no
+agents at all, which the spike measured. So the CLI cannot both start a run in its
+own process and rely on discovery. Either `shell/main.ts` loads each agent folder
+itself, reading `config.ts` and `instructions.md`, which the spike proved works, or
+the workflow runs behind the `mastra build` output and the CLI talks to it through
+the Mastra client. That choice is an open question in section 11.
+
+Role check is not yet proven for this layout. The three new roles must exist
+before any of it can pass.
+
 This layout does not fit ADR-002 today. It needs three new roles in `.riviere/roles.ts` and a `/mastra` location in `.riviere/role-enforcement.config.ts`, with ADR-002 changed at the same time. You approved this at review time.
 
 ### 6.5 Direction of dependency
@@ -639,6 +674,22 @@ These were agreed during the design discussion and are the source of truth for t
 
 ## 11. Blockers, unknowns and questions
 
-None outstanding. Everything raised during review is answered and recorded in section 10.
+Two questions are open, both found by the slice 0 spike. Everything else raised
+before the spike was answered and recorded in section 10. `spike/FINDINGS.md` has
+the evidence for both.
 
-The one thing still unproven is Mastra's own behaviour, which slice 0 settles.
+**Q1. How does the review cycle loop, given that a looped step must keep one shape
+in and out?** Either the `review-cycle` step takes and returns `{ runId, cycle }`
+and the verdicts travel in workflow state, or a mapping step converts a
+`ReviewCycleResult` back into the next `ReviewCycleInput`. Slice 3 needs this
+answered, because the graph is built there with the model steps stubbed.
+
+**Q2. Do the agents load by hand, or does the workflow run behind `mastra build`?**
+File based discovery does not run on a plain import, so the CLI has to pick one.
+Loading the folders in `shell/main.ts` is the smaller change and the spike proved
+it works. Running behind the built Mastra server keeps discovery and Studio, and
+costs a server process between the CLI and the workflow. Slice 3 needs this
+answered.
+
+The one thing left unproven is role check for the `/mastra` layout, which waits for
+the three roles in slice 3.
