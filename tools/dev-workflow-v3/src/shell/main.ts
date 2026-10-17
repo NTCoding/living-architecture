@@ -58,6 +58,7 @@ async function runProcess(request: CommandRequest): Promise<CommandOutput> {
  */
 export async function main(argv: readonly string[]): Promise<number> {
   const workingDirectory = process.cwd()
+  loadLocalEnvironment(workingDirectory)
   mkdirSync(`${workingDirectory}/.factory`, { recursive: true })
   const storage = new LibSQLStore({ id: 'factory', url: 'file:.factory/mastra.db' })
   const memory = new Memory({ storage })
@@ -191,6 +192,14 @@ function worktreeFor(issueNumber: number): string {
     .map((entry) => entry.name)
   const name = names.find((entry) => entry.startsWith(`issue-${issueNumber}-`))
   return name === undefined ? worktreesDirectory : `${worktreesDirectory}/${name}`
+}
+
+function loadLocalEnvironment(workingDirectory: string): void {
+  try {
+    process.loadEnvFile(`${workingDirectory}/.env`)
+  } catch {
+    // No .env file. The key comes from the shell instead.
+  }
 }
 
 function noOutput(): string {

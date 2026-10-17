@@ -76,3 +76,7 @@ tools/dev-workflow-v2/workflow.db-wal
 .nx/self-healing
 .nx/migrate-runs
 .factory/
+
+# Local environment, including provider keys
+.env
+.env.local
