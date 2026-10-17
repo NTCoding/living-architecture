@@ -137,6 +137,41 @@ export function planCommentOnPullRequest(pr: number, body: string): PlannedComma
   return { executable: 'gh', args: ['pr', 'comment', String(pr), '--body', body] }
 }
 
+/**
+ * `gh api` posting one inline review comment at a file and line.
+ *
+ * The endpoint takes the commit the comment applies to, so a comment always
+ * names the revision that was reviewed, and `side: RIGHT` puts it on the added
+ * side of the diff.
+ */
+export function planReviewComment(options: {
+  readonly pr: number
+  readonly headSha: string
+  readonly path: string
+  readonly line: number
+  readonly body: string
+}): PlannedCommand {
+  return {
+    executable: 'gh',
+    args: [
+      'api',
+      '--method',
+      'POST',
+      `repos/{owner}/{repo}/pulls/${String(options.pr)}/comments`,
+      '--raw-field',
+      `commit_id=${options.headSha}`,
+      '--raw-field',
+      `path=${options.path}`,
+      '--field',
+      `line=${String(options.line)}`,
+      '--raw-field',
+      'side=RIGHT',
+      '--raw-field',
+      `body=${options.body}`,
+    ],
+  }
+}
+
 /** `gh api` reading the reviews on a pull request. */
 export function planListReviews(pr: number): PlannedCommand {
   return {
@@ -205,4 +240,58 @@ export function composeFindingComment(finding: {
       ? [`**${finding.severity}**`, `\`${finding.id}\``]
       : [`**${finding.severity}**`, finding.category, `\`${finding.id}\``]
   return [parts.join(' \u00b7 '), '', finding.description].join('\n')
+}
+
+/** One finding as the factory records it, using its built in findings contract. */
+export interface RecordedFinding {
+  readonly id: string
+  readonly severity: string
+  readonly description: string
+  readonly category?: string
+}
+
+/** Where a finding belongs on the pull request. */
+export interface FindingLocation {
+  readonly findingId: string
+  readonly path: string
+  readonly line: number
+}
+
+/** A finding that can be posted as an inline review comment. */
+export interface PlacedFinding {
+  readonly finding: RecordedFinding
+  readonly path: string
+  readonly line: number
+}
+
+/** The outcome of matching findings to locations. */
+export interface PlacedFindings {
+  readonly placed: readonly PlacedFinding[]
+  readonly unplaced: readonly RecordedFinding[]
+}
+
+/**
+ * Pairs each recorded finding with the location the reviewer gave for it.
+ *
+ * The factory's findings contract carries no file or line, so a reviewer
+ * records locations separately and this pairs them up. A finding without a
+ * location is returned separately rather than dropped, so it can still be
+ * posted as a comment on the pull request instead of disappearing.
+ */
+export function placeFindings(
+  findings: readonly RecordedFinding[],
+  locations: readonly FindingLocation[],
+): PlacedFindings {
+  const byId = new Map(locations.map((location) => [location.findingId, location]))
+  const placed: PlacedFinding[] = []
+  const unplaced: RecordedFinding[] = []
+  for (const finding of findings) {
+    const location = byId.get(finding.id)
+    if (location === undefined) {
+      unplaced.push(finding)
+    } else {
+      placed.push({ finding, path: location.path, line: location.line })
+    }
+  }
+  return { placed, unplaced }
 }

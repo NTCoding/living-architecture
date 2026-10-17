@@ -87,7 +87,7 @@ swamp model method run maintainer-factory status --input workItem=123
 | `reviewing` | dispatch | reviews the diff, records findings | nothing |
 | `addressing` | interactive | fixes findings, re-records `change`, resolves findings | nothing |
 | `awaiting-coderabbit` | workflow | nothing | polls the pull request for a review of the pushed commit |
-| `publishing-findings` | workflow | nothing | posts one comment per finding |
+| `publishing-findings` | workflow | nothing | posts one inline review comment per finding |
 | `awaiting-human-review` | terminal | nothing | nothing |
 
 `reviewing` carries `maxCycles: 3`. A fourth entry parks the run and needs a human `cycle-override` approval, which is the review cap expressed as configuration rather than as a counter in code.
@@ -101,6 +101,14 @@ The agent's word is never evidence.
 - `workflow-succeeded` checks Swamp's own workflow run records, bound to this work item's run id, so a test run cannot be claimed.
 - `artifact-fresh` with `recordedThisCycle` means a review does not survive a rework.
 - `findings-clear` means a stage cannot advance with unresolved blocking findings.
+
+## How findings reach the right line
+
+The factory's `kind: findings` contract carries an id, a severity and a description, and nothing else, because it is strict. It carries no file and no line, and it is what `findings-clear` and `resolve_findings` operate on, so it cannot simply be replaced by a schema of our own.
+
+Reviewers therefore record two artefacts. `review` uses the findings contract, so the gate can count blocking severities and the agent can resolve findings. `review-locations` pairs each finding id with a path and a line.
+
+`publishing-findings` joins them in the behaviour and posts an inline review comment at the named line on the reviewed commit. A finding that names no line is posted as an ordinary comment rather than dropped, so nothing a reviewer recorded goes unread.
 
 ## How the commit message becomes safe
 

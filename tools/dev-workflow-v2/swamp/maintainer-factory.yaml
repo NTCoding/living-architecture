@@ -187,8 +187,10 @@ stages:
 
   - id: reviewing
     description: >-
-      Fresh reviewer per role, coordinated deterministically, findings recorded
-      as data. Capped at three cycles; past the cap the run parks for a human.
+      Fresh reviewer per role, coordinated deterministically. Each finding is
+      recorded with the factory's findings contract so a gate can count it, and
+      its file and line are recorded separately so it can be posted inline.
+      Capped at three cycles; past the cap the run parks for a human.
     maxCycles: 3
     work:
       mode: dispatch
@@ -200,13 +202,52 @@ stages:
         satisfies the issue.
 
         Read the diff since the previous reviewed commit, not the whole
-        repository. Record findings with a severity of critical, high, medium
-        or low, and name the file and line for each. Do not soften findings.
+        repository.
+
+        Record two artefacts, one call each.
+
+        First the findings, with record_artifact:
+
+          name:    review
+          payload: { findings: [{ id, severity, description, category }] }
+
+        severity is one of critical, high, medium or low. id is any stable
+        string unique within this review. Do not soften findings.
+
+        Then the locations, with record_artifact:
+
+          name:    review-locations
+          payload: { locations: [{ findingId, path, line }] }
+
+        One entry per finding, naming the file path relative to the repository
+        root and the line number in the added side of the diff. A finding that
+        genuinely names no line can be left out, and it will be posted as an
+        ordinary comment instead.
+
+        Do not run git, gh or pnpm.
     artifacts:
       - name: review
         description: Findings from every reviewer for this cycle.
         kind: findings
         reviews: change
+      - name: review-locations
+        description: The file and line each finding belongs to.
+        reviews: change
+        schema:
+          type: object
+          additionalProperties: false
+          required: [locations]
+          properties:
+            locations:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required: [findingId, path, line]
+                properties:
+                  findingId: { type: string, minLength: 1 }
+                  path: { type: string, minLength: 1 }
+                  line: { type: integer, minimum: 1 }
     transitions:
       - name: clean
         to: awaiting-coderabbit
@@ -273,7 +314,9 @@ stages:
         name: maintainer-publish-findings
         inputs:
           pr: '${{ data.latest("maintainer-git", "pull-request").attributes.number }}'
-          workItem: '${{ workItem }}'
+          headSha: '${{ data.latest("maintainer-git", "pull-request").attributes.headSha }}'
+          findings: '${{ data.latest("maintainer-factory", "artifact-" + workItem + "-review").payload.findings }}'
+          locations: '${{ data.latest("maintainer-factory", "artifact-" + workItem + "-review-locations").payload.locations }}'
       resultEvidence: publish-outcome
     transitions:
       - name: posted

@@ -6,10 +6,10 @@ import {
   COMMIT_RESOURCE,
   COMMENT_ARGUMENTS,
   EMPTY_ARGUMENTS,
-  FINDING_ARGUMENTS,
+  POST_FINDINGS_ARGUMENTS,
   ISSUE_ARGUMENTS,
   OPEN_PULL_REQUEST_ARGUMENTS,
-  POSTED_FINDING_RESOURCE,
+  POSTED_FINDINGS_RESOURCE,
   PULL_REQUEST_RESOURCE,
   PUSH_ARGUMENTS,
   PUSH_RESOURCE,
@@ -22,7 +22,7 @@ import {
   awaitCodeRabbit,
   openPullRequest,
   postComment,
-  postFinding,
+  postFindings,
   pushBranch,
 } from './maintainer-git-forge.ts'
 
@@ -82,11 +82,11 @@ export const behavior = {
       lifetime: 'infinite' as const,
       garbageCollection: 20,
     },
-    postedFinding: {
-      description: 'One finding posted to the pull request',
-      schema: POSTED_FINDING_RESOURCE,
+    postedFindings: {
+      description: 'The findings posted to a pull request, inline and general',
+      schema: POSTED_FINDINGS_RESOURCE,
       lifetime: 'infinite' as const,
-      garbageCollection: 200,
+      garbageCollection: 20,
     },
   },
 
@@ -148,19 +148,24 @@ export const behavior = {
       ): Promise<MethodResult> => postComment(args, context),
     },
 
-    postFinding: {
-      description: 'Post one recorded finding as a comment on the pull request',
-      arguments: FINDING_ARGUMENTS,
+    postFindings: {
+      description:
+        'Post every recorded finding, inline where a location was given and as an ordinary comment otherwise',
+      arguments: POST_FINDINGS_ARGUMENTS,
       execute: (
         args: {
           pr: number
-          id: string
-          severity: 'critical' | 'high' | 'medium' | 'low'
-          description: string
-          category?: string
+          headSha: string
+          findings: {
+            id: string
+            severity: 'critical' | 'high' | 'medium' | 'low'
+            description: string
+            category?: string
+          }[]
+          locations: { findingId: string; path: string; line: number }[]
         },
         context: BehaviourContext,
-      ): Promise<MethodResult> => postFinding(args, context),
+      ): Promise<MethodResult> => postFindings(args, context),
     },
 
     awaitCodeRabbit: {

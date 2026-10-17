@@ -66,13 +66,25 @@ export const COMMENT_ARGUMENTS = z.object({
   body: z.string().min(1),
 })
 
-/** Arguments for posting one recorded finding. */
-export const FINDING_ARGUMENTS = z.object({
+/** Arguments for posting every recorded finding. */
+export const POST_FINDINGS_ARGUMENTS = z.object({
   pr: z.number().int().positive(),
-  id: z.string().min(1),
-  severity: z.enum(SEVERITIES),
-  description: z.string().min(1),
-  category: z.string().min(1).optional(),
+  headSha: z.string().min(1),
+  findings: z.array(
+    z.object({
+      id: z.string().min(1),
+      severity: z.enum(SEVERITIES),
+      description: z.string().min(1),
+      category: z.string().min(1).optional(),
+    }),
+  ),
+  locations: z.array(
+    z.object({
+      findingId: z.string().min(1),
+      path: z.string().min(1),
+      line: z.number().int().positive(),
+    }),
+  ),
 })
 
 /** Arguments for waiting on the external reviewer. */
@@ -126,8 +138,9 @@ export const REVIEWER_RESOURCE = z.object({
   reviewed: z.boolean(),
 })
 
-/** One finding posted to the pull request. */
-export const POSTED_FINDING_RESOURCE = z.object({
-  findingId: z.string(),
-  posted: z.boolean(),
+/** The findings posted to a pull request, split by how they were posted. */
+export const POSTED_FINDINGS_RESOURCE = z.object({
+  inline: z.number(),
+  general: z.number(),
+  findingIds: z.array(z.string()),
 })

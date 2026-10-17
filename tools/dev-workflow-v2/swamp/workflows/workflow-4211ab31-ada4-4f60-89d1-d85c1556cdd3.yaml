@@ -1,9 +1,10 @@
 id: 4211ab31-ada4-4f60-89d1-d85c1556cdd3
 name: maintainer-publish-findings
 description: >-
-  Post every recorded finding to the pull request. One comment per finding,
-  fanned out by the workflow rather than summarised by an agent, so the
-  comment format never varies. Deterministic; no agent is involved.
+  Post every recorded finding to the pull request, inline on the line the
+  reviewer named, and as an ordinary comment when no line was given. The body
+  is composed here rather than by an agent, so the format never varies.
+  Deterministic; no agent is involved.
 version: 1
 inputs:
   type: object
@@ -11,26 +12,30 @@ inputs:
     pr:
       type: number
       description: The pull request to comment on
-    workItem:
+    headSha:
       type: string
-      description: The factory work item, which namespaces every recorded artefact
+      description: The commit the review comments apply to
+    findings:
+      type: array
+      description: The recorded findings, from the factory's review artefact
+    locations:
+      type: array
+      description: Where each finding belongs, from the factory's review-locations artefact
   required:
     - pr
-    - workItem
+    - headSha
+    - findings
+    - locations
 jobs:
   - name: publish
     steps:
-      - name: post-finding
-        forEach:
-          item: finding
-          in: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-review").attributes.payload.findings }}
+      - name: post-findings
         task:
           type: behavior
           behavior: maintainer-git
-          methodName: postFinding
+          methodName: postFindings
           inputs:
             pr: ${{ inputs.pr }}
-            id: ${{ self.finding.id }}
-            severity: ${{ self.finding.severity }}
-            description: ${{ self.finding.description }}
-            category: ${{ self.finding.category }}
+            headSha: ${{ inputs.headSha }}
+            findings: ${{ inputs.findings }}
+            locations: ${{ inputs.locations }}

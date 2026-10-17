@@ -1,11 +1,15 @@
 import {
   composeFindingComment,
   composePullRequestBody,
+  placeFindings,
   planCommentOnPullRequest,
   planCreatePullRequest,
   planHeadSha,
   planListReviews,
   planPush,
+  planReviewComment,
+  type FindingLocation,
+  type RecordedFinding,
 } from './maintainer-git-commands.ts'
 import { runOrThrow } from './maintainer-git-execution.ts'
 import {
@@ -145,28 +149,67 @@ export async function postComment(
   return { dataHandles: [] }
 }
 
-/** Posts one recorded finding as a comment, formatted the same way every time. */
-export async function postFinding(
+/**
+ * Posts every recorded finding to the pull request.
+ *
+ * A finding that the reviewer gave a location for becomes an inline review
+ * comment on that line. A finding without a location is posted as an ordinary
+ * comment rather than being dropped, so nothing a reviewer recorded goes
+ * unread. The body is composed here rather than by an agent, so the format is
+ * the same every time.
+ */
+export async function postFindings(
   args: {
     pr: number
-    id: string
-    severity: 'critical' | 'high' | 'medium' | 'low'
-    description: string
-    category?: string
+    headSha: string
+    findings: readonly RecordedFinding[]
+    locations: readonly FindingLocation[]
   },
   context: BehaviourContext,
 ): Promise<MethodResult> {
-  const body = composeFindingComment({
-    id: args.id,
-    severity: args.severity,
-    description: args.description,
-    ...(args.category === undefined ? {} : { category: args.category }),
+  const { placed, unplaced } = placeFindings(args.findings, args.locations)
+  const posted: string[] = []
+
+  for (const entry of placed) {
+    const body = composeFindingComment({
+      id: entry.finding.id,
+      severity: entry.finding.severity,
+      description: entry.finding.description,
+      ...(entry.finding.category === undefined ? {} : { category: entry.finding.category }),
+    })
+    await runOrThrow(
+      planReviewComment({
+        pr: args.pr,
+        headSha: args.headSha,
+        path: entry.path,
+        line: entry.line,
+        body,
+      }),
+      context.signal,
+      'gh api review comment',
+    )
+    posted.push(entry.finding.id)
+  }
+
+  for (const finding of unplaced) {
+    const body = composeFindingComment({
+      id: finding.id,
+      severity: finding.severity,
+      description: finding.description,
+      ...(finding.category === undefined ? {} : { category: finding.category }),
+    })
+    await runOrThrow(planCommentOnPullRequest(args.pr, body), context.signal, 'gh pr comment')
+    posted.push(finding.id)
+  }
+
+  const handle = await context.writeResource('postedFindings', 'posted-findings', {
+    inline: placed.length,
+    general: unplaced.length,
+    findingIds: posted,
   })
-  await runOrThrow(planCommentOnPullRequest(args.pr, body), context.signal, 'gh pr comment')
-  const handle = await context.writeResource('postedFinding', 'posted-finding', {
-    findingId: args.id,
-    posted: true,
-  })
+  context.logger.info(
+    `posted ${String(placed.length)} inline and ${String(unplaced.length)} general findings`,
+  )
   return { dataHandles: [handle] }
 }
 

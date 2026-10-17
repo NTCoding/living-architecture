@@ -18,8 +18,10 @@ import {
   planCreatePullRequest,
   planFetch,
   planHeadSha,
+  placeFindings,
   planListReviews,
   planPush,
+  planReviewComment,
   planStageAll,
   planStatus,
   planSwitchBranch,
@@ -158,6 +160,62 @@ describe('composePullRequestBody', () => {
       files: [],
     })
     expect(body).toContain('**Commit:** `feat: add behaviour`')
+  })
+})
+
+describe('placeFindings', () => {
+  const finding = (id: string) => ({ id, severity: 'high', description: `${id} detail` })
+
+  it('pairs each finding with the location the reviewer gave', () => {
+    const { placed } = placeFindings(
+      [finding('f-1')],
+      [{ findingId: 'f-1', path: 'src/main.ts', line: 12 }],
+    )
+    expect(placed).toStrictEqual([{ finding: finding('f-1'), path: 'src/main.ts', line: 12 }])
+  })
+
+  it('returns a finding with no location separately rather than dropping it', () => {
+    const { placed, unplaced } = placeFindings([finding('f-1')], [])
+    expect(placed).toStrictEqual([])
+    expect(unplaced).toStrictEqual([finding('f-1')])
+  })
+
+  it('ignores a location for a finding that was not recorded', () => {
+    const { placed, unplaced } = placeFindings(
+      [finding('f-1')],
+      [{ findingId: 'f-9', path: 'src/other.ts', line: 3 }],
+    )
+    expect(placed).toStrictEqual([])
+    expect(unplaced).toStrictEqual([finding('f-1')])
+  })
+})
+
+describe('planReviewComment', () => {
+  it('posts to the pull request comments endpoint on the added side', () => {
+    expect(
+      planReviewComment({
+        pr: 12,
+        headSha: 'abc1234',
+        path: 'src/main.ts',
+        line: 42,
+        body: '**high**',
+      }).args,
+    ).toStrictEqual([
+      'api',
+      '--method',
+      'POST',
+      'repos/{owner}/{repo}/pulls/12/comments',
+      '--raw-field',
+      'commit_id=abc1234',
+      '--raw-field',
+      'path=src/main.ts',
+      '--field',
+      'line=42',
+      '--raw-field',
+      'side=RIGHT',
+      '--raw-field',
+      'body=**high**',
+    ])
   })
 })
 
