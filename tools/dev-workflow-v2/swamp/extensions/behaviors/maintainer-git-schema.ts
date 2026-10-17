@@ -22,7 +22,7 @@ export interface MethodResult {
 }
 
 export const ISSUE_ARGUMENTS = z.object({
-  issue: z.number().int().positive(),
+  issue: z.string().min(1),
 })
 
 export const COMMIT_ARGUMENTS = z.object({

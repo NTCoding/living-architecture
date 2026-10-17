@@ -1,5 +1,6 @@
 import {
   branchNameForIssue,
+  parseIssueNumber,
   planCheckBranchExists,
   planCommit,
   planCommitsAhead,
@@ -19,10 +20,10 @@ const REMOTE = 'origin'
 const BASE = 'main'
 
 export async function prepareIssue(
-  args: { issue: number },
+  args: { issue: string },
   context: BehaviourContext,
 ): Promise<MethodResult> {
-  const branch = branchNameForIssue(args.issue)
+  const branch = branchNameForIssue(parseIssueNumber(args.issue))
   await runOrThrow(planFetch(REMOTE), context.signal, 'git fetch')
 
   const existing = await runCommand(planCheckBranchExists(branch), context.signal)
@@ -45,7 +46,7 @@ export async function prepareIssue(
   const handle = await context.writeResource('workspace', 'workspace', {
     branch,
     base: BASE,
-    issue: args.issue,
+    issue: parseIssueNumber(args.issue),
     created,
   })
   context.logger.info(`prepared ${branch} from ${REMOTE}/${BASE}`)

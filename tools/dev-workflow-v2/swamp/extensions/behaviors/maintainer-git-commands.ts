@@ -21,6 +21,13 @@ export function commitMessageProblem(message: string): string | undefined {
   return undefined
 }
 
+export function parseIssueNumber(value: string): number {
+  if (!/^[1-9]\d*$/.test(value)) {
+    throw new InvalidIssueNumber(value)
+  }
+  return Number.parseInt(value, 10)
+}
+
 export function branchNameForIssue(issue: number): string {
   if (!Number.isInteger(issue) || issue < 1) {
     throw new InvalidIssueNumber(String(issue))

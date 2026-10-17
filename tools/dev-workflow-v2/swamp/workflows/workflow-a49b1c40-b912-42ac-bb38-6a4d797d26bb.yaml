@@ -8,8 +8,8 @@ inputs:
   type: object
   properties:
     issue:
-      type: number
-      description: The GitHub issue this work item implements
+      type: string
+      description: The GitHub issue this work item implements, as the factory work item
   required:
     - issue
 jobs:

@@ -30,33 +30,58 @@ extensions/behaviors/                    one behaviour type: git reads and forge
 Three steps, once per machine. Swamp handles the rest, including which agent you use.
 
 ```bash
-curl -fsSL https://swamp-club.com/install.sh | sh    # 1. the CLI
-swamp auth login                                     # 2. a swamp-club.com account
-swamp repo init --tool <your-agent>                  # 3. wire it into your harness
+curl -fsSL https://swamp-club.com/install.sh | sh
+swamp auth login
+swamp repo init --tool pi
 ```
 
 `--tool` accepts `claude`, `codex`, `opencode`, `pi`, `cursor`, `kiro`, `amp`, `copilot`, `antigravity` or a custom tool name. Nothing in this directory knows which one you picked.
 
-Then install the two extensions this factory needs.
+## Layout
+
+`swamp repo init` works from the repository root and writes `.swamp.yaml`, a managed block in `.gitignore`, a managed block in `AGENTS.md`, and the agent scaffolding for the tool you named.
+
+Two of the directories this factory needs are configurable, and one is not.
+
+```yaml
+# .swamp.yaml, at the repository root
+workflowsDir: tools/dev-workflow-v2/swamp/workflows
+```
+
+That setting works, so the six workflows live under this directory. `extensionsDir` is not read from `.swamp.yaml`, only from `--extensions-dir` or `SWAMP_EXTENSIONS_DIR`, and symlinks are not followed. So the behaviour type has two options.
+
+The zero configuration option is to keep it at the root, which Swamp scans by default.
 
 ```bash
-swamp extension pull @swamp/software-factory
-swamp extension pull @swamp/agent-runner
+cp -R tools/dev-workflow-v2/swamp/extensions/behaviors extensions/behaviors
 ```
+
+The other option keeps everything under this directory and exports one variable per shell.
+
+```bash
+export SWAMP_EXTENSIONS_DIR=tools/dev-workflow-v2/swamp
+```
+
+Use `SWAMP_EXTENSIONS_DIR` and not `SWAMP_BEHAVIORS_DIR`. The second one replaces every behaviour source directory, which stops the pulled `@swamp/software-factory` extension from loading.
 
 ## Turning it on
 
 ```bash
+swamp extension pull @swamp/software-factory
 swamp model create @swamp/software-factory maintainer-factory
-swamp model edit maintainer-factory        # paste the contents of maintainer-factory.yaml
-swamp model method run maintainer-factory validate
+swamp behavior create @living-architecture/maintainer-git maintainer-git
+swamp model edit maintainer-factory
 ```
 
-Point the behaviour at the directory that holds it, if it is not the repository root. Swamp loads local behaviour sources from `extensions/behaviors/` by default, so either keep this directory at the root or set the override:
+`swamp model create` writes the definition to `models/@swamp/software-factory/maintainer-factory.yaml`. Paste the contents of `maintainer-factory.yaml` in this directory under its `globalArguments`, keeping the header that `create` wrote, then check it.
 
 ```bash
-export SWAMP_BEHAVIORS_DIR=tools/dev-workflow-v2/swamp/extensions/behaviors
+swamp model method run maintainer-factory validate
+swamp model method run maintainer-factory describe
+swamp workflow validate
 ```
+
+`describe` renders the state machine and the stage and gate tables. `validate` reports the stage count.
 
 ## Running it
 
@@ -66,12 +91,13 @@ Your own harness is the driver. Tell it what to do, in one sentence.
 Start work on issue 123 with the maintainer factory.
 ```
 
-The work item is the issue number, because the `preparing` stage binds `issue: ${{ workItem }}` and the behaviour needs a number to build a branch name.
+The work item is the issue number as a string, because a factory work item is opaque and the stage binding is `${{ self.workItem }}`. The behaviour parses it and refuses anything that is not a positive integer.
 
-The driver calls `status` to learn what the current stage needs, does that work, records the result, and advances. A stage's work is described in the definition, so the driver does not need to be told the process.
+The driver calls `status` to learn what the current stage needs, does that work, records the result, and advances.
 
 ```bash
 swamp model method run maintainer-factory status --input workItem=123
+swamp model method run maintainer-factory summary --input workItem=123
 ```
 
 ## The stages

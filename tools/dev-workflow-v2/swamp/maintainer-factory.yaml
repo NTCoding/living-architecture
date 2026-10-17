@@ -8,7 +8,7 @@ stages:
       workflow:
         name: maintainer-prepare-issue
         inputs:
-          issue: '${{ workItem }}'
+          issue: '${{ self.workItem }}'
       resultEvidence: prepare-outcome
     transitions:
       - name: branch-ready
@@ -124,7 +124,7 @@ stages:
       workflow:
         name: maintainer-commit
         inputs:
-          workItem: '${{ workItem }}'
+          workItem: '${{ self.workItem }}'
       resultEvidence: commit-outcome
     transitions:
       - name: committed
@@ -161,7 +161,7 @@ stages:
       workflow:
         name: maintainer-submit
         inputs:
-          workItem: '${{ workItem }}'
+          workItem: '${{ self.workItem }}'
       resultEvidence: submit-outcome
     transitions:
       - name: opened

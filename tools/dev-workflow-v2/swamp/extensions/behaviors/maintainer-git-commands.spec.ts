@@ -25,6 +25,7 @@ import {
   planStageAll,
   planStatus,
   planSwitchBranch,
+  parseIssueNumber,
   planVerify,
 } from './maintainer-git-commands'
 
@@ -75,6 +76,24 @@ describe('branchNameForIssue', () => {
 
   it('throws InvalidIssueNumber when the issue number is fractional', () => {
     expect(() => branchNameForIssue(1.5)).toThrow(InvalidIssueNumber)
+  })
+})
+
+describe('parseIssueNumber', () => {
+  it('reads a numeric work item as a number', () => {
+    expect(parseIssueNumber('999')).toBe(999)
+  })
+
+  it('rejects a work item that is not a number', () => {
+    expect(() => parseIssueNumber('PAY-218')).toThrow(InvalidIssueNumber)
+  })
+
+  it('rejects a work item with leading zeros', () => {
+    expect(() => parseIssueNumber('0999')).toThrow(InvalidIssueNumber)
+  })
+
+  it('rejects an empty work item', () => {
+    expect(() => parseIssueNumber('')).toThrow(InvalidIssueNumber)
   })
 })
 

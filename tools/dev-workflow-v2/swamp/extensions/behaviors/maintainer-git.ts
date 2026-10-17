@@ -82,7 +82,7 @@ export const behavior = {
       description:
         'Fetch the remote, then create or reuse the issue branch from the default branch',
       arguments: ISSUE_ARGUMENTS,
-      execute: (args: { issue: number }, context: BehaviourContext): Promise<MethodResult> =>
+      execute: (args: { issue: string }, context: BehaviourContext): Promise<MethodResult> =>
         prepareIssue(args, context),
     },
 
