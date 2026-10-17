@@ -14,6 +14,17 @@ export function commitWorkWithGit(dependencies: {
   readonly runCommand: (request: CommandRequest) => Promise<CommandOutput>
 }): CommitWork {
   return async (request) => {
+    const changes = await gitOutput(dependencies.runCommand, {
+      worktreePath: request.worktreePath,
+      arguments: ['status', '--porcelain'],
+    })
+    if (changes.trim().length === 0) {
+      const current = await gitOutput(dependencies.runCommand, {
+        worktreePath: request.worktreePath,
+        arguments: ['rev-parse', 'HEAD'],
+      })
+      return { sha: current.trim() }
+    }
     await gitOutput(dependencies.runCommand, {
       worktreePath: request.worktreePath,
       arguments: ['add', '--all'],
@@ -23,9 +34,7 @@ export function commitWorkWithGit(dependencies: {
       arguments: ['commit', '--message', request.message],
       workingDirectory: request.worktreePath,
     })
-    if (commit.exitCode !== 0 && !commit.stderr.includes('nothing to commit')) {
-      throw new CommitRefused(commit.stderr)
-    }
+    if (commit.exitCode !== 0) throw new CommitRefused(commit.stderr)
     const sha = await gitOutput(dependencies.runCommand, {
       worktreePath: request.worktreePath,
       arguments: ['rev-parse', 'HEAD'],
