@@ -56,6 +56,9 @@
     },
     {
       "path": "./packages/riviere-builder/published-language"
+    },
+    {
+      "path": "./packages/dev-workflow-v3/domain-model"
     }
   ]
 }

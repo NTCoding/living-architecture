@@ -43,10 +43,10 @@
 
 ### Slice 1: domain-model package
 
-- [ ] Create the package, tsconfig files, vitest config, `description`
-- [ ] Value objects: issue, worktree, plan, approval, outcome, verification, commit, pull request, findings, verdicts, cycle, limit, model
-- [ ] Domain ports and their errors
-- [ ] Tests to 100%
+- [x] Create the package, tsconfig files, vitest config, `description`
+- [x] Value objects: issue, worktree, plan, approval, outcome, verification, commit, pull request, findings, verdicts, cycle, limit, model
+- [ ] Domain ports and their errors. These moved to slice 2, because a `domain-port` must be implemented by a `domain-port-adapter` before role check passes
+- [x] Tests to 100%
 - [ ] Pull request raised, `pnpm verify` green, reviewed and merged
 
 ### Slice 2: use-cases package
@@ -496,16 +496,20 @@ packages/dev-workflow-v3/domain-model/src/domain/
   review-cycle-limit.ts              value-object, three as the standard maximum
   model-identifier.ts                value-object, the `--model` value
   ports/
-    read-issue.ts                    domain-port
-    prepare-worktree.ts              domain-port
-    run-project-checks.ts            domain-port
-    commit-work.ts                   domain-port
-    push-branch.ts                   domain-port
-    open-pull-request.ts             domain-port
-    publish-review-findings.ts       domain-port
-    read-pull-request-feedback.ts    domain-port
-    wait-for-reviewer.ts             domain-port
+    read-issue.ts                    domain-port, slice 2
+    prepare-worktree.ts              domain-port, slice 2
+    run-project-checks.ts            domain-port, slice 2
+    commit-work.ts                   domain-port, slice 2
+    push-branch.ts                   domain-port, slice 2
+    open-pull-request.ts             domain-port, slice 2
+    publish-review-findings.ts       domain-port, slice 2
+    read-pull-request-feedback.ts    domain-port, slice 2
+    wait-for-reviewer.ts             domain-port, slice 2
 ```
+
+A `domain-port` must be implemented by a `domain-port-adapter` before role check
+passes, so the ports arrive in slice 2 alongside their adapters rather than in
+slice 1.
 
 Each file gets a sibling `.spec.ts`. Zod is used for parsing, per SD-019, and every value object is branded per SP-001.
 
