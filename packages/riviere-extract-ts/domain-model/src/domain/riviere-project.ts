@@ -18,6 +18,7 @@ import {
   GraphStateUnavailableError,
 } from './riviere-project-errors'
 import { Workflow, WorkflowRunMode } from './workflow'
+import type { WorkflowDiagnostic } from './workflow-diagnostic'
 import {
   ExtractionProjectStartInput,
   GraphOnlyProjectStartInput,
@@ -128,7 +129,9 @@ export class RiviereProject {
     }
     const previousBuilder = this.graphBuilder()
     this.builder = RiviereBuilder.parse(BuilderOptions.fromGraph(previousBuilder.build()))
-    const run = await workflow.run(this.builder, mode, (stage) => this.executeWorkflowStage(stage))
+    const run = await workflow.run(this.builder, mode, (stage, context) =>
+      this.executeWorkflowStage(stage, context.diagnostics),
+    )
     if (!run.value.success) {
       this.builder = previousBuilder
       return run.value
@@ -143,16 +146,28 @@ export class RiviereProject {
       warnings: run.value.warnings,
     }
   }
-  private async executeWorkflowStage(stage: WorkflowStageValue) {
+  private async executeWorkflowStage(
+    stage: WorkflowStageValue,
+    unresolvedDiagnostics: readonly WorkflowDiagnostic[],
+  ) {
     switch (stage.kind) {
       case 'schema-validate': {
         const validation = this.graphBuilder().validate()
-        if (validation.valid) return { success: true as const, diagnostics: [], warnings: [] }
-        return {
-          success: false as const,
-          errorCode: 'GRAPH_VALIDATION_FAILED',
-          reason: validation.errors.map((error) => error.message).join('\n'),
-        }
+        if (!validation.valid)
+          return {
+            success: false as const,
+            errorCode: 'GRAPH_VALIDATION_FAILED',
+            reason: validation.errors.map((error) => error.message).join('\n'),
+          }
+        if (unresolvedDiagnostics.length > 0)
+          return {
+            success: false as const,
+            errorCode: 'UNRESOLVED_WORKFLOW_DIAGNOSTICS',
+            reason: `Unresolved workflow diagnostics: ${unresolvedDiagnostics
+              .map((diagnostic) => diagnostic.describe())
+              .join(', ')}`,
+          }
+        return { success: true as const, diagnostics: [], warnings: [] }
       }
       case 'eventcatalog-import':
         return this.collaborators.extractionBehaviour.executeEventCatalogImportStage(

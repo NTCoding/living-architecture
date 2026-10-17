@@ -20,3 +20,18 @@ export function fileExists(path: string): boolean {
     throw error
   }
 }
+
+/** @riviere-role external-client-error */
+export class FileDoesNotExistError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'FileDoesNotExistError'
+    Error.captureStackTrace?.(this, this.constructor)
+  }
+}
+
+/** @riviere-role external-client-service */
+export function requireExistingPath(path: string): string {
+  if (!fileExists(path)) throw new FileDoesNotExistError(`File not found: ${path}`)
+  return path
+}

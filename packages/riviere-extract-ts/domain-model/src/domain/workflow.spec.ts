@@ -64,6 +64,7 @@ function allStages() {
 function workflow(stages = allStages()): Workflow {
   return Workflow.build(
     WorkflowStartInput.from({
+      declaredDomains: ['orders'],
       name: 'build-graph',
       outputPath: '.riviere/graph.json',
       runLogDirectory: '.riviere/logs',
@@ -82,6 +83,7 @@ describe('Workflow stage language', () => {
   it('reports its workflow name', () => {
     const result = Workflow.build(
       WorkflowStartInput.from({
+        declaredDomains: ['orders'],
         name: 'build',
         outputPath: 'graph.json',
         runLogDirectory: 'logs',

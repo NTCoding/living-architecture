@@ -95,6 +95,28 @@ export class WorkflowStage {
     return new WorkflowStage(value)
   }
 
+  domainReferences(): readonly string[] {
+    switch (this.value.kind) {
+      case 'code-extraction':
+        return this.value.config.modules.map((module) => module.domain)
+      case 'eventcatalog-import':
+        return [
+          ...Object.values(this.value.config.mappings.domains),
+          ...mappedDomains(Object.values(this.value.config.mappings.services)),
+          ...mappedDomains(Object.values(this.value.config.mappings.events)),
+        ]
+      case 'asyncapi-import':
+        return [
+          ...Object.values(this.value.config.mappings.messages).map((mapping) => mapping.domain),
+          ...Object.values(this.value.config.mappings.operations).map((mapping) => mapping.domain),
+        ]
+      case 'ai-extract':
+      case 'ai-enrich':
+      case 'schema-validate':
+        return []
+    }
+  }
+
   private constructor(readonly value: WorkflowStageValue) {}
 }
 
@@ -173,3 +195,13 @@ function copyAiEnrichConfig(config: AiEnrichConfig): AiEnrichConfig {
 }
 
 export type { WorkflowStageValue }
+
+function mappedDomains(
+  mappings: readonly { readonly domain?: string | undefined }[],
+): readonly string[] {
+  const domains: string[] = []
+  for (const mapping of mappings) {
+    if (mapping.domain !== undefined) domains.push(mapping.domain)
+  }
+  return domains
+}

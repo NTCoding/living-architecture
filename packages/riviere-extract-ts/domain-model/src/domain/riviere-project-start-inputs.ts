@@ -32,9 +32,11 @@ export class WorkflowStartInput {
     readonly name: string
     readonly outputPath: string
     readonly runLogDirectory: string
+    readonly declaredDomains: readonly string[]
     readonly stages: readonly WorkflowStage[]
   }): WorkflowStartInput {
     validateWorkflow(input.name, input.stages)
+    requireDeclaredStageDomains(input.declaredDomains, input.stages)
     return new WorkflowStartInput(input.name, input.outputPath, input.runLogDirectory, [
       ...input.stages,
     ])
@@ -63,6 +65,22 @@ function findDuplicateStageName(stages: readonly WorkflowStage[]): string | unde
     names.add(stage.value.name)
   }
   return undefined
+}
+
+function requireDeclaredStageDomains(
+  declaredDomainNames: readonly string[],
+  stages: readonly WorkflowStage[],
+): void {
+  const declared = new Set(declaredDomainNames)
+  const undeclared = [
+    ...new Set(
+      stages.flatMap((stage) => stage.domainReferences()).filter((domain) => !declared.has(domain)),
+    ),
+  ]
+  if (undeclared.length === 0) return
+  throw new InvalidWorkflowDefinitionError(
+    `Workflow stages reference undeclared domains: ${undeclared.join(', ')}. Declared workflow domains: ${declaredDomainNames.join(', ')}`,
+  )
 }
 
 /** @riviere-role value-object */

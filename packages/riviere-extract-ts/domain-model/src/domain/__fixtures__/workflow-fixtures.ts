@@ -1,4 +1,7 @@
-import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
+import {
+  RiviereBuilder,
+  type BuilderOptionsInput,
+} from '@living-architecture/riviere-builder-published-language'
 import { ValidatedConfiguration } from '@living-architecture/riviere-extract-config-published-language'
 import { Project } from 'ts-morph'
 import { assert } from 'vitest'
@@ -89,7 +92,19 @@ export function asyncApiCollaborators(document: AsyncApiDocument): RiviereProjec
 
 export type { LoadAsyncApiDocument }
 
-export function configuration(customType?: string, allowIncomplete = false): ExtractionConfiguration {
+export function graphDefinition(): BuilderOptionsInput {
+  return {
+    name: 'Shop',
+    description: 'Shop graph',
+    sources: [{ repository: 'shop' }],
+    domains: { orders: { description: 'Orders', systemType: 'domain' } as const },
+  }
+}
+
+export function configuration(
+  customType?: string,
+  allowIncomplete = false,
+): ExtractionConfiguration {
   const parsed = ValidatedConfiguration.parse({
     modules: [
       {

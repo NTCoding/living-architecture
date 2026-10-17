@@ -2,7 +2,7 @@ import {
   cleanupWorkflowWorkspaces,
   createWorkflowWorkspace as workspace,
 } from '../../../../__fixtures__/riviere-project-workspace-fixtures'
-import { writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, assert, describe, expect, it } from 'vitest'
 import { RiviereProjectRepository } from './riviere-project-repository'
@@ -30,6 +30,7 @@ function writeWorkflow(directory: string): void {
     join(directory, '.riviere', 'workflows', 'import.yaml'),
     'source: eventcatalog\nmappings: mappings.yaml\nallow-unmapped: false\n',
   )
+  mkdirSync(join(directory, '.riviere', 'workflows', 'eventcatalog'), { recursive: true })
   writeFileSync(
     join(directory, '.riviere', 'workflows', 'mappings.yaml'),
     [

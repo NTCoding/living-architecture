@@ -216,6 +216,52 @@ describe('WorkflowStage', () => {
 
     expect(stage.value).toStrictEqual({ kind: 'schema-validate', name: 'validate' })
   })
+
+  it('lists the module domains a code extraction stage references', () => {
+    const stage = WorkflowStage.fromCodeExtraction(
+      'extract',
+      configuration().resolvedConfig,
+      'extraction.yml',
+    )
+
+    expect(stage.domainReferences()).toStrictEqual(['orders'])
+  })
+
+  it('lists every mapped domain an eventcatalog import stage references', () => {
+    const stage = WorkflowStage.fromEventCatalogImport('import', eventCatalogImportConfig())
+
+    expect(stage.domainReferences()).toStrictEqual(['orders', 'fulfilment', 'shipping'])
+  })
+
+  it('omits eventcatalog mappings without a domain', () => {
+    const config = eventCatalogImportConfig()
+    const stage = WorkflowStage.fromEventCatalogImport('import', {
+      ...config,
+      mappings: {
+        domains: { OrdersDomain: 'orders' },
+        services: { CheckoutService: {} },
+        events: { OrderCreated: {} },
+      },
+    })
+
+    expect(stage.domainReferences()).toStrictEqual(['orders'])
+  })
+
+  it('lists every mapped domain an asyncapi import stage references', () => {
+    const stage = WorkflowStage.fromAsyncApiImport('import', asyncApiImportConfig())
+
+    expect(stage.domainReferences()).toStrictEqual(['orders', 'shipping'])
+  })
+
+  it('lists no domains for ai and validation stages', () => {
+    const stages = [
+      WorkflowStage.fromAiExtract('extract', aiExtractConfig()),
+      WorkflowStage.fromAiEnrich('enrich', aiEnrichConfig()),
+      WorkflowStage.fromSchemaValidation('validate'),
+    ]
+
+    expect(stages.map((stage) => stage.domainReferences())).toStrictEqual([[], [], []])
+  })
 })
 
 function aiExtractConfig(): AiExtractConfig {
@@ -284,4 +330,40 @@ function aiExtractConfigOf(value: WorkflowStageValue): AiExtractConfig {
 function aiEnrichConfigOf(value: WorkflowStageValue): AiEnrichConfig {
   if (value.kind !== 'ai-enrich') throw new TestFixtureError('Expected an ai-enrich stage')
   return value.config
+}
+
+function eventCatalogImportConfig(): EventCatalogImportConfig {
+  return {
+    source: '/specs/eventcatalog',
+    sourceFilePath: 'specs/eventcatalog',
+    mappings: {
+      domains: { OrdersDomain: 'orders' },
+      services: {
+        CheckoutService: { domain: 'fulfilment', module: 'checkout', name: 'PlaceOrder' },
+      },
+      events: { OrderCreated: { domain: 'shipping', module: 'orders', name: 'OrderShipped' } },
+    },
+    allowUnmapped: false,
+  }
+}
+
+function asyncApiImportConfig(): AsyncApiImportConfig {
+  return {
+    source: '/specs/asyncapi.yaml',
+    sourceFilePath: 'specs/asyncapi.yaml',
+    mappings: {
+      messages: {
+        OrderPlacedMessage: { domain: 'orders', module: 'infrastructure', name: 'OrderPlaced' },
+      },
+      operations: {
+        processOrder: {
+          type: 'UseCase',
+          domain: 'shipping',
+          module: 'checkout',
+          name: 'ProcessOrder',
+        },
+      },
+    },
+    allowUnmapped: false,
+  }
 }

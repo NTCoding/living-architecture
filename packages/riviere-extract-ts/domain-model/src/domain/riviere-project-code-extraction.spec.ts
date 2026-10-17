@@ -2,18 +2,9 @@ import { assert, describe, expect, it } from 'vitest'
 import { RiviereProject } from './riviere-project'
 import { WorkflowStage } from './workflow-stage'
 import { MissingModuleSourceError } from './extraction-errors'
-import { collaborators, configuration } from './__fixtures__/workflow-fixtures'
+import { collaborators, configuration, graphDefinition } from './__fixtures__/workflow-fixtures'
 import { mustBeDefined } from '../__fixtures__/missing-test-fixture-error'
 import { GraphWithWorkflowStartInput, WorkflowStartInput } from './riviere-project-start-inputs'
-
-function graphDefinition() {
-  return {
-    name: 'Shop',
-    description: 'Shop graph',
-    sources: [{ repository: 'shop' }],
-    domains: { orders: { description: 'Orders', systemType: 'domain' } as const },
-  }
-}
 
 const sharedConfiguration = configuration()
 
@@ -44,6 +35,7 @@ function projectWithStage(stage: WorkflowStage, loader = loadCodeExtraction): Ri
     GraphWithWorkflowStartInput.from(
       graphDefinition(),
       WorkflowStartInput.from({
+        declaredDomains: ['orders'],
         name: 'build-graph',
         outputPath: '/project/.riviere/graph.json',
         runLogDirectory: '/project/.riviere/logs',

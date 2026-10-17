@@ -1,5 +1,9 @@
 import { createRiviereProjectRepository } from '../../../../__fixtures__/riviere-project-repository-fixtures'
 import {
+  loadWorkflow,
+  writeWorkflow,
+} from '../../../../__fixtures__/riviere-project-workflow-fixtures'
+import {
   cleanupWorkflowWorkspaces,
   createWorkflowWorkspace as workspace,
 } from '../../../../__fixtures__/riviere-project-workspace-fixtures'
@@ -15,35 +19,6 @@ import * as fileReader from '../../../../infra/external-clients/filesystem/file-
 class UnexpectedParserFailure extends Error {}
 class UnexpectedGraphReadFailure extends Error {}
 class UnexpectedRehydrateFailure extends Error {}
-
-function writeWorkflow(
-  directory: string,
-  stages = '  - kind: schema-validate\n    name: validate',
-): void {
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'combined.yaml'),
-    [
-      'apiVersion: v1',
-      'name: combined-graph',
-      'description: Orders and shipping',
-      'output: ../graph.json',
-      'sources:',
-      '  - repository: workflow-test',
-      'domains:',
-      '  orders:',
-      '    description: orders domain',
-      'stages:',
-      stages,
-    ].join('\n'),
-  )
-}
-
-function loadWorkflow(directory: string, name: string) {
-  return createRiviereProjectRepository().load({
-    kind: 'workflow',
-    workflowPath: join(directory, '.riviere', 'workflows', `${name}.yaml`),
-  })
-}
 
 afterEach(cleanupWorkflowWorkspaces)
 
@@ -223,7 +198,8 @@ describe('RiviereProjectRepository workflow loading', () => {
     expect(project.build().metadata.name).toBe('previous-graph')
   })
 })
-it('materializes an asyncapi-import stage with validated mappings', () => {
+
+it('rejects an eventcatalog-import stage whose source does not exist', () => {
   const directory = workspace()
   writeFileSync(
     join(directory, '.riviere', 'workflows', 'import.yaml'),
@@ -231,26 +207,19 @@ it('materializes an asyncapi-import stage with validated mappings', () => {
   )
   writeFileSync(
     join(directory, '.riviere', 'workflows', 'mappings.yaml'),
-    [
-      'messages:',
-      '  OrderPlacedMessage:',
-      '    domain: orders',
-      '    module: infrastructure',
-      '    name: OrderPlaced',
-      'operations:',
-      '  processOrder:',
-      '    type: UseCase',
-      '    domain: orders',
-      '    module: checkout',
-      '    name: ProcessOrder',
-    ].join('\n'),
+    ['domains: {}', 'services: {}', 'events: {}'].join('\n'),
   )
-  writeWorkflow(directory, '  - kind: asyncapi-import\n    name: import\n    config: import.yaml')
+  writeWorkflow(
+    directory,
+    '  - kind: eventcatalog-import\n    name: import\n    config: import.yaml',
+  )
 
-  expect(loadWorkflow(directory, 'combined').build().metadata.name).toBe('combined-graph')
+  expect(() => loadWorkflow(directory, 'combined')).toThrow(
+    /File not found: .*workflows.imported\.json/,
+  )
 })
 
-it('rejects asyncapi-import mappings with unknown keys', () => {
+it('rejects an asyncapi-import stage whose source does not exist', () => {
   const directory = workspace()
   writeFileSync(
     join(directory, '.riviere', 'workflows', 'import.yaml'),
@@ -258,19 +227,22 @@ it('rejects asyncapi-import mappings with unknown keys', () => {
   )
   writeFileSync(
     join(directory, '.riviere', 'workflows', 'mappings.yaml'),
-    ['messages: {}', 'operations: {}', 'unexpected: true'].join('\n'),
+    ['messages: {}', 'operations: {}'].join('\n'),
   )
   writeWorkflow(directory, '  - kind: asyncapi-import\n    name: import\n    config: import.yaml')
 
-  expect(() => loadWorkflow(directory, 'combined')).toThrow(/Invalid AsyncAPI mappings/)
+  expect(() => loadWorkflow(directory, 'combined')).toThrow(
+    /File not found: .*workflows.imported\.json/,
+  )
 })
 
-it('materializes an eventcatalog-import stage with validated mappings', () => {
+it('rejects a stage mapping that references an undeclared domain', () => {
   const directory = workspace()
   writeFileSync(
     join(directory, '.riviere', 'workflows', 'import.yaml'),
     'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
   )
+  writeFileSync(join(directory, '.riviere', 'workflows', 'imported.json'), '{}')
   writeFileSync(
     join(directory, '.riviere', 'workflows', 'mappings.yaml'),
     [
@@ -278,13 +250,10 @@ it('materializes an eventcatalog-import stage with validated mappings', () => {
       '  OrdersDomain: orders',
       'services:',
       '  OrdersService:',
-      '    type: UseCase',
-      '    domain: orders',
+      '    domain: fulfilment',
       '    module: checkout',
       '    name: PlaceOrder',
-      'events:',
-      '  OrderCreated:',
-      '    name: OrderPlaced',
+      'events: {}',
     ].join('\n'),
   )
   writeWorkflow(
@@ -292,159 +261,7 @@ it('materializes an eventcatalog-import stage with validated mappings', () => {
     '  - kind: eventcatalog-import\n    name: import\n    config: import.yaml',
   )
 
-  const project = loadWorkflow(directory, 'combined')
-
-  expect(project.build().metadata.name).toBe('combined-graph')
-})
-
-it('rejects eventcatalog-import mappings with unknown keys', () => {
-  const directory = workspace()
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'import.yaml'),
-    'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
+  expect(() => loadWorkflow(directory, 'combined')).toThrow(
+    'Workflow stages reference undeclared domains: fulfilment. Declared workflow domains: orders',
   )
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'mappings.yaml'),
-    ['domains: {}', 'services: {}', 'events: {}', 'unexpected: true'].join('\n'),
-  )
-  writeWorkflow(
-    directory,
-    '  - kind: eventcatalog-import\n    name: import\n    config: import.yaml',
-  )
-
-  expect(() => loadWorkflow(directory, 'combined')).toThrow(/Invalid EventCatalog mappings/)
-})
-
-it('materializes an ai-extract stage', () => {
-  const directory = workspace()
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'ai.yaml'),
-    [
-      'command: extract',
-      'args: [extract]',
-      'timeout-seconds: 10',
-      'sources: [src]',
-      'selection:',
-      '  from: [uncertain-links]',
-      '  component-types: [UseCase]',
-      'outputs:',
-      '  add-components: true',
-      '  add-links: true',
-      'context:',
-      '  exclude: []',
-      '  max-files-per-batch: 5',
-      '  max-batches: 2',
-    ].join('\n'),
-  )
-  writeWorkflow(directory, '  - kind: ai-extract\n    name: extract\n    config: ai.yaml')
-
-  expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
-})
-
-it('materializes an ai-enrich stage', () => {
-  const directory = workspace()
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'ai.yaml'),
-    [
-      'command: enrich',
-      'args: [enrich]',
-      'timeout-seconds: 10',
-      'sources: [src]',
-      'memory: memory.md',
-      'prompt-append: prompt.md',
-      'selection:',
-      '  component-types: [UseCase]',
-      '  missing-fields-only: true',
-      'fields: [operationName]',
-      'context:',
-      '  exclude: []',
-      '  max-files-per-component: 5',
-    ].join('\n'),
-  )
-  writeWorkflow(directory, '  - kind: ai-enrich\n    name: enrich\n    config: ai.yaml')
-
-  expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
-})
-
-it.each([
-  ['eventcatalog missing mappings', 'eventcatalog-import', 'source: a.json\n', /mappings/],
-  [
-    'eventcatalog unknown key',
-    'eventcatalog-import',
-    'source: a.json\nmappings: m.yaml\nallow-unmapped: false\nunexpected: true\n',
-    /unexpected/,
-  ],
-  [
-    'eventcatalog empty source',
-    'eventcatalog-import',
-    "source: ''\nmappings: m.yaml\nallow-unmapped: false\n",
-    /source: Too small/,
-  ],
-  ['asyncapi missing mappings', 'asyncapi-import', 'source: a.json\n', /mappings/],
-  ['incomplete ai-extract config', 'ai-extract', 'command: extract\n', /timeout-seconds/],
-  ['incomplete ai-enrich config', 'ai-enrich', 'command: enrich\n', /timeout-seconds/],
-])('rejects an invalid %s config', (_scenario, kind, configYaml, error) => {
-  const directory = workspace()
-  writeFileSync(join(directory, '.riviere', 'workflows', 'stage.yaml'), configYaml)
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'm.yaml'),
-    'domains: {}\nservices: {}\nevents: {}\n',
-  )
-  writeWorkflow(directory, `  - kind: ${kind}\n    name: stage\n    config: stage.yaml`)
-
-  expect(() => loadWorkflow(directory, 'combined')).toThrow(error)
-})
-
-const CODE_EXTRACTION_CONFIG = [
-  'modules:',
-  '  - name: orders',
-  '    domain: orders',
-  '    path: .',
-  '    glob: "*.ts"',
-  '    api: { notUsed: true }\n    useCase: { notUsed: true }',
-  '    domainOp: { notUsed: true }\n    event: { notUsed: true }',
-  '    eventHandler: { notUsed: true }\n    ui: { notUsed: true }',
-].join('\n')
-
-function writeCodeExtractionConfig(directory: string): void {
-  writeFileSync(join(directory, '.riviere', 'workflows', 'extract.yaml'), CODE_EXTRACTION_CONFIG)
-}
-
-it('materializes a code-extraction stage', () => {
-  const directory = workspace()
-  writeCodeExtractionConfig(directory)
-  writeFileSync(join(directory, '.riviere', 'workflows', 'orders.ts'), 'export const orders = 1\n')
-  writeWorkflow(directory, '  - kind: code-extraction\n    name: extract\n    config: extract.yaml')
-
-  expect(loadWorkflow(directory, 'combined')).toBeInstanceOf(RiviereProject)
-})
-
-it('rejects a code-extraction stage whose configuration matches no source files', () => {
-  const directory = workspace()
-  writeCodeExtractionConfig(directory)
-  writeWorkflow(directory, '  - kind: code-extraction\n    name: extract\n    config: extract.yaml')
-
-  expect(() => loadWorkflow(directory, 'combined')).toThrow('No files matched extraction patterns')
-})
-
-it('rejects a workflow whose name is invalid for the workflow runner', () => {
-  const directory = workspace()
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'combined.yaml'),
-    [
-      'apiVersion: v1',
-      'name: Has Spaces',
-      'output: .riviere/graph.json',
-      'sources:',
-      '  - repository: workflow-test',
-      'domains:',
-      '  orders:',
-      '    description: orders domain',
-      'stages:',
-      '  - kind: schema-validate',
-      '    name: validate',
-    ].join('\n'),
-  )
-
-  expect(() => loadWorkflow(directory, 'combined')).toThrow(/Workflow name 'Has Spaces' must match/)
 })

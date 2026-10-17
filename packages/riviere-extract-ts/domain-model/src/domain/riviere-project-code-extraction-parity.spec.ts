@@ -3,7 +3,12 @@ import { Project } from 'ts-morph'
 import { RiviereProject } from './riviere-project'
 import { RiviereModule } from './riviere-module'
 import { WorkflowStage } from './workflow-stage'
-import { collaborators, configuration, component } from './__fixtures__/workflow-fixtures'
+import {
+  collaborators,
+  configuration,
+  component,
+  graphDefinition,
+} from './__fixtures__/workflow-fixtures'
 import { DraftComponent } from './component-extraction/draft-component'
 import {
   EnrichedComponent,
@@ -46,15 +51,6 @@ function codeExtractionStage(name: string, source = shared): WorkflowStage {
   })
 }
 
-function graphDefinition() {
-  return {
-    name: 'Shop',
-    description: 'Shop graph',
-    sources: [{ repository: 'shop' }],
-    domains: { orders: { description: 'Orders', systemType: 'domain' } as const },
-  }
-}
-
 function draft(): DraftComponent {
   return DraftComponent.parseOrThrow({
     type: 'useCase',
@@ -93,6 +89,7 @@ function workflowProject(
     GraphWithWorkflowStartInput.from(
       graphDefinition(),
       WorkflowStartInput.from({
+        declaredDomains: ['orders'],
         name: 'build-graph',
         outputPath: '/project/.riviere/graph.json',
         runLogDirectory: '/project/.riviere/logs',
