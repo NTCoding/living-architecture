@@ -39,7 +39,6 @@ export const OPEN_PULL_REQUEST_ARGUMENTS = z.object({
   issue: z.number().int().positive(),
   branch: z.string().min(1),
   title: z.string().min(1).max(100),
-  planSummary: z.string().min(1),
   changeSummary: z.string().min(1),
   commitMessage: z.string().min(1).max(72),
   files: z.array(z.string().min(1)).min(1),

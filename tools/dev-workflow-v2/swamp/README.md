@@ -81,7 +81,7 @@ swamp model method run maintainer-factory describe
 swamp workflow validate
 ```
 
-`describe` renders the state machine and the stage and gate tables. `validate` reports the stage count.
+`describe` renders the state machine and the stage and gate tables. `validate` reports the stage count, which is 11.
 
 ## Running it
 
@@ -105,12 +105,11 @@ swamp model method run maintainer-factory summary --input workItem=123
 | Stage | Mode | The agent does | Swamp does |
 | --- | --- | --- | --- |
 | `preparing` | workflow | nothing | fetch origin, branch from the default branch, refuse a dirty tree |
-| `planning` | interactive | reads the issue and conventions, records a `plan` | nothing |
-| `implementing` | interactive | edits code and tests, records a `change` with the commit message | nothing |
+| `implementing` | interactive | reads the issue and conventions, edits code and tests, records a `change` with the commit message | nothing |
 | `committing` | workflow | nothing | `git add`, `git commit` with the recorded message, prove clean and ahead |
 | `verifying` | workflow | nothing | `pnpm verify` |
 | `submitting` | workflow | nothing | `git push`, `gh pr create` with a body composed from the recorded artefacts |
-| `reviewing` | dispatch | reviews the diff, records findings | nothing |
+| `reviewing` | dispatch | reviews the diff, records findings and their file and line | nothing |
 | `addressing` | interactive | fixes findings, re-records `change`, resolves findings | nothing |
 | `awaiting-coderabbit` | workflow | nothing | polls the pull request for a review of the pushed commit |
 | `publishing-findings` | workflow | nothing | posts one inline review comment per finding |
@@ -177,7 +176,7 @@ Use a throwaway issue on a repository you do not mind a branch appearing in.
 1. Run the setup steps above.
 2. Create the factory and validate it.
 3. Ask your agent to start work on the issue with this factory.
-4. Watch the stages in the driver's output. At `planning` it stops for a human approval.
+4. Watch the stages in the driver's output. There is no human pause before the pull request is open.
 5. Inspect what was recorded at any point.
 
 ```bash

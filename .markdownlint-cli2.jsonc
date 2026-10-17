@@ -14,6 +14,10 @@
   },
   "ignores": [
     "**/node_modules/**",
+    ".agents/**",
+    ".pi/**",
+    ".claude/**",
+    ".opencode/**",
     "apps/docs/reference/api/generated/**",
     "CHANGELOG.md",
     "reviews/**"

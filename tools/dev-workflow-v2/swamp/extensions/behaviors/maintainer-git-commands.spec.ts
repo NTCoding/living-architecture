@@ -139,7 +139,6 @@ describe('composePullRequestBody', () => {
   it('states the issue the change closes', () => {
     const body = composePullRequestBody({
       issue: 123,
-      planSummary: 'Add a factory.',
       changeSummary: 'Added the factory.',
       commitMessage: 'feat(swamp): add factory',
       files: [],
@@ -147,22 +146,19 @@ describe('composePullRequestBody', () => {
     expect(body).toContain('Closes #123.')
   })
 
-  it('carries the recorded plan and change summaries verbatim', () => {
+  it('carries the recorded change summary verbatim', () => {
     const body = composePullRequestBody({
       issue: 7,
-      planSummary: 'Step one.\nStep two.',
-      changeSummary: 'Added the behaviour.',
+      changeSummary: 'Added the behaviour.\nWired it to the factory.',
       commitMessage: 'feat: add behaviour',
       files: [],
     })
-    expect(body).toContain('Step one.\nStep two.')
-    expect(body).toContain('Added the behaviour.')
+    expect(body).toContain('Added the behaviour.\nWired it to the factory.')
   })
 
   it('lists every changed file', () => {
     const body = composePullRequestBody({
       issue: 7,
-      planSummary: 'Plan.',
       changeSummary: 'Change.',
       commitMessage: 'feat: add behaviour',
       files: ['a.ts', 'b.ts'],
@@ -173,7 +169,6 @@ describe('composePullRequestBody', () => {
   it('names the commit that was made', () => {
     const body = composePullRequestBody({
       issue: 7,
-      planSummary: 'Plan.',
       changeSummary: 'Change.',
       commitMessage: 'feat: add behaviour',
       files: [],

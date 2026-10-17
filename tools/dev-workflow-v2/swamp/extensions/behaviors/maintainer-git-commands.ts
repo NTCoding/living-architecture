@@ -147,7 +147,6 @@ export function planVerify(): PlannedCommand {
 
 export function composePullRequestBody(options: {
   readonly issue: number
-  readonly planSummary: string
   readonly changeSummary: string
   readonly commitMessage: string
   readonly files: readonly string[]
@@ -155,10 +154,6 @@ export function composePullRequestBody(options: {
   const files = options.files.map((file) => `- \`${file}\``).join('\n')
   return [
     `Closes #${String(options.issue)}.`,
-    '',
-    '## Problem',
-    '',
-    options.planSummary,
     '',
     '## Change',
     '',

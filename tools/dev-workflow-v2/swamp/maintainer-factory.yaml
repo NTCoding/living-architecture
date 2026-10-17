@@ -12,67 +12,10 @@ stages:
       resultEvidence: prepare-outcome
     transitions:
       - name: branch-ready
-        to: planning
+        to: implementing
         gates:
           - type: workflow-succeeded
             config: { workflow: maintainer-prepare-issue }
-
-  - id: planning
-    description: >-
-      Read the issue, the conventions and the surrounding code, then record a
-      plan for a human to approve. This is the only mid-run human pause.
-    work:
-      mode: interactive
-      systemPrompt: |
-        Read the GitHub issue, docs/conventions/, ADR-002 and the code you
-        intend to change.
-
-        Record one artifact with record_artifact:
-
-          name:    plan
-          payload: { summary, steps, testingStrategy, risks, filesToChange }
-
-        `steps` is a list of objects: { description, files }. `risks` may be
-        empty. Do not write the plan to a file. The artifact is the record.
-        Do not run git, gh or pnpm.
-    artifacts:
-      - name: plan
-        description: The approved implementation plan.
-        schema:
-          type: object
-          additionalProperties: false
-          required: [summary, steps, testingStrategy, risks, filesToChange]
-          properties:
-            summary: { type: string, minLength: 1 }
-            steps:
-              type: array
-              minItems: 1
-              items:
-                type: object
-                additionalProperties: false
-                required: [description, files]
-                properties:
-                  description: { type: string, minLength: 1 }
-                  files:
-                    type: array
-                    minItems: 1
-                    items: { type: string, minLength: 1 }
-            testingStrategy: { type: string, minLength: 1 }
-            risks: { type: array, items: { type: string } }
-            filesToChange:
-              type: array
-              minItems: 1
-              items: { type: string, minLength: 1 }
-    transitions:
-      - name: approve
-        to: implementing
-        gates:
-          - type: artifact-exists
-            config: { artifact: plan }
-          - type: human-approval
-            config: { id: plan-approval }
-      - name: rework
-        to: planning
 
   - id: implementing
     description: >-
@@ -81,7 +24,7 @@ stages:
     work:
       mode: interactive
       systemPrompt: |
-        Implement the approved plan. Follow docs/conventions/.
+        Implement the issue. Follow docs/conventions/.
 
         Record one artifact with record_artifact:
 
@@ -154,7 +97,7 @@ stages:
   - id: submitting
     description: >-
       Push the branch and open the pull request. The description is composed
-      from the recorded plan and change, so it cannot drift from what was done.
+      from the recorded change, so it cannot drift from what was done.
       Deterministic; no agent.
     work:
       mode: workflow

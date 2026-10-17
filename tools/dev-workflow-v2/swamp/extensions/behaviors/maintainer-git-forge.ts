@@ -90,7 +90,6 @@ export async function openPullRequest(
     issue: number
     branch: string
     title: string
-    planSummary: string
     changeSummary: string
     commitMessage: string
     files: string[]
@@ -99,7 +98,6 @@ export async function openPullRequest(
 ): Promise<MethodResult> {
   const body = composePullRequestBody({
     issue: args.issue,
-    planSummary: args.planSummary,
     changeSummary: args.changeSummary,
     commitMessage: args.commitMessage,
     files: args.files,
