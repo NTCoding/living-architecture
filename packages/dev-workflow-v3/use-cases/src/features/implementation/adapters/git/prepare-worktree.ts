@@ -12,8 +12,6 @@ type Dependencies = {
 }
 
 /**
- * Creates the branch and the worktree the agent will work in. A retry reuses
- * what is already there, so the run can carry on from the earlier attempt.
  * @riviere-role domain-port-adapter
  */
 export function prepareWorktreeWithGit(dependencies: Dependencies): PrepareWorktree {

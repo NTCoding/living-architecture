@@ -6,7 +6,6 @@ import type {
 import { createGithubPullRequest } from '../../../../infra/external-clients/github/pull-request'
 
 /**
- * Creates the pull request for the branch.
  * @riviere-role domain-port-adapter
  */
 export function openPullRequestWithGithub(dependencies: {

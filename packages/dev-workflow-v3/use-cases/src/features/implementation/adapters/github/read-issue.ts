@@ -9,7 +9,6 @@ import { ghOutput } from '../../../../infra/external-clients/github/github'
 const ISSUE_SCHEMA = z.object({ title: z.string(), body: z.string().nullable() })
 
 /**
- * Reads the issue through `gh issue view`, and keeps the body as untrusted text.
  * @riviere-role domain-port-adapter
  */
 export function readIssueWithGithub(dependencies: {

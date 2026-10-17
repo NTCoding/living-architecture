@@ -19,6 +19,14 @@ import { commitWorkWithGit } from '@living-architecture/dev-workflow-v3-use-case
 import { pushBranchWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/push-branch'
 import { readIssueWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-issue'
 import { installDependenciesWithPnpm } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/install-dependencies'
+import { readPullRequestDiffWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-pull-request-diff'
+import { publishReviewFindingWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/publish-review-finding'
+import { waitForReviewerWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/wait-for-reviewer'
+import { commentOnPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/comment-on-pull-request'
+import { ReadPullRequestDiff } from '@living-architecture/dev-workflow-v3-use-cases/commands/read-pull-request-diff'
+import { PublishReviewFindings } from '@living-architecture/dev-workflow-v3-use-cases/commands/publish-review-findings'
+import { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
+import { CommentOnPullRequest } from '@living-architecture/dev-workflow-v3-use-cases/commands/comment-on-pull-request'
 import { openPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/open-pull-request'
 import { runProjectChecksWithCommands } from '@living-architecture/dev-workflow-v3-use-cases/adapters/checks/run-project-checks'
 import type {
@@ -28,15 +36,14 @@ import type {
 import { createStartImplementationWorkflow } from '../mastra/workflows/start-implementation'
 import { createPlannerAgent } from '../mastra/agents/planner'
 import { createImplementerAgent } from '../mastra/agents/implementer'
+import { createReviewerAgent } from '../mastra/agents/reviewer'
+import { createReviewCycleWorkflow } from '../mastra/workflows/review-cycle'
 import { createImplementationWorkspace } from '../mastra/workspace'
 import { readRepositoryGuidance } from '../infra/external-clients/repository/read-guidance'
+import { readReviewerInstructions } from '../infra/external-clients/repository/read-reviewer-instructions'
 
 const execFileAsync = promisify(execFile)
 
-/**
- * Starts the process that the external clients ask for, and reports the exit
- * code rather than throwing, so a failing check is data the workflow can act on.
- */
 async function runProcess(request: CommandRequest): Promise<CommandOutput> {
   try {
     const { stdout, stderr } = await execFileAsync(request.command, [...request.arguments], {
@@ -54,8 +61,6 @@ async function runProcess(request: CommandRequest): Promise<CommandOutput> {
 }
 
 /**
- * Wires the application and starts it. This is the only place where the real
- * git, GitHub and process clients are constructed.
  * @riviere-role main
  */
 export async function main(argv: readonly string[]): Promise<number> {
@@ -64,6 +69,21 @@ export async function main(argv: readonly string[]): Promise<number> {
   mkdirSync(`${workingDirectory}/.factory`, { recursive: true })
   const storage = new LibSQLStore({ id: 'factory', url: 'file:.factory/mastra.db' })
   const memory = new Memory({ storage })
+  const reviewPorts = {
+    readDiff: new ReadPullRequestDiff(
+      readPullRequestDiffWithGithub({ runCommand: runProcess, workingDirectory }),
+    ),
+    publishFindings: new PublishReviewFindings(
+      publishReviewFindingWithGithub({ runCommand: runProcess, workingDirectory }),
+    ),
+    closeCycle: new CloseReviewCycle(),
+    waitForReviewer: waitForReviewerWithGithub({
+      runCommand: runProcess,
+      workingDirectory,
+      wait: () => new Promise((resolve) => setTimeout(resolve, 15_000)),
+      attempts: 40,
+    }),
+  }
   const workflow = createStartImplementationWorkflow({
     readIssue: readIssueWithGithub({ runCommand: runProcess, workingDirectory }),
     readGuidance: () => readRepositoryGuidance(workingDirectory),
@@ -88,9 +108,33 @@ export async function main(argv: readonly string[]): Promise<number> {
     commitWork: new CommitWork(commitWorkWithGit({ runCommand: runProcess })),
     pushBranch: new PushBranch(pushBranchWithGit({ runCommand: runProcess })),
     openPullRequest: new OpenPullRequest(openPullRequestWithGithub({ runCommand: runProcess })),
+    ...reviewPorts,
+    commentOnPullRequest: new CommentOnPullRequest(
+      commentOnPullRequestWithGithub({ runCommand: runProcess, workingDirectory }),
+    ),
+  })
+  const reviewCycle = createReviewCycleWorkflow({
+    ...reviewPorts,
+    verifyWork: new VerifyWork(runProjectChecksWithCommands({ runCommand: runProcess })),
+    commitWork: new CommitWork(commitWorkWithGit({ runCommand: runProcess })),
+    pushBranch: new PushBranch(pushBranchWithGit({ runCommand: runProcess })),
+    readGuidance: () => readRepositoryGuidance(workingDirectory),
+    reviewerFor: async (reviewer, model, worktreePath) =>
+      createReviewerAgent({
+        model: ModelIdentifier.parse(model),
+        reviewer,
+        instructions: await readReviewerInstructions(workingDirectory, reviewer),
+        workspace: createImplementationWorkspace(worktreePath),
+      }),
+    implementerFor: (model, worktreePath) =>
+      createImplementerAgent({
+        model: ModelIdentifier.parse(model),
+        workspace: createImplementationWorkspace(worktreePath),
+        memory,
+      }),
   })
   const mastra = new Mastra({
-    workflows: { 'start-implementation': workflow },
+    workflows: { 'start-implementation': workflow, 'review-cycle': reviewCycle },
     storage,
   })
 
@@ -261,8 +305,8 @@ function worktreeFor(issueNumber: number): string {
 function loadLocalEnvironment(workingDirectory: string): void {
   try {
     process.loadEnvFile(`${workingDirectory}/.env`)
-  } catch {
-    // No .env file. The key comes from the shell instead.
+  } catch (error) {
+    if (!(error instanceof Error)) throw error
   }
 }
 
@@ -291,10 +335,9 @@ function commanderExitCode(error: unknown): number | undefined {
 }
 
 function snapshotStatus(snapshot: unknown): string {
-  if (typeof snapshot === 'object' && snapshot !== null && 'status' in snapshot) {
-    return String(snapshot.status)
-  }
-  return 'unknown'
+  if (typeof snapshot !== 'object' || snapshot === null || !('status' in snapshot)) return 'unknown'
+  const status: unknown = snapshot['status']
+  return typeof status === 'string' ? status : 'unknown'
 }
 
 function report(

@@ -27,7 +27,6 @@ async function poll(
 }
 
 /**
- * Polls the pull request until the reviewer has arrived, or the wait runs out.
  * @riviere-role domain-port-adapter
  */
 export function waitForReviewerWithGithub(dependencies: Dependencies): WaitForReviewer {

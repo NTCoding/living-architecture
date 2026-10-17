@@ -6,8 +6,6 @@ import type {
 import { gitOutput } from '../../../../infra/external-clients/git/git'
 
 /**
- * Stages everything in the worktree and commits it. When there is nothing to
- * commit, as on a retry, it returns the commit that is already there.
  * @riviere-role domain-port-adapter
  */
 export function commitWorkWithGit(dependencies: {

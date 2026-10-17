@@ -2,8 +2,6 @@ import { z } from 'zod'
 import type { ReviewFinding } from './review-finding'
 
 /**
- * What has arrived on the pull request from the reviewer we do not run
- * ourselves, which is CodeRabbit.
  * @riviere-role value-object
  */
 export class PullRequestFeedback {

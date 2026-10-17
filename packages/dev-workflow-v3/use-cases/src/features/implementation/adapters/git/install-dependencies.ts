@@ -6,7 +6,6 @@ import type {
 import { requireSuccess } from '../../../../infra/external-clients/process/run-command'
 
 /**
- * Installs the workspace dependencies in the new worktree, from the lockfile.
  * @riviere-role domain-port-adapter
  */
 export function installDependenciesWithPnpm(dependencies: {

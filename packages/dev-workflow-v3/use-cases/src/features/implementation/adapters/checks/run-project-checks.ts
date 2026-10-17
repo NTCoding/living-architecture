@@ -5,7 +5,6 @@ import type {
 } from '../../../../infra/external-clients/process/run-command'
 
 /**
- * Runs the affected lint, typecheck and test targets, then the role check.
  * @riviere-role domain-port-adapter
  */
 export function runProjectChecksWithCommands(dependencies: {

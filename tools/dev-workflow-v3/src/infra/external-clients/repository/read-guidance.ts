@@ -12,8 +12,6 @@ const GUIDANCE_FILES = [
 ]
 
 /**
- * Assembles the instructions the agents get. A missing file is skipped, because
- * not every checkout has every document.
  * @riviere-role external-client-service
  */
 export async function readRepositoryGuidance(repositoryRoot: string): Promise<string> {

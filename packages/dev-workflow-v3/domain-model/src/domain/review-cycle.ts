@@ -21,9 +21,6 @@ type ReviewCycleStart = {
 }
 
 /**
- * Owns the cycle number, which reviewers still have open feedback, which
- * reviewers already approved, and the cycle limit. It is rebuilt from the step
- * input at the start of every cycle, so it has no repository.
  * @riviere-role aggregate
  */
 export class ReviewCycle {

@@ -6,7 +6,6 @@ import type {
 import { readGithubPullRequestFeedback } from '../../../../infra/external-clients/github/pull-request-feedback'
 
 /**
- * Reads the feedback that has arrived on the pull request so far.
  * @riviere-role domain-port-adapter
  */
 export function readPullRequestFeedbackWithGithub(dependencies: {

@@ -6,7 +6,6 @@ import type {
 import { gitOutput } from '../../../../infra/external-clients/git/git'
 
 /**
- * Pushes the branch. This is the only place a push happens.
  * @riviere-role domain-port-adapter
  */
 export function pushBranchWithGit(dependencies: {

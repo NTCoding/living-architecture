@@ -6,7 +6,6 @@ import type {
 import { createGithubReviewComment } from '../../../../infra/external-clients/github/review-comment'
 
 /**
- * Posts one finding as a pull request review comment and returns its id.
  * @riviere-role domain-port-adapter
  */
 export function publishReviewFindingWithGithub(dependencies: {

@@ -8,6 +8,7 @@ import {
   IssueReference,
   PlanApproval,
   PullRequestDraft,
+  PullRequestReference,
   WorktreeReference,
 } from '@living-architecture/dev-workflow-v3-domain-model'
 import type { ReadIssue } from '@living-architecture/dev-workflow-v3-domain-model/domain/ports/read-issue'
@@ -17,6 +18,14 @@ import type { VerifyWork } from '@living-architecture/dev-workflow-v3-use-cases/
 import type { CommitWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/commit-work'
 import type { PushBranch } from '@living-architecture/dev-workflow-v3-use-cases/commands/push-branch'
 import type { OpenPullRequest } from '@living-architecture/dev-workflow-v3-use-cases/commands/open-pull-request'
+import type { ReadPullRequestDiff } from '@living-architecture/dev-workflow-v3-use-cases/commands/read-pull-request-diff'
+import type { PublishReviewFindings } from '@living-architecture/dev-workflow-v3-use-cases/commands/publish-review-findings'
+import type { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
+import type { CommentOnPullRequest } from '@living-architecture/dev-workflow-v3-use-cases/commands/comment-on-pull-request'
+import type { WaitForReviewer } from '@living-architecture/dev-workflow-v3-domain-model/domain/ports/wait-for-reviewer'
+import { reviewLoopStateSchema } from './review-cycle'
+import { pullRequestDescription, pullRequestTitle } from './pull-request-wording'
+import { questionFrom } from './blocker-payload'
 
 const runStateSchema = z.object({
   issueNumber: z.number().int().positive(),
@@ -36,8 +45,6 @@ const runStateSchema = z.object({
   cycleNumber: z.number().int().positive().default(1),
   readyForHuman: z.boolean().default(false),
 })
-
-type RunState = z.infer<typeof runStateSchema>
 
 /** @riviere-role domain-error */
 class RunFailed extends Error {
@@ -80,11 +87,14 @@ type StartImplementationDependencies = {
   readonly commitWork: CommitWork
   readonly pushBranch: PushBranch
   readonly openPullRequest: OpenPullRequest
+  readonly readDiff: ReadPullRequestDiff
+  readonly publishFindings: PublishReviewFindings
+  readonly closeCycle: CloseReviewCycle
+  readonly commentOnPullRequest: CommentOnPullRequest
+  readonly waitForReviewer: WaitForReviewer
 }
 
 /**
- * The graph a developer starts. Deterministic first: of the fourteen steps, only
- * three call a model, and those three are stubbed until slice 4.
  * @riviere-role workflow-definition
  */
 export function createStartImplementationWorkflow(dependencies: StartImplementationDependencies) {
@@ -116,7 +126,6 @@ export function createStartImplementationWorkflow(dependencies: StartImplementat
     },
   })
 
-  // A fresh worktree has no installed dependencies, so the checks cannot run yet.
   const installDependencies = createStep({
     id: 'install-dependencies',
     inputSchema: runStateSchema,
@@ -267,7 +276,6 @@ export function createStartImplementationWorkflow(dependencies: StartImplementat
     },
   })
 
-  // Stub for slice 4. The model writes the title and the description from the diff.
   const draftPullRequest = createStep({
     id: 'draft-pull-request',
     inputSchema: runStateSchema,
@@ -308,25 +316,74 @@ export function createStartImplementationWorkflow(dependencies: StartImplementat
     },
   })
 
-  // Stub for slice 5. The review cycle workflow replaces this step.
+  const openReviewCycle = createStep({
+    id: 'open-review-cycle',
+    inputSchema: runStateSchema,
+    outputSchema: reviewLoopStateSchema,
+    execute: async ({ inputData }) => ({
+      runId: `issue-${inputData.issueNumber}`,
+      model: inputData.model,
+      issueNumber: inputData.issueNumber,
+      pullRequestNumber: inputData.pullRequestNumber,
+      worktreePath: inputData.worktreePath,
+      branch: inputData.branch,
+      cycleNumber: 1,
+      reviewerStatuses: {},
+      findings: [],
+      approved: false,
+      limitReached: false,
+      readyForHuman: false,
+    }),
+  })
+
   const reviewCycle = createStep({
     id: 'review-cycle',
-    inputSchema: runStateSchema,
-    outputSchema: runStateSchema,
-    execute: async ({ inputData }) => ({ ...inputData, cycleNumber: inputData.cycleNumber + 1 }),
+    inputSchema: reviewLoopStateSchema,
+    outputSchema: reviewLoopStateSchema,
+    execute: async ({ inputData, mastra }) => {
+      const nested = mastra.getWorkflow('review-cycle')
+      const run = await nested.createRun({
+        runId: `${inputData.runId}-review-${inputData.cycleNumber}`,
+      })
+      const result = await run.start({ inputData })
+      if (result.status !== 'success') {
+        throw new RunFailed(
+          `The review cycle ${inputData.cycleNumber} ended with ${result.status}.`,
+        )
+      }
+      return reviewLoopStateSchema.parse(result.result)
+    },
   })
 
   const markReadyForHuman = createStep({
     id: 'mark-ready-for-human',
-    inputSchema: runStateSchema,
-    outputSchema: runStateSchema,
-    execute: async ({ inputData }) => ({ ...inputData, readyForHuman: true }),
+    inputSchema: reviewLoopStateSchema,
+    outputSchema: reviewLoopStateSchema,
+    execute: async ({ inputData }) => {
+      await dependencies.commentOnPullRequest.execute({
+        pullRequest: PullRequestReference.from({
+          number: inputData.pullRequestNumber,
+          url: `https://github.com/pull/${inputData.pullRequestNumber}`,
+        }),
+        body: [
+          'The software factory has finished with this pull request.',
+          '',
+          `Review cycles run: ${String(inputData.cycleNumber)}`,
+          inputData.approved
+            ? 'The reviewers approved the change.'
+            : 'The review cycle limit was reached.',
+          '',
+          'A person reviews and merges from here.',
+        ].join('\n'),
+      })
+      return { ...inputData, readyForHuman: true }
+    },
   })
 
   return createWorkflow({
     id: 'start-implementation',
     inputSchema: startInputSchema,
-    outputSchema: runStateSchema,
+    outputSchema: reviewLoopStateSchema,
   })
     .then(loadIssue)
     .then(prepareBranch)
@@ -341,49 +398,15 @@ export function createStartImplementationWorkflow(dependencies: StartImplementat
     .then(draftPullRequest)
     .then(validatePullRequest)
     .then(openPullRequest)
-    .then(reviewCycle)
+    .then(openReviewCycle)
+    .dountil(reviewCycle, async ({ inputData }) => inputData.approved || inputData.limitReached)
     .then(markReadyForHuman)
     .commit()
 }
 
-function questionFrom(payload: unknown): string {
-  const question = questionOf(payload)
-  return question ?? 'The implementer is waiting for an answer.'
-}
-
-function questionOf(payload: unknown): string | undefined {
-  if (!isRecord(payload) || !('suspendPayload' in payload)) return undefined
-  const inner = payload['suspendPayload']
-  if (!isRecord(inner) || !('question' in inner)) return undefined
-  const question = inner['question']
-  return typeof question === 'string' ? question : undefined
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
-}
-
-function worktreeOf(state: RunState): WorktreeReference {
+function worktreeOf(state: {
+  readonly worktreePath: string
+  readonly branch: string
+}): WorktreeReference {
   return WorktreeReference.from({ path: state.worktreePath, branch: state.branch })
-}
-
-const CONVENTIONAL_PREFIX = /^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)[(:]/
-
-function pullRequestTitle(state: RunState): string {
-  if (CONVENTIONAL_PREFIX.test(state.issueTitle)) return state.issueTitle
-  return `feat: ${state.issueTitle.toLowerCase()}`
-}
-
-function pullRequestDescription(state: RunState): string {
-  return [
-    '## Problem',
-    '',
-    state.issueBody,
-    '',
-    '## Change',
-    '',
-    state.implementationSummary,
-    '',
-    `Closes #${state.issueNumber}.`,
-  ].join('\n')
 }

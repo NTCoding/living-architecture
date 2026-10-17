@@ -1,9 +1,6 @@
 import { LocalFilesystem, LocalSandbox, Workspace, WORKSPACE_TOOLS } from '@mastra/core/workspace'
 
 /**
- * The workspace the implementer works in. The deny list is written here, inside
- * the step that owns it, because the step already is the state. The stronger
- * guarantee is that the workspace is given no GitHub token at all.
  * @riviere-role workspace-configuration
  */
 export function createImplementationWorkspace(worktreePath: string): Workspace {

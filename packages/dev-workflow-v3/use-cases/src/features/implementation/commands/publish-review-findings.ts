@@ -25,7 +25,11 @@ export class PublishReviewFindings {
     for (const finding of input.findings) {
       const { commentId } = await this.publishReviewFinding({
         pullRequestNumber: input.pullRequest.number(),
-        comment: { path: finding.file(), line: finding.line(), body: finding.body() },
+        comment: {
+          path: finding.file(),
+          line: finding.line(),
+          body: `[${finding.reviewer().name()}] ${finding.body()}`,
+        },
       })
       posted.push(PostedReviewFinding.from(finding, commentId))
     }

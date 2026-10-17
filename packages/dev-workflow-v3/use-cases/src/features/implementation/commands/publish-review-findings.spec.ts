@@ -12,7 +12,9 @@ describe('PublishReviewFindings', () => {
 
     const result = await command.execute({ pullRequest, findings: [finding] })
 
-    expect(postedBodies).toStrictEqual(['**SD-005** A domain decision sits in the adapter.'])
+    expect(postedBodies).toStrictEqual([
+      '[code-review] **SD-005** A domain decision sits in the adapter.',
+    ])
     expect(result.posted[0]?.commentId()).toBe(991)
   })
 

@@ -2,9 +2,6 @@ import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
 
 /**
- * A blocker is a conversation, not a form, so the implementer suspends this tool
- * and the next message on the thread resumes it. autoResumeSuspendedTools does
- * the resuming, which is why the agent needs memory and a thread.
  * @riviere-role agent-configuration
  */
 export const askUser = createTool({

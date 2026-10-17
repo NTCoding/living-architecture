@@ -20,8 +20,6 @@ export interface CloseReviewCycleResult {
 }
 
 /**
- * Records the verdicts on the cycle, then says who still needs to review and
- * whether the limit is reached. It changes no external state.
  * @riviere-role command-use-case
  */
 export class CloseReviewCycle {
