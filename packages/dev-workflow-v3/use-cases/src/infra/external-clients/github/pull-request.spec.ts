@@ -38,15 +38,25 @@ describe('createGithubPullRequest', () => {
     ])
   })
 
-  it('reuses the pull request that already exists for the branch', async () => {
+  it('updates the pull request that already exists for the branch', async () => {
     const runCommand = fakeCommands([
       { stdout: '', stderr: 'a pull request for branch already exists', exitCode: 1 },
+      { stdout: '', stderr: '', exitCode: 0 },
       { stdout: '{"number":549,"url":"https://github.com/o/r/pull/549"}', stderr: '', exitCode: 0 },
     ])
 
     const created = await createGithubPullRequest(runCommand, request)
 
     expect(created.number).toBe(549)
+    expect(runCommand.requests[1]?.arguments).toStrictEqual([
+      'pr',
+      'edit',
+      'issue-455-add-it',
+      '--title',
+      'feat: add it',
+      '--body',
+      'The description.',
+    ])
   })
 
   it('fails when gh cannot create the pull request at all', async () => {

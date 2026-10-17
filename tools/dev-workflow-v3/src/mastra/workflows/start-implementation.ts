@@ -341,7 +341,10 @@ function worktreeOf(state: RunState): WorktreeReference {
   return WorktreeReference.from({ path: state.worktreePath, branch: state.branch })
 }
 
+const CONVENTIONAL_PREFIX = /^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)[(:]/
+
 function pullRequestTitle(state: RunState): string {
+  if (CONVENTIONAL_PREFIX.test(state.issueTitle)) return state.issueTitle
   return `feat: ${state.issueTitle.toLowerCase()}`
 }
 

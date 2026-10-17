@@ -48,6 +48,12 @@ export async function createGithubPullRequest(
   if (created.exitCode !== 0 && !created.stderr.includes('already exists')) {
     throw new PullRequestNotCreated(created.stderr)
   }
+  if (created.exitCode !== 0) {
+    await ghOutput(runCommand, {
+      workingDirectory: request.workingDirectory,
+      arguments: ['pr', 'edit', request.branch, '--title', request.title, '--body', request.body],
+    })
+  }
   const output = await ghOutput(runCommand, {
     workingDirectory: request.workingDirectory,
     arguments: ['pr', 'view', request.branch, '--json', 'number,url'],
