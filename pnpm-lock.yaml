@@ -339,6 +339,15 @@ importers:
         specifier: ^3.23.0
         version: 3.25.76
 
+  packages/dev-workflow-v3/use-cases:
+    dependencies:
+      '@living-architecture/dev-workflow-v3-domain-model':
+        specifier: workspace:*
+        version: link:../domain-model
+      zod:
+        specifier: ^3.23.0
+        version: 3.25.76
+
   packages/living-documentation/domain-model: {}
 
   packages/living-documentation/use-cases:

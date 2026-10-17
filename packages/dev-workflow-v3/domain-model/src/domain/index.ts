@@ -1,5 +1,6 @@
 export * from './aggregated-review-results'
 export * from './blocker-question'
+export * from './branch-name'
 export * from './commit-record'
 export * from './implementation-outcome'
 export * from './implementation-plan'

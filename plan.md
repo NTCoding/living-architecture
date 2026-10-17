@@ -51,12 +51,12 @@
 
 ### Slice 2: use-cases package
 
-- [ ] Commands: prepare branch, verify, commit, push, open pull request, publish findings, close cycle
-- [ ] Queries: load issue, read pull request feedback
-- [ ] Data access: none
-- [ ] Adapters: git, github, checks
-- [ ] External clients: git, github, process
-- [ ] Tests to 100%
+- [x] Commands: prepare branch, verify, commit, push, open pull request, publish findings, close cycle
+- [ ] Queries: load issue, read pull request feedback. These became ports with adapters instead, because a query has to return a query model, and the workflow only wants the read itself
+- [x] Data access: none
+- [x] Adapters: git, github, checks
+- [x] External clients: git, github, process
+- [x] Tests to 100%
 - [ ] Pull request raised, `pnpm verify` green, reviewed and merged
 
 ### Slice 3: the app and the deterministic workflow
@@ -531,13 +531,10 @@ packages/dev-workflow-v3/use-cases/src/features/implementation/
     open-pull-request.ts
     publish-review-findings.ts
     close-review-cycle.ts
-  queries/
-    load-issue.ts
-    read-pull-request-feedback.ts
   adapters/
-    git/
-    github/
-    checks/
+    git/               prepare worktree, commit, push
+    github/            read issue, open pull request, publish a finding, read feedback, wait for reviewer
+    checks/            run the affected checks and the role check
 
 packages/dev-workflow-v3/use-cases/src/infra/external-clients/
   git/

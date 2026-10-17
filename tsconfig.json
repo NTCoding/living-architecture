@@ -59,6 +59,9 @@
     },
     {
       "path": "./packages/dev-workflow-v3/domain-model"
+    },
+    {
+      "path": "./packages/dev-workflow-v3/use-cases"
     }
   ]
 }
