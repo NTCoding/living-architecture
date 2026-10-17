@@ -13,11 +13,16 @@ import { InvalidWorkflowDefinitionError } from './riviere-project-errors'
 import { MissingModuleSourceError } from './extraction-errors'
 import { WorkflowRunMode } from './workflow'
 import { WorkflowStage } from './workflow-stage'
-import { collaborators, configuration, graphDefinition } from './__fixtures__/workflow-fixtures'
+import {
+  collaborators,
+  configuration,
+  graphDefinition,
+  rehydratingWorkflowStartInput,
+  workflowStartInput,
+} from './__fixtures__/workflow-fixtures'
 import {
   GraphOnlyProjectStartInput,
   GraphWithWorkflowStartInput,
-  WorkflowStartInput,
 } from './riviere-project-start-inputs'
 
 const aiExtractConfig: AiExtractConfig = {
@@ -38,16 +43,7 @@ function project(
     return RiviereProject.start(GraphOnlyProjectStartInput.from(graphDefinition()), collaborators())
   }
   return RiviereProject.start(
-    GraphWithWorkflowStartInput.from(
-      graphDefinition(),
-      WorkflowStartInput.from({
-        declaredDomains: ['orders'],
-        name: 'build-graph',
-        outputPath: '/project/.riviere/graph.json',
-        runLogDirectory: '/project/.riviere/logs',
-        stages,
-      }),
-    ),
+    GraphWithWorkflowStartInput.from(graphDefinition(), workflowStartInput(stages)),
     withCodeExtractionLoader(loadCodeExtraction),
   )
 }
@@ -104,29 +100,23 @@ describe('RiviereProject Workflow rebuild', () => {
           sources: [{ repository: 'shop' }],
           domains: { 'orders-domain': { description: 'Orders', systemType: 'domain' } },
         },
-        WorkflowStartInput.from({
-          declaredDomains: ['orders-domain'],
-          name: 'build-graph',
-          outputPath: '/project/.riviere/graph.json',
-          runLogDirectory: '/project/.riviere/logs',
-          stages: [
-            WorkflowStage.fromAsyncApiImport('import-asyncapi', {
-              source: '/specs/asyncapi.yaml',
-              sourceFilePath: 'specs/asyncapi.yaml',
-              mappings: {
-                messages: {
-                  OrderPlacedMessage: {
-                    domain: 'orders-domain',
-                    module: 'infrastructure',
-                    name: 'OrderPlaced',
-                  },
+        workflowStartInput([
+          WorkflowStage.fromAsyncApiImport('import-asyncapi', {
+            source: '/specs/asyncapi.yaml',
+            sourceFilePath: 'specs/asyncapi.yaml',
+            mappings: {
+              messages: {
+                OrderPlacedMessage: {
+                  domain: 'orders-domain',
+                  module: 'infrastructure',
+                  name: 'OrderPlaced',
                 },
-                operations: {},
               },
-              allowUnmapped: false,
-            }),
-          ],
-        }),
+              operations: {},
+            },
+            allowUnmapped: false,
+          }),
+        ]),
       ),
       collaborators(
         { domains: [], services: [], events: [] },
@@ -276,12 +266,9 @@ describe('RiviereProject Workflow rebuild', () => {
       graph,
       collaborators(),
       BuilderOptions.fromGraph(graph),
-      WorkflowStartInput.from({
-        declaredDomains: ['orders'],
-        name: 'build-graph',
+      rehydratingWorkflowStartInput(['orders'], [WorkflowStage.fromSchemaValidation('validate')], {
         outputPath: 'graph.json',
         runLogDirectory: 'logs',
-        stages: [WorkflowStage.fromSchemaValidation('validate')],
       }),
     )
 
@@ -300,12 +287,9 @@ describe('RiviereProject Workflow rebuild', () => {
         graph,
         collaborators(),
         BuilderOptions.fromGraph(graph),
-        WorkflowStartInput.from({
-          declaredDomains: ['orders'],
-          name: 'duplicate-stages',
-          outputPath: 'graph.json',
-          runLogDirectory: 'logs',
-          stages: [
+        rehydratingWorkflowStartInput(
+          ['orders'],
+          [
             WorkflowStage.fromCodeExtraction(
               'same',
               configuration().resolvedConfig,
@@ -313,19 +297,16 @@ describe('RiviereProject Workflow rebuild', () => {
             ),
             WorkflowStage.fromSchemaValidation('same'),
           ],
-        }),
+          { name: 'duplicate-stages', outputPath: 'graph.json', runLogDirectory: 'logs' },
+        ),
       ),
     ).toThrowError(new InvalidWorkflowDefinitionError("Duplicate workflow stage name 'same'"))
   })
 
   it('does not start a project with a Workflow that has duplicate stage names', async () => {
     expect(() =>
-      WorkflowStartInput.from({
-        declaredDomains: ['orders'],
-        name: 'duplicate-stages',
-        outputPath: 'graph.json',
-        runLogDirectory: 'logs',
-        stages: [
+      workflowStartInput(
+        [
           WorkflowStage.fromCodeExtraction(
             'same',
             configuration().resolvedConfig,
@@ -333,7 +314,8 @@ describe('RiviereProject Workflow rebuild', () => {
           ),
           WorkflowStage.fromSchemaValidation('same'),
         ],
-      }),
+        { name: 'duplicate-stages', outputPath: 'graph.json', runLogDirectory: 'logs' },
+      ),
     ).toThrowError(new InvalidWorkflowDefinitionError("Duplicate workflow stage name 'same'"))
   })
 
@@ -358,12 +340,9 @@ describe('RiviereProject Workflow rebuild', () => {
     const started = RiviereProject.start(
       GraphWithWorkflowStartInput.from(
         graphDefinition(),
-        WorkflowStartInput.from({
-          declaredDomains: ['orders'],
-          name: 'build-graph',
+        workflowStartInput([WorkflowStage.fromEventCatalogImport('import', eventCatalogConfig)], {
           outputPath: 'graph.json',
           runLogDirectory: 'logs',
-          stages: [WorkflowStage.fromEventCatalogImport('import', eventCatalogConfig)],
         }),
       ),
       collaborators({

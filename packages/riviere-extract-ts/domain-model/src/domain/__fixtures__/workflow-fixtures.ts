@@ -15,6 +15,42 @@ import type {
 import type { RiviereProjectExtractionBehaviour } from '../ports/riviere-project-extraction-behaviour'
 import type { RiviereModuleExtractionRules } from '../ports/riviere-module-extraction-rules'
 import { type MetadataValue, EnrichedComponent } from '../value-extraction/enriched-component'
+import { WorkflowStartInput } from '../riviere-project-start-inputs'
+import type { WorkflowStage } from '../workflow-stage'
+
+interface WorkflowStartInputOverrides {
+  readonly name?: string
+  readonly outputPath?: string
+  readonly runLogDirectory?: string
+}
+
+export function workflowStartInput(
+  stages: readonly WorkflowStage[],
+  overrides: WorkflowStartInputOverrides = {},
+): WorkflowStartInput {
+  return WorkflowStartInput.from({
+    name: 'build-graph',
+    outputPath: '/project/.riviere/graph.json',
+    runLogDirectory: '/project/.riviere/logs',
+    ...overrides,
+    stages,
+  })
+}
+
+export function rehydratingWorkflowStartInput(
+  declaredDomains: readonly string[],
+  stages: readonly WorkflowStage[],
+  overrides: WorkflowStartInputOverrides = {},
+): WorkflowStartInput {
+  return WorkflowStartInput.fromExistingGraph({
+    name: 'build-graph',
+    outputPath: '/project/.riviere/graph.json',
+    runLogDirectory: '/project/.riviere/logs',
+    ...overrides,
+    declaredDomains,
+    stages,
+  })
+}
 import { detectEventPublisherConnections } from '../connection-detection/async-detection/detect-event-publisher-connections'
 import { detectSubscribeConnections } from '../connection-detection/async-detection/detect-subscribe-connections'
 import { detectConnectionsFromCalls } from '../connection-detection/call-graph/detect-connections-from-calls'

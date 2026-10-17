@@ -157,7 +157,10 @@ export class RiviereProject {
           return {
             success: false as const,
             errorCode: 'GRAPH_VALIDATION_FAILED',
-            reason: validation.errors.map((error) => error.message).join('\n'),
+            reason: [
+              ...validation.errors.map((error) => error.message),
+              ...unresolvedDiagnostics.map((diagnostic) => diagnostic.describe()),
+            ].join('\n'),
           }
         if (unresolvedDiagnostics.length > 0)
           return {

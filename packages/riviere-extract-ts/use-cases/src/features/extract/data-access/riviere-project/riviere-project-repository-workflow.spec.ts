@@ -1,6 +1,7 @@
 import { createRiviereProjectRepository } from '../../../../__fixtures__/riviere-project-repository-fixtures'
 import {
   loadWorkflow,
+  writeImportStage,
   writeWorkflow,
 } from '../../../../__fixtures__/riviere-project-workflow-fixtures'
 import {
@@ -9,10 +10,11 @@ import {
 } from '../../../../__fixtures__/riviere-project-workspace-fixtures'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { assert, afterEach, describe, expect, it, vi } from 'vitest'
 import { RiviereBuilder } from '@living-architecture/riviere-builder-published-language'
 import { RiviereProject } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project'
 import { InvalidWorkflowDefinitionError } from '@living-architecture/riviere-extract-ts-domain-model/domain/riviere-project-errors'
+import { ExtractionConfigError } from './riviere-config-error'
 import { YamlDocumentReader } from '../../../../infra/external-clients/yaml/yaml-document-reader'
 import * as fileReader from '../../../../infra/external-clients/filesystem/file-reader'
 
@@ -201,39 +203,67 @@ describe('RiviereProjectRepository workflow loading', () => {
 
 it('rejects an eventcatalog-import stage whose source does not exist', () => {
   const directory = workspace()
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'import.yaml'),
-    'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
-  )
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'mappings.yaml'),
-    ['domains: {}', 'services: {}', 'events: {}'].join('\n'),
-  )
-  writeWorkflow(
+  writeImportStage(
     directory,
-    '  - kind: eventcatalog-import\n    name: import\n    config: import.yaml',
+    'eventcatalog-import',
+    ['domains: {}', 'services: {}', 'events: {}'],
+    { sourceFile: false },
   )
 
+  expect(() => loadWorkflow(directory, 'combined')).toThrow(ExtractionConfigError)
   expect(() => loadWorkflow(directory, 'combined')).toThrow(
-    /File not found: .*workflows.imported\.json/,
+    /Cannot resolve source 'imported\.json' declared in '.*import\.yaml'\. File not found: /,
   )
 })
 
 it('rejects an asyncapi-import stage whose source does not exist', () => {
   const directory = workspace()
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'import.yaml'),
-    'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
-  )
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'mappings.yaml'),
-    ['messages: {}', 'operations: {}'].join('\n'),
-  )
-  writeWorkflow(directory, '  - kind: asyncapi-import\n    name: import\n    config: import.yaml')
+  writeImportStage(directory, 'asyncapi-import', ['messages: {}', 'operations: {}'], {
+    sourceFile: false,
+  })
 
+  expect(() => loadWorkflow(directory, 'combined')).toThrow(ExtractionConfigError)
   expect(() => loadWorkflow(directory, 'combined')).toThrow(
-    /File not found: .*workflows.imported\.json/,
+    /Cannot resolve source 'imported\.json' declared in '.*import\.yaml'\. File not found: /,
   )
+})
+
+it('carries newly declared workflow domains into a rehydrated graph', async () => {
+  const directory = workspace()
+  const previousGraph = RiviereBuilder.parse({
+    name: 'previous-graph',
+    description: 'Orders and shipping',
+    sources: [{ repository: 'workflow-test' }],
+    domains: { orders: { description: 'orders domain', systemType: 'domain' } },
+  }).build()
+  writeFileSync(join(directory, '.riviere', 'graph.json'), JSON.stringify(previousGraph))
+  writeImportStage(directory, 'eventcatalog-import', ['domains: {}', 'services: {}', 'events: {}'])
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'combined.yaml'),
+    [
+      'apiVersion: v1',
+      'name: combined-graph',
+      'description: Orders and shipping',
+      'output: ../graph.json',
+      'sources:',
+      '  - repository: workflow-test',
+      'domains:',
+      '  orders:',
+      '    description: orders domain',
+      '  shipping:',
+      '    description: shipping domain',
+      'stages:',
+      '  - kind: eventcatalog-import',
+      '    name: import',
+      '    config: import.yaml',
+    ].join('\n'),
+  )
+
+  const project = loadWorkflow(directory, 'combined')
+  const result = await project.rebuildGraph()
+
+  assert(result.success)
+  expect(Object.keys(result.graph.metadata.domains)).toStrictEqual(['orders', 'shipping'])
 })
 
 it('rejects a stage mapping that references an undeclared domain', () => {

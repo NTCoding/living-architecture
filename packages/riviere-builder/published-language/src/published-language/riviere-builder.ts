@@ -414,6 +414,11 @@ export class RiviereBuilder {
     return this.publishedGraph().components
   }
 
+  /** @returns Whether the graph declares the domain. */
+  hasDomain(name: string): boolean {
+    return this.metadata.hasDomain(name)
+  }
+
   links(): readonly PublishedLink[] {
     return this.publishedGraph().links
   }

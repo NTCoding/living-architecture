@@ -8,6 +8,7 @@ import {
   configuration,
   component,
   graphDefinition,
+  workflowStartInput,
 } from './__fixtures__/workflow-fixtures'
 import { DraftComponent } from './component-extraction/draft-component'
 import {
@@ -20,7 +21,6 @@ import type { LoadCodeExtraction } from './ports/load-code-extraction'
 import {
   ExtractionProjectStartInput,
   GraphWithWorkflowStartInput,
-  WorkflowStartInput,
 } from './riviere-project-start-inputs'
 
 const detection = vi.hoisted(() => ({ links: new Array<unknown>() }))
@@ -86,16 +86,7 @@ function workflowProject(
   loader: LoadCodeExtraction = () => shared.moduleContexts,
 ): RiviereProject {
   const started = RiviereProject.start(
-    GraphWithWorkflowStartInput.from(
-      graphDefinition(),
-      WorkflowStartInput.from({
-        declaredDomains: ['orders'],
-        name: 'build-graph',
-        outputPath: '/project/.riviere/graph.json',
-        runLogDirectory: '/project/.riviere/logs',
-        stages: [...stages],
-      }),
-    ),
+    GraphWithWorkflowStartInput.from(graphDefinition(), workflowStartInput([...stages])),
     { ...collaborators(), loadCodeExtraction: loader },
   )
   return started

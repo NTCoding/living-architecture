@@ -20,12 +20,12 @@ import {
   type WorkflowDefinition,
   type WorkflowStageDefinition,
 } from '@living-architecture/riviere-extract-config-published-language'
-import { BuilderOptions } from '@living-architecture/riviere-builder-published-language'
-import * as fileReader from '../../../../infra/external-clients/filesystem/file-reader'
 import {
-  fileExists,
-  requireExistingPath,
-} from '../../../../infra/external-clients/filesystem/file-existence'
+  BuilderOptions,
+  type BuilderOptionsInput,
+} from '@living-architecture/riviere-builder-published-language'
+import * as fileReader from '../../../../infra/external-clients/filesystem/file-reader'
+import { fileExists } from '../../../../infra/external-clients/filesystem/file-existence'
 import { writeTextFile } from '../../../../infra/external-clients/filesystem/text-file-writer'
 import { readConfigYaml } from '../../../../infra/external-clients/config/config-file-reader'
 import { resolveAiConfig } from '../../../../infra/external-clients/config/config-path-resolution'
@@ -74,6 +74,15 @@ function requireStageConfig<TSuccess>(
   return result
 }
 
+function requireExistingImportSource(declaredSource: string, configPath: string): string {
+  const source = resolve(dirname(configPath), declaredSource)
+  if (!fileExists(source))
+    throw validationError(
+      `Cannot resolve source '${declaredSource}' declared in '${configPath}'. File not found: ${source}`,
+    )
+  return source
+}
+
 /** @riviere-role aggregate-repository */
 export class RiviereProjectRepository {
   constructor(private readonly collaborators: RiviereProjectRepositoryCollaborators) {}
@@ -97,14 +106,19 @@ export class RiviereProjectRepository {
     const stages = definition.stages.map((stage) => this.materializeStage(stage, workflowDirectory))
     const graphPath = resolve(workflowDirectory, definition.output)
     const collaborators = this.projectCollaborators(this.repositoryName(workflowDirectory))
-    const workflowInput = WorkflowStartInput.from({
+    const workflowValues = {
       name: definition.name,
       outputPath: graphPath,
       runLogDirectory: dirname(graphPath),
-      declaredDomains: Object.keys(definition.domains),
       stages,
-    })
-    if (fileExists(graphPath)) return this.rehydrateGraph(graphPath, workflowInput, collaborators)
+    }
+    if (fileExists(graphPath)) {
+      const workflowInput = WorkflowStartInput.fromExistingGraph({
+        ...workflowValues,
+        declaredDomains: Object.keys(definition.domains),
+      })
+      return this.rehydrateGraph(graphPath, workflowInput, definition.domains, collaborators)
+    }
     return RiviereProject.start(
       GraphWithWorkflowStartInput.from(
         {
@@ -113,7 +127,7 @@ export class RiviereProjectRepository {
           sources: definition.sources,
           domains: definition.domains,
         },
-        workflowInput,
+        WorkflowStartInput.from(workflowValues),
       ),
       collaborators,
     )
@@ -121,15 +135,20 @@ export class RiviereProjectRepository {
   private rehydrateGraph(
     graphPath: string,
     workflowInput: WorkflowStartInput,
+    declaredDomains: BuilderOptionsInput['domains'],
     collaborators: RiviereProjectCollaborators,
   ): RiviereProject {
     const parsed = parseRiviereGraph(this.readExistingGraph(graphPath))
     if (!parsed.success)
       throw validationError(`Invalid existing graph: ${parsed.issues.join('\n')}`)
+    const persisted = BuilderOptions.fromGraph(parsed.graph).toJSON()
     return RiviereProject.rehydrate(
       parsed.graph,
       collaborators,
-      BuilderOptions.fromGraph(parsed.graph),
+      BuilderOptions.parse({
+        ...persisted,
+        domains: { ...declaredDomains, ...persisted.domains },
+      }),
       workflowInput,
     )
   }
@@ -181,7 +200,7 @@ export class RiviereProjectRepository {
           ),
           'Invalid EventCatalog mappings: ',
         )
-        const source = requireExistingPath(resolve(configDirectory, config.config.source))
+        const source = requireExistingImportSource(config.config.source, configPath)
         return {
           kind: 'eventcatalog-import',
           name: stage.name,
@@ -201,7 +220,7 @@ export class RiviereProjectRepository {
           ),
           'Invalid AsyncAPI mappings: ',
         )
-        const source = requireExistingPath(resolve(configDirectory, config.config.source))
+        const source = requireExistingImportSource(config.config.source, configPath)
         return {
           kind: 'asyncapi-import',
           name: stage.name,

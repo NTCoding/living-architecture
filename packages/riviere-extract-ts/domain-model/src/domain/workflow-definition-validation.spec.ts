@@ -1,68 +1,60 @@
 import { describe, expect, it } from 'vitest'
 import { WorkflowStage } from './workflow-stage'
-import { configuration } from './__fixtures__/workflow-fixtures'
+import {
+  configuration,
+  rehydratingWorkflowStartInput,
+  workflowStartInput,
+} from './__fixtures__/workflow-fixtures'
 import { InvalidWorkflowDefinitionError } from './riviere-project-errors'
-import { WorkflowStartInput } from './riviere-project-start-inputs'
+import { GraphWithWorkflowStartInput } from './riviere-project-start-inputs'
+
+function codeExtractionStage(name: string): WorkflowStage {
+  return WorkflowStage.fromCodeExtraction(name, configuration().resolvedConfig, 'extraction.yml')
+}
 
 describe('Workflow definition validation', () => {
   it('rejects an invalid Workflow name', () => {
     expect(() =>
-      WorkflowStartInput.from({
-        declaredDomains: ['orders'],
-        name: 'Build Graph',
-        outputPath: 'graph.json',
-        runLogDirectory: 'logs',
-        stages: [WorkflowStage.fromSchemaValidation('validate')],
-      }),
-    ).toThrowError("Workflow name 'Build Graph' must match [a-z0-9][a-z0-9-]*")
+      workflowStartInput([WorkflowStage.fromSchemaValidation('validate')], { name: 'Build Graph' }),
+    ).toThrowError(
+      new InvalidWorkflowDefinitionError(
+        "Workflow name 'Build Graph' must match [a-z0-9][a-z0-9-]*",
+      ),
+    )
   })
 
   it('rejects a workflow without stages', () => {
-    expect(() =>
-      WorkflowStartInput.from({
-        declaredDomains: ['orders'],
-        name: 'build-graph',
-        outputPath: 'graph.json',
-        runLogDirectory: 'logs',
-        stages: [],
-      }),
-    ).toThrowError('Workflow must define at least one stage')
+    expect(() => workflowStartInput([])).toThrowError(
+      new InvalidWorkflowDefinitionError('Workflow must define at least one stage'),
+    )
   })
 
   it('rejects duplicate stage names across different stage kinds', () => {
     expect(() =>
-      WorkflowStartInput.from({
-        declaredDomains: ['orders'],
-        name: 'build-graph',
-        outputPath: 'graph.json',
-        runLogDirectory: 'logs',
-        stages: [
-          WorkflowStage.fromCodeExtraction(
-            'same',
-            configuration().resolvedConfig,
-            'extraction.yml',
-          ),
-          WorkflowStage.fromSchemaValidation('same'),
-        ],
-      }),
-    ).toThrowError("Duplicate workflow stage name 'same'")
+      workflowStartInput([codeExtractionStage('same'), WorkflowStage.fromSchemaValidation('same')]),
+    ).toThrowError(new InvalidWorkflowDefinitionError("Duplicate workflow stage name 'same'"))
   })
 
-  it('rejects a stage domain that the declared domains do not include', () => {
+  it('rejects a rehydrating workflow whose stages reference undeclared domains', () => {
     expect(() =>
-      WorkflowStartInput.from({
-        declaredDomains: ['shipping'],
-        name: 'build-graph',
-        outputPath: 'graph.json',
-        runLogDirectory: 'logs',
-        stages: [
-          WorkflowStage.fromCodeExtraction(
-            'extract',
-            configuration().resolvedConfig,
-            'extraction.yml',
-          ),
-        ],
-      }),
+      rehydratingWorkflowStartInput(['shipping'], [codeExtractionStage('extract')]),
+    ).toThrowError(
+      new InvalidWorkflowDefinitionError(
+        'Workflow stages reference undeclared domains: orders. Declared workflow domains: shipping',
+      ),
+    )
+  })
+
+  it('rejects a started workflow whose stages reference domains missing from the graph definition', () => {
+    expect(() =>
+      GraphWithWorkflowStartInput.from(
+        {
+          name: 'Shop',
+          sources: [{ repository: 'shop' }],
+          domains: { shipping: { description: 'Shipping', systemType: 'domain' } },
+        },
+        workflowStartInput([codeExtractionStage('extract')]),
+      ),
     ).toThrowError(
       new InvalidWorkflowDefinitionError(
         'Workflow stages reference undeclared domains: orders. Declared workflow domains: shipping',

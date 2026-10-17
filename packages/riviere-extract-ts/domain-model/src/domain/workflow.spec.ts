@@ -9,8 +9,7 @@ import { TestFixtureError } from './value-extraction/literal-detection'
 import { Workflow, WorkflowRunMode } from './workflow'
 import { WorkflowDiagnostic } from './workflow-diagnostic'
 import { WorkflowStage } from './workflow-stage'
-import { builder, configuration } from './__fixtures__/workflow-fixtures'
-import { WorkflowStartInput } from './riviere-project-start-inputs'
+import { builder, configuration, workflowStartInput } from './__fixtures__/workflow-fixtures'
 
 const codeExtractionConfig = configuration().resolvedConfig
 const eventCatalogConfig: EventCatalogImportConfig = {
@@ -63,12 +62,9 @@ function allStages() {
 
 function workflow(stages = allStages()): Workflow {
   return Workflow.build(
-    WorkflowStartInput.from({
-      declaredDomains: ['orders'],
-      name: 'build-graph',
+    workflowStartInput(stages, {
       outputPath: '.riviere/graph.json',
       runLogDirectory: '.riviere/logs',
-      stages,
     }),
   )
 }
@@ -82,12 +78,10 @@ const successfulStage = {
 describe('Workflow stage language', () => {
   it('reports its workflow name', () => {
     const result = Workflow.build(
-      WorkflowStartInput.from({
-        declaredDomains: ['orders'],
+      workflowStartInput([WorkflowStage.fromSchemaValidation('validate')], {
         name: 'build',
         outputPath: 'graph.json',
         runLogDirectory: 'logs',
-        stages: [WorkflowStage.fromSchemaValidation('validate')],
       }),
     )
     expect(result.name()).toBe('build')

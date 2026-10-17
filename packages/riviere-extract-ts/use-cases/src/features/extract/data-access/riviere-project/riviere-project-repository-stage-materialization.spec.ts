@@ -9,6 +9,7 @@ import {
 import {
   loadWorkflow,
   writeCodeExtractionConfig,
+  writeImportStage,
   writeWorkflow,
 } from '../../../../__fixtures__/riviere-project-workflow-fixtures'
 
@@ -17,74 +18,49 @@ afterEach(cleanupWorkflowWorkspaces)
 describe('RiviereProjectRepository workflow stage materialization', () => {
   it('materializes an asyncapi-import stage with validated mappings', () => {
     const directory = workspace()
-    writeFileSync(
-      join(directory, '.riviere', 'workflows', 'import.yaml'),
-      'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
-    )
-    writeFileSync(join(directory, '.riviere', 'workflows', 'imported.json'), '{}')
-    writeFileSync(
-      join(directory, '.riviere', 'workflows', 'mappings.yaml'),
-      [
-        'messages:',
-        '  OrderPlacedMessage:',
-        '    domain: orders',
-        '    module: infrastructure',
-        '    name: OrderPlaced',
-        'operations:',
-        '  processOrder:',
-        '    type: UseCase',
-        '    domain: orders',
-        '    module: checkout',
-        '    name: ProcessOrder',
-      ].join('\n'),
-    )
-    writeWorkflow(directory, '  - kind: asyncapi-import\n    name: import\n    config: import.yaml')
+    writeImportStage(directory, 'asyncapi-import', [
+      'messages:',
+      '  OrderPlacedMessage:',
+      '    domain: orders',
+      '    module: infrastructure',
+      '    name: OrderPlaced',
+      'operations:',
+      '  processOrder:',
+      '    type: UseCase',
+      '    domain: orders',
+      '    module: checkout',
+      '    name: ProcessOrder',
+    ])
 
     expect(loadWorkflow(directory, 'combined').build().metadata.name).toBe('combined-graph')
   })
 
   it('rejects asyncapi-import mappings with unknown keys', () => {
     const directory = workspace()
-    writeFileSync(
-      join(directory, '.riviere', 'workflows', 'import.yaml'),
-      'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
-    )
-    writeFileSync(
-      join(directory, '.riviere', 'workflows', 'mappings.yaml'),
-      ['messages: {}', 'operations: {}', 'unexpected: true'].join('\n'),
-    )
-    writeWorkflow(directory, '  - kind: asyncapi-import\n    name: import\n    config: import.yaml')
+    writeImportStage(directory, 'asyncapi-import', [
+      'messages: {}',
+      'operations: {}',
+      'unexpected: true',
+    ])
 
     expect(() => loadWorkflow(directory, 'combined')).toThrow(/Invalid AsyncAPI mappings/)
   })
 
   it('materializes an eventcatalog-import stage with validated mappings', () => {
     const directory = workspace()
-    writeFileSync(
-      join(directory, '.riviere', 'workflows', 'import.yaml'),
-      'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
-    )
-    writeFileSync(join(directory, '.riviere', 'workflows', 'imported.json'), '{}')
-    writeFileSync(
-      join(directory, '.riviere', 'workflows', 'mappings.yaml'),
-      [
-        'domains:',
-        '  OrdersDomain: orders',
-        'services:',
-        '  OrdersService:',
-        '    type: UseCase',
-        '    domain: orders',
-        '    module: checkout',
-        '    name: PlaceOrder',
-        'events:',
-        '  OrderCreated:',
-        '    name: OrderPlaced',
-      ].join('\n'),
-    )
-    writeWorkflow(
-      directory,
-      '  - kind: eventcatalog-import\n    name: import\n    config: import.yaml',
-    )
+    writeImportStage(directory, 'eventcatalog-import', [
+      'domains:',
+      '  OrdersDomain: orders',
+      'services:',
+      '  OrdersService:',
+      '    type: UseCase',
+      '    domain: orders',
+      '    module: checkout',
+      '    name: PlaceOrder',
+      'events:',
+      '  OrderCreated:',
+      '    name: OrderPlaced',
+    ])
 
     const project = loadWorkflow(directory, 'combined')
 
@@ -93,18 +69,12 @@ describe('RiviereProjectRepository workflow stage materialization', () => {
 
   it('rejects eventcatalog-import mappings with unknown keys', () => {
     const directory = workspace()
-    writeFileSync(
-      join(directory, '.riviere', 'workflows', 'import.yaml'),
-      'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
-    )
-    writeFileSync(
-      join(directory, '.riviere', 'workflows', 'mappings.yaml'),
-      ['domains: {}', 'services: {}', 'events: {}', 'unexpected: true'].join('\n'),
-    )
-    writeWorkflow(
-      directory,
-      '  - kind: eventcatalog-import\n    name: import\n    config: import.yaml',
-    )
+    writeImportStage(directory, 'eventcatalog-import', [
+      'domains: {}',
+      'services: {}',
+      'events: {}',
+      'unexpected: true',
+    ])
 
     expect(() => loadWorkflow(directory, 'combined')).toThrow(/Invalid EventCatalog mappings/)
   })

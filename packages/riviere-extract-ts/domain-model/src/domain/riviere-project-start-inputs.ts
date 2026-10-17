@@ -19,6 +19,13 @@ export class ExtractionProjectStartInput {
   }
 }
 
+type WorkflowStartInputValues = Readonly<{
+  name: string
+  outputPath: string
+  runLogDirectory: string
+  stages: readonly WorkflowStage[]
+}>
+
 /** @riviere-role value-object */
 export class WorkflowStartInput {
   declare private readonly brand: 'WorkflowStartInput'
@@ -28,15 +35,21 @@ export class WorkflowStartInput {
     readonly runLogDirectory: string,
     readonly stages: readonly WorkflowStage[],
   ) {}
-  static from(input: {
-    readonly name: string
-    readonly outputPath: string
-    readonly runLogDirectory: string
-    readonly declaredDomains: readonly string[]
-    readonly stages: readonly WorkflowStage[]
-  }): WorkflowStartInput {
+  static from(input: WorkflowStartInputValues): WorkflowStartInput {
+    return WorkflowStartInput.parseValues(input)
+  }
+  static fromExistingGraph(
+    input: WorkflowStartInputValues & { readonly declaredDomains: readonly string[] },
+  ): WorkflowStartInput {
+    const workflow = WorkflowStartInput.parseValues(input)
+    requireDeclaredStageDomains(input.declaredDomains, workflow.domainReferences())
+    return workflow
+  }
+  domainReferences(): readonly string[] {
+    return this.stages.flatMap((stage) => stage.domainReferences())
+  }
+  private static parseValues(input: WorkflowStartInputValues): WorkflowStartInput {
     validateWorkflow(input.name, input.stages)
-    requireDeclaredStageDomains(input.declaredDomains, input.stages)
     return new WorkflowStartInput(input.name, input.outputPath, input.runLogDirectory, [
       ...input.stages,
     ])
@@ -69,14 +82,10 @@ function findDuplicateStageName(stages: readonly WorkflowStage[]): string | unde
 
 function requireDeclaredStageDomains(
   declaredDomainNames: readonly string[],
-  stages: readonly WorkflowStage[],
+  stageDomainReferences: readonly string[],
 ): void {
   const declared = new Set(declaredDomainNames)
-  const undeclared = [
-    ...new Set(
-      stages.flatMap((stage) => stage.domainReferences()).filter((domain) => !declared.has(domain)),
-    ),
-  ]
+  const undeclared = [...new Set(stageDomainReferences.filter((domain) => !declared.has(domain)))]
   if (undeclared.length === 0) return
   throw new InvalidWorkflowDefinitionError(
     `Workflow stages reference undeclared domains: ${undeclared.join(', ')}. Declared workflow domains: ${declaredDomainNames.join(', ')}`,
@@ -103,6 +112,10 @@ export class GraphWithWorkflowStartInput {
     graphDefinition: BuilderOptionsInput,
     workflowInput: WorkflowStartInput,
   ): GraphWithWorkflowStartInput {
+    requireDeclaredStageDomains(
+      Object.keys(graphDefinition.domains),
+      workflowInput.domainReferences(),
+    )
     return new GraphWithWorkflowStartInput(graphDefinition, workflowInput)
   }
 }

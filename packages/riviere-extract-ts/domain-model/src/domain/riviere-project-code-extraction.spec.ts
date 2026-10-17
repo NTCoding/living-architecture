@@ -2,9 +2,14 @@ import { assert, describe, expect, it } from 'vitest'
 import { RiviereProject } from './riviere-project'
 import { WorkflowStage } from './workflow-stage'
 import { MissingModuleSourceError } from './extraction-errors'
-import { collaborators, configuration, graphDefinition } from './__fixtures__/workflow-fixtures'
+import {
+  collaborators,
+  configuration,
+  graphDefinition,
+  workflowStartInput,
+} from './__fixtures__/workflow-fixtures'
 import { mustBeDefined } from '../__fixtures__/missing-test-fixture-error'
-import { GraphWithWorkflowStartInput, WorkflowStartInput } from './riviere-project-start-inputs'
+import { GraphWithWorkflowStartInput } from './riviere-project-start-inputs'
 
 const sharedConfiguration = configuration()
 
@@ -32,16 +37,7 @@ function loadCodeExtraction() {
 
 function projectWithStage(stage: WorkflowStage, loader = loadCodeExtraction): RiviereProject {
   const started = RiviereProject.start(
-    GraphWithWorkflowStartInput.from(
-      graphDefinition(),
-      WorkflowStartInput.from({
-        declaredDomains: ['orders'],
-        name: 'build-graph',
-        outputPath: '/project/.riviere/graph.json',
-        runLogDirectory: '/project/.riviere/logs',
-        stages: [stage],
-      }),
-    ),
+    GraphWithWorkflowStartInput.from(graphDefinition(), workflowStartInput([stage])),
     { ...collaborators(), loadCodeExtraction: loader },
   )
   return started

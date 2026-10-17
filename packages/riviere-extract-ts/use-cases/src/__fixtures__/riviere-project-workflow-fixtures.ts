@@ -45,3 +45,20 @@ const CODE_EXTRACTION_CONFIG = [
 export function writeCodeExtractionConfig(directory: string): void {
   writeFileSync(join(directory, '.riviere', 'workflows', 'extract.yaml'), CODE_EXTRACTION_CONFIG)
 }
+
+export function writeImportStage(
+  directory: string,
+  kind: 'eventcatalog-import' | 'asyncapi-import',
+  mappingsYaml: readonly string[],
+  options: { readonly sourceFile?: boolean } = {},
+): void {
+  writeFileSync(
+    join(directory, '.riviere', 'workflows', 'import.yaml'),
+    'source: imported.json\nmappings: mappings.yaml\nallow-unmapped: false\n',
+  )
+  if (options.sourceFile !== false) {
+    writeFileSync(join(directory, '.riviere', 'workflows', 'imported.json'), '{}')
+  }
+  writeFileSync(join(directory, '.riviere', 'workflows', 'mappings.yaml'), mappingsYaml.join('\n'))
+  writeWorkflow(directory, `  - kind: ${kind}\n    name: import\n    config: import.yaml`)
+}
