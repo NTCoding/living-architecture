@@ -77,7 +77,8 @@
 - [x] `ask-user` tool, `autoResumeSuspendedTools`, `chat` entrypoint
 - [x] The workspace refuses `git push`, `gh pr` and `gh api` in a `beforeToolCall` hook
 - [ ] Tests to 100% for the app. The workflow graph and the CLI still have none
-- [ ] A run against a real issue with a real model. This needs a provider key in the environment
+- [x] A run against a real issue with a real model. Issue 548 reached pull request 549, and the pull request carries the plan write up
+- [ ] `mark-ready-for-human` comments on the pull request. It only records that the run finished
 - [ ] Pull request raised, `pnpm verify` green, reviewed and merged
 
 ### Slice 5: the review cycle
