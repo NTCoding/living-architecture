@@ -26,19 +26,6 @@ import {
   pushBranch,
 } from './maintainer-git-forge.ts'
 
-/**
- * The git and gh commands the maintainer workflow needs, typed and recorded.
- *
- * The point of this behaviour is that the agent never runs these. Every value
- * that reaches a command comes either from a git read or from an artefact the
- * factory validated against a declared schema, so a malformed branch name,
- * commit message or pull request body stops here rather than reaching the
- * repository.
- *
- * @module
- */
-
-/** Behaviour type for the deterministic git and forge stages. */
 export const behavior = {
   type: '@living-architecture/maintainer-git',
   version: '2026.10.17.1',

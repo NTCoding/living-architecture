@@ -1,22 +1,12 @@
 import { CommandFailed, RunCancelled } from './maintainer-git-errors.ts'
 import type { PlannedCommand } from './maintainer-git-commands.ts'
 
-/**
- * Running a planned command, and the failure behaviour shared by every method.
- *
- * A command never receives a single string of shell text. The executable and
- * each argument are separate, so nothing the agent records can be split into
- * extra arguments by a shell.
- */
-
-/** What a command produced, with both streams already decoded. */
 export interface CommandOutcome {
   readonly exitCode: number
   readonly stdout: string
   readonly stderr: string
 }
 
-/** Runs a command and returns its exit code and output. */
 export async function runCommand(
   plan: PlannedCommand,
   signal: AbortSignal,
@@ -37,7 +27,6 @@ export async function runCommand(
   }
 }
 
-/** Runs a command and throws when it fails, naming the action that failed. */
 export async function runOrThrow(
   plan: PlannedCommand,
   signal: AbortSignal,

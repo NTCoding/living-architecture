@@ -1,8 +1,3 @@
-/**
- * The slice of the Deno runtime that Swamp grants to extension behaviour
- * methods. Declared here so the repository's TypeScript project can type check
- * extension sources without depending on the Deno type package.
- */
 declare const Deno: {
   Command: new (
     executable: string,

@@ -4,18 +4,6 @@ import { parse } from 'yaml'
 import { describe, expect, it } from 'vitest'
 import { InvalidDefinitionDocument } from './extensions/behaviors/maintainer-git-errors'
 
-/**
- * Structural checks over the maintainer factory definition and the workflows it
- * calls. These are the errors a YAML file cannot catch on its own: a workflow
- * renamed in one place and not the other, a gate pointing at an artefact nobody
- * declares, a stage that cannot be reached.
- *
- * The factory's own meta-schema and graph rules are enforced by
- * `swamp model method run maintainer-factory validate`, which needs Swamp. This
- * file covers the cross-file references that Swamp cannot see, because it
- * treats each workflow as a separate definition.
- */
-
 const SWAMP_DIR = import.meta.dirname
 const WORKFLOW_DIR = join(SWAMP_DIR, 'workflows')
 
@@ -192,7 +180,6 @@ function readWorkflows(): readonly Workflow[] {
     .map(readWorkflow)
 }
 
-/** Every `data.latest("<name>", ...)` behaviour name a workflow reads from. */
 function dataSourcesIn(text: string): readonly string[] {
   return [...text.matchAll(/data\.latest\(\s*"([^"]+)"/g)]
     .map((match) => match[1])

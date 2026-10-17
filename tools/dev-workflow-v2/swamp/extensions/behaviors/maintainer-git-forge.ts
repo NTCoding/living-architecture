@@ -19,11 +19,6 @@ import {
 } from './maintainer-git-errors.ts'
 import type { BehaviourContext, MethodResult } from './maintainer-git-schema.ts'
 
-/**
- * The methods that talk to the forge: pushing, opening the pull request,
- * commenting, and waiting for the external reviewer.
- */
-
 const REMOTE = 'origin'
 const BASE = 'main'
 
@@ -77,7 +72,6 @@ function pullRequestNumberFrom(url: string): number {
   return number
 }
 
-/** Pushes the branch and records that it happened. */
 export async function pushBranch(
   args: { branch: string },
   context: BehaviourContext,
@@ -91,13 +85,6 @@ export async function pushBranch(
   return { dataHandles: [handle] }
 }
 
-/**
- * Composes the pull request body from the recorded plan and change, then opens
- * the pull request.
- *
- * The body is never written by an agent at submit time, so it cannot describe
- * work that was not done.
- */
 export async function openPullRequest(
   args: {
     issue: number
@@ -140,7 +127,6 @@ export async function openPullRequest(
   return { dataHandles: [handle] }
 }
 
-/** Posts a single comment on the pull request. */
 export async function postComment(
   args: { pr: number; body: string },
   context: BehaviourContext,
@@ -149,15 +135,6 @@ export async function postComment(
   return { dataHandles: [] }
 }
 
-/**
- * Posts every recorded finding to the pull request.
- *
- * A finding that the reviewer gave a location for becomes an inline review
- * comment on that line. A finding without a location is posted as an ordinary
- * comment rather than being dropped, so nothing a reviewer recorded goes
- * unread. The body is composed here rather than by an agent, so the format is
- * the same every time.
- */
 export async function postFindings(
   args: {
     pr: number
@@ -213,13 +190,6 @@ export async function postFindings(
   return { dataHandles: [handle] }
 }
 
-/**
- * Polls the pull request until the external reviewer has reviewed the commit
- * that was pushed.
- *
- * The reviewer is matched by login and by commit, so a review of an earlier
- * commit does not satisfy the wait.
- */
 export async function awaitCodeRabbit(
   args: { pr: number; headSha: string; timeoutSeconds: number; intervalSeconds: number },
   context: BehaviourContext,

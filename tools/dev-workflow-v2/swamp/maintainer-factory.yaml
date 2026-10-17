@@ -1,18 +1,3 @@
-# Maintainer workflow factory definition for @swamp/software-factory.
-#
-# This file is the contents of a factory definition's `globalArguments`.
-# Seed it with:
-#
-#   swamp model create @swamp/software-factory maintainer-factory
-#   swamp model edit maintainer-factory      # paste everything below
-#   swamp model method run maintainer-factory validate
-#
-# The design rule behind it: any work that touches the world outside the
-# working tree is a `mode: workflow` stage, so Swamp runs it and no agent is
-# ever placed in a position where it needs to run git, gh or pnpm. The agent
-# only appears in stages that need judgement, and it contributes data that a
-# declared schema validates before any command uses it.
-
 stages:
   - id: preparing
     initial: true

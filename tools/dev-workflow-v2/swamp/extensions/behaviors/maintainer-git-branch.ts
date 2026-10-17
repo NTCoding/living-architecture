@@ -15,21 +15,9 @@ import { runCommand, runOrThrow } from './maintainer-git-execution.ts'
 import { CommandFailed, NoCommitsAhead, WorkingTreeDirty } from './maintainer-git-errors.ts'
 import type { BehaviourContext, MethodResult } from './maintainer-git-schema.ts'
 
-/**
- * The methods that only touch this machine: preparing the branch, committing
- * what the agent wrote, and running the repository gate.
- */
-
 const REMOTE = 'origin'
 const BASE = 'main'
 
-/**
- * Fetches the remote, then creates or switches to the issue branch.
- *
- * Refuses to start when the working tree is not clean, because a dirty tree
- * makes it impossible to tell the agent's work apart from work that was already
- * there.
- */
 export async function prepareIssue(
   args: { issue: number },
   context: BehaviourContext,
@@ -64,7 +52,6 @@ export async function prepareIssue(
   return { dataHandles: [handle] }
 }
 
-/** Stages everything, commits with the recorded message, then proves the result. */
 export async function commit(
   args: { message: string },
   context: BehaviourContext,
@@ -98,7 +85,6 @@ export async function commit(
   return { dataHandles: [handle] }
 }
 
-/** Runs the repository verify gate, records the outcome, and fails when it fails. */
 export async function runChecks(
   _args: Record<string, never>,
   context: BehaviourContext,
