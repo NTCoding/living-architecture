@@ -201,7 +201,13 @@ export function createStartImplementationWorkflow(dependencies: StartImplementat
             autoResumeSuspendedTools: true,
           },
         )
-      const outcome = ImplementationOutcome.from(response.object)
+      const parsed = implementationOutputSchema.safeParse(response.object)
+      if (!parsed.success) {
+        throw new RunFailed(
+          `The implementer did not return a summary. finishReason=${String(response.finishReason)} text=${response.text.slice(0, 300)}`,
+        )
+      }
+      const outcome = ImplementationOutcome.from(parsed.data)
       if (outcome.isBlocked()) {
         throw new RunFailed(`The implementer is blocked: ${outcome.reason()}`)
       }
