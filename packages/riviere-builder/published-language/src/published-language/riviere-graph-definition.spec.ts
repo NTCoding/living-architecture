@@ -61,6 +61,11 @@ describe('RiviereGraphDefinition', () => {
     ).toThrow("Domain 'orders' already exists")
   })
 
+  it('reports declared domains', () => {
+    expect(definition().hasDomain('orders')).toBe(true)
+    expect(definition().hasDomain('missing')).toBe(false)
+  })
+
   it('checks domains and required custom type properties', () => {
     const custom = definition().includingCustomType('Queue', {
       requiredProperties: { owner: { type: 'string' } },

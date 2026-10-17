@@ -3,7 +3,13 @@ import { Project } from 'ts-morph'
 import { RiviereProject } from './riviere-project'
 import { RiviereModule } from './riviere-module'
 import { WorkflowStage } from './workflow-stage'
-import { collaborators, configuration, component } from './__fixtures__/workflow-fixtures'
+import {
+  collaborators,
+  configuration,
+  component,
+  graphDefinition,
+  workflowStartInput,
+} from './__fixtures__/workflow-fixtures'
 import { DraftComponent } from './component-extraction/draft-component'
 import {
   EnrichedComponent,
@@ -15,7 +21,6 @@ import type { LoadCodeExtraction } from './ports/load-code-extraction'
 import {
   ExtractionProjectStartInput,
   GraphWithWorkflowStartInput,
-  WorkflowStartInput,
 } from './riviere-project-start-inputs'
 
 const detection = vi.hoisted(() => ({ links: new Array<unknown>() }))
@@ -44,15 +49,6 @@ function codeExtractionStage(name: string, source = shared): WorkflowStage {
     configPath: 'extraction.yml',
     config: codeExtractionConfig(source),
   })
-}
-
-function graphDefinition() {
-  return {
-    name: 'Shop',
-    description: 'Shop graph',
-    sources: [{ repository: 'shop' }],
-    domains: { orders: { description: 'Orders', systemType: 'domain' } as const },
-  }
 }
 
 function draft(): DraftComponent {
@@ -90,15 +86,7 @@ function workflowProject(
   loader: LoadCodeExtraction = () => shared.moduleContexts,
 ): RiviereProject {
   const started = RiviereProject.start(
-    GraphWithWorkflowStartInput.from(
-      graphDefinition(),
-      WorkflowStartInput.from({
-        name: 'build-graph',
-        outputPath: '/project/.riviere/graph.json',
-        runLogDirectory: '/project/.riviere/logs',
-        stages: [...stages],
-      }),
-    ),
+    GraphWithWorkflowStartInput.from(graphDefinition(), workflowStartInput([...stages])),
     { ...collaborators(), loadCodeExtraction: loader },
   )
   return started

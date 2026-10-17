@@ -19,4 +19,25 @@ describe('WorkflowDiagnostic', () => {
       sourceLocation: { repository: 'shop', filePath: 'orders.ts' },
     })
   })
+
+  it('describes a missing field diagnostic', () => {
+    expect(
+      WorkflowDiagnostic.fromMissingField('orders:checkout:usecase:place-order', 'name').describe(),
+    ).toBe("missing field 'name' on component 'orders:checkout:usecase:place-order'")
+  })
+
+  it('describes an uncertain link diagnostic', () => {
+    expect(
+      WorkflowDiagnostic.fromUncertainLink({
+        source: 'place-order',
+        target: 'create-order',
+      }).describe(),
+    ).toBe("uncertain link from 'place-order' to 'create-order'")
+  })
+
+  it('describes an unmapped record diagnostic', () => {
+    expect(WorkflowDiagnostic.fromUnmappedRecord('service', 'OrdersService').describe()).toBe(
+      "unmapped service 'OrdersService'",
+    )
+  })
 })

@@ -99,6 +99,14 @@ export async function executeEventCatalogImportStage(
     if (!outcome.success) {
       return { success: false, errorCode: 'EVENT_CATALOG_IMPORT_FAILED', reason: outcome.reason }
     }
+    const undeclared = undeclaredDomainWrites(builder, outcome.components)
+    if (undeclared.length > 0) {
+      return {
+        success: false,
+        errorCode: 'UNDECLARED_IMPORT_DOMAIN',
+        reason: `EventCatalog import writes undeclared domains: ${undeclared.join(', ')}`,
+      }
+    }
     const warnings = applyComponents(
       builder,
       outcome.components,
@@ -341,6 +349,19 @@ function formatUnmappedReason(unmapped: readonly UnmappedRecord[]): string {
   return `Unmapped EventCatalog records: ${unmapped
     .map((record) => `${record.kind} '${record.id}'`)
     .join(', ')}`
+}
+
+function undeclaredDomainWrites(
+  builder: RiviereBuilder,
+  components: readonly EventCatalogCanonicalComponent[],
+): readonly string[] {
+  const writes: string[] = []
+  for (const component of components) {
+    if (!builder.hasDomain(component.domain)) {
+      writes.push(`'${component.domain}' for component '${component.name}'`)
+    }
+  }
+  return writes
 }
 
 function applyComponents(

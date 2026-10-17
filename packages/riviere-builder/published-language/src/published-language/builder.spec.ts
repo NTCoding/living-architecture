@@ -240,6 +240,15 @@ describe('RiviereBuilder', () => {
     })
   })
 
+  describe('hasDomain', () => {
+    it('reports declared domains', () => {
+      const builder = RiviereBuilder.parse(createValidOptions())
+
+      expect(builder.hasDomain('orders')).toBe(true)
+      expect(builder.hasDomain('shipping')).toBe(false)
+    })
+  })
+
   describe('addDomain', () => {
     it('adds domain to metadata domains', () => {
       const builder = RiviereBuilder.parse(createValidOptions())

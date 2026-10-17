@@ -93,6 +93,10 @@ export class RiviereGraphDefinition {
     if (!Object.hasOwn(this.value.domains, name)) throw new DomainNotFoundError(name)
   }
 
+  hasDomain(name: string): boolean {
+    return Object.hasOwn(this.value.domains, name)
+  }
+
   ensureCustomTypeAccepts(
     name: string,
     properties: Readonly<Record<string, unknown>> | undefined,
