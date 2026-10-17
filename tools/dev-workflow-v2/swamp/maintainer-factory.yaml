@@ -12,23 +12,23 @@ stages:
       resultEvidence: prepare-outcome
     transitions:
       - name: branch-ready
-        to: implementing
+        to: change-plan
         gates:
           - type: workflow-succeeded
             config: { workflow: maintainer-prepare-issue }
 
-  - id: implementing
+  - id: change-plan
     description: >-
-      Read the issue, decide the approach, then write it. The plan is a recorded
-      artefact rather than a separate stage, because this is the implementation
-      workflow and the agent plans as part of implementing.
+      Decide the approach before writing code, and record it. This is the plan
+      step of the implementation workflow. It is not the planning workflow,
+      which produces a PRD and is out of scope here.
     work:
       mode: interactive
       systemPrompt: |
         Read the GitHub issue, docs/conventions/, ADR-002 and the code you
-        intend to change. Decide your approach before writing code.
+        intend to change.
 
-        Record the plan first, with record_artifact:
+        Decide your approach, then record one artifact with record_artifact:
 
           name:    plan
           payload: { summary, steps, testingStrategy, risks, filesToChange }
@@ -36,20 +36,10 @@ stages:
         `steps` is a list of objects: { description, files }. `risks` may be
         empty. Do not write the plan to a file. The artifact is the record.
 
-        Then implement it, following docs/conventions/, and record the change:
-
-          name:    change
-          payload: { summary, commitMessage, files }
-
-        `commitMessage` must be a conventional commit subject line, 72
-        characters or fewer, lower case after the type, no trailing full stop.
-        `files` lists every path you changed, relative to the repository root.
-
-        You never run git, gh or pnpm in this stage. A later stage commits,
-        verifies and pushes on your behalf. Do not run them.
+        Change no code in this stage. Do not run git, gh or pnpm.
     artifacts:
       - name: plan
-        description: The approach the agent decided on before writing code.
+        description: The approach decided before any code is written.
         schema:
           type: object
           additionalProperties: false
@@ -75,6 +65,39 @@ stages:
               type: array
               minItems: 1
               items: { type: string, minLength: 1 }
+    transitions:
+      - name: decided
+        to: implementing
+        gates:
+          - type: artifact-exists
+            config: { artifact: plan }
+
+  - id: implementing
+    description: >-
+      Write the code and the tests the plan describes, then record the change.
+      The commit message is an artefact field so that git commit is a fixed
+      command.
+    work:
+      mode: interactive
+      systemPrompt: |
+        Implement the plan recorded for this work item. Read it with:
+
+          swamp model method run maintainer-factory status --input workItem=<ref>
+
+        Follow docs/conventions/.
+
+        Record one artifact with record_artifact:
+
+          name:    change
+          payload: { summary, commitMessage, files }
+
+        `commitMessage` must be a conventional commit subject line, 72
+        characters or fewer, lower case after the type, no trailing full stop.
+        `files` lists every path you changed, relative to the repository root.
+
+        You never run git, gh or pnpm in this stage. A later stage commits,
+        verifies and pushes on your behalf. Do not run them.
+    artifacts:
       - name: change
         description: The change to commit, including the commit message.
         schema:
@@ -92,8 +115,6 @@ stages:
       - name: record
         to: committing
         gates:
-          - type: artifact-exists
-            config: { artifact: plan }
           - type: artifact-exists
             config: { artifact: change }
 
