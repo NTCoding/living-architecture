@@ -107,7 +107,7 @@ swamp model method run maintainer-factory summary --input workItem=123
 | Stage | Mode | The agent does | Swamp does |
 | --- | --- | --- | --- |
 | `preparing` | workflow | nothing | fetch origin, branch from the default branch, refuse a dirty tree |
-| `change-plan` | interactive | reads the issue and conventions, decides the approach and records a `plan` | nothing |
+| `confirm-plan` | interactive | reads the issue and conventions, decides the approach and records a `plan` | nothing |
 | `implementing` | interactive | writes the code and tests the plan describes, records a `change` with the commit message | nothing |
 | `committing` | workflow | nothing | `git add`, `git commit` with the recorded message, prove clean and ahead |
 | `verifying` | workflow | nothing | `pnpm verify` |
@@ -120,7 +120,7 @@ swamp model method run maintainer-factory summary --input workItem=123
 
 `reviewing` carries `maxCycles: 3`. A fourth entry parks the run and needs a human `cycle-override` approval, which is the review cap expressed as configuration rather than as a counter in code.
 
-`change-plan` is the plan step of this workflow. It has its own agent and its own context window, so the agent decides the approach without the clutter of a half written change, and `implementing` starts from the recorded plan rather than from the conversation that produced it. It is not the planning workflow, which produces a PRD and is out of scope. There is no approval gate on it.
+`confirm-plan` is the plan step of this workflow, where the approach is decided and confirmed before any code is written. It has its own agent and its own context window, so the agent decides the approach without the clutter of a half written change, and `implementing` starts from the recorded plan rather than from the conversation that produced it. It is not the planning workflow, which produces a PRD and is out of scope. There is no approval gate on it.
 
 ## What the gates enforce
 

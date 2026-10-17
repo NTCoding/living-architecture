@@ -12,16 +12,16 @@ stages:
       resultEvidence: prepare-outcome
     transitions:
       - name: branch-ready
-        to: change-plan
+        to: confirm-plan
         gates:
           - type: workflow-succeeded
             config: { workflow: maintainer-prepare-issue }
 
-  - id: change-plan
+  - id: confirm-plan
     description: >-
-      Decide the approach before writing code, and record it. This is the plan
-      step of the implementation workflow. It is not the planning workflow,
-      which produces a PRD and is out of scope here.
+      Confirm the approach before any code is written. The plan step of the
+      implementation workflow. It is not the planning workflow, which produces
+      a PRD and is out of scope here.
     work:
       mode: interactive
       systemPrompt: |
@@ -66,7 +66,7 @@ stages:
               minItems: 1
               items: { type: string, minLength: 1 }
     transitions:
-      - name: decided
+      - name: confirmed
         to: implementing
         gates:
           - type: artifact-exists
