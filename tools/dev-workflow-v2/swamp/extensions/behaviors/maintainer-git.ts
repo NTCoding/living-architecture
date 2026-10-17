@@ -117,6 +117,7 @@ export const behavior = {
           issue: number
           branch: string
           title: string
+          planSummary: string
           changeSummary: string
           commitMessage: string
           files: string[]

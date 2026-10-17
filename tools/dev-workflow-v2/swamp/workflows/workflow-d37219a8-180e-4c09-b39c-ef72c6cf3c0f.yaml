@@ -36,6 +36,7 @@ jobs:
             issue: ${{ data.latest("maintainer-git", "workspace").attributes.issue }}
             branch: ${{ data.latest("maintainer-git", "workspace").attributes.branch }}
             title: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-change").attributes.payload.commitMessage }}
+            planSummary: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-plan").attributes.payload.summary }}
             changeSummary: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-change").attributes.payload.summary }}
             commitMessage: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-change").attributes.payload.commitMessage }}
             files: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-change").attributes.payload.files }}

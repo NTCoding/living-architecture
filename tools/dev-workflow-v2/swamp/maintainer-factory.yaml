@@ -19,14 +19,24 @@ stages:
 
   - id: implementing
     description: >-
-      Write the code and the tests, then record the change. The commit message
-      is an artifact field so that git commit is a fixed command.
+      Read the issue, decide the approach, then write it. The plan is a recorded
+      artefact rather than a separate stage, because this is the implementation
+      workflow and the agent plans as part of implementing.
     work:
       mode: interactive
       systemPrompt: |
-        Implement the issue. Follow docs/conventions/.
+        Read the GitHub issue, docs/conventions/, ADR-002 and the code you
+        intend to change. Decide your approach before writing code.
 
-        Record one artifact with record_artifact:
+        Record the plan first, with record_artifact:
+
+          name:    plan
+          payload: { summary, steps, testingStrategy, risks, filesToChange }
+
+        `steps` is a list of objects: { description, files }. `risks` may be
+        empty. Do not write the plan to a file. The artifact is the record.
+
+        Then implement it, following docs/conventions/, and record the change:
 
           name:    change
           payload: { summary, commitMessage, files }
@@ -38,6 +48,33 @@ stages:
         You never run git, gh or pnpm in this stage. A later stage commits,
         verifies and pushes on your behalf. Do not run them.
     artifacts:
+      - name: plan
+        description: The approach the agent decided on before writing code.
+        schema:
+          type: object
+          additionalProperties: false
+          required: [summary, steps, testingStrategy, risks, filesToChange]
+          properties:
+            summary: { type: string, minLength: 1 }
+            steps:
+              type: array
+              minItems: 1
+              items:
+                type: object
+                additionalProperties: false
+                required: [description, files]
+                properties:
+                  description: { type: string, minLength: 1 }
+                  files:
+                    type: array
+                    minItems: 1
+                    items: { type: string, minLength: 1 }
+            testingStrategy: { type: string, minLength: 1 }
+            risks: { type: array, items: { type: string } }
+            filesToChange:
+              type: array
+              minItems: 1
+              items: { type: string, minLength: 1 }
       - name: change
         description: The change to commit, including the commit message.
         schema:
@@ -55,6 +92,8 @@ stages:
       - name: record
         to: committing
         gates:
+          - type: artifact-exists
+            config: { artifact: plan }
           - type: artifact-exists
             config: { artifact: change }
 
