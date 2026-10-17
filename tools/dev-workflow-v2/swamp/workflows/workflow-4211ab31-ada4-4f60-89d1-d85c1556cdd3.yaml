@@ -1,0 +1,36 @@
+id: 4211ab31-ada4-4f60-89d1-d85c1556cdd3
+name: maintainer-publish-findings
+description: >-
+  Post every recorded finding to the pull request. One comment per finding,
+  fanned out by the workflow rather than summarised by an agent, so the
+  comment format never varies. Deterministic; no agent is involved.
+version: 1
+inputs:
+  type: object
+  properties:
+    pr:
+      type: number
+      description: The pull request to comment on
+    workItem:
+      type: string
+      description: The factory work item, which namespaces every recorded artefact
+  required:
+    - pr
+    - workItem
+jobs:
+  - name: publish
+    steps:
+      - name: post-finding
+        forEach:
+          item: finding
+          in: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-review").attributes.payload.findings }}
+        task:
+          type: behavior
+          behavior: maintainer-git
+          methodName: postFinding
+          inputs:
+            pr: ${{ inputs.pr }}
+            id: ${{ self.finding.id }}
+            severity: ${{ self.finding.severity }}
+            description: ${{ self.finding.description }}
+            category: ${{ self.finding.category }}

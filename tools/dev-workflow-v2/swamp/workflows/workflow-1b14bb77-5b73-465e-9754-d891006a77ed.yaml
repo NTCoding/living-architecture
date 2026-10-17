@@ -1,0 +1,33 @@
+id: 1b14bb77-5b73-465e-9754-d891006a77ed
+name: maintainer-await-coderabbit
+description: >-
+  Poll the pull request until the external reviewer has reviewed the commit
+  that was pushed. Deterministic; no agent is involved.
+version: 1
+inputs:
+  type: object
+  properties:
+    pr:
+      type: number
+      description: The pull request to watch
+    timeoutSeconds:
+      type: number
+      default: 1800
+    intervalSeconds:
+      type: number
+      default: 30
+  required:
+    - pr
+jobs:
+  - name: wait
+    steps:
+      - name: review-arrives
+        task:
+          type: behavior
+          behavior: maintainer-git
+          methodName: awaitCodeRabbit
+          inputs:
+            pr: ${{ inputs.pr }}
+            headSha: ${{ data.latest("maintainer-git", "pull-request").attributes.headSha }}
+            timeoutSeconds: ${{ inputs.timeoutSeconds }}
+            intervalSeconds: ${{ inputs.intervalSeconds }}

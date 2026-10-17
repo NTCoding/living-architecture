@@ -1,0 +1,25 @@
+id: daab0399-15d6-4ae2-8a50-f6038dd77161
+name: maintainer-commit
+description: >-
+  Stage every change and commit it with the message recorded on the change
+  artefact, then prove the tree is clean and the branch is ahead.
+  Deterministic; no agent is involved.
+version: 1
+inputs:
+  type: object
+  properties:
+    workItem:
+      type: string
+      description: The factory work item, which namespaces every recorded artefact
+  required:
+    - workItem
+jobs:
+  - name: commit
+    steps:
+      - name: record-commit
+        task:
+          type: behavior
+          behavior: maintainer-git
+          methodName: commit
+          inputs:
+            message: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-change").attributes.payload.commitMessage }}

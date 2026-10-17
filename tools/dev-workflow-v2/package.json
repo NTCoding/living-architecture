@@ -37,7 +37,8 @@
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^2.0.0",
     "typescript": "npm:typescript@^7.0.2",
-    "vitest": "^2.0.0"
+    "vitest": "^2.0.0",
+    "yaml": "^2.9.0"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"

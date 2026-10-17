@@ -1,0 +1,15 @@
+id: 189b38a4-f19c-4fcc-a279-957d6a983a58
+name: maintainer-verify
+description: >-
+  Run the repository verify gate. A non-zero exit fails the step, which the
+  factory turns into a route back to the agent rather than a failed run.
+  Deterministic; no agent is involved.
+version: 1
+jobs:
+  - name: verify
+    steps:
+      - name: repo-gate
+        task:
+          type: behavior
+          behavior: maintainer-git
+          methodName: runChecks

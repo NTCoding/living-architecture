@@ -1,0 +1,299 @@
+# Maintainer workflow factory definition for @swamp/software-factory.
+#
+# This file is the contents of a factory definition's `globalArguments`.
+# Seed it with:
+#
+#   swamp model create @swamp/software-factory maintainer-factory
+#   swamp model edit maintainer-factory      # paste everything below
+#   swamp model method run maintainer-factory validate
+#
+# The design rule behind it: any work that touches the world outside the
+# working tree is a `mode: workflow` stage, so Swamp runs it and no agent is
+# ever placed in a position where it needs to run git, gh or pnpm. The agent
+# only appears in stages that need judgement, and it contributes data that a
+# declared schema validates before any command uses it.
+
+stages:
+  - id: preparing
+    initial: true
+    description: >-
+      Branch from the refreshed default branch. Deterministic; no agent.
+    work:
+      mode: workflow
+      workflow:
+        name: maintainer-prepare-issue
+        inputs:
+          issue: '${{ workItem }}'
+      resultEvidence: prepare-outcome
+    transitions:
+      - name: branch-ready
+        to: planning
+        gates:
+          - type: workflow-succeeded
+            config: { workflow: maintainer-prepare-issue }
+
+  - id: planning
+    description: >-
+      Read the issue, the conventions and the surrounding code, then record a
+      plan for a human to approve. This is the only mid-run human pause.
+    work:
+      mode: interactive
+      systemPrompt: |
+        Read the GitHub issue, docs/conventions/, ADR-002 and the code you
+        intend to change.
+
+        Record one artifact with record_artifact:
+
+          name:    plan
+          payload: { summary, steps, testingStrategy, risks, filesToChange }
+
+        `steps` is a list of objects: { description, files }. `risks` may be
+        empty. Do not write the plan to a file. The artifact is the record.
+        Do not run git, gh or pnpm.
+    artifacts:
+      - name: plan
+        description: The approved implementation plan.
+        schema:
+          type: object
+          additionalProperties: false
+          required: [summary, steps, testingStrategy, risks, filesToChange]
+          properties:
+            summary: { type: string, minLength: 1 }
+            steps:
+              type: array
+              minItems: 1
+              items:
+                type: object
+                additionalProperties: false
+                required: [description, files]
+                properties:
+                  description: { type: string, minLength: 1 }
+                  files:
+                    type: array
+                    minItems: 1
+                    items: { type: string, minLength: 1 }
+            testingStrategy: { type: string, minLength: 1 }
+            risks: { type: array, items: { type: string } }
+            filesToChange:
+              type: array
+              minItems: 1
+              items: { type: string, minLength: 1 }
+    transitions:
+      - name: approve
+        to: implementing
+        gates:
+          - type: artifact-exists
+            config: { artifact: plan }
+          - type: human-approval
+            config: { id: plan-approval }
+      - name: rework
+        to: planning
+
+  - id: implementing
+    description: >-
+      Write the code and the tests, then record the change. The commit message
+      is an artifact field so that git commit is a fixed command.
+    work:
+      mode: interactive
+      systemPrompt: |
+        Implement the approved plan. Follow docs/conventions/.
+
+        Record one artifact with record_artifact:
+
+          name:    change
+          payload: { summary, commitMessage, files }
+
+        `commitMessage` must be a conventional commit subject line, 72
+        characters or fewer, lower case after the type, no trailing full stop.
+        `files` lists every path you changed, relative to the repository root.
+
+        You never run git, gh or pnpm in this stage. A later stage commits,
+        verifies and pushes on your behalf. Do not run them.
+    artifacts:
+      - name: change
+        description: The change to commit, including the commit message.
+        schema:
+          type: object
+          additionalProperties: false
+          required: [summary, commitMessage, files]
+          properties:
+            summary: { type: string, minLength: 1 }
+            commitMessage: { type: string, minLength: 1, maxLength: 72 }
+            files:
+              type: array
+              minItems: 1
+              items: { type: string, minLength: 1 }
+    transitions:
+      - name: record
+        to: committing
+        gates:
+          - type: artifact-exists
+            config: { artifact: change }
+
+  - id: committing
+    description: >-
+      git add and git commit using the recorded message, then prove the tree is
+      clean and the branch is ahead. Deterministic; no agent.
+    work:
+      mode: workflow
+      workflow:
+        name: maintainer-commit
+        inputs:
+          workItem: '${{ workItem }}'
+      resultEvidence: commit-outcome
+    transitions:
+      - name: committed
+        to: verifying
+        gates:
+          - type: workflow-succeeded
+            config: { workflow: maintainer-commit }
+
+  - id: verifying
+    description: >-
+      Run the repository gate. A failure routes back to the agent rather than
+      failing the run. Deterministic; no agent.
+    work:
+      mode: workflow
+      workflow:
+        name: maintainer-verify
+      resultEvidence: checks
+    transitions:
+      - name: pass
+        to: submitting
+        gates:
+          - type: workflow-succeeded
+            config: { workflow: maintainer-verify }
+      - name: fail
+        to: implementing
+
+  - id: submitting
+    description: >-
+      Push the branch and open the pull request. The description is composed
+      from the recorded plan and change, so it cannot drift from what was done.
+      Deterministic; no agent.
+    work:
+      mode: workflow
+      workflow:
+        name: maintainer-submit
+        inputs:
+          workItem: '${{ workItem }}'
+      resultEvidence: submit-outcome
+    transitions:
+      - name: opened
+        to: reviewing
+        gates:
+          - type: workflow-succeeded
+            config: { workflow: maintainer-submit }
+
+  - id: reviewing
+    description: >-
+      Fresh reviewer per role, coordinated deterministically, findings recorded
+      as data. Capped at three cycles; past the cap the run parks for a human.
+    maxCycles: 3
+    work:
+      mode: dispatch
+      skills: [architecture-review, code-review, bug-scanner, task-check]
+      systemPrompt: |
+        Review the change on the pull request for this work item. Four angles,
+        each independently: architecture and boundaries, code quality against
+        docs/conventions/, defects and edge cases, and whether the change
+        satisfies the issue.
+
+        Read the diff since the previous reviewed commit, not the whole
+        repository. Record findings with a severity of critical, high, medium
+        or low, and name the file and line for each. Do not soften findings.
+    artifacts:
+      - name: review
+        description: Findings from every reviewer for this cycle.
+        kind: findings
+        reviews: change
+    transitions:
+      - name: clean
+        to: awaiting-coderabbit
+        gates:
+          - type: artifact-fresh
+            config: { artifact: review, recordedThisCycle: true }
+          - type: findings-clear
+            config: { artifact: review, blocking: [critical, high] }
+      - name: needs-work
+        to: addressing
+
+  - id: addressing
+    description: >-
+      A fresh agent with a fresh context window resolves the findings, starting
+      from the findings themselves and never from the implementation
+      conversation.
+    work:
+      mode: interactive
+      systemPrompt: |
+        Resolve the open findings on the `review` artifact for this work item.
+
+        Read the findings with:
+          swamp model method run maintainer-factory status --input workItem=<ref>
+
+        Change code and tests. Then:
+        1. Record the updated change artifact, with a new commitMessage that
+           describes the fix.
+        2. Call resolve_findings on the `review` artifact, naming each finding
+           you addressed and how.
+
+        Do not run git, gh or pnpm.
+    transitions:
+      - name: resolved
+        to: committing
+        gates:
+          - type: artifact-exists
+            config: { artifact: change }
+
+  - id: awaiting-coderabbit
+    description: >-
+      Wait for the external reviewer to review the pushed commit. Deterministic;
+      no agent. The cooldown stops an immediate re-check of the same commit.
+    work:
+      mode: workflow
+      workflow:
+        name: maintainer-await-coderabbit
+        inputs:
+          pr: '${{ data.latest("maintainer-git", "pull-request").attributes.number }}'
+      resultEvidence: coderabbit-outcome
+    transitions:
+      - name: reviewed
+        to: publishing-findings
+        gates:
+          - type: workflow-succeeded
+            config: { workflow: maintainer-await-coderabbit }
+
+  - id: publishing-findings
+    description: >-
+      Post every recorded finding to GitHub as a review comment. Deterministic;
+      no agent, so the comment format never varies.
+    work:
+      mode: workflow
+      workflow:
+        name: maintainer-publish-findings
+        inputs:
+          pr: '${{ data.latest("maintainer-git", "pull-request").attributes.number }}'
+          workItem: '${{ workItem }}'
+      resultEvidence: publish-outcome
+    transitions:
+      - name: posted
+        to: awaiting-human-review
+        gates:
+          - type: workflow-succeeded
+            config: { workflow: maintainer-publish-findings }
+
+  - id: awaiting-human-review
+    description: The pull request is open and every automated reviewer is done.
+    terminal: true
+
+  - id: aborted
+    description: The run was stopped deliberately.
+    terminal: true
+
+globalTransitions:
+  - name: abort
+    description: Stop this work item.
+    to: aborted
+    gates:
+      - type: human-approval
+        config: { id: abort-confirmation }
