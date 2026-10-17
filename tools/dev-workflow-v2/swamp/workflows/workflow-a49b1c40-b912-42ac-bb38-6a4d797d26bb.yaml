@@ -1,0 +1,24 @@
+id: a49b1c40-b912-42ac-bb38-6a4d797d26bb
+name: maintainer-prepare-issue
+description: >-
+  Fetch the remote and put the work item on its own branch, cut from the
+  default branch. Deterministic; no agent is involved.
+version: 1
+inputs:
+  type: object
+  properties:
+    issue:
+      type: string
+      description: The GitHub issue this work item implements, as the factory work item
+  required:
+    - issue
+jobs:
+  - name: prepare
+    steps:
+      - name: branch
+        task:
+          type: behavior
+          behavior: maintainer-git
+          methodName: prepareIssue
+          inputs:
+            issue: ${{ inputs.issue }}

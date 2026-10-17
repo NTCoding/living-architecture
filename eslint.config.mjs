@@ -27,6 +27,9 @@ export default tseslint.config(
   ...nx.configs['flat/javascript'],
   {
     ignores: [
+      '**/.swamp/**',
+      '**/.agents/**',
+      '**/.pi/**',
       '**/dist',
       '**/out-tsc',
       '**/node_modules',

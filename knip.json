@@ -149,6 +149,14 @@
     "**/*.d.cts",
     "**/dist/**",
     "**/.vitepress/dist/**",
-    "**/coverage/**"
+    "**/coverage/**",
+    ".agents/**",
+    ".pi/**",
+    ".claude/**",
+    ".opencode/plugins/swamp-audit.js",
+    "extensions/**",
+    "models/**",
+    "vaults/**",
+    "**/.swamp/**"
   ]
 }

@@ -1,0 +1,41 @@
+id: 4211ab31-ada4-4f60-89d1-d85c1556cdd3
+name: maintainer-publish-findings
+description: >-
+  Post every recorded finding to the pull request, inline on the line the
+  reviewer named, and as an ordinary comment when no line was given. The body
+  is composed here rather than by an agent, so the format never varies.
+  Deterministic; no agent is involved.
+version: 1
+inputs:
+  type: object
+  properties:
+    pr:
+      type: number
+      description: The pull request to comment on
+    headSha:
+      type: string
+      description: The commit the review comments apply to
+    findings:
+      type: array
+      description: The recorded findings, from the factory's review artefact
+    locations:
+      type: array
+      description: Where each finding belongs, from the factory's review-locations artefact
+  required:
+    - pr
+    - headSha
+    - findings
+    - locations
+jobs:
+  - name: publish
+    steps:
+      - name: post-findings
+        task:
+          type: behavior
+          behavior: maintainer-git
+          methodName: postFindings
+          inputs:
+            pr: ${{ inputs.pr }}
+            headSha: ${{ inputs.headSha }}
+            findings: ${{ inputs.findings }}
+            locations: ${{ inputs.locations }}

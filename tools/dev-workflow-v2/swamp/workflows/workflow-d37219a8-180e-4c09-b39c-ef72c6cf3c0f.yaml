@@ -1,0 +1,42 @@
+id: d37219a8-180e-4c09-b39c-ef72c6cf3c0f
+name: maintainer-submit
+description: >-
+  Push the branch and open the pull request. The body is composed from the
+  recorded plan and change, so it cannot drift from what was done.
+  Deterministic; no agent is involved.
+version: 1
+inputs:
+  type: object
+  properties:
+    workItem:
+      type: string
+      description: The factory work item, which namespaces every recorded artefact
+  required:
+    - workItem
+jobs:
+  - name: submit
+    steps:
+      - name: push
+        task:
+          type: behavior
+          behavior: maintainer-git
+          methodName: pushBranch
+          inputs:
+            branch: ${{ data.latest("maintainer-git", "workspace").attributes.branch }}
+      - name: open
+        dependsOn:
+          - step: push
+            condition:
+              type: succeeded
+        task:
+          type: behavior
+          behavior: maintainer-git
+          methodName: openPullRequest
+          inputs:
+            issue: ${{ data.latest("maintainer-git", "workspace").attributes.issue }}
+            branch: ${{ data.latest("maintainer-git", "workspace").attributes.branch }}
+            title: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-change").attributes.payload.commitMessage }}
+            planSummary: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-plan").attributes.payload.summary }}
+            changeSummary: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-change").attributes.payload.summary }}
+            commitMessage: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-change").attributes.payload.commitMessage }}
+            files: ${{ data.latest("maintainer-factory", "artifact-" + inputs.workItem + "-change").attributes.payload.files }}

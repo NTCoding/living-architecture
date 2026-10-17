@@ -512,6 +512,9 @@ importers:
       vitest:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.19.7)(@vitest/browser@4.0.17(vite@7.3.6(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.17))(jsdom@27.4.0(supports-color@8.1.1))(lightningcss@1.30.2)(supports-color@8.1.1)
+      yaml:
+        specifier: ^2.9.0
+        version: 2.9.0
 
   tools/living-documentation:
     dependencies:
