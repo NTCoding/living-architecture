@@ -8,6 +8,7 @@ describe('PrepareBranch', () => {
   it('derives the branch from the issue title and creates the worktree', async () => {
     const runCommand = fakeCommands([
       { stdout: 'worktree /repo\n', stderr: '', exitCode: 0 },
+      { stdout: 'origin/main\n', stderr: '', exitCode: 0 },
       { stdout: '', stderr: '', exitCode: 1 },
       { stdout: '', stderr: '', exitCode: 0 },
     ])

@@ -20,6 +20,7 @@ export function prepareWorktreeWithGit(dependencies: Dependencies): PrepareWorkt
   return async (request) => {
     const worktreePath = `${dependencies.worktreesDirectory}/${request.branch}`
     if (await exists(dependencies, worktreePath)) return
+    const base = await defaultBranch(dependencies)
     if (await branchExists(dependencies, request.branch)) {
       await gitOutput(dependencies.runCommand, {
         worktreePath: dependencies.repositoryPath,
@@ -29,9 +30,17 @@ export function prepareWorktreeWithGit(dependencies: Dependencies): PrepareWorkt
     }
     await gitOutput(dependencies.runCommand, {
       worktreePath: dependencies.repositoryPath,
-      arguments: ['worktree', 'add', '-b', request.branch, worktreePath, 'HEAD'],
+      arguments: ['worktree', 'add', '-b', request.branch, worktreePath, base],
     })
   }
+}
+
+async function defaultBranch(dependencies: Dependencies): Promise<string> {
+  const branch = await gitOutput(dependencies.runCommand, {
+    worktreePath: dependencies.repositoryPath,
+    arguments: ['symbolic-ref', 'refs/remotes/origin/HEAD', '--short'],
+  })
+  return branch.trim()
 }
 
 async function exists(dependencies: Dependencies, worktreePath: string): Promise<boolean> {
