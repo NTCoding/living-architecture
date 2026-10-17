@@ -122,19 +122,25 @@ export async function main(argv: readonly string[]): Promise<number> {
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
     .option('--approved <approved>', 'whether the plan is approved', 'true')
-    .action(async (issue: string, options: { model: string; approved: string }) => {
-      ModelIdentifier.parse(options.model)
-      const issueNumber = IssueNumber.parseFromText(issue)
-      const run = await workflow.createRun({
-        runId: await newestRunId(workflow, issueNumber.runId()),
-        resourceId: 'factory',
-      })
-      const result = await run.resume({
-        step: 'request-plan-approval',
-        resumeData: { approved: options.approved !== 'false', notes: null },
-      })
-      report(result.status, run.runId, 'The run is waiting for a person.', 3)
-    })
+    .option('--answer <answer>', 'the answer to a blocker the implementer raised')
+    .action(
+      async (issue: string, options: { model: string; approved: string; answer?: string }) => {
+        ModelIdentifier.parse(options.model)
+        const issueNumber = IssueNumber.parseFromText(issue)
+        const run = await workflow.createRun({
+          runId: await newestRunId(workflow, issueNumber.runId()),
+          resourceId: 'factory',
+        })
+        const result =
+          options.answer === undefined
+            ? await run.resume({
+                step: 'request-plan-approval',
+                resumeData: { approved: options.approved !== 'false', notes: null },
+              })
+            : await run.resume({ step: 'implement', resumeData: { answer: options.answer } })
+        report(result.status, run.runId, 'The run is waiting for a person.', 3)
+      },
+    )
 
   program.command('status').action(async () => {
     const runs = await workflow.listWorkflowRuns({ status: 'suspended' })

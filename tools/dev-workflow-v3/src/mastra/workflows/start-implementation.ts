@@ -58,6 +58,10 @@ const planApprovalResumeSchema = z.object({
   notes: z.string().nullable(),
 })
 
+const blockerSuspendSchema = z.object({ question: z.string() })
+
+const blockerResumeSchema = z.object({ answer: z.string() })
+
 const planOutputSchema = z.object({ markdown: z.string().min(1) })
 
 const implementationOutputSchema = z.object({
@@ -178,29 +182,34 @@ export function createStartImplementationWorkflow(dependencies: StartImplementat
     id: 'implement',
     inputSchema: runStateSchema,
     outputSchema: runStateSchema,
-    execute: async ({ inputData }) => {
-      const response = await dependencies
-        .implementerFor(inputData.model, inputData.worktreePath)
-        .generate(
-          [
-            `Implement issue ${inputData.issueNumber} in this workspace.`,
-            '',
-            'Plan:',
-            inputData.planMarkdown,
-            '',
-            'Repository guidance:',
-            await dependencies.readGuidance(),
-          ].join('\n'),
-          {
-            structuredOutput: { schema: implementationOutputSchema },
-            maxSteps: 60,
-            memory: {
-              thread: `issue-${inputData.issueNumber}`,
-              resource: 'factory',
-            },
-            autoResumeSuspendedTools: true,
-          },
-        )
+    suspendSchema: blockerSuspendSchema,
+    resumeSchema: blockerResumeSchema,
+    execute: async ({ inputData, resumeData, suspend }) => {
+      const implementer = dependencies.implementerFor(inputData.model, inputData.worktreePath)
+      const prompt =
+        resumeData === undefined
+          ? [
+              `Implement issue ${inputData.issueNumber} in this workspace.`,
+              '',
+              'Plan:',
+              inputData.planMarkdown,
+              '',
+              'Repository guidance:',
+              await dependencies.readGuidance(),
+            ].join('\n')
+          : resumeData.answer
+      const response = await implementer.generate(prompt, {
+        structuredOutput: { schema: implementationOutputSchema },
+        maxSteps: 60,
+        memory: {
+          thread: `issue-${inputData.issueNumber}`,
+          resource: 'factory',
+        },
+        autoResumeSuspendedTools: true,
+      })
+      if (response.finishReason === 'suspended') {
+        return suspend({ question: questionFrom(response.suspendPayload) })
+      }
       const parsed = implementationOutputSchema.safeParse(response.object)
       if (!parsed.success) {
         throw new RunFailed(
@@ -335,6 +344,23 @@ export function createStartImplementationWorkflow(dependencies: StartImplementat
     .then(reviewCycle)
     .then(markReadyForHuman)
     .commit()
+}
+
+function questionFrom(payload: unknown): string {
+  const question = questionOf(payload)
+  return question ?? 'The implementer is waiting for an answer.'
+}
+
+function questionOf(payload: unknown): string | undefined {
+  if (!isRecord(payload) || !('suspendPayload' in payload)) return undefined
+  const inner = payload['suspendPayload']
+  if (!isRecord(inner) || !('question' in inner)) return undefined
+  const question = inner['question']
+  return typeof question === 'string' ? question : undefined
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }
 
 function worktreeOf(state: RunState): WorktreeReference {
