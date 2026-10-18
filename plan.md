@@ -948,7 +948,20 @@ time and that the work in the worktree is kept.
 **Still open.** The app has no test target, so the Progress item "tests to 100% for the
 app" stays unticked. Shell is wiring and the graphs are tested in the use-cases package.
 
-## 15. The agent commits, and the workflow checks
+## 15. The plan is a comment, not a gate
+
+The plan is posted on the issue and the run carries on. It does not stop for approval,
+because nobody reads a full plan in the terminal. The planner sets `needsInput` and
+returns a `question`. When `needsInput` is true, `publish-plan` adds a
+`### Needs your input` section and `wait-for-plan-clarification` polls the issue for the
+first comment after the plan, for up to an hour. The developer replies on the issue and
+the run continues with that reply in the implementation prompt. When no input is needed,
+the step returns immediately.
+
+`request-plan-approval` and `resume --approved` are gone. A run now only suspends when
+the implementer asks a question, and `resume --answer` answers it.
+
+## 16. The agent commits, and the workflow checks
 
 The first real ticket, 500, stopped at `commit-work`. The agent had finished writing, the
 factory's checks passed, and then `git commit` ran the pre-commit hook, which is a bigger

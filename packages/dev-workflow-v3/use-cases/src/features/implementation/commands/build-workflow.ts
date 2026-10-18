@@ -26,7 +26,10 @@ const runStateSchema = z.object({
   worktreePath: z.string().default(''),
   branch: z.string().default(''),
   planMarkdown: z.string().default(''),
-  planApproved: z.boolean().default(false),
+  planNeedsInput: z.boolean().default(false),
+  planQuestion: z.string().nullable().default(null),
+  planCommentAt: z.string().default(''),
+  clarification: z.string().default(''),
   implementationSummary: z.string().default(''),
   commitSha: z.string().default(''),
   pullRequestTitle: z.string().default(''),
@@ -57,13 +60,15 @@ const reviewStateSchema = z.object({
   readyForHuman: z.boolean().default(false),
 })
 
-const planApprovalSchema = z.object({ approved: z.boolean(), notes: z.string().nullable() })
-
 const blockerSuspendSchema = z.object({ question: z.string() })
 
 const blockerResumeSchema = z.object({ answer: z.string() })
 
-const planSchema = z.object({ markdown: z.string().min(1) })
+const planSchema = z.object({
+  markdown: z.string().min(1),
+  needsInput: z.boolean(),
+  question: z.string().nullable(),
+})
 
 const implementationSchema = z.object({
   summary: z.string().min(1),
@@ -107,7 +112,9 @@ const PLANNER_INSTRUCTIONS = [
   'Read the issue and the repository guidance, then write a plan.',
   'Reason only. Do not write files, do not run commands, and do not open pull requests.',
   'The plan is a short numbered list of the changes the implementer will make.',
-  'Return the plan as the "markdown" field.',
+  'Set needsInput to false when the issue is clear enough to implement without asking',
+  'anything. Set needsInput to true only when the plan would diverge from what the issue',
+  'asks, or when a decision is genuinely needed, and put your questions in "question".',
 ].join('\n')
 
 const PULL_REQUEST_WRITER_INSTRUCTIONS = [
@@ -201,7 +208,11 @@ export interface BuildWorkflowInput {
   readonly commentOnIssue: (request: {
     readonly issueNumber: number
     readonly body: string
-  }) => Promise<void>
+  }) => Promise<{ readonly createdAt: string }>
+  readonly waitForIssueReply: (request: {
+    readonly issueNumber: number
+    readonly after: string
+  }) => Promise<{ readonly reply: string | null }>
   readonly commentOnPullRequest: (request: {
     readonly pullRequestNumber: number
     readonly body: string
@@ -346,7 +357,12 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
         })
         const plan = planSchema.safeParse(response.object)
         if (!plan.success) throw new RunFailed(noStructuredOutput('The planner', response))
-        return { ...state, planMarkdown: plan.data.markdown }
+        return {
+          ...state,
+          planMarkdown: plan.data.markdown,
+          planNeedsInput: plan.data.needsInput,
+          planQuestion: plan.data.question,
+        }
       },
     },
     {
@@ -357,22 +373,32 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
       resumeSchema: null,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
-        await input.commentOnIssue({ issueNumber: state.issueNumber, body: planComment(state) })
-        return state
+        const posted = await input.commentOnIssue({
+          issueNumber: state.issueNumber,
+          body: planComment(state),
+        })
+        return { ...state, planCommentAt: posted.createdAt }
       },
     },
     {
-      id: 'request-plan-approval',
+      id: 'wait-for-plan-clarification',
       inputSchema: runStateSchema,
       outputSchema: runStateSchema,
-      suspendSchema: planApprovalSchema,
-      resumeSchema: planApprovalSchema,
-      run: async ({ data, resumeData, suspend }) => {
+      suspendSchema: null,
+      resumeSchema: null,
+      run: async ({ data }) => {
         const state = runStateSchema.parse(data)
-        const resumed = planApprovalSchema.safeParse(resumeData)
-        if (!resumed.success) return await suspend({ approved: false, notes: state.planMarkdown })
-        if (!resumed.data.approved) throw new RunFailed('The plan was rejected, so the run stops.')
-        return { ...state, planApproved: true }
+        if (!state.planNeedsInput) return state
+        const { reply } = await input.waitForIssueReply({
+          issueNumber: state.issueNumber,
+          after: state.planCommentAt,
+        })
+        if (reply === null) {
+          throw new RunFailed(
+            'Nobody replied on the issue to the plan question. The plan is still on the issue. Start again when the answer is there.',
+          )
+        }
+        return { ...state, clarification: reply }
       },
     },
     {
@@ -812,17 +838,21 @@ function tailOf(output: string): string {
 }
 
 function planComment(state: RunState): string {
-  const issue = String(state.issueNumber)
-  return [
+  const posted = [
     "## Implementer's plan",
     '',
     state.planMarkdown,
     '',
     '---',
     '',
-    `Run \`issue-${issue}\`. Approve with \`pnpm factory resume ${issue}\`.`,
-    `Reject with the same command and \`--approved false\`.`,
-  ].join('\n')
+    `Run \`issue-${String(state.issueNumber)}\`.`,
+  ]
+  if (state.planNeedsInput) {
+    posted.push('', '### Needs your input', '')
+    if (state.planQuestion !== null) posted.push(state.planQuestion)
+    posted.push('', 'Reply on this issue and the run will carry on with your answer.')
+  }
+  return posted.join('\n')
 }
 
 function planPrompt(state: RunState): string {

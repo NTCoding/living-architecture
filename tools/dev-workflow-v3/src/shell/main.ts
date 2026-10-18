@@ -26,6 +26,7 @@ import { openPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-
 import { publishReviewFindingWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/publish-review-finding'
 import { readIssueWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-issue'
 import { readPullRequestDiffWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-pull-request-diff'
+import { waitForIssueReplyWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/wait-for-issue-reply'
 import { waitForReviewerWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/wait-for-reviewer'
 import { adaptWorkflowToMastra } from '@living-architecture/dev-workflow-v3-use-cases/adapters/mastra/adapt-workflow'
 import type {
@@ -146,11 +147,16 @@ async function buildFactory(workingDirectory: string): Promise<Factory> {
     },
     openPullRequest: (request) =>
       new OpenPullRequest(openPullRequestWithGithub({ runCommand })).execute(request),
-    commentOnIssue: async (request) => {
-      await new CommentOnIssue(commentOnIssueWithGithub({ runCommand, workingDirectory })).execute(
+    commentOnIssue: (request) =>
+      new CommentOnIssue(commentOnIssueWithGithub({ runCommand, workingDirectory })).execute(
         request,
-      )
-    },
+      ),
+    waitForIssueReply: waitForIssueReplyWithGithub({
+      runCommand,
+      workingDirectory,
+      wait: () => new Promise((resolve) => setTimeout(resolve, 30_000)),
+      attempts: 120,
+    }),
     commentOnPullRequest: async (request) => {
       await new CommentOnPullRequest(
         commentOnPullRequestWithGithub({ runCommand, workingDirectory }),
@@ -238,33 +244,25 @@ function createCommandLine(factory: Factory): Command {
     .command('resume')
     .description('continue a run that is waiting for a person')
     .argument('<issue>')
-    .option('--approved <approved>', 'whether the plan is approved', 'true')
     .option('--answer <answer>', 'the answer to a question the implementer asked')
     .option('--no-input', 'never wait for an answer in this terminal')
-    .action(
-      async (issue: string, options: { approved: string; answer?: string; input: boolean }) => {
-        const run = await factory.startImplementation.createRun({
-          runId: await newestRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
-          resourceId: 'factory',
-        })
-        await follow(
-          factory.startImplementation,
-          run,
-          () =>
-            options.answer === undefined
-              ? run.resume({
-                  step: 'request-plan-approval',
-                  resumeData: { approved: options.approved !== 'false', notes: null },
-                })
-              : run.resume({ step: 'implement', resumeData: { answer: options.answer } }),
-          {
-            issue: issueNumberText(issue),
-            issueUrl: issueUrlOf(factory.repositoryUrl, issue),
-            interactive: options.input,
-          },
-        )
-      },
-    )
+    .action(async (issue: string, options: { answer?: string; input: boolean }) => {
+      if (options.answer === undefined) throw new MissingAnswer(issue)
+      const run = await factory.startImplementation.createRun({
+        runId: await newestRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
+        resourceId: 'factory',
+      })
+      await follow(
+        factory.startImplementation,
+        run,
+        () => run.resume({ step: 'implement', resumeData: { answer: options.answer } }),
+        {
+          issue: issueNumberText(issue),
+          issueUrl: issueUrlOf(factory.repositoryUrl, issue),
+          interactive: options.input,
+        },
+      )
+    })
 
   program
     .command('read-implementers-plan')
@@ -388,7 +386,7 @@ async function follow(
       process.exitCode = 3
       return
     }
-    const answer = await ask(waiting)
+    const answer = await ask()
     if (answer === null) {
       await stop()
       process.exitCode = 3
@@ -472,12 +470,11 @@ function markOf(status: string): string {
 
 type Waiting = {
   readonly step: string
-  readonly kind: 'plan' | 'question'
   readonly question: string
 }
 
 function showWaiting(waiting: Waiting | null): void {
-  if (waiting === null || waiting.kind === 'plan') return
+  if (waiting === null) return
   process.stdout.write(`\nThe implementer asks:\n\n  ${waiting.question}\n`)
 }
 
@@ -489,24 +486,14 @@ function reportWaiting(waiting: Waiting | null, context: RunContext): void {
     process.stdout.write(`  Continue it:        ${resume}\n`)
     return
   }
-  if (waiting.kind === 'plan') {
-    process.stdout.write(`  Read the plan:      ${context.issueUrl}\n`)
-    process.stdout.write(`  Approve the plan:   ${resume}\n`)
-    process.stdout.write(`  Reject the plan:    ${resume} --approved false\n`)
-    return
-  }
   process.stdout.write(`  Answer it:          ${resume} --answer "...your answer..."\n`)
   process.stdout.write(`  Talk it through:    pnpm factory chat ${context.issue}\n`)
   if (context.interactive) process.stdout.write(`\nOr answer here:\n`)
 }
 
-async function ask(waiting: Waiting): Promise<string | boolean | null> {
+async function ask(): Promise<string | null> {
   const terminal = createInterface({ input: process.stdin, output: process.stdout })
   try {
-    if (waiting.kind === 'plan') {
-      const approved = await terminal.question('Approve this plan and continue? [y/N] ')
-      return approved.trim().toLowerCase() === 'y'
-    }
     const answer = await terminal.question('Your answer (or press Enter to stop): ')
     return answer.trim() === '' ? null : answer
   } finally {
@@ -535,13 +522,8 @@ function suspendedPayloadOf(outcome: RunOutcome): Waiting | null {
   const step = suspendedStep(outcome)
   if (step === null) return null
   const payload = suspendPayloadOf(step.payload)
-  if (step.name === 'request-plan-approval') {
-    const plan = planOf(step.output) ?? planFromNotes(step.payload)
-    return plan === null ? null : { step: step.name, kind: 'plan', question: plan }
-  }
   return {
     step: step.name,
-    kind: 'question',
     question: payload ?? 'The implementer is waiting for an answer.',
   }
 }
@@ -559,12 +541,6 @@ function suspendedStep(outcome: RunOutcome): {
     return { name, payload: step['suspendPayload'], output: step['output'] }
   }
   return null
-}
-
-function planFromNotes(payload: unknown): string | null {
-  if (!isRecord(payload)) return null
-  const notes = payload['notes']
-  return typeof notes === 'string' ? notes : null
 }
 
 function suspendPayloadOf(payload: unknown): string | null {
@@ -639,6 +615,16 @@ function issueNumber(value: string): number {
 
 function issueNumberText(value: string): string {
   return String(issueNumber(value))
+}
+
+/** @riviere-role cli-error */
+class MissingAnswer extends Error {
+  constructor(issue: string) {
+    super(
+      `The implementer is waiting for an answer on issue ${issue}. Run: pnpm factory resume ${issue} --answer "your answer"`,
+    )
+    this.name = 'MissingAnswer'
+  }
 }
 
 /** @riviere-role cli-error */

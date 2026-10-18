@@ -37,8 +37,13 @@ function reviewInput(overrides: Record<string, unknown> = {}) {
   }
 }
 
-function planAnswer() {
-  return { object: { markdown: 'the plan' }, text: '', finishReason: 'stop', suspendPayload: null }
+function planAnswer(needsInput = false, question: string | null = null) {
+  return {
+    object: { markdown: 'the plan', needsInput, question },
+    text: '',
+    finishReason: 'stop',
+    suspendPayload: null,
+  }
 }
 
 function implementationAnswer(summary: string) {
@@ -102,7 +107,8 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
     }),
     pushBranch: async () => undefined,
     openPullRequest: async () => ({ number: 549, url: 'https://github.com/o/r/pull/549' }),
-    commentOnIssue: async () => undefined,
+    commentOnIssue: async () => ({ createdAt: '2026-10-18T10:00:00Z' }),
+    waitForIssueReply: async () => ({ reply: null }),
     commentOnPullRequest: async () => undefined,
     readPullRequestDiff: async () => ({ diff: 'diff --git a/x b/x' }),
     closeReviewCycle: async (request) => ({
@@ -148,47 +154,88 @@ describe('BuildWorkflow', () => {
     expect(studio.getWorkflow('review-cycle').id).toBe('review-cycle')
   })
 
-  it('posts the plan on the issue before it asks for approval', async () => {
+  it('posts the plan on the issue and carries on without asking', async () => {
     const comments: string[] = []
     const { started } = await startedRun({
       commentOnIssue: async (request) => {
         comments.push(request.body)
+        return { createdAt: '2026-10-18T10:00:00Z' }
       },
     })
 
-    expect(started.status).toBe('suspended')
+    expect(started.status).toBe('success')
     expect(comments).toStrictEqual([expect.stringContaining("## Implementer's plan\n\nthe plan")])
   })
 
   it('carries an issue to a pull request ready for a person', async () => {
-    const { run, started } = await startedRun()
+    const { started } = await startedRun()
 
-    const finished = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const finished = started
 
-    expect(started.status).toBe('suspended')
     expect(finished.status).toBe('success')
     expect(finished).toStrictEqual(
       expect.objectContaining({ result: expect.objectContaining({ readyForHuman: true }) }),
     )
   })
 
-  it('stops the run when the plan is rejected', async () => {
-    const { run } = await startedRun()
-
-    const finished = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: false, notes: null },
+  it('asks on the issue when the plan needs input and carries on with the reply', async () => {
+    const comments: string[] = []
+    const { started } = await startedRun({
+      generate: async (request) =>
+        request.agentId === 'planner'
+          ? planAnswer(true, 'Should the bound be bytes or lines?')
+          : stubs().generate(request),
+      commentOnIssue: async (request) => {
+        comments.push(request.body)
+        return { createdAt: '2026-10-18T10:00:00Z' }
+      },
+      waitForIssueReply: async () => ({ reply: 'Bytes, 64 KiB.' }),
     })
 
-    expect(finished.status).toBe('failed')
+    expect(started.status).toBe('success')
+    expect(comments[0]).toContain('### Needs your input')
+    expect(comments[0]).toContain('Should the bound be bytes or lines?')
+    expect(started).toStrictEqual(
+      expect.objectContaining({ result: expect.objectContaining({ readyForHuman: true }) }),
+    )
+  })
+
+  it('posts the question heading even when the planner gives no question text', async () => {
+    const comments: string[] = []
+    await startedRun({
+      generate: async (request) =>
+        request.agentId === 'planner' ? planAnswer(true, null) : stubs().generate(request),
+      commentOnIssue: async (request) => {
+        comments.push(request.body)
+        return { createdAt: '2026-10-18T10:00:00Z' }
+      },
+      waitForIssueReply: async () => ({ reply: 'go ahead' }),
+    })
+
+    expect(comments[0]).toContain('### Needs your input')
+  })
+
+  it('fails when nobody replies on the issue', async () => {
+    const { started } = await startedRun({
+      generate: async (request) =>
+        request.agentId === 'planner'
+          ? planAnswer(true, 'Should the bound be bytes or lines?')
+          : stubs().generate(request),
+    })
+
+    expect(started).toStrictEqual(
+      expect.objectContaining({
+        status: 'failed',
+        error: expect.objectContaining({
+          message: expect.stringContaining('Nobody replied on the issue'),
+        }),
+      }),
+    )
   })
 
   it('suspends when the implementer is blocked and carries on with the answer', async () => {
     const prompts: string[] = []
-    const { run } = await startedRun({
+    const { run, started } = await startedRun({
       generate: async (request) => {
         if (request.agentId !== 'implementer') return stubs().generate(request)
         prompts.push(request.prompt.startsWith('Implement issue') ? 'asking' : request.prompt)
@@ -207,10 +254,7 @@ describe('BuildWorkflow', () => {
           : implementationAnswer('the change')
       },
     })
-    const blocked = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const blocked = started
     expect(blocked).toStrictEqual(
       expect.objectContaining({
         status: 'suspended',
@@ -242,10 +286,7 @@ describe('BuildWorkflow', () => {
           : stubs().generate(request),
     })
 
-    const asked = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const asked = await run.start({ inputData: startInput })
 
     expect(asked).toStrictEqual(
       expect.objectContaining({
@@ -266,10 +307,7 @@ describe('BuildWorkflow', () => {
           ? { object: undefined, text: '', finishReason: 'suspended', suspendPayload: null }
           : stubs().generate(request),
     })
-    const asked = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const asked = await run.start({ inputData: startInput })
 
     expect(asked).toStrictEqual(
       expect.objectContaining({
@@ -297,16 +335,13 @@ describe('BuildWorkflow', () => {
   })
 
   it('says the implementer ran out of time, and keeps the worktree', async () => {
-    const { run } = await startedRun({
+    const { started } = await startedRun({
       generate: async (request) =>
         request.agentId === 'implementer'
           ? { object: undefined, text: '', finishReason: 'aborted', suspendPayload: null }
           : stubs().generate(request),
     })
-    const finished = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const finished = started
 
     expect(finished).toStrictEqual(
       expect.objectContaining({
@@ -319,16 +354,13 @@ describe('BuildWorkflow', () => {
   })
 
   it('says the implementer ran out of steps rather than out of answers', async () => {
-    const { run } = await startedRun({
+    const { started } = await startedRun({
       generate: async (request) =>
         request.agentId === 'implementer'
           ? { object: undefined, text: '', finishReason: 'tool-calls', suspendPayload: null }
           : stubs().generate(request),
     })
-    const finished = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const finished = started
 
     expect(finished).toStrictEqual(
       expect.objectContaining({
@@ -341,43 +373,34 @@ describe('BuildWorkflow', () => {
   })
 
   it('fails when the implementer does not return a summary', async () => {
-    const { run } = await startedRun({
+    const { started } = await startedRun({
       generate: async (request) =>
         request.agentId === 'implementer'
           ? { object: undefined, text: 'prose', finishReason: 'stop', suspendPayload: null }
           : stubs().generate(request),
     })
-    const finished = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const finished = started
 
     expect(finished.status).toBe('failed')
   })
 
   it('keeps an issue title that is already a conventional commit title', async () => {
-    const { run } = await startedRun({
+    const { started } = await startedRun({
       loadIssue: async () => ({ title: 'feat: add a review cycle', body: 'The problem.' }),
     })
-    const finished = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const finished = started
 
     expect(finished.status).toBe('success')
   })
 
   it('keeps cycling until the limit and then hands over to a person', async () => {
-    const { run } = await startedRun({
+    const { started } = await startedRun({
       generate: async (request) =>
         isReviewer(request.agentId)
           ? verdictAnswer('OPEN_FEEDBACK', [finding])
           : stubs().generate(request),
     })
-    const finished = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const finished = started
 
     expect(finished).toStrictEqual(
       expect.objectContaining({
@@ -388,7 +411,7 @@ describe('BuildWorkflow', () => {
   })
 
   it('fails when the pull request writer does not return the sections', async () => {
-    const { run } = await startedRun({
+    const { started } = await startedRun({
       generate: async (request) =>
         request.agentId === 'pull-request-writer'
           ? {
@@ -399,31 +422,25 @@ describe('BuildWorkflow', () => {
             }
           : stubs().generate(request),
     })
-    const finished = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const finished = started
 
     expect(finished.status).toBe('failed')
   })
 
   it('fails when a reviewer does not return a verdict', async () => {
-    const { run } = await startedRun({
+    const { started } = await startedRun({
       generate: async (request) =>
         isReviewer(request.agentId)
           ? { object: undefined, text: 'prose', finishReason: 'stop', suspendPayload: null }
           : stubs().generate(request),
     })
-    const finished = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const finished = started
 
     expect(finished.status).toBe('failed')
   })
 
   it('fails when three attempts leave the worktree dirty', async () => {
-    const { run } = await startedRun({
+    const { started } = await startedRun({
       generate: async (request) =>
         request.agentId === 'implementer'
           ? {
@@ -445,10 +462,7 @@ describe('BuildWorkflow', () => {
         status: ' M src/order.ts',
       }),
     })
-    const finished = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const finished = started
 
     expect(finished).toStrictEqual(
       expect.objectContaining({
@@ -461,7 +475,7 @@ describe('BuildWorkflow', () => {
   })
 
   it('fails when the agent says the work is not committed', async () => {
-    const { run } = await startedRun({
+    const { started } = await startedRun({
       generate: async (request) =>
         request.agentId === 'implementer'
           ? {
@@ -477,10 +491,7 @@ describe('BuildWorkflow', () => {
             }
           : stubs().generate(request),
     })
-    const finished = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const finished = started
 
     expect(finished.status).toBe('failed')
   })
@@ -633,7 +644,7 @@ describe('review cycle', () => {
   })
 
   it('fails the run when the nested review cycle fails', async () => {
-    const { run } = await startedRun({
+    const { started } = await startedRun({
       checkWorkCommitted: async () => ({
         clean: false,
         hasCommit: true,
@@ -642,10 +653,7 @@ describe('review cycle', () => {
       }),
     })
 
-    const finished = await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: true, notes: null },
-    })
+    const finished = started
 
     expect(finished.status).toBe('failed')
   })

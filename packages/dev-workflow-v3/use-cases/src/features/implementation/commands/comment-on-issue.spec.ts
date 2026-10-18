@@ -7,11 +7,16 @@ describe('CommentOnIssue', () => {
     const comments: string[] = []
     const command = new CommentOnIssue(async (request) => {
       comments.push(`${request.issueNumber}: ${request.body}`)
+      return { commentId: 991, createdAt: '2026-10-18T10:00:00Z' }
     })
 
     const result = await command.execute({ issueNumber: 548, body: '## Plan' })
 
-    expect(result.issueNumber).toBe(548)
+    expect(result).toStrictEqual({
+      issueNumber: 548,
+      commentId: 991,
+      createdAt: '2026-10-18T10:00:00Z',
+    })
     expect(comments).toStrictEqual(['548: ## Plan'])
   })
 

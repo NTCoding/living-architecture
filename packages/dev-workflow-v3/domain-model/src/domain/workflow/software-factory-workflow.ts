@@ -20,7 +20,7 @@ export class SoftwareFactoryWorkflow {
           { id: 'read-guidance', looped: false },
           { id: 'draft-plan', looped: false },
           { id: 'publish-plan', looped: false },
-          { id: 'request-plan-approval', looped: false },
+          { id: 'wait-for-plan-clarification', looped: false },
           { id: 'implement', looped: false },
           { id: 'push-branch', looped: false },
           { id: 'draft-pull-request', looped: false },

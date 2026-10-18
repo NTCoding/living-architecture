@@ -25,6 +25,22 @@ createWorkflow({ id: 'start-implementation', inputSchema, outputSchema })
 - A looped step must keep the same input and output shape, because its output is fed back
   in as its next input.
 
+## Plan as an issue comment, with a wait for the reply
+
+Where: `build-workflow.ts`, steps `publish-plan` and `wait-for-plan-clarification`
+
+```ts
+const posted = await input.commentOnIssue({ issueNumber, body: planComment(state) })
+const { reply } = await input.waitForIssueReply({ issueNumber, after: posted.createdAt })
+```
+
+- The planner returns `markdown`, `needsInput` and `question`.
+- The plan is always posted. The run only waits when `needsInput` is true.
+- The wait polls the issue for the first comment created after the plan comment, for up
+  to an hour, then fails with the plan still on the issue.
+- The reply is carried into the implementation prompt.
+- There is no approval suspension and no `resume --approved`.
+
 ## Step suspension
 
 Where: `build-workflow.ts`, step `request-plan-approval`
