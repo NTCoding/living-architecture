@@ -17,7 +17,7 @@ import {
   ExtractionConfigurationUnavailableError,
   GraphStateUnavailableError,
 } from './riviere-project-errors'
-import { Workflow, WorkflowRunMode } from './workflow'
+import { Workflow, WorkflowRunMode, WorkflowRunResult } from './workflow'
 import type { WorkflowDiagnostic } from './workflow-diagnostic'
 import {
   ExtractionProjectStartInput,
@@ -130,7 +130,7 @@ export class RiviereProject {
     const previousBuilder = this.graphBuilder()
     this.builder = RiviereBuilder.parse(BuilderOptions.fromGraph(previousBuilder.build()))
     const run = await workflow.run(this.builder, mode, (stage, context) =>
-      this.executeWorkflowStage(stage, context.diagnostics),
+      this.executeWorkflowStage(workflow, stage, context.diagnostics),
     )
     if (!run.value.success) {
       this.builder = previousBuilder
@@ -146,7 +146,16 @@ export class RiviereProject {
       warnings: run.value.warnings,
     }
   }
+  async validateWorkflow(): Promise<WorkflowRunResult> {
+    const workflow = this.workflow
+    if (workflow === undefined)
+      return WorkflowRunResult.fromMissingWorkflow('No workflow is loaded')
+    return workflow.validateAiStageCommands((command) =>
+      this.collaborators.aiCli.checkAvailability(command),
+    )
+  }
   private async executeWorkflowStage(
+    workflow: Workflow,
     stage: WorkflowStageValue,
     unresolvedDiagnostics: readonly WorkflowDiagnostic[],
   ) {
@@ -188,11 +197,9 @@ export class RiviereProject {
         return this.executeCodeExtractionStage(stage)
       case 'ai-extract':
       case 'ai-enrich':
-        return {
-          success: false as const,
-          errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',
-          reason: `Stage behaviour is unavailable for '${stage.kind}'`,
-        }
+        return workflow.executeAiStage(stage, (command) =>
+          this.collaborators.aiCli.checkAvailability(command),
+        )
     }
   }
   private executeCodeExtractionStage(

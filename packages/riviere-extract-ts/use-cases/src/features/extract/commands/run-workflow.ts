@@ -1,6 +1,7 @@
 import { ExtractionConfigError } from '../data-access/riviere-project/riviere-config-error'
 import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
 import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
+import { WorkflowRunMode } from '@living-architecture/riviere-extract-ts-domain-model/domain/workflow'
 import type { RunWorkflowInput } from './run-workflow-input'
 import type { RunWorkflowResult } from './run-workflow-result'
 
@@ -15,7 +16,7 @@ export class RunWorkflow {
   private async run(input: RunWorkflowInput): Promise<RunWorkflowResult> {
     try {
       const project = this.projects.load({ kind: 'workflow', workflowPath: input.workflowPath })
-      return { result: await project.rebuildGraph() }
+      return { result: await project.rebuildGraph(input.mode ?? WorkflowRunMode.from('run')) }
     } catch (error) {
       if (error instanceof ExtractionConfigError || error instanceof ExtractionDataAccessError) {
         return {

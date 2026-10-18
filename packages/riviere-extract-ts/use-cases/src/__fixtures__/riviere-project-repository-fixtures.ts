@@ -1,3 +1,4 @@
+import type { AiCli } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/ai-cli'
 import type { EventCatalogSource } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
 import type { LoadAsyncApiDocument } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-asyncapi-document'
 import type { LoadCodeExtraction } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-code-extraction'
@@ -8,14 +9,23 @@ import { RiviereProjectRepository } from '../features/extract/data-access/rivier
 const emptyCodeExtractionLoader: LoadCodeExtraction = createCodeExtractionAdapter()
 const extractionConfiguration = configureExtraction({})
 
+export function availableAiCli(): AiCli {
+  return {
+    checkAvailability: () => Promise.resolve({ kind: 'available' }),
+    run: () => Promise.resolve({ kind: 'completed', standardOutput: '', standardError: '' }),
+  }
+}
+
 export function createRiviereProjectRepository(
   loadEventCatalogSource: (sourcePath: string) => Promise<EventCatalogSource> = () =>
     Promise.resolve({ domains: [], services: [], events: [] }),
   loadAsyncApiDocument: LoadAsyncApiDocument = () =>
     Promise.resolve({ messages: [], operations: [] }),
   loadCodeExtraction: LoadCodeExtraction = emptyCodeExtractionLoader,
+  aiCli: AiCli = availableAiCli(),
 ): RiviereProjectRepository {
   return new RiviereProjectRepository({
+    aiCli,
     loadEventCatalogSource,
     loadAsyncApiDocument,
     loadCodeExtraction,

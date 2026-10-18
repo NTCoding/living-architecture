@@ -37,6 +37,8 @@ import { LinkHttp } from '@living-architecture/riviere-extract-ts-use-cases/feat
 import { ValidateGraph } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/validate-graph'
 import { createEventCatalogSourceAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/eventcatalog/event-catalog-source-adapter'
 import { createAsyncApiDocumentAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/asyncapi/asyncapi-document-adapter'
+import { AiCliAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ai-cli/ai-cli-adapter'
+import { ChildProcessClient } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/child-process/child-process-client'
 import { createAddComponentCommand } from '../features/builder/entrypoint/add-component/entrypoint'
 import { createAddDomainCommand } from '../features/builder/entrypoint/add-domain/entrypoint'
 import { createAddSourceCommand } from '../features/builder/entrypoint/add-source/entrypoint'
@@ -137,8 +139,10 @@ export function createProgram(): Command {
   const eventCatalogSourceLoader = createEventCatalogSourceAdapter()
   const asyncApiDocumentLoader = createAsyncApiDocumentAdapter()
   const codeExtractionLoader = createCodeExtractionAdapter()
+  const aiCli = new AiCliAdapter(new ChildProcessClient())
   const extractionConfiguration = configureExtraction({})
   const riviereProjectCollaborators = {
+    aiCli,
     loadEventCatalogSource: eventCatalogSourceLoader,
     loadAsyncApiDocument: asyncApiDocumentLoader,
     loadCodeExtraction: codeExtractionLoader,
@@ -184,10 +188,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createInitCommand({
-      initGraph: new InitGraph(
-        riviereProjectRepository,
-        riviereProjectCollaborators,
-      ),
+      initGraph: new InitGraph(riviereProjectRepository, riviereProjectCollaborators),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,

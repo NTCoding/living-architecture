@@ -10,6 +10,7 @@ vi.mock('../data-access/riviere-project/riviere-project-repository', () => ({
 }))
 
 import { RunWorkflow } from './run-workflow'
+import { WorkflowRunMode } from '@living-architecture/riviere-extract-ts-domain-model/domain/workflow'
 import { ExtractionConfigError } from '../data-access/riviere-project/riviere-config-error'
 import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
 
@@ -30,7 +31,7 @@ describe('RunWorkflow', () => {
       kind: 'workflow',
       workflowPath: '/project/.riviere/workflows/combined.yaml',
     })
-    expect(mocks.rebuildGraph).toHaveBeenCalledWith()
+    expect(mocks.rebuildGraph).toHaveBeenCalledWith(WorkflowRunMode.from('run'))
     expect(result).toStrictEqual({ result: { success: true, graph: { metadata: {} } } })
   })
 

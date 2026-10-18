@@ -62,3 +62,28 @@ export function writeImportStage(
   writeFileSync(join(directory, '.riviere', 'workflows', 'mappings.yaml'), mappingsYaml.join('\n'))
   writeWorkflow(directory, `  - kind: ${kind}\n    name: import\n    config: import.yaml`)
 }
+
+const AI_EXTRACT_CONFIG = [
+  'command: ai-cli',
+  'args: []',
+  'timeout-seconds: 30',
+  'sources:',
+  '  - src',
+  'selection:',
+  '  from:',
+  '    - missing-events',
+  '  component-types:',
+  '    - Event',
+  'outputs:',
+  '  add-components: true',
+  '  add-links: true',
+  'context:',
+  '  exclude: []',
+  '  max-files-per-batch: 1',
+  '  max-batches: 1',
+].join('\n')
+
+export function writeAiExtractStage(directory: string): void {
+  writeFileSync(join(directory, '.riviere', 'workflows', 'ai.yaml'), AI_EXTRACT_CONFIG)
+  writeWorkflow(directory, '  - kind: ai-extract\n    name: discover\n    config: ai.yaml')
+}

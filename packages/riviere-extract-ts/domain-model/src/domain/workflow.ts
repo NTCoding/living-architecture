@@ -61,6 +61,17 @@ export class WorkflowRunResult {
     return new WorkflowRunResult(value)
   }
 
+  static fromMissingWorkflow(reason: string): WorkflowRunResult {
+    return WorkflowRunResult.from({
+      success: false,
+      errorCode: 'WORKFLOW_UNAVAILABLE',
+      reason,
+      events: [],
+      transitions: [],
+      warnings: [],
+    })
+  }
+
   private constructor(readonly value: WorkflowRunResultValue) {}
 }
 
@@ -134,11 +145,55 @@ export class Workflow {
     return this.successResult()
   }
 
+  async executeAiStage(
+    stage: AiWorkflowStage,
+    checkAvailability: (command: string) => Promise<AiStageAvailability>,
+  ): Promise<WorkflowStageExecutionResult> {
+    const availability = await checkAvailability(stage.config.command)
+    if (availability.kind === 'unavailable') {
+      return {
+        success: false,
+        errorCode: 'AI_CLI_UNAVAILABLE',
+        reason: `AI CLI '${stage.config.command}' is unavailable: ${availability.reason}`,
+      }
+    }
+    return {
+      success: false,
+      errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',
+      reason: `Stage behaviour is unavailable for '${stage.kind}'`,
+    }
+  }
+
+  async validateAiStageCommands(
+    checkAvailability: (command: string) => Promise<AiStageAvailability>,
+  ): Promise<WorkflowRunResult> {
+    const unavailableReasons: string[] = []
+    for (const stage of this.stages) {
+      if (!isAiStage(stage.value)) continue
+      const availability = await checkAvailability(stage.value.config.command)
+      if (availability.kind === 'available') continue
+      unavailableReasons.push(
+        `AI CLI '${stage.value.config.command}' for stage '${stage.value.name}' is unavailable: ${availability.reason}`,
+      )
+    }
+    if (unavailableReasons.length === 0) {
+      return WorkflowRunResult.from({ success: true, events: [], transitions: [], warnings: [] })
+    }
+    return WorkflowRunResult.from({
+      success: false,
+      errorCode: 'AI_CLI_UNAVAILABLE',
+      reason: unavailableReasons.join('\n'),
+      events: [],
+      transitions: [],
+      warnings: [],
+    })
+  }
+
   private activeStages(mode: WorkflowRunModeValue): readonly WorkflowStage[] {
     switch (mode) {
       case 'run':
-      case 'dry-run':
         return this.stages
+      case 'dry-run':
       case 'skip-ai':
         return this.stages.filter((stage) => !isAiStage(stage.value))
     }
@@ -224,6 +279,12 @@ export class Workflow {
   }
 }
 
+type AiStageAvailability =
+  | Readonly<{ kind: 'available' }>
+  | Readonly<{ kind: 'unavailable'; reason: string }>
+
+type AiWorkflowStage = Extract<WorkflowStageValue, { kind: 'ai-extract' | 'ai-enrich' }>
+
 type WorkflowStageEventValues = Readonly<{
   name: string
   kind: WorkflowStageValue['kind']
@@ -234,7 +295,7 @@ function stageEventValues(stage: WorkflowStageValue, index: number): WorkflowSta
   return { name: stage.name, kind: stage.kind, index }
 }
 
-function isAiStage(stage: WorkflowStageValue): boolean {
+function isAiStage(stage: WorkflowStageValue): stage is AiWorkflowStage {
   switch (stage.kind) {
     case 'ai-extract':
     case 'ai-enrich':

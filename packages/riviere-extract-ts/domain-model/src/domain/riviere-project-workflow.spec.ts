@@ -38,22 +38,26 @@ const aiExtractConfig: AiExtractConfig = {
 function project(
   stages?: readonly WorkflowStage[],
   loadCodeExtraction?: RiviereProjectCollaborators['loadCodeExtraction'],
+  aiCli?: RiviereProjectCollaborators['aiCli'],
 ): RiviereProject {
   if (stages === undefined) {
     return RiviereProject.start(GraphOnlyProjectStartInput.from(graphDefinition()), collaborators())
   }
   return RiviereProject.start(
     GraphWithWorkflowStartInput.from(graphDefinition(), workflowStartInput(stages)),
-    withCodeExtractionLoader(loadCodeExtraction),
+    withCodeExtractionLoader(loadCodeExtraction, aiCli),
   )
 }
 
 function withCodeExtractionLoader(
   loadCodeExtraction?: RiviereProjectCollaborators['loadCodeExtraction'],
+  aiCli?: RiviereProjectCollaborators['aiCli'],
 ): RiviereProjectCollaborators {
-  return loadCodeExtraction === undefined
-    ? collaborators()
-    : { ...collaborators(), loadCodeExtraction }
+  return {
+    ...collaborators(),
+    ...(loadCodeExtraction === undefined ? {} : { loadCodeExtraction }),
+    ...(aiCli === undefined ? {} : { aiCli }),
+  }
 }
 
 function addExistingComponent(subject: RiviereProject): void {

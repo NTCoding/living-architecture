@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, vi } from 'vitest'
+import type { AiCli } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/ai-cli'
 import type { RiviereProjectCollaborators } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
 import type { RiviereProjectRepository } from '../features/extract/data-access/riviere-project/riviere-project-repository'
 import { InitGraph } from '../features/extract/commands/init-graph'
@@ -15,9 +16,17 @@ class CodeExtractionUnavailableError extends Error {
   }
 }
 
+function availableAiCli(): AiCli {
+  return {
+    checkAvailability: () => Promise.resolve({ kind: 'available' }),
+    run: () => Promise.resolve({ kind: 'completed', standardOutput: '', standardError: '' }),
+  }
+}
+
 export function collaborators(): RiviereProjectCollaborators {
   const extractionConfiguration = configureExtraction({})
   return {
+    aiCli: availableAiCli(),
     loadEventCatalogSource: () => Promise.resolve({ domains: [], services: [], events: [] }),
     loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
     loadCodeExtraction: () => {
@@ -32,6 +41,7 @@ export function collaborators(): RiviereProjectCollaborators {
 export function createInitGraph(repository: RiviereProjectRepository): InitGraph {
   const loaders = collaborators()
   return new InitGraph(repository, {
+    aiCli: loaders.aiCli,
     loadEventCatalogSource: loaders.loadEventCatalogSource,
     loadAsyncApiDocument: loaders.loadAsyncApiDocument,
     loadCodeExtraction: createCodeExtractionAdapter(),

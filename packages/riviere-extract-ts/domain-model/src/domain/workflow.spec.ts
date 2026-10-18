@@ -130,17 +130,7 @@ describe('Workflow active stage plan', () => {
         'schema-validate',
       ],
     ],
-    [
-      'dry-run',
-      [
-        'code-extraction',
-        'eventcatalog-import',
-        'asyncapi-import',
-        'ai-extract',
-        'ai-enrich',
-        'schema-validate',
-      ],
-    ],
+    ['dry-run', ['code-extraction', 'eventcatalog-import', 'asyncapi-import', 'schema-validate']],
     ['skip-ai', ['code-extraction', 'eventcatalog-import', 'asyncapi-import', 'schema-validate']],
   ] as const)('executes the expected stages in %s mode', async (mode, expectedKinds) => {
     const executedKinds: string[] = []

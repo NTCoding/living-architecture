@@ -6,6 +6,7 @@ import { ValidatedConfiguration } from '@living-architecture/riviere-extract-con
 import { Project } from 'ts-morph'
 import { assert } from 'vitest'
 import { ExtractionConfiguration } from '../extraction-configuration'
+import type { AiCli } from '../ports/ai-cli'
 import type { AsyncApiDocument, LoadAsyncApiDocument } from '../ports/load-asyncapi-document'
 import type { LoadCodeExtraction } from '../ports/load-code-extraction'
 import type {
@@ -107,12 +108,21 @@ export function moduleExtractionRules(): RiviereModuleExtractionRules {
   }
 }
 
+export function availableAiCli(): AiCli {
+  return {
+    checkAvailability: () => Promise.resolve({ kind: 'available' }),
+    run: () => Promise.resolve({ kind: 'completed', standardOutput: '', standardError: '' }),
+  }
+}
+
 export function collaborators(
   source: EventCatalogSource = { domains: [], services: [], events: [] },
   asyncApiDocument: AsyncApiDocument = { messages: [], operations: [] },
+  aiCli: AiCli = availableAiCli(),
 ): RiviereProjectCollaborators {
   const loadCodeExtraction: LoadCodeExtraction = () => configuration().moduleContexts
   return {
+    aiCli,
     loadEventCatalogSource: () => Promise.resolve(source),
     loadAsyncApiDocument: () => Promise.resolve(asyncApiDocument),
     loadCodeExtraction,
