@@ -13,7 +13,11 @@ import type {
 const PROMPT_PLACEHOLDER = '{prompt}'
 
 type PromptInvocation =
-  | Readonly<{ readonly kind: 'stdin'; readonly args: readonly string[] }>
+  | Readonly<{
+      readonly kind: 'stdin'
+      readonly args: readonly string[]
+      readonly stdin: string
+    }>
   | Readonly<{ readonly kind: 'argument'; readonly args: readonly string[] }>
   | Readonly<{ readonly kind: 'invalid'; readonly reason: string }>
 
@@ -38,9 +42,7 @@ export class AiCliAdapter implements AiCli {
     if (invocation.kind === 'invalid') {
       return { kind: 'invalid-arguments', reason: invocation.reason }
     }
-    const result = await this.childProcessClient.run(
-      childProcessInput(input, invocation, invocation.kind === 'stdin' ? input.prompt : undefined),
-    )
+    const result = await this.childProcessClient.run(childProcessInput(input, invocation))
     return mapResult(input.command, input.timeoutSeconds, result)
   }
 }
@@ -48,16 +50,17 @@ export class AiCliAdapter implements AiCli {
 function childProcessInput(
   input: RunAiCliInput,
   invocation: Extract<PromptInvocation, { kind: 'stdin' | 'argument' }>,
-  stdin: string | undefined,
 ): ChildProcessRunInput {
-  const shared = {
+  const childProcessInvocation = {
     command: input.command,
     args: invocation.args,
     timeoutMilliseconds: Math.ceil(input.timeoutSeconds * 1000),
     maximumOutputBytes: input.maximumOutputBytes,
   }
-  if (stdin === undefined) return { ...shared, kind: 'no-stdin' }
-  return { ...shared, kind: 'pipe-stdin', stdin }
+  if (invocation.kind === 'stdin') {
+    return { ...childProcessInvocation, kind: 'pipe-stdin', stdin: invocation.stdin }
+  }
+  return { ...childProcessInvocation, kind: 'no-stdin' }
 }
 
 function promptInvocation(args: readonly string[], prompt: string): PromptInvocation {
@@ -65,7 +68,7 @@ function promptInvocation(args: readonly string[], prompt: string): PromptInvoca
     (count, argument) => count + occurrences(argument, PROMPT_PLACEHOLDER),
     0,
   )
-  if (placeholderCount === 0) return { kind: 'stdin', args }
+  if (placeholderCount === 0) return { kind: 'stdin', args, stdin: prompt }
   if (placeholderCount > 1) {
     return {
       kind: 'invalid',
@@ -109,6 +112,16 @@ function mapResult(
         partialOutput: result.stdout.text,
         partialError: result.stderr.text,
       }
+    case 'terminated-by-signal':
+      return {
+        kind: 'signal-termination',
+        command,
+        signal: result.signal,
+        partialOutput: result.stdout.text,
+        partialError: result.stderr.text,
+      }
+    case 'stdin-failed':
+      return { kind: 'stdin-failure', command, reason: result.reason }
     case 'spawn-failed':
       return { kind: 'spawn-failure', command, reason: result.reason }
   }

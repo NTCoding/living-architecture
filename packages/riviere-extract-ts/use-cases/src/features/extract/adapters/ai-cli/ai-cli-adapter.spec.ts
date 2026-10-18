@@ -28,12 +28,12 @@ function completedResult(
   }
 }
 
+const childProcessClient = new ChildProcessClient()
+const adapter = new AiCliAdapter(childProcessClient)
+
+afterEach(() => vi.restoreAllMocks())
+
 describe('AiCliAdapter availability', () => {
-  const childProcessClient = new ChildProcessClient()
-  const adapter = new AiCliAdapter(childProcessClient)
-
-  afterEach(() => vi.restoreAllMocks())
-
   it('reports an available command when its executable resolves', async () => {
     vi.spyOn(childProcessClient, 'resolveExecutable').mockReturnValue({
       kind: 'resolved',
@@ -59,6 +59,14 @@ describe('AiCliAdapter availability', () => {
     })
   })
 
+  it('reports an unavailable command when the command is blank', async () => {
+    await expect(adapter.checkAvailability('')).resolves.toStrictEqual({
+      kind: 'unavailable',
+      command: '',
+      reason: "Command '' was not found on PATH",
+    })
+  })
+
   it('does not spawn a process while checking availability', async () => {
     const resolveExecutable = vi.spyOn(childProcessClient, 'resolveExecutable').mockReturnValue({
       kind: 'not-found',
@@ -74,11 +82,6 @@ describe('AiCliAdapter availability', () => {
 })
 
 describe('AiCliAdapter prompt passing', () => {
-  const childProcessClient = new ChildProcessClient()
-  const adapter = new AiCliAdapter(childProcessClient)
-
-  afterEach(() => vi.restoreAllMocks())
-
   it('sends the prompt on stdin when args have no prompt placeholder', async () => {
     const run = vi.spyOn(childProcessClient, 'run').mockResolvedValue(completedResult())
 
@@ -122,11 +125,6 @@ describe('AiCliAdapter prompt passing', () => {
 })
 
 describe('AiCliAdapter result mapping', () => {
-  const childProcessClient = new ChildProcessClient()
-  const adapter = new AiCliAdapter(childProcessClient)
-
-  afterEach(() => vi.restoreAllMocks())
-
   it('reports truncated output from a successful run', async () => {
     vi.spyOn(childProcessClient, 'run').mockResolvedValue(
       completedResult({ stdout: { text: '{"partial":true}', truncated: true } }),
@@ -151,6 +149,36 @@ describe('AiCliAdapter result mapping', () => {
       timeoutSeconds: 2,
       partialOutput: 'partial',
       partialError: 'warning',
+    })
+  })
+
+  it('maps a signal termination to a signal-termination result', async () => {
+    vi.spyOn(childProcessClient, 'run').mockResolvedValue({
+      kind: 'terminated-by-signal',
+      signal: 'SIGTERM',
+      stdout: { text: 'partial', truncated: false },
+      stderr: { text: 'warning', truncated: false },
+    })
+
+    await expect(adapter.run(runInput())).resolves.toStrictEqual({
+      kind: 'signal-termination',
+      command: 'claude',
+      signal: 'SIGTERM',
+      partialOutput: 'partial',
+      partialError: 'warning',
+    })
+  })
+
+  it('maps a stdin write failure to a stdin-failure result', async () => {
+    vi.spyOn(childProcessClient, 'run').mockResolvedValue({
+      kind: 'stdin-failed',
+      reason: 'write EACCES',
+    })
+
+    await expect(adapter.run(runInput())).resolves.toStrictEqual({
+      kind: 'stdin-failure',
+      command: 'claude',
+      reason: 'write EACCES',
     })
   })
 

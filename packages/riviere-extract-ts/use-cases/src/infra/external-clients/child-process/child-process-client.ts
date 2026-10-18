@@ -1,4 +1,4 @@
-import { accessSync, constants } from 'node:fs'
+import { accessSync, constants, statSync } from 'node:fs'
 import { delimiter, join } from 'node:path'
 import { spawn } from 'node:child_process'
 
@@ -35,6 +35,16 @@ export type ChildProcessRunResult =
       readonly kind: 'timed-out'
       readonly stdout: ChildProcessOutput
       readonly stderr: ChildProcessOutput
+    }>
+  | Readonly<{
+      readonly kind: 'terminated-by-signal'
+      readonly signal: string
+      readonly stdout: ChildProcessOutput
+      readonly stderr: ChildProcessOutput
+    }>
+  | Readonly<{
+      readonly kind: 'stdin-failed'
+      readonly reason: string
     }>
   | Readonly<{
       readonly kind: 'spawn-failed'
@@ -80,14 +90,14 @@ class BoundedOutput {
 /** @riviere-role external-client-service */
 export class ChildProcessClient {
   resolveExecutable(command: string): ChildProcessExecutableResolution {
+    if (command.trim().length === 0) return notFound(command)
     if (command.includes('/') || command.includes('\\')) {
       return this.executableAt(command)
         ? { kind: 'resolved', executablePath: command }
         : notFound(command)
     }
-    const searchPath = process.env['PATH']
-    if (searchPath === undefined) return notFound(command)
-    for (const directory of searchPath.split(delimiter)) {
+    const searchDirectories = (process.env['PATH'] ?? delimiter).split(delimiter)
+    for (const directory of searchDirectories) {
       const candidate = join(directory, command)
       if (this.executableAt(candidate)) return { kind: 'resolved', executablePath: candidate }
     }
@@ -112,14 +122,19 @@ export class ChildProcessClient {
       }, input.timeoutMilliseconds)
       child.stdout?.on('data', (chunk: Buffer) => stdout.collect(chunk))
       child.stderr?.on('data', (chunk: Buffer) => stderr.collect(chunk))
-      child.stdin?.on('error', () => undefined)
+      child.stdin?.on('error', (error: Error) => {
+        if (isBenignStdinWriteError(error)) return
+        finish({ kind: 'stdin-failed', reason: String(error) })
+      })
       child.on('error', (error) => finish({ kind: 'spawn-failed', reason: String(error) }))
       child.on('close', (exitCode, signal) => {
         clearTimeout(timer)
         if (exitCode === null) {
           finish({
-            kind: 'spawn-failed',
-            reason: `Process terminated by signal '${String(signal)}'`,
+            kind: 'terminated-by-signal',
+            signal: String(signal),
+            stdout: stdout.snapshot(),
+            stderr: stderr.snapshot(),
           })
           return
         }
@@ -136,8 +151,7 @@ export class ChildProcessClient {
 
   private executableAt(candidate: string): boolean {
     try {
-      accessSync(candidate, constants.X_OK)
-      return true
+      return statSync(candidate).isFile() && hasExecutePermission(candidate)
     } catch {
       return false
     }
@@ -158,6 +172,20 @@ export class ChildProcessClient {
       return undefined
     }
   }
+}
+
+function hasExecutePermission(candidate: string): boolean {
+  try {
+    accessSync(candidate, constants.X_OK)
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** @riviere-role external-client-service */
+export function isBenignStdinWriteError(error: Error): boolean {
+  return 'code' in error && (error.code === 'EPIPE' || error.code === 'ERR_STREAM_DESTROYED')
 }
 
 function notFound(command: string): ChildProcessExecutableResolution {

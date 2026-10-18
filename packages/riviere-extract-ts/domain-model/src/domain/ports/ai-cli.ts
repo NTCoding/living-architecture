@@ -43,6 +43,20 @@ type RunAiCliExecutionFailure = Readonly<{
   readonly stderr: string
 }>
 
+type RunAiCliSignalTermination = Readonly<{
+  readonly kind: 'signal-termination'
+  readonly command: string
+  readonly signal: string
+  readonly partialOutput: string
+  readonly partialError: string
+}>
+
+type RunAiCliStdinFailure = Readonly<{
+  readonly kind: 'stdin-failure'
+  readonly command: string
+  readonly reason: string
+}>
+
 type RunAiCliInvalidArguments = Readonly<{
   readonly kind: 'invalid-arguments'
   readonly reason: string
@@ -53,6 +67,8 @@ type RunAiCliResult =
   | RunAiCliTimeout
   | RunAiCliSpawnFailure
   | RunAiCliExecutionFailure
+  | RunAiCliSignalTermination
+  | RunAiCliStdinFailure
   | RunAiCliInvalidArguments
 
 /**
@@ -70,7 +86,9 @@ export type {
   RunAiCliInput,
   RunAiCliInvalidArguments,
   RunAiCliResult,
+  RunAiCliSignalTermination,
   RunAiCliSpawnFailure,
+  RunAiCliStdinFailure,
   RunAiCliSuccess,
   RunAiCliTimeout,
 }

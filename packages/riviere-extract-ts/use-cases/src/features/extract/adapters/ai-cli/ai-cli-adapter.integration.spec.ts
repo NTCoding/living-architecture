@@ -58,7 +58,7 @@ describe('AiCliAdapter with a stub executable', () => {
     }
   })
 
-  it('invokes the executable with the prompt on stdin', async () => {
+  it('returns the executable output when the prompt is passed on stdin', async () => {
     const executable = await createExecutable('echo-ai-cli', ECHO_EXECUTABLE)
 
     const result = await adapter.run(invocationInput(executable))

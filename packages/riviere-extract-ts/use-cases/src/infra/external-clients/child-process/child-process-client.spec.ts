@@ -1,9 +1,9 @@
 import { chmod, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { basename, join } from 'node:path'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ChildProcessRunInput } from './child-process-client'
-import { ChildProcessClient } from './child-process-client'
+import { ChildProcessClient, isBenignStdinWriteError } from './child-process-client'
 
 const STDIN_EXECUTABLE = `#!/usr/bin/env node
 let stdin = ''
@@ -49,6 +49,16 @@ process.exit(0)
 const EXITS_BEFORE_STDIN_EXECUTABLE = `#!/usr/bin/env node
 process.exit(0)
 `
+
+class StdinWriteTestError extends Error {
+  readonly code: string
+
+  constructor(message: string, code: string) {
+    super(message)
+    this.name = 'StdinWriteTestError'
+    this.code = code
+  }
+}
 
 const directories: string[] = []
 const client = new ChildProcessClient()
@@ -101,6 +111,7 @@ function stdinInput(
 }
 
 afterEach(async () => {
+  vi.unstubAllEnvs()
   for (const directory of directories.splice(0)) {
     await rm(directory, { recursive: true, force: true })
   }
@@ -114,8 +125,28 @@ describe('ChildProcessClient executable resolution', () => {
     })
   })
 
-  it('resolves a command found on PATH', () => {
-    expect(client.resolveExecutable('node')).toMatchObject({ kind: 'resolved' })
+  it('resolves a command found on PATH to the node executable', () => {
+    const resolution = client.resolveExecutable('node')
+
+    expect(resolution.kind).toBe('resolved')
+    expect(resolution.kind === 'resolved' && basename(resolution.executablePath)).toBe('node')
+  })
+
+  it('reports a file without execute permission as not found', async () => {
+    const directory = await createDirectory()
+    const command = join(directory, 'not-executable-ai-cli')
+    await writeFile(command, 'not executable')
+    await chmod(command, 0o644)
+
+    expect(client.resolveExecutable(command)).toStrictEqual({ kind: 'not-found', command })
+  })
+
+  it('reports a blank command as not found', () => {
+    expect(client.resolveExecutable('')).toStrictEqual({ kind: 'not-found', command: '' })
+  })
+
+  it('reports an existing directory as not found', () => {
+    expect(client.resolveExecutable('/tmp')).toStrictEqual({ kind: 'not-found', command: '/tmp' })
   })
 
   it('reports a missing executable path as not found', () => {
@@ -132,16 +163,12 @@ describe('ChildProcessClient executable resolution', () => {
   })
 
   it('reports a command as not found when PATH is unavailable', () => {
-    const originalPath = process.env['PATH']
-    delete process.env['PATH']
-    try {
-      expect(client.resolveExecutable('node')).toStrictEqual({
-        kind: 'not-found',
-        command: 'node',
-      })
-    } finally {
-      process.env['PATH'] = originalPath
-    }
+    vi.stubEnv('PATH', undefined)
+
+    expect(client.resolveExecutable('node')).toStrictEqual({
+      kind: 'not-found',
+      command: 'node',
+    })
   })
 })
 
@@ -185,17 +212,14 @@ describe('ChildProcessClient run', () => {
 
   it('inherits the current process environment', async () => {
     const executable = await createExecutable('environment-child', ENVIRONMENT_EXECUTABLE)
-    process.env['AI_CLI_TEST_VALUE'] = 'visible-to-child'
-    try {
-      const result = await client.run(noStdinInput(executable))
+    vi.stubEnv('AI_CLI_TEST_VALUE', 'visible-to-child')
 
-      expect(result).toMatchObject({
-        kind: 'completed',
-        stdout: { text: 'env:visible-to-child' },
-      })
-    } finally {
-      delete process.env['AI_CLI_TEST_VALUE']
-    }
+    const result = await client.run(noStdinInput(executable))
+
+    expect(result).toMatchObject({
+      kind: 'completed',
+      stdout: { text: 'env:visible-to-child' },
+    })
   })
 
   it('bounds stdout and stderr with independent budgets', async () => {
@@ -249,12 +273,24 @@ describe('ChildProcessClient run', () => {
     expect(result).toMatchObject({ kind: 'spawn-failed' })
   })
 
-  it('reports a spawn failure when the child terminates from a signal', async () => {
+  it('reports a signal termination when the child is terminated from a signal', async () => {
     const executable = await createExecutable('self-terminating-child', SELF_TERMINATING_EXECUTABLE)
 
     await expect(client.run(noStdinInput(executable))).resolves.toStrictEqual({
-      kind: 'spawn-failed',
-      reason: "Process terminated by signal 'SIGTERM'",
+      kind: 'terminated-by-signal',
+      signal: 'SIGTERM',
+      stdout: { text: '', truncated: false },
+      stderr: { text: '', truncated: false },
     })
+  })
+
+  it('treats EPIPE and destroyed stdin streams as benign write failures', () => {
+    const pipeError = new StdinWriteTestError('write EPIPE', 'EPIPE')
+    const destroyedError = new StdinWriteTestError('stream destroyed', 'ERR_STREAM_DESTROYED')
+    const permissionError = new StdinWriteTestError('write EACCES', 'EACCES')
+
+    expect(isBenignStdinWriteError(pipeError)).toBe(true)
+    expect(isBenignStdinWriteError(destroyedError)).toBe(true)
+    expect(isBenignStdinWriteError(permissionError)).toBe(false)
   })
 })

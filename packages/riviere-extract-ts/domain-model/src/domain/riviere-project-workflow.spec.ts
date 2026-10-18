@@ -8,6 +8,7 @@ import {
 } from '@living-architecture/riviere-builder-published-language'
 import { ValidationResult } from '@living-architecture/riviere-schema-published-language/graph-validation'
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AiCli, AiCliAvailability } from './ports/ai-cli'
 import { RiviereProject, type RiviereProjectCollaborators } from './riviere-project'
 import { InvalidWorkflowDefinitionError } from './riviere-project-errors'
 import { MissingModuleSourceError } from './extraction-errors'
@@ -54,6 +55,26 @@ function withCodeExtractionLoader(
   return loadCodeExtraction === undefined
     ? collaborators()
     : { ...collaborators(), loadCodeExtraction }
+}
+
+function projectWithAiCli(
+  stages: readonly WorkflowStage[],
+  checkAvailability: AiCli['checkAvailability'],
+): RiviereProject {
+  return RiviereProject.start(
+    GraphWithWorkflowStartInput.from(graphDefinition(), workflowStartInput(stages)),
+    {
+      ...collaborators(),
+      aiCli: {
+        checkAvailability,
+        run: () =>
+          Promise.resolve({
+            kind: 'invalid-arguments',
+            reason: 'The workflow test does not invoke AI CLI execution',
+          }),
+      },
+    },
+  )
 }
 
 function addExistingComponent(subject: RiviereProject): void {
@@ -228,6 +249,58 @@ describe('RiviereProject Workflow rebuild', () => {
       errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',
       reason: "Stage behaviour is unavailable for 'ai-extract'",
     })
+  })
+
+  it('checks the active AI command during a normal Project rebuild', async () => {
+    const checkAvailability = vi.fn(
+      (command: string): Promise<AiCliAvailability> =>
+        Promise.resolve({ kind: 'available', command }),
+    )
+    const subject = projectWithAiCli(
+      [WorkflowStage.fromAiExtract('discover', aiExtractConfig)],
+      checkAvailability,
+    )
+
+    const result = await subject.rebuildGraph(WorkflowRunMode.from('run'))
+
+    expect(checkAvailability).toHaveBeenCalledWith('claude')
+    expect(result).toMatchObject({ success: false, errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE' })
+  })
+
+  it('fails with a typed error when the active AI command is unavailable', async () => {
+    const subject = projectWithAiCli(
+      [WorkflowStage.fromAiExtract('discover', aiExtractConfig)],
+      () =>
+        Promise.resolve({
+          kind: 'unavailable',
+          command: 'claude',
+          reason: 'spawn claude ENOENT',
+        }),
+    )
+
+    const result = await subject.rebuildGraph(WorkflowRunMode.from('run'))
+
+    expect(result).toMatchObject({
+      success: false,
+      errorCode: 'AI_CLI_UNAVAILABLE',
+      reason: 'spawn claude ENOENT',
+    })
+  })
+
+  it('does not check the AI command during a dry run', async () => {
+    const checkAvailability = vi.fn(
+      (command: string): Promise<AiCliAvailability> =>
+        Promise.resolve({ kind: 'available', command }),
+    )
+    const subject = projectWithAiCli(
+      [WorkflowStage.fromAiExtract('discover', aiExtractConfig)],
+      checkAvailability,
+    )
+
+    const result = await subject.rebuildGraph(WorkflowRunMode.from('dry-run'))
+
+    expect(checkAvailability).not.toHaveBeenCalled()
+    expect(result).toMatchObject({ success: false, errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE' })
   })
 
   it('returns no completed transition when schema validation fails', async () => {
