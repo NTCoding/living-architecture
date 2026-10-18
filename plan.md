@@ -866,7 +866,38 @@ The run found four faults that the stub tests could not:
 4. The cycle number no longer moves on when the cycle limit is reached, so the report
    says three cycles rather than four.
 
+**The pull request body matches v2 again.** `draft-pull-request` is a model step, as
+section 5.1 always said, and it returns the fields v2 used: commit type, commit scope,
+subject, description, problem, acceptance criteria, key changes, architectural impact,
+validation and notes. The body is the same eight sections, in the same order, with the
+same headings:
+
+```text
+## Description
+## Linked Issue            Closes #<issue>
+## What Problem Does This PR Solve?
+## Acceptance Criteria
+## Key Changes
+## Notable Architectural Changes / Impact
+## Validation
+## Notes
+```
+
+**Why the hello world run used all three cycles.** The evidence is in the review
+comments on pull request 550.
+
+- Cycle 1 raised the ADR-002 finding that `scripts/` is not an allowed location.
+- Cycle 2 opened with "My previously raised finding is not fixed". The feedback step had
+  not acted on it, because the prompt allowed the implementer to decide a finding did
+  not apply.
+- Cycle 3 reviewed the file in its new home under `tools/living-documentation/`, where
+  the move had created genuinely new findings: a `main` role on a module with a
+  side effect, and a spec that imports a module that runs on import.
+
+So one cycle was spent on a finding the implementer argued with, and one on the fallout
+of the fix. The feedback prompt now says a finding is not a suggestion, that it must be
+fixed, that a genuine disagreement goes to the developer through the ask-user tool, and
+that one complete pass must leave nothing for the next cycle.
+
 **Still open.** The app has no test target, so the Progress item "tests to 100% for the
 app" stays unticked. Shell is wiring and the graphs are tested in the use-cases package.
-The reviewer findings are long essays, which makes the pull request noisy, and the
-reviewers are strict enough to use all three cycles on a hello world script.

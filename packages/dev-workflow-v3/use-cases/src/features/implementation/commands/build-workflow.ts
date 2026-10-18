@@ -26,9 +26,10 @@ const runStateSchema = z.object({
   planApproved: z.boolean().default(false),
   implementationSummary: z.string().default(''),
   verificationGreen: z.boolean().default(false),
+  verificationChecks: z.array(z.object({ name: z.string(), passed: z.boolean() })).default([]),
   commitSha: z.string().default(''),
   pullRequestTitle: z.string().default(''),
-  pullRequestDescription: z.string().default(''),
+  pullRequestBody: z.string().default(''),
   pullRequestNumber: z.number().int().positive().default(1),
   pullRequestUrl: z.string().default(''),
   readyForHuman: z.boolean().default(false),
@@ -66,6 +67,31 @@ const implementationSchema = z.object({
   blockedReason: z.string().nullable(),
 })
 
+const pullRequestDraftSchema = z.object({
+  commitType: z.enum([
+    'build',
+    'chore',
+    'ci',
+    'docs',
+    'feat',
+    'fix',
+    'perf',
+    'refactor',
+    'revert',
+    'style',
+    'test',
+  ]),
+  commitScope: z.string().regex(/^[a-z0-9-]{1,20}$/),
+  subject: z.string().min(1),
+  description: z.string().min(1),
+  problem: z.string().min(1),
+  acceptanceCriteria: z.string().min(1),
+  keyChanges: z.string().min(1),
+  architectureImpact: z.string(),
+  validation: z.string().min(1),
+  notes: z.string(),
+})
+
 const verdictSchema = z.object({
   status: z.enum(['APPROVED', 'OPEN_FEEDBACK']),
   findings: z.array(reviewedFindingSchema),
@@ -77,6 +103,13 @@ const PLANNER_INSTRUCTIONS = [
   'Reason only. Do not write files, do not run commands, and do not open pull requests.',
   'The plan is a short numbered list of the changes the implementer will make.',
   'Return the plan as the "markdown" field.',
+].join('\n')
+
+const PULL_REQUEST_WRITER_INSTRUCTIONS = [
+  'You are the pull request writer in a software factory workflow.',
+  'Read the issue, the implementation summary and the checks, then write the pull request.',
+  'Follow the existing pull request format of this repository exactly.',
+  'Do not invent work that was not done, and do not claim a check or a test that did not run.',
 ].join('\n')
 
 const IMPLEMENTER_INSTRUCTIONS = [
@@ -97,6 +130,8 @@ type RunState = z.infer<typeof runStateSchema>
 type ReviewState = z.infer<typeof reviewStateSchema>
 
 type ReviewFinding = z.infer<typeof findingSchema>
+
+type PullRequestDraftAnswer = z.infer<typeof pullRequestDraftSchema>
 
 type AdaptWorkflowRequest = Parameters<AdaptWorkflow<Workflow>>[0]
 
@@ -345,8 +380,8 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
       resumeSchema: null,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
-        await requireGreen(input, state.worktreePath)
-        return { ...state, verificationGreen: true }
+        const verification = await requireGreen(input, state.worktreePath)
+        return { ...state, verificationGreen: true, verificationChecks: verification.checks }
       },
     },
     {
@@ -359,7 +394,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
         const state = runStateSchema.parse(data)
         const commit = await input.commitWork({
           worktreePath: state.worktreePath,
-          message: pullRequestTitle(state),
+          message: commitSubject(state),
         })
         return { ...state, commitSha: commit.sha }
       },
@@ -384,10 +419,24 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
       resumeSchema: null,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
+        const response = await input.generate({
+          agentId: 'pull-request-writer',
+          model: state.model,
+          instructions: PULL_REQUEST_WRITER_INSTRUCTIONS,
+          prompt: pullRequestPrompt(state),
+          workspacePath: null,
+          threadId: null,
+          responseSchema: pullRequestDraftSchema,
+          maxSteps: 1,
+        })
+        const draft = pullRequestDraftSchema.safeParse(response.object)
+        if (!draft.success) {
+          throw new RunFailed(noStructuredOutput('The pull request writer', response))
+        }
         return {
           ...state,
-          pullRequestTitle: pullRequestTitle(state),
-          pullRequestDescription: pullRequestDescription(state),
+          pullRequestTitle: pullRequestTitle(draft.data),
+          pullRequestBody: pullRequestBody(state, draft.data),
         }
       },
     },
@@ -403,7 +452,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           worktreePath: state.worktreePath,
           branch: state.branch,
           title: state.pullRequestTitle,
-          description: state.pullRequestDescription,
+          description: state.pullRequestBody,
         })
         return { ...state, pullRequestNumber: opened.number, pullRequestUrl: opened.url }
       },
@@ -607,11 +656,19 @@ function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDe
   }
 }
 
-async function requireGreen(input: BuildWorkflowInput, worktreePath: string): Promise<void> {
+async function requireGreen(
+  input: BuildWorkflowInput,
+  worktreePath: string,
+): Promise<{
+  readonly green: boolean
+  readonly checks: readonly { readonly name: string; readonly passed: boolean }[]
+}> {
   const verification = await input.verifyWork({ worktreePath })
-  if (verification.green) return
-  const failed = verification.checks.filter((check) => !check.passed).map((check) => check.name)
-  throw new RunFailed(`The checks failed: ${failed.join(', ')}`)
+  if (!verification.green) {
+    const failed = verification.checks.filter((check) => !check.passed).map((check) => check.name)
+    throw new RunFailed(`The checks failed: ${failed.join(', ')}`)
+  }
+  return verification
 }
 
 async function addressWhenThereIsFeedback(
@@ -674,8 +731,11 @@ function reviewPrompt(
 
 function feedbackPrompt(state: ReviewState): string {
   return [
-    'Address the review findings below in this workspace.',
-    'Fix each one, or say in your summary why it does not apply.',
+    'Address every review finding below in this workspace.',
+    'A finding is not a suggestion. Fix it. Do not decide that it does not apply.',
+    'If a finding is genuinely wrong or impossible, ask the developer with the ask-user tool.',
+    'Make one complete pass: work through every finding before you stop, and leave none for',
+    'the next review cycle. Run the checks and keep them green.',
     'Do not push and do not open a pull request.',
     '',
     'Findings:',
@@ -724,22 +784,54 @@ function coderabbitFindings(feedback: {
   }))
 }
 
-function pullRequestTitle(state: RunState): string {
+function commitSubject(state: RunState): string {
   if (CONVENTIONAL_PREFIX.test(state.issueTitle)) return state.issueTitle
   return `feat: ${state.issueTitle.toLowerCase()}`
 }
 
-function pullRequestDescription(state: RunState): string {
+function pullRequestTitle(draft: PullRequestDraftAnswer): string {
+  const subject = draft.subject.charAt(0).toLowerCase() + draft.subject.slice(1)
+  return `${draft.commitType}(${draft.commitScope}): ${subject}`
+}
+
+function pullRequestBody(state: RunState, draft: PullRequestDraftAnswer): string {
   return [
-    '## Problem',
+    formatSection('Description', draft.description),
+    formatSection('Linked Issue', `Closes #${String(state.issueNumber)}`),
+    formatSection('What Problem Does This PR Solve?', draft.problem),
+    formatSection('Acceptance Criteria', draft.acceptanceCriteria),
+    formatSection('Key Changes', draft.keyChanges),
+    formatSection('Notable Architectural Changes / Impact', draft.architectureImpact),
+    formatSection('Validation', draft.validation),
+    formatSection('Notes', draft.notes),
+  ].join('\n\n')
+}
+
+function formatSection(heading: string, content: string): string {
+  return [`## ${heading}`, content].join('\n\n')
+}
+
+function pullRequestPrompt(state: RunState): string {
+  return [
+    `Write the pull request for issue ${String(state.issueNumber)}: ${state.issueTitle}`,
     '',
+    'The issue:',
     state.issueBody,
     '',
-    '## Change',
-    '',
+    'What the implementer did:',
     state.implementationSummary,
     '',
-    `Closes #${String(state.issueNumber)}.`,
+    'The checks that ran:',
+    state.verificationChecks
+      .map((check) => `- ${check.name}: ${check.passed ? 'passed' : 'failed'}`)
+      .join('\n'),
+    '',
+    'Fill every field. The description is one short paragraph. The problem says why the',
+    'change is needed, in the words of the issue. The acceptance criteria are the ones the',
+    'issue asks for, as a list. Key changes are the files and what changed in them.',
+    'Architectural impact says what a reviewer should know, or "None" when there is none.',
+    'Validation says what was run and what it reported. Notes carries anything the reviewer',
+    'needs, or "None". The commit scope is one lower case word naming the area.',
   ].join('\n')
 }
 

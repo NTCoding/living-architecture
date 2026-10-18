@@ -50,6 +50,30 @@ function implementationAnswer(summary: string) {
   }
 }
 
+function pullRequestAnswer() {
+  return {
+    object: {
+      commitType: 'feat',
+      commitScope: 'factory',
+      subject: 'Add a review cycle',
+      description: 'This adds the review cycle the factory was missing.',
+      problem: 'The factory had no review cycle.',
+      acceptanceCriteria: '- a review cycle runs',
+      keyChanges: '- the workflow',
+      architectureImpact: 'None',
+      validation: '- pnpm verify passed',
+      notes: 'None',
+    },
+    text: '',
+    finishReason: 'stop',
+    suspendPayload: null,
+  }
+}
+
+function isReviewer(agentId: string): boolean {
+  return agentId.endsWith('-review') || agentId === 'bug-scanner'
+}
+
 function verdictAnswer(status: 'APPROVED' | 'OPEN_FEEDBACK', findings: readonly unknown[]) {
   return { object: { status, findings }, text: '', finishReason: 'stop', suspendPayload: null }
 }
@@ -67,6 +91,7 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
     generate: async (request) => {
       if (request.agentId === 'planner') return planAnswer()
       if (request.agentId === 'implementer') return implementationAnswer('the change')
+      if (request.agentId === 'pull-request-writer') return pullRequestAnswer()
       return verdictAnswer('APPROVED', [])
     },
     verifyWork: async () => ({ green: true, checks: [{ name: 'lint', passed: true }] }),
@@ -279,9 +304,9 @@ describe('BuildWorkflow', () => {
   it('keeps cycling until the limit and then hands over to a person', async () => {
     const { run } = await startedRun({
       generate: async (request) =>
-        request.agentId === 'planner' || request.agentId === 'implementer'
-          ? stubs().generate(request)
-          : verdictAnswer('OPEN_FEEDBACK', [finding]),
+        isReviewer(request.agentId)
+          ? verdictAnswer('OPEN_FEEDBACK', [finding])
+          : stubs().generate(request),
     })
     const finished = await run.resume({
       step: 'request-plan-approval',
@@ -296,12 +321,32 @@ describe('BuildWorkflow', () => {
     )
   })
 
+  it('fails when the pull request writer does not return the sections', async () => {
+    const { run } = await startedRun({
+      generate: async (request) =>
+        request.agentId === 'pull-request-writer'
+          ? {
+              object: { description: 'only this' },
+              text: 'prose',
+              finishReason: 'stop',
+              suspendPayload: null,
+            }
+          : stubs().generate(request),
+    })
+    const finished = await run.resume({
+      step: 'request-plan-approval',
+      resumeData: { approved: true, notes: null },
+    })
+
+    expect(finished.status).toBe('failed')
+  })
+
   it('fails when a reviewer does not return a verdict', async () => {
     const { run } = await startedRun({
       generate: async (request) =>
-        request.agentId === 'planner' || request.agentId === 'implementer'
-          ? stubs().generate(request)
-          : { object: undefined, text: 'prose', finishReason: 'stop', suspendPayload: null },
+        isReviewer(request.agentId)
+          ? { object: undefined, text: 'prose', finishReason: 'stop', suspendPayload: null }
+          : stubs().generate(request),
     })
     const finished = await run.resume({
       step: 'request-plan-approval',
@@ -341,9 +386,7 @@ describe('review cycle', () => {
     const reviewers: string[] = []
     const studio = await factoryFor({
       generate: async (request) => {
-        if (request.agentId === 'planner' || request.agentId === 'implementer') {
-          return stubs().generate(request)
-        }
+        if (!isReviewer(request.agentId)) return stubs().generate(request)
         reviewers.push(request.agentId)
         return verdictAnswer('APPROVED', [])
       },
@@ -396,9 +439,9 @@ describe('review cycle', () => {
   it('moves to the next cycle when the reviewers have not approved', async () => {
     const studio = await factoryFor({
       generate: async (request) =>
-        request.agentId === 'planner' || request.agentId === 'implementer'
-          ? stubs().generate(request)
-          : verdictAnswer('OPEN_FEEDBACK', [finding]),
+        isReviewer(request.agentId)
+          ? verdictAnswer('OPEN_FEEDBACK', [finding])
+          : stubs().generate(request),
     })
     const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
 
@@ -416,9 +459,9 @@ describe('review cycle', () => {
     const published: { readonly reviewer: string }[][] = []
     const studio = await factoryFor({
       generate: async (request) =>
-        request.agentId === 'planner' || request.agentId === 'implementer'
-          ? stubs().generate(request)
-          : verdictAnswer('OPEN_FEEDBACK', [finding]),
+        isReviewer(request.agentId)
+          ? verdictAnswer('OPEN_FEEDBACK', [finding])
+          : stubs().generate(request),
       publishReviewFindings: async (request) => {
         published.push(request.findings.map((posted) => ({ reviewer: posted.reviewer })))
         return { posted: [] }
