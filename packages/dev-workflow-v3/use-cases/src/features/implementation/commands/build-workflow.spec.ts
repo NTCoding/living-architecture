@@ -98,6 +98,7 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
     commitWork: async () => ({ sha: '4d83240f6' }),
     pushBranch: async () => undefined,
     openPullRequest: async () => ({ number: 549, url: 'https://github.com/o/r/pull/549' }),
+    commentOnIssue: async () => undefined,
     commentOnPullRequest: async () => undefined,
     readPullRequestDiff: async () => ({ diff: 'diff --git a/x b/x' }),
     closeReviewCycle: async (request) => ({
@@ -141,6 +142,18 @@ describe('BuildWorkflow', () => {
 
     expect(studio.getWorkflow('start-implementation').id).toBe('start-implementation')
     expect(studio.getWorkflow('review-cycle').id).toBe('review-cycle')
+  })
+
+  it('posts the plan on the issue before it asks for approval', async () => {
+    const comments: string[] = []
+    const { started } = await startedRun({
+      commentOnIssue: async (request) => {
+        comments.push(request.body)
+      },
+    })
+
+    expect(started.status).toBe('suspended')
+    expect(comments).toStrictEqual([expect.stringContaining("## Implementer's plan\n\nthe plan")])
   })
 
   it('carries an issue to a pull request ready for a person', async () => {

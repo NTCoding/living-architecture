@@ -866,6 +866,12 @@ The run found four faults that the stub tests could not:
 4. The cycle number no longer moves on when the cycle limit is reached, so the report
    says three cycles rather than four.
 
+**The plan is posted on the issue.** After `draft-plan` there is a deterministic
+`publish-plan` step. It posts the plan as a comment headed `## Implementer's plan`, with
+the run id and the command that approves or rejects it, then the run suspends as before.
+The factory workflow is sixteen steps again. `pnpm factory plan <issue>` still prints the
+plan to the terminal, for scripts.
+
 **The pull request body matches v2 again.** `draft-pull-request` is a model step, as
 section 5.1 always said, and it returns the fields v2 used: commit type, commit scope,
 subject, description, problem, acceptance criteria, key changes, architectural impact,

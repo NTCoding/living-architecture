@@ -184,6 +184,10 @@ export interface BuildWorkflowInput {
     readonly title: string
     readonly description: string
   }) => Promise<{ readonly number: number; readonly url: string }>
+  readonly commentOnIssue: (request: {
+    readonly issueNumber: number
+    readonly body: string
+  }) => Promise<void>
   readonly commentOnPullRequest: (request: {
     readonly pullRequestNumber: number
     readonly body: string
@@ -326,6 +330,18 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
         const plan = planSchema.safeParse(response.object)
         if (!plan.success) throw new RunFailed(noStructuredOutput('The planner', response))
         return { ...state, planMarkdown: plan.data.markdown }
+      },
+    },
+    {
+      id: 'publish-plan',
+      inputSchema: runStateSchema,
+      outputSchema: runStateSchema,
+      suspendSchema: null,
+      resumeSchema: null,
+      run: async ({ data }) => {
+        const state = runStateSchema.parse(data)
+        await input.commentOnIssue({ issueNumber: state.issueNumber, body: planComment(state) })
+        return state
       },
     },
     {
@@ -686,6 +702,20 @@ async function addressWhenThereIsFeedback(
     responseSchema: null,
     maxSteps: 40,
   })
+}
+
+function planComment(state: RunState): string {
+  const issue = String(state.issueNumber)
+  return [
+    "## Implementer's plan",
+    '',
+    state.planMarkdown,
+    '',
+    '---',
+    '',
+    `Run \`issue-${issue}\`. Approve with \`pnpm factory resume ${issue} --model ${state.model}\`.`,
+    `Reject with the same command and \`--approved false\`.`,
+  ].join('\n')
 }
 
 function planPrompt(state: RunState): string {

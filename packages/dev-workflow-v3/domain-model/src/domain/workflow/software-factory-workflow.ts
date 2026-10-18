@@ -19,6 +19,7 @@ export class SoftwareFactoryWorkflow {
           { id: 'install-dependencies', looped: false },
           { id: 'read-guidance', looped: false },
           { id: 'draft-plan', looped: false },
+          { id: 'publish-plan', looped: false },
           { id: 'request-plan-approval', looped: false },
           { id: 'implement', looped: false },
           { id: 'verify', looped: false },

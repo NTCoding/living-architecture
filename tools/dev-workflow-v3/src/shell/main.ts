@@ -7,6 +7,7 @@ import { Command } from 'commander'
 import type { Workflow } from '@mastra/core/workflows'
 import { BuildWorkflow } from '@living-architecture/dev-workflow-v3-use-cases/commands/build-workflow'
 import { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
+import { CommentOnIssue } from '@living-architecture/dev-workflow-v3-use-cases/commands/comment-on-issue'
 import { CommentOnPullRequest } from '@living-architecture/dev-workflow-v3-use-cases/commands/comment-on-pull-request'
 import { CommitWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/commit-work'
 import { InstallDependencies } from '@living-architecture/dev-workflow-v3-use-cases/commands/install-dependencies'
@@ -21,6 +22,7 @@ import { installDependenciesWithPnpm } from '@living-architecture/dev-workflow-v
 import { prepareWorktreeWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/prepare-worktree'
 import { pushBranchWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/push-branch'
 import { runProjectChecksWithCommands } from '@living-architecture/dev-workflow-v3-use-cases/adapters/checks/run-project-checks'
+import { commentOnIssueWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/comment-on-issue'
 import { commentOnPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/comment-on-pull-request'
 import { openPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/open-pull-request'
 import { publishReviewFindingWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/publish-review-finding'
@@ -118,6 +120,11 @@ async function buildFactory(workingDirectory: string): Promise<Factory> {
     },
     openPullRequest: (request) =>
       new OpenPullRequest(openPullRequestWithGithub({ runCommand })).execute(request),
+    commentOnIssue: async (request) => {
+      await new CommentOnIssue(commentOnIssueWithGithub({ runCommand, workingDirectory })).execute(
+        request,
+      )
+    },
     commentOnPullRequest: async (request) => {
       await new CommentOnPullRequest(
         commentOnPullRequestWithGithub({ runCommand, workingDirectory }),
