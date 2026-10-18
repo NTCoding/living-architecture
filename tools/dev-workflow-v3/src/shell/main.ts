@@ -365,10 +365,47 @@ async function follow(
 }
 
 type StepTiming = {
-  status: string
-  startedAt: number
   reported: boolean
   lastHeartbeat: number
+}
+
+function reportSteps(steps: unknown, timings: Map<string, StepTiming>): void {
+  if (!isRecord(steps)) return
+  const now = Date.now()
+  for (const [name, value] of Object.entries(steps)) {
+    const step: unknown = Array.isArray(value) ? value[0] : value
+    if (!isRecord(step)) continue
+    const status = typeof step['status'] === 'string' ? step['status'] : 'unknown'
+    const startedAt = timestampOf(step['startedAt']) ?? now
+    const endedAt = timestampOf(step['endedAt']) ?? now
+    const timing = timings.get(name) ?? { reported: false, lastHeartbeat: now }
+    timings.set(name, timing)
+    if (status === 'running') {
+      heartbeat(name, timing, startedAt, now)
+      continue
+    }
+    if (timing.reported) continue
+    timing.reported = true
+    process.stdout.write(`  ${markOf(status)} ${name.padEnd(22)} ${duration(startedAt, endedAt)}\n`)
+  }
+}
+
+function timestampOf(value: unknown): number | undefined {
+  return typeof value === 'number' ? value : undefined
+}
+
+function heartbeat(name: string, timing: StepTiming, startedAt: number, now: number): void {
+  if (now - startedAt < 60_000) return
+  if (now - timing.lastHeartbeat < 60_000) return
+  timing.lastHeartbeat = now
+  process.stdout.write(`  … ${name.padEnd(22)} ${duration(startedAt, now)}\n`)
+}
+
+function duration(from: number, to: number): string {
+  const seconds = Math.max(0, Math.round((to - from) / 1000))
+  if (seconds < 60) return `${String(seconds)}s`
+  const minutes = Math.floor(seconds / 60)
+  return `${String(minutes)}m ${String(seconds % 60).padStart(2, '0')}s`
 }
 
 function watch(workflow: Workflow, runId: string): () => Promise<void> {
@@ -390,54 +427,6 @@ function watch(workflow: Workflow, runId: string): () => Promise<void> {
     control.stopped = true
     while (control.ticking) await new Promise((resolve) => setTimeout(resolve, 50))
   }
-}
-
-function reportSteps(steps: unknown, timings: Map<string, StepTiming>): void {
-  if (!isRecord(steps)) return
-  const now = Date.now()
-  for (const [name, value] of Object.entries(steps)) {
-    const step: unknown = Array.isArray(value) ? value[0] : value
-    if (!isRecord(step)) continue
-    const status = typeof step['status'] === 'string' ? step['status'] : 'unknown'
-    const timing = timingFor(timings, name, status, now)
-    if (status === 'running') {
-      heartbeat(name, timing, now)
-      continue
-    }
-    if (timing.reported) continue
-    timing.reported = true
-    process.stdout.write(`  ${markOf(status)} ${name.padEnd(22)} ${elapsed(timing, now)}\n`)
-  }
-}
-
-function timingFor(
-  timings: Map<string, StepTiming>,
-  name: string,
-  status: string,
-  now: number,
-): StepTiming {
-  const known = timings.get(name)
-  if (known === undefined) {
-    const created = { status, startedAt: now, reported: false, lastHeartbeat: now }
-    timings.set(name, created)
-    return created
-  }
-  known.status = status
-  return known
-}
-
-function heartbeat(name: string, timing: StepTiming, now: number): void {
-  if (now - timing.startedAt < 60_000) return
-  if (now - timing.lastHeartbeat < 60_000) return
-  timing.lastHeartbeat = now
-  process.stdout.write(`  … ${name.padEnd(22)} ${elapsed(timing, now)}\n`)
-}
-
-function elapsed(timing: StepTiming, now: number): string {
-  const seconds = Math.round((now - timing.startedAt) / 1000)
-  if (seconds < 60) return `${String(seconds)}s`
-  const minutes = Math.floor(seconds / 60)
-  return `${String(minutes)}m ${String(seconds % 60).padStart(2, '0')}s`
 }
 
 function markOf(status: string): string {
