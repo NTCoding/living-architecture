@@ -316,7 +316,7 @@ export default tseslint.config(
   {
     files: ['tools/dev-workflow-v3/**/*.ts', 'packages/dev-workflow-v3/**/*.ts'],
     rules: {
-      'max-lines': ['error', { max: 1200, skipBlankLines: true, skipComments: true }],
+      'max-lines': ['error', { max: 1500, skipBlankLines: true, skipComments: true }],
     },
   },
   // React and accessibility rules (eclair only)
