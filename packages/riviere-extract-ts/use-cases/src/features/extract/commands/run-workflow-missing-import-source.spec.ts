@@ -22,6 +22,7 @@ describe('RunWorkflow with a missing import source', () => {
 
     const result = await new RunWorkflow(createRiviereProjectRepository()).execute({
       workflowPath: join(directory, '.riviere', 'workflows', 'combined.yaml'),
+      mode: 'run',
     })
 
     assert(!result.result.success)

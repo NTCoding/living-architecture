@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { RunWorkflowResult } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/run-workflow-result'
 import type { ValidateWorkflowResult } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/validate-workflow-result'
 import { formatSuccess } from '../../../../infra/cli/presentation/output'
-import { createWorkflowCommand } from './entrypoint'
+import { createWorkflowCommand, parseWorkflowRunMode } from './entrypoint'
 
 const formattedOutput = formatSuccess('formatted')
 
@@ -34,6 +34,20 @@ function createDependencies(
   }
 }
 
+describe('parseWorkflowRunMode', () => {
+  it('returns skip-ai when skip AI is selected', () => {
+    expect(parseWorkflowRunMode({ skipAi: true })).toBe('skip-ai')
+  })
+
+  it('returns dry-run when dry run is selected', () => {
+    expect(parseWorkflowRunMode({ dryRun: true })).toBe('dry-run')
+  })
+
+  it('returns run when neither flag is selected', () => {
+    expect(parseWorkflowRunMode({})).toBe('run')
+  })
+})
+
 describe('workflow command entrypoint', () => {
   afterEach(() => vi.restoreAllMocks())
 
@@ -62,8 +76,7 @@ describe('workflow command entrypoint', () => {
 
     expect(execute).toHaveBeenCalledWith({
       workflowPath: 'workflow.yaml',
-      skipAi: true,
-      dryRun: false,
+      mode: 'skip-ai',
     })
     expect(dependencies.formatRunWorkflowResult).toHaveBeenCalledWith(runResult)
     expect(dependencies.writeCliOutput).toHaveBeenCalledWith(formattedOutput)
@@ -77,7 +90,7 @@ describe('workflow command entrypoint', () => {
 
     await expect(
       command.parseAsync(['node', 'test', 'run', 'workflow.yaml', '--skip-ai', '--dry-run']),
-    ).rejects.toThrow(/cannot be used with option/)
+    ).rejects.toThrow(/--skip-ai.*--dry-run/)
 
     expect(execute).not.toHaveBeenCalled()
   })

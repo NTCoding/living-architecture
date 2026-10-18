@@ -21,6 +21,13 @@ export interface CreateWorkflowCommandEntrypointDependencies {
   readonly writeCliOutput: typeof writeCliOutput
 }
 
+/** @riviere-role entrypoint-cli-input-parser */
+export function parseWorkflowRunMode(options: WorkflowRunOptions): string {
+  if (options.skipAi === true) return 'skip-ai'
+  if (options.dryRun === true) return 'dry-run'
+  return 'run'
+}
+
 /** @riviere-role cli-entrypoint */
 export function createWorkflowCommand(
   dependencies: CreateWorkflowCommandEntrypointDependencies,
@@ -50,8 +57,7 @@ export function createWorkflowCommand(
       .action(async (workflowPath: string, options: WorkflowRunOptions) => {
         const result = await dependencies.runWorkflow.execute({
           workflowPath,
-          skipAi: options.skipAi === true,
-          dryRun: options.dryRun === true,
+          mode: parseWorkflowRunMode(options),
         })
         dependencies.writeCliOutput(dependencies.formatRunWorkflowResult(result))
       }),

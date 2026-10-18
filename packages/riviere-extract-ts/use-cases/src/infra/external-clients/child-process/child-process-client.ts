@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process'
 import { accessSync, constants } from 'node:fs'
-import { delimiter, join } from 'node:path'
+import { delimiter, join, extname } from 'node:path'
+import { StringDecoder } from 'node:string_decoder'
 
 const MAX_OUTPUT_BYTES = 1024 * 1024
 
@@ -57,6 +58,8 @@ function runChildProcess(input: ChildProcessRunInput): Promise<ChildProcessRunRe
       stderr: '',
       timeout: undefined,
     }
+    const stdoutDecoder = new StringDecoder('utf8')
+    const stderrDecoder = new StringDecoder('utf8')
 
     const finish = (result: ChildProcessRunResult): void => {
       if (state.settled) return
@@ -72,7 +75,11 @@ function runChildProcess(input: ChildProcessRunInput): Promise<ChildProcessRunRe
         finish({ kind: 'output-truncated', limitBytes: MAX_OUTPUT_BYTES })
         return
       }
-      state[stream] += chunk.toString('utf8')
+      if (stream === 'stdout') {
+        state.stdout += stdoutDecoder.write(chunk)
+        return
+      }
+      state.stderr += stderrDecoder.write(chunk)
     }
 
     child.stdout.on('data', (chunk: Buffer) => {
@@ -86,6 +93,8 @@ function runChildProcess(input: ChildProcessRunInput): Promise<ChildProcessRunRe
       finish({ kind: 'spawn-failure', reason: error.message })
     })
     child.on('close', (exitCode) => {
+      state.stdout += stdoutDecoder.end()
+      state.stderr += stderrDecoder.end()
       if (exitCode === null) {
         finish({ kind: 'spawn-failure', reason: 'Command terminated by a signal.' })
         return
@@ -106,8 +115,10 @@ function runChildProcess(input: ChildProcessRunInput): Promise<ChildProcessRunRe
 }
 
 function lookupExecutable(command: string): ChildProcessProbeResult {
+  const extensions = platformExecutableExtensions()
+  const candidateNames = executableCandidateNames(command, extensions)
   if (command.includes('/') || command.includes('\\')) {
-    return isExecutable(command)
+    return candidateNames.some((candidate) => isExecutable(candidate))
       ? { kind: 'available' }
       : { kind: 'unavailable', reason: `Executable not found at '${command}'.` }
   }
@@ -116,9 +127,32 @@ function lookupExecutable(command: string): ChildProcessProbeResult {
   const found = path
     .split(delimiter)
     .filter((directory) => directory.length > 0)
-    .some((directory) => isExecutable(join(directory, command)))
+    .some((directory) =>
+      candidateNames.some((candidate) => isExecutable(join(directory, candidate))),
+    )
   if (found) return { kind: 'available' }
   return { kind: 'unavailable', reason: `Executable '${command}' was not found on PATH.` }
+}
+
+function platformExecutableExtensions(): readonly string[] {
+  if (process.platform !== 'win32') return ['']
+  const pathExtensions = process.env['PATHEXT']
+  if (pathExtensions === undefined) return ['.COM', '.EXE', '.BAT', '.CMD']
+  const extensions = pathExtensions.split(';').filter((extension) => extension.length > 0)
+  return extensions.length > 0 ? extensions : ['.COM', '.EXE', '.BAT', '.CMD']
+}
+
+function executableCandidateNames(
+  command: string,
+  extensions: readonly string[],
+): readonly string[] {
+  if (extensions.length === 1 && extensions[0] === '') return [command]
+  const commandExtension = extname(command).toLowerCase()
+  const alreadyHasExtension = extensions.some(
+    (extension) => extension.toLowerCase() === commandExtension,
+  )
+  if (alreadyHasExtension) return [command]
+  return extensions.map((extension) => `${command}${extension}`)
 }
 
 function isExecutable(candidatePath: string): boolean {

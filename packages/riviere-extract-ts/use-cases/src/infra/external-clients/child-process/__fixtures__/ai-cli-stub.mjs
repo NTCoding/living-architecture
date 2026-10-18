@@ -17,6 +17,10 @@ if (mode === '--version') {
 } else if (mode === 'fail') {
   process.stderr.write(rest[0] ?? 'failed')
   process.exitCode = 3
+} else if (mode === 'split-utf8') {
+  const bytes = Buffer.from('café', 'utf8')
+  process.stdout.write(bytes.subarray(0, 4))
+  setTimeout(() => process.stdout.write(bytes.subarray(4)), 20)
 } else if (mode === 'self-kill') {
   process.kill(process.pid, 'SIGKILL')
 } else if (mode === 'exit-immediately') {

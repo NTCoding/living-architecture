@@ -29,6 +29,7 @@ describe('RunWorkflow', () => {
   it('loads the workflow file and delegates the complete run to the project', async () => {
     const result = await new RunWorkflow(createRiviereProjectRepository()).execute({
       workflowPath: WORKFLOW_COMMAND_PATH,
+      mode: 'run',
     })
 
     expect(workflowCommandMocks.loadMock).toHaveBeenCalledWith({
@@ -44,7 +45,7 @@ describe('RunWorkflow', () => {
   it('checks active AI availability for the selected run mode', async () => {
     await new RunWorkflow(createRiviereProjectRepository()).execute({
       workflowPath: WORKFLOW_COMMAND_PATH,
-      skipAi: true,
+      mode: 'skip-ai',
     })
 
     expect(workflowCommandMocks.availabilityMock).toHaveBeenCalledWith(
@@ -58,7 +59,7 @@ describe('RunWorkflow', () => {
   it('checks active AI availability for a dry run', async () => {
     await new RunWorkflow(createRiviereProjectRepository()).execute({
       workflowPath: WORKFLOW_COMMAND_PATH,
-      dryRun: true,
+      mode: 'dry-run',
     })
 
     expect(workflowCommandMocks.availabilityMock).toHaveBeenCalledWith(
@@ -89,17 +90,6 @@ describe('RunWorkflow', () => {
     expect(workflowCommandMocks.rebuildGraph).not.toHaveBeenCalled()
   })
 
-  it('returns a validation error when skip AI and dry run are both selected', async () => {
-    const result = await new RunWorkflow(createRiviereProjectRepository()).execute({
-      workflowPath: WORKFLOW_COMMAND_PATH,
-      skipAi: true,
-      dryRun: true,
-    })
-
-    expect(result).toMatchObject({ result: { success: false, errorCode: 'VALIDATION_ERROR' } })
-    expect(workflowCommandMocks.loadMock).not.toHaveBeenCalled()
-  })
-
   it('returns a typed failure and does not rebuild when an active AI command is unavailable', async () => {
     workflowCommandMocks.availabilityMock.mockReturnValue({
       success: false,
@@ -109,6 +99,7 @@ describe('RunWorkflow', () => {
 
     const result = await new RunWorkflow(createRiviereProjectRepository()).execute({
       workflowPath: WORKFLOW_COMMAND_PATH,
+      mode: 'run',
     })
 
     expect(result).toStrictEqual({
@@ -131,6 +122,7 @@ describe('RunWorkflow', () => {
     await expect(
       new RunWorkflow(createRiviereProjectRepository()).execute({
         workflowPath: WORKFLOW_COMMAND_PATH,
+        mode: 'run',
       }),
     ).resolves.toMatchObject({
       result: { success: false, errorCode: code },
@@ -146,6 +138,7 @@ describe('RunWorkflow', () => {
     await expect(
       new RunWorkflow(createRiviereProjectRepository()).execute({
         workflowPath: WORKFLOW_COMMAND_PATH,
+        mode: 'run',
       }),
     ).rejects.toThrow('unexpected')
   })

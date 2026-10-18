@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { createChildProcessClient } from './child-process-client'
@@ -11,6 +14,30 @@ function stubInput(mode: string, extraArguments: readonly string[] = []) {
     arguments: [stubPath, mode, ...extraArguments],
     stdin: undefined,
     timeoutSeconds: 5,
+  }
+}
+
+function withWindowsPath<T>(
+  files: readonly string[],
+  pathExtensions: string | undefined,
+  action: (directory: string) => T,
+): T {
+  const directory = mkdtempSync(join(tmpdir(), 'ai-cli-windows-'))
+  files.forEach((file) => writeFileSync(join(directory, file), '', { mode: 0o755 }))
+  const originalPlatform = process.platform
+  const originalPath = process.env['PATH']
+  const originalPathExtensions = process.env['PATHEXT']
+  Object.defineProperty(process, 'platform', { value: 'win32' })
+  process.env['PATH'] = directory
+  if (pathExtensions === undefined) delete process.env['PATHEXT']
+  else process.env['PATHEXT'] = pathExtensions
+  try {
+    return action(directory)
+  } finally {
+    Object.defineProperty(process, 'platform', { value: originalPlatform })
+    process.env['PATH'] = originalPath
+    process.env['PATHEXT'] = originalPathExtensions
+    rmSync(directory, { force: true, recursive: true })
   }
 }
 
@@ -55,6 +82,17 @@ describe('ChildProcessClient run', () => {
     })
 
     expect(result).toStrictEqual({ kind: 'completed', exitCode: 0, stdout: '', stderr: '' })
+  })
+
+  it('decodes multibyte output split across chunks without corruption', async () => {
+    const result = await client.run(stubInput('split-utf8'))
+
+    expect(result).toStrictEqual({
+      kind: 'completed',
+      exitCode: 0,
+      stdout: 'café',
+      stderr: '',
+    })
   })
 
   it('returns a typed timeout and kills a process that exceeds its timeout', async () => {
@@ -126,6 +164,36 @@ describe('ChildProcessClient executable lookup', () => {
     } finally {
       process.env['PATH'] = originalPath
     }
+  })
+
+  it('reports a Windows executable with a PATHEXT extension as available', () => {
+    const result = withWindowsPath(['claude.CMD'], '.COM;.EXE;.BAT;.CMD', () =>
+      client.lookupExecutable('claude'),
+    )
+
+    expect(result).toStrictEqual({ kind: 'available' })
+  })
+
+  it('reports a Windows executable using default PATHEXT extensions when PATHEXT is unset', () => {
+    const result = withWindowsPath(['claude.EXE'], undefined, () =>
+      client.lookupExecutable('claude'),
+    )
+
+    expect(result).toStrictEqual({ kind: 'available' })
+  })
+
+  it('reports a Windows executable that already includes its extension as available', () => {
+    const result = withWindowsPath(['claude.CMD'], '.COM;.EXE;.BAT;.CMD', () =>
+      client.lookupExecutable('claude.CMD'),
+    )
+
+    expect(result).toStrictEqual({ kind: 'available' })
+  })
+
+  it('uses default Windows PATHEXT extensions when PATHEXT is empty', () => {
+    const result = withWindowsPath(['claude.BAT'], '', () => client.lookupExecutable('claude'))
+
+    expect(result).toStrictEqual({ kind: 'available' })
   })
 
   it('reports a missing executable as unavailable without starting it', () => {

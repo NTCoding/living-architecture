@@ -14,7 +14,7 @@ export class RunWorkflow {
   }
 
   private async run(input: RunWorkflowInput): Promise<RunWorkflowResult> {
-    const parsedMode = WorkflowRunMode.parse(requestedMode(input))
+    const parsedMode = WorkflowRunMode.parse(input.mode)
     if (!parsedMode.success) return validationFailure(parsedMode.reason)
     try {
       const project = this.projects.load({ kind: 'workflow', workflowPath: input.workflowPath })
@@ -46,14 +46,6 @@ export class RunWorkflow {
       throw error
     }
   }
-}
-
-function requestedMode(input: RunWorkflowInput): string {
-  if (input.mode !== undefined) return input.mode
-  if (input.skipAi === true && input.dryRun === true) return 'skip-ai-and-dry-run'
-  if (input.skipAi === true) return 'skip-ai'
-  if (input.dryRun === true) return 'dry-run'
-  return 'run'
 }
 
 function validationFailure(reason: string): RunWorkflowResult {
