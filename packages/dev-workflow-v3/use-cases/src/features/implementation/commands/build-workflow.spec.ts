@@ -77,6 +77,9 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
     readPullRequestDiff: async () => ({ diff: 'diff --git a/x b/x' }),
     closeReviewCycle: async (request) => ({
       cycleNumber: request.cycleNumber,
+      statuses: Object.fromEntries(
+        request.verdicts.map((verdict) => [verdict.reviewer, verdict.status]),
+      ),
       reviewersToRun: [],
       reviewersLeftOut: [],
       limitReached: request.cycleNumber >= 3,

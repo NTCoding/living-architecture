@@ -79,6 +79,10 @@ export class ReviewCycle {
     return this.reviewerStatuses.statusFor(reviewer)
   }
 
+  statuses(): ReviewerStatuses {
+    return this.reviewerStatuses
+  }
+
   isLimitReached(): boolean {
     return this.reviewCycleLimit.isReached(this.number)
   }

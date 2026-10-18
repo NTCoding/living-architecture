@@ -26,6 +26,7 @@ export interface CloseReviewCycleInput {
 /** @riviere-role command-use-case-result */
 export interface CloseReviewCycleResult {
   readonly cycleNumber: number
+  readonly statuses: Readonly<Record<string, string>>
   readonly reviewersToRun: readonly string[]
   readonly reviewersLeftOut: readonly string[]
   readonly limitReached: boolean
@@ -46,6 +47,7 @@ export class CloseReviewCycle {
     const plan = cycle.reviewersToRun()
     return {
       cycleNumber: cycle.cycleNumber(),
+      statuses: cycle.statuses().toJSON(),
       reviewersToRun: plan.included().map((reviewer) => reviewer.name()),
       reviewersLeftOut: plan.excluded().map((reviewer) => reviewer.name()),
       limitReached: cycle.isLimitReached(),

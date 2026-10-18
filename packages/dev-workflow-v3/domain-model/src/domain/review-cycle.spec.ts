@@ -22,6 +22,24 @@ const allPending = {
 }
 
 describe('ReviewCycle', () => {
+  it('reports the statuses it carries, with the verdicts folded in', () => {
+    const cycle = cycleWith(allPending).recordVerdict(
+      ReviewVerdict.parse({
+        reviewer: 'code-review',
+        status: 'OPEN_FEEDBACK',
+        findings: [
+          { file: 'src/order.ts', line: 12, rule: 'SD-005', summary: 'A decision sits here.' },
+        ],
+      }),
+    )
+
+    expect(cycle.statuses().toJSON()).toStrictEqual({
+      'architecture-review': 'PENDING',
+      'code-review': 'OPEN_FEEDBACK',
+      'bug-scanner': 'PENDING',
+    })
+  })
+
   it('runs every reviewer in the first cycle', () => {
     const plan = cycleWith(allPending).reviewersToRun()
 

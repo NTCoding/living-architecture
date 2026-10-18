@@ -113,6 +113,7 @@ Domain model package: `@living-architecture/dev-workflow-v3-domain-model`
   - `beginNextCycle`
   - `cycleNumber`
   - `statusFor`
+  - `statuses`
   - `isLimitReached`
 
 #### Supported use cases

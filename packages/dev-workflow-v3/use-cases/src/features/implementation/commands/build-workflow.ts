@@ -44,6 +44,9 @@ const reviewStateSchema = z.object({
   branch: z.string(),
   cycleNumber: z.number().int().positive(),
   reviewerStatuses: z.record(z.string(), z.string()),
+  cycleVerdicts: z
+    .array(z.object({ reviewer: z.string(), status: z.string(), findings: z.array(findingSchema) }))
+    .default([]),
   findings: z.array(findingSchema).default([]),
   approved: z.boolean().default(false),
   limitReached: z.boolean().default(false),
@@ -163,6 +166,7 @@ export interface BuildWorkflowInput {
     }[]
   }) => Promise<{
     readonly cycleNumber: number
+    readonly statuses: Readonly<Record<string, string>>
     readonly reviewersToRun: readonly string[]
     readonly reviewersLeftOut: readonly string[]
     readonly limitReached: boolean
@@ -422,6 +426,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           branch: state.branch,
           cycleNumber: 1,
           reviewerStatuses: {},
+          cycleVerdicts: [],
         }
       },
     },
@@ -477,10 +482,12 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
         const closed = await input.closeReviewCycle({
           cycleNumber: state.cycleNumber,
           statuses: state.reviewerStatuses,
-          verdicts: verdictsOf(state),
+          verdicts: state.cycleVerdicts,
         })
         return {
           ...state,
+          reviewerStatuses: closed.statuses,
+          cycleVerdicts: [],
           approved: state.findings.length === 0,
           limitReached: closed.limitReached,
         }
@@ -583,7 +590,14 @@ function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDe
       if (!verdict.success) throw new RunFailed(noStructuredOutput(`The ${reviewer}`, response))
       return {
         ...state,
-        reviewerStatuses: { ...state.reviewerStatuses, [reviewer]: verdict.data.status },
+        cycleVerdicts: [
+          ...state.cycleVerdicts,
+          {
+            reviewer,
+            status: verdict.data.status,
+            findings: verdict.data.findings.map((finding) => ({ ...finding, reviewer })),
+          },
+        ],
         findings: [
           ...state.findings,
           ...verdict.data.findings.map((finding) => ({ ...finding, reviewer })),
@@ -692,18 +706,6 @@ function noStructuredOutput(
 
 function reviewIsComplete(state: ReviewState): boolean {
   return state.approved || state.limitReached
-}
-
-function verdictsOf(state: ReviewState): readonly {
-  readonly reviewer: string
-  readonly status: string
-  readonly findings: readonly ReviewFinding[]
-}[] {
-  return Object.entries(state.reviewerStatuses).map(([reviewer, status]) => ({
-    reviewer,
-    status,
-    findings: state.findings.filter((finding) => finding.reviewer === reviewer),
-  }))
 }
 
 function coderabbitFindings(feedback: {
