@@ -2,39 +2,19 @@ import {
   cleanupWorkflowWorkspaces,
   createWorkflowWorkspace as workspace,
 } from '../../../../__fixtures__/riviere-project-workspace-fixtures'
-import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, assert, describe, expect, it } from 'vitest'
 import { RiviereProjectRepository } from './riviere-project-repository'
 import { configureExtraction } from '../../commands/configure-extraction'
 import { aiCli } from '../../../../__fixtures__/riviere-project-repository-fixtures'
+import { writeImportStage } from '../../../../__fixtures__/riviere-project-workflow-fixtures'
 
-function writeWorkflow(directory: string): void {
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'combined.yaml'),
-    [
-      'apiVersion: v1',
-      'name: combined-graph',
-      'output: ../graph.json',
-      'sources:',
-      '  - repository: workflow-test',
-      'domains:',
-      '  orders:',
-      '    description: orders domain',
-      'stages:',
-      '  - kind: eventcatalog-import',
-      '    name: import',
-      '    config: import.yaml',
-    ].join('\n'),
-  )
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'import.yaml'),
-    'source: eventcatalog\nmappings: mappings.yaml\nallow-unmapped: false\n',
-  )
-  mkdirSync(join(directory, '.riviere', 'workflows', 'eventcatalog'), { recursive: true })
-  writeFileSync(
-    join(directory, '.riviere', 'workflows', 'mappings.yaml'),
-    [
+afterEach(cleanupWorkflowWorkspaces)
+
+describe('RiviereProjectRepository EventCatalog workflow', () => {
+  it('runs an EventCatalog import stage through the supplied port', async () => {
+    const directory = workspace()
+    writeImportStage(directory, 'eventcatalog-import', [
       'domains: {}',
       'services:',
       '  OrdersService:',
@@ -45,16 +25,7 @@ function writeWorkflow(directory: string): void {
       'events:',
       '  OrderCreated:',
       '    name: OrderPlaced',
-    ].join('\n'),
-  )
-}
-
-afterEach(cleanupWorkflowWorkspaces)
-
-describe('RiviereProjectRepository EventCatalog workflow', () => {
-  it('runs an EventCatalog import stage through the supplied port', async () => {
-    const directory = workspace()
-    writeWorkflow(directory)
+    ])
     const extractionConfiguration = configureExtraction({})
     const repository = new RiviereProjectRepository({
       aiCli: aiCli(),

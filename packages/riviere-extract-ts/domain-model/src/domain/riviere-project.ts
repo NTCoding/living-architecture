@@ -11,6 +11,7 @@ import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import { ExtractionConfiguration } from './extraction-configuration'
 import type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
 import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
+import { AiStageAvailability } from './ai-stage-availability'
 import { CodeExtractionModules } from './ports/code-extraction-modules'
 import { RiviereModule } from './riviere-module'
 import {
@@ -189,28 +190,13 @@ export class RiviereProject {
         return this.executeCodeExtractionStage(stage)
       case 'ai-extract':
       case 'ai-enrich':
-        return this.executeAiStageAvailability(stage.config.command, stage.kind, mode)
+        return AiStageAvailability.check(
+          this.collaborators.aiCli,
+          stage.config.command,
+          stage.kind,
+          mode,
+        )
     }
-  }
-
-  private async executeAiStageAvailability(
-    command: string,
-    stageKind: 'ai-extract' | 'ai-enrich',
-    mode: WorkflowRunMode,
-  ) {
-    const availability =
-      mode.value === 'dry-run'
-        ? undefined
-        : await this.collaborators.aiCli.checkAvailability(command)
-    if (availability?.kind === 'unavailable') {
-      return {
-        success: false as const,
-        errorCode: 'AI_CLI_UNAVAILABLE',
-        reason: availability.reason,
-      }
-    }
-    const reason = `Stage behaviour is unavailable for '${stageKind}'`
-    return { success: false as const, errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE', reason }
   }
   private executeCodeExtractionStage(
     stage: Extract<WorkflowStageValue, { kind: 'code-extraction' }>,
@@ -225,8 +211,11 @@ export class RiviereProject {
       modules.forEach((module) => module.extractAllDraftComponents())
       const completion = this.extractFrom(extraction, modules, {})
       if (completion.kind === 'fieldFailure') {
-        const reason = `Extraction failed for fields: ${completion.failedFields.join(', ')}`
-        return { success: false as const, errorCode: 'EXTRACTION_FIELD_FAILURE', reason }
+        return {
+          success: false as const,
+          errorCode: 'EXTRACTION_FIELD_FAILURE',
+          reason: `Extraction failed for fields: ${completion.failedFields.join(', ')}`,
+        }
       }
       const warnings = this.collaborators.extractionBehaviour.applyCodeExtractionToBuilder(
         this.graphBuilder(),
@@ -237,25 +226,30 @@ export class RiviereProject {
       )
       return { success: true as const, diagnostics: completion.diagnostics, warnings }
     } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error)
-      return { success: false as const, errorCode: 'EXTRACTION_FIELD_FAILURE', reason }
+      return {
+        success: false as const,
+        errorCode: 'EXTRACTION_FIELD_FAILURE',
+        reason: error instanceof Error ? error.message : String(error),
+      }
     }
   }
   private loadStageExtraction(
     config: CodeExtractionConfig,
     configPath: string,
   ): ExtractionConfiguration {
+    const repositoryName = this.collaborators.repositoryName
+    const useTsConfig = true
     return ExtractionConfiguration.parse({
       name: configPath,
       configPath,
-      useTsConfig: true,
-      repositoryName: this.collaborators.repositoryName,
+      useTsConfig,
+      repositoryName,
       resolvedConfig: config,
       moduleContexts: this.collaborators.loadCodeExtraction({
         config,
         configPath,
-        repositoryName: this.collaborators.repositoryName,
-        useTsConfig: true,
+        repositoryName,
+        useTsConfig,
       }),
     })
   }
@@ -291,8 +285,10 @@ export class RiviereProject {
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
   }) {
     if (!options.includeConnections) {
-      const components = this.modules.flatMap((module) => module.draftComponents())
-      return { kind: 'draftOnly' as const, components }
+      return {
+        kind: 'draftOnly' as const,
+        components: this.modules.flatMap((module) => module.draftComponents()),
+      }
     }
     return this.extractFrom(this.extractionConfiguration(), this.modules, {
       ...(options.allowIncomplete === undefined
@@ -371,10 +367,11 @@ export class RiviereProject {
     })
   }
   private assertEveryConfiguredModuleHasAnEntity(): void {
-    const missing = this.extractionConfiguration().resolvedConfig.modules.find(
-      (configuredModule) => !this.modules.some((module) => module.name() === configuredModule.name),
-    )
-    if (missing !== undefined) throw new MissingModuleSourceError(missing.name)
+    for (const configuredModule of this.extractionConfiguration().resolvedConfig.modules) {
+      if (!this.modules.some((module) => module.name() === configuredModule.name)) {
+        throw new MissingModuleSourceError(configuredModule.name)
+      }
+    }
   }
   private assertNoUnassignedDraftComponents(): void {
     if (this.unassignedDraftComponents.length === 0) return

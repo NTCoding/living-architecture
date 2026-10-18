@@ -11,6 +11,7 @@ import {
   createWorkflowWorkspace,
 } from '../../../../__fixtures__/riviere-project-workspace-fixtures'
 import { createRiviereProjectRepository } from '../../../../__fixtures__/riviere-project-repository-fixtures'
+import { writeWorkflow } from '../../../../__fixtures__/riviere-project-workflow-fixtures'
 import { RiviereProjectRepository } from './riviere-project-repository'
 
 const AI_EXTRACT_CONFIG = [
@@ -35,36 +36,9 @@ const AI_EXTRACT_CONFIG = [
 ].join('\n')
 
 function writeAiWorkflow(directory: string): string {
-  const workflowPath = join(directory, '.riviere', 'workflows', 'combined.yaml')
-  writeFileSync(
-    workflowPath,
-    [
-      'apiVersion: v1',
-      'name: combined-graph',
-      'output: ../graph.json',
-      'sources:',
-      '  - repository: workflow-test',
-      'domains:',
-      '  orders:',
-      '    description: orders domain',
-      'stages:',
-      '  - kind: ai-extract',
-      '    name: discover',
-      '    config: ai.yaml',
-    ].join('\n'),
-  )
+  writeWorkflow(directory, '  - kind: ai-extract\n    name: discover\n    config: ai.yaml')
   writeFileSync(join(directory, '.riviere', 'workflows', 'ai.yaml'), AI_EXTRACT_CONFIG)
-  return workflowPath
-}
-
-function aiCli(
-  checkAvailability: AiCli['checkAvailability'] = (command) =>
-    Promise.resolve({ kind: 'available', command }),
-): AiCli {
-  return {
-    checkAvailability,
-    run: () => Promise.resolve({ kind: 'invalid-arguments', reason: 'Execution is not expected' }),
-  }
+  return join(directory, '.riviere', 'workflows', 'combined.yaml')
 }
 
 function repositoryWith(aiCliCollaborator: AiCli): RiviereProjectRepository {
@@ -81,7 +55,7 @@ describe('RiviereProjectRepository AI CLI collaborator supply', () => {
       (command: string): Promise<AiCliAvailability> =>
         Promise.resolve({ kind: 'available', command }),
     )
-    const repository = repositoryWith(aiCli(checkAvailability))
+    const repository = repositoryWith({ checkAvailability })
 
     const project = repository.load({ kind: 'workflow', workflowPath })
     const result = await project.rebuildGraph(WorkflowRunMode.from('run'))
@@ -96,11 +70,10 @@ describe('RiviereProjectRepository AI CLI collaborator supply', () => {
   it('returns a typed failure when the active AI command is unavailable', async () => {
     const directory = createWorkflowWorkspace()
     const workflowPath = writeAiWorkflow(directory)
-    const repository = repositoryWith(
-      aiCli(() =>
+    const repository = repositoryWith({
+      checkAvailability: () =>
         Promise.resolve({ kind: 'unavailable', command: 'claude', reason: 'spawn claude ENOENT' }),
-      ),
-    )
+    })
 
     const project = repository.load({ kind: 'workflow', workflowPath })
     const result = await project.rebuildGraph(WorkflowRunMode.from('run'))
@@ -119,7 +92,7 @@ describe('RiviereProjectRepository AI CLI collaborator supply', () => {
       (command: string): Promise<AiCliAvailability> =>
         Promise.resolve({ kind: 'available', command }),
     )
-    const repository = repositoryWith(aiCli(checkAvailability))
+    const repository = repositoryWith({ checkAvailability })
 
     const project = repository.load({ kind: 'workflow', workflowPath })
     const result = await project.rebuildGraph(WorkflowRunMode.from('dry-run'))
@@ -136,7 +109,7 @@ describe('RiviereProjectRepository AI CLI collaborator supply', () => {
       (command: string): Promise<AiCliAvailability> =>
         Promise.resolve({ kind: 'available', command }),
     )
-    const repository = repositoryWith(aiCli(checkAvailability))
+    const repository = repositoryWith({ checkAvailability })
 
     const project = repository.load({ kind: 'workflow', workflowPath })
     const result = await project.rebuildGraph(WorkflowRunMode.from('skip-ai'))

@@ -141,7 +141,7 @@ export function createProgram(): Command {
   const codeExtractionLoader = createCodeExtractionAdapter()
   const extractionConfiguration = configureExtraction({})
   const aiCli = new AiCliAdapter(new ChildProcessClient())
-  const riviereProjectCollaborators = {
+  const riviereProjectRepositoryCollaborators = {
     aiCli,
     loadEventCatalogSource: eventCatalogSourceLoader,
     loadAsyncApiDocument: asyncApiDocumentLoader,
@@ -149,7 +149,9 @@ export function createProgram(): Command {
     extractionBehaviour: extractionConfiguration.extractionBehaviour(),
     moduleExtractionRules: extractionConfiguration.moduleExtractionRules(),
   }
-  const riviereProjectRepository = new RiviereProjectRepository(riviereProjectCollaborators)
+  const riviereProjectAggregateRepository = new RiviereProjectRepository(
+    riviereProjectRepositoryCollaborators,
+  )
   const defaultGraphFileLocation = join(process.cwd(), '.riviere', 'graph.json')
   const program = new Command()
 
@@ -159,7 +161,7 @@ export function createProgram(): Command {
 
   builderCmd.addCommand(
     createAddComponentCommand({
-      addComponent: new AddComponent(riviereProjectRepository),
+      addComponent: new AddComponent(riviereProjectAggregateRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parseAddComponentInput,
@@ -170,7 +172,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createAddDomainCommand({
-      addDomain: new AddDomain(riviereProjectRepository),
+      addDomain: new AddDomain(riviereProjectAggregateRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -179,7 +181,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createAddSourceCommand({
-      addSource: new AddSource(riviereProjectRepository),
+      addSource: new AddSource(riviereProjectAggregateRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -188,7 +190,10 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createInitCommand({
-      initGraph: new InitGraph(riviereProjectRepository, riviereProjectCollaborators),
+      initGraph: new InitGraph(
+        riviereProjectAggregateRepository,
+        riviereProjectRepositoryCollaborators,
+      ),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -197,7 +202,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createLinkCommand({
-      linkComponents: new LinkComponents(riviereProjectRepository),
+      linkComponents: new LinkComponents(riviereProjectAggregateRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parseLinkSourceLocation,
@@ -207,7 +212,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createLinkExternalCommand({
-      linkExternal: new LinkExternal(riviereProjectRepository),
+      linkExternal: new LinkExternal(riviereProjectAggregateRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -216,7 +221,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createLinkHttpCommand({
-      linkHttp: new LinkHttp(riviereProjectRepository),
+      linkHttp: new LinkHttp(riviereProjectAggregateRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -225,7 +230,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createValidateCommand({
-      validateGraph: new ValidateGraph(riviereProjectRepository),
+      validateGraph: new ValidateGraph(riviereProjectAggregateRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -236,7 +241,7 @@ export function createProgram(): Command {
     createFinalizeCommand({
       createFinalizeGraphInput,
       defaultGraphFileLocation,
-      finalizeGraph: new FinalizeGraph(riviereProjectRepository),
+      finalizeGraph: new FinalizeGraph(riviereProjectAggregateRepository),
       getDefaultGraphPathDescription,
       formatError,
       formatSuccess,
@@ -245,7 +250,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createEnrichCommand({
-      enrichComponent: new EnrichComponent(riviereProjectRepository),
+      enrichComponent: new EnrichComponent(riviereProjectAggregateRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parseStateChanges,
@@ -274,7 +279,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createCheckConsistencyCommand({
-      checkConsistency: new CheckConsistency(riviereProjectRepository),
+      checkConsistency: new CheckConsistency(riviereProjectAggregateRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -283,7 +288,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createDefineCustomTypeCommand({
-      defineCustomType: new DefineCustomType(riviereProjectRepository),
+      defineCustomType: new DefineCustomType(riviereProjectAggregateRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       parsePropertySpecs,
@@ -293,7 +298,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createDefineRelationshipTypeCommand({
-      defineRelationshipType: new DefineRelationshipType(riviereProjectRepository),
+      defineRelationshipType: new DefineRelationshipType(riviereProjectAggregateRepository),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
@@ -359,13 +364,13 @@ export function createProgram(): Command {
   program.addCommand(
     createExtractCommand({
       extractDraftComponents: new ExtractDraftComponents(
-        riviereProjectRepository,
+        riviereProjectAggregateRepository,
         createGitChangedSourceFileFinder(process.cwd(), detectChangedTypeScriptFiles),
         createSpecifiedSourceFileFinder(process.cwd(), findSpecifiedSourceFiles),
         createConnectionDetectionTimer(readNodePerformanceTimeInMilliseconds),
       ),
       enrichDraftComponents: new EnrichDraftComponents(
-        riviereProjectRepository,
+        riviereProjectAggregateRepository,
         createConnectionDetectionTimer(readNodePerformanceTimeInMilliseconds),
       ),
       parseFlagCombinations,

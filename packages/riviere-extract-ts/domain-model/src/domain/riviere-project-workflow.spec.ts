@@ -70,7 +70,6 @@ function aiCli(
 ): AiCli {
   return {
     checkAvailability,
-    run: () => Promise.resolve({ kind: 'invalid-arguments', reason: 'Execution is not expected' }),
   }
 }
 

@@ -111,11 +111,6 @@ export function moduleExtractionRules(): RiviereModuleExtractionRules {
 function aiCli(): AiCli {
   return {
     checkAvailability: (command) => Promise.resolve({ kind: 'available', command }),
-    run: () =>
-      Promise.resolve({
-        kind: 'invalid-arguments',
-        reason: 'The workflow fixture does not invoke AI CLI execution',
-      }),
   }
 }
 
