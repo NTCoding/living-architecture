@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import { execFile } from 'node:child_process'
 import { mkdirSync } from 'node:fs'
-import { createInterface } from 'node:readline'
+import { createInterface } from 'node:readline/promises'
 import { promisify } from 'node:util'
 import { Command } from 'commander'
-import type { Workflow } from '@mastra/core/workflows'
+import type { Run, Workflow } from '@mastra/core/workflows'
 import { BuildWorkflow } from '@living-architecture/dev-workflow-v3-use-cases/commands/build-workflow'
 import { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
 import { CommentOnIssue } from '@living-architecture/dev-workflow-v3-use-cases/commands/comment-on-issue'
@@ -48,9 +48,14 @@ const execFileAsync = promisify(execFile)
 
 type Factory = {
   readonly startImplementation: Workflow
-  readonly reviewCycle: Workflow
   readonly workingDirectory: string
-  readonly generation: ReturnType<typeof createAgentGeneration>
+}
+
+type RunOutcome = {
+  readonly status: string
+  readonly steps?: unknown
+  readonly result?: unknown
+  readonly error?: unknown
 }
 
 async function runProcess(request: CommandRequest): Promise<CommandOutput> {
@@ -154,12 +159,7 @@ async function buildFactory(workingDirectory: string): Promise<Factory> {
       'review-cycle': build.reviewCycle,
     },
   })
-  return {
-    startImplementation: build.startImplementation,
-    reviewCycle: build.reviewCycle,
-    workingDirectory,
-    generation,
-  }
+  return { startImplementation: build.startImplementation, workingDirectory }
 }
 
 function createCommandLine(factory: Factory): Command {
@@ -167,6 +167,7 @@ function createCommandLine(factory: Factory): Command {
 
   program
     .command('start-implementation')
+    .description('start a run and follow it until it finishes or needs you')
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
     .action(async (issue: string, options: { model: string }) => {
@@ -174,41 +175,43 @@ function createCommandLine(factory: Factory): Command {
         runId: await nextRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
         resourceId: 'factory',
       })
-      const result = await run.start({
+      const started = await run.start({
         inputData: {
           issueNumber: issueNumber(issue),
           model: options.model,
           worktreesDirectory: `${factory.workingDirectory}/.factory/worktrees`,
         },
       })
-      report(result.status, run.runId, 'The run is waiting for a person. Use resume.', 3)
+      await follow(factory.startImplementation, run, started)
     })
 
   program
     .command('resume')
+    .description('continue a run that is waiting for a person')
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
     .option('--approved <approved>', 'whether the plan is approved', 'true')
-    .option('--answer <answer>', 'the answer to a blocker the implementer raised')
+    .option('--answer <answer>', 'the answer to a question the implementer asked')
     .action(
       async (issue: string, options: { model: string; approved: string; answer?: string }) => {
         const run = await factory.startImplementation.createRun({
           runId: await newestRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
           resourceId: 'factory',
         })
-        const result =
+        const resumed =
           options.answer === undefined
             ? await run.resume({
                 step: 'request-plan-approval',
                 resumeData: { approved: options.approved !== 'false', notes: null },
               })
             : await run.resume({ step: 'implement', resumeData: { answer: options.answer } })
-        report(result.status, run.runId, 'The run is waiting for a person.', 3)
+        await follow(factory.startImplementation, run, resumed)
       },
     )
 
   program
-    .command('plan')
+    .command('read-implementers-plan')
+    .description('print the plan the implementer wrote for a run')
     .argument('<issue>')
     .action(async (issue: string) => {
       const runId = await newestRunId(
@@ -217,27 +220,36 @@ function createCommandLine(factory: Factory): Command {
       )
       const state = await factory.startImplementation.getWorkflowRunById(runId)
       const plan = planOf(state?.steps?.['draft-plan'])
-      process.stdout.write(plan === null ? `No plan is waiting for issue ${issue}.\n` : `${plan}\n`)
+      process.stdout.write(
+        plan === null ? `No plan has been written for issue ${issue} yet.\n` : `${plan}\n`,
+      )
     })
 
-  program.command('status').action(async () => {
-    const runs = await factory.startImplementation.listWorkflowRuns({ status: 'suspended' })
-    for (const run of runs.runs) {
-      process.stdout.write(`${run.runId} has waited since ${String(run.createdAt)}\n`)
-    }
-    if (runs.runs.length === 0) process.stdout.write('No run is waiting.\n')
-  })
+  program
+    .command('status')
+    .description('list the runs that are waiting for a person')
+    .action(async () => {
+      const runs = await factory.startImplementation.listWorkflowRuns({ status: 'suspended' })
+      for (const run of runs.runs) {
+        process.stdout.write(`${run.runId} has waited since ${String(run.createdAt)}\n`)
+      }
+      if (runs.runs.length === 0) process.stdout.write('Nothing is waiting for you.\n')
+    })
 
-  program.command('runs').action(async () => {
-    const runs = await factory.startImplementation.listWorkflowRuns()
-    for (const run of runs.runs) {
-      process.stdout.write(`${run.runId} ${snapshotStatus(run.snapshot)}\n`)
-    }
-    if (runs.runs.length === 0) process.stdout.write('No runs yet.\n')
-  })
+  program
+    .command('runs')
+    .description('list every run')
+    .action(async () => {
+      const runs = await factory.startImplementation.listWorkflowRuns()
+      for (const run of runs.runs) {
+        process.stdout.write(`${run.runId} ${snapshotStatus(run.snapshot)}\n`)
+      }
+      if (runs.runs.length === 0) process.stdout.write('No runs yet.\n')
+    })
 
   program
     .command('chat')
+    .description('answer the implementer when it is waiting for a person')
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
     .action(async (issue: string) => {
@@ -246,30 +258,210 @@ function createCommandLine(factory: Factory): Command {
         `issue-${issueNumberText(issue)}`,
       )
       const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
-      const question = await suspendedQuestion(factory.startImplementation, runId)
+      const state = await factory.startImplementation.getWorkflowRunById(runId)
+      const question = questionOf(state?.steps?.['implement'])
       if (question === null) {
-        process.stdout.write(`No conversation is open for issue ${issue}.\n`)
+        process.stdout.write(`The implementer is not waiting for an answer on issue ${issue}.\n`)
         return
       }
-      process.stdout.write(`${issue}  ${question}\n`)
-      const lines = createInterface({ input: process.stdin, output: process.stdout })
-      for await (const line of lines) {
-        if (line.trim() === 'exit') break
-        const result = await run.resume({ step: 'implement', resumeData: { answer: line } })
-        process.stdout.write(`${runId}: ${result.status}\n`)
-        if (result.status !== 'suspended') break
+      process.stdout.write(`The implementer asks:\n\n  ${question}\n\nType an answer, or exit.\n`)
+      const terminal = createInterface({ input: process.stdin, output: process.stdout })
+      for (;;) {
+        const answer = await terminal.question('> ')
+        if (answer.trim() === 'exit') break
+        const resumed = await run.resume({ step: 'implement', resumeData: { answer } })
+        await follow(factory.startImplementation, run, resumed)
+        if (resumed.status !== 'suspended') break
       }
+      terminal.close()
     })
 
   return program
 }
 
-async function suspendedQuestion(workflow: Workflow, runId: string): Promise<string | null> {
-  const state = await workflow.getWorkflowRunById(runId)
-  const executed = state?.steps?.['implement']
-  if (executed === undefined) return null
-  const step = Array.isArray(executed) ? executed[0] : executed
-  return questionOf(step?.suspendPayload) ?? null
+async function follow(workflow: Workflow, run: Run, started: unknown): Promise<void> {
+  const stop = watch(workflow, run.runId)
+  const outcome: { current: unknown } = { current: started }
+  for (;;) {
+    if (!isOutcome(outcome.current)) {
+      process.stderr.write(`The run ${run.runId} returned something unexpected.\n`)
+      process.exitCode = 1
+      return
+    }
+    if (outcome.current.status === 'success') {
+      stop()
+      reportSuccess(outcome.current, run.runId)
+      return
+    }
+    if (outcome.current.status !== 'suspended') {
+      stop()
+      reportFailure(outcome.current, run.runId)
+      return
+    }
+    const waiting = awaitingPerson(outcome.current)
+    if (waiting === null || !process.stdin.isTTY) {
+      stop()
+      process.stdout.write(
+        `\nThe run ${run.runId} is waiting for you. Run \`pnpm factory status\`, then\n` +
+          `\`pnpm factory resume ${issueFromRunId(run.runId)} --model <model>\` when you have decided.\n`,
+      )
+      process.exitCode = 3
+      return
+    }
+    const answer = await ask(waiting)
+    if (answer === null) {
+      stop()
+      process.stdout.write(`\nStopped. The run ${run.runId} is still waiting for you.\n`)
+      process.exitCode = 3
+      return
+    }
+    outcome.current = await resumeRun(run, waiting.step, answer)
+  }
+}
+
+function watch(workflow: Workflow, runId: string): () => void {
+  const seen = new Map<string, string>()
+  const control = { stopped: false }
+  const tick = async (): Promise<void> => {
+    if (control.stopped) return
+    const state = await workflow.getWorkflowRunById(runId)
+    reportSteps(state?.steps, seen)
+    if (!control.stopped) setTimeout(() => void tick(), 4_000)
+  }
+  void tick()
+  return () => {
+    control.stopped = true
+  }
+}
+
+function reportSteps(steps: unknown, seen: Map<string, string>): void {
+  if (!isRecord(steps)) return
+  for (const [name, value] of Object.entries(steps)) {
+    const step: unknown = Array.isArray(value) ? value[0] : value
+    if (!isRecord(step)) continue
+    const status = typeof step['status'] === 'string' ? step['status'] : 'unknown'
+    if (seen.get(name) === status) continue
+    seen.set(name, status)
+    process.stdout.write(`  ${markOf(status)} ${name}\n`)
+    if (name === 'review-cycle' && status === 'running') {
+      process.stdout.write(
+        '    three reviewers, then CodeRabbit. This is the long part, up to 10 minutes.\n',
+      )
+    }
+  }
+}
+
+function markOf(status: string): string {
+  if (status === 'success') return '✓'
+  if (status === 'failed') return '✗'
+  if (status === 'suspended') return '…'
+  return '→'
+}
+
+type Waiting = {
+  readonly step: string
+  readonly kind: 'plan' | 'question'
+  readonly question: string
+}
+
+async function ask(waiting: Waiting): Promise<string | boolean | null> {
+  const terminal = createInterface({ input: process.stdin, output: process.stdout })
+  try {
+    if (waiting.kind === 'plan') {
+      process.stdout.write(`\n## Implementer's plan\n\n${waiting.question}\n\n`)
+      const approved = await terminal.question('Approve this plan and continue? [y/N] ')
+      return approved.trim().toLowerCase() === 'y'
+    }
+    process.stdout.write(`\nThe implementer asks:\n\n  ${waiting.question}\n\n`)
+    const answer = await terminal.question('Your answer (or press Enter to stop): ')
+    return answer.trim() === '' ? null : answer
+  } finally {
+    terminal.close()
+  }
+}
+
+async function resumeRun(run: Run, step: string, answer: string | boolean): Promise<unknown> {
+  if (step === 'request-plan-approval') {
+    return await run.resume({
+      step: 'request-plan-approval',
+      resumeData: { approved: answer === true, notes: null },
+    })
+  }
+  return await run.resume({
+    step: 'implement',
+    resumeData: { answer: typeof answer === 'string' ? answer : '' },
+  })
+}
+
+function awaitingPerson(outcome: RunOutcome): Waiting | null {
+  return suspendedPayloadOf(outcome)
+}
+
+function suspendedPayloadOf(outcome: RunOutcome): Waiting | null {
+  const step = suspendedStep(outcome)
+  if (step === null) return null
+  const payload = suspendPayloadOf(step.payload)
+  if (step.name === 'request-plan-approval') {
+    const plan = planOf(step.output)
+    return plan === null ? null : { step: step.name, kind: 'plan', question: plan }
+  }
+  return {
+    step: step.name,
+    kind: 'question',
+    question: payload ?? 'The implementer is waiting for an answer.',
+  }
+}
+
+function suspendedStep(outcome: RunOutcome): {
+  readonly name: string
+  readonly payload: unknown
+  readonly output: unknown
+} | null {
+  const steps = outcome.steps
+  if (!isRecord(steps)) return null
+  for (const [name, value] of Object.entries(steps)) {
+    const step: unknown = Array.isArray(value) ? value[0] : value
+    if (!isRecord(step) || step['status'] !== 'suspended') continue
+    return { name, payload: step['suspendPayload'], output: step['output'] }
+  }
+  return null
+}
+
+function suspendPayloadOf(payload: unknown): string | null {
+  if (!isRecord(payload)) return null
+  const question = payload['question']
+  return typeof question === 'string' ? question : null
+}
+
+function reportSuccess(outcome: RunOutcome, runId: string): void {
+  const url = pullRequestUrlOf(outcome)
+  process.stdout.write(`\nThe run ${runId} is finished.\n`)
+  process.stdout.write(
+    url === null
+      ? 'Open the pull request on GitHub to review it.\n'
+      : `The pull request is ready for you to review:\n\n  ${url}\n\n`,
+  )
+  process.stdout.write('The factory has not merged it. That is yours to do.\n')
+}
+
+function reportFailure(outcome: RunOutcome, runId: string): void {
+  const reason = failureOf(outcome)
+  process.stdout.write(`\nThe run ${runId} stopped.\n`)
+  process.stdout.write(reason === null ? 'The run reported no reason.\n' : `${reason}\n`)
+  process.stdout.write('Nothing was merged. Fix the cause, then start again on the same issue.\n')
+  process.exitCode = 1
+}
+
+function failureOf(outcome: RunOutcome): string | null {
+  if (!isRecord(outcome.error)) return null
+  const message = outcome.error['message']
+  return typeof message === 'string' ? message : null
+}
+
+function pullRequestUrlOf(outcome: RunOutcome): string | null {
+  if (!isRecord(outcome.result)) return null
+  const url = outcome.result['pullRequestUrl']
+  return typeof url === 'string' ? url : null
 }
 
 function planOf(executed: unknown): string | null {
@@ -281,10 +473,14 @@ function planOf(executed: unknown): string | null {
   return typeof plan === 'string' ? plan : null
 }
 
-function questionOf(payload: unknown): string | undefined {
-  if (!isRecord(payload) || !('question' in payload)) return undefined
-  const question = payload['question']
-  return typeof question === 'string' ? question : undefined
+function questionOf(executed: unknown): string | null {
+  const step: unknown = Array.isArray(executed) ? executed[0] : executed
+  if (!isRecord(step) || !('suspendPayload' in step)) return null
+  return suspendPayloadOf(step['suspendPayload'])
+}
+
+function isOutcome(value: unknown): value is RunOutcome {
+  return isRecord(value) && typeof value['status'] === 'string'
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -298,6 +494,11 @@ function issueNumber(value: string): number {
 
 function issueNumberText(value: string): string {
   return String(issueNumber(value))
+}
+
+function issueFromRunId(runId: string): string {
+  const match = /^issue-(\d+)/.exec(runId)
+  return match?.[1] ?? runId
 }
 
 /** @riviere-role cli-error */
@@ -379,21 +580,6 @@ function snapshotStatus(snapshot: unknown): string {
   if (!isRecord(snapshot) || !('status' in snapshot)) return 'unknown'
   const status = snapshot['status']
   return typeof status === 'string' ? status : 'unknown'
-}
-
-function report(
-  status: string,
-  runId: string,
-  suspendedMessage: string,
-  suspendedCode: number,
-): void {
-  if (status === 'suspended') {
-    process.stdout.write(`${runId}: ${suspendedMessage}\n`)
-    process.exitCode = suspendedCode
-    return
-  }
-  process.stdout.write(`${runId}: ${status}\n`)
-  if (status !== 'success') process.exitCode = 1
 }
 
 if (

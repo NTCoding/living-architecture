@@ -866,6 +866,17 @@ The run found four faults that the stub tests could not:
 4. The cycle number no longer moves on when the cycle limit is reached, so the report
    says three cycles rather than four.
 
+**One command, and the console waits for you.** `start-implementation` follows the run
+and prints each step as it changes. When the run reaches the plan it prints the plan and
+asks `Approve this plan and continue? [y/N]`. Saying yes resumes in the same process and
+carries on. If the implementer asks a question, the question and the answer prompt appear
+in the same console. If the console is not a terminal, the run stops and tells you to use
+`resume`, so a script is never left waiting on input. At the end it prints the pull
+request url and says it has not merged anything.
+
+`pnpm factory read-implementers-plan <issue>` prints the plan for a run, and
+`pnpm factory resume <issue> --model <model>` continues a run whose console was closed.
+
 **The plan is posted on the issue.** After `draft-plan` there is a deterministic
 `publish-plan` step. It posts the plan as a comment headed `## Implementer's plan`, with
 the run id and the command that approves or rejects it, then the run suspends as before.
