@@ -928,6 +928,10 @@ that one complete pass must leave nothing for the next cycle.
 - [x] `--model` is gone from `resume` and `chat`, because they ignored it. The run keeps
       the model it started with.
 - [ ] `status` should print the question or the plan that is waiting, not just the run id.
+- [ ] The waiting message for a plan prints the plan, then the approve and reject lines.
+      It currently falls through to the generic message because the plan is read from the
+      suspended step output, and at a suspension the plan is in the suspend payload
+      (notes). read-implementers-plan works because it reads draft-plan.
 - [ ] The implement step should keep going when the agent hits the step limit instead of
       failing. Today it fails and the next run picks the worktree up again.
 - [ ] The app still has no test target.
