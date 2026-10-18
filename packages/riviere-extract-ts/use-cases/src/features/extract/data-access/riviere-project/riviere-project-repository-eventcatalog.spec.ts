@@ -2,6 +2,7 @@ import {
   cleanupWorkflowWorkspaces,
   createWorkflowWorkspace as workspace,
 } from '../../../../__fixtures__/riviere-project-workspace-fixtures'
+import { unavailableAiCli } from '../../../../__fixtures__/ai-cli-fixtures'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, assert, describe, expect, it } from 'vitest'
@@ -56,10 +57,7 @@ describe('RiviereProjectRepository EventCatalog workflow', () => {
     writeWorkflow(directory)
     const extractionConfiguration = configureExtraction({})
     const repository = new RiviereProjectRepository({
-      aiCli: {
-        checkAvailability: () => Promise.resolve({ kind: 'available' }),
-        run: () => Promise.resolve({ kind: 'invocation-failure', reason: 'not configured' }),
-      },
+      aiCli: unavailableAiCli(),
       loadEventCatalogSource: () =>
         Promise.resolve({
           domains: [],

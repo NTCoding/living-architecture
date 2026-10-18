@@ -4,6 +4,7 @@ import type { LoadCodeExtraction } from '@living-architecture/riviere-extract-ts
 import { createCodeExtractionAdapter } from '../features/extract/adapters/ts-morph/code-extraction-adapter'
 import { configureExtraction } from '../features/extract/commands/configure-extraction'
 import { RiviereProjectRepository } from '../features/extract/data-access/riviere-project/riviere-project-repository'
+import { unavailableAiCli } from './ai-cli-fixtures'
 
 const emptyCodeExtractionLoader: LoadCodeExtraction = createCodeExtractionAdapter()
 const extractionConfiguration = configureExtraction({})
@@ -16,10 +17,7 @@ export function createRiviereProjectRepository(
   loadCodeExtraction: LoadCodeExtraction = emptyCodeExtractionLoader,
 ): RiviereProjectRepository {
   return new RiviereProjectRepository({
-    aiCli: {
-      checkAvailability: () => Promise.resolve({ kind: 'available' }),
-      run: () => Promise.resolve({ kind: 'invocation-failure', reason: 'not configured' }),
-    },
+    aiCli: unavailableAiCli(),
     loadEventCatalogSource,
     loadAsyncApiDocument,
     loadCodeExtraction,
