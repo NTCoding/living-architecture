@@ -17,6 +17,7 @@ import type { RiviereModuleExtractionRules } from '../ports/riviere-module-extra
 import { type MetadataValue, EnrichedComponent } from '../value-extraction/enriched-component'
 import { WorkflowStartInput } from '../riviere-project-start-inputs'
 import type { WorkflowStage } from '../workflow-stage'
+import type { AiCli } from '../ports/ai-cli'
 
 interface WorkflowStartInputOverrides {
   readonly name?: string
@@ -107,12 +108,24 @@ export function moduleExtractionRules(): RiviereModuleExtractionRules {
   }
 }
 
+function aiCli(): AiCli {
+  return {
+    checkAvailability: (command) => Promise.resolve({ kind: 'available', command }),
+    run: () =>
+      Promise.resolve({
+        kind: 'invalid-arguments',
+        reason: 'The workflow fixture does not invoke AI CLI execution',
+      }),
+  }
+}
+
 export function collaborators(
   source: EventCatalogSource = { domains: [], services: [], events: [] },
   asyncApiDocument: AsyncApiDocument = { messages: [], operations: [] },
 ): RiviereProjectCollaborators {
   const loadCodeExtraction: LoadCodeExtraction = () => configuration().moduleContexts
   return {
+    aiCli: aiCli(),
     loadEventCatalogSource: () => Promise.resolve(source),
     loadAsyncApiDocument: () => Promise.resolve(asyncApiDocument),
     loadCodeExtraction,

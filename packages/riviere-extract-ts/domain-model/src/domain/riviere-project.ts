@@ -130,7 +130,7 @@ export class RiviereProject {
     const previousBuilder = this.graphBuilder()
     this.builder = RiviereBuilder.parse(BuilderOptions.fromGraph(previousBuilder.build()))
     const run = await workflow.run(this.builder, mode, (stage, context) =>
-      this.executeWorkflowStage(stage, context.diagnostics),
+      this.executeWorkflowStage(stage, context.diagnostics, mode),
     )
     if (!run.value.success) {
       this.builder = previousBuilder
@@ -149,6 +149,7 @@ export class RiviereProject {
   private async executeWorkflowStage(
     stage: WorkflowStageValue,
     unresolvedDiagnostics: readonly WorkflowDiagnostic[],
+    mode: WorkflowRunMode,
   ) {
     switch (stage.kind) {
       case 'schema-validate': {
@@ -188,12 +189,28 @@ export class RiviereProject {
         return this.executeCodeExtractionStage(stage)
       case 'ai-extract':
       case 'ai-enrich':
-        return {
-          success: false as const,
-          errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',
-          reason: `Stage behaviour is unavailable for '${stage.kind}'`,
-        }
+        return this.executeAiStageAvailability(stage.config.command, stage.kind, mode)
     }
+  }
+
+  private async executeAiStageAvailability(
+    command: string,
+    stageKind: 'ai-extract' | 'ai-enrich',
+    mode: WorkflowRunMode,
+  ) {
+    const availability =
+      mode.value === 'dry-run'
+        ? undefined
+        : await this.collaborators.aiCli.checkAvailability(command)
+    if (availability?.kind === 'unavailable') {
+      return {
+        success: false as const,
+        errorCode: 'AI_CLI_UNAVAILABLE',
+        reason: availability.reason,
+      }
+    }
+    const reason = `Stage behaviour is unavailable for '${stageKind}'`
+    return { success: false as const, errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE', reason }
   }
   private executeCodeExtractionStage(
     stage: Extract<WorkflowStageValue, { kind: 'code-extraction' }>,
@@ -208,11 +225,8 @@ export class RiviereProject {
       modules.forEach((module) => module.extractAllDraftComponents())
       const completion = this.extractFrom(extraction, modules, {})
       if (completion.kind === 'fieldFailure') {
-        return {
-          success: false as const,
-          errorCode: 'EXTRACTION_FIELD_FAILURE',
-          reason: `Extraction failed for fields: ${completion.failedFields.join(', ')}`,
-        }
+        const reason = `Extraction failed for fields: ${completion.failedFields.join(', ')}`
+        return { success: false as const, errorCode: 'EXTRACTION_FIELD_FAILURE', reason }
       }
       const warnings = this.collaborators.extractionBehaviour.applyCodeExtractionToBuilder(
         this.graphBuilder(),
@@ -223,30 +237,25 @@ export class RiviereProject {
       )
       return { success: true as const, diagnostics: completion.diagnostics, warnings }
     } catch (error) {
-      return {
-        success: false as const,
-        errorCode: 'EXTRACTION_FIELD_FAILURE',
-        reason: error instanceof Error ? error.message : String(error),
-      }
+      const reason = error instanceof Error ? error.message : String(error)
+      return { success: false as const, errorCode: 'EXTRACTION_FIELD_FAILURE', reason }
     }
   }
   private loadStageExtraction(
     config: CodeExtractionConfig,
     configPath: string,
   ): ExtractionConfiguration {
-    const repositoryName = this.collaborators.repositoryName
-    const useTsConfig = true
     return ExtractionConfiguration.parse({
       name: configPath,
       configPath,
-      useTsConfig,
-      repositoryName,
+      useTsConfig: true,
+      repositoryName: this.collaborators.repositoryName,
       resolvedConfig: config,
       moduleContexts: this.collaborators.loadCodeExtraction({
         config,
         configPath,
-        repositoryName,
-        useTsConfig,
+        repositoryName: this.collaborators.repositoryName,
+        useTsConfig: true,
       }),
     })
   }
@@ -282,10 +291,8 @@ export class RiviereProject {
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
   }) {
     if (!options.includeConnections) {
-      return {
-        kind: 'draftOnly' as const,
-        components: this.modules.flatMap((module) => module.draftComponents()),
-      }
+      const components = this.modules.flatMap((module) => module.draftComponents())
+      return { kind: 'draftOnly' as const, components }
     }
     return this.extractFrom(this.extractionConfiguration(), this.modules, {
       ...(options.allowIncomplete === undefined
@@ -364,11 +371,10 @@ export class RiviereProject {
     })
   }
   private assertEveryConfiguredModuleHasAnEntity(): void {
-    for (const configuredModule of this.extractionConfiguration().resolvedConfig.modules) {
-      if (!this.modules.some((module) => module.name() === configuredModule.name)) {
-        throw new MissingModuleSourceError(configuredModule.name)
-      }
-    }
+    const missing = this.extractionConfiguration().resolvedConfig.modules.find(
+      (configuredModule) => !this.modules.some((module) => module.name() === configuredModule.name),
+    )
+    if (missing !== undefined) throw new MissingModuleSourceError(missing.name)
   }
   private assertNoUnassignedDraftComponents(): void {
     if (this.unassignedDraftComponents.length === 0) return
