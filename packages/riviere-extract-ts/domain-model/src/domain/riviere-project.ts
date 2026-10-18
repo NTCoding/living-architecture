@@ -47,18 +47,6 @@ export class RiviereProject {
     private workflow?: Workflow,
   ) {}
   static start(
-    input: GraphOnlyProjectStartInput,
-    collaborators: RiviereProjectCollaborators,
-  ): RiviereProject
-  static start(
-    input: GraphWithWorkflowStartInput,
-    collaborators: RiviereProjectCollaborators,
-  ): RiviereProject
-  static start(
-    input: ExtractionProjectStartInput,
-    collaborators: RiviereProjectCollaborators,
-  ): RiviereProject
-  static start(
     input: RiviereProjectStartInput,
     collaborators: RiviereProjectCollaborators,
   ): RiviereProject {
@@ -146,6 +134,23 @@ export class RiviereProject {
       warnings: run.value.warnings,
     }
   }
+  checkConfiguredAiCliAvailability() {
+    return (
+      this.workflow?.checkAiCliAvailability((command) =>
+        this.collaborators.aiCli.checkAvailability(command),
+      ) ?? { success: true }
+    )
+  }
+
+  checkActiveAiCliAvailability(mode: WorkflowRunMode) {
+    return (
+      this.workflow?.checkActiveAiCliAvailability(
+        (command) => this.collaborators.aiCli.checkAvailability(command),
+        mode.value,
+      ) ?? { success: true }
+    )
+  }
+
   private async executeWorkflowStage(
     stage: WorkflowStageValue,
     unresolvedDiagnostics: readonly WorkflowDiagnostic[],

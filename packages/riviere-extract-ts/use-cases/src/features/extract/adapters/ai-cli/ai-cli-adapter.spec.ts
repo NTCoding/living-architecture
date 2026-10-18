@@ -1,12 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ChildProcessClient } from '../../../../infra/external-clients/child-process/child-process-client'
-import {
-  AiCliArguments,
-  AiCliCommand,
-  AiCliInvocation,
-  AiCliPrompt,
-  AiCliTimeoutSeconds,
-} from '@living-architecture/riviere-extract-ts-domain-model/domain/ai-cli-invocation'
 import type { RunAiCliInput } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/ai-cli'
 import { AiCliAdapter } from './ai-cli-adapter'
 
@@ -16,44 +9,45 @@ function createClient() {
   return { client: { probe, run }, probe, run }
 }
 
-function createInput(argumentsValue: readonly string[]): RunAiCliInput {
+function createInput(
+  argumentsValue: readonly string[],
+  prompt = 'Discover missing events',
+): RunAiCliInput {
   return {
-    invocation: AiCliInvocation.from({
-      command: AiCliCommand.from('claude'),
-      arguments: AiCliArguments.from(argumentsValue),
-      timeoutSeconds: AiCliTimeoutSeconds.from(600),
-    }),
-    prompt: AiCliPrompt.from('Discover missing events'),
+    command: 'claude',
+    arguments: argumentsValue,
+    prompt,
+    timeoutSeconds: 600,
   }
 }
 
 describe('AiCliAdapter availability', () => {
-  it('probes the configured command and reports it available', async () => {
+  it('probes the configured command and reports it available', () => {
     const { client, probe } = createClient()
-    probe.mockResolvedValue({ kind: 'available' })
+    probe.mockReturnValue({ kind: 'available' })
 
-    const result = await new AiCliAdapter(client).checkAvailability('claude')
+    const result = new AiCliAdapter(client).checkAvailability('claude')
 
     expect(probe).toHaveBeenCalledWith('claude')
     expect(result).toStrictEqual({ kind: 'available' })
   })
 
-  it('reports the probe failure reason when the configured command is unavailable', async () => {
+  it('reports the probe failure reason when the configured command is unavailable', () => {
     const { client, probe } = createClient()
-    probe.mockResolvedValue({ kind: 'unavailable', reason: 'spawn claude ENOENT' })
+    probe.mockReturnValue({ kind: 'unavailable', reason: 'spawn claude ENOENT' })
 
-    const result = await new AiCliAdapter(client).checkAvailability('claude')
+    const result = new AiCliAdapter(client).checkAvailability('claude')
 
     expect(result).toStrictEqual({ kind: 'unavailable', reason: 'spawn claude ENOENT' })
   })
 })
 
 describe('AiCliAdapter prompt placement', () => {
-  it('passes the prompt on standard input when no prompt argument is configured', async () => {
+  it('passes the prompt on standard input when no prompt argument is configured', () => {
     const { client, run } = createClient()
-    run.mockResolvedValue({ kind: 'completed', exitCode: 0, stdout: '', stderr: '' })
+    run.mockReturnValue({ kind: 'completed', exitCode: 0, stdout: '', stderr: '' })
 
-    await new AiCliAdapter(client).run(createInput(['-p']))
+    new AiCliAdapter(client).run(createInput(['-p']))
 
     expect(run).toHaveBeenCalledWith({
       command: 'claude',
@@ -63,11 +57,11 @@ describe('AiCliAdapter prompt placement', () => {
     })
   })
 
-  it('substitutes the prompt into the single prompt argument and leaves standard input empty', async () => {
+  it('substitutes the prompt into the single prompt argument and leaves standard input empty', () => {
     const { client, run } = createClient()
-    run.mockResolvedValue({ kind: 'completed', exitCode: 0, stdout: '', stderr: '' })
+    run.mockReturnValue({ kind: 'completed', exitCode: 0, stdout: '', stderr: '' })
 
-    await new AiCliAdapter(client).run(createInput(['--prompt', '{prompt}']))
+    new AiCliAdapter(client).run(createInput(['--prompt', '{prompt}']))
 
     expect(run).toHaveBeenCalledWith({
       command: 'claude',
@@ -76,78 +70,90 @@ describe('AiCliAdapter prompt placement', () => {
       timeoutSeconds: 600,
     })
   })
+
+  it('substitutes a prompt placeholder embedded in a longer argument', () => {
+    const { client, run } = createClient()
+    run.mockReturnValue({ kind: 'completed', exitCode: 0, stdout: '', stderr: '' })
+
+    new AiCliAdapter(client).run(createInput(['--message={prompt}']))
+
+    expect(run).toHaveBeenCalledWith({
+      command: 'claude',
+      arguments: ['--message=Discover missing events'],
+      stdin: undefined,
+      timeoutSeconds: 600,
+    })
+  })
+
+  it('returns an invocation failure when multiple prompt placeholders are configured', () => {
+    const { client, run } = createClient()
+
+    const result = new AiCliAdapter(client).run(createInput(['{prompt}', '{prompt}']))
+
+    expect(result).toStrictEqual({
+      kind: 'invocation-failure',
+      reason: "Expected at most one '{prompt}' placeholder across AI CLI arguments, got 2.",
+    })
+    expect(run).not.toHaveBeenCalled()
+  })
 })
 
 describe('AiCliAdapter result translation', () => {
-  it('returns the command output when the command exits successfully', async () => {
+  it('returns the command output when the command exits successfully', () => {
     const { client, run } = createClient()
-    run.mockResolvedValue({
+    run.mockReturnValue({
       kind: 'completed',
       exitCode: 0,
       stdout: '{"components":[]}',
       stderr: '',
     })
 
-    const result = await new AiCliAdapter(client).run(createInput(['-p']))
+    const result = new AiCliAdapter(client).run(createInput(['-p']))
 
     expect(result).toStrictEqual({ kind: 'success', output: '{"components":[]}' })
   })
 
-  it('returns a typed timeout when the command exceeds its timeout', async () => {
+  it('returns a typed non-zero exit result when the command fails', () => {
     const { client, run } = createClient()
-    run.mockResolvedValue({ kind: 'timeout' })
+    run.mockReturnValue({
+      kind: 'completed',
+      exitCode: 3,
+      stdout: '',
+      stderr: 'Authentication required',
+    })
 
-    const result = await new AiCliAdapter(client).run(createInput(['-p']))
+    const result = new AiCliAdapter(client).run(createInput(['-p']))
+
+    expect(result).toStrictEqual({
+      kind: 'non-zero-exit',
+      exitCode: 3,
+      stderr: 'Authentication required',
+    })
+  })
+
+  it('returns a typed timeout when the command exceeds its timeout', () => {
+    const { client, run } = createClient()
+    run.mockReturnValue({ kind: 'timed-out' })
+
+    const result = new AiCliAdapter(client).run(createInput(['-p']))
 
     expect(result).toStrictEqual({ kind: 'timeout' })
   })
 
-  it('returns a typed invocation failure with the command error detail', async () => {
+  it('returns a typed output truncation result when captured output exceeds the bound', () => {
     const { client, run } = createClient()
-    run.mockResolvedValue({
-      kind: 'completed',
-      exitCode: 3,
-      stdout: '',
-      stderr: 'Authentication required\n',
-    })
+    run.mockReturnValue({ kind: 'output-truncated', limitBytes: 1048576 })
 
-    const result = await new AiCliAdapter(client).run(createInput(['-p']))
+    const result = new AiCliAdapter(client).run(createInput(['-p']))
 
-    expect(result).toStrictEqual({
-      kind: 'invocation-failure',
-      reason: 'Command exited with code 3: Authentication required',
-    })
+    expect(result).toStrictEqual({ kind: 'output-truncated', limitBytes: 1048576 })
   })
 
-  it('returns a typed invocation failure when the command exits without error detail', async () => {
+  it('returns a typed invocation failure when the command cannot be spawned', () => {
     const { client, run } = createClient()
-    run.mockResolvedValue({ kind: 'completed', exitCode: 2, stdout: '', stderr: '   ' })
+    run.mockReturnValue({ kind: 'spawn-failure', reason: 'spawn claude ENOENT' })
 
-    const result = await new AiCliAdapter(client).run(createInput(['-p']))
-
-    expect(result).toStrictEqual({
-      kind: 'invocation-failure',
-      reason: 'Command exited with code 2.',
-    })
-  })
-
-  it('returns a typed invocation failure when captured output exceeds the limit', async () => {
-    const { client, run } = createClient()
-    run.mockResolvedValue({ kind: 'output-limit-exceeded', limitBytes: 1048576 })
-
-    const result = await new AiCliAdapter(client).run(createInput(['-p']))
-
-    expect(result).toStrictEqual({
-      kind: 'invocation-failure',
-      reason: 'Command output exceeded 1048576 bytes.',
-    })
-  })
-
-  it('returns a typed invocation failure when the command cannot be spawned', async () => {
-    const { client, run } = createClient()
-    run.mockResolvedValue({ kind: 'invocation-failure', reason: 'spawn claude ENOENT' })
-
-    const result = await new AiCliAdapter(client).run(createInput(['-p']))
+    const result = new AiCliAdapter(client).run(createInput(['-p']))
 
     expect(result).toStrictEqual({ kind: 'invocation-failure', reason: 'spawn claude ENOENT' })
   })

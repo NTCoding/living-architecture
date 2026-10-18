@@ -9,12 +9,19 @@ import type {
   ChildProcessRunResult,
 } from '../../../../infra/external-clients/child-process/child-process-client'
 
+const PROMPT_PLACEHOLDER = '{prompt}'
+
+type PromptPlacement =
+  | Readonly<{ kind: 'argument'; arguments: readonly string[] }>
+  | Readonly<{ kind: 'standard-input'; arguments: readonly string[]; stdin: string }>
+  | Readonly<{ kind: 'invalid'; reason: string }>
+
 /** @riviere-role domain-port-adapter */
 export class AiCliAdapter implements AiCli {
   constructor(private readonly client: ChildProcessClient) {}
 
-  async checkAvailability(command: string): Promise<AiCliAvailability> {
-    const result = await this.client.probe(command)
+  checkAvailability(command: string): AiCliAvailability {
+    const result = this.client.probe(command)
     switch (result.kind) {
       case 'available':
         return { kind: 'available' }
@@ -23,37 +30,57 @@ export class AiCliAdapter implements AiCli {
     }
   }
 
-  async run(input: RunAiCliInput): Promise<RunAiCliResult> {
-    const placement = input.invocation.resolvePrompt(input.prompt)
-    const result = await this.client.run({
-      command: input.invocation.commandText(),
+  run(input: RunAiCliInput): RunAiCliResult {
+    const placement = resolvePromptPlacement(input.arguments, input.prompt)
+    if (placement.kind === 'invalid')
+      return { kind: 'invocation-failure', reason: placement.reason }
+    const result = this.client.run({
+      command: input.command,
       arguments: placement.arguments,
-      stdin: placement.kind === 'argument' ? undefined : placement.stdin,
-      timeoutSeconds: input.invocation.timeoutInSeconds(),
+      stdin: placement.kind === 'standard-input' ? placement.stdin : undefined,
+      timeoutSeconds: input.timeoutSeconds,
     })
     return toRunAiCliResult(result)
   }
+}
+
+function resolvePromptPlacement(
+  argumentsValue: readonly string[],
+  prompt: string,
+): PromptPlacement {
+  const placeholderCount = argumentsValue.reduce(
+    (count, value) => count + countPromptPlaceholders(value),
+    0,
+  )
+  if (placeholderCount > 1) {
+    return {
+      kind: 'invalid',
+      reason: `Expected at most one '${PROMPT_PLACEHOLDER}' placeholder across AI CLI arguments, got ${placeholderCount}.`,
+    }
+  }
+  if (placeholderCount === 0) {
+    return { kind: 'standard-input', arguments: [...argumentsValue], stdin: prompt }
+  }
+  return {
+    kind: 'argument',
+    arguments: argumentsValue.map((value) => value.replaceAll(PROMPT_PLACEHOLDER, prompt)),
+  }
+}
+
+function countPromptPlaceholders(value: string): number {
+  return value.split(PROMPT_PLACEHOLDER).length - 1
 }
 
 function toRunAiCliResult(result: ChildProcessRunResult): RunAiCliResult {
   switch (result.kind) {
     case 'completed':
       if (result.exitCode === 0) return { kind: 'success', output: result.stdout }
-      return { kind: 'invocation-failure', reason: describeExitFailure(result) }
-    case 'timeout':
+      return { kind: 'non-zero-exit', exitCode: result.exitCode, stderr: result.stderr }
+    case 'timed-out':
       return { kind: 'timeout' }
-    case 'output-limit-exceeded':
-      return {
-        kind: 'invocation-failure',
-        reason: `Command output exceeded ${result.limitBytes} bytes.`,
-      }
-    case 'invocation-failure':
+    case 'output-truncated':
+      return { kind: 'output-truncated', limitBytes: result.limitBytes }
+    case 'spawn-failure':
       return { kind: 'invocation-failure', reason: result.reason }
   }
-}
-
-function describeExitFailure(result: ChildProcessRunResult & { kind: 'completed' }): string {
-  const detail = result.stderr.trim()
-  if (detail.length === 0) return `Command exited with code ${result.exitCode}.`
-  return `Command exited with code ${result.exitCode}: ${detail}`
 }

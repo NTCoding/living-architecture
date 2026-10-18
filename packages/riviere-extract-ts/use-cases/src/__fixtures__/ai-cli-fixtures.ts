@@ -2,7 +2,7 @@ import type { AiCli } from '@living-architecture/riviere-extract-ts-domain-model
 
 export function unavailableAiCli(): AiCli {
   return {
-    checkAvailability: () => Promise.resolve({ kind: 'available' }),
-    run: () => Promise.resolve({ kind: 'invocation-failure', reason: 'not configured' }),
+    checkAvailability: () => ({ kind: 'available' }),
+    run: () => ({ kind: 'invocation-failure', reason: 'not configured' }),
   }
 }

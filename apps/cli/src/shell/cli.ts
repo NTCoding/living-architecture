@@ -57,6 +57,8 @@ import { createValidateCommand } from '../features/builder/entrypoint/validate/e
 import { EnrichDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/enrich-draft-components'
 import { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/extract-draft-components'
 import { RiviereProjectRepository } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/data-access/riviere-project/riviere-project-repository'
+import { RunWorkflow } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/run-workflow'
+import { ValidateWorkflow } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/validate-workflow'
 import { configureExtraction } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/configure-extraction'
 import { createCodeExtractionAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ts-morph/code-extraction-adapter'
 import { AiCliAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ai-cli/ai-cli-adapter'
@@ -65,6 +67,7 @@ import { createGitChangedSourceFileFinder } from '@living-architecture/riviere-e
 import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-specified-source-file-finder'
 import { createConnectionDetectionTimer } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/time/create-connection-detection-timer'
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
+import { createWorkflowCommand } from '../features/extract/entrypoint/workflow/entrypoint'
 import { parseSourceFileSelection } from '../features/extract/entrypoint/extract/parse-source-file-selection'
 import { detectChangedTypeScriptFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/git-changed-files'
 import { findSpecifiedSourceFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/find-specified-source-files'
@@ -354,6 +357,13 @@ export function createProgram(): Command {
       formatQueryGraphLoadFailure,
       formatSuccess,
       toComponentOutput,
+    }),
+  )
+
+  program.addCommand(
+    createWorkflowCommand({
+      runWorkflow: new RunWorkflow(riviereProjectRepository),
+      validateWorkflow: new ValidateWorkflow(riviereProjectRepository),
     }),
   )
 

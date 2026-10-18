@@ -1,3 +1,4 @@
+import { WorkflowRunMode } from '@living-architecture/riviere-extract-ts-domain-model/domain/workflow'
 import { ExtractionConfigError } from '../data-access/riviere-project/riviere-config-error'
 import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
 import { RiviereProjectRepository } from '../data-access/riviere-project/riviere-project-repository'
@@ -15,7 +16,20 @@ export class RunWorkflow {
   private async run(input: RunWorkflowInput): Promise<RunWorkflowResult> {
     try {
       const project = this.projects.load({ kind: 'workflow', workflowPath: input.workflowPath })
-      return { result: await project.rebuildGraph() }
+      const mode = input.mode === undefined ? undefined : WorkflowRunMode.from(input.mode)
+      const availability = project.checkActiveAiCliAvailability(mode ?? WorkflowRunMode.from('run'))
+      if (!availability.success) {
+        return {
+          result: {
+            success: false,
+            errorCode: 'AI_CLI_UNAVAILABLE',
+            reason: `AI CLI '${availability.command}' is unavailable: ${availability.reason}`,
+            events: [],
+            warnings: [],
+          },
+        }
+      }
+      return { result: await project.rebuildGraph(mode) }
     } catch (error) {
       if (error instanceof ExtractionConfigError || error instanceof ExtractionDataAccessError) {
         return {

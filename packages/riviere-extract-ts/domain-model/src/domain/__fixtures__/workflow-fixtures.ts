@@ -112,11 +112,12 @@ export function collaborators(
   asyncApiDocument: AsyncApiDocument = { messages: [], operations: [] },
 ): RiviereProjectCollaborators {
   const loadCodeExtraction: LoadCodeExtraction = () => configuration().moduleContexts
+  const aiCli = {
+    checkAvailability: () => ({ kind: 'available' as const }),
+    run: () => ({ kind: 'invocation-failure' as const, reason: 'not configured' }),
+  }
   return {
-    aiCli: {
-      checkAvailability: () => Promise.resolve({ kind: 'available' }),
-      run: () => Promise.resolve({ kind: 'invocation-failure', reason: 'not configured' }),
-    },
+    aiCli,
     loadEventCatalogSource: () => Promise.resolve(source),
     loadAsyncApiDocument: () => Promise.resolve(asyncApiDocument),
     loadCodeExtraction,

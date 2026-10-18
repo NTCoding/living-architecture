@@ -29,7 +29,7 @@ For shared domain language, use the [domain glossary](../domain-terminology/cont
 | [`riviere-builder`](#riviere-builder) | Models the construction, enrichment, validation, querying, and serialisation of Rivière architecture graphs. | domain model: `@living-architecture/riviere-builder-domain-model`<br>published language: `@living-architecture/riviere-builder-published-language` | _None declared_ | 0 | 8 | 8 |
 | [`riviere-extract-config`](#riviere-extract-config) | Defines the public configuration language used to describe how Rivière components and connections are extracted from source code. | published language: `@living-architecture/riviere-extract-config-published-language` | _None declared_ | 0 | 0 | 0 |
 | [`riviere-extract-conventions`](#riviere-extract-conventions) | Defines the public TypeScript annotations used to identify Rivière architecture components and extraction behaviour in source code. | published language: `@living-architecture/riviere-extract-conventions-published-language` | _None declared_ | 0 | 0 | 0 |
-| [`riviere-extract-ts`](#riviere-extract-ts) | Models the extraction of Rivière architecture components and connections from TypeScript projects according to an extraction configuration. | domain model: `@living-architecture/riviere-extract-ts-domain-model` | `RiviereProject` | 17 | 0 | 16 |
+| [`riviere-extract-ts`](#riviere-extract-ts) | Models the extraction of Rivière architecture components and connections from TypeScript projects according to an extraction configuration. | domain model: `@living-architecture/riviere-extract-ts-domain-model` | `RiviereProject` | 18 | 0 | 18 |
 | [`riviere-role-enforcement`](#riviere-role-enforcement) | Models validation of source code against configured architectural roles, locations, dependencies, and package requirements. | domain model: `@living-architecture/riviere-role-enforcement-domain-model` | `RoleEnforcementProject` | 1 | 0 | 1 |
 | [`riviere-schema`](#riviere-schema) | Defines the public Rivière architecture graph language, including components, connections, identifiers, custom properties, and validation rules. | published language: `@living-architecture/riviere-schema-published-language` | _None declared_ | 0 | 0 | 0 |
 
@@ -225,6 +225,8 @@ Domain model package: `@living-architecture/riviere-extract-ts-domain-model`
   - `build`
   - `serialize`
   - `rebuildGraph`
+  - `checkConfiguredAiCliAvailability`
+  - `checkActiveAiCliAvailability`
   - `extractDraftComponents`
   - `enrichDraftComponents`
   - `detectConnections`
@@ -266,9 +268,12 @@ Domain model package: `@living-architecture/riviere-extract-ts-domain-model`
   - Invokes aggregate operation `RiviereProject.build`
   - Invokes aggregate operation `RiviereProject.amendGraph`
 - `RunWorkflow`
+  - Invokes aggregate operation `RiviereProject.checkActiveAiCliAvailability`
   - Invokes aggregate operation `RiviereProject.rebuildGraph`
 - `ValidateGraph`
   - Invokes aggregate operation `RiviereProject.amendGraph`
+- `ValidateWorkflow`
+  - Invokes aggregate operation `RiviereProject.checkConfiguredAiCliAvailability`
 
 ##### Queries
 
@@ -291,7 +296,9 @@ _None._
 - `LinkComponents`
 - `LinkExternal`
 - `LinkHttp`
+- `RunWorkflow`
 - `ValidateGraph`
+- `ValidateWorkflow`
 
 ### `riviere-role-enforcement`
 

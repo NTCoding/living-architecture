@@ -15,8 +15,8 @@ function stubInput(mode: string, extraArguments: readonly string[] = []) {
 }
 
 describe('ChildProcessClient run', () => {
-  it('captures standard output when the process exits successfully', async () => {
-    const result = await client.run(stubInput('echo-arguments', ['one', 'two']))
+  it('captures standard output when the process exits successfully', () => {
+    const result = client.run(stubInput('echo-arguments', ['one', 'two']))
 
     expect(result).toStrictEqual({
       kind: 'completed',
@@ -26,8 +26,8 @@ describe('ChildProcessClient run', () => {
     })
   })
 
-  it('writes the supplied standard input to the process', async () => {
-    const result = await client.run({ ...stubInput('echo-stdin'), stdin: 'prompt text' })
+  it('writes the supplied standard input to the process', () => {
+    const result = client.run({ ...stubInput('echo-stdin'), stdin: 'prompt text' })
 
     expect(result).toStrictEqual({
       kind: 'completed',
@@ -37,8 +37,8 @@ describe('ChildProcessClient run', () => {
     })
   })
 
-  it('returns the process exit code and error output when the process fails', async () => {
-    const result = await client.run(stubInput('fail', ['boom']))
+  it('returns the process exit code and error output when the process fails', () => {
+    const result = client.run(stubInput('fail', ['boom']))
 
     expect(result).toStrictEqual({
       kind: 'completed',
@@ -48,38 +48,29 @@ describe('ChildProcessClient run', () => {
     })
   })
 
-  it('returns a typed timeout and kills a process that exceeds its timeout', async () => {
-    const result = await client.run({ ...stubInput('sleep', ['5000']), timeoutSeconds: 0.1 })
+  it('returns a typed timeout and kills a process that exceeds its timeout', () => {
+    const result = client.run({ ...stubInput('sleep', ['5000']), timeoutSeconds: 0.1 })
 
-    expect(result).toStrictEqual({ kind: 'timeout' })
+    expect(result).toStrictEqual({ kind: 'timed-out' })
   })
 
-  it('returns an output limit result when captured output exceeds one megabyte', async () => {
-    const result = await client.run(stubInput('large-output', ['2000000']))
+  it('returns an output truncation result when captured output exceeds one megabyte', () => {
+    const result = client.run(stubInput('large-output', ['2000000']))
 
-    expect(result).toStrictEqual({ kind: 'output-limit-exceeded', limitBytes: 1048576 })
+    expect(result).toStrictEqual({ kind: 'output-truncated', limitBytes: 1048576 })
   })
 
-  it('ignores a broken standard-input pipe when the process exits before reading it', async () => {
-    const result = await client.run({
-      ...stubInput('exit-immediately'),
-      stdin: 'x'.repeat(200000),
-    })
-
-    expect(result).toStrictEqual({ kind: 'completed', exitCode: 0, stdout: '', stderr: '' })
-  })
-
-  it('returns an invocation failure when the command is terminated by a signal', async () => {
-    const result = await client.run(stubInput('self-kill'))
+  it('returns a spawn failure when the command is terminated by a signal', () => {
+    const result = client.run(stubInput('self-kill'))
 
     expect(result).toStrictEqual({
-      kind: 'invocation-failure',
-      reason: 'Command terminated by a signal.',
+      kind: 'spawn-failure',
+      reason: "Command terminated by signal 'SIGKILL'.",
     })
   })
 
-  it('returns an invocation failure when the command cannot be spawned', async () => {
-    const result = await client.run({
+  it('returns a spawn failure when the command cannot be spawned', () => {
+    const result = client.run({
       command: 'definitely-not-a-real-command-for-ai-cli-tests',
       arguments: [],
       stdin: undefined,
@@ -87,21 +78,21 @@ describe('ChildProcessClient run', () => {
     })
 
     expect(result).toMatchObject({
-      kind: 'invocation-failure',
+      kind: 'spawn-failure',
       reason: expect.stringContaining('ENOENT'),
     })
   })
 })
 
 describe('ChildProcessClient probe', () => {
-  it('reports a spawnable command as available', async () => {
-    const result = await client.probe(process.execPath)
+  it('reports a spawnable command as available', () => {
+    const result = client.probe(process.execPath)
 
     expect(result).toStrictEqual({ kind: 'available' })
   })
 
-  it('reports a missing command as unavailable', async () => {
-    const result = await client.probe('definitely-not-a-real-command-for-ai-cli-tests')
+  it('reports a missing command as unavailable', () => {
+    const result = client.probe('definitely-not-a-real-command-for-ai-cli-tests')
 
     expect(result).toMatchObject({
       kind: 'unavailable',

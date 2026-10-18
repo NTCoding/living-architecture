@@ -115,6 +115,50 @@ export class Workflow {
     )
   }
 
+  checkAiCliAvailability(
+    checkAvailability: (
+      command: string,
+    ) => Readonly<{ kind: 'available' }> | Readonly<{ kind: 'unavailable'; reason: string }>,
+  ): Readonly<{ success: true }> | Readonly<{ success: false; command: string; reason: string }> {
+    for (const stage of this.stages) {
+      switch (stage.value.kind) {
+        case 'ai-extract':
+        case 'ai-enrich': {
+          const availability = checkAvailability(stage.value.config.command)
+          if (availability.kind === 'unavailable') {
+            return {
+              success: false,
+              command: stage.value.config.command,
+              reason: availability.reason,
+            }
+          }
+          break
+        }
+        case 'code-extraction':
+        case 'eventcatalog-import':
+        case 'asyncapi-import':
+        case 'schema-validate':
+          break
+      }
+    }
+    return { success: true }
+  }
+
+  checkActiveAiCliAvailability(
+    checkAvailability: (
+      command: string,
+    ) => Readonly<{ kind: 'available' }> | Readonly<{ kind: 'unavailable'; reason: string }>,
+    mode: WorkflowRunModeValue,
+  ): Readonly<{ success: true }> | Readonly<{ success: false; command: string; reason: string }> {
+    switch (mode) {
+      case 'run':
+        return this.checkAiCliAvailability(checkAvailability)
+      case 'skip-ai':
+      case 'dry-run':
+        return { success: true }
+    }
+  }
+
   async run(
     builder: RiviereBuilder,
     mode: WorkflowRunMode,

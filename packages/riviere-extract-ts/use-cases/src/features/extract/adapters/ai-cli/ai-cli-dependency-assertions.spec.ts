@@ -12,10 +12,6 @@ const changedSources = [
   resolve(adapterDirectory, 'ai-cli-adapter.ts'),
   resolve(sourceRoot, 'infra/external-clients/child-process/child-process-client.ts'),
   resolve(repositoryRoot, 'packages/riviere-extract-ts/domain-model/src/domain/ports/ai-cli.ts'),
-  resolve(
-    repositoryRoot,
-    'packages/riviere-extract-ts/domain-model/src/domain/ai-cli-invocation.ts',
-  ),
   resolve(sourceRoot, 'features/extract/data-access/riviere-project/riviere-project-repository.ts'),
 ]
 
