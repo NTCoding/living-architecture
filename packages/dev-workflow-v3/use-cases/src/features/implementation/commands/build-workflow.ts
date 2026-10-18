@@ -577,7 +577,7 @@ function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDe
         workspacePath: state.worktreePath,
         threadId: null,
         responseSchema: verdictSchema,
-        maxSteps: 1,
+        maxSteps: 30,
       })
       const verdict = verdictSchema.safeParse(response.object)
       if (!verdict.success) throw new RunFailed(noStructuredOutput(`The ${reviewer}`, response))
