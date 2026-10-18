@@ -839,7 +839,7 @@ function tailOf(output: string): string {
 
 function planComment(state: RunState): string {
   const posted = [
-    "## Implementer's plan",
+    "[dev-workflow-v3] Implementer's plan",
     '',
     state.planMarkdown,
     '',
@@ -998,7 +998,7 @@ function pullRequestPrompt(state: RunState): string {
 
 function readyComment(state: ReviewState): string {
   return [
-    'The software factory has finished with this pull request.',
+    '[dev-workflow-v3] The software factory has finished with this pull request.',
     '',
     `Review cycles run: ${String(state.cycleNumber)}`,
     state.approved ? 'The reviewers approved the change.' : 'The review cycle limit was reached.',

@@ -164,7 +164,9 @@ describe('BuildWorkflow', () => {
     })
 
     expect(started.status).toBe('success')
-    expect(comments).toStrictEqual([expect.stringContaining("## Implementer's plan\n\nthe plan")])
+    expect(comments).toStrictEqual([
+      expect.stringContaining("[dev-workflow-v3] Implementer's plan\n\nthe plan"),
+    ])
   })
 
   it('carries an issue to a pull request ready for a person', async () => {
