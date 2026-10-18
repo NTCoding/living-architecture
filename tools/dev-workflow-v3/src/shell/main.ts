@@ -185,7 +185,6 @@ function createCommandLine(factory: Factory): Command {
       })
       await follow(factory.startImplementation, run, started, {
         issue: issueNumberText(issue),
-        model: options.model,
         interactive: options.input,
       })
     })
@@ -194,15 +193,11 @@ function createCommandLine(factory: Factory): Command {
     .command('resume')
     .description('continue a run that is waiting for a person')
     .argument('<issue>')
-    .requiredOption('--model <model>', 'the model every agent in this run uses')
     .option('--approved <approved>', 'whether the plan is approved', 'true')
     .option('--answer <answer>', 'the answer to a question the implementer asked')
     .option('--no-input', 'never wait for an answer in this terminal')
     .action(
-      async (
-        issue: string,
-        options: { model: string; approved: string; answer?: string; input: boolean },
-      ) => {
+      async (issue: string, options: { approved: string; answer?: string; input: boolean }) => {
         const run = await factory.startImplementation.createRun({
           runId: await newestRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
           resourceId: 'factory',
@@ -216,7 +211,6 @@ function createCommandLine(factory: Factory): Command {
             : await run.resume({ step: 'implement', resumeData: { answer: options.answer } })
         await follow(factory.startImplementation, run, resumed, {
           issue: issueNumberText(issue),
-          model: options.model,
           interactive: options.input,
         })
       },
@@ -264,9 +258,8 @@ function createCommandLine(factory: Factory): Command {
     .command('chat')
     .description('answer the implementer when it is waiting for a person')
     .argument('<issue>')
-    .requiredOption('--model <model>', 'the model every agent in this run uses')
     .option('--no-input', 'never wait for an answer in this terminal')
-    .action(async (issue: string, options: { model: string; input: boolean }) => {
+    .action(async (issue: string, options: { input: boolean }) => {
       const runId = await newestRunId(
         factory.startImplementation,
         `issue-${issueNumberText(issue)}`,
@@ -286,7 +279,6 @@ function createCommandLine(factory: Factory): Command {
         const resumed = await run.resume({ step: 'implement', resumeData: { answer } })
         await follow(factory.startImplementation, run, resumed, {
           issue: issueNumberText(issue),
-          model: options.model,
           interactive: options.input,
         })
         if (resumed.status !== 'suspended') break
@@ -299,7 +291,6 @@ function createCommandLine(factory: Factory): Command {
 
 type RunContext = {
   readonly issue: string
-  readonly model: string
   readonly interactive: boolean
 }
 
@@ -412,34 +403,24 @@ function showWaiting(waiting: Waiting | null): void {
 }
 
 function reportWaiting(waiting: Waiting | null, context: RunContext): void {
-  const model = context.model
-  process.stdout.write(`\nThe run is waiting for you.\n`)
+  const resume = `pnpm factory resume ${context.issue}`
+  process.stdout.write(`\nThe run is waiting for you.\n\n`)
   if (waiting === null) {
     process.stdout.write(`  What is waiting:    pnpm factory status\n`)
-    process.stdout.write(
-      `  Continue it:        pnpm factory resume ${context.issue} --model ${model}\n`,
-    )
+    process.stdout.write(`  Continue it:        ${resume}\n`)
     return
   }
-  process.stdout.write(`\n`)
   if (waiting.kind === 'plan') {
-    process.stdout.write(
-      `  Approve the plan:   pnpm factory resume ${context.issue} --model ${model}\n`,
-    )
-    process.stdout.write(
-      `  Reject the plan:    pnpm factory resume ${context.issue} --model ${model} --approved false\n`,
-    )
+    process.stdout.write(`  Approve the plan:   ${resume}\n`)
+    process.stdout.write(`  Reject the plan:    ${resume} --approved false\n`)
     process.stdout.write(
       `  Read it again:      pnpm factory read-implementers-plan ${context.issue}\n`,
     )
     return
   }
-  process.stdout.write(
-    `  Answer it:          pnpm factory resume ${context.issue} --model ${model} --answer "...your answer..."\n`,
-  )
-  process.stdout.write(
-    `  Talk it through:    pnpm factory chat ${context.issue} --model ${model}\n`,
-  )
+  process.stdout.write(`  Answer it:          ${resume} --answer "...your answer..."\n`)
+  process.stdout.write(`  Talk it through:    pnpm factory chat ${context.issue}\n`)
+  if (context.interactive) process.stdout.write(`\nOr answer here:\n`)
 }
 
 async function ask(waiting: Waiting): Promise<string | boolean | null> {

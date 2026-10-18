@@ -119,7 +119,9 @@ const IMPLEMENTER_INSTRUCTIONS = [
   'Run the checks, read the failures, and fix them, up to a sensible number of attempts.',
   'When you cannot decide alone, use the ask-user tool and wait for the answer.',
   'Do not push, do not open a pull request, and do not merge anything. The workflow does those.',
-  'When you are done, return the summary as the "summary" field.',
+  'When the plan is done and the checks pass, return the summary as the "summary" field in',
+  'that same turn. If you are running low on steps, stop calling tools and return the',
+  'summary, saying what is left. Never end without returning the summary.',
 ].join('\n')
 
 const CODERABBIT = 'coderabbit'
@@ -376,10 +378,15 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           workspacePath: state.worktreePath,
           threadId: `issue-${String(state.issueNumber)}`,
           responseSchema: implementationSchema,
-          maxSteps: 60,
+          maxSteps: 200,
         })
         if (response.finishReason === 'suspended') {
           return await suspend({ question: questionFrom(response.suspendPayload) })
+        }
+        if (response.finishReason === 'tool-calls') {
+          throw new RunFailed(
+            'The implementer used all its steps without finishing. The work in the worktree is kept. Start again on the same issue to carry on from it.',
+          )
         }
         const outcome = implementationSchema.safeParse(response.object)
         if (!outcome.success) throw new RunFailed(noStructuredOutput('The implementer', response))
@@ -702,7 +709,7 @@ async function addressWhenThereIsFeedback(
     workspacePath: state.worktreePath,
     threadId: `issue-${String(state.issueNumber)}`,
     responseSchema: null,
-    maxSteps: 40,
+    maxSteps: 80,
   })
 }
 

@@ -287,6 +287,28 @@ describe('BuildWorkflow', () => {
     expect(started.status).toBe('failed')
   })
 
+  it('says the implementer ran out of steps rather than out of answers', async () => {
+    const { run } = await startedRun({
+      generate: async (request) =>
+        request.agentId === 'implementer'
+          ? { object: undefined, text: '', finishReason: 'tool-calls', suspendPayload: null }
+          : stubs().generate(request),
+    })
+    const finished = await run.resume({
+      step: 'request-plan-approval',
+      resumeData: { approved: true, notes: null },
+    })
+
+    expect(finished).toStrictEqual(
+      expect.objectContaining({
+        status: 'failed',
+        error: expect.objectContaining({
+          message: expect.stringContaining('used all its steps without finishing'),
+        }),
+      }),
+    )
+  })
+
   it('fails when the implementer does not return a summary', async () => {
     const { run } = await startedRun({
       generate: async (request) =>
