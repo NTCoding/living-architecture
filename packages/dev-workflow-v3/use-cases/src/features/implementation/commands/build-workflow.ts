@@ -128,6 +128,62 @@ const PLANNER_INSTRUCTIONS = [
   'asks, or when a decision is genuinely needed, and put your questions in "question".',
 ].join('\n')
 
+const ARCHITECTURE_REVIEW_INSTRUCTIONS = [
+  'You are the architecture reviewer in the software factory.',
+  'You have a read-only workspace on the branch under review.',
+  '',
+  'Read the repository sources of truth before judging anything:',
+  '- docs/architecture/overview.md',
+  '- docs/architecture/adr/ADR-002-allowed-folder-structures.md',
+  '- .riviere/role-enforcement.config.ts and the role definitions it references',
+  '- docs/conventions/review-feedback-checks.md',
+  '',
+  'Apply those files mechanically. Do not invent a rule and do not import one from',
+  'another project. Skip test files: this review is about production code.',
+  'Review the added and changed lines in the diff in this message. Read other files only',
+  'to judge impact, and raise nothing about lines the change did not touch.',
+  'Raise a finding only when you are more than half sure it is a real violation.',
+  'Name the file, the line, the rule, and what good looks like.',
+].join('\n')
+
+const CODE_REVIEW_INSTRUCTIONS = [
+  'You are the code reviewer in the software factory.',
+  'You have a read-only workspace on the branch under review.',
+  '',
+  'Read the repository conventions before judging anything:',
+  '- docs/conventions/software-design.md',
+  '- docs/conventions/standard-patterns.md',
+  '- docs/conventions/anti-patterns.md',
+  '- docs/conventions/testing.md',
+  '- docs/conventions/review-feedback-checks.md',
+  '',
+  'Apply those files mechanically and name the rule you are applying.',
+  'Review the added and changed lines in the diff in this message. Read other files only',
+  'to judge impact, and raise nothing about lines the change did not touch.',
+  'Raise a finding only when you are more than half sure it is a real violation.',
+  'Name the file, the line, the rule, and what good looks like.',
+].join('\n')
+
+const BUG_SCANNER_INSTRUCTIONS = [
+  'You are the bug scanner in the software factory.',
+  'You have a read-only workspace on the branch under review.',
+  '',
+  'Read docs/conventions/anti-patterns.md and docs/conventions/review-feedback-checks.md.',
+  'Then look for defects the conventions do not name: an error that is swallowed or',
+  'mistyped, a wrong exit code, unbounded or unread output, a path or command built from',
+  'untrusted input, a race, missing cleanup, data loss on a retry, and framework misuse.',
+  'Review the added and changed lines in the diff in this message. Read other files only',
+  'to judge impact, and raise nothing about lines the change did not touch.',
+  'Raise a finding only when you are more than half sure it is a real defect.',
+  'Name the file, the line, the rule or risk, and what good looks like.',
+].join('\n')
+
+const REVIEWER_INSTRUCTIONS: Readonly<Record<ReviewerName, string>> = {
+  'architecture-review': ARCHITECTURE_REVIEW_INSTRUCTIONS,
+  'code-review': CODE_REVIEW_INSTRUCTIONS,
+  'bug-scanner': BUG_SCANNER_INSTRUCTIONS,
+}
+
 const PULL_REQUEST_WRITER_INSTRUCTIONS = [
   'You are the pull request writer in a software factory workflow.',
   'Read the issue, the implementation summary and the checks, then write the pull request.',
@@ -181,7 +237,6 @@ export interface BuildWorkflowInput {
   }) => Promise<{ readonly worktreePath: string; readonly branch: string }>
   readonly installDependencies: (request: { readonly worktreePath: string }) => Promise<void>
   readonly readGuidance: () => Promise<string>
-  readonly readReviewerInstructions: (reviewer: string) => Promise<string>
   readonly generate: (request: {
     readonly agentId: string
     readonly model: string
@@ -721,7 +776,9 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
   ]
 }
 
-function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDefinition {
+type ReviewerName = 'architecture-review' | 'code-review' | 'bug-scanner'
+
+function reviewStep(input: BuildWorkflowInput, reviewer: ReviewerName): WorkflowStepDefinition {
   return {
     id: reviewer,
     inputSchema: reviewStateSchema,
@@ -739,7 +796,7 @@ function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDe
         agentId: reviewer,
         model: state.model,
         thinking: state.thinking,
-        instructions: await input.readReviewerInstructions(reviewer),
+        instructions: REVIEWER_INSTRUCTIONS[reviewer],
         prompt: reviewPrompt(state, reviewer, previous, diff),
         workspacePath: state.worktreePath,
         threadId: null,

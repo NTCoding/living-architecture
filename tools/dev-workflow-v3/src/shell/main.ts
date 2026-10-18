@@ -43,7 +43,6 @@ import {
 } from '../infra/external-clients/mastra/create-mastra'
 import { createAskUserTool } from '../infra/external-clients/mastra/ask-user-tool'
 import { readRepositoryGuidance } from '../infra/external-clients/repository/read-guidance'
-import { readReviewerInstructions } from '../infra/external-clients/repository/read-reviewer-instructions'
 
 const execFileAsync = promisify(execFile)
 
@@ -138,7 +137,6 @@ async function buildFactory(workingDirectory: string): Promise<Factory> {
       await new InstallDependencies(installDependenciesWithPnpm({ runCommand })).execute(request)
     },
     readGuidance: () => readRepositoryGuidance(workingDirectory),
-    readReviewerInstructions: (reviewer) => readReviewerInstructions(workingDirectory, reviewer),
     generate: generation,
     checkWorkCommitted: (request) =>
       new CheckWorkCommitted(

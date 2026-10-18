@@ -92,7 +92,6 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
     }),
     installDependencies: async () => undefined,
     readGuidance: async () => 'the guidance',
-    readReviewerInstructions: async (reviewer) => `instructions for ${reviewer}`,
     generate: async (request) => {
       if (request.agentId === 'planner') return planAnswer()
       if (request.agentId === 'implementer') return implementationAnswer('the change')
