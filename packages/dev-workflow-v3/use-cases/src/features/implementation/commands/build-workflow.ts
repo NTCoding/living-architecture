@@ -9,9 +9,16 @@ const findingSchema = z.object({
   line: z.number().int().positive(),
   rule: z.string().nullable(),
   summary: z.string(),
+  commentId: z.number().int().nullable().default(null),
 })
 
 const reviewedFindingSchema = findingSchema.omit({ reviewer: true })
+
+const resolutionSchema = z.object({
+  commentId: z.number().int().positive(),
+  outcome: z.enum(['addressed', 'partly-addressed', 'not-addressed']),
+  reason: z.string().nullable(),
+})
 
 const thinkingSchema = z.enum(['off', 'low', 'medium', 'high']).default('low')
 
@@ -30,7 +37,7 @@ const runStateSchema = z.object({
   planQuestion: z.string().nullable().default(null),
   planCommentAt: z.string().default(''),
   clarification: z.string().default(''),
-  implementationSummary: z.string().default(''),
+  changedFiles: z.array(z.string()).default([]),
   commitSha: z.string().default(''),
   pullRequestTitle: z.string().default(''),
   pullRequestBody: z.string().default(''),
@@ -55,6 +62,10 @@ const reviewStateSchema = z.object({
     .array(z.object({ reviewer: z.string(), status: z.string(), findings: z.array(findingSchema) }))
     .default([]),
   findings: z.array(findingSchema).default([]),
+  resolutions: z.array(resolutionSchema).default([]),
+  beforeSha: z.string().default(''),
+  commitSha: z.string().default(''),
+  changedFiles: z.array(z.string()).default([]),
   approved: z.boolean().default(false),
   limitReached: z.boolean().default(false),
   readyForHuman: z.boolean().default(false),
@@ -71,10 +82,10 @@ const planSchema = z.object({
 })
 
 const implementationSchema = z.object({
-  summary: z.string().min(1),
   blockedReason: z.string().nullable(),
   allWorkComplete: z.boolean(),
   allWorkCommitted: z.boolean(),
+  resolutions: z.array(resolutionSchema).default([]),
 })
 
 const pullRequestDraftSchema = z.object({
@@ -189,12 +200,21 @@ export interface BuildWorkflowInput {
     readonly finishReason: string
     readonly suspendPayload: unknown
   }>
-  readonly checkWorkCommitted: (request: { readonly worktreePath: string }) => Promise<{
+  readonly checkWorkCommitted: (request: {
+    readonly worktreePath: string
+    readonly from: string | null
+  }) => Promise<{
     readonly clean: boolean
     readonly hasCommit: boolean
     readonly sha: string
     readonly status: string
+    readonly changedFiles: readonly string[]
   }>
+  readonly replyToReviewComment: (request: {
+    readonly pullRequestNumber: number
+    readonly commentId: number
+    readonly body: string
+  }) => Promise<void>
   readonly pushBranch: (request: {
     readonly worktreePath: string
     readonly branch: string
@@ -249,6 +269,7 @@ export interface BuildWorkflowInput {
     readonly reviewSeen: boolean
     readonly rateLimited: boolean
     readonly comments: readonly {
+      readonly commentId: number
       readonly path: string
       readonly line: number
       readonly body: string
@@ -412,17 +433,18 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
         const answer = blockerResumeSchema.safeParse(resumeData)
         const implementation = await implementUntilCommitted({
           input,
-          state,
+          state: { ...state, baseSha: '' },
           firstPrompt: implementationPrompt(state, answer.success ? answer.data.answer : null),
           rounds: IMPLEMENTATION_ROUNDS,
           timeBudgetMs: IMPLEMENTATION_TIME_BUDGET_MS,
         })
-        if (implementation.kind === 'question')
+        if (implementation.kind === 'question') {
           return await suspend({ question: implementation.question })
+        }
         return {
           ...state,
-          implementationSummary: implementation.summary,
           commitSha: implementation.sha,
+          changedFiles: implementation.changedFiles,
         }
       },
     },
@@ -508,6 +530,9 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           cycleNumber: 1,
           reviewerStatuses: {},
           cycleVerdicts: [],
+          beforeSha: state.commitSha,
+          commitSha: state.commitSha,
+          changedFiles: state.changedFiles,
         }
       },
     },
@@ -582,11 +607,20 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
       resumeSchema: null,
       run: async ({ data }) => {
         const state = reviewStateSchema.parse(data)
-        await input.publishReviewFindings({
+        const posted = await input.publishReviewFindings({
           pullRequestNumber: state.pullRequestNumber,
           findings: state.findings.filter((finding) => finding.reviewer !== CODERABBIT),
         })
-        return state
+        const ids = new Map(
+          posted.posted.map((entry) => [`${entry.file}:${entry.line}`, entry.commentId]),
+        )
+        return {
+          ...state,
+          findings: state.findings.map((finding) => ({
+            ...finding,
+            commentId: ids.get(`${finding.file}:${finding.line}`) ?? finding.commentId,
+          })),
+        }
       },
     },
     {
@@ -624,6 +658,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
               thinking: state.thinking,
               worktreePath: state.worktreePath,
               guidance: state.guidance,
+              baseSha: state.beforeSha,
             },
             firstPrompt: feedbackPrompt(state),
             rounds: FEEDBACK_ROUNDS,
@@ -632,6 +667,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
           if (feedback.kind === 'question') {
             throw new RunFailed(`The implementer is blocked: ${feedback.question}`)
           }
+          return { ...state, resolutions: feedback.resolutions }
         }
         return state
       },
@@ -644,15 +680,39 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
       resumeSchema: null,
       run: async ({ data }) => {
         const state = reviewStateSchema.parse(data)
-        const committed = await input.checkWorkCommitted({ worktreePath: state.worktreePath })
-        if (!committed.clean)
+        const committed = await input.checkWorkCommitted({
+          worktreePath: state.worktreePath,
+          from: state.beforeSha,
+        })
+        if (!committed.clean) {
           throw new RunFailed(`The worktree still has changes: ${committed.status}`)
+        }
         await input.pushBranch({ worktreePath: state.worktreePath, branch: state.branch })
         return {
           ...state,
+          commitSha: committed.sha,
+          changedFiles: committed.changedFiles,
+          beforeSha: committed.sha,
           cycleNumber: state.cycleNumber + (state.approved || state.limitReached ? 0 : 1),
-          findings: [],
         }
+      },
+    },
+    {
+      id: 'publish-review-replies',
+      inputSchema: reviewStateSchema,
+      outputSchema: reviewStateSchema,
+      suspendSchema: null,
+      resumeSchema: null,
+      run: async ({ data }) => {
+        const state = reviewStateSchema.parse(data)
+        for (const resolution of state.resolutions) {
+          await input.replyToReviewComment({
+            pullRequestNumber: state.pullRequestNumber,
+            commentId: resolution.commentId,
+            body: renderReply(resolution, state),
+          })
+        }
+        return { ...state, resolutions: [], findings: [] }
       },
     },
   ]
@@ -712,10 +772,16 @@ type ImplementationTarget = {
   readonly thinking: string
   readonly worktreePath: string
   readonly guidance: string
+  readonly baseSha: string
 }
 
 type ImplementationResult =
-  | { readonly kind: 'committed'; readonly summary: string; readonly sha: string }
+  | {
+      readonly kind: 'committed'
+      readonly sha: string
+      readonly changedFiles: readonly string[]
+      readonly resolutions: readonly z.infer<typeof resolutionSchema>[]
+    }
   | { readonly kind: 'question'; readonly question: string }
 
 async function implementUntilCommitted(request: {
@@ -732,9 +798,15 @@ async function implementUntilCommitted(request: {
     if (round.kind === 'question') return round
     const committed = await request.input.checkWorkCommitted({
       worktreePath: request.state.worktreePath,
+      from: request.state.baseSha,
     })
     if (isFinished(round.answer, committed)) {
-      return { kind: 'committed', summary: round.answer.summary, sha: committed.sha }
+      return {
+        kind: 'committed',
+        sha: committed.sha,
+        changedFiles: committed.changedFiles,
+        resolutions: round.answer.resolutions,
+      }
     }
     progress.round += 1
     if (progress.round >= request.rounds) {
@@ -937,6 +1009,7 @@ function reviewIsComplete(state: ReviewState): boolean {
 
 function coderabbitFindings(feedback: {
   readonly comments: readonly {
+    readonly commentId: number
     readonly path: string
     readonly line: number
     readonly body: string
@@ -948,6 +1021,7 @@ function coderabbitFindings(feedback: {
     line: comment.line,
     rule: null,
     summary: comment.body.slice(0, 500),
+    commentId: comment.commentId,
   }))
 }
 
@@ -980,8 +1054,8 @@ function pullRequestPrompt(state: RunState): string {
     'The issue:',
     state.issueBody,
     '',
-    'What the implementer did:',
-    state.implementationSummary,
+    'The files this branch changes:',
+    state.changedFiles.map((file) => `- ${file}`).join('\n'),
     '',
     'The repository checks ran when the work was committed, and the commit exists.',
     `The commit on the branch is ${state.commitSha}.`,
@@ -994,6 +1068,23 @@ function pullRequestPrompt(state: RunState): string {
     'Validation says what was run and what it reported. Notes carries anything the reviewer',
     'needs, or "None". The commit scope is one lower case word naming the area.',
   ].join('\n')
+}
+
+function renderReply(
+  resolution: { readonly outcome: string; readonly reason: string | null },
+  state: ReviewState,
+): string {
+  const head = `[dev-workflow-v3] ${outcomeLabel(resolution.outcome)} in ${state.commitSha.slice(0, 8)}.`
+  const files =
+    state.changedFiles.length === 0 ? [] : ['', `Files: ${state.changedFiles.join(', ')}`]
+  const reason = resolution.reason === null ? [] : ['', resolution.reason]
+  return [head, ...files, ...reason].join('\n')
+}
+
+function outcomeLabel(outcome: string): string {
+  if (outcome === 'addressed') return 'Addressed'
+  if (outcome === 'partly-addressed') return 'Partly addressed'
+  return 'Not changed'
 }
 
 function readyComment(state: ReviewState): string {

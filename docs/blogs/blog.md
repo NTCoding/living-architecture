@@ -127,6 +127,29 @@ providerOptions: { deepseek: { reasoningEffort: 'low' } }
 - `low`, `medium` and `high` map to DeepSeek's `reasoning_effort`.
 - The level travels in the run state, so a resumed run keeps the level it started with.
 
+## Review replies rendered from data
+
+Where: `build-workflow.ts`, step `publish-review-replies`
+
+```ts
+const resolutionSchema = z.object({
+  commentId: z.number().int().positive(),
+  outcome: z.enum(['addressed', 'partly-addressed', 'not-addressed']),
+  reason: z.string().nullable(),
+})
+```
+
+```text
+[dev-workflow-v3] Addressed in 4d83240f.
+
+Files: src/order.ts, src/order.spec.ts
+```
+
+- The agent returns the comment id, the outcome and a reason. It never writes the reply.
+- The sha comes from the commit check, the files from `git diff --name-only <before>..HEAD`.
+- The comment ids come from the response to the comment creation call, not from the model.
+- The same rule as everywhere else: the agent returns data, a deterministic step writes.
+
 ## Structured output
 
 Where: `build-workflow.ts`, every model call

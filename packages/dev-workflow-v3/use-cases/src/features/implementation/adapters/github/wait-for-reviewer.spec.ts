@@ -3,7 +3,7 @@ import { fakeCommands } from '../../../../infra/external-clients/process/__fixtu
 import { waitForReviewerWithGithub } from './wait-for-reviewer'
 
 const aComment = JSON.stringify([
-  { path: 'src/order.ts', line: 12, body: 'A rule.', user: { login: 'coderabbitai' } },
+  { id: 4306, path: 'src/order.ts', line: 12, body: 'A rule.', user: { login: 'coderabbitai' } },
 ])
 
 const noComments = '[]'

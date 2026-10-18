@@ -30,8 +30,21 @@ export function checkWorkCommittedWithGit(dependencies: Dependencies): CheckWork
       hasCommit: Number(ahead.trim()) > 0,
       sha,
       status: status.trim(),
+      changedFiles: await changedSince(dependencies, request.worktreePath, request.from ?? base),
     }
   }
+}
+
+async function changedSince(
+  dependencies: Dependencies,
+  worktreePath: string,
+  from: string,
+): Promise<readonly string[]> {
+  const diff = await gitOutput(dependencies.runCommand, {
+    worktreePath,
+    arguments: ['diff', '--name-only', `${from}..HEAD`],
+  })
+  return diff.split('\n').filter((file) => file.trim() !== '')
 }
 
 async function head(dependencies: Dependencies, worktreePath: string): Promise<string> {

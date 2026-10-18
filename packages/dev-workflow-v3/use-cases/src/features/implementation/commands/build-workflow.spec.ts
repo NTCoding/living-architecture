@@ -104,6 +104,7 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
       hasCommit: true,
       sha: '4d83240f6',
       status: '',
+      changedFiles: [{ path: 'src/order.ts' }].map((entry) => entry.path),
     }),
     pushBranch: async () => undefined,
     openPullRequest: async () => ({ number: 549, url: 'https://github.com/o/r/pull/549' }),
@@ -122,6 +123,7 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
     }),
     publishReviewFindings: async () => ({ posted: [] }),
     waitForReviewer: async () => ({ reviewSeen: true, rateLimited: false, comments: [] }),
+    replyToReviewComment: async () => undefined,
     ...overrides,
   }
 }
@@ -462,6 +464,7 @@ describe('BuildWorkflow', () => {
         hasCommit: false,
         sha: '',
         status: ' M src/order.ts',
+        changedFiles: [],
       }),
     })
     const finished = started
@@ -524,7 +527,7 @@ describe('review cycle', () => {
       waitForReviewer: async () => ({
         reviewSeen: true,
         rateLimited: false,
-        comments: [{ path: 'src/order.ts', line: 3, body: 'Use the port.' }],
+        comments: [{ commentId: 4306, path: 'src/order.ts', line: 3, body: 'Use the port.' }],
       }),
       generate: async (request) => {
         if (request.prompt.startsWith('Address every review finding')) {
@@ -600,6 +603,149 @@ describe('review cycle', () => {
     ])
   })
 
+  it('answers every finding with what was done, from the data the agent returned', async () => {
+    const replies: { readonly commentId: number; readonly body: string }[] = []
+    const studio = await factoryFor({
+      generate: async (request) =>
+        request.prompt.startsWith('Address every review finding')
+          ? {
+              object: {
+                blockedReason: null,
+                allWorkComplete: true,
+                allWorkCommitted: true,
+                resolutions: [
+                  { commentId: 1, outcome: 'addressed', reason: null },
+                  { commentId: 2, outcome: 'partly-addressed', reason: 'Left the actor alone.' },
+                  { commentId: 3, outcome: 'not-addressed', reason: 'Conflicts with ADR-002.' },
+                ],
+              },
+              text: '',
+              finishReason: 'stop',
+              suspendPayload: null,
+            }
+          : stubs().generate(request),
+      waitForReviewer: async () => ({
+        reviewSeen: true,
+        rateLimited: false,
+        comments: [{ commentId: 9, path: 'src/order.ts', line: 3, body: 'Use the port.' }],
+      }),
+      checkWorkCommitted: async () => ({
+        clean: true,
+        hasCommit: true,
+        sha: '4d83240f6',
+        status: '',
+        changedFiles: ['src/order.ts'],
+      }),
+      publishReviewFindings: async () => ({
+        posted: [
+          { file: 'src/order.ts', line: 3, commentId: 11 },
+          { file: 'src/order.ts', line: 4, commentId: 12 },
+          { file: 'src/order.ts', line: 5, commentId: 13 },
+        ],
+      }),
+      replyToReviewComment: async (request) => {
+        replies.push({ commentId: request.commentId, body: request.body })
+      },
+    })
+    const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
+
+    await run.start({
+      inputData: reviewInput({
+        findings: [
+          {
+            reviewer: 'code-review',
+            file: 'src/order.ts',
+            line: 3,
+            rule: null,
+            summary: 'One.',
+            commentId: 1,
+          },
+          {
+            reviewer: 'code-review',
+            file: 'src/order.ts',
+            line: 4,
+            rule: null,
+            summary: 'Two.',
+            commentId: 2,
+          },
+          {
+            reviewer: 'code-review',
+            file: 'src/order.ts',
+            line: 5,
+            rule: null,
+            summary: 'Three.',
+            commentId: 3,
+          },
+        ],
+      }),
+    })
+
+    expect(replies).toStrictEqual([
+      { commentId: 1, body: '[dev-workflow-v3] Addressed in 4d83240f.\n\nFiles: src/order.ts' },
+      {
+        commentId: 2,
+        body: '[dev-workflow-v3] Partly addressed in 4d83240f.\n\nFiles: src/order.ts\n\nLeft the actor alone.',
+      },
+      {
+        commentId: 3,
+        body: '[dev-workflow-v3] Not changed in 4d83240f.\n\nFiles: src/order.ts\n\nConflicts with ADR-002.',
+      },
+    ])
+  })
+
+  it('answers a finding without listing files when nothing changed since the cycle began', async () => {
+    const replies: string[] = []
+    const studio = await factoryFor({
+      generate: async (request) =>
+        request.prompt.startsWith('Address every review finding')
+          ? {
+              object: {
+                blockedReason: null,
+                allWorkComplete: true,
+                allWorkCommitted: true,
+                resolutions: [{ commentId: 1, outcome: 'addressed', reason: null }],
+              },
+              text: '',
+              finishReason: 'stop',
+              suspendPayload: null,
+            }
+          : stubs().generate(request),
+      waitForReviewer: async () => ({
+        reviewSeen: true,
+        rateLimited: false,
+        comments: [{ commentId: 9, path: 'src/order.ts', line: 3, body: 'Use the port.' }],
+      }),
+      checkWorkCommitted: async () => ({
+        clean: true,
+        hasCommit: true,
+        sha: '4d83240f6',
+        status: '',
+        changedFiles: [],
+      }),
+      replyToReviewComment: async (request) => {
+        replies.push(request.body)
+      },
+    })
+    const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
+
+    await run.start({
+      inputData: reviewInput({
+        findings: [
+          {
+            reviewer: 'code-review',
+            file: 'src/order.ts',
+            line: 3,
+            rule: null,
+            summary: 'One.',
+            commentId: 1,
+          },
+        ],
+      }),
+    })
+
+    expect(replies).toStrictEqual(['[dev-workflow-v3] Addressed in 4d83240f.'])
+  })
+
   it('stops the cycle when the implementer is blocked while addressing feedback', async () => {
     const studio = await factoryFor({
       generate: async (request) =>
@@ -619,7 +765,7 @@ describe('review cycle', () => {
       waitForReviewer: async () => ({
         reviewSeen: true,
         rateLimited: false,
-        comments: [{ path: 'src/order.ts', line: 3, body: 'Use the port.' }],
+        comments: [{ commentId: 4306, path: 'src/order.ts', line: 3, body: 'Use the port.' }],
       }),
     })
     const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
@@ -636,6 +782,7 @@ describe('review cycle', () => {
         hasCommit: true,
         sha: '4d83240f6',
         status: ' M src/order.ts',
+        changedFiles: [],
       }),
     })
     const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
@@ -652,6 +799,7 @@ describe('review cycle', () => {
         hasCommit: true,
         sha: '4d83240f6',
         status: ' M src/order.ts',
+        changedFiles: [],
       }),
     })
 

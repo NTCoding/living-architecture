@@ -6,6 +6,7 @@ export type WaitForReviewer = (request: { readonly pullRequestNumber: number }) 
   readonly reviewSeen: boolean
   readonly rateLimited: boolean
   readonly comments: readonly {
+    readonly commentId: number
     readonly path: string
     readonly line: number
     readonly body: string

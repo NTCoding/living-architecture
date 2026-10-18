@@ -12,16 +12,18 @@ describe('CheckWorkCommitted', () => {
       { stdout: '4d83240f6\n', stderr: '', exitCode: 0 },
       { stdout: 'origin/main\n', stderr: '', exitCode: 0 },
       { stdout: '2\n', stderr: '', exitCode: 0 },
+      { stdout: 'src/order.ts\n', stderr: '', exitCode: 0 },
     ])
     const command = new CheckWorkCommitted(
       checkWorkCommittedWithGit({ runCommand, repositoryPath: '/repo' }),
     )
 
-    const result = await command.execute({ worktreePath })
+    const result = await command.execute({ worktreePath, from: '4d83240f6' })
 
     expect(result.clean).toBe(true)
     expect(result.hasCommit).toBe(true)
     expect(result.sha).toBe('4d83240f6')
+    expect(result.changedFiles).toStrictEqual(['src/order.ts'])
   })
 
   it('reports the changes that are not committed yet', async () => {
@@ -30,12 +32,13 @@ describe('CheckWorkCommitted', () => {
       { stdout: '4d83240f6\n', stderr: '', exitCode: 0 },
       { stdout: 'origin/main\n', stderr: '', exitCode: 0 },
       { stdout: '0\n', stderr: '', exitCode: 0 },
+      { stdout: ' M src/order.ts\n?? src/new.ts\n', stderr: '', exitCode: 0 },
     ])
     const command = new CheckWorkCommitted(
       checkWorkCommittedWithGit({ runCommand, repositoryPath: '/repo' }),
     )
 
-    const result = await command.execute({ worktreePath })
+    const result = await command.execute({ worktreePath, from: null })
 
     expect(result.clean).toBe(false)
     expect(result.hasCommit).toBe(false)
@@ -48,12 +51,13 @@ describe('CheckWorkCommitted', () => {
       { stdout: '', stderr: 'fatal: ambiguous argument', exitCode: 128 },
       { stdout: 'origin/main\n', stderr: '', exitCode: 0 },
       { stdout: '0\n', stderr: '', exitCode: 0 },
+      { stdout: '', stderr: '', exitCode: 0 },
     ])
     const command = new CheckWorkCommitted(
       checkWorkCommittedWithGit({ runCommand, repositoryPath: '/repo' }),
     )
 
-    const result = await command.execute({ worktreePath })
+    const result = await command.execute({ worktreePath, from: null })
 
     expect(result.sha).toBe('')
     expect(result.hasCommit).toBe(false)

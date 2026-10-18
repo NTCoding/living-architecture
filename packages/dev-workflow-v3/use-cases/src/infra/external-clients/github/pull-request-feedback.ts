@@ -5,6 +5,7 @@ import { ghOutput } from './github'
 const CODERABBIT_LOGIN = 'coderabbitai'
 
 const FEEDBACK_COMMENT_SCHEMA = z.object({
+  id: z.number().int().positive(),
   path: z.string(),
   line: z.number().int().positive().nullable(),
   body: z.string(),
@@ -18,6 +19,7 @@ export interface GithubPullRequestFeedback {
   readonly reviewSeen: boolean
   readonly rateLimited: boolean
   readonly comments: readonly {
+    readonly commentId: number
     readonly path: string
     readonly line: number
     readonly body: string
@@ -44,7 +46,16 @@ export async function readGithubPullRequestFeedback(
     reviewSeen: comments.length > 0,
     rateLimited: comments.some((comment) => comment.body.includes('rate limit')),
     comments: comments.flatMap((comment) =>
-      comment.line === null ? [] : [{ path: comment.path, line: comment.line, body: comment.body }],
+      comment.line === null
+        ? []
+        : [
+            {
+              commentId: comment.id,
+              path: comment.path,
+              line: comment.line,
+              body: comment.body,
+            },
+          ],
     ),
   }
 }

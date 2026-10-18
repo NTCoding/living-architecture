@@ -41,6 +41,7 @@ export class SoftwareFactoryWorkflow {
           { id: 'wait-for-coderabbit', looped: false },
           { id: 'address-feedback', looped: false },
           { id: 'push-branch', looped: false },
+          { id: 'publish-review-replies', looped: false },
         ],
       }),
     )

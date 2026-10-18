@@ -3,6 +3,7 @@ import type { CheckWorkCommitted as CheckWorkCommittedPort } from '@living-archi
 /** @riviere-role command-use-case-input */
 export interface CheckWorkCommittedInput {
   readonly worktreePath: string
+  readonly from: string | null
 }
 
 /** @riviere-role command-use-case-result */
@@ -11,6 +12,7 @@ export interface CheckWorkCommittedResult {
   readonly hasCommit: boolean
   readonly sha: string
   readonly status: string
+  readonly changedFiles: readonly string[]
 }
 
 /** @riviere-role command-use-case */
@@ -18,6 +20,6 @@ export class CheckWorkCommitted {
   constructor(private readonly checkWorkCommitted: CheckWorkCommittedPort) {}
 
   async execute(input: CheckWorkCommittedInput): Promise<CheckWorkCommittedResult> {
-    return await this.checkWorkCommitted({ worktreePath: input.worktreePath })
+    return await this.checkWorkCommitted({ worktreePath: input.worktreePath, from: input.from })
   }
 }

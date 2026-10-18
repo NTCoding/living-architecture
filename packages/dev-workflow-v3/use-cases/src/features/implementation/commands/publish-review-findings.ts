@@ -47,7 +47,7 @@ export class PublishReviewFindings {
         comment: {
           path: finding.file(),
           line: finding.line(),
-          body: `[${finding.reviewer().name()}] ${finding.body()}`,
+          body: `[dev-workflow-v3] [${finding.reviewer().name()}] ${finding.body()}`,
         },
       })
       posted.push({ file: finding.file(), line: finding.line(), commentId })

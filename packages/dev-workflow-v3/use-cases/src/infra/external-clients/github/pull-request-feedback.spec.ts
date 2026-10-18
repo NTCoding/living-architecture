@@ -3,6 +3,7 @@ import { readGithubPullRequestFeedback } from './pull-request-feedback'
 import { fakeCommands } from '../process/__fixtures__/command-test-fixtures'
 
 const coderabbitComment = {
+  id: 4306,
   path: 'src/order.ts',
   line: 12,
   body: 'Consider a value object.',
@@ -27,7 +28,7 @@ describe('readGithubPullRequestFeedback', () => {
     expect(feedback.reviewSeen).toBe(true)
     expect(feedback.rateLimited).toBe(false)
     expect(feedback.comments).toStrictEqual([
-      { path: 'src/order.ts', line: 12, body: 'Consider a value object.' },
+      { commentId: 4306, path: 'src/order.ts', line: 12, body: 'Consider a value object.' },
     ])
   })
 

@@ -20,7 +20,7 @@ describe('SoftwareFactoryWorkflow', () => {
     expect(steps.indexOf('review-cycle')).toBeLessThan(steps.indexOf('mark-ready-for-human'))
   })
 
-  it('runs eight steps in one review cycle', () => {
+  it('runs nine steps in one review cycle', () => {
     expect(workflow.reviewCycle().id()).toBe('review-cycle')
     expect(workflow.reviewCycle().loopedStep()).toBeUndefined()
     expect(
@@ -37,6 +37,7 @@ describe('SoftwareFactoryWorkflow', () => {
       'wait-for-coderabbit',
       'address-feedback',
       'push-branch',
+      'publish-review-replies',
     ])
   })
 })

@@ -14,6 +14,7 @@ import { CommentOnPullRequest } from '@living-architecture/dev-workflow-v3-use-c
 import { InstallDependencies } from '@living-architecture/dev-workflow-v3-use-cases/commands/install-dependencies'
 import { OpenPullRequest } from '@living-architecture/dev-workflow-v3-use-cases/commands/open-pull-request'
 import { PrepareBranch } from '@living-architecture/dev-workflow-v3-use-cases/commands/prepare-branch'
+import { ReplyToReviewComment } from '@living-architecture/dev-workflow-v3-use-cases/commands/reply-to-review-comment'
 import { PublishReviewFindings } from '@living-architecture/dev-workflow-v3-use-cases/commands/publish-review-findings'
 import { PushBranch } from '@living-architecture/dev-workflow-v3-use-cases/commands/push-branch'
 import { ReadPullRequestDiff } from '@living-architecture/dev-workflow-v3-use-cases/commands/read-pull-request-diff'
@@ -23,6 +24,7 @@ import { pushBranchWithGit } from '@living-architecture/dev-workflow-v3-use-case
 import { commentOnIssueWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/comment-on-issue'
 import { commentOnPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/comment-on-pull-request'
 import { openPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/open-pull-request'
+import { replyToReviewCommentWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/reply-to-review-comment'
 import { publishReviewFindingWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/publish-review-finding'
 import { readIssueWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-issue'
 import { readPullRequestDiffWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-pull-request-diff'
@@ -171,6 +173,11 @@ async function buildFactory(workingDirectory: string): Promise<Factory> {
       new PublishReviewFindings(
         publishReviewFindingWithGithub({ runCommand, workingDirectory }),
       ).execute(request),
+    replyToReviewComment: async (request) => {
+      await new ReplyToReviewComment(
+        replyToReviewCommentWithGithub({ runCommand, workingDirectory }),
+      ).execute(request)
+    },
     waitForReviewer: waitForReviewerWithGithub({
       runCommand,
       workingDirectory,

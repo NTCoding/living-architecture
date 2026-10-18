@@ -993,3 +993,26 @@ off|low|medium|high`. It travels in the run state and is sent as
 
 `observeStream()` was tried for progress. It emitted nothing against a two step workflow
 in a probe, so the CLI still polls `getWorkflowRunById`.
+
+## 17. Review replies, from data
+
+The first real pull request showed findings with no answers. The ids were dropped between
+the step that posts a finding and the step that fixes it, and the fix step never said
+what it had done. Both are fixed.
+
+- `publish-review-findings` keeps each posted comment id on the finding it belongs to.
+- `wait-for-coderabbit` keeps the CodeRabbit comment id too.
+- `address-feedback` returns `resolutions`, one per finding: the comment id, an outcome
+  of `addressed`, `partly-addressed` or `not-addressed`, and a reason when it is not
+  fully addressed. No reply text.
+- `publish-review-replies`, after the push, posts one reply per resolution. The body is
+  rendered from data: the outcome, the commit sha, the files that changed since the cycle
+  began, and the reason. The model never writes the comment.
+- The implementer's `summary` field is gone. It was prose carried through two steps to
+  feed the pull request body, and nothing operated on it. The pull request writer reads
+  the changed files instead.
+- Every comment the factory posts now starts with `[dev-workflow-v3]`: the plan, the
+  findings and the replies.
+
+The review cycle is nine steps: three reviews, collect verdicts, publish findings, wait
+for CodeRabbit, address feedback, push, publish replies.
