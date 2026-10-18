@@ -477,11 +477,9 @@ function reportWaiting(waiting: Waiting | null, context: RunContext): void {
     return
   }
   if (waiting.kind === 'plan') {
+    process.stdout.write(`  Read the plan:      ${context.issueUrl}\n`)
     process.stdout.write(`  Approve the plan:   ${resume}\n`)
     process.stdout.write(`  Reject the plan:    ${resume} --approved false\n`)
-    process.stdout.write(
-      `  Read it again:      pnpm factory read-implementers-plan ${context.issue}\n`,
-    )
     return
   }
   process.stdout.write(`  Answer it:          ${resume} --answer "...your answer..."\n`)
