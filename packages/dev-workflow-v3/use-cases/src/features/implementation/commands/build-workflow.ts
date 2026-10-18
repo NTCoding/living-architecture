@@ -678,7 +678,7 @@ function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDe
         thinking: state.thinking,
         instructions: await input.readReviewerInstructions(reviewer),
         prompt: reviewPrompt(state, reviewer, previous, diff),
-        workspacePath: state.worktreePath,
+        workspacePath: null,
         threadId: null,
         useTools: false,
         responseSchema: verdictSchema,
