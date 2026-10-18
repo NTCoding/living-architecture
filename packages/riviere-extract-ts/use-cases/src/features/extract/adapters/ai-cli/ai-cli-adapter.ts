@@ -27,7 +27,7 @@ export class AiCliAdapter implements AiCli {
 
   async checkAvailability(command: string): Promise<AiCliAvailability> {
     const resolution = this.childProcessClient.resolveExecutable(command)
-    if (resolution.kind === 'not-found') {
+    if (resolution.kind !== 'resolved') {
       return {
         kind: 'unavailable',
         command,
@@ -77,7 +77,7 @@ function promptInvocation(args: readonly string[], prompt: string): PromptInvoca
   }
   return {
     kind: 'argument',
-    args: args.map((argument) => argument.replace(PROMPT_PLACEHOLDER, prompt)),
+    args: args.map((argument) => argument.replace(PROMPT_PLACEHOLDER, () => prompt)),
   }
 }
 

@@ -59,11 +59,11 @@ describe('AiCliAdapter availability', () => {
     })
   })
 
-  it('reports an unavailable command when the command is blank', async () => {
-    await expect(adapter.checkAvailability('')).resolves.toStrictEqual({
+  it('reports an unavailable command when the command is whitespace only', async () => {
+    await expect(adapter.checkAvailability('   ')).resolves.toStrictEqual({
       kind: 'unavailable',
-      command: '',
-      reason: "Command '' was not found on PATH",
+      command: '   ',
+      reason: "Command '   ' was not found on PATH",
     })
   })
 
@@ -109,6 +109,19 @@ describe('AiCliAdapter prompt passing', () => {
       timeoutMilliseconds: 30_000,
       maximumOutputBytes: 1024,
     })
+  })
+
+  it('substitutes the prompt literally when it contains replacement patterns', async () => {
+    const run = vi.spyOn(childProcessClient, 'run').mockResolvedValue(completedResult())
+
+    await adapter.run(runInput({ args: ['--prompt={prompt}'], prompt: 'cost is $& and $$5' }))
+
+    expect(run).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'no-stdin',
+        args: ['--prompt=cost is $& and $$5'],
+      }),
+    )
   })
 
   it('rejects multiple prompt placeholders without invoking the child process', async () => {

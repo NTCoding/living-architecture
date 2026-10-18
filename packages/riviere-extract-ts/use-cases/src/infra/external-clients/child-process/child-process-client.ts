@@ -51,10 +51,21 @@ export type ChildProcessRunResult =
       readonly reason: string
     }>
 
+type ChildProcessResolutionEnvironment = Readonly<{
+  readonly platform: NodeJS.Platform
+  readonly searchPath: string | undefined
+  readonly pathExtensions: readonly string[]
+}>
+
+type ChildProcessResolutionEnvironmentReader = () => ChildProcessResolutionEnvironment
+
 /** @riviere-role external-client-model */
 export type ChildProcessExecutableResolution =
   | Readonly<{ readonly kind: 'resolved'; readonly executablePath: string }>
+  | Readonly<{ readonly kind: 'invalid-command'; readonly command: string }>
   | Readonly<{ readonly kind: 'not-found'; readonly command: string }>
+
+const DEFAULT_WINDOWS_PATH_EXTENSIONS = ['.COM', '.EXE', '.BAT', '.CMD'] as const
 
 class BoundedOutput {
   private readonly chunks: Buffer[] = []
@@ -89,17 +100,27 @@ class BoundedOutput {
 
 /** @riviere-role external-client-service */
 export class ChildProcessClient {
+  constructor(
+    private readonly resolutionEnvironment: ChildProcessResolutionEnvironmentReader = currentResolutionEnvironment,
+  ) {}
+
   resolveExecutable(command: string): ChildProcessExecutableResolution {
-    if (command.trim().length === 0) return notFound(command)
+    if (command.trim().length === 0) return { kind: 'invalid-command', command }
+    const environment = this.resolutionEnvironment()
+    const executableNames = candidateExecutableNames(command, environment)
     if (command.includes('/') || command.includes('\\')) {
-      return this.executableAt(command)
-        ? { kind: 'resolved', executablePath: command }
-        : notFound(command)
+      return resolveExecutablePath(executableNames, command)
     }
-    const searchDirectories = (process.env['PATH'] ?? delimiter).split(delimiter)
+    if (environment.searchPath === undefined) return notFound(command)
+    const searchDirectories = environment.searchPath
+      .split(delimiter)
+      .filter((directory) => directory.length > 0)
     for (const directory of searchDirectories) {
-      const candidate = join(directory, command)
-      if (this.executableAt(candidate)) return { kind: 'resolved', executablePath: candidate }
+      const resolved = resolveExecutablePath(
+        executableNames.map((executableName) => join(directory, executableName)),
+        command,
+      )
+      if (resolved.kind === 'resolved') return resolved
     }
     return notFound(command)
   }
@@ -149,14 +170,6 @@ export class ChildProcessClient {
     })
   }
 
-  private executableAt(candidate: string): boolean {
-    try {
-      return statSync(candidate).isFile() && hasExecutePermission(candidate)
-    } catch {
-      return false
-    }
-  }
-
   private spawnChild(
     input: ChildProcessRunInput,
     resolve: (result: ChildProcessRunResult) => void,
@@ -186,6 +199,54 @@ function hasExecutePermission(candidate: string): boolean {
 /** @riviere-role external-client-service */
 export function isBenignStdinWriteError(error: Error): boolean {
   return 'code' in error && (error.code === 'EPIPE' || error.code === 'ERR_STREAM_DESTROYED')
+}
+
+function currentResolutionEnvironment(): ChildProcessResolutionEnvironment {
+  return {
+    platform: process.platform,
+    searchPath: process.env['PATH'],
+    pathExtensions: windowsPathExtensions(process.platform, process.env['PATHEXT']),
+  }
+}
+
+/** @riviere-role external-client-service */
+export function windowsPathExtensions(
+  platform: NodeJS.Platform,
+  pathExtensions: string | undefined,
+): readonly string[] {
+  if (platform !== 'win32') return []
+  if (pathExtensions === undefined) return DEFAULT_WINDOWS_PATH_EXTENSIONS
+  return pathExtensions
+    .split(';')
+    .map((extension) => extension.trim())
+    .filter((extension) => extension.length > 0)
+    .map((extension) => (extension.startsWith('.') ? extension : `.${extension}`))
+}
+
+function candidateExecutableNames(
+  command: string,
+  environment: ChildProcessResolutionEnvironment,
+): readonly string[] {
+  if (environment.platform !== 'win32') return [command]
+  return [command, ...environment.pathExtensions.map((extension) => `${command}${extension}`)]
+}
+
+function resolveExecutablePath(
+  candidates: readonly string[],
+  command: string,
+): ChildProcessExecutableResolution {
+  for (const candidate of candidates) {
+    if (executableAt(candidate)) return { kind: 'resolved', executablePath: candidate }
+  }
+  return notFound(command)
+}
+
+function executableAt(candidate: string): boolean {
+  try {
+    return statSync(candidate).isFile() && hasExecutePermission(candidate)
+  } catch {
+    return false
+  }
 }
 
 function notFound(command: string): ChildProcessExecutableResolution {
