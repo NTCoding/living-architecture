@@ -47,6 +47,7 @@ const execFileAsync = promisify(execFile)
 type Factory = {
   readonly startImplementation: Workflow
   readonly workingDirectory: string
+  readonly repositoryUrl: string
 }
 
 type RunOutcome = {
@@ -179,7 +180,23 @@ async function buildFactory(workingDirectory: string): Promise<Factory> {
       'review-cycle': build.reviewCycle,
     },
   })
-  return { startImplementation: build.startImplementation, workingDirectory }
+  const repositoryUrl = await readRepositoryUrl(runCommand, workingDirectory)
+  return { startImplementation: build.startImplementation, workingDirectory, repositoryUrl }
+}
+
+async function readRepositoryUrl(
+  runCommand: (request: CommandRequest) => Promise<CommandOutput>,
+  workingDirectory: string,
+): Promise<string> {
+  const output = await runCommand({
+    command: 'git',
+    arguments: ['remote', 'get-url', 'origin'],
+    workingDirectory,
+  })
+  if (output.exitCode !== 0) return ''
+  const remote = output.stdout.trim()
+  const https = remote.replace(/^git@([^:]+):/, 'https://$1/').replace(/\.git$/, '')
+  return https.startsWith('http') ? https : ''
 }
 
 function createCommandLine(factory: Factory): Command {
@@ -207,6 +224,7 @@ function createCommandLine(factory: Factory): Command {
       })
       await follow(factory.startImplementation, run, started, {
         issue: issueNumberText(issue),
+        issueUrl: issueUrlOf(factory.repositoryUrl, issue),
         interactive: options.input,
       })
     })
@@ -233,6 +251,7 @@ function createCommandLine(factory: Factory): Command {
             : await run.resume({ step: 'implement', resumeData: { answer: options.answer } })
         await follow(factory.startImplementation, run, resumed, {
           issue: issueNumberText(issue),
+          issueUrl: issueUrlOf(factory.repositoryUrl, issue),
           interactive: options.input,
         })
       },
@@ -301,6 +320,7 @@ function createCommandLine(factory: Factory): Command {
         const resumed = await run.resume({ step: 'implement', resumeData: { answer } })
         await follow(factory.startImplementation, run, resumed, {
           issue: issueNumberText(issue),
+          issueUrl: issueUrlOf(factory.repositoryUrl, issue),
           interactive: options.input,
         })
         if (resumed.status !== 'suspended') break
@@ -313,6 +333,7 @@ function createCommandLine(factory: Factory): Command {
 
 type RunContext = {
   readonly issue: string
+  readonly issueUrl: string
   readonly interactive: boolean
 }
 
@@ -443,11 +464,7 @@ type Waiting = {
 }
 
 function showWaiting(waiting: Waiting | null): void {
-  if (waiting === null) return
-  if (waiting.kind === 'plan') {
-    process.stdout.write(`\n## Implementer's plan\n\n${waiting.question}\n`)
-    return
-  }
+  if (waiting === null || waiting.kind === 'plan') return
   process.stdout.write(`\nThe implementer asks:\n\n  ${waiting.question}\n`)
 }
 
@@ -597,6 +614,11 @@ function isOutcome(value: unknown): value is RunOutcome {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
+}
+
+function issueUrlOf(repositoryUrl: string, issue: string): string {
+  if (repositoryUrl === '') return `issue #${issue} on GitHub`
+  return `${repositoryUrl}/issues/${issue}`
 }
 
 function issueNumber(value: string): number {
