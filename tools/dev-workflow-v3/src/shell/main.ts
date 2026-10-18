@@ -170,7 +170,8 @@ function createCommandLine(factory: Factory): Command {
     .description('start a run and follow it until it finishes or needs you')
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
-    .action(async (issue: string, options: { model: string }) => {
+    .option('--no-input', 'never wait for an answer in this terminal')
+    .action(async (issue: string, options: { model: string; input: boolean }) => {
       const run = await factory.startImplementation.createRun({
         runId: await nextRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
         resourceId: 'factory',
@@ -182,7 +183,11 @@ function createCommandLine(factory: Factory): Command {
           worktreesDirectory: `${factory.workingDirectory}/.factory/worktrees`,
         },
       })
-      await follow(factory.startImplementation, run, started)
+      await follow(factory.startImplementation, run, started, {
+        issue: issueNumberText(issue),
+        model: options.model,
+        interactive: options.input,
+      })
     })
 
   program
@@ -192,8 +197,12 @@ function createCommandLine(factory: Factory): Command {
     .requiredOption('--model <model>', 'the model every agent in this run uses')
     .option('--approved <approved>', 'whether the plan is approved', 'true')
     .option('--answer <answer>', 'the answer to a question the implementer asked')
+    .option('--no-input', 'never wait for an answer in this terminal')
     .action(
-      async (issue: string, options: { model: string; approved: string; answer?: string }) => {
+      async (
+        issue: string,
+        options: { model: string; approved: string; answer?: string; input: boolean },
+      ) => {
         const run = await factory.startImplementation.createRun({
           runId: await newestRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
           resourceId: 'factory',
@@ -205,7 +214,11 @@ function createCommandLine(factory: Factory): Command {
                 resumeData: { approved: options.approved !== 'false', notes: null },
               })
             : await run.resume({ step: 'implement', resumeData: { answer: options.answer } })
-        await follow(factory.startImplementation, run, resumed)
+        await follow(factory.startImplementation, run, resumed, {
+          issue: issueNumberText(issue),
+          model: options.model,
+          interactive: options.input,
+        })
       },
     )
 
@@ -252,7 +265,8 @@ function createCommandLine(factory: Factory): Command {
     .description('answer the implementer when it is waiting for a person')
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
-    .action(async (issue: string) => {
+    .option('--no-input', 'never wait for an answer in this terminal')
+    .action(async (issue: string, options: { model: string; input: boolean }) => {
       const runId = await newestRunId(
         factory.startImplementation,
         `issue-${issueNumberText(issue)}`,
@@ -270,7 +284,11 @@ function createCommandLine(factory: Factory): Command {
         const answer = await terminal.question('> ')
         if (answer.trim() === 'exit') break
         const resumed = await run.resume({ step: 'implement', resumeData: { answer } })
-        await follow(factory.startImplementation, run, resumed)
+        await follow(factory.startImplementation, run, resumed, {
+          issue: issueNumberText(issue),
+          model: options.model,
+          interactive: options.input,
+        })
         if (resumed.status !== 'suspended') break
       }
       terminal.close()
@@ -279,7 +297,18 @@ function createCommandLine(factory: Factory): Command {
   return program
 }
 
-async function follow(workflow: Workflow, run: Run, started: unknown): Promise<void> {
+type RunContext = {
+  readonly issue: string
+  readonly model: string
+  readonly interactive: boolean
+}
+
+async function follow(
+  workflow: Workflow,
+  run: Run,
+  started: unknown,
+  context: RunContext,
+): Promise<void> {
   const stop = watch(workflow, run.runId)
   const outcome: { current: unknown } = { current: started }
   for (;;) {
@@ -289,29 +318,32 @@ async function follow(workflow: Workflow, run: Run, started: unknown): Promise<v
       return
     }
     if (outcome.current.status === 'success') {
-      stop()
+      await stop()
       reportSuccess(outcome.current, run.runId)
       return
     }
     if (outcome.current.status !== 'suspended') {
-      stop()
+      await stop()
       reportFailure(outcome.current, run.runId)
       return
     }
     const waiting = awaitingPerson(outcome.current)
-    if (waiting === null || !process.stdin.isTTY) {
-      stop()
-      process.stdout.write(
-        `\nThe run ${run.runId} is waiting for you. Run \`pnpm factory status\`, then\n` +
-          `\`pnpm factory resume ${issueFromRunId(run.runId)} --model <model>\` when you have decided.\n`,
-      )
+    if (waiting === null) {
+      await stop()
+      reportWaiting(null, context)
+      process.exitCode = 3
+      return
+    }
+    showWaiting(waiting)
+    reportWaiting(waiting, context)
+    if (!context.interactive) {
+      await stop()
       process.exitCode = 3
       return
     }
     const answer = await ask(waiting)
     if (answer === null) {
-      stop()
-      process.stdout.write(`\nStopped. The run ${run.runId} is still waiting for you.\n`)
+      await stop()
       process.exitCode = 3
       return
     }
@@ -319,18 +351,24 @@ async function follow(workflow: Workflow, run: Run, started: unknown): Promise<v
   }
 }
 
-function watch(workflow: Workflow, runId: string): () => void {
+function watch(workflow: Workflow, runId: string): () => Promise<void> {
   const seen = new Map<string, string>()
-  const control = { stopped: false }
+  const control = { stopped: false, ticking: false }
   const tick = async (): Promise<void> => {
     if (control.stopped) return
-    const state = await workflow.getWorkflowRunById(runId)
-    reportSteps(state?.steps, seen)
+    control.ticking = true
+    try {
+      const state = await workflow.getWorkflowRunById(runId)
+      reportSteps(state?.steps, seen)
+    } finally {
+      control.ticking = false
+    }
     if (!control.stopped) setTimeout(() => void tick(), 4_000)
   }
   void tick()
-  return () => {
+  return async () => {
     control.stopped = true
+    while (control.ticking) await new Promise((resolve) => setTimeout(resolve, 50))
   }
 }
 
@@ -364,15 +402,53 @@ type Waiting = {
   readonly question: string
 }
 
+function showWaiting(waiting: Waiting | null): void {
+  if (waiting === null) return
+  if (waiting.kind === 'plan') {
+    process.stdout.write(`\n## Implementer's plan\n\n${waiting.question}\n`)
+    return
+  }
+  process.stdout.write(`\nThe implementer asks:\n\n  ${waiting.question}\n`)
+}
+
+function reportWaiting(waiting: Waiting | null, context: RunContext): void {
+  const model = context.model
+  process.stdout.write(`\nThe run is waiting for you.\n`)
+  if (waiting === null) {
+    process.stdout.write(`  What is waiting:    pnpm factory status\n`)
+    process.stdout.write(
+      `  Continue it:        pnpm factory resume ${context.issue} --model ${model}\n`,
+    )
+    return
+  }
+  process.stdout.write(`\n`)
+  if (waiting.kind === 'plan') {
+    process.stdout.write(
+      `  Approve the plan:   pnpm factory resume ${context.issue} --model ${model}\n`,
+    )
+    process.stdout.write(
+      `  Reject the plan:    pnpm factory resume ${context.issue} --model ${model} --approved false\n`,
+    )
+    process.stdout.write(
+      `  Read it again:      pnpm factory read-implementers-plan ${context.issue}\n`,
+    )
+    return
+  }
+  process.stdout.write(
+    `  Answer it:          pnpm factory resume ${context.issue} --model ${model} --answer "...your answer..."\n`,
+  )
+  process.stdout.write(
+    `  Talk it through:    pnpm factory chat ${context.issue} --model ${model}\n`,
+  )
+}
+
 async function ask(waiting: Waiting): Promise<string | boolean | null> {
   const terminal = createInterface({ input: process.stdin, output: process.stdout })
   try {
     if (waiting.kind === 'plan') {
-      process.stdout.write(`\n## Implementer's plan\n\n${waiting.question}\n\n`)
       const approved = await terminal.question('Approve this plan and continue? [y/N] ')
       return approved.trim().toLowerCase() === 'y'
     }
-    process.stdout.write(`\nThe implementer asks:\n\n  ${waiting.question}\n\n`)
     const answer = await terminal.question('Your answer (or press Enter to stop): ')
     return answer.trim() === '' ? null : answer
   } finally {
@@ -494,11 +570,6 @@ function issueNumber(value: string): number {
 
 function issueNumberText(value: string): string {
   return String(issueNumber(value))
-}
-
-function issueFromRunId(runId: string): string {
-  const match = /^issue-(\d+)/.exec(runId)
-  return match?.[1] ?? runId
 }
 
 /** @riviere-role cli-error */

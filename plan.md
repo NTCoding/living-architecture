@@ -916,5 +916,17 @@ of the fix. The feedback prompt now says a finding is not a suggestion, that it 
 fixed, that a genuine disagreement goes to the developer through the ask-user tool, and
 that one complete pass must leave nothing for the next cycle.
 
+**Developer experience todo, from the first real run from the worktree.**
+
+- [x] The waiting message names the exact command, with the issue and the model, instead
+      of `--model <model>`.
+- [x] The plan is printed whether or not the console can prompt.
+- [x] The console prompts even when the terminal does not report a TTY. The instructions
+      print first and the prompt follows, so a terminal that cannot answer costs nothing.
+      `--no-input` turns the prompt off for scripts.
+- [x] Progress lines no longer print after the final message.
+- [ ] `status` should print the question or the plan that is waiting, not just the run id.
+- [ ] The app still has no test target.
+
 **Still open.** The app has no test target, so the Progress item "tests to 100% for the
 app" stays unticked. Shell is wiring and the graphs are tested in the use-cases package.
