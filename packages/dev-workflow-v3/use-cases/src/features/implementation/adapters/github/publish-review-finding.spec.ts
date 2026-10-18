@@ -4,7 +4,10 @@ import { publishReviewFindingWithGithub } from './publish-review-finding'
 
 describe('publishReviewFindingWithGithub', () => {
   it('posts the finding as a review comment', async () => {
-    const runCommand = fakeCommands([{ stdout: '{"id":991}', stderr: '', exitCode: 0 }])
+    const runCommand = fakeCommands([
+      { stdout: '{"headRefOid":"ba7946652b65"}', stderr: '', exitCode: 0 },
+      { stdout: '{"id":991}', stderr: '', exitCode: 0 },
+    ])
 
     const posted = await publishReviewFindingWithGithub({ runCommand, workingDirectory: '/repo' })({
       pullRequestNumber: 549,
