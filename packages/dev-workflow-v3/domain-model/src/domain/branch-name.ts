@@ -20,9 +20,11 @@ export class BranchName {
 
   private constructor(private readonly branchName: string) {}
 
-  static fromIssueNumberAndTitle(issueNumber: number, title: string): BranchName {
+  static fromIssueNumberAndTitle(issueNumber: number, title: string, attempt = 1): BranchName {
     const number = z.number().int().positive().parse(issueNumber)
-    return new BranchName(`issue-${number}-${toSlug(title)}`)
+    const attemptNumber = z.number().int().positive().parse(attempt)
+    const prefix = attemptNumber === 1 ? `issue-${number}` : `issue-${number}-${attemptNumber}`
+    return new BranchName(`${prefix}-${toSlug(title)}`)
   }
 
   static parse(value: string): BranchName {

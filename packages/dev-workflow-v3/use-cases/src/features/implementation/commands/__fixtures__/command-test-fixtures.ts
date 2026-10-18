@@ -10,6 +10,7 @@ export const issue = {
   issueNumber: 455,
   issueTitle: 'Add a review cycle',
   worktreesDirectory: '/worktrees',
+  attempt: 1,
 }
 
 export const worktree = {

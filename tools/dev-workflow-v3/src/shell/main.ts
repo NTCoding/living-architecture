@@ -221,10 +221,8 @@ function createCommandLine(factory: Factory): Command {
     .option('--thinking <level>', 'off, low, medium or high', 'low')
     .option('--no-input', 'never wait for an answer in this terminal')
     .action(async (issue: string, options: { model: string; thinking: string; input: boolean }) => {
-      const run = await factory.startImplementation.createRun({
-        runId: await nextRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
-        resourceId: 'factory',
-      })
+      const runId = await nextRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`)
+      const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
       await follow(
         factory.startImplementation,
         run,
@@ -232,6 +230,7 @@ function createCommandLine(factory: Factory): Command {
           run.start({
             inputData: {
               issueNumber: issueNumber(issue),
+              attempt: attemptOf(runId, `issue-${issueNumberText(issue)}`),
               model: options.model,
               thinking: options.thinking,
               worktreesDirectory: `${factory.workingDirectory}/.factory/worktrees`,
@@ -606,6 +605,12 @@ function isOutcome(value: unknown): value is RunOutcome {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
+}
+
+function attemptOf(runId: string, base: string): number {
+  if (runId === base) return 1
+  const suffix = Number(runId.slice(base.length + 1))
+  return Number.isInteger(suffix) && suffix > 0 ? suffix : 1
 }
 
 function issueUrlOf(repositoryUrl: string, issue: string): string {

@@ -8,6 +8,12 @@ describe('BranchName', () => {
     )
   })
 
+  it('puts the attempt in the name so a new start gets its own branch', () => {
+    const branch = BranchName.fromIssueNumberAndTitle(500, 'Add a shared AI CLI boundary', 2)
+
+    expect(branch.value()).toBe('issue-500-2-add-a-shared-ai-cli-boundary')
+  })
+
   it('drops punctuation and shortens a long title', () => {
     const branch = BranchName.fromIssueNumberAndTitle(
       455,

@@ -24,6 +24,7 @@ const thinkingSchema = z.enum(['off', 'low', 'medium', 'high']).default('low')
 
 const runStateSchema = z.object({
   issueNumber: z.number().int().positive(),
+  attempt: z.number().int().positive().default(1),
   model: z.string(),
   thinking: thinkingSchema,
   worktreesDirectory: z.string(),
@@ -465,6 +466,7 @@ export interface BuildWorkflowInput {
     readonly issueNumber: number
     readonly issueTitle: string
     readonly worktreesDirectory: string
+    readonly attempt: number
   }) => Promise<{ readonly worktreePath: string; readonly branch: string }>
   readonly installDependencies: (request: { readonly worktreePath: string }) => Promise<void>
   readonly readGuidance: () => Promise<string>
@@ -615,6 +617,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           issueNumber: state.issueNumber,
           issueTitle: state.issueTitle,
           worktreesDirectory: state.worktreesDirectory,
+          attempt: state.attempt,
         })
         return { ...state, ...prepared }
       },

@@ -20,7 +20,7 @@ describe('PrepareBranch', () => {
       }),
     )
 
-    const result = await command.execute(issue)
+    const result = await command.execute({ ...issue, attempt: 1 })
 
     expect(result.worktreePath).toBe('/worktrees/issue-455-add-a-review-cycle')
     expect(result.branch).toBe('issue-455-add-a-review-cycle')
