@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
 /** @riviere-role main */
-export function printHelloWorld(): void {
-  console.log('hello world')
+export function printHelloWorld(writeGreeting: (greeting: string) => void): void {
+  writeGreeting('hello world')
 }
-
-printHelloWorld()

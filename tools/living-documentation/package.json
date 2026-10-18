@@ -48,7 +48,7 @@
         ],
         "executor": "nx:run-commands",
         "options": {
-          "command": "pnpm exec tsx src/shell/hello-world.ts",
+          "command": "pnpm exec tsx src/shell/hello-world-main.ts",
           "cwd": "{projectRoot}"
         }
       },
