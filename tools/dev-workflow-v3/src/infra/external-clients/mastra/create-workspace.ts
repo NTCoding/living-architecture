@@ -11,7 +11,7 @@ export function createWorkspace(worktreePath: string): Workspace {
       hooks: {
         beforeToolCall: ({ toolName, input }) => {
           if (toolName !== WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND) return undefined
-          if (!isReservedForTheWorkflow(commandOf(input))) return undefined
+          if (isAgentCommandAllowed(commandOf(input))) return undefined
           return {
             proceed: false,
             output: 'Refused: the workflow pushes the branch and opens the pull request, not you.',
@@ -30,6 +30,11 @@ function commandOf(input: unknown): string {
   return ''
 }
 
-function isReservedForTheWorkflow(command: string): boolean {
-  return command.includes('git push') || command.includes('gh pr') || command.includes('gh api')
+function isAgentCommandAllowed(command: string): boolean {
+  return (
+    !command.includes('git push') &&
+    !command.includes('gh pr') &&
+    !command.includes('gh api') &&
+    !command.includes('--no-verify')
+  )
 }

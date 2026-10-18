@@ -947,3 +947,32 @@ time and that the work in the worktree is kept.
 
 **Still open.** The app has no test target, so the Progress item "tests to 100% for the
 app" stays unticked. Shell is wiring and the graphs are tested in the use-cases package.
+
+## 15. The agent commits, and the workflow checks
+
+The first real ticket, 500, stopped at `commit-work`. The agent had finished writing, the
+factory's checks passed, and then `git commit` ran the pre-commit hook, which is a bigger
+gate. The hook failed and the agent was already gone, so nobody could act on the feedback.
+
+The commit now belongs to the agent.
+
+```text
+implement   generate, then a deterministic check of the worktree, then nudge and generate
+            again if the work is not complete, committed and clean. Three rounds, one
+            hour in total. The output carries allWorkComplete and allWorkCommitted.
+push        the workflow pushes. It never commits.
+```
+
+`verify` and `commit-work` are gone from both workflows. The pre-commit hook is the gate,
+and the PR checks are the fallback. `CommitWork` became `CheckWorkCommitted`: it reads
+`git status --porcelain` and `git rev-list --count <base>..HEAD` and never writes.
+
+The software factory workflow is fourteen steps. The review cycle's `verify-and-commit`
+became `push-branch`, and its feedback step uses the same loop as `implement`.
+
+Command output is bounded now. The last 40 lines go into the error and the whole log goes
+to `.factory/logs/<timestamp>-<command>.log`. The CLI prints one line per finished step
+with its elapsed time, and a heartbeat once a minute while a step is long.
+
+`observeStream()` was tried for progress. It emitted nothing against a two step workflow
+in a probe, so the CLI still polls `getWorkflowRunById`.

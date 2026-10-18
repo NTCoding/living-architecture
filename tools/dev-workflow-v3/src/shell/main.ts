@@ -1,27 +1,25 @@
 #!/usr/bin/env node
 import { execFile } from 'node:child_process'
-import { mkdirSync } from 'node:fs'
+import { appendFileSync, mkdirSync } from 'node:fs'
 import { createInterface } from 'node:readline/promises'
 import { promisify } from 'node:util'
 import { Command } from 'commander'
 import type { Run, Workflow } from '@mastra/core/workflows'
 import { BuildWorkflow } from '@living-architecture/dev-workflow-v3-use-cases/commands/build-workflow'
 import { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
+import { CheckWorkCommitted } from '@living-architecture/dev-workflow-v3-use-cases/commands/check-work-committed'
+import { checkWorkCommittedWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/check-work-committed'
 import { CommentOnIssue } from '@living-architecture/dev-workflow-v3-use-cases/commands/comment-on-issue'
 import { CommentOnPullRequest } from '@living-architecture/dev-workflow-v3-use-cases/commands/comment-on-pull-request'
-import { CommitWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/commit-work'
 import { InstallDependencies } from '@living-architecture/dev-workflow-v3-use-cases/commands/install-dependencies'
 import { OpenPullRequest } from '@living-architecture/dev-workflow-v3-use-cases/commands/open-pull-request'
 import { PrepareBranch } from '@living-architecture/dev-workflow-v3-use-cases/commands/prepare-branch'
 import { PublishReviewFindings } from '@living-architecture/dev-workflow-v3-use-cases/commands/publish-review-findings'
 import { PushBranch } from '@living-architecture/dev-workflow-v3-use-cases/commands/push-branch'
 import { ReadPullRequestDiff } from '@living-architecture/dev-workflow-v3-use-cases/commands/read-pull-request-diff'
-import { VerifyWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/verify-work'
-import { commitWorkWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/commit-work'
 import { installDependenciesWithPnpm } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/install-dependencies'
 import { prepareWorktreeWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/prepare-worktree'
 import { pushBranchWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/push-branch'
-import { runProjectChecksWithCommands } from '@living-architecture/dev-workflow-v3-use-cases/adapters/checks/run-project-checks'
 import { commentOnIssueWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/comment-on-issue'
 import { commentOnPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/comment-on-pull-request'
 import { openPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/open-pull-request'
@@ -69,9 +67,30 @@ async function runProcess(request: CommandRequest): Promise<CommandOutput> {
     if (!isProcessFailure(error)) return didNotStart()
     const stderr = error.stderr ?? 'The command did not start.'
     const exitCode = typeof error.code === 'number' ? error.code : 1
-    if (error.stdout === undefined) return { stdout: noOutput(), stderr, exitCode }
-    return { stdout: error.stdout, stderr, exitCode }
+    const stdout = error.stdout ?? noOutput()
+    const logPath = saveCommandLog(request, stdout, stderr)
+    return {
+      stdout: tailOf(stdout),
+      stderr: `${tailOf(stderr)}\nFull log: ${logPath}`,
+      exitCode,
+    }
   }
+}
+
+function saveCommandLog(request: CommandRequest, stdout: string, stderr: string): string {
+  const directory = `${request.workingDirectory}/.factory/logs`
+  mkdirSync(directory, { recursive: true })
+  const name = `${String(Date.now())}-${request.command}.log`
+  const path = `${directory}/${name}`
+  appendFileSync(
+    path,
+    [`$ ${request.command} ${request.arguments.join(' ')}`, '', stdout, '', stderr].join('\n'),
+  )
+  return path
+}
+
+function tailOf(output: string): string {
+  return output.trimEnd().split('\n').slice(-40).join('\n')
 }
 
 /**
@@ -117,9 +136,10 @@ async function buildFactory(workingDirectory: string): Promise<Factory> {
     readGuidance: () => readRepositoryGuidance(workingDirectory),
     readReviewerInstructions: (reviewer) => readReviewerInstructions(workingDirectory, reviewer),
     generate: generation,
-    verifyWork: (request) =>
-      new VerifyWork(runProjectChecksWithCommands({ runCommand })).execute(request),
-    commitWork: (request) => new CommitWork(commitWorkWithGit({ runCommand })).execute(request),
+    checkWorkCommitted: (request) =>
+      new CheckWorkCommitted(
+        checkWorkCommittedWithGit({ runCommand, repositoryPath: workingDirectory }),
+      ).execute(request),
     pushBranch: async (request) => {
       await new PushBranch(pushBranchWithGit({ runCommand })).execute(request)
     },
@@ -342,19 +362,26 @@ async function follow(
   }
 }
 
+type StepTiming = {
+  status: string
+  startedAt: number
+  reported: boolean
+  lastHeartbeat: number
+}
+
 function watch(workflow: Workflow, runId: string): () => Promise<void> {
-  const seen = new Map<string, string>()
+  const timings = new Map<string, StepTiming>()
   const control = { stopped: false, ticking: false }
   const tick = async (): Promise<void> => {
     if (control.stopped) return
     control.ticking = true
     try {
       const state = await workflow.getWorkflowRunById(runId)
-      reportSteps(state?.steps, seen)
+      reportSteps(state?.steps, timings)
     } finally {
       control.ticking = false
     }
-    if (!control.stopped) setTimeout(() => void tick(), 4_000)
+    if (!control.stopped) setTimeout(() => void tick(), 3_000)
   }
   void tick()
   return async () => {
@@ -363,28 +390,59 @@ function watch(workflow: Workflow, runId: string): () => Promise<void> {
   }
 }
 
-function reportSteps(steps: unknown, seen: Map<string, string>): void {
+function reportSteps(steps: unknown, timings: Map<string, StepTiming>): void {
   if (!isRecord(steps)) return
+  const now = Date.now()
   for (const [name, value] of Object.entries(steps)) {
     const step: unknown = Array.isArray(value) ? value[0] : value
     if (!isRecord(step)) continue
     const status = typeof step['status'] === 'string' ? step['status'] : 'unknown'
-    if (seen.get(name) === status) continue
-    seen.set(name, status)
-    process.stdout.write(`  ${markOf(status)} ${name}\n`)
-    if (name === 'review-cycle' && status === 'running') {
-      process.stdout.write(
-        '    three reviewers, then CodeRabbit. This is the long part, up to 10 minutes.\n',
-      )
+    const timing = timingFor(timings, name, status, now)
+    if (status === 'running') {
+      heartbeat(name, timing, now)
+      continue
     }
+    if (timing.reported) continue
+    timing.reported = true
+    process.stdout.write(`  ${markOf(status)} ${name.padEnd(22)} ${elapsed(timing, now)}\n`)
   }
+}
+
+function timingFor(
+  timings: Map<string, StepTiming>,
+  name: string,
+  status: string,
+  now: number,
+): StepTiming {
+  const known = timings.get(name)
+  if (known === undefined) {
+    const created = { status, startedAt: now, reported: false, lastHeartbeat: now }
+    timings.set(name, created)
+    return created
+  }
+  known.status = status
+  return known
+}
+
+function heartbeat(name: string, timing: StepTiming, now: number): void {
+  if (now - timing.startedAt < 60_000) return
+  if (now - timing.lastHeartbeat < 60_000) return
+  timing.lastHeartbeat = now
+  process.stdout.write(`  … ${name.padEnd(22)} ${elapsed(timing, now)}\n`)
+}
+
+function elapsed(timing: StepTiming, now: number): string {
+  const seconds = Math.round((now - timing.startedAt) / 1000)
+  if (seconds < 60) return `${String(seconds)}s`
+  const minutes = Math.floor(seconds / 60)
+  return `${String(minutes)}m ${String(seconds % 60).padStart(2, '0')}s`
 }
 
 function markOf(status: string): string {
   if (status === 'success') return '✓'
   if (status === 'failed') return '✗'
   if (status === 'suspended') return '…'
-  return '→'
+  return '·'
 }
 
 type Waiting = {

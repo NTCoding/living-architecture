@@ -25,8 +25,6 @@ const runStateSchema = z.object({
   planMarkdown: z.string().default(''),
   planApproved: z.boolean().default(false),
   implementationSummary: z.string().default(''),
-  verificationGreen: z.boolean().default(false),
-  verificationChecks: z.array(z.object({ name: z.string(), passed: z.boolean() })).default([]),
   commitSha: z.string().default(''),
   pullRequestTitle: z.string().default(''),
   pullRequestBody: z.string().default(''),
@@ -66,6 +64,8 @@ const planSchema = z.object({ markdown: z.string().min(1) })
 const implementationSchema = z.object({
   summary: z.string().min(1),
   blockedReason: z.string().nullable(),
+  allWorkComplete: z.boolean(),
+  allWorkCommitted: z.boolean(),
 })
 
 const pullRequestDraftSchema = z.object({
@@ -119,16 +119,19 @@ const IMPLEMENTER_INSTRUCTIONS = [
   'Run the checks, read the failures, and fix them, up to a sensible number of attempts.',
   'When you cannot decide alone, use the ask-user tool and wait for the answer.',
   'Do not push, do not open a pull request, and do not merge anything. The workflow does those.',
-  'When the plan is done and the checks pass, return the summary as the "summary" field in',
-  'that same turn. If you are running low on steps, stop calling tools and return the',
-  'summary, saying what is left. Never end without returning the summary.',
+  'You must commit your work before you finish. The commit runs the repository checks,',
+  'and if they fail you must fix them and commit again. Do not push.',
+  'When the plan is done, the checks pass and the work is committed, return the summary',
+  'with allWorkComplete and allWorkCommitted both true. If you are running low on steps,',
+  'stop calling tools, commit what you have, and return the summary saying what is left.',
 ].join('\n')
 
 const CODERABBIT = 'coderabbit'
 
 const IMPLEMENTATION_TIME_BUDGET_MS = 60 * 60 * 1000
-
-const CONVENTIONAL_PREFIX = /^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)[(:]/
+const IMPLEMENTATION_ROUNDS = 3
+const FEEDBACK_TIME_BUDGET_MS = 30 * 60 * 1000
+const FEEDBACK_ROUNDS = 2
 
 type RunState = z.infer<typeof runStateSchema>
 
@@ -172,14 +175,12 @@ export interface BuildWorkflowInput {
     readonly finishReason: string
     readonly suspendPayload: unknown
   }>
-  readonly verifyWork: (request: { readonly worktreePath: string }) => Promise<{
-    readonly green: boolean
-    readonly checks: readonly { readonly name: string; readonly passed: boolean }[]
+  readonly checkWorkCommitted: (request: { readonly worktreePath: string }) => Promise<{
+    readonly clean: boolean
+    readonly hasCommit: boolean
+    readonly sha: string
+    readonly status: string
   }>
-  readonly commitWork: (request: {
-    readonly worktreePath: string
-    readonly message: string
-  }) => Promise<{ readonly sha: string }>
   readonly pushBranch: (request: {
     readonly worktreePath: string
     readonly branch: string
@@ -374,63 +375,20 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
       run: async ({ data, resumeData, suspend }) => {
         const state = runStateSchema.parse(data)
         const answer = blockerResumeSchema.safeParse(resumeData)
-        const response = await input.generate({
-          agentId: 'implementer',
-          model: state.model,
-          instructions: IMPLEMENTER_INSTRUCTIONS,
-          prompt: implementationPrompt(state, answer.success ? answer.data.answer : null),
-          workspacePath: state.worktreePath,
-          threadId: `issue-${String(state.issueNumber)}`,
-          responseSchema: implementationSchema,
-          maxSteps: 1000,
+        const implementation = await implementUntilCommitted({
+          input,
+          state,
+          firstPrompt: implementationPrompt(state, answer.success ? answer.data.answer : null),
+          rounds: IMPLEMENTATION_ROUNDS,
           timeBudgetMs: IMPLEMENTATION_TIME_BUDGET_MS,
         })
-        if (response.finishReason === 'suspended') {
-          return await suspend({ question: questionFrom(response.suspendPayload) })
+        if (implementation.kind === 'question')
+          return await suspend({ question: implementation.question })
+        return {
+          ...state,
+          implementationSummary: implementation.summary,
+          commitSha: implementation.sha,
         }
-        if (response.finishReason === 'aborted') {
-          throw new RunFailed(
-            'The implementer ran out of time, one hour. The work in the worktree is kept. Start again on the same issue to carry on from it.',
-          )
-        }
-        if (response.finishReason === 'tool-calls') {
-          throw new RunFailed(
-            'The implementer used all its steps without finishing. The work in the worktree is kept. Start again on the same issue to carry on from it.',
-          )
-        }
-        const outcome = implementationSchema.safeParse(response.object)
-        if (!outcome.success) throw new RunFailed(noStructuredOutput('The implementer', response))
-        if (outcome.data.blockedReason !== null) {
-          return await suspend({ question: outcome.data.blockedReason })
-        }
-        return { ...state, implementationSummary: outcome.data.summary }
-      },
-    },
-    {
-      id: 'verify',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
-      run: async ({ data }) => {
-        const state = runStateSchema.parse(data)
-        const verification = await requireGreen(input, state.worktreePath)
-        return { ...state, verificationGreen: true, verificationChecks: verification.checks }
-      },
-    },
-    {
-      id: 'commit-work',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
-      run: async ({ data }) => {
-        const state = runStateSchema.parse(data)
-        const commit = await input.commitWork({
-          worktreePath: state.worktreePath,
-          message: commitSubject(state),
-        })
-        return { ...state, commitSha: commit.sha }
       },
     },
     {
@@ -619,23 +577,37 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
       resumeSchema: null,
       run: async ({ data }) => {
         const state = reviewStateSchema.parse(data)
-        await addressWhenThereIsFeedback(input, state)
+        if (state.findings.length > 0) {
+          const feedback = await implementUntilCommitted({
+            input,
+            state: {
+              issueNumber: state.issueNumber,
+              model: state.model,
+              worktreePath: state.worktreePath,
+              guidance: state.guidance,
+            },
+            firstPrompt: feedbackPrompt(state),
+            rounds: FEEDBACK_ROUNDS,
+            timeBudgetMs: FEEDBACK_TIME_BUDGET_MS,
+          })
+          if (feedback.kind === 'question') {
+            throw new RunFailed(`The implementer is blocked: ${feedback.question}`)
+          }
+        }
         return state
       },
     },
     {
-      id: 'verify-and-commit',
+      id: 'push-branch',
       inputSchema: reviewStateSchema,
       outputSchema: reviewStateSchema,
       suspendSchema: null,
       resumeSchema: null,
       run: async ({ data }) => {
         const state = reviewStateSchema.parse(data)
-        await requireGreen(input, state.worktreePath)
-        await input.commitWork({
-          worktreePath: state.worktreePath,
-          message: `fix: address review feedback in cycle ${String(state.cycleNumber)}`,
-        })
+        const committed = await input.checkWorkCommitted({ worktreePath: state.worktreePath })
+        if (!committed.clean)
+          throw new RunFailed(`The worktree still has changes: ${committed.status}`)
         await input.pushBranch({ worktreePath: state.worktreePath, branch: state.branch })
         return {
           ...state,
@@ -693,37 +665,132 @@ function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDe
   }
 }
 
-async function requireGreen(
-  input: BuildWorkflowInput,
-  worktreePath: string,
-): Promise<{
-  readonly green: boolean
-  readonly checks: readonly { readonly name: string; readonly passed: boolean }[]
-}> {
-  const verification = await input.verifyWork({ worktreePath })
-  if (!verification.green) {
-    const failed = verification.checks.filter((check) => !check.passed).map((check) => check.name)
-    throw new RunFailed(`The checks failed: ${failed.join(', ')}`)
-  }
-  return verification
+type ImplementationTarget = {
+  readonly issueNumber: number
+  readonly model: string
+  readonly worktreePath: string
+  readonly guidance: string
 }
 
-async function addressWhenThereIsFeedback(
-  input: BuildWorkflowInput,
-  state: ReviewState,
-): Promise<void> {
-  if (state.findings.length === 0) return
-  await input.generate({
+type ImplementationResult =
+  | { readonly kind: 'committed'; readonly summary: string; readonly sha: string }
+  | { readonly kind: 'question'; readonly question: string }
+
+async function implementUntilCommitted(request: {
+  readonly input: BuildWorkflowInput
+  readonly state: ImplementationTarget
+  readonly firstPrompt: string
+  readonly rounds: number
+  readonly timeBudgetMs: number
+}): Promise<ImplementationResult> {
+  const progress = { prompt: request.firstPrompt, round: 0, startedAt: Date.now() }
+  for (;;) {
+    const remaining = request.timeBudgetMs - (Date.now() - progress.startedAt)
+    const round = await runImplementationRound(request, progress.prompt, Math.max(remaining, 1))
+    if (round.kind === 'question') return round
+    const committed = await request.input.checkWorkCommitted({
+      worktreePath: request.state.worktreePath,
+    })
+    if (isFinished(round.answer, committed)) {
+      return { kind: 'committed', summary: round.answer.summary, sha: committed.sha }
+    }
+    progress.round += 1
+    if (progress.round >= request.rounds) {
+      throw new RunFailed(unfinishedMessage(round.answer, committed))
+    }
+    progress.prompt = nudgePrompt(round.answer, committed)
+  }
+}
+
+type RoundOutcome =
+  | { readonly kind: 'answer'; readonly answer: z.infer<typeof implementationSchema> }
+  | { readonly kind: 'question'; readonly question: string }
+
+async function runImplementationRound(
+  request: {
+    readonly input: BuildWorkflowInput
+    readonly state: ImplementationTarget
+  },
+  prompt: string,
+  remaining: number,
+): Promise<RoundOutcome> {
+  const response = await request.input.generate({
     agentId: 'implementer',
-    model: state.model,
+    model: request.state.model,
     instructions: IMPLEMENTER_INSTRUCTIONS,
-    prompt: feedbackPrompt(state),
-    workspacePath: state.worktreePath,
-    threadId: `issue-${String(state.issueNumber)}`,
-    responseSchema: null,
-    maxSteps: 200,
-    timeBudgetMs: 30 * 60 * 1000,
+    prompt,
+    workspacePath: request.state.worktreePath,
+    threadId: `issue-${String(request.state.issueNumber)}`,
+    responseSchema: implementationSchema,
+    maxSteps: 1000,
+    timeBudgetMs: remaining,
   })
+  if (response.finishReason === 'suspended') {
+    return { kind: 'question', question: questionFrom(response.suspendPayload) }
+  }
+  if (response.finishReason === 'aborted') throw new RunFailed(timeExhaustedMessage)
+  if (response.finishReason === 'tool-calls') throw new RunFailed(stepsExhaustedMessage)
+  const outcome = implementationSchema.safeParse(response.object)
+  if (!outcome.success) throw new RunFailed(noStructuredOutput('The implementer', response))
+  if (outcome.data.blockedReason !== null) {
+    return { kind: 'question', question: outcome.data.blockedReason }
+  }
+  return { kind: 'answer', answer: outcome.data }
+}
+
+function isFinished(answer: ImplementationAnswer, committed: CommitState): boolean {
+  return answer.allWorkComplete && answer.allWorkCommitted && committed.clean && committed.hasCommit
+}
+
+type ImplementationAnswer = {
+  readonly allWorkComplete: boolean
+  readonly allWorkCommitted: boolean
+}
+
+type CommitState = {
+  readonly clean: boolean
+  readonly hasCommit: boolean
+  readonly status: string
+}
+
+const timeExhaustedMessage =
+  'The implementer ran out of time. The work in the worktree is kept. Start again on the same issue to carry on from it.'
+
+const stepsExhaustedMessage =
+  'The implementer used all its steps without finishing. The work in the worktree is kept. Start again on the same issue to carry on from it.'
+
+function unfinishedMessage(answer: ImplementationAnswer, committed: CommitState): string {
+  return [
+    'The implementer did not finish and the work is not committed.',
+    answer.allWorkComplete
+      ? 'It said the work was complete.'
+      : 'It said the work was not complete.',
+    answer.allWorkCommitted
+      ? 'It said the work was committed.'
+      : 'It said the work was not committed.',
+    committed.clean
+      ? 'The worktree is clean.'
+      : `Changes still not committed:\n${tailOf(committed.status)}`,
+  ].join('\n')
+}
+
+function nudgePrompt(answer: ImplementationAnswer, committed: CommitState): string {
+  return [
+    'You are not finished.',
+    '',
+    committed.clean
+      ? 'The worktree is clean.'
+      : `The worktree still has changes that are not committed:\n${tailOf(committed.status)}`,
+    committed.hasCommit ? 'The branch has your commit.' : 'The branch has no commit of yours yet.',
+    `Your last answer said allWorkComplete=${String(answer.allWorkComplete)} and allWorkCommitted=${String(answer.allWorkCommitted)}.`,
+    '',
+    'Finish the work, run the checks, commit it with a conventional message, and only then',
+    'return the summary with allWorkComplete and allWorkCommitted both true.',
+  ].join('\n')
+}
+
+function tailOf(output: string): string {
+  return output.split('\n').slice(-20).join('\n')
 }
 
 function planComment(state: RunState): string {
@@ -735,7 +802,7 @@ function planComment(state: RunState): string {
     '',
     '---',
     '',
-    `Run \`issue-${issue}\`. Approve with \`pnpm factory resume ${issue} --model ${state.model}\`.`,
+    `Run \`issue-${issue}\`. Approve with \`pnpm factory resume ${issue}\`.`,
     `Reject with the same command and \`--approved false\`.`,
   ].join('\n')
 }
@@ -836,11 +903,6 @@ function coderabbitFindings(feedback: {
   }))
 }
 
-function commitSubject(state: RunState): string {
-  if (CONVENTIONAL_PREFIX.test(state.issueTitle)) return state.issueTitle
-  return `feat: ${state.issueTitle.toLowerCase()}`
-}
-
 function pullRequestTitle(draft: PullRequestDraftAnswer): string {
   const subject = draft.subject.charAt(0).toLowerCase() + draft.subject.slice(1)
   return `${draft.commitType}(${draft.commitScope}): ${subject}`
@@ -873,10 +935,8 @@ function pullRequestPrompt(state: RunState): string {
     'What the implementer did:',
     state.implementationSummary,
     '',
-    'The checks that ran:',
-    state.verificationChecks
-      .map((check) => `- ${check.name}: ${check.passed ? 'passed' : 'failed'}`)
-      .join('\n'),
+    'The repository checks ran when the work was committed, and the commit exists.',
+    `The commit on the branch is ${state.commitSha}.`,
     '',
     'Fill every field. The description is one short paragraph. The problem says why the',
     'change is needed, in the words of the issue. The acceptance criteria are the ones the',

@@ -1,24 +1,12 @@
-# Building a software factory on Mastra: the features we used
+# Mastra features used by the software factory
 
-This is the raw material for a blog post. It lists every Mastra feature the software
-factory in `tools/dev-workflow-v3` uses or tried, what it does for us, and what we learned
-the hard way. The factory carries a GitHub issue through planning, implementation,
-verification, a pull request and a review cycle, started from one command line.
+Reference list for a blog post. Each entry is a feature, where it is used, a code sample,
+and what it does or does not do. Versions: `@mastra/core` 1.75.0, `@mastra/memory` 1.36.0,
+`@mastra/libsql` 1.25.1.
 
-Versions used:
+## Workflow graph
 
-```text
-@mastra/core    1.75.0
-@mastra/memory  1.36.0
-@mastra/libsql  1.25.1
-```
-
-## 1. Workflows as the state machine
-
-**Used:** `createWorkflow`, `createStep`, `.then`, `.dountil`, `.commit`.
-
-The workflow graph is the state machine. We deleted our own event-sourced engine because
-Mastra's graph already records where a run is, what it has done and what comes next.
+Where: `packages/dev-workflow-v3/use-cases/src/features/implementation/commands/build-workflow.ts`
 
 ```ts
 createWorkflow({ id: 'start-implementation', inputSchema, outputSchema })
@@ -27,43 +15,22 @@ createWorkflow({ id: 'start-implementation', inputSchema, outputSchema })
   .then(draftPlan)
   .then(requestPlanApproval)
   .then(implement)
-  .dountil(reviewCycle, async ({ inputData }) => inputData.approved)
+  .dountil(reviewCycleStep, async ({ inputData }) => inputData.approved)
   .then(markReadyForHuman)
   .commit()
 ```
 
-Two things worth a paragraph in the post.
+- The graph replaces an event-sourced state machine.
+- Every step declares `inputSchema` and `outputSchema`; a wrong shape fails at that step.
+- A looped step must keep the same input and output shape, because its output is fed back
+  in as its next input.
 
-- **A looped step keeps one shape in and out.** The step that runs the review cycle takes
-  the cycle state and returns the same shape, because its own output is fed back in as its
-  next input. The step before the loop seeds it.
-- **A step validates its own boundary.** Every step declares an input and an output
-  schema, so a step that returns the wrong shape fails at that step, not three steps
-  later.
+## Step suspension
 
-## 2. Running another workflow from a step
-
-**Used:** `mastra.getWorkflow(id).createRun({ runId })`, `run.start({ inputData })`.
-
-The review cycle is its own workflow, and the implementation workflow runs it as a step
-inside a loop. That is how two workflows compose without either one knowing the other's
-internals.
-
-**The gotcha:** the workflow is found by the key it is registered under, so the key must
-equal the workflow `id`. Register `{ parent, inner }` and `getWorkflow('review-cycle')`
-fails with `MASTRA_GET_WORKFLOW_BY_ID_NOT_FOUND`.
-
-## 3. Snapshots, suspension and resume
-
-**Used:** `suspendSchema`, `resumeSchema`, `suspend()` inside a step, `run.resume({ step,
-resumeData })`, `listWorkflowRuns`, `getWorkflowRunById`.
-
-A human decision is a suspension. The run stops, the snapshot is written to storage, and
-the process can exit. The developer answers later, possibly the next day, and the run
-continues at the step that was waiting.
+Where: `build-workflow.ts`, step `request-plan-approval`
 
 ```ts
-const requestPlanApproval = createStep({
+createStep({
   id: 'request-plan-approval',
   inputSchema: runStateSchema,
   outputSchema: runStateSchema,
@@ -77,53 +44,110 @@ const requestPlanApproval = createStep({
 })
 ```
 
-This is the feature that makes a command line workflow feel safe. Kill the terminal, the
-run is still there.
+- `suspend(payload)` stops the run and writes a snapshot to storage.
+- `run.resume({ step, resumeData })` continues from that step, in a later process.
+- A rejected plan is a thrown error, not a resumed state.
 
-## 4. Agents as factories, not files
+## Nested workflows
 
-**Used:** `Agent`, the model router (`provider/model` ids), `generate()`.
+Where: `build-workflow.ts`, step `review-cycle`
 
-Agents are TypeScript modules that name a model, instructions and a workspace, and the
-shell registers them on the Mastra instance. We deliberately avoided file-based agents:
-discovery only runs through `mastra dev` or `mastra build`, and a plain import of the
-Mastra instance finds no agents at all. Our CLI starts a run in its own process, so file
-discovery would put a server between the command and the workflow for no gain.
+```ts
+const nested = mastra.getWorkflow('review-cycle')
+const run = await nested.createRun({ runId: `${inputData.runId}-review-${inputData.cycleNumber}` })
+const result = await run.start({ inputData })
+if (result.status !== 'success') throw new ReviewCycleFailed(inputData.cycleNumber, result.status)
+return result.result
+```
 
-The model router is a quiet win for a blog post: one string, one key in the environment,
-and no SDK or credential plumbing in our code.
+- A step can run another workflow and loop over it with `.dountil`.
+- The workflow is found by its registration key. The key must equal the workflow `id`, or
+  `getWorkflow` throws `MASTRA_GET_WORKFLOW_BY_ID_NOT_FOUND`.
 
-## 5. Structured output as a contract
+## Agent configuration
 
-**Used:** `generate(prompt, { structuredOutput: { schema } })` with zod.
+Where: `tools/dev-workflow-v3/src/infra/external-clients/mastra/create-agent.ts`
 
-Every model call declares the shape it must return. A planner that returns prose, or a
-reviewer that forgets the status, fails at the step boundary with a schema error and a
-trace that shows the field.
+```ts
+new Agent({
+  id: request.id,
+  name: request.id,
+  instructions: request.instructions,
+  model: request.model,
+  tools: dependencies.tools,
+  memory: dependencies.memory,
+  workspace: createWorkspace(request.workspacePath),
+})
+```
+
+- One agent per model call, built by a factory. The app has no agent modules.
+- File-based agents (`agents/{name}/config.ts` + `instructions.md`) are only discovered by
+  `mastra dev` or `mastra build`. Importing the Mastra instance finds none of them.
+
+## Model identifiers
+
+Where: CLI `--model`
+
+```text
+deepseek/deepseek-v4.1-flash
+```
+
+- `provider/model`, resolved by Mastra's model router. No SDK or credential code.
+- The provider key comes from the environment. `DEEPSEEK_API_KEY` in this repo.
+
+## Structured output
+
+Where: `build-workflow.ts`, every model call
 
 ```ts
 const response = await agent.generate(prompt, {
   structuredOutput: { schema: verdictSchema },
 })
+const verdict = verdictSchema.safeParse(response.object)
+if (!verdict.success) throw new RunFailed(noStructuredOutput('The reviewer', response))
 ```
 
-**The gotcha we hit:** an agent with a workspace can choose to call a tool instead of
-answering. The call then ends with `finishReason: 'tool-calls'` and no object. We saw
-this twice, once on a reviewer with one step and once on an implementer that ran out of
-steps. Always log `finishReason` alongside the parse error.
+- The schema is the boundary. Prose, a missing field or a wrong type fails the step.
+- Always log `finishReason`: `stop`, `tool-calls`, `suspended`, `aborted`, `length`.
 
-## 6. Tools that suspend themselves
+## Turn limit and time limit
 
-**Used:** `createTool` with `suspendSchema` and `resumeSchema`, `context.agent.suspend`,
-`context.agent.resumeData`, `autoResumeSuspendedTools`.
-
-A blocker is a conversation, not a form. The implementer has an `ask-user` tool that
-suspends with the question. With `autoResumeSuspendedTools` and memory configured, the
-next message on the thread resumes the tool and the agent carries on.
+Where: `tools/dev-workflow-v3/src/infra/external-clients/mastra/generate-with-agent.ts`
 
 ```ts
-const askUser = createTool({
+const abort = new AbortController()
+const timer = setTimeout(() => abort.abort(), request.timeBudgetMs)
+try {
+  const response = await agent.generate(prompt, {
+    maxSteps: request.maxSteps,
+    abortSignal: abort.signal,
+  })
+} finally {
+  clearTimeout(timer)
+}
+```
+
+```ts
+// one implementation
+maxSteps: 1000
+timeBudgetMs: 60 * 60 * 1000
+```
+
+- `maxSteps` bounds one `generate` call by turns. It stops a fast loop.
+- `abortSignal` bounds the same call by wall clock. It is the limit a person can reason
+  about.
+- The timer is per `generate` call. Time spent suspended between steps is not counted.
+- An abort surfaces as `finishReason: 'aborted'` when the error is caught by the caller.
+
+## Tools that suspend
+
+Where: `tools/dev-workflow-v3/src/infra/external-clients/mastra/ask-user-tool.ts`
+
+```ts
+createTool({
   id: 'ask-user',
+  inputSchema: z.object({ question: z.string(), evidence: z.string().nullable() }),
+  outputSchema: z.object({ answer: z.string() }),
   suspendSchema: z.object({ question: z.string(), evidence: z.string().nullable() }),
   resumeSchema: z.object({ answer: z.string() }),
   execute: async ({ question, evidence }, context) => {
@@ -134,16 +158,13 @@ const askUser = createTool({
 })
 ```
 
-**The gotcha:** after a suspended tool is resumed, `listSuspendedRuns()` still returns the
-run with `status: 'suspended'`. A status command cannot be built from it alone.
+- `autoResumeSuspendedTools: true` plus memory lets the next message resume the tool.
+- After a resume, `listSuspendedRuns()` still reports the run as suspended, with the tool
+  call still listed. Do not build a status command from it alone.
 
-## 7. The workspace
+## Workspace
 
-**Used:** `Workspace`, `LocalFilesystem`, `LocalSandbox`, `WORKSPACE_TOOLS`,
-`beforeToolCall`.
-
-This is the best demo material in the whole post. The agent is given a workspace pointed
-at a git worktree, and the hook refuses the commands the workflow owns:
+Where: `tools/dev-workflow-v3/src/infra/external-clients/mastra/create-workspace.ts`
 
 ```ts
 new Workspace({
@@ -153,92 +174,111 @@ new Workspace({
     hooks: {
       beforeToolCall: ({ toolName, input }) => {
         if (toolName !== WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND) return undefined
-        if (!input.command.includes('git push')) return undefined
-        return { proceed: false, output: 'The workflow pushes the branch, not you.' }
+        if (isAgentCommandAllowed(commandOf(input))) return undefined
+        return { proceed: false, output: 'Refused: the workflow pushes the branch, not you.' }
       },
     },
   },
 })
+
+function isAgentCommandAllowed(command: string): boolean {
+  return (
+    !command.includes('git push') &&
+    !command.includes('gh pr') &&
+    !command.includes('gh api') &&
+    !command.includes('--no-verify')
+  )
+}
 ```
 
-The agent receives the refusal as a tool result and carries on. In a real run the trace
-showed the agent using `mastra_workspace_list_files`, `mastra_workspace_execute_command`,
-`mastra_workspace_mkdir` and `mastra_workspace_write_file` to read a repository, write a
-port, an adapter and a client, and run `tsc`. It never pushed.
+- `proceed: false` plus `output` becomes the tool result the model reads.
+- The deny list is written in the workspace the step builds, so the step owns its
+  permissions.
+- Tools the agent uses: `mastra_workspace_list_files`, `mastra_workspace_execute_command`,
+  `mastra_workspace_read_file`, `mastra_workspace_write_file`, `mastra_workspace_mkdir`.
+- The workspace is a host directory. There is no container.
 
-## 8. Memory and threads
+## Agent commits its own work
 
-**Used:** `Memory`, `generate({ memory: { thread, resource } })`.
-
-Memory gives the implementer a thread it can be resumed on, and it gave us the single most
-useful debugging artefact of the project: the tool calls and tool results of a run are in
-`mastra_messages`. When an implementer "failed", the messages showed it had made forty
-tool calls and was cut off mid-work, which is a completely different bug from what the
-error message said.
-
-## 9. Limits: turns and wall clock
-
-**Used:** `maxSteps`, `abortSignal`.
-
-This is the feature to lead a section with.
-
-- `maxSteps` bounds one `generate` call by turns. It is a backstop against a loop.
-- `abortSignal` bounds the same call by wall clock. Pass an `AbortController` signal that
-  fires after an hour, and the call ends when the time is up.
+Where: `build-workflow.ts`, `implementUntilCommitted`
 
 ```ts
-const abort = new AbortController()
-const timer = setTimeout(() => abort.abort(), 60 * 60 * 1000)
-const response = await agent.generate(prompt, { maxSteps: 1000, abortSignal: abort.signal })
+const committed = await input.checkWorkCommitted({ worktreePath })
+if (answer.allWorkComplete && answer.allWorkCommitted && committed.clean && committed.hasCommit) {
+  return { kind: 'committed', summary: answer.summary, sha: committed.sha }
+}
+progress.prompt = nudgePrompt(answer, committed)
 ```
 
-For a long implementation, time is the honest budget. Nobody can say whether a ticket is
-400 turns, but everybody can say "an hour". A turn limit is the wrong unit for the person
-paying the bill.
+- The implementer runs `git commit` itself. The pre-commit hook runs the repository checks
+  and returns its output to the agent as a tool result.
+- The agent's structured output carries `allWorkComplete` and `allWorkCommitted`.
+- A deterministic check reads `git status --porcelain` and `git rev-list --count base..HEAD`
+  between rounds.
+- Three rounds, one hour total. A dirty worktree after three rounds fails the step.
 
-## 10. Debugging and progress
+## Memory and threads
 
-**Used:** snapshots, step outputs, suspend payloads, `finishReason`, `listWorkflowRuns`,
-`getWorkflowRunById`, `mastra dev` Studio.
+Where: `build-workflow.ts`, `generate` request
 
-What actually helped, in order:
+```ts
+memory: { thread: `issue-${issueNumber}`, resource: 'factory' }
+```
 
-1. **The step output in the snapshot.** Every step's input and output is stored. Reading
-   `draft-plan`'s output is how the CLI prints the plan on demand.
-2. **The suspend payload.** It carries the question or the plan for approval, so a waiting
-   run can explain itself.
-3. **`finishReason`.** `stop`, `tool-calls`, `suspended` and `aborted` tell you three
-   different stories that all look like "no output" from the outside.
-4. **The memory thread.** Tool calls and results, in order.
-5. **Studio (`mastra dev`).** The workflow graph and the trace of every step and prompt,
-   against the same storage. Good for reading, not for starting or approving.
+- Threads survive across steps and processes.
+- `mastra_messages` holds the user prompt and the assistant message with its tool calls and
+  tool results. This is the most useful debugging artefact.
+- Tool results are truncated in the message, e.g. `[showing last 200 of 269 lines]`.
 
-The lesson for the post: a workflow engine that stores every step's input, output and
-suspension payload turns "the agent did something weird" into a five minute read.
+## Storage and run history
 
-## 11. Storage
+Where: `tools/dev-workflow-v3/src/infra/external-clients/mastra/create-mastra.ts`
 
-**Used:** `LibSQLStore` on a local file, `Memory` over the same store.
+```ts
+const storage = new LibSQLStore({ id: 'factory', url: 'file:.factory/mastra.db' })
+const mastra = new Mastra({ workflows, storage })
+```
 
-A single file under `.factory/` holds the workflow snapshots, the threads and the
-messages. That is what makes a run survive a laptop restart without a database server.
+- Snapshots, threads and messages all live in one local SQLite file.
+- `listWorkflowRuns()` and `getWorkflowRunById(runId)` give run status and every step's
+  input, output and suspend payload.
+- Run ids are chosen by the caller: `issue-500`, then `issue-500-2` on a retry.
 
-## 12. What we tried and set aside
+## Event stream
 
-- **File-based agents.** Only discovered by `mastra dev` or `mastra build`. We use
-  TypeScript modules instead.
-- **Parallel review steps.** `.parallel` exists and is the obvious fit for three
-  reviewers. We kept the chain sequential so a failure names one reviewer, not a branch.
-- **Building the workflow inside the use case.** We moved the framework work into an
-  adapter behind a port, so the domain model has no Mastra import. Mastra is an external
-  client, not a dependency of the domain.
+Where: `run.observeStream()`
 
-## 13. What we would tell someone starting
+```ts
+const reader = run.observeStream().getReader()
+```
 
-- Model the workflow as data first: step ids, order, and the one step that loops. Then
-  bind behaviour to it.
-- Put the framework behind a port early. It is the difference between "we use Mastra" and
-  "our code is Mastra".
-- Log `finishReason` on every model call from day one.
-- Budget the model call by time, and keep a turn limit as a backstop.
-- Read the snapshot before believing the error message.
+- Returns a `ReadableStream` of typed events: `workflow-step-start`,
+  `workflow-step-finish`, `workflow-step-suspended`, `workflow-finish` and others.
+- `run.watch(cb)` does the same job and is marked `@internal`.
+- In our probe against a two step workflow, the stream emitted no events, so the CLI polls
+  `getWorkflowRunById` every three seconds instead.
+
+## CLI output
+
+Where: `tools/dev-workflow-v3/src/shell/main.ts`
+
+```text
+  ✓ load-issue             2s
+  ✓ draft-plan             48s
+  … implement              29m 12s
+  ✓ implement              41m 03s
+  ✗ push-branch            1s
+```
+
+- The presentation is ours. Mastra has no terminal output.
+- One line per finished step, with elapsed time. A heartbeat every minute while a step is
+  long.
+- Command output is never printed in full. The last 40 lines go in the error, the whole log
+  goes to `.factory/logs/<timestamp>-<command>.log`.
+
+## Studio
+
+Where: `mastra dev`, pointed at the same storage
+
+- Shows the workflow graph and the trace of every step and prompt.
+- Used for reading runs, not for starting or approving them.

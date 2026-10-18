@@ -43,7 +43,7 @@ function planAnswer() {
 
 function implementationAnswer(summary: string) {
   return {
-    object: { summary, blockedReason: null },
+    object: { summary, blockedReason: null, allWorkComplete: true, allWorkCommitted: true },
     text: '',
     finishReason: 'stop',
     suspendPayload: null,
@@ -94,8 +94,12 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
       if (request.agentId === 'pull-request-writer') return pullRequestAnswer()
       return verdictAnswer('APPROVED', [])
     },
-    verifyWork: async () => ({ green: true, checks: [{ name: 'lint', passed: true }] }),
-    commitWork: async () => ({ sha: '4d83240f6' }),
+    checkWorkCommitted: async () => ({
+      clean: true,
+      hasCommit: true,
+      sha: '4d83240f6',
+      status: '',
+    }),
     pushBranch: async () => undefined,
     openPullRequest: async () => ({ number: 549, url: 'https://github.com/o/r/pull/549' }),
     commentOnIssue: async () => undefined,
@@ -190,7 +194,12 @@ describe('BuildWorkflow', () => {
         prompts.push(request.prompt.startsWith('Implement issue') ? 'asking' : request.prompt)
         return prompts.length === 1
           ? {
-              object: { summary: 'blocked', blockedReason: 'Reuse the existing port, or add one?' },
+              object: {
+                summary: 'blocked',
+                blockedReason: 'Reuse the existing port, or add one?',
+                allWorkComplete: false,
+                allWorkCommitted: false,
+              },
               text: '',
               finishReason: 'stop',
               suspendPayload: null,
@@ -303,7 +312,7 @@ describe('BuildWorkflow', () => {
       expect.objectContaining({
         status: 'failed',
         error: expect.objectContaining({
-          message: expect.stringContaining('ran out of time, one hour'),
+          message: expect.stringContaining('ran out of time'),
         }),
       }),
     )
@@ -413,21 +422,60 @@ describe('BuildWorkflow', () => {
     expect(finished.status).toBe('failed')
   })
 
-  it('fails when the checks are red before the commit', async () => {
+  it('fails when three attempts leave the worktree dirty', async () => {
     const { run } = await startedRun({
-      verifyWork: async () => ({ green: false, checks: [{ name: 'lint', passed: false }] }),
+      generate: async (request) =>
+        request.agentId === 'implementer'
+          ? {
+              object: {
+                summary: 'not done',
+                blockedReason: null,
+                allWorkComplete: false,
+                allWorkCommitted: false,
+              },
+              text: '',
+              finishReason: 'stop',
+              suspendPayload: null,
+            }
+          : stubs().generate(request),
+      checkWorkCommitted: async () => ({
+        clean: false,
+        hasCommit: false,
+        sha: '',
+        status: ' M src/order.ts',
+      }),
     })
     const finished = await run.resume({
       step: 'request-plan-approval',
       resumeData: { approved: true, notes: null },
     })
 
-    expect(finished.status).toBe('failed')
+    expect(finished).toStrictEqual(
+      expect.objectContaining({
+        status: 'failed',
+        error: expect.objectContaining({
+          message: expect.stringContaining('did not finish and the work is not committed'),
+        }),
+      }),
+    )
   })
 
-  it('fails when the checks are red before the checks report a check by name', async () => {
+  it('fails when the agent says the work is not committed', async () => {
     const { run } = await startedRun({
-      verifyWork: async () => ({ green: false, checks: [] }),
+      generate: async (request) =>
+        request.agentId === 'implementer'
+          ? {
+              object: {
+                summary: 'done',
+                blockedReason: null,
+                allWorkComplete: true,
+                allWorkCommitted: false,
+              },
+              text: '',
+              finishReason: 'stop',
+              suspendPayload: null,
+            }
+          : stubs().generate(request),
     })
     const finished = await run.resume({
       step: 'request-plan-approval',
@@ -466,7 +514,9 @@ describe('review cycle', () => {
         comments: [{ path: 'src/order.ts', line: 3, body: 'Use the port.' }],
       }),
       generate: async (request) => {
-        if (request.responseSchema === null) feedbackPrompts.push(request.prompt)
+        if (request.prompt.startsWith('Address every review finding')) {
+          feedbackPrompts.push(request.prompt)
+        }
         return stubs().generate(request)
       },
     })
@@ -537,9 +587,43 @@ describe('review cycle', () => {
     ])
   })
 
+  it('stops the cycle when the implementer is blocked while addressing feedback', async () => {
+    const studio = await factoryFor({
+      generate: async (request) =>
+        request.prompt.startsWith('Address every review finding')
+          ? {
+              object: {
+                summary: 'blocked',
+                blockedReason: 'The rule conflicts with the ADR.',
+                allWorkComplete: false,
+                allWorkCommitted: false,
+              },
+              text: '',
+              finishReason: 'stop',
+              suspendPayload: null,
+            }
+          : stubs().generate(request),
+      waitForReviewer: async () => ({
+        reviewSeen: true,
+        rateLimited: false,
+        comments: [{ path: 'src/order.ts', line: 3, body: 'Use the port.' }],
+      }),
+    })
+    const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
+
+    const finished = await run.start({ inputData: reviewInput() })
+
+    expect(finished.status).toBe('failed')
+  })
+
   it('fails the cycle when the checks are red after the fix', async () => {
     const studio = await factoryFor({
-      verifyWork: async () => ({ green: false, checks: [{ name: 'test', passed: false }] }),
+      checkWorkCommitted: async () => ({
+        clean: false,
+        hasCommit: true,
+        sha: '4d83240f6',
+        status: ' M src/order.ts',
+      }),
     })
     const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
 
@@ -549,11 +633,12 @@ describe('review cycle', () => {
   })
 
   it('fails the run when the nested review cycle fails', async () => {
-    const checks: boolean[] = [true, false]
     const { run } = await startedRun({
-      verifyWork: async () => ({
-        green: checks.shift() === true,
-        checks: [{ name: 'test', passed: false }],
+      checkWorkCommitted: async () => ({
+        clean: false,
+        hasCommit: true,
+        sha: '4d83240f6',
+        status: ' M src/order.ts',
       }),
     })
 

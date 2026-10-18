@@ -22,8 +22,6 @@ export class SoftwareFactoryWorkflow {
           { id: 'publish-plan', looped: false },
           { id: 'request-plan-approval', looped: false },
           { id: 'implement', looped: false },
-          { id: 'verify', looped: false },
-          { id: 'commit-work', looped: false },
           { id: 'push-branch', looped: false },
           { id: 'draft-pull-request', looped: false },
           { id: 'open-pull-request', looped: false },
@@ -42,7 +40,7 @@ export class SoftwareFactoryWorkflow {
           { id: 'publish-review-findings', looped: false },
           { id: 'wait-for-coderabbit', looped: false },
           { id: 'address-feedback', looped: false },
-          { id: 'verify-and-commit', looped: false },
+          { id: 'push-branch', looped: false },
         ],
       }),
     )
