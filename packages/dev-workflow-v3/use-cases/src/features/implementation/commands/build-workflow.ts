@@ -136,6 +136,7 @@ const IMPLEMENTATION_TIME_BUDGET_MS = 60 * 60 * 1000
 const IMPLEMENTATION_ROUNDS = 3
 const FEEDBACK_TIME_BUDGET_MS = 30 * 60 * 1000
 const FEEDBACK_ROUNDS = 2
+const REVIEW_TIME_BUDGET_MS = 30 * 60 * 1000
 
 type RunState = z.infer<typeof runStateSchema>
 
@@ -656,7 +657,7 @@ function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDe
         useTools: false,
         responseSchema: verdictSchema,
         maxSteps: 30,
-        timeBudgetMs: 15 * 60 * 1000,
+        timeBudgetMs: REVIEW_TIME_BUDGET_MS,
       })
       const verdict = verdictSchema.safeParse(response.object)
       if (!verdict.success) throw new RunFailed(noStructuredOutput(`The ${reviewer}`, response))
