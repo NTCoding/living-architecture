@@ -6,6 +6,7 @@ import type { AgentRequest } from './create-agent'
 export interface AgentGenerationRequest {
   readonly agentId: string
   readonly model: string
+  readonly thinking: string
   readonly instructions: string
   readonly prompt: string
   readonly workspacePath: string | null
@@ -23,9 +24,28 @@ export interface AgentGeneration {
   readonly suspendPayload: unknown
 }
 
+type DeepSeekThinking = {
+  readonly deepseek: {
+    readonly thinking?: { readonly type: 'adaptive' | 'disabled' | 'enabled' }
+    readonly reasoningEffort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max'
+  }
+}
+
+function thinkingOptions(level: string): DeepSeekThinking {
+  if (level === 'off') return { deepseek: { thinking: { type: 'disabled' } } }
+  return { deepseek: { reasoningEffort: effortOf(level) } }
+}
+
+function effortOf(level: string): 'low' | 'medium' | 'high' {
+  if (level === 'high') return 'high'
+  if (level === 'medium') return 'medium'
+  return 'low'
+}
+
 function conversationOptions(request: AgentGenerationRequest) {
   return {
     maxSteps: request.maxSteps,
+    providerOptions: thinkingOptions(request.thinking),
     ...(request.threadId === null
       ? {}
       : {

@@ -95,6 +95,22 @@ deepseek/deepseek-v4.1-flash
 - `provider/model`, resolved by Mastra's model router. No SDK or credential code.
 - The provider key comes from the environment. `DEEPSEEK_API_KEY` in this repo.
 
+## Thinking effort
+
+Where: CLI `--thinking`, default `low`
+
+```bash
+pnpm factory start-implementation 500 --model deepseek/deepseek-v4.1-flash --thinking low
+```
+
+```ts
+providerOptions: { deepseek: { reasoningEffort: 'low' } }
+```
+
+- `off` sends `{ deepseek: { thinking: { type: 'disabled' } } }`.
+- `low`, `medium` and `high` map to DeepSeek's `reasoning_effort`.
+- The level travels in the run state, so a resumed run keeps the level it started with.
+
 ## Structured output
 
 Where: `build-workflow.ts`, every model call

@@ -190,8 +190,9 @@ function createCommandLine(factory: Factory): Command {
     .description('start a run and follow it until it finishes or needs you')
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
+    .option('--thinking <level>', 'off, low, medium or high', 'low')
     .option('--no-input', 'never wait for an answer in this terminal')
-    .action(async (issue: string, options: { model: string; input: boolean }) => {
+    .action(async (issue: string, options: { model: string; thinking: string; input: boolean }) => {
       const run = await factory.startImplementation.createRun({
         runId: await nextRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
         resourceId: 'factory',
@@ -200,6 +201,7 @@ function createCommandLine(factory: Factory): Command {
         inputData: {
           issueNumber: issueNumber(issue),
           model: options.model,
+          thinking: options.thinking,
           worktreesDirectory: `${factory.workingDirectory}/.factory/worktrees`,
         },
       })

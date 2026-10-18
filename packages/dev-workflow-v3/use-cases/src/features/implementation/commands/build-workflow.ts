@@ -13,9 +13,12 @@ const findingSchema = z.object({
 
 const reviewedFindingSchema = findingSchema.omit({ reviewer: true })
 
+const thinkingSchema = z.enum(['off', 'low', 'medium', 'high']).default('low')
+
 const runStateSchema = z.object({
   issueNumber: z.number().int().positive(),
   model: z.string(),
+  thinking: thinkingSchema,
   worktreesDirectory: z.string(),
   issueTitle: z.string().default(''),
   issueBody: z.string().default(''),
@@ -36,6 +39,7 @@ const runStateSchema = z.object({
 const reviewStateSchema = z.object({
   runId: z.string(),
   model: z.string(),
+  thinking: thinkingSchema,
   issueNumber: z.number().int().positive(),
   guidance: z.string().default(''),
   pullRequestNumber: z.number().int().positive(),
@@ -162,6 +166,7 @@ export interface BuildWorkflowInput {
   readonly generate: (request: {
     readonly agentId: string
     readonly model: string
+    readonly thinking: string
     readonly instructions: string
     readonly prompt: string
     readonly workspacePath: string | null
@@ -327,6 +332,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
         const response = await input.generate({
           agentId: 'planner',
           model: state.model,
+          thinking: state.thinking,
           instructions: PLANNER_INSTRUCTIONS,
           prompt: planPrompt(state),
           workspacePath: null,
@@ -414,6 +420,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
         const response = await input.generate({
           agentId: 'pull-request-writer',
           model: state.model,
+          thinking: state.thinking,
           instructions: PULL_REQUEST_WRITER_INSTRUCTIONS,
           prompt: pullRequestPrompt(state),
           workspacePath: null,
@@ -461,6 +468,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
         return {
           runId: `issue-${String(state.issueNumber)}`,
           model: state.model,
+          thinking: state.thinking,
           issueNumber: state.issueNumber,
           guidance: state.guidance,
           pullRequestNumber: state.pullRequestNumber,
@@ -583,6 +591,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
             state: {
               issueNumber: state.issueNumber,
               model: state.model,
+              thinking: state.thinking,
               worktreePath: state.worktreePath,
               guidance: state.guidance,
             },
@@ -636,6 +645,7 @@ function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDe
       const response = await input.generate({
         agentId: reviewer,
         model: state.model,
+        thinking: state.thinking,
         instructions: await input.readReviewerInstructions(reviewer),
         prompt: reviewPrompt(state, reviewer, previous, diff),
         workspacePath: state.worktreePath,
@@ -668,6 +678,7 @@ function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDe
 type ImplementationTarget = {
   readonly issueNumber: number
   readonly model: string
+  readonly thinking: string
   readonly worktreePath: string
   readonly guidance: string
 }
@@ -717,6 +728,7 @@ async function runImplementationRound(
   const response = await request.input.generate({
     agentId: 'implementer',
     model: request.state.model,
+    thinking: request.state.thinking,
     instructions: IMPLEMENTER_INSTRUCTIONS,
     prompt,
     workspacePath: request.state.worktreePath,

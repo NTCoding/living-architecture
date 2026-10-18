@@ -974,5 +974,9 @@ Command output is bounded now. The last 40 lines go into the error and the whole
 to `.factory/logs/<timestamp>-<command>.log`. The CLI prints one line per finished step
 with its elapsed time, and a heartbeat once a minute while a step is long.
 
+The model's thinking effort defaults to `low` and can be overridden with `--thinking
+off|low|medium|high`. It travels in the run state and is sent as
+`providerOptions.deepseek.reasoningEffort`, or `thinking.type: disabled` for `off`.
+
 `observeStream()` was tried for progress. It emitted nothing against a two step workflow
 in a probe, so the CLI still polls `getWorkflowRunById`.
