@@ -48,6 +48,7 @@ const execFileAsync = promisify(execFile)
 
 type Factory = {
   readonly startImplementation: Workflow
+  readonly reviewCycle: Workflow
   readonly workingDirectory: string
   readonly repositoryUrl: string
 }
@@ -192,7 +193,12 @@ async function buildFactory(workingDirectory: string): Promise<Factory> {
     },
   })
   const repositoryUrl = await readRepositoryUrl(runCommand, workingDirectory)
-  return { startImplementation: build.startImplementation, workingDirectory, repositoryUrl }
+  return {
+    startImplementation: build.startImplementation,
+    reviewCycle: build.reviewCycle,
+    workingDirectory,
+    repositoryUrl,
+  }
 }
 
 async function readRepositoryUrl(
@@ -225,6 +231,7 @@ function createCommandLine(factory: Factory): Command {
       const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
       await follow(
         factory.startImplementation,
+        factory.reviewCycle,
         run,
         () =>
           run.start({
@@ -249,7 +256,6 @@ function createCommandLine(factory: Factory): Command {
     .description('continue a run that is waiting for a person')
     .argument('<issue>')
     .option('--answer <answer>', 'the answer to a question the implementer asked')
-    .option('--approve-rejections <approved>', 'true to approve the rejections, false to refuse')
     .option('--no-input', 'never wait for an answer in this terminal')
     .action(
       async (
@@ -263,15 +269,18 @@ function createCommandLine(factory: Factory): Command {
         const state = await factory.startImplementation.getWorkflowRunById(runId)
         const step = suspendedStepName(state?.steps)
         if (step === 'implement' && options.answer === undefined) throw new MissingAnswer(issue)
-        if (step === 'address-feedback' && options.approveRejections === undefined) {
-          throw new MissingApproval(issue)
-        }
         const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
-        await follow(factory.startImplementation, run, () => resumeStep(run, step, options), {
-          issue: issueNumberText(issue),
-          issueUrl: issueUrlOf(factory.repositoryUrl, issue),
-          interactive: options.input,
-        })
+        await follow(
+          factory.startImplementation,
+          factory.reviewCycle,
+          run,
+          () => resumeStep(run, step, options),
+          {
+            issue: issueNumberText(issue),
+            issueUrl: issueUrlOf(factory.repositoryUrl, issue),
+            interactive: options.input,
+          },
+        )
       },
     )
 
@@ -337,6 +346,7 @@ function createCommandLine(factory: Factory): Command {
         if (answer.trim() === 'exit') break
         await follow(
           factory.startImplementation,
+          factory.reviewCycle,
           run,
           () => run.resume({ step: 'implement', resumeData: { answer } }),
           {
@@ -361,11 +371,12 @@ type RunContext = {
 
 async function follow(
   workflow: Workflow,
+  nested: Workflow,
   run: Run,
   begin: () => Promise<unknown>,
   context: RunContext,
 ): Promise<void> {
-  const stop = watch(workflow, run.runId)
+  const stop = watch(workflow, nested, run.runId)
   const outcome: { current: unknown } = { current: await begin() }
   for (;;) {
     if (!isOutcome(outcome.current)) {
@@ -413,13 +424,13 @@ type StepTiming = {
 }
 
 async function reportNested(
-  workflow: Workflow,
+  reviewCycle: Workflow,
   runId: string,
   timings: Map<string, StepTiming>,
 ): Promise<void> {
   for (const cycle of [1, 2, 3]) {
     const nestedId = `${runId}-review-${String(cycle)}`
-    const state = await workflow.getWorkflowRunById(nestedId)
+    const state = await reviewCycle.getWorkflowRunById(nestedId)
     if (state === null) continue
     reportSteps(state.steps, timings, nestedId, '    ')
   }
@@ -489,7 +500,7 @@ function duration(from: number, to: number): string {
   return `${String(minutes)}m ${String(seconds % 60).padStart(2, '0')}s`
 }
 
-function watch(workflow: Workflow, runId: string): () => Promise<void> {
+function watch(workflow: Workflow, nested: Workflow, runId: string): () => Promise<void> {
   const timings = new Map<string, StepTiming>()
   const control = { stopped: false, ticking: false }
   const tick = async (): Promise<void> => {
@@ -498,7 +509,7 @@ function watch(workflow: Workflow, runId: string): () => Promise<void> {
     try {
       const state = await workflow.getWorkflowRunById(runId)
       reportSteps(state?.steps, timings)
-      await reportNested(workflow, runId, timings)
+      await reportNested(nested, runId, timings)
     } finally {
       control.ticking = false
     }
@@ -747,31 +758,14 @@ function suspendedStepName(steps: unknown): string | null {
   return null
 }
 
-function resumeStep(
-  run: Run,
-  step: string | null,
-  options: { answer?: string; approveRejections?: string },
-): Promise<unknown> {
+function resumeStep(run: Run, step: string | null, options: { answer?: string }): Promise<unknown> {
   if (step === 'implement' && options.answer !== undefined) {
     return run.resume({ step: 'implement', resumeData: { answer: options.answer } })
   }
   if (step === 'address-feedback') {
-    return run.resume({
-      step: 'address-feedback',
-      resumeData: { approved: options.approveRejections === 'true' },
-    })
+    return run.resume({ step: 'address-feedback' })
   }
   return run.resume({})
-}
-
-/** @riviere-role cli-error */
-class MissingApproval extends Error {
-  constructor(issue: string) {
-    super(
-      `The implementer wants to reject a finding on issue ${issue}. Run: pnpm factory resume ${issue} --approve-rejections true, or --approve-rejections false.`,
-    )
-    this.name = 'MissingApproval'
-  }
 }
 
 /** @riviere-role cli-error */
