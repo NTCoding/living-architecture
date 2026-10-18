@@ -200,6 +200,19 @@ function createCommandLine(factory: Factory): Command {
       },
     )
 
+  program
+    .command('plan')
+    .argument('<issue>')
+    .action(async (issue: string) => {
+      const runId = await newestRunId(
+        factory.startImplementation,
+        `issue-${issueNumberText(issue)}`,
+      )
+      const state = await factory.startImplementation.getWorkflowRunById(runId)
+      const plan = planOf(state?.steps?.['draft-plan'])
+      process.stdout.write(plan === null ? `No plan is waiting for issue ${issue}.\n` : `${plan}\n`)
+    })
+
   program.command('status').action(async () => {
     const runs = await factory.startImplementation.listWorkflowRuns({ status: 'suspended' })
     for (const run of runs.runs) {
@@ -250,6 +263,15 @@ async function suspendedQuestion(workflow: Workflow, runId: string): Promise<str
   if (executed === undefined) return null
   const step = Array.isArray(executed) ? executed[0] : executed
   return questionOf(step?.suspendPayload) ?? null
+}
+
+function planOf(executed: unknown): string | null {
+  const step: unknown = Array.isArray(executed) ? executed[0] : executed
+  if (!isRecord(step) || !('output' in step)) return null
+  const output = step['output']
+  if (!isRecord(output) || !('planMarkdown' in output)) return null
+  const plan = output['planMarkdown']
+  return typeof plan === 'string' ? plan : null
 }
 
 function questionOf(payload: unknown): string | undefined {

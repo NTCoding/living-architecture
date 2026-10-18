@@ -82,7 +82,7 @@ const pullRequestDraftSchema = z.object({
     'test',
   ]),
   commitScope: z.string().regex(/^[a-z0-9-]{1,20}$/),
-  subject: z.string().min(1),
+  subject: z.string().min(1).max(50),
   description: z.string().min(1),
   problem: z.string().min(1),
   acceptanceCriteria: z.string().min(1),
@@ -829,7 +829,8 @@ function pullRequestPrompt(state: RunState): string {
     'Fill every field. The description is one short paragraph. The problem says why the',
     'change is needed, in the words of the issue. The acceptance criteria are the ones the',
     'issue asks for, as a list. Key changes are the files and what changed in them.',
-    'Architectural impact says what a reviewer should know, or "None" when there is none.',
+    'The subject is one line, under 50 characters. Architectural impact says what a',
+    'reviewer should know, or "None" when there is none.',
     'Validation says what was run and what it reported. Notes carries anything the reviewer',
     'needs, or "None". The commit scope is one lower case word naming the area.',
   ].join('\n')
