@@ -9,10 +9,10 @@ describe('InstallDependencies', () => {
       installed.push(request.worktreePath)
     })
 
-    const result = await command.execute({ worktree })
+    const result = await command.execute(worktree)
 
-    expect(result.worktreePath).toBe(worktree.path())
-    expect(installed).toStrictEqual([worktree.path()])
+    expect(result.worktreePath).toBe(worktree.worktreePath)
+    expect(installed).toStrictEqual([worktree.worktreePath])
   })
 
   it('fails when the install fails', async () => {
@@ -20,6 +20,6 @@ describe('InstallDependencies', () => {
       throw new StubFailure('lockfile mismatch')
     })
 
-    await expect(command.execute({ worktree })).rejects.toThrow('lockfile mismatch')
+    await expect(command.execute(worktree)).rejects.toThrow('lockfile mismatch')
   })
 })

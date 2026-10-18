@@ -8,9 +8,10 @@ describe('VerifyWork', () => {
       checks: [{ name: 'lint', passed: true }],
     }))
 
-    const result = await command.execute({ worktree })
+    const result = await command.execute(worktree)
 
-    expect(result.verification.isGreen()).toBe(true)
+    expect(result.green).toBe(true)
+    expect(result.checks).toStrictEqual([{ name: 'lint', passed: true }])
   })
 
   it('names the check that failed', async () => {
@@ -21,8 +22,11 @@ describe('VerifyWork', () => {
       ],
     }))
 
-    const result = await command.execute({ worktree })
+    const result = await command.execute(worktree)
 
-    expect(result.verification.failures().map((check) => check.name())).toStrictEqual(['test'])
+    expect(result.green).toBe(false)
+    expect(result.checks.filter((check) => !check.passed).map((check) => check.name)).toStrictEqual(
+      ['test'],
+    )
   })
 })

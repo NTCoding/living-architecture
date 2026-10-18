@@ -10,18 +10,18 @@ describe('PublishReviewFindings', () => {
       return { commentId: 991 }
     })
 
-    const result = await command.execute({ pullRequest, findings: [finding] })
+    const result = await command.execute({ ...pullRequest, findings: [finding] })
 
     expect(postedBodies).toStrictEqual([
       '[code-review] **SD-005** A domain decision sits in the adapter.',
     ])
-    expect(result.posted[0]?.commentId()).toBe(991)
+    expect(result.posted).toStrictEqual([{ file: 'src/order.ts', line: 12, commentId: 991 }])
   })
 
   it('posts nothing when there are no findings', async () => {
     const command = new PublishReviewFindings(async () => ({ commentId: 1 }))
 
-    const result = await command.execute({ pullRequest, findings: [] })
+    const result = await command.execute({ ...pullRequest, findings: [] })
 
     expect(result.posted).toStrictEqual([])
   })

@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@living-architecture/dev-workflow-v3-domain-model": "workspace:*",
+    "@mastra/core": "1.75.0",
     "zod": "^3.23.0"
   }
 }

@@ -20,10 +20,10 @@ describe('PrepareBranch', () => {
       }),
     )
 
-    const result = await command.execute({ issue, worktreesDirectory: '/worktrees' })
+    const result = await command.execute(issue)
 
-    expect(result.worktree.path()).toBe('/worktrees/issue-455-add-a-review-cycle')
-    expect(result.worktree.branch()).toBe('issue-455-add-a-review-cycle')
+    expect(result.worktreePath).toBe('/worktrees/issue-455-add-a-review-cycle')
+    expect(result.branch).toBe('issue-455-add-a-review-cycle')
   })
 
   it('fails when the worktree cannot be created', async () => {
@@ -31,8 +31,6 @@ describe('PrepareBranch', () => {
       throw new StubFailure('the branch already exists')
     })
 
-    await expect(command.execute({ issue, worktreesDirectory: '/worktrees' })).rejects.toThrow(
-      'the branch already exists',
-    )
+    await expect(command.execute(issue)).rejects.toThrow('the branch already exists')
   })
 })

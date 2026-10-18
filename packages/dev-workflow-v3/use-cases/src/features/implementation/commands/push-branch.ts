@@ -1,9 +1,10 @@
-import type { WorktreeReference } from '@living-architecture/dev-workflow-v3-domain-model'
+import { BranchName } from '@living-architecture/dev-workflow-v3-domain-model'
 import type { PushBranch as PushBranchPort } from '@living-architecture/dev-workflow-v3-domain-model/domain/ports/push-branch'
 
 /** @riviere-role command-use-case-input */
 export interface PushBranchInput {
-  readonly worktree: WorktreeReference
+  readonly worktreePath: string
+  readonly branch: string
 }
 
 /** @riviere-role command-use-case-result */
@@ -16,10 +17,8 @@ export class PushBranch {
   constructor(private readonly pushBranch: PushBranchPort) {}
 
   async execute(input: PushBranchInput): Promise<PushBranchResult> {
-    await this.pushBranch({
-      worktreePath: input.worktree.path(),
-      branch: input.worktree.branch(),
-    })
-    return { branch: input.worktree.branch() }
+    const branch = BranchName.parse(input.branch)
+    await this.pushBranch({ worktreePath: input.worktreePath, branch: branch.value() })
+    return { branch: branch.value() }
   }
 }

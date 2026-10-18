@@ -9,7 +9,7 @@ describe('CommentOnPullRequest', () => {
       comments.push(`${request.pullRequestNumber}: ${request.body}`)
     })
 
-    const result = await command.execute({ pullRequest, body: 'Ready for a person.' })
+    const result = await command.execute({ ...pullRequest, body: 'Ready for a person.' })
 
     expect(result.pullRequestNumber).toBe(549)
     expect(comments).toStrictEqual(['549: Ready for a person.'])
@@ -20,6 +20,8 @@ describe('CommentOnPullRequest', () => {
       throw new StubFailure('not logged in')
     })
 
-    await expect(command.execute({ pullRequest, body: 'Ready.' })).rejects.toThrow('not logged in')
+    await expect(command.execute({ ...pullRequest, body: 'Ready.' })).rejects.toThrow(
+      'not logged in',
+    )
   })
 })

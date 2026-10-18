@@ -64,23 +64,8 @@ src/
 ├── infra/
 │   └── cli/
 │       └── presentation/
-├── mastra/
-│   ├── agents/
-│   │   └── {agent}/
-│   ├── workflows/
-│   └── workspace.ts
 └── shell/
 ```
-
-`/mastra` holds the workflow graphs, the agents and the workspace configuration of an
-app whose workflow runs on Mastra. These are neither shell nor use cases. A workflow
-graph is a declared sequence of steps, an agent is a model plus its tools and prompt,
-and the workspace is where an agent runs commands. The roles are
-`workflow-definition`, `agent-configuration` and `workspace-configuration`.
-
-`/mastra` may import root `infra` and the commands, queries, adapters, external
-clients and domain types of any subdomain. It may not import `features` or `shell`.
-`shell` wires the app and constructs the `Mastra` instance, then starts it.
 
 Features are isolated. Code in one feature cannot import another feature. A feature may import root `infra` and commands or queries exposed by subdomain use-case packages.
 

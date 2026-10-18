@@ -1,9 +1,9 @@
 import { LocalFilesystem, LocalSandbox, Workspace, WORKSPACE_TOOLS } from '@mastra/core/workspace'
 
 /**
- * @riviere-role workspace-configuration
+ * @riviere-role external-client-service
  */
-export function createImplementationWorkspace(worktreePath: string): Workspace {
+export function createWorkspace(worktreePath: string): Workspace {
   return new Workspace({
     filesystem: new LocalFilesystem({ basePath: worktreePath }),
     sandbox: new LocalSandbox({ workingDirectory: worktreePath }),
@@ -11,8 +11,7 @@ export function createImplementationWorkspace(worktreePath: string): Workspace {
       hooks: {
         beforeToolCall: ({ toolName, input }) => {
           if (toolName !== WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND) return undefined
-          const command = commandOf(input)
-          if (!isReservedForTheWorkflow(command)) return undefined
+          if (!isReservedForTheWorkflow(commandOf(input))) return undefined
           return {
             proceed: false,
             output: 'Refused: the workflow pushes the branch and opens the pull request, not you.',
@@ -25,7 +24,7 @@ export function createImplementationWorkspace(worktreePath: string): Workspace {
 
 function commandOf(input: unknown): string {
   if (typeof input === 'object' && input !== null && 'command' in input) {
-    const command = input.command
+    const command = input['command']
     if (typeof command === 'string') return command
   }
   return ''

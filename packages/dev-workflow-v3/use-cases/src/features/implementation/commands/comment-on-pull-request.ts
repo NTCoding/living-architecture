@@ -1,9 +1,8 @@
-import type { PullRequestReference } from '@living-architecture/dev-workflow-v3-domain-model'
 import type { CommentOnPullRequest as CommentOnPullRequestPort } from '@living-architecture/dev-workflow-v3-domain-model/domain/ports/comment-on-pull-request'
 
 /** @riviere-role command-use-case-input */
 export interface CommentOnPullRequestInput {
-  readonly pullRequest: PullRequestReference
+  readonly pullRequestNumber: number
   readonly body: string
 }
 
@@ -18,9 +17,9 @@ export class CommentOnPullRequest {
 
   async execute(input: CommentOnPullRequestInput): Promise<CommentOnPullRequestResult> {
     await this.commentOnPullRequest({
-      pullRequestNumber: input.pullRequest.number(),
+      pullRequestNumber: input.pullRequestNumber,
       body: input.body,
     })
-    return { pullRequestNumber: input.pullRequest.number() }
+    return { pullRequestNumber: input.pullRequestNumber }
   }
 }

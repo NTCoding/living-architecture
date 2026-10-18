@@ -1,48 +1,55 @@
 #!/usr/bin/env node
 import { execFile } from 'node:child_process'
-import { mkdirSync, readdirSync } from 'node:fs'
+import { mkdirSync } from 'node:fs'
 import { createInterface } from 'node:readline'
 import { promisify } from 'node:util'
 import { Command } from 'commander'
-import { Mastra } from '@mastra/core'
-import { LibSQLStore } from '@mastra/libsql'
-import { Memory } from '@mastra/memory'
-import { IssueNumber, ModelIdentifier } from '@living-architecture/dev-workflow-v3-domain-model'
-import { InstallDependencies } from '@living-architecture/dev-workflow-v3-use-cases/commands/install-dependencies'
-import { PrepareBranch } from '@living-architecture/dev-workflow-v3-use-cases/commands/prepare-branch'
-import { VerifyWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/verify-work'
-import { CommitWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/commit-work'
-import { PushBranch } from '@living-architecture/dev-workflow-v3-use-cases/commands/push-branch'
-import { OpenPullRequest } from '@living-architecture/dev-workflow-v3-use-cases/commands/open-pull-request'
-import { prepareWorktreeWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/prepare-worktree'
-import { commitWorkWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/commit-work'
-import { pushBranchWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/push-branch'
-import { readIssueWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-issue'
-import { installDependenciesWithPnpm } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/install-dependencies'
-import { readPullRequestDiffWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-pull-request-diff'
-import { publishReviewFindingWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/publish-review-finding'
-import { waitForReviewerWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/wait-for-reviewer'
-import { commentOnPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/comment-on-pull-request'
-import { ReadPullRequestDiff } from '@living-architecture/dev-workflow-v3-use-cases/commands/read-pull-request-diff'
-import { PublishReviewFindings } from '@living-architecture/dev-workflow-v3-use-cases/commands/publish-review-findings'
+import type { Workflow } from '@mastra/core/workflows'
+import { BuildWorkflow } from '@living-architecture/dev-workflow-v3-use-cases/commands/build-workflow'
 import { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
 import { CommentOnPullRequest } from '@living-architecture/dev-workflow-v3-use-cases/commands/comment-on-pull-request'
-import { openPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/open-pull-request'
+import { CommitWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/commit-work'
+import { InstallDependencies } from '@living-architecture/dev-workflow-v3-use-cases/commands/install-dependencies'
+import { OpenPullRequest } from '@living-architecture/dev-workflow-v3-use-cases/commands/open-pull-request'
+import { PrepareBranch } from '@living-architecture/dev-workflow-v3-use-cases/commands/prepare-branch'
+import { PublishReviewFindings } from '@living-architecture/dev-workflow-v3-use-cases/commands/publish-review-findings'
+import { PushBranch } from '@living-architecture/dev-workflow-v3-use-cases/commands/push-branch'
+import { ReadPullRequestDiff } from '@living-architecture/dev-workflow-v3-use-cases/commands/read-pull-request-diff'
+import { VerifyWork } from '@living-architecture/dev-workflow-v3-use-cases/commands/verify-work'
+import { commitWorkWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/commit-work'
+import { installDependenciesWithPnpm } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/install-dependencies'
+import { prepareWorktreeWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/prepare-worktree'
+import { pushBranchWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/push-branch'
 import { runProjectChecksWithCommands } from '@living-architecture/dev-workflow-v3-use-cases/adapters/checks/run-project-checks'
+import { commentOnPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/comment-on-pull-request'
+import { openPullRequestWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/open-pull-request'
+import { publishReviewFindingWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/publish-review-finding'
+import { readIssueWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-issue'
+import { readPullRequestDiffWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-pull-request-diff'
+import { waitForReviewerWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/wait-for-reviewer'
+import { adaptWorkflowToMastra } from '@living-architecture/dev-workflow-v3-use-cases/adapters/mastra/adapt-workflow'
 import type {
   CommandOutput,
   CommandRequest,
 } from '@living-architecture/dev-workflow-v3-use-cases/external-clients/process/run-command'
-import { createStartImplementationWorkflow } from '../mastra/workflows/start-implementation'
-import { createPlannerAgent } from '../mastra/agents/planner'
-import { createImplementerAgent } from '../mastra/agents/implementer'
-import { createReviewerAgent } from '../mastra/agents/reviewer'
-import { createReviewCycleWorkflow } from '../mastra/workflows/review-cycle'
-import { createImplementationWorkspace } from '../mastra/workspace'
+import { createAgentFactory } from '../infra/external-clients/mastra/create-agent'
+import { createAgentGeneration } from '../infra/external-clients/mastra/generate-with-agent'
+import {
+  createMastraInstance,
+  createMastraStorage,
+} from '../infra/external-clients/mastra/create-mastra'
+import { createAskUserTool } from '../infra/external-clients/mastra/ask-user-tool'
 import { readRepositoryGuidance } from '../infra/external-clients/repository/read-guidance'
 import { readReviewerInstructions } from '../infra/external-clients/repository/read-reviewer-instructions'
 
 const execFileAsync = promisify(execFile)
+
+type Factory = {
+  readonly startImplementation: Workflow
+  readonly reviewCycle: Workflow
+  readonly workingDirectory: string
+  readonly generation: ReturnType<typeof createAgentGeneration>
+}
 
 async function runProcess(request: CommandRequest): Promise<CommandOutput> {
   try {
@@ -67,77 +74,88 @@ export async function main(argv: readonly string[]): Promise<number> {
   const workingDirectory = process.cwd()
   loadLocalEnvironment(workingDirectory)
   mkdirSync(`${workingDirectory}/.factory`, { recursive: true })
-  const storage = new LibSQLStore({ id: 'factory', url: 'file:.factory/mastra.db' })
-  const memory = new Memory({ storage })
-  const reviewPorts = {
-    readDiff: new ReadPullRequestDiff(
-      readPullRequestDiffWithGithub({ runCommand: runProcess, workingDirectory }),
-    ),
-    publishFindings: new PublishReviewFindings(
-      publishReviewFindingWithGithub({ runCommand: runProcess, workingDirectory }),
-    ),
-    closeCycle: new CloseReviewCycle(),
+  const factory = await buildFactory(workingDirectory)
+  const program = createCommandLine(factory)
+  try {
+    await program.parseAsync(['node', 'factory', ...argv])
+    return 0
+  } catch (error) {
+    const exitCode = commanderExitCode(error)
+    if (exitCode !== undefined) return exitCode
+    process.stderr.write(`${String(error)}\n`)
+    return 1
+  }
+}
+
+async function buildFactory(workingDirectory: string): Promise<Factory> {
+  const { storage, memory } = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
+  const generation = createAgentGeneration({
+    agentFor: createAgentFactory({ memory, tools: { askUser: createAskUserTool() } }),
+  })
+  const runCommand = runProcess
+  const worktreesDirectory = `${workingDirectory}/.factory/worktrees`
+  const build = await new BuildWorkflow().execute({
+    loadIssue: readIssueWithGithub({ runCommand, workingDirectory }),
+    prepareBranch: (request) =>
+      new PrepareBranch(
+        prepareWorktreeWithGit({
+          runCommand,
+          repositoryPath: workingDirectory,
+          worktreesDirectory,
+        }),
+      ).execute(request),
+    installDependencies: async (request) => {
+      await new InstallDependencies(installDependenciesWithPnpm({ runCommand })).execute(request)
+    },
+    readGuidance: () => readRepositoryGuidance(workingDirectory),
+    readReviewerInstructions: (reviewer) => readReviewerInstructions(workingDirectory, reviewer),
+    generate: generation,
+    verifyWork: (request) =>
+      new VerifyWork(runProjectChecksWithCommands({ runCommand })).execute(request),
+    commitWork: (request) => new CommitWork(commitWorkWithGit({ runCommand })).execute(request),
+    pushBranch: async (request) => {
+      await new PushBranch(pushBranchWithGit({ runCommand })).execute(request)
+    },
+    openPullRequest: (request) =>
+      new OpenPullRequest(openPullRequestWithGithub({ runCommand })).execute(request),
+    commentOnPullRequest: async (request) => {
+      await new CommentOnPullRequest(
+        commentOnPullRequestWithGithub({ runCommand, workingDirectory }),
+      ).execute(request)
+    },
+    readPullRequestDiff: (request) =>
+      new ReadPullRequestDiff(
+        readPullRequestDiffWithGithub({ runCommand, workingDirectory }),
+      ).execute(request),
+    closeReviewCycle: (request) => Promise.resolve(new CloseReviewCycle().execute(request)),
+    publishReviewFindings: (request) =>
+      new PublishReviewFindings(
+        publishReviewFindingWithGithub({ runCommand, workingDirectory }),
+      ).execute(request),
     waitForReviewer: waitForReviewerWithGithub({
-      runCommand: runProcess,
+      runCommand,
       workingDirectory,
       wait: () => new Promise((resolve) => setTimeout(resolve, 15_000)),
       attempts: 40,
     }),
-  }
-  const workflow = createStartImplementationWorkflow({
-    readIssue: readIssueWithGithub({ runCommand: runProcess, workingDirectory }),
-    readGuidance: () => readRepositoryGuidance(workingDirectory),
-    plannerFor: (model) => createPlannerAgent(ModelIdentifier.parse(model)),
-    implementerFor: (model, worktreePath) =>
-      createImplementerAgent({
-        model: ModelIdentifier.parse(model),
-        workspace: createImplementationWorkspace(worktreePath),
-        memory,
-      }),
-    prepareBranch: new PrepareBranch(
-      prepareWorktreeWithGit({
-        runCommand: runProcess,
-        repositoryPath: workingDirectory,
-        worktreesDirectory: `${workingDirectory}/.factory/worktrees`,
-      }),
-    ),
-    installDependencies: new InstallDependencies(
-      installDependenciesWithPnpm({ runCommand: runProcess }),
-    ),
-    verifyWork: new VerifyWork(runProjectChecksWithCommands({ runCommand: runProcess })),
-    commitWork: new CommitWork(commitWorkWithGit({ runCommand: runProcess })),
-    pushBranch: new PushBranch(pushBranchWithGit({ runCommand: runProcess })),
-    openPullRequest: new OpenPullRequest(openPullRequestWithGithub({ runCommand: runProcess })),
-    ...reviewPorts,
-    commentOnPullRequest: new CommentOnPullRequest(
-      commentOnPullRequestWithGithub({ runCommand: runProcess, workingDirectory }),
-    ),
+    adaptWorkflow: adaptWorkflowToMastra(),
   })
-  const reviewCycle = createReviewCycleWorkflow({
-    ...reviewPorts,
-    verifyWork: new VerifyWork(runProjectChecksWithCommands({ runCommand: runProcess })),
-    commitWork: new CommitWork(commitWorkWithGit({ runCommand: runProcess })),
-    pushBranch: new PushBranch(pushBranchWithGit({ runCommand: runProcess })),
-    readGuidance: () => readRepositoryGuidance(workingDirectory),
-    reviewerFor: async (reviewer, model, worktreePath) =>
-      createReviewerAgent({
-        model: ModelIdentifier.parse(model),
-        reviewer,
-        instructions: await readReviewerInstructions(workingDirectory, reviewer),
-        workspace: createImplementationWorkspace(worktreePath),
-      }),
-    implementerFor: (model, worktreePath) =>
-      createImplementerAgent({
-        model: ModelIdentifier.parse(model),
-        workspace: createImplementationWorkspace(worktreePath),
-        memory,
-      }),
-  })
-  const mastra = new Mastra({
-    workflows: { 'start-implementation': workflow, 'review-cycle': reviewCycle },
+  createMastraInstance({
     storage,
+    workflows: {
+      'start-implementation': build.startImplementation,
+      'review-cycle': build.reviewCycle,
+    },
   })
+  return {
+    startImplementation: build.startImplementation,
+    reviewCycle: build.reviewCycle,
+    workingDirectory,
+    generation,
+  }
+}
 
+function createCommandLine(factory: Factory): Command {
   const program = new Command().name('factory')
 
   program
@@ -145,17 +163,15 @@ export async function main(argv: readonly string[]): Promise<number> {
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
     .action(async (issue: string, options: { model: string }) => {
-      const model = ModelIdentifier.parse(options.model)
-      const issueNumber = IssueNumber.parseFromText(issue)
-      const run = await workflow.createRun({
-        runId: await nextRunId(workflow, issueNumber.runId()),
+      const run = await factory.startImplementation.createRun({
+        runId: await nextRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
         resourceId: 'factory',
       })
       const result = await run.start({
         inputData: {
-          issueNumber: issueNumber.value(),
-          model: model.value(),
-          worktreesDirectory: `${workingDirectory}/.factory/worktrees`,
+          issueNumber: issueNumber(issue),
+          model: options.model,
+          worktreesDirectory: `${factory.workingDirectory}/.factory/worktrees`,
         },
       })
       report(result.status, run.runId, 'The run is waiting for a person. Use resume.', 3)
@@ -169,10 +185,8 @@ export async function main(argv: readonly string[]): Promise<number> {
     .option('--answer <answer>', 'the answer to a blocker the implementer raised')
     .action(
       async (issue: string, options: { model: string; approved: string; answer?: string }) => {
-        ModelIdentifier.parse(options.model)
-        const issueNumber = IssueNumber.parseFromText(issue)
-        const run = await workflow.createRun({
-          runId: await newestRunId(workflow, issueNumber.runId()),
+        const run = await factory.startImplementation.createRun({
+          runId: await newestRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
           resourceId: 'factory',
         })
         const result =
@@ -187,7 +201,7 @@ export async function main(argv: readonly string[]): Promise<number> {
     )
 
   program.command('status').action(async () => {
-    const runs = await workflow.listWorkflowRuns({ status: 'suspended' })
+    const runs = await factory.startImplementation.listWorkflowRuns({ status: 'suspended' })
     for (const run of runs.runs) {
       process.stdout.write(`${run.runId} has waited since ${String(run.createdAt)}\n`)
     }
@@ -195,7 +209,7 @@ export async function main(argv: readonly string[]): Promise<number> {
   })
 
   program.command('runs').action(async () => {
-    const runs = await workflow.listWorkflowRuns()
+    const runs = await factory.startImplementation.listWorkflowRuns()
     for (const run of runs.runs) {
       process.stdout.write(`${run.runId} ${snapshotStatus(run.snapshot)}\n`)
     }
@@ -206,59 +220,71 @@ export async function main(argv: readonly string[]): Promise<number> {
     .command('chat')
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
-    .action(async (issue: string, options: { model: string }) => {
-      const model = ModelIdentifier.parse(options.model)
-      const issueNumber = IssueNumber.parseFromText(issue)
-      const thread = `issue-${issueNumber.value()}`
-      const implementer = createImplementerAgent({
-        model,
-        workspace: createImplementationWorkspace(worktreeFor(issueNumber.value())),
-        memory,
-      })
-      const suspended = await implementer.listSuspendedRuns({
-        threadId: thread,
-        resourceId: 'factory',
-      })
-      if (suspended.runs.length === 0) {
+    .action(async (issue: string) => {
+      const runId = await newestRunId(
+        factory.startImplementation,
+        `issue-${issueNumberText(issue)}`,
+      )
+      const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
+      const question = await suspendedQuestion(factory.startImplementation, runId)
+      if (question === null) {
         process.stdout.write(`No conversation is open for issue ${issue}.\n`)
         return
       }
+      process.stdout.write(`${issue}  ${question}\n`)
       const lines = createInterface({ input: process.stdin, output: process.stdout })
       for await (const line of lines) {
         if (line.trim() === 'exit') break
-        const response = await implementer.generate(line, {
-          memory: { thread, resource: 'factory' },
-          autoResumeSuspendedTools: true,
-        })
-        process.stdout.write(`${response.text}\n`)
+        const result = await run.resume({ step: 'implement', resumeData: { answer: line } })
+        process.stdout.write(`${runId}: ${result.status}\n`)
+        if (result.status !== 'suspended') break
       }
     })
 
-  void mastra
-  try {
-    await program.parseAsync(['node', 'factory', ...argv])
-    return 0
-  } catch (error) {
-    const exitCode = commanderExitCode(error)
-    if (exitCode !== undefined) return exitCode
-    process.stderr.write(`${String(error)}\n`)
-    return 1
+  return program
+}
+
+async function suspendedQuestion(workflow: Workflow, runId: string): Promise<string | null> {
+  const state = await workflow.getWorkflowRunById(runId)
+  const executed = state?.steps?.['implement']
+  if (executed === undefined) return null
+  const step = Array.isArray(executed) ? executed[0] : executed
+  return questionOf(step?.suspendPayload) ?? null
+}
+
+function questionOf(payload: unknown): string | undefined {
+  if (!isRecord(payload) || !('question' in payload)) return undefined
+  const question = payload['question']
+  return typeof question === 'string' ? question : undefined
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function issueNumber(value: string): number {
+  if (!/^\d+$/.test(value.trim())) throw new InvalidIssueNumber(value)
+  return Number(value.trim())
+}
+
+function issueNumberText(value: string): string {
+  return String(issueNumber(value))
+}
+
+/** @riviere-role cli-error */
+class InvalidIssueNumber extends Error {
+  constructor(value: string) {
+    super(`An issue number is a positive integer: ${value}`)
+    this.name = 'InvalidIssueNumber'
   }
 }
 
-async function existingRunIds(workflow: {
-  listWorkflowRuns: (args?: object) => Promise<{ runs: readonly { runId: string }[] }>
-}): Promise<readonly string[]> {
+async function existingRunIds(workflow: Workflow): Promise<readonly string[]> {
   const runs = await workflow.listWorkflowRuns({})
   return runs.runs.map((run) => run.runId)
 }
 
-async function nextRunId(
-  workflow: {
-    listWorkflowRuns: (args?: object) => Promise<{ runs: readonly { runId: string }[] }>
-  },
-  base: string,
-): Promise<string> {
+async function nextRunId(workflow: Workflow, base: string): Promise<string> {
   const ids = await existingRunIds(workflow)
   if (!ids.includes(base)) return base
   const suffixes = ids
@@ -269,12 +295,7 @@ async function nextRunId(
   return `${base}-${highest + 1}`
 }
 
-async function newestRunId(
-  workflow: {
-    listWorkflowRuns: (args?: object) => Promise<{ runs: readonly { runId: string }[] }>
-  },
-  base: string,
-): Promise<string> {
+async function newestRunId(workflow: Workflow, base: string): Promise<string> {
   const ids = await existingRunIds(workflow)
   const numbered = ids
     .map((id) => ({ id, number: runNumber(id, base) }))
@@ -291,15 +312,6 @@ function runNumber(id: string, base: string): number | undefined {
   if (!id.startsWith(`${base}-`)) return undefined
   const number = Number(id.slice(base.length + 1))
   return Number.isInteger(number) ? number : undefined
-}
-
-function worktreeFor(issueNumber: number): string {
-  const worktreesDirectory = `${process.cwd()}/.factory/worktrees`
-  const names = readdirSync(worktreesDirectory, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-  const name = names.find((entry) => entry.startsWith(`issue-${issueNumber}-`))
-  return name === undefined ? worktreesDirectory : `${worktreesDirectory}/${name}`
 }
 
 function loadLocalEnvironment(workingDirectory: string): void {
@@ -328,15 +340,15 @@ function isProcessFailure(error: unknown): error is {
 
 function commanderExitCode(error: unknown): number | undefined {
   if (typeof error === 'object' && error !== null && 'exitCode' in error) {
-    const exitCode = error.exitCode
+    const exitCode = error['exitCode']
     return typeof exitCode === 'number' ? exitCode : undefined
   }
   return undefined
 }
 
 function snapshotStatus(snapshot: unknown): string {
-  if (typeof snapshot !== 'object' || snapshot === null || !('status' in snapshot)) return 'unknown'
-  const status: unknown = snapshot['status']
+  if (!isRecord(snapshot) || !('status' in snapshot)) return 'unknown'
+  const status = snapshot['status']
   return typeof status === 'string' ? status : 'unknown'
 }
 

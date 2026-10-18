@@ -10,7 +10,7 @@ describe('ReadPullRequestDiff', () => {
       return { diff: 'diff --git a/x b/x' }
     })
 
-    const result = await command.execute({ pullRequest })
+    const result = await command.execute(pullRequest)
 
     expect(result.diff).toBe('diff --git a/x b/x')
     expect(numbers).toStrictEqual([549])

@@ -9,7 +9,7 @@ describe('PushBranch', () => {
       pushed.push(request.branch)
     })
 
-    const result = await command.execute({ worktree })
+    const result = await command.execute(worktree)
 
     expect(result.branch).toBe('issue-455-add-a-review-cycle')
     expect(pushed).toStrictEqual(['issue-455-add-a-review-cycle'])
@@ -20,6 +20,6 @@ describe('PushBranch', () => {
       throw new StubFailure('the remote refused the push')
     })
 
-    await expect(command.execute({ worktree })).rejects.toThrow('the remote refused the push')
+    await expect(command.execute(worktree)).rejects.toThrow('the remote refused the push')
   })
 })

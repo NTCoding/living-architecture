@@ -30,4 +30,30 @@ describe('CloseReviewCycle', () => {
       'bug-scanner',
     ])
   })
+
+  it('rejects a verdict from a reviewer that already approved', () => {
+    expect(() =>
+      new CloseReviewCycle().execute({
+        cycleNumber: 2,
+        statuses: { ...statuses, 'architecture-review': 'APPROVED' },
+        verdicts: [approvedVerdict],
+      }),
+    ).toThrow('already approved and is left out of later cycles')
+  })
+
+  it('rejects a verdict that approves and carries findings', () => {
+    expect(() =>
+      new CloseReviewCycle().execute({
+        cycleNumber: 2,
+        statuses,
+        verdicts: [
+          {
+            reviewer: 'architecture-review',
+            status: 'APPROVED',
+            findings: [{ file: 'a.ts', line: 1, rule: null, summary: 'A problem.' }],
+          },
+        ],
+      }),
+    ).toThrow('An approving verdict cannot carry findings.')
+  })
 })
