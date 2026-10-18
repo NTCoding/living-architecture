@@ -46,9 +46,23 @@ function planAnswer(needsInput = false, question: string | null = null) {
   }
 }
 
-function implementationAnswer(summary: string) {
+function resolutionsFrom(prompt: string) {
+  return [...prompt.matchAll(/comment (\d+)/g)].map((match) => ({
+    commentId: Number(match[1]),
+    outcome: 'addressed',
+    reason: null,
+  }))
+}
+
+function implementationAnswer(summary: string, resolutions: readonly unknown[] = []) {
   return {
-    object: { summary, blockedReason: null, allWorkComplete: true, allWorkCommitted: true },
+    object: {
+      summary,
+      blockedReason: null,
+      allWorkComplete: true,
+      allWorkCommitted: true,
+      resolutions,
+    },
     text: '',
     finishReason: 'stop',
     suspendPayload: null,
@@ -94,7 +108,9 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
     readGuidance: async () => 'the guidance',
     generate: async (request) => {
       if (request.agentId === 'planner') return planAnswer()
-      if (request.agentId === 'implementer') return implementationAnswer('the change')
+      if (request.agentId === 'implementer') {
+        return implementationAnswer('the change', resolutionsFrom(request.prompt))
+      }
       if (request.agentId === 'pull-request-writer') return pullRequestAnswer()
       return verdictAnswer('APPROVED', [])
     },
@@ -120,7 +136,13 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
       reviewersLeftOut: [],
       limitReached: request.cycleNumber >= 3,
     }),
-    publishReviewFindings: async () => ({ posted: [] }),
+    publishReviewFindings: async (request) => ({
+      posted: request.findings.map((finding, index) => ({
+        file: finding.file,
+        line: finding.line,
+        commentId: index + 1,
+      })),
+    }),
     waitForReviewer: async () => ({ reviewSeen: true, rateLimited: false, comments: [] }),
     replyToReviewComment: async () => undefined,
     ...overrides,
@@ -472,7 +494,7 @@ describe('BuildWorkflow', () => {
       expect.objectContaining({
         status: 'failed',
         error: expect.objectContaining({
-          message: expect.stringContaining('did not finish and the work is not committed'),
+          message: expect.stringContaining('did not finish the feedback'),
         }),
       }),
     )
@@ -529,7 +551,7 @@ describe('review cycle', () => {
         comments: [{ commentId: 4306, path: 'src/order.ts', line: 3, body: 'Use the port.' }],
       }),
       generate: async (request) => {
-        if (request.prompt.startsWith('Address every review finding')) {
+        if (request.prompt.startsWith('Here is the feedback')) {
           feedbackPrompts.push(request.prompt)
         }
         return stubs().generate(request)
@@ -539,7 +561,8 @@ describe('review cycle', () => {
 
     await run.start({ inputData: reviewInput() })
 
-    expect(feedbackPrompts).toStrictEqual([expect.stringContaining('src/order.ts:3 Use the port.')])
+    expect(feedbackPrompts[0]).toContain('src/order.ts:3')
+    expect(feedbackPrompts[0]).toContain('Use the port.')
   })
 
   it('does not approve when coderabbit rate limited the pull request', async () => {
@@ -606,7 +629,7 @@ describe('review cycle', () => {
     const replies: { readonly commentId: number; readonly body: string }[] = []
     const studio = await factoryFor({
       generate: async (request) =>
-        request.prompt.startsWith('Address every review finding')
+        request.prompt.startsWith('Here is the feedback')
           ? {
               object: {
                 blockedReason: null,
@@ -616,6 +639,7 @@ describe('review cycle', () => {
                   { commentId: 1, outcome: 'addressed', reason: null },
                   { commentId: 2, outcome: 'partly-addressed', reason: 'Left the actor alone.' },
                   { commentId: 3, outcome: 'not-addressed', reason: 'Conflicts with ADR-002.' },
+                  { commentId: 9, outcome: 'addressed', reason: null },
                 ],
               },
               text: '',
@@ -637,9 +661,9 @@ describe('review cycle', () => {
       }),
       publishReviewFindings: async () => ({
         posted: [
-          { file: 'src/order.ts', line: 3, commentId: 11 },
-          { file: 'src/order.ts', line: 4, commentId: 12 },
-          { file: 'src/order.ts', line: 5, commentId: 13 },
+          { file: 'src/order.ts', line: 3, commentId: 1 },
+          { file: 'src/order.ts', line: 4, commentId: 2 },
+          { file: 'src/order.ts', line: 5, commentId: 3 },
         ],
       }),
       replyToReviewComment: async (request) => {
@@ -648,7 +672,7 @@ describe('review cycle', () => {
     })
     const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
 
-    await run.start({
+    const started = await run.start({
       inputData: reviewInput({
         findings: [
           {
@@ -679,6 +703,21 @@ describe('review cycle', () => {
       }),
     })
 
+    expect(started).toStrictEqual(
+      expect.objectContaining({
+        status: 'suspended',
+        steps: expect.objectContaining({
+          'address-feedback': expect.objectContaining({
+            suspendPayload: expect.objectContaining({
+              rejections: [{ commentId: 3, reason: 'Conflicts with ADR-002.' }],
+            }),
+          }),
+        }),
+      }),
+    )
+
+    await run.resume({ step: 'address-feedback', resumeData: { approved: true } })
+
     expect(replies).toStrictEqual([
       { commentId: 1, body: '[dev-workflow-v3] Addressed in 4d83240f.\n\nFiles: src/order.ts' },
       {
@@ -689,6 +728,7 @@ describe('review cycle', () => {
         commentId: 3,
         body: '[dev-workflow-v3] Not changed in 4d83240f.\n\nFiles: src/order.ts\n\nConflicts with ADR-002.',
       },
+      { commentId: 9, body: '[dev-workflow-v3] Addressed in 4d83240f.\n\nFiles: src/order.ts' },
     ])
   })
 
@@ -696,7 +736,7 @@ describe('review cycle', () => {
     const replies: string[] = []
     const studio = await factoryFor({
       generate: async (request) =>
-        request.prompt.startsWith('Address every review finding')
+        request.prompt.startsWith('Here is the feedback')
           ? {
               object: {
                 blockedReason: null,
@@ -709,11 +749,7 @@ describe('review cycle', () => {
               suspendPayload: null,
             }
           : stubs().generate(request),
-      waitForReviewer: async () => ({
-        reviewSeen: true,
-        rateLimited: false,
-        comments: [{ commentId: 9, path: 'src/order.ts', line: 3, body: 'Use the port.' }],
-      }),
+      waitForReviewer: async () => ({ reviewSeen: true, rateLimited: false, comments: [] }),
       checkWorkCommitted: async () => ({
         clean: true,
         hasCommit: true,
@@ -745,10 +781,168 @@ describe('review cycle', () => {
     expect(replies).toStrictEqual(['[dev-workflow-v3] Addressed in 4d83240f.'])
   })
 
+  it('suspends when the agent does not answer every finding', async () => {
+    const studio = await factoryFor({
+      generate: async (request) =>
+        request.prompt.startsWith('Here is the feedback')
+          ? {
+              object: {
+                blockedReason: null,
+                allWorkComplete: true,
+                allWorkCommitted: true,
+                resolutions: [],
+              },
+              text: '',
+              finishReason: 'stop',
+              suspendPayload: null,
+            }
+          : stubs().generate(request),
+    })
+    const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
+
+    const started = await run.start({
+      inputData: reviewInput({
+        findings: [
+          {
+            reviewer: 'code-review',
+            file: 'src/order.ts',
+            line: 3,
+            rule: null,
+            summary: 'One.',
+            commentId: 1,
+          },
+        ],
+      }),
+    })
+
+    expect(started).toStrictEqual(
+      expect.objectContaining({
+        status: 'suspended',
+        steps: expect.objectContaining({
+          'address-feedback': expect.objectContaining({
+            suspendPayload: expect.objectContaining({ unaddressed: [1] }),
+          }),
+        }),
+      }),
+    )
+  })
+
+  it('suspends with the reason when the feedback is answered but the tree is not committed', async () => {
+    const studio = await factoryFor({
+      checkWorkCommitted: async () => ({
+        clean: false,
+        hasCommit: false,
+        sha: '',
+        status: ' M src/order.ts',
+        changedFiles: [],
+      }),
+    })
+    const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
+
+    const started = await run.start({
+      inputData: reviewInput({
+        findings: [
+          {
+            reviewer: 'code-review',
+            file: 'src/order.ts',
+            line: 3,
+            rule: null,
+            summary: 'One.',
+            commentId: 1,
+          },
+        ],
+      }),
+    })
+
+    expect(started).toStrictEqual(
+      expect.objectContaining({
+        status: 'suspended',
+        steps: expect.objectContaining({
+          'address-feedback': expect.objectContaining({
+            suspendPayload: expect.objectContaining({
+              unaddressed: [1],
+              reason: expect.stringContaining('did not finish the feedback'),
+            }),
+          }),
+        }),
+      }),
+    )
+  })
+
+  it('finishes when a finding has no comment to answer', async () => {
+    const studio = await factoryFor()
+    const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
+
+    const finished = await run.start({
+      inputData: reviewInput({
+        findings: [
+          {
+            reviewer: 'coderabbit',
+            file: 'src/order.ts',
+            line: 3,
+            rule: null,
+            summary: 'A comment with no id.',
+            commentId: null,
+          },
+        ],
+      }),
+    })
+
+    expect(finished.status).toBe('success')
+  })
+
+  it('asks for a reason when a rejection has none', async () => {
+    const studio = await factoryFor({
+      generate: async (request) =>
+        request.prompt.startsWith('Here is the feedback')
+          ? {
+              object: {
+                blockedReason: null,
+                allWorkComplete: true,
+                allWorkCommitted: true,
+                resolutions: [{ commentId: 1, outcome: 'not-addressed', reason: null }],
+              },
+              text: '',
+              finishReason: 'stop',
+              suspendPayload: null,
+            }
+          : stubs().generate(request),
+    })
+    const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
+
+    const started = await run.start({
+      inputData: reviewInput({
+        findings: [
+          {
+            reviewer: 'code-review',
+            file: 'src/order.ts',
+            line: 3,
+            rule: null,
+            summary: 'One.',
+            commentId: 1,
+          },
+        ],
+      }),
+    })
+
+    expect(started).toStrictEqual(
+      expect.objectContaining({
+        status: 'suspended',
+        steps: expect.objectContaining({
+          'address-feedback': expect.objectContaining({
+            suspendPayload: expect.objectContaining({
+              rejections: [{ commentId: 1, reason: 'No reason given.' }],
+            }),
+          }),
+        }),
+      }),
+    )
+  })
+
   it('stops the cycle when the implementer is blocked while addressing feedback', async () => {
     const studio = await factoryFor({
       generate: async (request) =>
-        request.prompt.startsWith('Address every review finding')
+        request.prompt.startsWith('Here is the feedback')
           ? {
               object: {
                 summary: 'blocked',

@@ -76,6 +76,16 @@ const blockerSuspendSchema = z.object({ question: z.string() })
 
 const blockerResumeSchema = z.object({ answer: z.string() })
 
+const unaddressedFeedbackSchema = z.object({
+  reason: z.string().default(''),
+  unaddressed: z.array(z.number().int().positive()).default([]),
+  rejections: z
+    .array(z.object({ commentId: z.number().int().positive(), reason: z.string() }))
+    .default([]),
+})
+
+const rejectionApprovalSchema = z.object({ approved: z.boolean() })
+
 const planSchema = z.object({
   markdown: z.string().min(1),
   needsInput: z.boolean(),
@@ -416,6 +426,33 @@ const REVIEWER_INSTRUCTIONS: Readonly<Record<ReviewerName, string>> = {
   'bug-scanner': BUG_SCANNER_INSTRUCTIONS,
 }
 
+const FEEDBACK_INSTRUCTIONS = `You address review feedback on a pull request in the software factory.
+
+The workflow gives you the feedback items. You do not fetch them, and you do not post to GitHub.
+
+## For each item
+
+- If it is a bug, a clear rule violation, or poor code, fix it.
+- If it is wrong or cannot be done, reject it with a specific technical reason. Never use "out of scope" or "nitpick" as the reason.
+- If it needs a design decision, use the ask-user tool and wait for the answer.
+
+## For a fix
+
+Say why the feedback is valid, what you changed, and how you verified it.
+
+## For a rejection
+
+State the specific technical reason. A person approves a rejection before the workflow posts it.
+
+## Rules
+
+- Answer every item. The workflow does not accept this step until you have one response for every item it gave you.
+- Commit your changes. Do not push and do not post to GitHub.
+- Do not resolve anything. The workflow posts the responses and resolves the threads.
+- Do not broaden the scope of the pull request without a person's approval.
+
+`
+
 const PULL_REQUEST_WRITER_INSTRUCTIONS = [
   'You are the pull request writer in a software factory workflow.',
   'Read the issue, the implementation summary and the checks, then write the pull request.',
@@ -726,9 +763,12 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           input,
           state: { ...state, baseSha: '' },
           firstPrompt: implementationPrompt(state, answer.success ? answer.data.answer : null),
+          instructions: IMPLEMENTER_INSTRUCTIONS,
+          requiredCommentIds: [],
           rounds: IMPLEMENTATION_ROUNDS,
           timeBudgetMs: IMPLEMENTATION_TIME_BUDGET_MS,
         })
+        if (implementation.kind === 'unfinished') throw new RunFailed(implementation.reason)
         if (implementation.kind === 'question') {
           return await suspend({ question: implementation.question })
         }
@@ -899,20 +939,22 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
       resumeSchema: null,
       run: async ({ data }) => {
         const state = reviewStateSchema.parse(data)
+        const findings = state.findings.filter((finding) => finding.reviewer !== CODERABBIT)
         const posted = await input.publishReviewFindings({
           pullRequestNumber: state.pullRequestNumber,
-          findings: state.findings.filter((finding) => finding.reviewer !== CODERABBIT),
+          findings,
         })
-        const ids = new Map(
-          posted.posted.map((entry) => [`${entry.file}:${entry.line}`, entry.commentId]),
-        )
-        return {
-          ...state,
-          findings: state.findings.map((finding) => ({
-            ...finding,
-            commentId: ids.get(`${finding.file}:${finding.line}`) ?? finding.commentId,
-          })),
-        }
+        const withIds = findings.map((finding, index) => {
+          const entry = posted.posted[index]
+          if (entry === undefined) {
+            throw new RunFailed(
+              `The finding ${finding.file}:${String(finding.line)} was not posted.`,
+            )
+          }
+          return { ...finding, commentId: entry.commentId }
+        })
+        const coderabbit = state.findings.filter((finding) => finding.reviewer === CODERABBIT)
+        return { ...state, findings: [...withIds, ...coderabbit] }
       },
     },
     {
@@ -937,31 +979,51 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
       id: 'address-feedback',
       inputSchema: reviewStateSchema,
       outputSchema: reviewStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
-      run: async ({ data }) => {
+      suspendSchema: unaddressedFeedbackSchema,
+      resumeSchema: rejectionApprovalSchema,
+      run: async ({ data, resumeData, suspend }) => {
         const state = reviewStateSchema.parse(data)
-        if (state.findings.length > 0) {
-          const feedback = await implementUntilCommitted({
-            input,
-            state: {
-              issueNumber: state.issueNumber,
-              model: state.model,
-              thinking: state.thinking,
-              worktreePath: state.worktreePath,
-              guidance: state.guidance,
-              baseSha: state.beforeSha,
-            },
-            firstPrompt: feedbackPrompt(state),
-            rounds: FEEDBACK_ROUNDS,
-            timeBudgetMs: FEEDBACK_TIME_BUDGET_MS,
-          })
-          if (feedback.kind === 'question') {
-            throw new RunFailed(`The implementer is blocked: ${feedback.question}`)
-          }
-          return { ...state, resolutions: feedback.resolutions }
+        const required = state.findings.flatMap((finding) =>
+          finding.commentId === null ? [] : [finding.commentId],
+        )
+        if (state.findings.length === 0) return state
+        const approval = rejectionApprovalSchema.safeParse(resumeData)
+        const feedback = await implementUntilCommitted({
+          input,
+          state: {
+            issueNumber: state.issueNumber,
+            model: state.model,
+            thinking: state.thinking,
+            worktreePath: state.worktreePath,
+            guidance: state.guidance,
+            baseSha: state.beforeSha,
+          },
+          firstPrompt: feedbackPrompt(state),
+          instructions: FEEDBACK_INSTRUCTIONS,
+          requiredCommentIds: required,
+          rounds: FEEDBACK_ROUNDS,
+          timeBudgetMs: FEEDBACK_TIME_BUDGET_MS,
+        })
+        if (feedback.kind === 'question') {
+          throw new RunFailed(`The implementer is blocked: ${feedback.question}`)
         }
-        return state
+        if (feedback.kind === 'unfinished') {
+          return await suspend({
+            reason: feedback.reason,
+            unaddressed: feedback.missing,
+            rejections: [],
+          })
+        }
+        const rejections = feedback.resolutions
+          .filter((resolution) => resolution.outcome === 'not-addressed')
+          .map((resolution) => ({
+            commentId: resolution.commentId,
+            reason: reasonOf(resolution.reason),
+          }))
+        if (rejections.length > 0 && (approval.success === false || !approval.data.approved)) {
+          return await suspend({ unaddressed: [], rejections })
+        }
+        return { ...state, resolutions: feedback.resolutions }
       },
     },
     {
@@ -1078,11 +1140,14 @@ type ImplementationResult =
       readonly resolutions: readonly z.infer<typeof resolutionSchema>[]
     }
   | { readonly kind: 'question'; readonly question: string }
+  | { readonly kind: 'unfinished'; readonly reason: string; readonly missing: readonly number[] }
 
 async function implementUntilCommitted(request: {
   readonly input: BuildWorkflowInput
   readonly state: ImplementationTarget
   readonly firstPrompt: string
+  readonly instructions: string
+  readonly requiredCommentIds: readonly number[]
   readonly rounds: number
   readonly timeBudgetMs: number
 }): Promise<ImplementationResult> {
@@ -1095,7 +1160,8 @@ async function implementUntilCommitted(request: {
       worktreePath: request.state.worktreePath,
       from: request.state.baseSha,
     })
-    if (isFinished(round.answer, committed)) {
+    const missing = missingResolutions(round.answer.resolutions, request.requiredCommentIds)
+    if (isFinished(round.answer, committed, missing)) {
       return {
         kind: 'committed',
         sha: committed.sha,
@@ -1105,10 +1171,27 @@ async function implementUntilCommitted(request: {
     }
     progress.round += 1
     if (progress.round >= request.rounds) {
-      throw new RunFailed(unfinishedMessage(round.answer, committed))
+      return {
+        kind: 'unfinished',
+        reason: unfinishedMessage(round.answer, committed, missing),
+        missing,
+      }
     }
-    progress.prompt = nudgePrompt(round.answer, committed)
+    progress.prompt = nudgePrompt(round.answer, committed, missing)
   }
+}
+
+function reasonOf(reason: string | null): string {
+  if (reason === null) return 'No reason given.'
+  return reason
+}
+
+function missingResolutions(
+  resolutions: readonly { readonly commentId: number }[],
+  required: readonly number[],
+): readonly number[] {
+  const provided = new Set(resolutions.map((resolution) => resolution.commentId))
+  return required.filter((id) => !provided.has(id))
 }
 
 type RoundOutcome =
@@ -1119,6 +1202,7 @@ async function runImplementationRound(
   request: {
     readonly input: BuildWorkflowInput
     readonly state: ImplementationTarget
+    readonly instructions: string
   },
   prompt: string,
   remaining: number,
@@ -1127,7 +1211,7 @@ async function runImplementationRound(
     agentId: 'implementer',
     model: request.state.model,
     thinking: request.state.thinking,
-    instructions: IMPLEMENTER_INSTRUCTIONS,
+    instructions: request.instructions,
     prompt,
     workspacePath: request.state.worktreePath,
     threadId: `issue-${String(request.state.issueNumber)}`,
@@ -1150,8 +1234,18 @@ async function runImplementationRound(
   return { kind: 'answer', answer: outcome.data }
 }
 
-function isFinished(answer: ImplementationAnswer, committed: CommitState): boolean {
-  return answer.allWorkComplete && answer.allWorkCommitted && committed.clean && committed.hasCommit
+function isFinished(
+  answer: ImplementationAnswer,
+  committed: CommitState,
+  missing: readonly number[],
+): boolean {
+  return (
+    answer.allWorkComplete &&
+    answer.allWorkCommitted &&
+    committed.clean &&
+    committed.hasCommit &&
+    missing.length === 0
+  )
 }
 
 type ImplementationAnswer = {
@@ -1171,22 +1265,33 @@ const timeExhaustedMessage =
 const stepsExhaustedMessage =
   'The implementer used all its steps without finishing. The work in the worktree is kept. Start again on the same issue to carry on from it.'
 
-function unfinishedMessage(answer: ImplementationAnswer, committed: CommitState): string {
+function unfinishedMessage(
+  answer: ImplementationAnswer,
+  committed: CommitState,
+  missing: readonly number[],
+): string {
   return [
-    'The implementer did not finish and the work is not committed.',
+    'The implementer did not finish the feedback and the work is not committed.',
     answer.allWorkComplete
       ? 'It said the work was complete.'
       : 'It said the work was not complete.',
     answer.allWorkCommitted
       ? 'It said the work was committed.'
       : 'It said the work was not committed.',
+    missing.length === 0
+      ? 'It answered every finding.'
+      : `It did not answer these findings: ${missing.join(', ')}.`,
     committed.clean
       ? 'The worktree is clean.'
       : `Changes still not committed:\n${tailOf(committed.status)}`,
   ].join('\n')
 }
 
-function nudgePrompt(answer: ImplementationAnswer, committed: CommitState): string {
+function nudgePrompt(
+  answer: ImplementationAnswer,
+  committed: CommitState,
+  missing: readonly number[],
+): string {
   return [
     'You are not finished.',
     '',
@@ -1194,10 +1299,13 @@ function nudgePrompt(answer: ImplementationAnswer, committed: CommitState): stri
       ? 'The worktree is clean.'
       : `The worktree still has changes that are not committed:\n${tailOf(committed.status)}`,
     committed.hasCommit ? 'The branch has your commit.' : 'The branch has no commit of yours yet.',
+    missing.length === 0
+      ? 'You answered every finding.'
+      : `You did not answer these findings: ${missing.join(', ')}. Answer each one.`,
     `Your last answer said allWorkComplete=${String(answer.allWorkComplete)} and allWorkCommitted=${String(answer.allWorkCommitted)}.`,
     '',
-    'Finish the work, run the checks, commit it with a conventional message, and only then',
-    'return the summary with allWorkComplete and allWorkCommitted both true.',
+    'Finish the work, run the checks, commit it with a conventional message, answer every',
+    'finding, and only then return the result.',
   ].join('\n')
 }
 
@@ -1266,16 +1374,20 @@ function reviewPrompt(
 
 function feedbackPrompt(state: ReviewState): string {
   return [
-    'Address every review finding below in this workspace.',
-    'A finding is not a suggestion. Fix it. Do not decide that it does not apply.',
-    'If a finding is genuinely wrong or impossible, ask the developer with the ask-user tool.',
-    'Make one complete pass: work through every finding before you stop, and leave none for',
-    'the next review cycle. Run the checks and keep them green.',
-    'Do not push and do not open a pull request.',
+    `Here is the feedback on pull request ${String(state.pullRequestNumber)}.`,
     '',
-    'Findings:',
+    'Answer every item. Fix it, or reject it with a specific technical reason.',
+    'If a decision is needed, ask the developer with the ask-user tool.',
+    'Commit your changes. Do not push and do not post to GitHub.',
+    'Return one response for every item below. The workflow will not accept the step',
+    'until the number of responses matches the number of items.',
+    '',
+    'Feedback:',
     state.findings
-      .map((finding) => `- ${finding.file}:${String(finding.line)} ${finding.summary}`)
+      .map(
+        (finding) =>
+          `- comment ${String(finding.commentId)} ${finding.file}:${String(finding.line)} [${finding.reviewer}] ${finding.rule ?? 'no rule'} ${finding.summary}`,
+      )
       .join('\n'),
     '',
     'Repository guidance:',

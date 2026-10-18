@@ -249,24 +249,31 @@ function createCommandLine(factory: Factory): Command {
     .description('continue a run that is waiting for a person')
     .argument('<issue>')
     .option('--answer <answer>', 'the answer to a question the implementer asked')
+    .option('--approve-rejections <approved>', 'true to approve the rejections, false to refuse')
     .option('--no-input', 'never wait for an answer in this terminal')
-    .action(async (issue: string, options: { answer?: string; input: boolean }) => {
-      if (options.answer === undefined) throw new MissingAnswer(issue)
-      const run = await factory.startImplementation.createRun({
-        runId: await newestRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
-        resourceId: 'factory',
-      })
-      await follow(
-        factory.startImplementation,
-        run,
-        () => run.resume({ step: 'implement', resumeData: { answer: options.answer } }),
-        {
+    .action(
+      async (
+        issue: string,
+        options: { answer?: string; approveRejections?: string; input: boolean },
+      ) => {
+        const runId = await newestRunId(
+          factory.startImplementation,
+          `issue-${issueNumberText(issue)}`,
+        )
+        const state = await factory.startImplementation.getWorkflowRunById(runId)
+        const step = suspendedStepName(state?.steps)
+        if (step === 'implement' && options.answer === undefined) throw new MissingAnswer(issue)
+        if (step === 'address-feedback' && options.approveRejections === undefined) {
+          throw new MissingApproval(issue)
+        }
+        const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
+        await follow(factory.startImplementation, run, () => resumeStep(run, step, options), {
           issue: issueNumberText(issue),
           issueUrl: issueUrlOf(factory.repositoryUrl, issue),
           interactive: options.input,
-        },
-      )
-    })
+        })
+      },
+    )
 
   program
     .command('read-implementers-plan')
@@ -390,13 +397,13 @@ async function follow(
       process.exitCode = 3
       return
     }
-    const answer = await ask()
+    const answer = await ask(waiting)
     if (answer === null) {
       await stop()
       process.exitCode = 3
       return
     }
-    outcome.current = await resumeRun(run, waiting.step, answer)
+    outcome.current = await resumeRun(run, waiting, answer)
   }
 }
 
@@ -405,36 +412,74 @@ type StepTiming = {
   lastHeartbeat: number
 }
 
-function reportSteps(steps: unknown, timings: Map<string, StepTiming>): void {
+async function reportNested(
+  workflow: Workflow,
+  runId: string,
+  timings: Map<string, StepTiming>,
+): Promise<void> {
+  for (const cycle of [1, 2, 3]) {
+    const nestedId = `${runId}-review-${String(cycle)}`
+    const state = await workflow.getWorkflowRunById(nestedId)
+    if (state === null) continue
+    reportSteps(state.steps, timings, nestedId, '    ')
+  }
+}
+
+function reportSteps(
+  steps: unknown,
+  timings: Map<string, StepTiming>,
+  prefix = '',
+  indent = '  ',
+): void {
   if (!isRecord(steps)) return
   const now = Date.now()
   for (const [name, value] of Object.entries(steps)) {
-    const step: unknown = Array.isArray(value) ? value[0] : value
-    if (!isRecord(step)) continue
-    const status = typeof step['status'] === 'string' ? step['status'] : 'unknown'
-    const startedAt = timestampOf(step['startedAt']) ?? now
-    const endedAt = timestampOf(step['endedAt']) ?? now
-    const timing = timings.get(name) ?? { reported: false, lastHeartbeat: now }
-    timings.set(name, timing)
-    if (status === 'running') {
-      heartbeat(name, timing, startedAt, now)
-      continue
-    }
-    if (timing.reported) continue
-    timing.reported = true
-    process.stdout.write(`  ${markOf(status)} ${name.padEnd(22)} ${duration(startedAt, endedAt)}\n`)
+    reportStep(name, value, timings, prefix, indent, now)
   }
+}
+
+function reportStep(
+  name: string,
+  value: unknown,
+  timings: Map<string, StepTiming>,
+  prefix: string,
+  indent: string,
+  now: number,
+): void {
+  const step: unknown = Array.isArray(value) ? value[0] : value
+  if (!isRecord(step)) return
+  const status = typeof step['status'] === 'string' ? step['status'] : 'unknown'
+  const startedAt = timestampOf(step['startedAt']) ?? now
+  const endedAt = timestampOf(step['endedAt']) ?? now
+  const key = `${prefix}${name}`
+  const timing = timings.get(key) ?? { reported: false, lastHeartbeat: now }
+  timings.set(key, timing)
+  if (status === 'running') {
+    heartbeatTime(indent, name, timing, startedAt, now)
+    return
+  }
+  if (timing.reported) return
+  timing.reported = true
+  process.stdout.write(
+    `${indent}${markOf(status)} ${name.padEnd(22)} ${duration(startedAt, endedAt)}\n`,
+  )
 }
 
 function timestampOf(value: unknown): number | undefined {
   return typeof value === 'number' ? value : undefined
 }
 
-function heartbeat(name: string, timing: StepTiming, startedAt: number, now: number): void {
+function heartbeatTime(
+  indent: string,
+  name: string,
+  timing: StepTiming,
+  startedAt: number,
+  now: number,
+): void {
   if (now - startedAt < 300_000) return
   if (now - timing.lastHeartbeat < 300_000) return
   timing.lastHeartbeat = now
-  process.stdout.write(`  … ${name.padEnd(22)} ${duration(startedAt, now)}\n`)
+  process.stdout.write(`${indent}… ${name.padEnd(22)} ${duration(startedAt, now)}\n`)
 }
 
 function duration(from: number, to: number): string {
@@ -453,6 +498,7 @@ function watch(workflow: Workflow, runId: string): () => Promise<void> {
     try {
       const state = await workflow.getWorkflowRunById(runId)
       reportSteps(state?.steps, timings)
+      await reportNested(workflow, runId, timings)
     } finally {
       control.ticking = false
     }
@@ -474,12 +520,32 @@ function markOf(status: string): string {
 
 type Waiting = {
   readonly step: string
-  readonly question: string
+  readonly question: string | null
+  readonly rejections: readonly { readonly commentId: number; readonly reason: string }[]
+  readonly unaddressed: readonly number[]
+  readonly reason: string
 }
 
 function showWaiting(waiting: Waiting | null): void {
   if (waiting === null) return
-  process.stdout.write(`\nThe implementer asks:\n\n  ${waiting.question}\n`)
+  if (waiting.question !== null) {
+    process.stdout.write(`\nThe implementer asks:\n\n  ${waiting.question}\n`)
+    return
+  }
+  if (waiting.rejections.length > 0) {
+    process.stdout.write('\nThe implementer wants to reject these findings:\n\n')
+    for (const rejection of waiting.rejections) {
+      process.stdout.write(`  comment ${String(rejection.commentId)}: ${rejection.reason}\n`)
+    }
+    return
+  }
+  if (waiting.unaddressed.length > 0) {
+    process.stdout.write(
+      `\nThe implementer did not answer findings: ${waiting.unaddressed.join(', ')}\n`,
+    )
+    return
+  }
+  if (waiting.reason !== '') process.stdout.write(`\n${waiting.reason}\n`)
 }
 
 function reportWaiting(waiting: Waiting | null, context: RunContext): void {
@@ -490,32 +556,51 @@ function reportWaiting(waiting: Waiting | null, context: RunContext): void {
     process.stdout.write(`  Continue it:        ${resume}\n`)
     return
   }
-  process.stdout.write(`  Answer it:          ${resume} --answer "...your answer..."\n`)
-  process.stdout.write(`  Talk it through:    pnpm factory chat ${context.issue}\n`)
-  if (context.interactive) process.stdout.write(`\nOr answer here:\n`)
+  if (waiting.rejections.length > 0) {
+    process.stdout.write(`  Approve:            ${resume} --approve-rejections true\n`)
+    process.stdout.write(`  Do not approve:     ${resume} --approve-rejections false\n`)
+    return
+  }
+  if (waiting.question !== null) {
+    process.stdout.write(`  Answer it:          ${resume} --answer "...your answer..."\n`)
+    process.stdout.write(`  Talk it through:    pnpm factory chat ${context.issue}\n`)
+    if (context.interactive) process.stdout.write(`\nOr answer here:\n`)
+    return
+  }
+  process.stdout.write(`  Continue it:        ${resume}\n`)
+  if (context.interactive) process.stdout.write(`\nContinue here:\n`)
 }
 
-async function ask(): Promise<string | null> {
+async function ask(waiting: Waiting): Promise<string | boolean | null> {
   const terminal = createInterface({ input: process.stdin, output: process.stdout })
   try {
-    const answer = await terminal.question('Your answer (or press Enter to stop): ')
-    return answer.trim() === '' ? null : answer
+    if (waiting.question !== null) {
+      const answer = await terminal.question('Your answer (or press Enter to stop): ')
+      return answer.trim() === '' ? null : answer
+    }
+    const prompt =
+      waiting.rejections.length > 0 ? 'Approve these rejections? [y/N] ' : 'Continue? [y/N] '
+    const answer = await terminal.question(prompt)
+    return answer.trim().toLowerCase() === 'y'
   } finally {
     terminal.close()
   }
 }
 
-async function resumeRun(run: Run, step: string, answer: string | boolean): Promise<unknown> {
-  if (step === 'request-plan-approval') {
+async function resumeRun(run: Run, waiting: Waiting, answer: string | boolean): Promise<unknown> {
+  if (waiting.step === 'implement') {
     return await run.resume({
-      step: 'request-plan-approval',
-      resumeData: { approved: answer === true, notes: null },
+      step: 'implement',
+      resumeData: { answer: typeof answer === 'string' ? answer : '' },
     })
   }
-  return await run.resume({
-    step: 'implement',
-    resumeData: { answer: typeof answer === 'string' ? answer : '' },
-  })
+  if (waiting.step === 'address-feedback') {
+    return await run.resume({
+      step: 'address-feedback',
+      resumeData: { approved: answer === true },
+    })
+  }
+  return await run.resume({ step: waiting.step })
 }
 
 function awaitingPerson(outcome: RunOutcome): Waiting | null {
@@ -525,11 +610,37 @@ function awaitingPerson(outcome: RunOutcome): Waiting | null {
 function suspendedPayloadOf(outcome: RunOutcome): Waiting | null {
   const step = suspendedStep(outcome)
   if (step === null) return null
-  const payload = suspendPayloadOf(step.payload)
   return {
     step: step.name,
-    question: payload ?? 'The implementer is waiting for an answer.',
+    question: suspendPayloadOf(step.payload),
+    rejections: rejectionsOf(step.payload),
+    unaddressed: unaddressedOf(step.payload),
+    reason: reasonOfPayload(step.payload),
   }
+}
+
+function rejectionsOf(
+  payload: unknown,
+): readonly { readonly commentId: number; readonly reason: string }[] {
+  if (!isRecord(payload) || !Array.isArray(payload['rejections'])) return []
+  return payload['rejections'].flatMap((entry) => {
+    if (!isRecord(entry)) return []
+    const commentId = entry['commentId']
+    const reason = entry['reason']
+    if (typeof commentId !== 'number' || typeof reason !== 'string') return []
+    return [{ commentId, reason }]
+  })
+}
+
+function unaddressedOf(payload: unknown): readonly number[] {
+  if (!isRecord(payload) || !Array.isArray(payload['unaddressed'])) return []
+  return payload['unaddressed'].filter((id): id is number => typeof id === 'number')
+}
+
+function reasonOfPayload(payload: unknown): string {
+  if (!isRecord(payload)) return ''
+  const reason = payload['reason']
+  return typeof reason === 'string' ? reason : ''
 }
 
 function suspendedStep(outcome: RunOutcome): {
@@ -625,6 +736,42 @@ function issueNumber(value: string): number {
 
 function issueNumberText(value: string): string {
   return String(issueNumber(value))
+}
+
+function suspendedStepName(steps: unknown): string | null {
+  if (!isRecord(steps)) return null
+  for (const [name, value] of Object.entries(steps)) {
+    const step: unknown = Array.isArray(value) ? value[0] : value
+    if (isRecord(step) && step['status'] === 'suspended') return name
+  }
+  return null
+}
+
+function resumeStep(
+  run: Run,
+  step: string | null,
+  options: { answer?: string; approveRejections?: string },
+): Promise<unknown> {
+  if (step === 'implement' && options.answer !== undefined) {
+    return run.resume({ step: 'implement', resumeData: { answer: options.answer } })
+  }
+  if (step === 'address-feedback') {
+    return run.resume({
+      step: 'address-feedback',
+      resumeData: { approved: options.approveRejections === 'true' },
+    })
+  }
+  return run.resume({})
+}
+
+/** @riviere-role cli-error */
+class MissingApproval extends Error {
+  constructor(issue: string) {
+    super(
+      `The implementer wants to reject a finding on issue ${issue}. Run: pnpm factory resume ${issue} --approve-rejections true, or --approve-rejections false.`,
+    )
+    this.name = 'MissingApproval'
+  }
 }
 
 /** @riviere-role cli-error */
