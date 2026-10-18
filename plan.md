@@ -792,3 +792,62 @@ as a stub. Pull request 550 is still open and its content is three files.
 `approvedInstances`. All three follow from removing the invented configuration. Section
 12 removes the causes in the code; the `ReviewCycle` approval is a domain decision that
 needs Nick.
+
+## 14. The section 12 refactor, as built
+
+Section 12 is done, with three differences from how it was written. `pnpm verify` is
+green and every package with a test target is at 100% coverage.
+
+**The graphs are a port and an adapter, in four layers.** This is the shape Nick
+described, rather than one use case that knows Mastra.
+
+```text
+domain model   SoftwareFactoryWorkflow.singleton()   the two workflows, as steps in order,
+                                                     with the looped step marked
+domain port    AdaptWorkflow<Built>                  takes our plan and the step behaviour
+                                                     the workflow owns, returns a workflow in
+                                                     whatever framework the adapter chooses
+adapter        adaptWorkflowToMastra()               orders the steps by the plan, refuses a
+                                                     plan step with no behaviour, hands the
+                                                     whole thing to the generic client
+external       createMastraWorkflow()                 createStep and createWorkflow, the loop,
+client         createMastraStorage()                 the nested workflow, the agent factory,
+               createAgentFactory()                  the workspace and the ask user tool
+               createWorkspace()                     knows nothing about our domain
+               createAgentGeneration()
+               createAskUserTool()
+use case       BuildWorkflow.execute()               builds our plan and the plain functions,
+                                                     passes them to the adapter, returns the
+                                                     two Mastra workflows
+shell          main.ts                               constructs every client, adapter and
+                                                     command, wires the functions, registers
+                                                     the graphs and starts runs. No steps.
+```
+
+**What differs from section 12.**
+
+1. `BuildWorkflow` lives at `commands/build-workflow.ts` in the use-cases package, as
+   section 12 said. It imports `@mastra/core` for the `Workflow` type only.
+2. The graphs are not in a command use case. The Mastra work is in
+   `adapters/mastra/adapt-workflow.ts` and `infra/external-clients/mastra/`.
+3. `validate-pull-request` is gone. The step only ever re-ran the title and description
+   rules, and `OpenPullRequest` already applies them, so the step had nothing of its
+   own to do. The software factory workflow is fifteen steps, not sixteen.
+
+**Two configuration changes, both agreed.** `eslint.config.mjs` allows `@mastra/core`
+imports in the `dev-workflow-v3` projects, because `core` is Mastra's folder and not
+ours, and raises the line limit for those projects to 900.
+
+**Prompts live with the workflow.** The planner and implementer instructions, the
+prompts and the pull request wording sit beside the steps in `build-workflow.ts`. The
+app supplies one generic generation function, so nothing in the app knows the domain.
+Reviewer instructions are still read from `tools/dev-workflow-v2/agents/<reviewer>.md`.
+
+**`ReviewCycle` is in `approvedInstances`.** Sections 6.2 and 10.9 already recorded it
+as approved by Nick.
+
+**Still open.** The app has no test target, so the Progress item "tests to 100% for the
+app" stays unticked. Shell is wiring and the graphs are tested in the use-cases package.
+A live run of issue 548 with the real review cycle has not been done from this session,
+because the only provider key present is `DEEPSEEK_API_KEY` and the run pushes a branch
+and opens a pull request.
