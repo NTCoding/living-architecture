@@ -214,19 +214,24 @@ function createCommandLine(factory: Factory): Command {
         runId: await nextRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
         resourceId: 'factory',
       })
-      const started = await run.start({
-        inputData: {
-          issueNumber: issueNumber(issue),
-          model: options.model,
-          thinking: options.thinking,
-          worktreesDirectory: `${factory.workingDirectory}/.factory/worktrees`,
+      await follow(
+        factory.startImplementation,
+        run,
+        () =>
+          run.start({
+            inputData: {
+              issueNumber: issueNumber(issue),
+              model: options.model,
+              thinking: options.thinking,
+              worktreesDirectory: `${factory.workingDirectory}/.factory/worktrees`,
+            },
+          }),
+        {
+          issue: issueNumberText(issue),
+          issueUrl: issueUrlOf(factory.repositoryUrl, issue),
+          interactive: options.input,
         },
-      })
-      await follow(factory.startImplementation, run, started, {
-        issue: issueNumberText(issue),
-        issueUrl: issueUrlOf(factory.repositoryUrl, issue),
-        interactive: options.input,
-      })
+      )
     })
 
   program
@@ -242,18 +247,22 @@ function createCommandLine(factory: Factory): Command {
           runId: await newestRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`),
           resourceId: 'factory',
         })
-        const resumed =
-          options.answer === undefined
-            ? await run.resume({
-                step: 'request-plan-approval',
-                resumeData: { approved: options.approved !== 'false', notes: null },
-              })
-            : await run.resume({ step: 'implement', resumeData: { answer: options.answer } })
-        await follow(factory.startImplementation, run, resumed, {
-          issue: issueNumberText(issue),
-          issueUrl: issueUrlOf(factory.repositoryUrl, issue),
-          interactive: options.input,
-        })
+        await follow(
+          factory.startImplementation,
+          run,
+          () =>
+            options.answer === undefined
+              ? run.resume({
+                  step: 'request-plan-approval',
+                  resumeData: { approved: options.approved !== 'false', notes: null },
+                })
+              : run.resume({ step: 'implement', resumeData: { answer: options.answer } }),
+          {
+            issue: issueNumberText(issue),
+            issueUrl: issueUrlOf(factory.repositoryUrl, issue),
+            interactive: options.input,
+          },
+        )
       },
     )
 
@@ -317,13 +326,17 @@ function createCommandLine(factory: Factory): Command {
       for (;;) {
         const answer = await terminal.question('> ')
         if (answer.trim() === 'exit') break
-        const resumed = await run.resume({ step: 'implement', resumeData: { answer } })
-        await follow(factory.startImplementation, run, resumed, {
-          issue: issueNumberText(issue),
-          issueUrl: issueUrlOf(factory.repositoryUrl, issue),
-          interactive: options.input,
-        })
-        if (resumed.status !== 'suspended') break
+        await follow(
+          factory.startImplementation,
+          run,
+          () => run.resume({ step: 'implement', resumeData: { answer } }),
+          {
+            issue: issueNumberText(issue),
+            issueUrl: issueUrlOf(factory.repositoryUrl, issue),
+            interactive: options.input,
+          },
+        )
+        break
       }
       terminal.close()
     })
@@ -340,11 +353,11 @@ type RunContext = {
 async function follow(
   workflow: Workflow,
   run: Run,
-  started: unknown,
+  begin: () => Promise<unknown>,
   context: RunContext,
 ): Promise<void> {
   const stop = watch(workflow, run.runId)
-  const outcome: { current: unknown } = { current: started }
+  const outcome: { current: unknown } = { current: await begin() }
   for (;;) {
     if (!isOutcome(outcome.current)) {
       process.stderr.write(`The run ${run.runId} returned something unexpected.\n`)
