@@ -18,6 +18,10 @@ class CodeExtractionUnavailableError extends Error {
 export function collaborators(): RiviereProjectCollaborators {
   const extractionConfiguration = configureExtraction({})
   return {
+    aiCli: {
+      checkAvailability: () => Promise.resolve({ kind: 'available' }),
+      run: () => Promise.resolve({ kind: 'invocation-failure', reason: 'not configured' }),
+    },
     loadEventCatalogSource: () => Promise.resolve({ domains: [], services: [], events: [] }),
     loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
     loadCodeExtraction: () => {
@@ -32,6 +36,7 @@ export function collaborators(): RiviereProjectCollaborators {
 export function createInitGraph(repository: RiviereProjectRepository): InitGraph {
   const loaders = collaborators()
   return new InitGraph(repository, {
+    aiCli: loaders.aiCli,
     loadEventCatalogSource: loaders.loadEventCatalogSource,
     loadAsyncApiDocument: loaders.loadAsyncApiDocument,
     loadCodeExtraction: createCodeExtractionAdapter(),

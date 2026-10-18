@@ -59,6 +59,8 @@ import { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-
 import { RiviereProjectRepository } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/data-access/riviere-project/riviere-project-repository'
 import { configureExtraction } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/configure-extraction'
 import { createCodeExtractionAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ts-morph/code-extraction-adapter'
+import { AiCliAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ai-cli/ai-cli-adapter'
+import { createChildProcessClient } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/child-process/child-process-client'
 import { createGitChangedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/git/create-git-changed-source-file-finder'
 import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-specified-source-file-finder'
 import { createConnectionDetectionTimer } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/time/create-connection-detection-timer'
@@ -137,8 +139,11 @@ export function createProgram(): Command {
   const eventCatalogSourceLoader = createEventCatalogSourceAdapter()
   const asyncApiDocumentLoader = createAsyncApiDocumentAdapter()
   const codeExtractionLoader = createCodeExtractionAdapter()
+  const childProcessClient = createChildProcessClient()
+  const aiCli = new AiCliAdapter(childProcessClient)
   const extractionConfiguration = configureExtraction({})
   const riviereProjectCollaborators = {
+    aiCli,
     loadEventCatalogSource: eventCatalogSourceLoader,
     loadAsyncApiDocument: asyncApiDocumentLoader,
     loadCodeExtraction: codeExtractionLoader,
@@ -184,10 +189,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createInitCommand({
-      initGraph: new InitGraph(
-        riviereProjectRepository,
-        riviereProjectCollaborators,
-      ),
+      initGraph: new InitGraph(riviereProjectRepository, riviereProjectCollaborators),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,

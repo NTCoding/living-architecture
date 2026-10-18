@@ -113,6 +113,10 @@ export function collaborators(
 ): RiviereProjectCollaborators {
   const loadCodeExtraction: LoadCodeExtraction = () => configuration().moduleContexts
   return {
+    aiCli: {
+      checkAvailability: () => Promise.resolve({ kind: 'available' }),
+      run: () => Promise.resolve({ kind: 'invocation-failure', reason: 'not configured' }),
+    },
     loadEventCatalogSource: () => Promise.resolve(source),
     loadAsyncApiDocument: () => Promise.resolve(asyncApiDocument),
     loadCodeExtraction,

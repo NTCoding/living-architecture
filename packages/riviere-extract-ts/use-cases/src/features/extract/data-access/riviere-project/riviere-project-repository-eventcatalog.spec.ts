@@ -56,6 +56,10 @@ describe('RiviereProjectRepository EventCatalog workflow', () => {
     writeWorkflow(directory)
     const extractionConfiguration = configureExtraction({})
     const repository = new RiviereProjectRepository({
+      aiCli: {
+        checkAvailability: () => Promise.resolve({ kind: 'available' }),
+        run: () => Promise.resolve({ kind: 'invocation-failure', reason: 'not configured' }),
+      },
       loadEventCatalogSource: () =>
         Promise.resolve({
           domains: [],

@@ -16,6 +16,10 @@ export function createRiviereProjectRepository(
   loadCodeExtraction: LoadCodeExtraction = emptyCodeExtractionLoader,
 ): RiviereProjectRepository {
   return new RiviereProjectRepository({
+    aiCli: {
+      checkAvailability: () => Promise.resolve({ kind: 'available' }),
+      run: () => Promise.resolve({ kind: 'invocation-failure', reason: 'not configured' }),
+    },
     loadEventCatalogSource,
     loadAsyncApiDocument,
     loadCodeExtraction,
