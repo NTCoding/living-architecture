@@ -846,8 +846,27 @@ Reviewer instructions are still read from `tools/dev-workflow-v2/agents/<reviewe
 **`ReviewCycle` is in `approvedInstances`.** Sections 6.2 and 10.9 already recorded it
 as approved by Nick.
 
+**A live run of issue 548, with the real review cycle.** `issue-548-14` finished with
+`success` on `deepseek/deepseek-chat`. It planned, waited for approval, implemented,
+verified, committed, pushed, opened pull request 550, then ran three review cycles with
+the three reviewers, published their findings as review comments, waited for
+CodeRabbit, addressed the feedback, and commented that it is ready for a person. The
+workspace refused the agent's own push and pull request calls throughout.
+
+The run found four faults that the stub tests could not:
+
+1. A reviewer with a workspace needs more than one step. With `maxSteps: 1` the model
+   chose a tool and the step received no answer.
+2. The review steps wrote their status into `reviewerStatuses`, and `collect-verdicts`
+   then asked the aggregate to record the same reviewer as a new verdict, which the
+   aggregate refused. The cycle now carries the statuses it came in with and this
+   cycle's verdicts separately.
+3. `gh api` needs `commit_id` and `side` to place a review comment on a line. Both are
+   sent now, and the head sha is read from the pull request first.
+4. The cycle number no longer moves on when the cycle limit is reached, so the report
+   says three cycles rather than four.
+
 **Still open.** The app has no test target, so the Progress item "tests to 100% for the
 app" stays unticked. Shell is wiring and the graphs are tested in the use-cases package.
-A live run of issue 548 with the real review cycle has not been done from this session,
-because the only provider key present is `DEEPSEEK_API_KEY` and the run pushes a branch
-and opens a pull request.
+The reviewer findings are long essays, which makes the pull request noisy, and the
+reviewers are strict enough to use all three cycles on a hello world script.
