@@ -9,8 +9,7 @@
     ".": {
       "entry": [
         ".opencode/plugins/dev-workflow-v2.js",
-        "scripts/build-public-exports.mjs",
-        "scripts/hello-world.ts"
+        "scripts/build-public-exports.mjs"
       ]
     },
     "apps/eclair": {

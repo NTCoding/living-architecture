@@ -42,6 +42,16 @@
           }
         }
       },
+      "hello-world": {
+        "dependsOn": [
+          "^build"
+        ],
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "pnpm exec tsx src/shell/hello-world.ts",
+          "cwd": "{projectRoot}"
+        }
+      },
       "prune-lockfile": {
         "dependsOn": [
           "build"
