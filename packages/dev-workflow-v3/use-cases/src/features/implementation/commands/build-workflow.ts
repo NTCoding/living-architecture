@@ -64,6 +64,7 @@ const reviewStateSchema = z.object({
     .default([]),
   findings: z.array(findingSchema).default([]),
   resolutions: z.array(resolutionSchema).default([]),
+  feedbackCycleNumber: z.number().int().positive().default(1),
   beforeSha: z.string().default(''),
   commitSha: z.string().default(''),
   changedFiles: z.array(z.string()).default([]),
@@ -570,6 +571,7 @@ export interface BuildWorkflowInput {
   }>
   readonly publishReviewFindings: (request: {
     readonly pullRequestNumber: number
+    readonly cycleNumber: number
     readonly findings: readonly ReviewFinding[]
   }) => Promise<{
     readonly posted: readonly {
@@ -928,6 +930,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
         const findings = state.findings.filter((finding) => finding.reviewer !== CODERABBIT)
         const posted = await input.publishReviewFindings({
           pullRequestNumber: state.pullRequestNumber,
+          cycleNumber: state.cycleNumber,
           findings,
         })
         const withIds = findings.map((finding, index) => {
@@ -1019,6 +1022,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
           commitSha: committed.sha,
           changedFiles: committed.changedFiles,
           beforeSha: committed.sha,
+          feedbackCycleNumber: state.cycleNumber,
           cycleNumber: state.cycleNumber + (state.approved || state.limitReached ? 0 : 1),
         }
       },
@@ -1035,7 +1039,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
           await input.replyToReviewComment({
             pullRequestNumber: state.pullRequestNumber,
             commentId: resolution.commentId,
-            body: renderReply(resolution),
+            body: renderReply(resolution, state),
           })
         }
         return { ...state, resolutions: [], findings: [] }
@@ -1552,8 +1556,8 @@ function pullRequestPrompt(state: RunState): string {
   ].join('\n')
 }
 
-function renderReply(resolution: { readonly response: string }): string {
-  return `[dev-workflow-v3] ${resolution.response}`
+function renderReply(resolution: { readonly response: string }, state: ReviewState): string {
+  return `[dev-workflow-v3] [cycle ${String(state.feedbackCycleNumber)}] ${resolution.response}`
 }
 
 function readyComment(state: ReviewState): string {

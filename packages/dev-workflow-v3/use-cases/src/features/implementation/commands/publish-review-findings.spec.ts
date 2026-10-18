@@ -10,10 +10,10 @@ describe('PublishReviewFindings', () => {
       return { commentId: 991 }
     })
 
-    const result = await command.execute({ ...pullRequest, findings: [finding] })
+    const result = await command.execute({ ...pullRequest, cycleNumber: 1, findings: [finding] })
 
     expect(postedBodies).toStrictEqual([
-      '[dev-workflow-v3] [code-review] **SD-005** A domain decision sits in the adapter.',
+      '[dev-workflow-v3] [cycle 1] [code-review] **SD-005** A domain decision sits in the adapter.',
     ])
     expect(result.posted).toStrictEqual([{ file: 'src/order.ts', line: 12, commentId: 991 }])
   })
@@ -21,7 +21,7 @@ describe('PublishReviewFindings', () => {
   it('posts nothing when there are no findings', async () => {
     const command = new PublishReviewFindings(async () => ({ commentId: 1 }))
 
-    const result = await command.execute({ ...pullRequest, findings: [] })
+    const result = await command.execute({ ...pullRequest, cycleNumber: 1, findings: [] })
 
     expect(result.posted).toStrictEqual([])
   })

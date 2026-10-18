@@ -421,6 +421,8 @@ async function follow(
 type StepTiming = {
   reported: boolean
   lastHeartbeat: number
+  iteration: number
+  lastStartedAt: number
 }
 
 async function reportNested(
@@ -463,16 +465,26 @@ function reportStep(
   const startedAt = timestampOf(step['startedAt']) ?? now
   const endedAt = timestampOf(step['endedAt']) ?? now
   const key = `${prefix}${name}`
-  const timing = timings.get(key) ?? { reported: false, lastHeartbeat: now }
+  const timing = timings.get(key) ?? {
+    reported: false,
+    lastHeartbeat: now,
+    iteration: 1,
+    lastStartedAt: startedAt,
+  }
+  if (name === 'review-cycle' && timing.lastStartedAt !== startedAt) {
+    timing.iteration += 1
+    timing.lastStartedAt = startedAt
+  }
   timings.set(key, timing)
+  const label = name === 'review-cycle' ? `review-cycle (cycle ${String(timing.iteration)})` : name
   if (status === 'running') {
-    heartbeatTime(indent, name, timing, startedAt, now)
+    heartbeatTime(indent, label, timing, startedAt, now)
     return
   }
   if (timing.reported) return
   timing.reported = true
   process.stdout.write(
-    `${indent}${markOf(status)} ${name.padEnd(22)} ${duration(startedAt, endedAt)}\n`,
+    `${indent}${markOf(status)} ${label.padEnd(26)} ${duration(startedAt, endedAt)}\n`,
   )
 }
 
@@ -490,7 +502,7 @@ function heartbeatTime(
   if (now - startedAt < 300_000) return
   if (now - timing.lastHeartbeat < 300_000) return
   timing.lastHeartbeat = now
-  process.stdout.write(`${indent}… ${name.padEnd(22)} ${duration(startedAt, now)}\n`)
+  process.stdout.write(`${indent}… ${name.padEnd(26)} ${duration(startedAt, now)}\n`)
 }
 
 function duration(from: number, to: number): string {
