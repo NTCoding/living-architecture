@@ -508,7 +508,7 @@ function suspendedPayloadOf(outcome: RunOutcome): Waiting | null {
   if (step === null) return null
   const payload = suspendPayloadOf(step.payload)
   if (step.name === 'request-plan-approval') {
-    const plan = planOf(step.output)
+    const plan = planOf(step.output) ?? planFromNotes(step.payload)
     return plan === null ? null : { step: step.name, kind: 'plan', question: plan }
   }
   return {
@@ -531,6 +531,12 @@ function suspendedStep(outcome: RunOutcome): {
     return { name, payload: step['suspendPayload'], output: step['output'] }
   }
   return null
+}
+
+function planFromNotes(payload: unknown): string | null {
+  if (!isRecord(payload)) return null
+  const notes = payload['notes']
+  return typeof notes === 'string' ? notes : null
 }
 
 function suspendPayloadOf(payload: unknown): string | null {
