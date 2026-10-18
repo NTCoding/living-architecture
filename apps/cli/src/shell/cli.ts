@@ -68,6 +68,11 @@ import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-ex
 import { createConnectionDetectionTimer } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/time/create-connection-detection-timer'
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
 import { createWorkflowCommand } from '../features/extract/entrypoint/workflow/entrypoint'
+import {
+  formatRunWorkflowResult,
+  formatValidateWorkflowResult,
+} from '../features/extract/entrypoint/workflow/workflow-output-formatter'
+import { writeCliOutput } from '../infra/cli/presentation/output-writer'
 import { parseSourceFileSelection } from '../features/extract/entrypoint/extract/parse-source-file-selection'
 import { detectChangedTypeScriptFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/git-changed-files'
 import { findSpecifiedSourceFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/find-specified-source-files'
@@ -362,8 +367,11 @@ export function createProgram(): Command {
 
   program.addCommand(
     createWorkflowCommand({
+      formatRunWorkflowResult,
+      formatValidateWorkflowResult,
       runWorkflow: new RunWorkflow(riviereProjectRepository),
       validateWorkflow: new ValidateWorkflow(riviereProjectRepository),
+      writeCliOutput,
     }),
   )
 

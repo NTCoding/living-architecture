@@ -63,7 +63,7 @@ function resolvePromptPlacement(
   }
   return {
     kind: 'argument',
-    arguments: argumentsValue.map((value) => value.replaceAll(PROMPT_PLACEHOLDER, prompt)),
+    arguments: argumentsValue.map((value) => value.replaceAll(PROMPT_PLACEHOLDER, () => prompt)),
   }
 }
 

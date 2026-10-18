@@ -2,7 +2,7 @@ import type { AiCli } from '@living-architecture/riviere-extract-ts-domain-model
 
 export function unavailableAiCli(): AiCli {
   return {
-    checkAvailability: () => ({ kind: 'available' }),
-    run: () => ({ kind: 'invocation-failure', reason: 'not configured' }),
+    checkAvailability: () => ({ kind: 'unavailable', reason: 'AI CLI is not configured' }),
+    run: () => ({ kind: 'invocation-failure', reason: 'AI CLI is not configured' }),
   }
 }

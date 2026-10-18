@@ -92,6 +92,24 @@ function projectWithAiCli(aiCli: AiCli, stages = workflowWithEveryStageKind()): 
   )
 }
 
+describe('WorkflowRunMode parsing', () => {
+  it.each(['run', 'skip-ai', 'dry-run'] as const)('accepts the %s run mode', (mode) => {
+    const result = WorkflowRunMode.parse(mode)
+
+    expect(result).toStrictEqual({ success: true, mode: expect.objectContaining({ value: mode }) })
+  })
+
+  it('rejects an unsupported run mode with a specific reason', () => {
+    const result = WorkflowRunMode.parse('unsupported-mode')
+
+    expect(result).toStrictEqual({
+      success: false,
+      reason:
+        "Expected a workflow run mode of 'run', 'skip-ai', or 'dry-run', got 'unsupported-mode'.",
+    })
+  })
+})
+
 describe('Workflow AI CLI availability', () => {
   it('checks every configured AI stage command and ignores non-AI stages', () => {
     const recording = recordingAiCli()

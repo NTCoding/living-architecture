@@ -1,6 +1,11 @@
-import { Command } from 'commander'
+import { Command, Option } from 'commander'
 import type { RunWorkflow } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/run-workflow'
 import type { ValidateWorkflow } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/validate-workflow'
+import type {
+  formatRunWorkflowResult,
+  formatValidateWorkflowResult,
+} from './workflow-output-formatter'
+import type { writeCliOutput } from '../../../../infra/cli/presentation/output-writer'
 
 interface WorkflowRunOptions {
   readonly dryRun?: boolean
@@ -9,15 +14,11 @@ interface WorkflowRunOptions {
 
 /** @riviere-role cli-entrypoint-dependencies */
 export interface CreateWorkflowCommandEntrypointDependencies {
+  readonly formatRunWorkflowResult: typeof formatRunWorkflowResult
+  readonly formatValidateWorkflowResult: typeof formatValidateWorkflowResult
   readonly runWorkflow: Pick<RunWorkflow, 'execute'>
   readonly validateWorkflow: Pick<ValidateWorkflow, 'execute'>
-}
-
-/** @riviere-role entrypoint-cli-input-parser */
-export function parseWorkflowRunMode(options: WorkflowRunOptions): 'run' | 'skip-ai' | 'dry-run' {
-  if (options.skipAi === true) return 'skip-ai'
-  if (options.dryRun === true) return 'dry-run'
-  return 'run'
+  readonly writeCliOutput: typeof writeCliOutput
 }
 
 /** @riviere-role cli-entrypoint */
@@ -31,29 +32,28 @@ export function createWorkflowCommand(
       .argument('<workflow-path>', 'Path to the workflow file')
       .action((workflowPath: string) => {
         const result = dependencies.validateWorkflow.execute({ workflowPath })
-        if (!result.result.success) {
-          console.error(`${result.result.errorCode}: ${result.result.reason}`)
-          process.exitCode = 1
-          return
-        }
-        console.log('Workflow is valid')
+        dependencies.writeCliOutput(dependencies.formatValidateWorkflowResult(result))
       }),
   )
   workflow.addCommand(
     new Command('run')
       .description('Run a workflow')
       .argument('<workflow-path>', 'Path to the workflow file')
-      .option('--skip-ai', 'Remove AI stages from the active plan')
-      .option('--dry-run', 'Return AI prompts without invoking or applying them')
+      .addOption(
+        new Option('--skip-ai', 'Remove AI stages from the active plan').conflicts('dryRun'),
+      )
+      .addOption(
+        new Option('--dry-run', 'Return AI prompts without invoking or applying them').conflicts(
+          'skipAi',
+        ),
+      )
       .action(async (workflowPath: string, options: WorkflowRunOptions) => {
-        const mode = parseWorkflowRunMode(options)
-        const result = await dependencies.runWorkflow.execute({ workflowPath, mode })
-        if (!result.result.success) {
-          console.error(`${result.result.errorCode}: ${result.result.reason}`)
-          process.exitCode = 1
-          return
-        }
-        console.log(`Workflow completed: ${result.result.outputPath}`)
+        const result = await dependencies.runWorkflow.execute({
+          workflowPath,
+          skipAi: options.skipAi === true,
+          dryRun: options.dryRun === true,
+        })
+        dependencies.writeCliOutput(dependencies.formatRunWorkflowResult(result))
       }),
   )
   return workflow

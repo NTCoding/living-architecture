@@ -14,10 +14,11 @@ export class RunWorkflow {
   }
 
   private async run(input: RunWorkflowInput): Promise<RunWorkflowResult> {
+    const parsedMode = WorkflowRunMode.parse(requestedMode(input))
+    if (!parsedMode.success) return validationFailure(parsedMode.reason)
     try {
       const project = this.projects.load({ kind: 'workflow', workflowPath: input.workflowPath })
-      const mode = input.mode === undefined ? undefined : WorkflowRunMode.from(input.mode)
-      const availability = project.checkActiveAiCliAvailability(mode ?? WorkflowRunMode.from('run'))
+      const availability = project.checkActiveAiCliAvailability(parsedMode.mode)
       if (!availability.success) {
         return {
           result: {
@@ -29,7 +30,7 @@ export class RunWorkflow {
           },
         }
       }
-      return { result: await project.rebuildGraph(mode) }
+      return { result: await project.rebuildGraph(parsedMode.mode) }
     } catch (error) {
       if (error instanceof ExtractionConfigError || error instanceof ExtractionDataAccessError) {
         return {
@@ -44,5 +45,25 @@ export class RunWorkflow {
       }
       throw error
     }
+  }
+}
+
+function requestedMode(input: RunWorkflowInput): string {
+  if (input.mode !== undefined) return input.mode
+  if (input.skipAi === true && input.dryRun === true) return 'skip-ai-and-dry-run'
+  if (input.skipAi === true) return 'skip-ai'
+  if (input.dryRun === true) return 'dry-run'
+  return 'run'
+}
+
+function validationFailure(reason: string): RunWorkflowResult {
+  return {
+    result: {
+      success: false,
+      errorCode: 'VALIDATION_ERROR',
+      reason,
+      events: [],
+      warnings: [],
+    },
   }
 }

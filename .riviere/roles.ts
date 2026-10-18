@@ -137,6 +137,7 @@ export const allRoles = [
     allowedDependencyRoles: [
       'aggregate',
       'domain-error',
+      'domain-port',
       'domain-service',
       'value-object',
       ...publishedLanguageRoles,

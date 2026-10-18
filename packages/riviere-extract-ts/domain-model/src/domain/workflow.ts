@@ -5,6 +5,7 @@ import {
 import type { Component } from '@living-architecture/riviere-schema-published-language/schema'
 import type { CodeExtractionConfig } from '@living-architecture/riviere-extract-config-published-language'
 import type { WorkflowStartInput } from './riviere-project-start-inputs'
+import type { AiCliAvailability } from './ports/ai-cli'
 import type { WorkflowDiagnostic } from './workflow-diagnostic'
 import { WorkflowRunEvent } from './workflow-run-event'
 import type { WorkflowStage, WorkflowStageValue } from './workflow-stage'
@@ -14,9 +15,27 @@ type WorkflowState = 'ready' | 'running' | 'completed' | 'failed'
 
 type WorkflowRunModeValue = 'run' | 'skip-ai' | 'dry-run'
 
+type WorkflowRunModeParseResult =
+  | Readonly<{ success: true; mode: WorkflowRunMode }>
+  | Readonly<{ success: false; reason: string }>
+
 /** @riviere-role value-object */
 export class WorkflowRunMode {
   declare private readonly brand: 'WorkflowRunMode'
+
+  static parse(value: string): WorkflowRunModeParseResult {
+    switch (value) {
+      case 'run':
+      case 'skip-ai':
+      case 'dry-run':
+        return { success: true, mode: new WorkflowRunMode(value) }
+      default:
+        return {
+          success: false,
+          reason: `Expected a workflow run mode of 'run', 'skip-ai', or 'dry-run', got '${value}'.`,
+        }
+    }
+  }
 
   static from(value: WorkflowRunModeValue): WorkflowRunMode {
     return new WorkflowRunMode(value)
@@ -116,9 +135,7 @@ export class Workflow {
   }
 
   checkAiCliAvailability(
-    checkAvailability: (
-      command: string,
-    ) => Readonly<{ kind: 'available' }> | Readonly<{ kind: 'unavailable'; reason: string }>,
+    checkAvailability: (command: string) => AiCliAvailability,
   ): Readonly<{ success: true }> | Readonly<{ success: false; command: string; reason: string }> {
     for (const stage of this.stages) {
       switch (stage.value.kind) {
@@ -145,9 +162,7 @@ export class Workflow {
   }
 
   checkActiveAiCliAvailability(
-    checkAvailability: (
-      command: string,
-    ) => Readonly<{ kind: 'available' }> | Readonly<{ kind: 'unavailable'; reason: string }>,
+    checkAvailability: (command: string) => AiCliAvailability,
     mode: WorkflowRunModeValue,
   ): Readonly<{ success: true }> | Readonly<{ success: false; command: string; reason: string }> {
     switch (mode) {

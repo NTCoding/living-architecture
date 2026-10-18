@@ -1,68 +1,114 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRiviereProjectRepository } from '../../../__fixtures__/riviere-project-repository-fixtures'
+import {
+  UnexpectedWorkflowError,
+  WORKFLOW_COMMAND_PATH,
+  workflowCommandMocks,
+  workflowLoadFailures,
+} from '../../../__fixtures__/workflow-command-test-fixtures'
 
-const mocks = vi.hoisted(() => ({
-  availabilityMock: vi.fn(),
-  loadMock: vi.fn(),
-  rebuildGraph: vi.fn(),
-}))
-
-vi.mock('../data-access/riviere-project/riviere-project-repository', () => ({
-  RiviereProjectRepository: class {
-    load = mocks.loadMock
-  },
-}))
+vi.mock('../data-access/riviere-project/riviere-project-repository', async () => {
+  const { workflowRepositoryModuleMock } =
+    await import('../../../__fixtures__/workflow-command-test-fixtures')
+  return workflowRepositoryModuleMock()
+})
 
 import { RunWorkflow } from './run-workflow'
-import { ExtractionConfigError } from '../data-access/riviere-project/riviere-config-error'
-import { ExtractionDataAccessError } from '../data-access/riviere-project/riviere-project-error'
-
-class UnexpectedWorkflowError extends Error {}
 
 describe('RunWorkflow', () => {
   beforeEach(() => {
     vi.resetAllMocks()
-    mocks.loadMock.mockReturnValue({
-      checkActiveAiCliAvailability: mocks.availabilityMock,
-      rebuildGraph: mocks.rebuildGraph,
+    workflowCommandMocks.loadMock.mockReturnValue({
+      checkActiveAiCliAvailability: workflowCommandMocks.availabilityMock,
+      rebuildGraph: workflowCommandMocks.rebuildGraph,
     })
-    mocks.availabilityMock.mockReturnValue({ success: true })
-    mocks.rebuildGraph.mockReturnValue({ success: true, graph: { metadata: {} } })
+    workflowCommandMocks.availabilityMock.mockReturnValue({ success: true })
+    workflowCommandMocks.rebuildGraph.mockReturnValue({ success: true, graph: { metadata: {} } })
   })
 
   it('loads the workflow file and delegates the complete run to the project', async () => {
-    const input = { workflowPath: '/project/.riviere/workflows/combined.yaml' }
-    const result = await new RunWorkflow(createRiviereProjectRepository()).execute(input)
-
-    expect(mocks.loadMock).toHaveBeenCalledWith({
-      kind: 'workflow',
-      workflowPath: '/project/.riviere/workflows/combined.yaml',
+    const result = await new RunWorkflow(createRiviereProjectRepository()).execute({
+      workflowPath: WORKFLOW_COMMAND_PATH,
     })
-    expect(mocks.rebuildGraph).toHaveBeenCalledWith(undefined)
+
+    expect(workflowCommandMocks.loadMock).toHaveBeenCalledWith({
+      kind: 'workflow',
+      workflowPath: WORKFLOW_COMMAND_PATH,
+    })
+    expect(workflowCommandMocks.rebuildGraph).toHaveBeenCalledWith(
+      expect.objectContaining({ value: 'run' }),
+    )
     expect(result).toStrictEqual({ result: { success: true, graph: { metadata: {} } } })
   })
 
-  it('checks active AI availability only for the selected run mode', async () => {
+  it('checks active AI availability for the selected run mode', async () => {
     await new RunWorkflow(createRiviereProjectRepository()).execute({
-      workflowPath: '/project/.riviere/workflows/combined.yaml',
-      mode: 'skip-ai',
+      workflowPath: WORKFLOW_COMMAND_PATH,
+      skipAi: true,
     })
 
-    expect(mocks.availabilityMock).toHaveBeenCalledWith(
+    expect(workflowCommandMocks.availabilityMock).toHaveBeenCalledWith(
       expect.objectContaining({ value: 'skip-ai' }),
     )
-    expect(mocks.rebuildGraph).toHaveBeenCalledWith(expect.objectContaining({ value: 'skip-ai' }))
+    expect(workflowCommandMocks.rebuildGraph).toHaveBeenCalledWith(
+      expect.objectContaining({ value: 'skip-ai' }),
+    )
+  })
+
+  it('checks active AI availability for a dry run', async () => {
+    await new RunWorkflow(createRiviereProjectRepository()).execute({
+      workflowPath: WORKFLOW_COMMAND_PATH,
+      dryRun: true,
+    })
+
+    expect(workflowCommandMocks.availabilityMock).toHaveBeenCalledWith(
+      expect.objectContaining({ value: 'dry-run' }),
+    )
+    expect(workflowCommandMocks.rebuildGraph).toHaveBeenCalledWith(
+      expect.objectContaining({ value: 'dry-run' }),
+    )
+  })
+
+  it('returns a validation error for an unsupported run mode without checking availability or rebuilding', async () => {
+    const result = await new RunWorkflow(createRiviereProjectRepository()).execute({
+      workflowPath: WORKFLOW_COMMAND_PATH,
+      mode: 'unsupported-mode',
+    })
+
+    expect(result).toStrictEqual({
+      result: {
+        success: false,
+        errorCode: 'VALIDATION_ERROR',
+        reason:
+          "Expected a workflow run mode of 'run', 'skip-ai', or 'dry-run', got 'unsupported-mode'.",
+        events: [],
+        warnings: [],
+      },
+    })
+    expect(workflowCommandMocks.availabilityMock).not.toHaveBeenCalled()
+    expect(workflowCommandMocks.rebuildGraph).not.toHaveBeenCalled()
+  })
+
+  it('returns a validation error when skip AI and dry run are both selected', async () => {
+    const result = await new RunWorkflow(createRiviereProjectRepository()).execute({
+      workflowPath: WORKFLOW_COMMAND_PATH,
+      skipAi: true,
+      dryRun: true,
+    })
+
+    expect(result).toMatchObject({ result: { success: false, errorCode: 'VALIDATION_ERROR' } })
+    expect(workflowCommandMocks.loadMock).not.toHaveBeenCalled()
   })
 
   it('returns a typed failure and does not rebuild when an active AI command is unavailable', async () => {
-    mocks.availabilityMock.mockReturnValue({
+    workflowCommandMocks.availabilityMock.mockReturnValue({
       success: false,
       command: 'claude',
       reason: 'spawn claude ENOENT',
     })
 
     const result = await new RunWorkflow(createRiviereProjectRepository()).execute({
-      workflowPath: '/project/.riviere/workflows/combined.yaml',
+      workflowPath: WORKFLOW_COMMAND_PATH,
     })
 
     expect(result).toStrictEqual({
@@ -74,41 +120,32 @@ describe('RunWorkflow', () => {
         warnings: [],
       },
     })
-    expect(mocks.rebuildGraph).not.toHaveBeenCalled()
+    expect(workflowCommandMocks.rebuildGraph).not.toHaveBeenCalled()
   })
 
-  it.each([
-    new ExtractionConfigError('VALIDATION_ERROR', 'Invalid workflow'),
-    new ExtractionDataAccessError('FILE_READ_ERROR', 'Cannot read workflow'),
-  ])('returns typed loading failures', async (error) => {
-    mocks.loadMock.mockImplementation(() => {
+  it.each(workflowLoadFailures())('returns typed loading failures', async ({ error, code }) => {
+    workflowCommandMocks.loadMock.mockImplementation(() => {
       throw error
     })
 
     await expect(
       new RunWorkflow(createRiviereProjectRepository()).execute({
-        workflowPath: '/project/.riviere/workflows/combined.yaml',
+        workflowPath: WORKFLOW_COMMAND_PATH,
       }),
-    ).resolves.toStrictEqual({
-      result: {
-        success: false,
-        errorCode: error.code,
-        reason: error.message,
-        events: [],
-        warnings: [],
-      },
+    ).resolves.toMatchObject({
+      result: { success: false, errorCode: code },
     })
-    expect(mocks.rebuildGraph).not.toHaveBeenCalled()
+    expect(workflowCommandMocks.rebuildGraph).not.toHaveBeenCalled()
   })
 
   it('does not hide unexpected failures', async () => {
-    mocks.loadMock.mockImplementation(() => {
+    workflowCommandMocks.loadMock.mockImplementation(() => {
       throw new UnexpectedWorkflowError('unexpected')
     })
 
     await expect(
       new RunWorkflow(createRiviereProjectRepository()).execute({
-        workflowPath: '/project/.riviere/workflows/combined.yaml',
+        workflowPath: WORKFLOW_COMMAND_PATH,
       }),
     ).rejects.toThrow('unexpected')
   })

@@ -1,6 +1,7 @@
 import type { EventCatalogSource } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-event-catalog-source'
 import type { LoadAsyncApiDocument } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-asyncapi-document'
 import type { LoadCodeExtraction } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-code-extraction'
+import type { AiCli } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/ai-cli'
 import { createCodeExtractionAdapter } from '../features/extract/adapters/ts-morph/code-extraction-adapter'
 import { configureExtraction } from '../features/extract/commands/configure-extraction'
 import { RiviereProjectRepository } from '../features/extract/data-access/riviere-project/riviere-project-repository'
@@ -15,9 +16,10 @@ export function createRiviereProjectRepository(
   loadAsyncApiDocument: LoadAsyncApiDocument = () =>
     Promise.resolve({ messages: [], operations: [] }),
   loadCodeExtraction: LoadCodeExtraction = emptyCodeExtractionLoader,
+  aiCli: AiCli = unavailableAiCli(),
 ): RiviereProjectRepository {
   return new RiviereProjectRepository({
-    aiCli: unavailableAiCli(),
+    aiCli,
     loadEventCatalogSource,
     loadAsyncApiDocument,
     loadCodeExtraction,

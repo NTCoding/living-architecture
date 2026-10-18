@@ -48,6 +48,18 @@ describe('AI CLI dependency boundary', () => {
     expect(manifest).not.toMatch(/"(?:openai|@anthropic-ai\/sdk|ai|@ai-sdk\/[^"]+)"\s*:/)
   })
 
+  it('keeps workflow run-mode validation owned by the domain value object', () => {
+    const workflowEntrypointSource = read(
+      resolve(repositoryRoot, 'apps/cli/src/features/extract/entrypoint/workflow/entrypoint.ts'),
+    )
+    const runWorkflowInputSource = read(
+      resolve(sourceRoot, 'features/extract/commands/run-workflow-input.ts'),
+    )
+
+    expect(workflowEntrypointSource).not.toContain("'run' | 'skip-ai' | 'dry-run'")
+    expect(runWorkflowInputSource).not.toContain("'run' | 'skip-ai' | 'dry-run'")
+  })
+
   it('spawns processes with shell execution disabled', () => {
     const clientSource = read(
       resolve(sourceRoot, 'infra/external-clients/child-process/child-process-client.ts'),

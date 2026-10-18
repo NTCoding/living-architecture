@@ -41,4 +41,6 @@ export enum CliErrorCode {
   GitNotARepository = 'GIT_NOT_A_REPOSITORY',
   GitNotFound = 'GIT_NOT_FOUND',
   ConnectionDetectionFailure = 'CONNECTION_DETECTION_FAILURE',
+  AiCliUnavailable = 'AI_CLI_UNAVAILABLE',
+  RuntimeError = 'RUNTIME_ERROR',
 }

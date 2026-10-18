@@ -71,6 +71,22 @@ describe('AiCliAdapter prompt placement', () => {
     })
   })
 
+  it('passes dollar sequences in the prompt through unchanged', () => {
+    const { client, run } = createClient()
+    run.mockReturnValue({ kind: 'completed', exitCode: 0, stdout: '', stderr: '' })
+
+    new AiCliAdapter(client).run(
+      createInput(['--message={prompt}'], "Cost is $$ and $& then $` and $' done"),
+    )
+
+    expect(run).toHaveBeenCalledWith({
+      command: 'claude',
+      arguments: ["--message=Cost is $$ and $& then $` and $' done"],
+      stdin: undefined,
+      timeoutSeconds: 600,
+    })
+  })
+
   it('substitutes a prompt placeholder embedded in a longer argument', () => {
     const { client, run } = createClient()
     run.mockReturnValue({ kind: 'completed', exitCode: 0, stdout: '', stderr: '' })
