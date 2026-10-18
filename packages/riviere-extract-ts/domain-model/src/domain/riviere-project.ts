@@ -16,9 +16,11 @@ import { RiviereModule } from './riviere-module'
 import {
   ExtractionConfigurationUnavailableError,
   GraphStateUnavailableError,
+  WorkflowUnavailableError,
 } from './riviere-project-errors'
 import { Workflow, WorkflowRunMode } from './workflow'
-import type { WorkflowDiagnostic } from './workflow-diagnostic'
+import type { AiCliStageCommand } from './workflow'
+import { WorkflowStageExecution } from './riviere-project-workflow-execution'
 import {
   ExtractionProjectStartInput,
   GraphOnlyProjectStartInput,
@@ -35,6 +37,8 @@ type RiviereProjectStartInput =
   | ExtractionProjectStartInput
   | GraphOnlyProjectStartInput
   | GraphWithWorkflowStartInput
+
+type AiCliStageUnavailability = AiCliStageCommand & Readonly<{ reason: string }>
 
 /** @riviere-role aggregate */
 export class RiviereProject {
@@ -129,8 +133,16 @@ export class RiviereProject {
     }
     const previousBuilder = this.graphBuilder()
     this.builder = RiviereBuilder.parse(BuilderOptions.fromGraph(previousBuilder.build()))
-    const run = await workflow.run(this.builder, mode, (stage, context) =>
-      this.executeWorkflowStage(stage, context.diagnostics),
+    const run = await workflow.run(this.builder, mode, (stage, context, runMode) =>
+      WorkflowStageExecution.execute({
+        builder: this.graphBuilder(),
+        collaborators: this.collaborators,
+        stage,
+        unresolvedDiagnostics: context.diagnostics,
+        mode: runMode,
+        executeCodeExtractionStage: (codeExtractionStage) =>
+          this.executeCodeExtractionStage(codeExtractionStage),
+      }),
     )
     if (!run.value.success) {
       this.builder = previousBuilder
@@ -146,54 +158,16 @@ export class RiviereProject {
       warnings: run.value.warnings,
     }
   }
-  private async executeWorkflowStage(
-    stage: WorkflowStageValue,
-    unresolvedDiagnostics: readonly WorkflowDiagnostic[],
-  ) {
-    switch (stage.kind) {
-      case 'schema-validate': {
-        const validation = this.graphBuilder().validate()
-        if (!validation.valid)
-          return {
-            success: false as const,
-            errorCode: 'GRAPH_VALIDATION_FAILED',
-            reason: [
-              ...validation.errors.map((error) => error.message),
-              ...unresolvedDiagnostics.map((diagnostic) => diagnostic.describe()),
-            ].join('\n'),
-          }
-        if (unresolvedDiagnostics.length > 0)
-          return {
-            success: false as const,
-            errorCode: 'UNRESOLVED_WORKFLOW_DIAGNOSTICS',
-            reason: `Unresolved workflow diagnostics: ${unresolvedDiagnostics
-              .map((diagnostic) => diagnostic.describe())
-              .join(', ')}`,
-          }
-        return { success: true as const, diagnostics: [], warnings: [] }
-      }
-      case 'eventcatalog-import':
-        return this.collaborators.extractionBehaviour.executeEventCatalogImportStage(
-          this.graphBuilder(),
-          stage.config,
-          this.collaborators,
-        )
-      case 'asyncapi-import':
-        return this.collaborators.extractionBehaviour.executeAsyncApiImportStage(
-          this.graphBuilder(),
-          stage.config,
-          this.collaborators,
-        )
-      case 'code-extraction':
-        return this.executeCodeExtractionStage(stage)
-      case 'ai-extract':
-      case 'ai-enrich':
-        return {
-          success: false as const,
-          errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',
-          reason: `Stage behaviour is unavailable for '${stage.kind}'`,
-        }
+  async checkAiCliAvailability(): Promise<readonly AiCliStageUnavailability[]> {
+    const workflow = this.workflow
+    if (workflow === undefined) throw new WorkflowUnavailableError()
+    const unavailableStages: AiCliStageUnavailability[] = []
+    for (const stage of workflow.aiCliStageCommands()) {
+      const availability = await this.collaborators.aiCli.checkAvailability(stage.command)
+      if (availability.kind === 'unavailable')
+        unavailableStages.push({ ...stage, reason: availability.reason })
     }
+    return unavailableStages
   }
   private executeCodeExtractionStage(
     stage: Extract<WorkflowStageValue, { kind: 'code-extraction' }>,
@@ -391,3 +365,5 @@ export class RiviereProject {
     return this.builder
   }
 }
+
+export type { AiCliStageUnavailability }

@@ -1,3 +1,4 @@
+import type { AiCli } from './ai-cli'
 import type { LoadAsyncApiDocument } from './load-asyncapi-document'
 import type { LoadCodeExtraction } from './load-code-extraction'
 import type { RiviereProjectExtractionBehaviour } from './riviere-project-extraction-behaviour'
@@ -38,6 +39,7 @@ type RiviereProjectCollaborators = Readonly<{
   loadEventCatalogSource: LoadEventCatalogSource
   loadAsyncApiDocument: LoadAsyncApiDocument
   loadCodeExtraction: LoadCodeExtraction
+  aiCli: AiCli
   repositoryName: string
   extractionBehaviour: RiviereProjectExtractionBehaviour
   moduleExtractionRules: RiviereModuleExtractionRules

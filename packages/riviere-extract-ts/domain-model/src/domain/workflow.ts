@@ -69,9 +69,18 @@ type WorkflowStageContext = Readonly<{
   diagnostics: readonly WorkflowDiagnostic[]
 }>
 
+type AiCliWorkflowStage = Extract<WorkflowStageValue, { kind: 'ai-extract' | 'ai-enrich' }>
+
+type AiCliStageCommand = Readonly<{
+  stageName: string
+  stageKind: AiCliWorkflowStage['kind']
+  command: string
+}>
+
 type ExecuteWorkflowStage = (
   stage: WorkflowStageValue,
   context: WorkflowStageContext,
+  mode: WorkflowRunMode,
 ) => WorkflowStageExecutionResult | Promise<WorkflowStageExecutionResult>
 
 /** @riviere-role aggregate-entity */
@@ -115,6 +124,10 @@ export class Workflow {
     )
   }
 
+  aiCliStageCommands(): readonly AiCliStageCommand[] {
+    return this.stages.flatMap((stage) => aiCliStageCommand(stage.value))
+  }
+
   async run(
     builder: RiviereBuilder,
     mode: WorkflowRunMode,
@@ -125,7 +138,7 @@ export class Workflow {
     for (const [index, stage] of activeStages.entries()) {
       const values = stageEventValues(stage.value, index)
       this.runEvents.push(WorkflowRunEvent.fromStage('StageStarted', values))
-      const result = await this.executeStage(execute, stage.value, builder)
+      const result = await this.executeStage(execute, stage.value, builder, mode)
       if (!result.success) return this.failRun(values, result)
       this.recordStageSuccess(stage.value, values, result, builder, index)
     }
@@ -156,12 +169,17 @@ export class Workflow {
     execute: ExecuteWorkflowStage,
     stage: WorkflowStageValue,
     builder: RiviereBuilder,
+    mode: WorkflowRunMode,
   ): Promise<WorkflowStageExecutionResult> {
     try {
-      return await execute(stage, {
-        components: builder.components(),
-        diagnostics: [...this.runDiagnostics],
-      })
+      return await execute(
+        stage,
+        {
+          components: builder.components(),
+          diagnostics: [...this.runDiagnostics],
+        },
+        mode,
+      )
     } catch (error) {
       return {
         success: false,
@@ -234,7 +252,7 @@ function stageEventValues(stage: WorkflowStageValue, index: number): WorkflowSta
   return { name: stage.name, kind: stage.kind, index }
 }
 
-function isAiStage(stage: WorkflowStageValue): boolean {
+function isAiStage(stage: WorkflowStageValue): stage is AiCliWorkflowStage {
   switch (stage.kind) {
     case 'ai-extract':
     case 'ai-enrich':
@@ -246,3 +264,10 @@ function isAiStage(stage: WorkflowStageValue): boolean {
       return false
   }
 }
+
+function aiCliStageCommand(stage: WorkflowStageValue): readonly AiCliStageCommand[] {
+  if (!isAiStage(stage)) return []
+  return [{ stageName: stage.name, stageKind: stage.kind, command: stage.config.command }]
+}
+
+export type { AiCliStageCommand, AiCliWorkflowStage, WorkflowStageExecutionResult }

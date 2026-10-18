@@ -19,3 +19,11 @@ export class InvalidWorkflowDefinitionError extends Error {
     this.name = 'InvalidWorkflowDefinitionError'
   }
 }
+
+/** @riviere-role domain-error */
+export class WorkflowUnavailableError extends Error {
+  constructor() {
+    super('Workflow is unavailable for this project operation')
+    this.name = 'WorkflowUnavailableError'
+  }
+}

@@ -7,6 +7,7 @@ import { join } from 'node:path'
 import { afterEach, assert, describe, expect, it } from 'vitest'
 import { RiviereProjectRepository } from './riviere-project-repository'
 import { configureExtraction } from '../../commands/configure-extraction'
+import { availableAiCli } from '../../../../__fixtures__/riviere-project-repository-fixtures'
 
 function writeWorkflow(directory: string): void {
   writeFileSync(
@@ -66,6 +67,7 @@ describe('RiviereProjectRepository EventCatalog workflow', () => {
         }),
       loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
       loadCodeExtraction: () => [],
+      aiCli: availableAiCli(),
       extractionBehaviour: extractionConfiguration.extractionBehaviour(),
       moduleExtractionRules: extractionConfiguration.moduleExtractionRules(),
     })

@@ -7,6 +7,7 @@ import type { RiviereProjectRepository } from '../features/extract/data-access/r
 import { InitGraph } from '../features/extract/commands/init-graph'
 import { configureExtraction } from '../features/extract/commands/configure-extraction'
 import { createCodeExtractionAdapter } from '../features/extract/adapters/ts-morph/code-extraction-adapter'
+import { availableAiCli } from './riviere-project-repository-fixtures'
 
 class CodeExtractionUnavailableError extends Error {
   constructor() {
@@ -23,6 +24,7 @@ export function collaborators(): RiviereProjectCollaborators {
     loadCodeExtraction: () => {
       throw new CodeExtractionUnavailableError()
     },
+    aiCli: availableAiCli(),
     repositoryName: 'test',
     extractionBehaviour: extractionConfiguration.extractionBehaviour(),
     moduleExtractionRules: extractionConfiguration.moduleExtractionRules(),
@@ -35,6 +37,7 @@ export function createInitGraph(repository: RiviereProjectRepository): InitGraph
     loadEventCatalogSource: loaders.loadEventCatalogSource,
     loadAsyncApiDocument: loaders.loadAsyncApiDocument,
     loadCodeExtraction: createCodeExtractionAdapter(),
+    aiCli: loaders.aiCli,
     extractionBehaviour: loaders.extractionBehaviour,
     moduleExtractionRules: loaders.moduleExtractionRules,
   })

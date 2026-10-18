@@ -7,6 +7,7 @@ import { Project } from 'ts-morph'
 import { assert } from 'vitest'
 import { ExtractionConfiguration } from '../extraction-configuration'
 import type { AsyncApiDocument, LoadAsyncApiDocument } from '../ports/load-asyncapi-document'
+import type { AiCli } from '../ports/ai-cli'
 import type { LoadCodeExtraction } from '../ports/load-code-extraction'
 import type {
   EventCatalogSource,
@@ -107,6 +108,18 @@ export function moduleExtractionRules(): RiviereModuleExtractionRules {
   }
 }
 
+function availableAiCli(): AiCli {
+  return {
+    checkAvailability: () => Promise.resolve({ kind: 'available' }),
+    run: () =>
+      Promise.resolve({
+        kind: 'completed',
+        stdout: { text: '', truncated: false },
+        stderr: { text: '', truncated: false },
+      }),
+  }
+}
+
 export function collaborators(
   source: EventCatalogSource = { domains: [], services: [], events: [] },
   asyncApiDocument: AsyncApiDocument = { messages: [], operations: [] },
@@ -116,6 +129,7 @@ export function collaborators(
     loadEventCatalogSource: () => Promise.resolve(source),
     loadAsyncApiDocument: () => Promise.resolve(asyncApiDocument),
     loadCodeExtraction,
+    aiCli: availableAiCli(),
     repositoryName: 'shop',
     extractionBehaviour: extractionBehaviour(),
     moduleExtractionRules: moduleExtractionRules(),

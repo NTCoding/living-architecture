@@ -225,6 +225,7 @@ Domain model package: `@living-architecture/riviere-extract-ts-domain-model`
   - `build`
   - `serialize`
   - `rebuildGraph`
+  - `checkAiCliAvailability`
   - `extractDraftComponents`
   - `enrichDraftComponents`
   - `detectConnections`
