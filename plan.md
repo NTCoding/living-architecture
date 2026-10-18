@@ -939,10 +939,11 @@ that one complete pass must leave nothing for the next cycle.
 **The implementer ran out of steps, not out of answers.** The first real ticket, 500,
 stopped at `implement` with `finishReason=tool-calls`. The trace shows about forty tool
 calls: it read the repository, wrote the `AiCli` port, edited the workflow fixtures and
-ran `tsc`. It was still working when it hit the limit. It never failed to answer. The
-limit is now 400 steps, the instructions say to stop and return the summary when the
-steps run low, and the failure message now says it ran out of steps and that the work in
-the worktree is kept.
+ran `tsc`. It was still working when it hit the limit. It never failed to answer. The limit
+is now an hour of wall clock, passed to the model call as an abort signal, with 1000
+steps kept only as a backstop against a fast loop. The instructions say to stop and
+return the summary when the budget runs low, and the failure message says it ran out of
+time and that the work in the worktree is kept.
 
 **Still open.** The app has no test target, so the Progress item "tests to 100% for the
 app" stays unticked. Shell is wiring and the graphs are tested in the use-cases package.

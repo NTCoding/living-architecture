@@ -12,6 +12,7 @@ export interface AgentGenerationRequest {
   readonly threadId: string | null
   readonly responseSchema: z.ZodType<unknown> | null
   readonly maxSteps: number
+  readonly timeBudgetMs: number
 }
 
 /** @riviere-role external-client-model */
@@ -47,18 +48,28 @@ export function createAgentGeneration(dependencies: {
       instructions: request.instructions,
       workspacePath: request.workspacePath,
     })
-    const response =
-      request.responseSchema === null
-        ? await agent.generate(request.prompt, conversationOptions(request))
-        : await agent.generate(request.prompt, {
-            ...conversationOptions(request),
-            structuredOutput: { schema: request.responseSchema },
-          })
-    return {
-      object: response.object,
-      text: response.text,
-      finishReason: String(response.finishReason),
-      suspendPayload: response.suspendPayload,
+    const abort = new AbortController()
+    const timer = setTimeout(() => abort.abort(), request.timeBudgetMs)
+    try {
+      const options = { ...conversationOptions(request), abortSignal: abort.signal }
+      const response =
+        request.responseSchema === null
+          ? await agent.generate(request.prompt, options)
+          : await agent.generate(request.prompt, {
+              ...options,
+              structuredOutput: { schema: request.responseSchema },
+            })
+      return {
+        object: response.object,
+        text: response.text,
+        finishReason: String(response.finishReason),
+        suspendPayload: response.suspendPayload,
+      }
+    } catch (error) {
+      if (!abort.signal.aborted) throw error
+      return { object: undefined, text: '', finishReason: 'aborted', suspendPayload: null }
+    } finally {
+      clearTimeout(timer)
     }
   }
 }

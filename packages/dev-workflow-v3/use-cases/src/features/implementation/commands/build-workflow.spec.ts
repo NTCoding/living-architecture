@@ -287,6 +287,28 @@ describe('BuildWorkflow', () => {
     expect(started.status).toBe('failed')
   })
 
+  it('says the implementer ran out of time, and keeps the worktree', async () => {
+    const { run } = await startedRun({
+      generate: async (request) =>
+        request.agentId === 'implementer'
+          ? { object: undefined, text: '', finishReason: 'aborted', suspendPayload: null }
+          : stubs().generate(request),
+    })
+    const finished = await run.resume({
+      step: 'request-plan-approval',
+      resumeData: { approved: true, notes: null },
+    })
+
+    expect(finished).toStrictEqual(
+      expect.objectContaining({
+        status: 'failed',
+        error: expect.objectContaining({
+          message: expect.stringContaining('ran out of time, one hour'),
+        }),
+      }),
+    )
+  })
+
   it('says the implementer ran out of steps rather than out of answers', async () => {
     const { run } = await startedRun({
       generate: async (request) =>

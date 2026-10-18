@@ -126,6 +126,8 @@ const IMPLEMENTER_INSTRUCTIONS = [
 
 const CODERABBIT = 'coderabbit'
 
+const IMPLEMENTATION_TIME_BUDGET_MS = 60 * 60 * 1000
+
 const CONVENTIONAL_PREFIX = /^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)[(:]/
 
 type RunState = z.infer<typeof runStateSchema>
@@ -163,6 +165,7 @@ export interface BuildWorkflowInput {
     readonly threadId: string | null
     readonly responseSchema: z.ZodType<unknown> | null
     readonly maxSteps: number
+    readonly timeBudgetMs: number
   }) => Promise<{
     readonly object: unknown
     readonly text: string
@@ -329,6 +332,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           threadId: null,
           responseSchema: planSchema,
           maxSteps: 1,
+          timeBudgetMs: 5 * 60 * 1000,
         })
         const plan = planSchema.safeParse(response.object)
         if (!plan.success) throw new RunFailed(noStructuredOutput('The planner', response))
@@ -378,10 +382,16 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           workspacePath: state.worktreePath,
           threadId: `issue-${String(state.issueNumber)}`,
           responseSchema: implementationSchema,
-          maxSteps: 400,
+          maxSteps: 1000,
+          timeBudgetMs: IMPLEMENTATION_TIME_BUDGET_MS,
         })
         if (response.finishReason === 'suspended') {
           return await suspend({ question: questionFrom(response.suspendPayload) })
+        }
+        if (response.finishReason === 'aborted') {
+          throw new RunFailed(
+            'The implementer ran out of time, one hour. The work in the worktree is kept. Start again on the same issue to carry on from it.',
+          )
         }
         if (response.finishReason === 'tool-calls') {
           throw new RunFailed(
@@ -452,6 +462,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           threadId: null,
           responseSchema: pullRequestDraftSchema,
           maxSteps: 1,
+          timeBudgetMs: 5 * 60 * 1000,
         })
         const draft = pullRequestDraftSchema.safeParse(response.object)
         if (!draft.success) {
@@ -659,6 +670,7 @@ function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDe
         threadId: null,
         responseSchema: verdictSchema,
         maxSteps: 30,
+        timeBudgetMs: 15 * 60 * 1000,
       })
       const verdict = verdictSchema.safeParse(response.object)
       if (!verdict.success) throw new RunFailed(noStructuredOutput(`The ${reviewer}`, response))
@@ -709,7 +721,8 @@ async function addressWhenThereIsFeedback(
     workspacePath: state.worktreePath,
     threadId: `issue-${String(state.issueNumber)}`,
     responseSchema: null,
-    maxSteps: 80,
+    maxSteps: 200,
+    timeBudgetMs: 30 * 60 * 1000,
   })
 }
 
