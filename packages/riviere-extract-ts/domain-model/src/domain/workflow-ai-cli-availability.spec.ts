@@ -76,7 +76,7 @@ function recordingAiCli(availability: AiCliAvailability = { kind: 'available' })
         commands.push(command)
         return availability
       },
-      run: () => ({ kind: 'invocation-failure', reason: 'not configured' }),
+      run: () => Promise.resolve({ kind: 'invocation-failure', reason: 'not configured' }),
     },
     commands,
   }

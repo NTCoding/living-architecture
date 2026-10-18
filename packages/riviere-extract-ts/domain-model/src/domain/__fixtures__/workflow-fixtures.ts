@@ -114,7 +114,7 @@ export function collaborators(
   const loadCodeExtraction: LoadCodeExtraction = () => configuration().moduleContexts
   const aiCli = {
     checkAvailability: () => ({ kind: 'available' as const }),
-    run: () => ({ kind: 'invocation-failure' as const, reason: 'not configured' }),
+    run: () => Promise.resolve({ kind: 'invocation-failure' as const, reason: 'not configured' }),
   }
   return {
     aiCli,

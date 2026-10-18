@@ -34,5 +34,5 @@ export type AiCliAvailability =
  */
 export interface AiCli {
   checkAvailability(command: string): AiCliAvailability
-  run(input: RunAiCliInput): RunAiCliResult
+  run(input: RunAiCliInput): Promise<RunAiCliResult>
 }

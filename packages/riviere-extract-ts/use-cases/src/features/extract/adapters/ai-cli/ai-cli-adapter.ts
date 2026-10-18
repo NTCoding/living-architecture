@@ -21,7 +21,7 @@ export class AiCliAdapter implements AiCli {
   constructor(private readonly client: ChildProcessClient) {}
 
   checkAvailability(command: string): AiCliAvailability {
-    const result = this.client.probe(command)
+    const result = this.client.lookupExecutable(command)
     switch (result.kind) {
       case 'available':
         return { kind: 'available' }
@@ -30,11 +30,11 @@ export class AiCliAdapter implements AiCli {
     }
   }
 
-  run(input: RunAiCliInput): RunAiCliResult {
+  async run(input: RunAiCliInput): Promise<RunAiCliResult> {
     const placement = resolvePromptPlacement(input.arguments, input.prompt)
     if (placement.kind === 'invalid')
       return { kind: 'invocation-failure', reason: placement.reason }
-    const result = this.client.run({
+    const result = await this.client.run({
       command: input.command,
       arguments: placement.arguments,
       stdin: placement.kind === 'standard-input' ? placement.stdin : undefined,

@@ -33,20 +33,20 @@ describe('AiCliAdapter with a stub executable', () => {
     expect(result).toStrictEqual({ kind: 'available' })
   })
 
-  it('invokes the configured executable with the prompt on standard input', () => {
-    const result = adapter.run(createInput('echo-stdin', [], 'Discover missing events'))
+  it('invokes the configured executable with the prompt on standard input', async () => {
+    const result = await adapter.run(createInput('echo-stdin', [], 'Discover missing events'))
 
     expect(result).toStrictEqual({ kind: 'success', output: 'stdin:Discover missing events' })
   })
 
-  it('invokes the configured executable with the prompt substituted as an argument', () => {
-    const result = adapter.run(createInput('echo-arguments', ['{prompt}'], 'hello'))
+  it('invokes the configured executable with the prompt substituted as an argument', async () => {
+    const result = await adapter.run(createInput('echo-arguments', ['{prompt}'], 'hello'))
 
     expect(result).toStrictEqual({ kind: 'success', output: 'arguments:hello' })
   })
 
-  it('returns a typed timeout when the stub executable exceeds its timeout', () => {
-    const result = adapter.run(createInput('sleep', ['5000'], 'slow prompt', 1))
+  it('returns a typed timeout when the stub executable exceeds its timeout', async () => {
+    const result = await adapter.run(createInput('sleep', ['5000'], 'slow prompt', 1))
 
     expect(result).toStrictEqual({ kind: 'timeout' })
   })
