@@ -171,6 +171,7 @@ export interface BuildWorkflowInput {
     readonly prompt: string
     readonly workspacePath: string | null
     readonly threadId: string | null
+    readonly useTools: boolean
     readonly responseSchema: z.ZodType<unknown> | null
     readonly maxSteps: number
     readonly timeBudgetMs: number
@@ -337,6 +338,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           prompt: planPrompt(state),
           workspacePath: null,
           threadId: null,
+          useTools: false,
           responseSchema: planSchema,
           maxSteps: 1,
           timeBudgetMs: 5 * 60 * 1000,
@@ -425,6 +427,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           prompt: pullRequestPrompt(state),
           workspacePath: null,
           threadId: null,
+          useTools: false,
           responseSchema: pullRequestDraftSchema,
           maxSteps: 1,
           timeBudgetMs: 5 * 60 * 1000,
@@ -650,6 +653,7 @@ function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDe
         prompt: reviewPrompt(state, reviewer, previous, diff),
         workspacePath: state.worktreePath,
         threadId: null,
+        useTools: false,
         responseSchema: verdictSchema,
         maxSteps: 30,
         timeBudgetMs: 15 * 60 * 1000,
@@ -733,6 +737,7 @@ async function runImplementationRound(
     prompt,
     workspacePath: request.state.worktreePath,
     threadId: `issue-${String(request.state.issueNumber)}`,
+    useTools: true,
     responseSchema: implementationSchema,
     maxSteps: 1000,
     timeBudgetMs: remaining,

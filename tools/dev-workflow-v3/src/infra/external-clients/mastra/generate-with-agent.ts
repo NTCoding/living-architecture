@@ -11,6 +11,7 @@ export interface AgentGenerationRequest {
   readonly prompt: string
   readonly workspacePath: string | null
   readonly threadId: string | null
+  readonly useTools: boolean
   readonly responseSchema: z.ZodType<unknown> | null
   readonly maxSteps: number
   readonly timeBudgetMs: number
@@ -67,6 +68,7 @@ export function createAgentGeneration(dependencies: {
       model: request.model,
       instructions: request.instructions,
       workspacePath: request.workspacePath,
+      useTools: request.useTools,
     })
     const abort = new AbortController()
     const timer = setTimeout(() => abort.abort(), request.timeBudgetMs)

@@ -9,6 +9,7 @@ export interface AgentRequest {
   readonly model: string
   readonly instructions: string
   readonly workspacePath: string | null
+  readonly useTools: boolean
 }
 
 /**
@@ -24,7 +25,7 @@ export function createAgentFactory(dependencies: {
       name: request.id,
       instructions: request.instructions,
       model: request.model,
-      tools: dependencies.tools,
+      tools: request.useTools ? dependencies.tools : {},
       memory: dependencies.memory,
       ...(request.workspacePath === null
         ? {}
