@@ -12,6 +12,7 @@ export interface AgentGenerationRequest {
   readonly workspacePath: string | null
   readonly threadId: string | null
   readonly useTools: boolean
+  readonly workspaceWritable: boolean
   readonly responseSchema: z.ZodType<unknown> | null
   readonly maxSteps: number
   readonly timeBudgetMs: number
@@ -62,13 +63,37 @@ function conversationOptions(request: AgentGenerationRequest) {
 export function createAgentGeneration(dependencies: {
   readonly agentFor: (request: AgentRequest) => Agent
 }): (request: AgentGenerationRequest) => Promise<AgentGeneration> {
-  return async (request) => {
+  return async (request) => generateWithRetry(dependencies, request, 0)
+}
+
+function isEmptyAnswer(response: AgentGeneration): boolean {
+  return (
+    response.finishReason === 'stop' && response.text.trim() === '' && response.object === undefined
+  )
+}
+
+async function generateWithRetry(
+  dependencies: { readonly agentFor: (request: AgentRequest) => Agent },
+  request: AgentGenerationRequest,
+  attempt: number,
+): Promise<AgentGeneration> {
+  const response = await generateOnce(dependencies, request)
+  if (!isEmptyAnswer(response) || attempt >= 2) return response
+  return generateWithRetry(dependencies, request, attempt + 1)
+}
+
+async function generateOnce(
+  dependencies: { readonly agentFor: (request: AgentRequest) => Agent },
+  request: AgentGenerationRequest,
+): Promise<AgentGeneration> {
+  {
     const agent = dependencies.agentFor({
       id: request.agentId,
       model: request.model,
       instructions: request.instructions,
       workspacePath: request.workspacePath,
       useTools: request.useTools,
+      workspaceWritable: request.workspaceWritable,
     })
     const abort = new AbortController()
     const timer = setTimeout(() => abort.abort(), request.timeBudgetMs)

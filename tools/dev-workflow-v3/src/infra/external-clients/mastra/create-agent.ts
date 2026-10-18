@@ -10,6 +10,7 @@ export interface AgentRequest {
   readonly instructions: string
   readonly workspacePath: string | null
   readonly useTools: boolean
+  readonly workspaceWritable: boolean
 }
 
 /**
@@ -29,6 +30,10 @@ export function createAgentFactory(dependencies: {
       memory: dependencies.memory,
       ...(request.workspacePath === null
         ? {}
-        : { workspace: createWorkspace(request.workspacePath) }),
+        : {
+            workspace: createWorkspace(request.workspacePath, {
+              readOnly: !request.workspaceWritable,
+            }),
+          }),
     })
 }

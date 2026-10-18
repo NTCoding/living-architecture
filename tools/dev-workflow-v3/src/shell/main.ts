@@ -434,8 +434,8 @@ function timestampOf(value: unknown): number | undefined {
 }
 
 function heartbeat(name: string, timing: StepTiming, startedAt: number, now: number): void {
-  if (now - startedAt < 60_000) return
-  if (now - timing.lastHeartbeat < 60_000) return
+  if (now - startedAt < 300_000) return
+  if (now - timing.lastHeartbeat < 300_000) return
   timing.lastHeartbeat = now
   process.stdout.write(`  … ${name.padEnd(22)} ${duration(startedAt, now)}\n`)
 }

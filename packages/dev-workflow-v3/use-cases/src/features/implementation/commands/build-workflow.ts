@@ -191,6 +191,7 @@ export interface BuildWorkflowInput {
     readonly workspacePath: string | null
     readonly threadId: string | null
     readonly useTools: boolean
+    readonly workspaceWritable: boolean
     readonly responseSchema: z.ZodType<unknown> | null
     readonly maxSteps: number
     readonly timeBudgetMs: number
@@ -372,6 +373,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           workspacePath: null,
           threadId: null,
           useTools: false,
+          workspaceWritable: false,
           responseSchema: planSchema,
           maxSteps: 1,
           timeBudgetMs: 5 * 60 * 1000,
@@ -477,6 +479,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           workspacePath: null,
           threadId: null,
           useTools: false,
+          workspaceWritable: false,
           responseSchema: pullRequestDraftSchema,
           maxSteps: 1,
           timeBudgetMs: 5 * 60 * 1000,
@@ -738,11 +741,12 @@ function reviewStep(input: BuildWorkflowInput, reviewer: string): WorkflowStepDe
         thinking: state.thinking,
         instructions: await input.readReviewerInstructions(reviewer),
         prompt: reviewPrompt(state, reviewer, previous, diff),
-        workspacePath: null,
+        workspacePath: state.worktreePath,
         threadId: null,
-        useTools: false,
+        useTools: true,
+        workspaceWritable: false,
         responseSchema: verdictSchema,
-        maxSteps: 30,
+        maxSteps: 200,
         timeBudgetMs: REVIEW_TIME_BUDGET_MS,
       })
       const verdict = verdictSchema.safeParse(response.object)
@@ -837,6 +841,7 @@ async function runImplementationRound(
     workspacePath: request.state.worktreePath,
     threadId: `issue-${String(request.state.issueNumber)}`,
     useTools: true,
+    workspaceWritable: true,
     responseSchema: implementationSchema,
     maxSteps: 1000,
     timeBudgetMs: remaining,
