@@ -936,7 +936,7 @@ that one complete pass must leave nothing for the next cycle.
 stopped at `implement` with `finishReason=tool-calls`. The trace shows about forty tool
 calls: it read the repository, wrote the `AiCli` port, edited the workflow fixtures and
 ran `tsc`. It was still working when it hit the limit. It never failed to answer. The
-limit is now 200 steps, the instructions say to stop and return the summary when the
+limit is now 400 steps, the instructions say to stop and return the summary when the
 steps run low, and the failure message now says it ran out of steps and that the work in
 the worktree is kept.
 

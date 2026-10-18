@@ -378,7 +378,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           workspacePath: state.worktreePath,
           threadId: `issue-${String(state.issueNumber)}`,
           responseSchema: implementationSchema,
-          maxSteps: 200,
+          maxSteps: 400,
         })
         if (response.finishReason === 'suspended') {
           return await suspend({ question: questionFrom(response.suspendPayload) })
