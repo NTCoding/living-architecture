@@ -17,7 +17,7 @@ const reviewedFindingSchema = findingSchema.omit({ reviewer: true })
 const resolutionSchema = z.object({
   commentId: z.number().int().positive(),
   outcome: z.enum(['addressed', 'partly-addressed', 'not-addressed']),
-  reason: z.string().nullable(),
+  response: z.string().min(1),
 })
 
 const thinkingSchema = z.enum(['off', 'low', 'medium', 'high']).default('low')
@@ -79,12 +79,7 @@ const blockerResumeSchema = z.object({ answer: z.string() })
 const unaddressedFeedbackSchema = z.object({
   reason: z.string().default(''),
   unaddressed: z.array(z.number().int().positive()).default([]),
-  rejections: z
-    .array(z.object({ commentId: z.number().int().positive(), reason: z.string() }))
-    .default([]),
 })
-
-const rejectionApprovalSchema = z.object({ approved: z.boolean() })
 
 const planSchema = z.object({
   markdown: z.string().min(1),
@@ -96,8 +91,9 @@ const implementationSchema = z.object({
   blockedReason: z.string().nullable(),
   allWorkComplete: z.boolean(),
   allWorkCommitted: z.boolean(),
-  resolutions: z.array(resolutionSchema).default([]),
 })
+
+const feedbackSchema = z.object({ resolutions: z.array(resolutionSchema) })
 
 const pullRequestDraftSchema = z.object({
   commitType: z.enum([
@@ -426,33 +422,24 @@ const REVIEWER_INSTRUCTIONS: Readonly<Record<ReviewerName, string>> = {
   'bug-scanner': BUG_SCANNER_INSTRUCTIONS,
 }
 
-const FEEDBACK_INSTRUCTIONS = `You address review feedback on a pull request in the software factory.
+const FEEDBACK_INSTRUCTIONS = `You address review feedback on a pull request.
 
-The workflow gives you the feedback items. You do not fetch them, and you do not post to GitHub.
+The workflow gives you the feedback items. You do not fetch them, and you do not post to GitHub. The workflow posts your responses.
 
-## For each item
-
+For each item:
 - If it is a bug, a clear rule violation, or poor code, fix it.
 - If it is wrong or cannot be done, reject it with a specific technical reason. Never use "out of scope" or "nitpick" as the reason.
-- If it needs a design decision, use the ask-user tool and wait for the answer.
+- If it needs a design decision you cannot make, use the ask-user tool and wait for the answer.
 
-## For a fix
+For a fix, say why the feedback is valid, what you changed, and how you verified it.
+For a rejection, state the specific technical reason.
 
-Say why the feedback is valid, what you changed, and how you verified it.
-
-## For a rejection
-
-State the specific technical reason. A person approves a rejection before the workflow posts it.
-
-## Rules
-
-- Answer every item. The workflow does not accept this step until you have one response for every item it gave you.
-- Commit your changes. Do not push and do not post to GitHub.
-- Do not resolve anything. The workflow posts the responses and resolves the threads.
-- Do not broaden the scope of the pull request without a person's approval.
+Answer every item. The workflow will not accept this step until you have one response for every item it gave you.
+Commit your changes. Do not push and do not post to GitHub.
+Do not resolve anything. The workflow posts the responses and resolves the threads.
+Do not broaden the scope of the pull request without a person's approval.
 
 `
-
 const PULL_REQUEST_WRITER_INSTRUCTIONS = [
   'You are the pull request writer in a software factory workflow.',
   'Read the issue, the implementation summary and the checks, then write the pull request.',
@@ -764,7 +751,6 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           state: { ...state, baseSha: '' },
           firstPrompt: implementationPrompt(state, answer.success ? answer.data.answer : null),
           instructions: IMPLEMENTER_INSTRUCTIONS,
-          requiredCommentIds: [],
           rounds: IMPLEMENTATION_ROUNDS,
           timeBudgetMs: IMPLEMENTATION_TIME_BUDGET_MS,
         })
@@ -980,15 +966,14 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
       inputSchema: reviewStateSchema,
       outputSchema: reviewStateSchema,
       suspendSchema: unaddressedFeedbackSchema,
-      resumeSchema: rejectionApprovalSchema,
-      run: async ({ data, resumeData, suspend }) => {
+      resumeSchema: null,
+      run: async ({ data, suspend }) => {
         const state = reviewStateSchema.parse(data)
         const required = state.findings.flatMap((finding) =>
           finding.commentId === null ? [] : [finding.commentId],
         )
         if (state.findings.length === 0) return state
-        const approval = rejectionApprovalSchema.safeParse(resumeData)
-        const feedback = await implementUntilCommitted({
+        const feedback = await resolveFeedback({
           input,
           state: {
             issueNumber: state.issueNumber,
@@ -1008,20 +993,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
           throw new RunFailed(`The implementer is blocked: ${feedback.question}`)
         }
         if (feedback.kind === 'unfinished') {
-          return await suspend({
-            reason: feedback.reason,
-            unaddressed: feedback.missing,
-            rejections: [],
-          })
-        }
-        const rejections = feedback.resolutions
-          .filter((resolution) => resolution.outcome === 'not-addressed')
-          .map((resolution) => ({
-            commentId: resolution.commentId,
-            reason: reasonOf(resolution.reason),
-          }))
-        if (rejections.length > 0 && (approval.success === false || !approval.data.approved)) {
-          return await suspend({ unaddressed: [], rejections })
+          return await suspend({ reason: feedback.reason, unaddressed: feedback.missing })
         }
         return { ...state, resolutions: feedback.resolutions }
       },
@@ -1063,7 +1035,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
           await input.replyToReviewComment({
             pullRequestNumber: state.pullRequestNumber,
             commentId: resolution.commentId,
-            body: renderReply(resolution, state),
+            body: renderReply(resolution),
           })
         }
         return { ...state, resolutions: [], findings: [] }
@@ -1137,7 +1109,6 @@ type ImplementationResult =
       readonly kind: 'committed'
       readonly sha: string
       readonly changedFiles: readonly string[]
-      readonly resolutions: readonly z.infer<typeof resolutionSchema>[]
     }
   | { readonly kind: 'question'; readonly question: string }
   | { readonly kind: 'unfinished'; readonly reason: string; readonly missing: readonly number[] }
@@ -1147,7 +1118,6 @@ async function implementUntilCommitted(request: {
   readonly state: ImplementationTarget
   readonly firstPrompt: string
   readonly instructions: string
-  readonly requiredCommentIds: readonly number[]
   readonly rounds: number
   readonly timeBudgetMs: number
 }): Promise<ImplementationResult> {
@@ -1160,8 +1130,63 @@ async function implementUntilCommitted(request: {
       worktreePath: request.state.worktreePath,
       from: request.state.baseSha,
     })
+    if (isFinished(round.answer, committed)) {
+      return {
+        kind: 'committed',
+        sha: committed.sha,
+        changedFiles: committed.changedFiles,
+      }
+    }
+    progress.round += 1
+    if (progress.round >= request.rounds) {
+      return {
+        kind: 'unfinished',
+        reason: unfinishedMessage(round.answer, committed),
+        missing: [],
+      }
+    }
+    progress.prompt = nudgePrompt(round.answer, committed)
+  }
+}
+
+function missingResolutions(
+  resolutions: readonly { readonly commentId: number }[],
+  required: readonly number[],
+): readonly number[] {
+  const provided = new Set(resolutions.map((resolution) => resolution.commentId))
+  return required.filter((id) => !provided.has(id))
+}
+
+type FeedbackResult =
+  | {
+      readonly kind: 'committed'
+      readonly sha: string
+      readonly changedFiles: readonly string[]
+      readonly resolutions: readonly z.infer<typeof resolutionSchema>[]
+    }
+  | { readonly kind: 'question'; readonly question: string }
+  | { readonly kind: 'unfinished'; readonly reason: string; readonly missing: readonly number[] }
+
+async function resolveFeedback(request: {
+  readonly input: BuildWorkflowInput
+  readonly state: ImplementationTarget
+  readonly firstPrompt: string
+  readonly instructions: string
+  readonly requiredCommentIds: readonly number[]
+  readonly rounds: number
+  readonly timeBudgetMs: number
+}): Promise<FeedbackResult> {
+  const progress = { prompt: request.firstPrompt, round: 0, startedAt: Date.now() }
+  for (;;) {
+    const remaining = request.timeBudgetMs - (Date.now() - progress.startedAt)
+    const round = await runFeedbackRound(request, progress.prompt, Math.max(remaining, 1))
+    if (round.kind === 'question') return round
+    const committed = await request.input.checkWorkCommitted({
+      worktreePath: request.state.worktreePath,
+      from: request.state.baseSha,
+    })
     const missing = missingResolutions(round.answer.resolutions, request.requiredCommentIds)
-    if (isFinished(round.answer, committed, missing)) {
+    if (committed.clean && committed.hasCommit && missing.length === 0) {
       return {
         kind: 'committed',
         sha: committed.sha,
@@ -1173,25 +1198,74 @@ async function implementUntilCommitted(request: {
     if (progress.round >= request.rounds) {
       return {
         kind: 'unfinished',
-        reason: unfinishedMessage(round.answer, committed, missing),
+        reason: feedbackUnfinishedMessage(committed, missing),
         missing,
       }
     }
-    progress.prompt = nudgePrompt(round.answer, committed, missing)
+    progress.prompt = feedbackNudgePrompt(committed, missing)
   }
 }
 
-function reasonOf(reason: string | null): string {
-  if (reason === null) return 'No reason given.'
-  return reason
+async function runFeedbackRound(
+  request: {
+    readonly input: BuildWorkflowInput
+    readonly state: ImplementationTarget
+    readonly instructions: string
+  },
+  prompt: string,
+  remaining: number,
+): Promise<
+  | { readonly kind: 'answer'; readonly answer: z.infer<typeof feedbackSchema> }
+  | { readonly kind: 'question'; readonly question: string }
+> {
+  const response = await request.input.generate({
+    agentId: 'implementer',
+    model: request.state.model,
+    thinking: request.state.thinking,
+    instructions: request.instructions,
+    prompt,
+    workspacePath: request.state.worktreePath,
+    threadId: `issue-${String(request.state.issueNumber)}`,
+    useTools: true,
+    workspaceWritable: true,
+    responseSchema: feedbackSchema,
+    maxSteps: 1000,
+    timeBudgetMs: remaining,
+  })
+  if (response.finishReason === 'suspended') {
+    return { kind: 'question', question: questionFrom(response.suspendPayload) }
+  }
+  if (response.finishReason === 'aborted') throw new RunFailed(timeExhaustedMessage)
+  if (response.finishReason === 'tool-calls') throw new RunFailed(stepsExhaustedMessage)
+  const outcome = feedbackSchema.safeParse(response.object)
+  if (!outcome.success) throw new RunFailed(noStructuredOutput('The implementer', response))
+  return { kind: 'answer', answer: outcome.data }
 }
 
-function missingResolutions(
-  resolutions: readonly { readonly commentId: number }[],
-  required: readonly number[],
-): readonly number[] {
-  const provided = new Set(resolutions.map((resolution) => resolution.commentId))
-  return required.filter((id) => !provided.has(id))
+function feedbackUnfinishedMessage(committed: CommitState, missing: readonly number[]): string {
+  return [
+    'The implementer did not finish the feedback.',
+    missing.length === 0
+      ? 'It answered every finding.'
+      : `It did not answer these findings: ${missing.join(', ')}.`,
+    committed.clean
+      ? 'The worktree is clean.'
+      : `Changes still not committed:\n${tailOf(committed.status)}`,
+  ].join('\n')
+}
+
+function feedbackNudgePrompt(committed: CommitState, missing: readonly number[]): string {
+  return [
+    'You are not finished.',
+    committed.clean
+      ? 'The worktree is clean.'
+      : `The worktree still has changes that are not committed:\n${tailOf(committed.status)}`,
+    committed.hasCommit ? 'The branch has your commit.' : 'The branch has no commit of yours yet.',
+    missing.length === 0
+      ? 'You answered every finding.'
+      : `You did not answer these findings: ${missing.join(', ')}. Answer each one.`,
+    'Commit your changes and return a response for every finding.',
+  ].join('\n')
 }
 
 type RoundOutcome =
@@ -1234,18 +1308,8 @@ async function runImplementationRound(
   return { kind: 'answer', answer: outcome.data }
 }
 
-function isFinished(
-  answer: ImplementationAnswer,
-  committed: CommitState,
-  missing: readonly number[],
-): boolean {
-  return (
-    answer.allWorkComplete &&
-    answer.allWorkCommitted &&
-    committed.clean &&
-    committed.hasCommit &&
-    missing.length === 0
-  )
+function isFinished(answer: ImplementationAnswer, committed: CommitState): boolean {
+  return answer.allWorkComplete && answer.allWorkCommitted && committed.clean && committed.hasCommit
 }
 
 type ImplementationAnswer = {
@@ -1265,11 +1329,7 @@ const timeExhaustedMessage =
 const stepsExhaustedMessage =
   'The implementer used all its steps without finishing. The work in the worktree is kept. Start again on the same issue to carry on from it.'
 
-function unfinishedMessage(
-  answer: ImplementationAnswer,
-  committed: CommitState,
-  missing: readonly number[],
-): string {
+function unfinishedMessage(answer: ImplementationAnswer, committed: CommitState): string {
   return [
     'The implementer did not finish the feedback and the work is not committed.',
     answer.allWorkComplete
@@ -1278,20 +1338,13 @@ function unfinishedMessage(
     answer.allWorkCommitted
       ? 'It said the work was committed.'
       : 'It said the work was not committed.',
-    missing.length === 0
-      ? 'It answered every finding.'
-      : `It did not answer these findings: ${missing.join(', ')}.`,
     committed.clean
       ? 'The worktree is clean.'
       : `Changes still not committed:\n${tailOf(committed.status)}`,
   ].join('\n')
 }
 
-function nudgePrompt(
-  answer: ImplementationAnswer,
-  committed: CommitState,
-  missing: readonly number[],
-): string {
+function nudgePrompt(answer: ImplementationAnswer, committed: CommitState): string {
   return [
     'You are not finished.',
     '',
@@ -1299,9 +1352,6 @@ function nudgePrompt(
       ? 'The worktree is clean.'
       : `The worktree still has changes that are not committed:\n${tailOf(committed.status)}`,
     committed.hasCommit ? 'The branch has your commit.' : 'The branch has no commit of yours yet.',
-    missing.length === 0
-      ? 'You answered every finding.'
-      : `You did not answer these findings: ${missing.join(', ')}. Answer each one.`,
     `Your last answer said allWorkComplete=${String(answer.allWorkComplete)} and allWorkCommitted=${String(answer.allWorkCommitted)}.`,
     '',
     'Finish the work, run the checks, commit it with a conventional message, answer every',
@@ -1339,6 +1389,11 @@ function planPrompt(state: RunState): string {
     '',
     'Repository guidance:',
     state.guidance,
+    '',
+    'Your response:',
+    '- markdown: the plan, as a short numbered list.',
+    '- needsInput: true when a decision is needed before implementation, otherwise false.',
+    '- question: the question for the developer when needsInput is true, otherwise null.',
   ].join('\n')
 }
 
@@ -1351,6 +1406,11 @@ function implementationPrompt(state: RunState, answer: string | null): string {
     '',
     'Repository guidance:',
     state.guidance,
+    '',
+    'Your response:',
+    '- blockedReason: a question for the developer when you cannot continue, otherwise null.',
+    '- allWorkComplete: true when the plan is done.',
+    '- allWorkCommitted: true when you have committed your work.',
   ]
   return answer ?? first.join('\n')
 }
@@ -1369,18 +1429,22 @@ function reviewPrompt(
     '',
     'Diff:',
     diff,
+    '',
+    'Your response:',
+    '- status: APPROVED when you have no findings, OPEN_FEEDBACK when you do.',
+    '- findings: one per problem, each with file, line, rule and summary.',
+    '  rule is the rule you applied, or null. summary says what is wrong and what good looks like.',
   ].join('\n')
 }
 
 function feedbackPrompt(state: ReviewState): string {
   return [
-    `Here is the feedback on pull request ${String(state.pullRequestNumber)}.`,
+    'Here is the feedback on the pull request.',
     '',
-    'Answer every item. Fix it, or reject it with a specific technical reason.',
-    'If a decision is needed, ask the developer with the ask-user tool.',
-    'Commit your changes. Do not push and do not post to GitHub.',
-    'Return one response for every item below. The workflow will not accept the step',
-    'until the number of responses matches the number of items.',
+    'Respond to each item using the criteria in your instructions.',
+    '',
+    'Return one response for every item passed in. The workflow will not accept the',
+    'step until the number of responses matches the number of items.',
     '',
     'Feedback:',
     state.findings
@@ -1392,6 +1456,12 @@ function feedbackPrompt(state: ReviewState): string {
     '',
     'Repository guidance:',
     state.guidance,
+    '',
+    'Your response:',
+    '- resolutions: one per item below.',
+    '- each resolution has commentId, outcome (addressed, partly-addressed or not-addressed),',
+    '  and response: the text to post on that comment. Say why the feedback is valid, what',
+    '  you changed, and how you verified it, or the technical reason for a rejection.',
   ].join('\n')
 }
 
@@ -1468,31 +1538,22 @@ function pullRequestPrompt(state: RunState): string {
     'The repository checks ran when the work was committed, and the commit exists.',
     `The commit on the branch is ${state.commitSha}.`,
     '',
-    'Fill every field. The description is one short paragraph. The problem says why the',
-    'change is needed, in the words of the issue. The acceptance criteria are the ones the',
-    'issue asks for, as a list. Key changes are the files and what changed in them.',
-    'The subject is one line, under 50 characters. Architectural impact says what a',
-    'reviewer should know, or "None" when there is none.',
-    'Validation says what was run and what it reported. Notes carries anything the reviewer',
-    'needs, or "None". The commit scope is one lower case word naming the area.',
+    'Your response:',
+    '- commitType: one of build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test.',
+    '- commitScope: one lower case word naming the area, 1 to 20 characters.',
+    '- subject: one line, under 50 characters.',
+    '- description: one short paragraph.',
+    '- problem: why the change is needed, in the words of the issue.',
+    '- acceptanceCriteria: the criteria from the issue, as a list.',
+    '- keyChanges: the files and what changed in them.',
+    '- architectureImpact: what a reviewer should know, or "None".',
+    '- validation: what was run and what it reported.',
+    '- notes: anything else the reviewer needs, or "None".',
   ].join('\n')
 }
 
-function renderReply(
-  resolution: { readonly outcome: string; readonly reason: string | null },
-  state: ReviewState,
-): string {
-  const head = `[dev-workflow-v3] ${outcomeLabel(resolution.outcome)} in ${state.commitSha.slice(0, 8)}.`
-  const files =
-    state.changedFiles.length === 0 ? [] : ['', `Files: ${state.changedFiles.join(', ')}`]
-  const reason = resolution.reason === null ? [] : ['', resolution.reason]
-  return [head, ...files, ...reason].join('\n')
-}
-
-function outcomeLabel(outcome: string): string {
-  if (outcome === 'addressed') return 'Addressed'
-  if (outcome === 'partly-addressed') return 'Partly addressed'
-  return 'Not changed'
+function renderReply(resolution: { readonly response: string }): string {
+  return `[dev-workflow-v3] ${resolution.response}`
 }
 
 function readyComment(state: ReviewState): string {
