@@ -9,6 +9,7 @@ import {
   type ChildProcessRunInput,
   type ChildProcessRunResult,
 } from '../../../../infra/external-clients/child-process/child-process-client'
+import { unresolvedReason } from '../../../../infra/external-clients/child-process/child-process-failure'
 
 const PROMPT_PLACEHOLDER = '{prompt}'
 const MAXIMUM_RESPONSE_BYTES = 1_048_576
@@ -29,17 +30,7 @@ export class AiCliAdapter implements AiCli {
   async checkAvailability(command: string): Promise<AiCliAvailability> {
     const resolution = this.childProcessClient.resolveExecutable(command)
     if (resolution.kind === 'resolved') return { kind: 'available', command }
-    if (resolution.kind === 'invalid-command') {
-      return {
-        kind: 'unavailable',
-        command,
-        reason: `Expected a non-blank AI command. Got '${command}'. Context: command is required`,
-      }
-    }
-    if (resolution.kind === 'unsupported') {
-      return { kind: 'unavailable', command, reason: resolution.reason }
-    }
-    return { kind: 'unavailable', command, reason: unavailableReason(command) }
+    return { kind: 'unavailable', command, reason: unresolvedReason(resolution) }
   }
 
   async run(input: RunAiCliInput): Promise<RunAiCliResult> {
@@ -55,13 +46,6 @@ export class AiCliAdapter implements AiCli {
 /** @riviere-role domain-port-adapter */
 export function createAiCliAdapter(): AiCli {
   return new AiCliAdapter(new ChildProcessClient())
-}
-
-function unavailableReason(command: string): string {
-  if (command.includes('/') || command.includes('\\')) {
-    return `Expected executable at '${command}'. Got not found. Context: no executable file exists at that path`
-  }
-  return `Expected command '${command}' on PATH. Got not found. Context: no executable file exists on the search path`
 }
 
 function childProcessInput(
@@ -89,7 +73,7 @@ function promptInvocation(args: readonly string[], prompt: string): PromptInvoca
   if (placeholderCount > 1) {
     return {
       kind: 'invalid',
-      reason: `Expected at most one '${PROMPT_PLACEHOLDER}' placeholder, got ${placeholderCount}`,
+      reason: `Expected at most one '${PROMPT_PLACEHOLDER}' placeholder in args. Got ${placeholderCount}`,
     }
   }
   return {
