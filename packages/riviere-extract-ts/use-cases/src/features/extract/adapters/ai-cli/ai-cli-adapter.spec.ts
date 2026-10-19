@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AiExtractConfig } from '@living-architecture/riviere-extract-config-published-language'
 import type { RunAiCliInput } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/ai-cli'
+import { parseAiExtractConfig } from '@living-architecture/riviere-extract-config-published-language'
 import { ChildProcessClient } from '../../../../infra/external-clients/child-process/child-process-client'
 import { AiCliAdapter, createAiCliAdapter } from './ai-cli-adapter'
 
@@ -65,9 +66,26 @@ describe('AiCliAdapter availability', () => {
     await expect(adapter.checkAvailability('claude')).resolves.toStrictEqual({
       kind: 'unavailable',
       command: 'claude',
-      reason:
-        "Expected command 'claude' on PATH. Got not found. Context: no executable file exists on the search path",
+      reason: "Expected executable 'claude'. Got not found. Context: no executable file exists",
     })
+  })
+
+  it('reports the same reason for availability and spawn failure when the executable is missing', async () => {
+    vi.spyOn(childProcessClient, 'resolveExecutable').mockReturnValue({
+      kind: 'not-found',
+      command: 'claude',
+    })
+
+    const availability = await adapter.checkAvailability('claude')
+    const runResult = await adapter.run(runInput())
+
+    const availabilityReason =
+      availability.kind === 'unavailable' ? availability.reason : 'expected unavailable'
+    const runReason = runResult.kind === 'failed' ? runResult.reason : 'expected failed'
+    expect(availabilityReason).toBe(runReason)
+    expect(availabilityReason).toBe(
+      "Expected executable 'claude'. Got not found. Context: no executable file exists",
+    )
   })
 
   it('reports an unavailable command when a path-qualified executable is missing', async () => {
@@ -76,11 +94,12 @@ describe('AiCliAdapter availability', () => {
       command: '/opt/bin/claude',
     })
 
-    const result = await adapter.checkAvailability('/opt/bin/claude')
-
-    expect(result).toMatchObject({ kind: 'unavailable', command: '/opt/bin/claude' })
-    expect(result.kind === 'unavailable' && result.reason).toContain('Expected executable at')
-    expect(result.kind === 'unavailable' && result.reason).not.toContain('PATH')
+    await expect(adapter.checkAvailability('/opt/bin/claude')).resolves.toStrictEqual({
+      kind: 'unavailable',
+      command: '/opt/bin/claude',
+      reason:
+        "Expected executable '/opt/bin/claude'. Got not found. Context: no executable file exists",
+    })
   })
 
   it('reports an unavailable command when the command is whitespace only', async () => {
@@ -162,8 +181,27 @@ describe('AiCliAdapter prompt passing', () => {
     expect(run).not.toHaveBeenCalled()
     expect(result).toStrictEqual({
       kind: 'failed',
-      reason: "Expected at most one '{prompt}' placeholder, got 2",
+      reason: "Expected at most one '{prompt}' placeholder in args. Got 2",
     })
+  })
+
+  it('reports the same message as the config parser when args contain multiple prompt placeholders', async () => {
+    const parserResult = parseAiExtractConfig({
+      command: 'claude',
+      args: ['{prompt}', '--again={prompt}'],
+      'timeout-seconds': 30,
+      sources: ['./component.ts'],
+      selection: { from: ['missing-events'], 'component-types': ['Event'] },
+      outputs: { 'add-components': true, 'add-links': true },
+      context: { exclude: [], 'max-files-per-batch': 10, 'max-batches': 2 },
+    })
+
+    const result = await adapter.run(runInput({ args: ['{prompt}', '--again={prompt}'] }))
+
+    const parserIssue = parserResult.success ? 'expected failure' : parserResult.issues[0]
+    const runReason = result.kind === 'failed' ? result.reason : 'expected failed'
+    expect(parserResult.success).toBe(false)
+    expect(runReason).toBe(parserIssue)
   })
 
   it('substitutes the prompt literally when it contains replacement patterns', async () => {
