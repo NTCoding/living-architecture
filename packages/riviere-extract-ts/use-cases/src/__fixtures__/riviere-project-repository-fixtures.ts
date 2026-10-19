@@ -9,12 +9,15 @@ import { RiviereProjectRepository } from '../features/extract/data-access/rivier
 const emptyCodeExtractionLoader: LoadCodeExtraction = createCodeExtractionAdapter()
 const extractionConfiguration = configureExtraction({})
 
-export function aiCli(): AiCli {
+export function aiCli(
+  overrides: Readonly<{ readonly checkAvailability?: AiCli['checkAvailability'] }> = {},
+): AiCli {
   return {
-    checkAvailability: (command) => Promise.resolve({ kind: 'available', command }),
+    checkAvailability:
+      overrides.checkAvailability ?? ((command) => Promise.resolve({ kind: 'available', command })),
     run: () =>
       Promise.resolve({
-        kind: 'invalid-arguments',
+        kind: 'failed',
         reason: 'The repository fixture does not invoke AI CLI execution',
       }),
   }
