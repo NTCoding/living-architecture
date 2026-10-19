@@ -11,6 +11,7 @@ import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import { ExtractionConfiguration } from './extraction-configuration'
 import type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
 import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
+import { AiStageAvailability } from './ai-stage-availability'
 import { CodeExtractionModules } from './ports/code-extraction-modules'
 import { RiviereModule } from './riviere-module'
 import {
@@ -130,7 +131,7 @@ export class RiviereProject {
     const previousBuilder = this.graphBuilder()
     this.builder = RiviereBuilder.parse(BuilderOptions.fromGraph(previousBuilder.build()))
     const run = await workflow.run(this.builder, mode, (stage, context) =>
-      this.executeWorkflowStage(stage, context.diagnostics),
+      this.executeWorkflowStage(stage, context.diagnostics, mode),
     )
     if (!run.value.success) {
       this.builder = previousBuilder
@@ -149,6 +150,7 @@ export class RiviereProject {
   private async executeWorkflowStage(
     stage: WorkflowStageValue,
     unresolvedDiagnostics: readonly WorkflowDiagnostic[],
+    mode: WorkflowRunMode,
   ) {
     switch (stage.kind) {
       case 'schema-validate': {
@@ -188,11 +190,12 @@ export class RiviereProject {
         return this.executeCodeExtractionStage(stage)
       case 'ai-extract':
       case 'ai-enrich':
-        return {
-          success: false as const,
-          errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',
-          reason: `Stage behaviour is unavailable for '${stage.kind}'`,
-        }
+        return AiStageAvailability.check(
+          this.collaborators.aiCli,
+          stage.config.command,
+          stage.kind,
+          mode,
+        )
     }
   }
   private executeCodeExtractionStage(

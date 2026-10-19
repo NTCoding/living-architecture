@@ -59,12 +59,14 @@ import { ExtractDraftComponents } from '@living-architecture/riviere-extract-ts-
 import { RiviereProjectRepository } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/data-access/riviere-project/riviere-project-repository'
 import { configureExtraction } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/configure-extraction'
 import { createCodeExtractionAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ts-morph/code-extraction-adapter'
+import { AiCliAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ai-cli/ai-cli-adapter'
 import { createGitChangedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/git/create-git-changed-source-file-finder'
 import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-specified-source-file-finder'
 import { createConnectionDetectionTimer } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/time/create-connection-detection-timer'
 import { createExtractCommand } from '../features/extract/entrypoint/extract/entrypoint'
 import { parseSourceFileSelection } from '../features/extract/entrypoint/extract/parse-source-file-selection'
 import { detectChangedTypeScriptFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/git/git-changed-files'
+import { ChildProcessClient } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/child-process/child-process-client'
 import { findSpecifiedSourceFiles } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/filesystem/find-specified-source-files'
 import { readNodePerformanceTimeInMilliseconds } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/node/read-node-performance-time-in-milliseconds'
 import { DetectOrphans } from '@living-architecture/riviere-builder-use-cases/features/query/queries/detect-orphans'
@@ -138,7 +140,9 @@ export function createProgram(): Command {
   const asyncApiDocumentLoader = createAsyncApiDocumentAdapter()
   const codeExtractionLoader = createCodeExtractionAdapter()
   const extractionConfiguration = configureExtraction({})
+  const aiCli = new AiCliAdapter(new ChildProcessClient())
   const riviereProjectCollaborators = {
+    aiCli,
     loadEventCatalogSource: eventCatalogSourceLoader,
     loadAsyncApiDocument: asyncApiDocumentLoader,
     loadCodeExtraction: codeExtractionLoader,
@@ -184,10 +188,7 @@ export function createProgram(): Command {
   )
   builderCmd.addCommand(
     createInitCommand({
-      initGraph: new InitGraph(
-        riviereProjectRepository,
-        riviereProjectCollaborators,
-      ),
+      initGraph: new InitGraph(riviereProjectRepository, riviereProjectCollaborators),
       defaultGraphFileLocation,
       getDefaultGraphPathDescription,
       formatError,
