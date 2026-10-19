@@ -7,6 +7,7 @@ import type { RiviereProjectRepository } from '../features/extract/data-access/r
 import { InitGraph } from '../features/extract/commands/init-graph'
 import { configureExtraction } from '../features/extract/commands/configure-extraction'
 import { createCodeExtractionAdapter } from '../features/extract/adapters/ts-morph/code-extraction-adapter'
+import { aiCli as createAiCli } from './riviere-project-repository-fixtures'
 
 class CodeExtractionUnavailableError extends Error {
   constructor() {
@@ -18,6 +19,7 @@ class CodeExtractionUnavailableError extends Error {
 export function collaborators(): RiviereProjectCollaborators {
   const extractionConfiguration = configureExtraction({})
   return {
+    aiCli: createAiCli(),
     loadEventCatalogSource: () => Promise.resolve({ domains: [], services: [], events: [] }),
     loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
     loadCodeExtraction: () => {
@@ -32,6 +34,7 @@ export function collaborators(): RiviereProjectCollaborators {
 export function createInitGraph(repository: RiviereProjectRepository): InitGraph {
   const loaders = collaborators()
   return new InitGraph(repository, {
+    aiCli: loaders.aiCli,
     loadEventCatalogSource: loaders.loadEventCatalogSource,
     loadAsyncApiDocument: loaders.loadAsyncApiDocument,
     loadCodeExtraction: createCodeExtractionAdapter(),
