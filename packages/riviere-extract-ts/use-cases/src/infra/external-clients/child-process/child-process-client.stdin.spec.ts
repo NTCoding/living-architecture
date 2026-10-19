@@ -8,6 +8,13 @@ vi.mock('node:child_process', async (importOriginal) => {
   return { ...actual, spawn: vi.fn() }
 })
 
+class SpawnTestError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'SpawnTestError'
+  }
+}
+
 class StdinWriteTestError extends Error {
   readonly code: string
 
@@ -40,11 +47,52 @@ function fakeChildProcess(): ChildProcess {
 
 afterEach(() => vi.restoreAllMocks())
 
+describe('ChildProcessClient spawn errors', () => {
+  it('returns a spawn failure when the child emits an error', async () => {
+    const child = fakeChildProcess()
+    vi.mocked(spawn).mockReturnValue(child)
+    const client = new ChildProcessClient()
+    vi.spyOn(client, 'resolveExecutable').mockReturnValue({
+      kind: 'resolved',
+      executablePath: 'claude',
+    })
+
+    const result = client.run(stdinWriteInput())
+    child.emit('error', new SpawnTestError('spawn error'))
+    child.emit('close', 0, null)
+
+    await expect(result).resolves.toStrictEqual({
+      kind: 'spawn-failed',
+      reason: 'SpawnTestError: spawn error',
+    })
+  })
+
+  it('returns a spawn failure when spawning throws', async () => {
+    const client = new ChildProcessClient()
+    vi.spyOn(client, 'resolveExecutable').mockReturnValue({
+      kind: 'resolved',
+      executablePath: 'claude',
+    })
+    vi.mocked(spawn).mockImplementation(() => {
+      throw new SpawnTestError('spawn failed')
+    })
+
+    await expect(client.run(stdinWriteInput())).resolves.toStrictEqual({
+      kind: 'spawn-failed',
+      reason: 'SpawnTestError: spawn failed',
+    })
+  })
+})
+
 describe('ChildProcessClient stdin write errors', () => {
   it('returns a stdin failure when stdin reports a non-benign write error', async () => {
     const child = fakeChildProcess()
     vi.mocked(spawn).mockReturnValue(child)
     const client = new ChildProcessClient()
+    vi.spyOn(client, 'resolveExecutable').mockReturnValue({
+      kind: 'resolved',
+      executablePath: 'claude',
+    })
 
     const result = client.run(stdinWriteInput())
     child.stdin?.emit('error', new StdinWriteTestError('write EACCES', 'EACCES'))
@@ -60,6 +108,10 @@ describe('ChildProcessClient stdin write errors', () => {
     const child = fakeChildProcess()
     vi.mocked(spawn).mockReturnValue(child)
     const client = new ChildProcessClient()
+    vi.spyOn(client, 'resolveExecutable').mockReturnValue({
+      kind: 'resolved',
+      executablePath: 'claude',
+    })
 
     const result = client.run(stdinWriteInput())
     child.stdin?.emit('error', new StdinWriteTestError('write EPIPE', 'EPIPE'))

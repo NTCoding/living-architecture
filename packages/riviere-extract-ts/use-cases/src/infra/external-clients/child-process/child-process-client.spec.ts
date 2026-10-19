@@ -1,13 +1,11 @@
 import { chmod, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { basename, join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ChildProcessRunInput } from './child-process-client'
-import {
-  ChildProcessClient,
-  isBenignStdinWriteError,
-  windowsPathExtensions,
-} from './child-process-client'
+import { boundedOutputSnapshot, collectBoundedOutput, emptyBoundedOutput } from './bounded-output'
+import { ChildProcessClient, isBenignStdinWriteError } from './child-process-client'
+import { ExecutableResolver } from './executable-resolution'
 
 const STDIN_EXECUTABLE = `#!/usr/bin/env node
 let stdin = ''
@@ -121,118 +119,25 @@ afterEach(async () => {
   }
 })
 
-describe('windowsPathExtensions', () => {
-  it('returns the default Windows extensions when PATHEXT is absent', () => {
-    expect(windowsPathExtensions('win32', undefined)).toStrictEqual([
-      '.COM',
-      '.EXE',
-      '.BAT',
-      '.CMD',
-    ])
+describe('bounded output collection', () => {
+  it('preserves all chunks when the byte budget is not exhausted', () => {
+    const first = collectBoundedOutput(emptyBoundedOutput(), Buffer.from('abc'), 10)
+    const second = collectBoundedOutput(first, Buffer.from('de'), 10)
+
+    expect(boundedOutputSnapshot(second)).toStrictEqual({ text: 'abcde', truncated: false })
   })
 
-  it('normalizes configured Windows extensions', () => {
-    expect(windowsPathExtensions('win32', 'CMD;.bat;')).toStrictEqual(['.CMD', '.bat'])
+  it('truncates the final chunk and reports the whole bounded state', () => {
+    const collected = collectBoundedOutput(emptyBoundedOutput(), Buffer.from('abcdef'), 4)
+
+    expect(boundedOutputSnapshot(collected)).toStrictEqual({ text: 'abcd', truncated: true })
   })
 
-  it('returns no extensions on non-Windows platforms', () => {
-    expect(windowsPathExtensions('linux', '.CMD')).toStrictEqual([])
-  })
-})
+  it('keeps existing chunks and marks truncation when the budget is exhausted', () => {
+    const full = collectBoundedOutput(emptyBoundedOutput(), Buffer.from('abcd'), 4)
+    const afterLimit = collectBoundedOutput(full, Buffer.from('ef'), 4)
 
-describe('ChildProcessClient executable resolution', () => {
-  it('resolves an executable path that exists', () => {
-    expect(client.resolveExecutable(process.execPath)).toStrictEqual({
-      kind: 'resolved',
-      executablePath: process.execPath,
-    })
-  })
-
-  it('resolves a command found on PATH to the node executable', () => {
-    const resolution = client.resolveExecutable('node')
-
-    expect(resolution.kind).toBe('resolved')
-    expect(resolution.kind === 'resolved' && basename(resolution.executablePath)).toBe('node')
-  })
-
-  it('reports a file without execute permission as not found', async () => {
-    const directory = await createDirectory()
-    const command = join(directory, 'not-executable-ai-cli')
-    await writeFile(command, 'not executable')
-    await chmod(command, 0o644)
-
-    expect(client.resolveExecutable(command)).toStrictEqual({ kind: 'not-found', command })
-  })
-
-  it('reports a whitespace-only command as invalid', () => {
-    expect(client.resolveExecutable('   ')).toStrictEqual({
-      kind: 'invalid-command',
-      command: '   ',
-    })
-  })
-
-  it('reports an existing directory as not found', () => {
-    expect(client.resolveExecutable('/tmp')).toStrictEqual({ kind: 'not-found', command: '/tmp' })
-  })
-
-  it('reports a missing executable path as not found', () => {
-    const command = join(tmpdir(), 'missing-ai-cli-executable')
-
-    expect(client.resolveExecutable(command)).toStrictEqual({ kind: 'not-found', command })
-  })
-
-  it('reports a command as not found when no PATH directory contains it', () => {
-    expect(client.resolveExecutable('definitely-not-a-real-ai-cli-command')).toStrictEqual({
-      kind: 'not-found',
-      command: 'definitely-not-a-real-ai-cli-command',
-    })
-  })
-
-  it('does not search the current working directory when PATH is unavailable', async () => {
-    const directory = await createDirectory()
-    const command = 'local-ai-cli'
-    const executable = join(directory, command)
-    await writeFile(executable, 'local executable')
-    await chmod(executable, 0o755)
-    const originalWorkingDirectory = process.cwd()
-    vi.stubEnv('PATH', undefined)
-    process.chdir(directory)
-    try {
-      expect(client.resolveExecutable(command)).toStrictEqual({ kind: 'not-found', command })
-    } finally {
-      process.chdir(originalWorkingDirectory)
-    }
-  })
-
-  it('resolves a Windows command name through PATHEXT extensions', async () => {
-    const directory = await createDirectory()
-    const command = join(directory, 'claude.cmd')
-    await writeFile(command, '')
-    await chmod(command, 0o755)
-    const windowsClient = new ChildProcessClient(() => ({
-      platform: 'win32',
-      searchPath: directory,
-      pathExtensions: ['.CMD'],
-    }))
-
-    expect(windowsClient.resolveExecutable('claude')).toStrictEqual({
-      kind: 'resolved',
-      executablePath: join(directory, 'claude.CMD'),
-    })
-  })
-
-  it('reports a Windows command as not found when no PATHEXT extension matches', async () => {
-    const directory = await createDirectory()
-    const windowsClient = new ChildProcessClient(() => ({
-      platform: 'win32',
-      searchPath: directory,
-      pathExtensions: ['.CMD'],
-    }))
-
-    expect(windowsClient.resolveExecutable('claude')).toStrictEqual({
-      kind: 'not-found',
-      command: 'claude',
-    })
+    expect(boundedOutputSnapshot(afterLimit)).toStrictEqual({ text: 'abcd', truncated: true })
   })
 })
 
@@ -353,11 +258,44 @@ describe('ChildProcessClient run', () => {
     },
   )
 
-  it('reports a spawn failure when the command cannot be spawned', async () => {
+  it('reports a failure when the command contains null bytes', async () => {
     const result = await client.run(noStdinInput('node\u0000invalid'))
 
     expect(result).toMatchObject({ kind: 'spawn-failed' })
+    expect(result.kind === 'spawn-failed' && result.reason).toContain('Got not found')
+  })
+
+  it('reports a spawn failure when the executable arguments cannot be spawned', async () => {
+    const result = await client.run(noStdinInput(process.execPath, { args: ['\u0000'] }))
+
+    expect(result).toMatchObject({ kind: 'spawn-failed' })
     expect(result.kind === 'spawn-failed' && result.reason).toContain('null bytes')
+  })
+
+  it('reports a failure when the resolved command is unsupported', async () => {
+    const executable = await createExecutable('claude.CMD', '')
+    const resolver = new ExecutableResolver(() => ({
+      platform: 'win32',
+      searchPath: dirname(executable),
+      pathExtensions: ['.CMD'],
+    }))
+    const windowsClient = new ChildProcessClient(resolver)
+
+    const result = await windowsClient.run(noStdinInput('claude'))
+
+    expect(result).toStrictEqual({
+      kind: 'spawn-failed',
+      reason: `Expected an executable command. Got '${executable}'. Context: Windows batch shims require a shell, which is disabled`,
+    })
+  })
+
+  it('reports a failure when the command is whitespace only', async () => {
+    const result = await client.run(noStdinInput('   '))
+
+    expect(result).toStrictEqual({
+      kind: 'spawn-failed',
+      reason: "Expected a non-blank AI command. Got '   '. Context: command is required",
+    })
   })
 
   it('does not use a shell to spawn the command', async () => {
