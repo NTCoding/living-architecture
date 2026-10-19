@@ -17,11 +17,15 @@ async function poll(
   pullRequestNumber: number,
   remainingAttempts: number,
 ): Promise<Awaited<ReturnType<WaitForReviewer>>> {
-  const feedback = await readGithubPullRequestFeedback(dependencies.runCommand, {
-    workingDirectory: dependencies.workingDirectory,
-    pullRequestNumber,
-  })
-  if (feedback.reviewSeen || feedback.rateLimited || remainingAttempts <= 1) return feedback
+  try {
+    const feedback = await readGithubPullRequestFeedback(dependencies.runCommand, {
+      workingDirectory: dependencies.workingDirectory,
+      pullRequestNumber,
+    })
+    if (feedback.reviewSeen || feedback.rateLimited || remainingAttempts <= 1) return feedback
+  } catch {
+    if (remainingAttempts <= 1) return { reviewSeen: false, rateLimited: false, comments: [] }
+  }
   await dependencies.wait()
   return poll(dependencies, pullRequestNumber, remainingAttempts - 1)
 }

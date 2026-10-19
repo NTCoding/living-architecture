@@ -46,6 +46,41 @@ describe('waitForReviewerWithGithub', () => {
     expect(waits).toHaveLength(1)
   })
 
+  it('tries again when the fetch fails, then returns the review', async () => {
+    const waits: number[] = []
+    const runCommand = fakeCommands([
+      { stdout: '', stderr: 'read: operation timed out', exitCode: 1 },
+      { stdout: aComment, stderr: '', exitCode: 0 },
+    ])
+
+    const feedback = await waitForReviewerWithGithub({
+      runCommand,
+      workingDirectory: '/repo',
+      wait: async () => {
+        waits.push(1)
+      },
+      attempts: 2,
+    })({ pullRequestNumber: 549 })
+
+    expect(feedback.reviewSeen).toBe(true)
+    expect(waits).toHaveLength(1)
+  })
+
+  it('stops waiting when every fetch fails', async () => {
+    const runCommand = fakeCommands([
+      { stdout: '', stderr: 'read: operation timed out', exitCode: 1 },
+    ])
+
+    const feedback = await waitForReviewerWithGithub({
+      runCommand,
+      workingDirectory: '/repo',
+      wait: async () => Promise.resolve(),
+      attempts: 1,
+    })({ pullRequestNumber: 549 })
+
+    expect(feedback.reviewSeen).toBe(false)
+  })
+
   it('stops waiting when the attempts run out', async () => {
     const runCommand = fakeCommands([
       { stdout: noComments, stderr: '', exitCode: 0 },
