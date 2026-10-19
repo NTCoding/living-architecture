@@ -216,12 +216,25 @@ export function parseAsyncApiImportConfig(
   return parseImportConfig(value)
 }
 
+const PROMPT_PLACEHOLDER = '{prompt}'
+
+function promptPlaceholderIssue(args: readonly string[]): string | undefined {
+  const placeholderCount = args.reduce(
+    (count, argument) => count + argument.split(PROMPT_PLACEHOLDER).length - 1,
+    0,
+  )
+  if (placeholderCount <= 1) return undefined
+  return `Expected at most one '{prompt}' placeholder in args. Got ${placeholderCount}`
+}
+
 /** @riviere-role published-language-parser */
 export function parseAiExtractConfig(
   value: unknown,
 ): { success: true; config: AiExtractConfig } | { success: false; issues: readonly string[] } {
   const result = parseStageConfig(aiExtractConfigSchema, value)
   if (!result.success) return result
+  const placeholderIssue = promptPlaceholderIssue(result.config.args)
+  if (placeholderIssue !== undefined) return { success: false, issues: [placeholderIssue] }
   return {
     success: true,
     config: {
@@ -256,6 +269,8 @@ export function parseAiEnrichConfig(
 ): { success: true; config: AiEnrichConfig } | { success: false; issues: readonly string[] } {
   const result = parseStageConfig(aiEnrichConfigSchema, value)
   if (!result.success) return result
+  const placeholderIssue = promptPlaceholderIssue(result.config.args)
+  if (placeholderIssue !== undefined) return { success: false, issues: [placeholderIssue] }
   return {
     success: true,
     config: {

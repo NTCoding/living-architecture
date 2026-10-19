@@ -389,3 +389,11 @@ describe('Workflow failure events', () => {
     expect(result.value.reason).toBe('broken')
   })
 })
+
+describe('WorkflowRunMode dry-run detection', () => {
+  it('returns true only for dry-run', () => {
+    expect(WorkflowRunMode.from('dry-run').isDryRun()).toBe(true)
+    expect(WorkflowRunMode.from('run').isDryRun()).toBe(false)
+    expect(WorkflowRunMode.from('skip-ai').isDryRun()).toBe(false)
+  })
+})

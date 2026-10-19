@@ -1,3 +1,8 @@
+import type {
+  AiEnrichConfig,
+  AiExtractConfig,
+} from '@living-architecture/riviere-extract-config-published-language'
+
 type AiCliAvailability =
   | Readonly<{
       readonly kind: 'available'
@@ -10,85 +15,35 @@ type AiCliAvailability =
     }>
 
 type RunAiCliInput = Readonly<{
-  readonly command: string
-  readonly args: readonly string[]
+  readonly stageConfiguration: AiExtractConfig | AiEnrichConfig
   readonly prompt: string
-  readonly timeoutSeconds: number
-  readonly maximumOutputBytes: number
-}>
-
-type RunAiCliSuccess = Readonly<{
-  readonly kind: 'success'
-  readonly output: string
-  readonly outputTruncated: boolean
-}>
-
-type RunAiCliTimeout = Readonly<{
-  readonly kind: 'timeout'
-  readonly timeoutSeconds: number
-  readonly partialOutput: string
-  readonly partialError: string
-}>
-
-type RunAiCliSpawnFailure = Readonly<{
-  readonly kind: 'spawn-failure'
-  readonly command: string
-  readonly reason: string
-}>
-
-type RunAiCliExecutionFailure = Readonly<{
-  readonly kind: 'execution-failure'
-  readonly command: string
-  readonly exitCode: number
-  readonly stderr: string
-}>
-
-type RunAiCliSignalTermination = Readonly<{
-  readonly kind: 'signal-termination'
-  readonly command: string
-  readonly signal: string
-  readonly partialOutput: string
-  readonly partialError: string
-}>
-
-type RunAiCliStdinFailure = Readonly<{
-  readonly kind: 'stdin-failure'
-  readonly command: string
-  readonly reason: string
-}>
-
-type RunAiCliInvalidArguments = Readonly<{
-  readonly kind: 'invalid-arguments'
-  readonly reason: string
 }>
 
 type RunAiCliResult =
-  | RunAiCliSuccess
-  | RunAiCliTimeout
-  | RunAiCliSpawnFailure
-  | RunAiCliExecutionFailure
-  | RunAiCliSignalTermination
-  | RunAiCliStdinFailure
-  | RunAiCliInvalidArguments
+  | Readonly<{
+      readonly kind: 'completed'
+      readonly output: string
+    }>
+  | Readonly<{
+      readonly kind: 'incomplete'
+      readonly output: string
+      readonly reason: string
+    }>
+  | Readonly<{
+      readonly kind: 'failed'
+      readonly reason: string
+    }>
+  | Readonly<{
+      readonly kind: 'timed-out'
+    }>
 
 /**
  * @riviere-role domain-port
- * @riviere-role-justification The AI CLI reports whether its command can run and performs a current external action during Workflow stage execution. It neither restores previously created Project state nor replaces state that the repository loads as part of the Project aggregate.
+ * @riviere-role-justification The AI-assisted extraction capability reports whether its configured assistant can run and performs the current external extraction action during Workflow stage execution. It neither restores previously created Project state nor replaces state that the repository loads as part of the Project aggregate.
  */
 export interface AiCli {
   checkAvailability(command: string): Promise<AiCliAvailability>
   run(input: RunAiCliInput): Promise<RunAiCliResult>
 }
 
-export type {
-  AiCliAvailability,
-  RunAiCliExecutionFailure,
-  RunAiCliInput,
-  RunAiCliInvalidArguments,
-  RunAiCliResult,
-  RunAiCliSignalTermination,
-  RunAiCliSpawnFailure,
-  RunAiCliStdinFailure,
-  RunAiCliSuccess,
-  RunAiCliTimeout,
-}
+export type { AiCliAvailability, RunAiCliInput, RunAiCliResult }

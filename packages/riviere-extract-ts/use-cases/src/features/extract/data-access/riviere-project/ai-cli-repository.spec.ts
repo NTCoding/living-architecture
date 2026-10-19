@@ -10,7 +10,10 @@ import {
   cleanupWorkflowWorkspaces,
   createWorkflowWorkspace,
 } from '../../../../__fixtures__/riviere-project-workspace-fixtures'
-import { createRiviereProjectRepository } from '../../../../__fixtures__/riviere-project-repository-fixtures'
+import {
+  aiCli,
+  createRiviereProjectRepository,
+} from '../../../../__fixtures__/riviere-project-repository-fixtures'
 import { writeWorkflow } from '../../../../__fixtures__/riviere-project-workflow-fixtures'
 import { RiviereProjectRepository } from './riviere-project-repository'
 
@@ -42,14 +45,12 @@ function writeAiWorkflow(directory: string): string {
 }
 
 function repositoryWith(checkAvailability: AiCli['checkAvailability']): RiviereProjectRepository {
-  return createRiviereProjectRepository(undefined, undefined, undefined, {
-    checkAvailability,
-    run: () =>
-      Promise.resolve({
-        kind: 'invalid-arguments',
-        reason: 'The repository test does not invoke AI CLI execution',
-      }),
-  })
+  return createRiviereProjectRepository(
+    undefined,
+    undefined,
+    undefined,
+    aiCli({ checkAvailability }),
+  )
 }
 
 afterEach(cleanupWorkflowWorkspaces)
@@ -67,6 +68,7 @@ describe('RiviereProjectRepository AI CLI collaborator supply', () => {
     const project = repository.load({ kind: 'workflow', workflowPath })
     const result = await project.rebuildGraph(WorkflowRunMode.from('run'))
 
+    expect(checkAvailability).toHaveBeenCalledTimes(1)
     expect(checkAvailability).toHaveBeenCalledWith('claude')
     expect(result).toMatchObject({ success: false, errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE' })
   })
