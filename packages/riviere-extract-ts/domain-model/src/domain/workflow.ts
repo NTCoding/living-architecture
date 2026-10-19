@@ -22,6 +22,10 @@ export class WorkflowRunMode {
     return new WorkflowRunMode(value)
   }
 
+  isDryRun(): boolean {
+    return this.value === 'dry-run'
+  }
+
   private constructor(readonly value: WorkflowRunModeValue) {}
 }
 

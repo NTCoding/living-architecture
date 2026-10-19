@@ -1,12 +1,12 @@
-import { accessSync, constants, statSync } from 'node:fs'
-import { delimiter, join } from 'node:path'
 import { spawn } from 'node:child_process'
-
-/** @riviere-role external-client-model */
-export type ChildProcessOutput = Readonly<{
-  readonly text: string
-  readonly truncated: boolean
-}>
+import {
+  boundedOutputSnapshot,
+  collectBoundedOutput,
+  emptyBoundedOutput,
+  type ChildProcessOutput,
+} from './bounded-output'
+import { ExecutableResolver, type ChildProcessExecutableResolution } from './executable-resolution'
+import { isBenignStdinWriteError, unresolvedReason } from './child-process-failure'
 
 /** @riviere-role external-client-model */
 type ChildProcessRunInputBase = Readonly<{
@@ -51,87 +51,27 @@ export type ChildProcessRunResult =
       readonly reason: string
     }>
 
-type ChildProcessResolutionEnvironment = Readonly<{
-  readonly platform: NodeJS.Platform
-  readonly searchPath: string | undefined
-  readonly pathExtensions: readonly string[]
-}>
-
-type ChildProcessResolutionEnvironmentReader = () => ChildProcessResolutionEnvironment
-
-/** @riviere-role external-client-model */
-export type ChildProcessExecutableResolution =
-  | Readonly<{ readonly kind: 'resolved'; readonly executablePath: string }>
-  | Readonly<{ readonly kind: 'invalid-command'; readonly command: string }>
-  | Readonly<{ readonly kind: 'not-found'; readonly command: string }>
-
-const DEFAULT_WINDOWS_PATH_EXTENSIONS = ['.COM', '.EXE', '.BAT', '.CMD'] as const
-
-class BoundedOutput {
-  private readonly chunks: Buffer[] = []
-  private collectedBytes = 0
-  private truncated = false
-
-  constructor(private readonly maximumBytes: number) {}
-
-  collect(chunk: Buffer): void {
-    const remainingBytes = this.maximumBytes - this.collectedBytes
-    if (remainingBytes <= 0) {
-      this.truncated = true
-      return
-    }
-    if (chunk.length > remainingBytes) {
-      this.truncated = true
-      this.chunks.push(chunk.subarray(0, remainingBytes))
-      this.collectedBytes += remainingBytes
-      return
-    }
-    this.chunks.push(chunk)
-    this.collectedBytes += chunk.length
-  }
-
-  snapshot(): ChildProcessOutput {
-    return {
-      text: Buffer.concat(this.chunks).toString('utf8'),
-      truncated: this.truncated,
-    }
-  }
-}
-
 /** @riviere-role external-client-service */
 export class ChildProcessClient {
-  constructor(
-    private readonly resolutionEnvironment: ChildProcessResolutionEnvironmentReader = currentResolutionEnvironment,
-  ) {}
+  constructor(private readonly executableResolver: ExecutableResolver = new ExecutableResolver()) {}
 
   resolveExecutable(command: string): ChildProcessExecutableResolution {
-    if (command.trim().length === 0) return { kind: 'invalid-command', command }
-    const environment = this.resolutionEnvironment()
-    const executableNames = candidateExecutableNames(command, environment)
-    if (command.includes('/') || command.includes('\\')) {
-      return resolveExecutablePath(executableNames, command)
-    }
-    if (environment.searchPath === undefined) return notFound(command)
-    const searchDirectories = environment.searchPath
-      .split(delimiter)
-      .filter((directory) => directory.length > 0)
-    for (const directory of searchDirectories) {
-      const resolved = resolveExecutablePath(
-        executableNames.map((executableName) => join(directory, executableName)),
-        command,
-      )
-      if (resolved.kind === 'resolved') return resolved
-    }
-    return notFound(command)
+    return this.executableResolver.resolveExecutable(command)
   }
 
   run(input: ChildProcessRunInput): Promise<ChildProcessRunResult> {
+    const resolution = this.resolveExecutable(input.command)
+    if (resolution.kind !== 'resolved') {
+      return Promise.resolve({ kind: 'spawn-failed', reason: unresolvedReason(resolution) })
+    }
     return new Promise((resolve) => {
-      const child = this.spawnChild(input, resolve)
+      const child = this.spawnChild(resolution.executablePath, input, resolve)
       if (child === undefined) return
-      const stdout = new BoundedOutput(input.maximumOutputBytes)
-      const stderr = new BoundedOutput(input.maximumOutputBytes)
-      const runState = { settled: false }
+      const runState = {
+        settled: false,
+        stdout: emptyBoundedOutput(),
+        stderr: emptyBoundedOutput(),
+      }
       const finish = (result: ChildProcessRunResult): void => {
         if (runState.settled) return
         runState.settled = true
@@ -139,10 +79,18 @@ export class ChildProcessClient {
       }
       const timer = setTimeout(() => {
         child.kill('SIGKILL')
-        finish({ kind: 'timed-out', stdout: stdout.snapshot(), stderr: stderr.snapshot() })
+        finish({
+          kind: 'timed-out',
+          stdout: boundedOutputSnapshot(runState.stdout),
+          stderr: boundedOutputSnapshot(runState.stderr),
+        })
       }, input.timeoutMilliseconds)
-      child.stdout?.on('data', (chunk: Buffer) => stdout.collect(chunk))
-      child.stderr?.on('data', (chunk: Buffer) => stderr.collect(chunk))
+      child.stdout?.on('data', (chunk: Buffer) => {
+        runState.stdout = collectBoundedOutput(runState.stdout, chunk, input.maximumOutputBytes)
+      })
+      child.stderr?.on('data', (chunk: Buffer) => {
+        runState.stderr = collectBoundedOutput(runState.stderr, chunk, input.maximumOutputBytes)
+      })
       child.stdin?.on('error', (error: Error) => {
         if (isBenignStdinWriteError(error)) return
         finish({ kind: 'stdin-failed', reason: String(error) })
@@ -154,16 +102,16 @@ export class ChildProcessClient {
           finish({
             kind: 'terminated-by-signal',
             signal: String(signal),
-            stdout: stdout.snapshot(),
-            stderr: stderr.snapshot(),
+            stdout: boundedOutputSnapshot(runState.stdout),
+            stderr: boundedOutputSnapshot(runState.stderr),
           })
           return
         }
         finish({
           kind: 'completed',
           exitCode,
-          stdout: stdout.snapshot(),
-          stderr: stderr.snapshot(),
+          stdout: boundedOutputSnapshot(runState.stdout),
+          stderr: boundedOutputSnapshot(runState.stderr),
         })
       })
       child.stdin?.end(input.kind === 'pipe-stdin' ? input.stdin : undefined)
@@ -171,11 +119,12 @@ export class ChildProcessClient {
   }
 
   private spawnChild(
+    executablePath: string,
     input: ChildProcessRunInput,
     resolve: (result: ChildProcessRunResult) => void,
   ): ReturnType<typeof spawn> | undefined {
     try {
-      return spawn(input.command, [...input.args], {
+      return spawn(executablePath, [...input.args], {
         shell: false,
         env: process.env,
         stdio: ['pipe', 'pipe', 'pipe'],
@@ -187,68 +136,8 @@ export class ChildProcessClient {
   }
 }
 
-function hasExecutePermission(candidate: string): boolean {
-  try {
-    accessSync(candidate, constants.X_OK)
-    return true
-  } catch {
-    return false
-  }
-}
-
-/** @riviere-role external-client-service */
-export function isBenignStdinWriteError(error: Error): boolean {
-  return 'code' in error && (error.code === 'EPIPE' || error.code === 'ERR_STREAM_DESTROYED')
-}
-
-function currentResolutionEnvironment(): ChildProcessResolutionEnvironment {
-  return {
-    platform: process.platform,
-    searchPath: process.env['PATH'],
-    pathExtensions: windowsPathExtensions(process.platform, process.env['PATHEXT']),
-  }
-}
-
-/** @riviere-role external-client-service */
-export function windowsPathExtensions(
-  platform: NodeJS.Platform,
-  pathExtensions: string | undefined,
-): readonly string[] {
-  if (platform !== 'win32') return []
-  if (pathExtensions === undefined) return DEFAULT_WINDOWS_PATH_EXTENSIONS
-  return pathExtensions
-    .split(';')
-    .map((extension) => extension.trim())
-    .filter((extension) => extension.length > 0)
-    .map((extension) => (extension.startsWith('.') ? extension : `.${extension}`))
-}
-
-function candidateExecutableNames(
-  command: string,
-  environment: ChildProcessResolutionEnvironment,
-): readonly string[] {
-  if (environment.platform !== 'win32') return [command]
-  return [command, ...environment.pathExtensions.map((extension) => `${command}${extension}`)]
-}
-
-function resolveExecutablePath(
-  candidates: readonly string[],
-  command: string,
-): ChildProcessExecutableResolution {
-  for (const candidate of candidates) {
-    if (executableAt(candidate)) return { kind: 'resolved', executablePath: candidate }
-  }
-  return notFound(command)
-}
-
-function executableAt(candidate: string): boolean {
-  try {
-    return statSync(candidate).isFile() && hasExecutePermission(candidate)
-  } catch {
-    return false
-  }
-}
-
-function notFound(command: string): ChildProcessExecutableResolution {
-  return { kind: 'not-found', command }
-}
+export { ExecutableResolver, windowsPathExtensions } from './executable-resolution'
+export { isBenignStdinWriteError } from './child-process-failure'
+export type { ChildProcessExecutableResolution } from './executable-resolution'
+export { boundedOutputSnapshot, collectBoundedOutput, emptyBoundedOutput } from './bounded-output'
+export type { ChildProcessOutput } from './bounded-output'

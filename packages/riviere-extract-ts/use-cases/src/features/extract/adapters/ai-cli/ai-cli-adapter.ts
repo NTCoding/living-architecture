@@ -4,13 +4,14 @@ import type {
   RunAiCliInput,
   RunAiCliResult,
 } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/ai-cli'
-import type {
+import {
   ChildProcessClient,
-  ChildProcessRunInput,
-  ChildProcessRunResult,
+  type ChildProcessRunInput,
+  type ChildProcessRunResult,
 } from '../../../../infra/external-clients/child-process/child-process-client'
 
 const PROMPT_PLACEHOLDER = '{prompt}'
+const MAXIMUM_RESPONSE_BYTES = 1_048_576
 
 type PromptInvocation =
   | Readonly<{
@@ -27,35 +28,51 @@ export class AiCliAdapter implements AiCli {
 
   async checkAvailability(command: string): Promise<AiCliAvailability> {
     const resolution = this.childProcessClient.resolveExecutable(command)
-    if (resolution.kind !== 'resolved') {
+    if (resolution.kind === 'resolved') return { kind: 'available', command }
+    if (resolution.kind === 'invalid-command') {
       return {
         kind: 'unavailable',
         command,
-        reason: `Command '${command}' was not found on PATH`,
+        reason: `Expected a non-blank AI command. Got '${command}'. Context: command is required`,
       }
     }
-    return { kind: 'available', command }
+    if (resolution.kind === 'unsupported') {
+      return { kind: 'unavailable', command, reason: resolution.reason }
+    }
+    return { kind: 'unavailable', command, reason: unavailableReason(command) }
   }
 
   async run(input: RunAiCliInput): Promise<RunAiCliResult> {
-    const invocation = promptInvocation(input.args, input.prompt)
-    if (invocation.kind === 'invalid') {
-      return { kind: 'invalid-arguments', reason: invocation.reason }
-    }
-    const result = await this.childProcessClient.run(childProcessInput(input, invocation))
-    return mapResult(input.command, input.timeoutSeconds, result)
+    const invocation = promptInvocation(input.stageConfiguration.args, input.prompt)
+    if (invocation.kind === 'invalid') return { kind: 'failed', reason: invocation.reason }
+    const result = await this.childProcessClient.run(
+      childProcessInput(input.stageConfiguration, invocation),
+    )
+    return mapResult(result)
   }
 }
 
+/** @riviere-role domain-port-adapter */
+export function createAiCliAdapter(): AiCli {
+  return new AiCliAdapter(new ChildProcessClient())
+}
+
+function unavailableReason(command: string): string {
+  if (command.includes('/') || command.includes('\\')) {
+    return `Expected executable at '${command}'. Got not found. Context: no executable file exists at that path`
+  }
+  return `Expected command '${command}' on PATH. Got not found. Context: no executable file exists on the search path`
+}
+
 function childProcessInput(
-  input: RunAiCliInput,
+  configuration: RunAiCliInput['stageConfiguration'],
   invocation: Extract<PromptInvocation, { kind: 'stdin' | 'argument' }>,
 ): ChildProcessRunInput {
   const childProcessInvocation = {
-    command: input.command,
+    command: configuration.command,
     args: invocation.args,
-    timeoutMilliseconds: Math.ceil(input.timeoutSeconds * 1000),
-    maximumOutputBytes: input.maximumOutputBytes,
+    timeoutMilliseconds: Math.ceil(configuration.timeoutSeconds * 1000),
+    maximumOutputBytes: MAXIMUM_RESPONSE_BYTES,
   }
   if (invocation.kind === 'stdin') {
     return { ...childProcessInvocation, kind: 'pipe-stdin', stdin: invocation.stdin }
@@ -85,44 +102,33 @@ function occurrences(value: string, search: string): number {
   return value.split(search).length - 1
 }
 
-function mapResult(
-  command: string,
-  timeoutSeconds: number,
-  result: ChildProcessRunResult,
-): RunAiCliResult {
+function mapResult(result: ChildProcessRunResult): RunAiCliResult {
   switch (result.kind) {
     case 'completed':
       if (result.exitCode !== 0) {
         return {
-          kind: 'execution-failure',
-          command,
-          exitCode: result.exitCode,
-          stderr: result.stderr.text,
+          kind: 'failed',
+          reason:
+            result.stderr.text.length > 0
+              ? result.stderr.text
+              : 'AI CLI execution failed without a diagnostic',
         }
       }
-      return {
-        kind: 'success',
-        output: result.stdout.text,
-        outputTruncated: result.stdout.truncated,
+      if (result.stdout.truncated) {
+        return {
+          kind: 'incomplete',
+          output: result.stdout.text,
+          reason: 'AI CLI output exceeded the allowed response size',
+        }
       }
+      return { kind: 'completed', output: result.stdout.text }
     case 'timed-out':
-      return {
-        kind: 'timeout',
-        timeoutSeconds,
-        partialOutput: result.stdout.text,
-        partialError: result.stderr.text,
-      }
+      return { kind: 'timed-out' }
     case 'terminated-by-signal':
-      return {
-        kind: 'signal-termination',
-        command,
-        signal: result.signal,
-        partialOutput: result.stdout.text,
-        partialError: result.stderr.text,
-      }
+      return { kind: 'failed', reason: `AI CLI was terminated by signal '${result.signal}'` }
     case 'stdin-failed':
-      return { kind: 'stdin-failure', command, reason: result.reason }
+      return { kind: 'failed', reason: result.reason }
     case 'spawn-failed':
-      return { kind: 'spawn-failure', command, reason: result.reason }
+      return { kind: 'failed', reason: result.reason }
   }
 }

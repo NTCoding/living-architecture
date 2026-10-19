@@ -15,6 +15,7 @@ import { MissingModuleSourceError } from './extraction-errors'
 import { WorkflowRunMode } from './workflow'
 import { WorkflowStage } from './workflow-stage'
 import {
+  aiCli,
   collaborators,
   configuration,
   graphDefinition,
@@ -63,17 +64,7 @@ function projectWithAiCli(
 ): RiviereProject {
   return RiviereProject.start(
     GraphWithWorkflowStartInput.from(graphDefinition(), workflowStartInput(stages)),
-    {
-      ...collaborators(),
-      aiCli: {
-        checkAvailability,
-        run: () =>
-          Promise.resolve({
-            kind: 'invalid-arguments',
-            reason: 'The workflow test does not invoke AI CLI execution',
-          }),
-      },
-    },
+    { ...collaborators(), aiCli: aiCli({ checkAvailability }) },
   )
 }
 
