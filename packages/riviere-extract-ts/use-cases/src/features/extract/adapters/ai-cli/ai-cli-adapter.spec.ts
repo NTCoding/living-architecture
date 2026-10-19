@@ -1,17 +1,27 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { AiExtractConfig } from '@living-architecture/riviere-extract-config-published-language'
 import type { RunAiCliInput } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/ai-cli'
 import { ChildProcessClient } from '../../../../infra/external-clients/child-process/child-process-client'
-import { AiCliAdapter } from './ai-cli-adapter'
+import { AiCliAdapter, createAiCliAdapter } from './ai-cli-adapter'
 
-function runInput(overrides: Partial<RunAiCliInput> = {}): RunAiCliInput {
+function extractConfiguration(overrides: Partial<AiExtractConfig> = {}): AiExtractConfig {
   return {
     command: 'claude',
     args: ['-p'],
-    prompt: 'Name the missing events',
     timeoutSeconds: 30,
-    maximumOutputBytes: 1024,
+    sources: ['./component.ts'],
+    selection: { from: ['missing-events'], componentTypes: ['Event'] },
+    outputs: { addComponents: true, addLinks: true },
+    context: { exclude: [], maxFilesPerBatch: 10, maxBatches: 2 },
     ...overrides,
   }
+}
+
+function runInput(overrides: Partial<AiExtractConfig> = {}, prompt = 'Name the missing events') {
+  return {
+    stageConfiguration: extractConfiguration(overrides),
+    prompt,
+  } satisfies RunAiCliInput
 }
 
 function completedResult(
@@ -46,7 +56,7 @@ describe('AiCliAdapter availability', () => {
     })
   })
 
-  it('reports an unavailable command when its executable is missing', async () => {
+  it('reports an unavailable command when its executable is missing from PATH', async () => {
     vi.spyOn(childProcessClient, 'resolveExecutable').mockReturnValue({
       kind: 'not-found',
       command: 'claude',
@@ -55,15 +65,48 @@ describe('AiCliAdapter availability', () => {
     await expect(adapter.checkAvailability('claude')).resolves.toStrictEqual({
       kind: 'unavailable',
       command: 'claude',
-      reason: "Command 'claude' was not found on PATH",
+      reason:
+        "Expected command 'claude' on PATH. Got not found. Context: no executable file exists on the search path",
     })
   })
 
+  it('reports an unavailable command when a path-qualified executable is missing', async () => {
+    vi.spyOn(childProcessClient, 'resolveExecutable').mockReturnValue({
+      kind: 'not-found',
+      command: '/opt/bin/claude',
+    })
+
+    const result = await adapter.checkAvailability('/opt/bin/claude')
+
+    expect(result).toMatchObject({ kind: 'unavailable', command: '/opt/bin/claude' })
+    expect(result.kind === 'unavailable' && result.reason).toContain('Expected executable at')
+    expect(result.kind === 'unavailable' && result.reason).not.toContain('PATH')
+  })
+
   it('reports an unavailable command when the command is whitespace only', async () => {
+    vi.spyOn(childProcessClient, 'resolveExecutable').mockReturnValue({
+      kind: 'invalid-command',
+      command: '   ',
+    })
+
     await expect(adapter.checkAvailability('   ')).resolves.toStrictEqual({
       kind: 'unavailable',
       command: '   ',
-      reason: "Command '   ' was not found on PATH",
+      reason: "Expected a non-blank AI command. Got '   '. Context: command is required",
+    })
+  })
+
+  it('reports an unavailable command when the resolved executable is unsupported', async () => {
+    vi.spyOn(childProcessClient, 'resolveExecutable').mockReturnValue({
+      kind: 'unsupported',
+      command: 'claude',
+      reason: 'Windows batch shims require a shell',
+    })
+
+    await expect(adapter.checkAvailability('claude')).resolves.toStrictEqual({
+      kind: 'unavailable',
+      command: 'claude',
+      reason: 'Windows batch shims require a shell',
     })
   })
 
@@ -93,7 +136,7 @@ describe('AiCliAdapter prompt passing', () => {
       args: ['-p'],
       stdin: 'Name the missing events',
       timeoutMilliseconds: 30_000,
-      maximumOutputBytes: 1024,
+      maximumOutputBytes: 1_048_576,
     })
   })
 
@@ -107,14 +150,26 @@ describe('AiCliAdapter prompt passing', () => {
       command: 'claude',
       args: ['--instruction=Name the missing events', '--json'],
       timeoutMilliseconds: 30_000,
-      maximumOutputBytes: 1024,
+      maximumOutputBytes: 1_048_576,
+    })
+  })
+
+  it('fails without invoking the child process when multiple prompt placeholders bypass parser validation', async () => {
+    const run = vi.spyOn(childProcessClient, 'run')
+
+    const result = await adapter.run(runInput({ args: ['{prompt}', '--again={prompt}'] }))
+
+    expect(run).not.toHaveBeenCalled()
+    expect(result).toStrictEqual({
+      kind: 'failed',
+      reason: "Expected at most one '{prompt}' placeholder, got 2",
     })
   })
 
   it('substitutes the prompt literally when it contains replacement patterns', async () => {
     const run = vi.spyOn(childProcessClient, 'run').mockResolvedValue(completedResult())
 
-    await adapter.run(runInput({ args: ['--prompt={prompt}'], prompt: 'cost is $& and $$5' }))
+    await adapter.run(runInput({ args: ['--prompt={prompt}'] }, 'cost is $& and $$5'))
 
     expect(run).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -123,49 +178,41 @@ describe('AiCliAdapter prompt passing', () => {
       }),
     )
   })
-
-  it('rejects multiple prompt placeholders without invoking the child process', async () => {
-    const run = vi.spyOn(childProcessClient, 'run')
-
-    const result = await adapter.run(runInput({ args: ['{prompt}', '--again={prompt}'] }))
-
-    expect(run).not.toHaveBeenCalled()
-    expect(result).toStrictEqual({
-      kind: 'invalid-arguments',
-      reason: "Expected at most one '{prompt}' placeholder, got 2",
-    })
-  })
 })
 
 describe('AiCliAdapter result mapping', () => {
-  it('reports truncated output from a successful run', async () => {
+  it('reports completed output when the assistant succeeds', async () => {
+    vi.spyOn(childProcessClient, 'run').mockResolvedValue(completedResult())
+
+    await expect(adapter.run(runInput())).resolves.toStrictEqual({
+      kind: 'completed',
+      output: 'answer',
+    })
+  })
+
+  it('reports incomplete output when the assistant response is truncated', async () => {
     vi.spyOn(childProcessClient, 'run').mockResolvedValue(
       completedResult({ stdout: { text: '{"partial":true}', truncated: true } }),
     )
 
     await expect(adapter.run(runInput())).resolves.toStrictEqual({
-      kind: 'success',
+      kind: 'incomplete',
       output: '{"partial":true}',
-      outputTruncated: true,
+      reason: 'AI CLI output exceeded the allowed response size',
     })
   })
 
-  it('maps a timed-out child process to a timeout result', async () => {
+  it('reports a timed-out result when the assistant exceeds its deadline', async () => {
     vi.spyOn(childProcessClient, 'run').mockResolvedValue({
       kind: 'timed-out',
       stdout: { text: 'partial', truncated: false },
       stderr: { text: 'warning', truncated: false },
     })
 
-    await expect(adapter.run(runInput({ timeoutSeconds: 2 }))).resolves.toStrictEqual({
-      kind: 'timeout',
-      timeoutSeconds: 2,
-      partialOutput: 'partial',
-      partialError: 'warning',
-    })
+    await expect(adapter.run(runInput())).resolves.toStrictEqual({ kind: 'timed-out' })
   })
 
-  it('maps a signal termination to a signal-termination result', async () => {
+  it('reports a failure when the assistant is terminated by a signal', async () => {
     vi.spyOn(childProcessClient, 'run').mockResolvedValue({
       kind: 'terminated-by-signal',
       signal: 'SIGTERM',
@@ -174,41 +221,51 @@ describe('AiCliAdapter result mapping', () => {
     })
 
     await expect(adapter.run(runInput())).resolves.toStrictEqual({
-      kind: 'signal-termination',
-      command: 'claude',
-      signal: 'SIGTERM',
-      partialOutput: 'partial',
-      partialError: 'warning',
+      kind: 'failed',
+      reason: "AI CLI was terminated by signal 'SIGTERM'",
     })
   })
 
-  it('maps a stdin write failure to a stdin-failure result', async () => {
+  it('reports a failure when stdin cannot be written', async () => {
     vi.spyOn(childProcessClient, 'run').mockResolvedValue({
       kind: 'stdin-failed',
       reason: 'write EACCES',
     })
 
     await expect(adapter.run(runInput())).resolves.toStrictEqual({
-      kind: 'stdin-failure',
-      command: 'claude',
+      kind: 'failed',
       reason: 'write EACCES',
     })
   })
 
-  it('maps a spawn failure to a typed failure result', async () => {
+  it('reports a failure when the assistant cannot be spawned', async () => {
     vi.spyOn(childProcessClient, 'run').mockResolvedValue({
       kind: 'spawn-failed',
       reason: 'spawn claude ENOENT',
     })
 
     await expect(adapter.run(runInput())).resolves.toStrictEqual({
-      kind: 'spawn-failure',
-      command: 'claude',
+      kind: 'failed',
       reason: 'spawn claude ENOENT',
     })
   })
 
-  it('maps a non-zero exit to an execution failure result', async () => {
+  it('reports a generic failure when the assistant exits non-zero without a diagnostic', async () => {
+    vi.spyOn(childProcessClient, 'run').mockResolvedValue(
+      completedResult({
+        exitCode: 3,
+        stdout: { text: '', truncated: false },
+        stderr: { text: '', truncated: false },
+      }),
+    )
+
+    await expect(adapter.run(runInput())).resolves.toStrictEqual({
+      kind: 'failed',
+      reason: 'AI CLI execution failed without a diagnostic',
+    })
+  })
+
+  it('reports the provider diagnostic when the assistant exits non-zero', async () => {
     vi.spyOn(childProcessClient, 'run').mockResolvedValue(
       completedResult({
         exitCode: 3,
@@ -218,10 +275,17 @@ describe('AiCliAdapter result mapping', () => {
     )
 
     await expect(adapter.run(runInput())).resolves.toStrictEqual({
-      kind: 'execution-failure',
-      command: 'claude',
-      exitCode: 3,
-      stderr: 'provider rejected the request',
+      kind: 'failed',
+      reason: 'provider rejected the request',
     })
+  })
+})
+
+describe('createAiCliAdapter', () => {
+  it('returns an AiCli port implementation', () => {
+    const created = createAiCliAdapter()
+
+    expect(created.checkAvailability).toBeTypeOf('function')
+    expect(created.run).toBeTypeOf('function')
   })
 })
