@@ -591,7 +591,10 @@ export interface BuildWorkflowInput {
       readonly commentId: number
     }[]
   }>
-  readonly waitForReviewer: (request: { readonly pullRequestNumber: number }) => Promise<{
+  readonly waitForReviewer: (request: {
+    readonly pullRequestNumber: number
+    readonly commitSha: string
+  }) => Promise<{
     readonly reviewSeen: boolean
     readonly rateLimited: boolean
     readonly verdict: 'approved' | 'changes-requested' | 'commented' | null
@@ -970,6 +973,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
         const state = reviewStateSchema.parse(data)
         const feedback = await input.waitForReviewer({
           pullRequestNumber: state.pullRequestNumber,
+          commitSha: state.commitSha,
         })
         if (!feedback.reviewSeen && !feedback.rateLimited) {
           await input.commentOnPullRequest({

@@ -9,6 +9,7 @@ const FEEDBACK_COMMENT_SCHEMA = z.object({
   path: z.string(),
   line: z.number().int().positive().nullable(),
   body: z.string(),
+  commit_id: z.string().nullable().optional(),
   user: z.object({ login: z.string() }).nullable(),
 })
 
@@ -31,7 +32,11 @@ export interface GithubPullRequestFeedback {
 /** @riviere-role external-client-service */
 export async function readGithubPullRequestFeedback(
   runCommand: (request: CommandRequest) => Promise<CommandOutput>,
-  request: { readonly workingDirectory: string; readonly pullRequestNumber: number },
+  request: {
+    readonly workingDirectory: string
+    readonly pullRequestNumber: number
+    readonly commitSha?: string
+  },
 ): Promise<GithubPullRequestFeedback> {
   const output = await ghOutput(runCommand, {
     workingDirectory: request.workingDirectory,
@@ -49,10 +54,12 @@ export async function readGithubPullRequestFeedback(
       `repos/{owner}/{repo}/pulls/${request.pullRequestNumber}/reviews`,
     ],
   })
-  const parsedReviews = REVIEW_SCHEMA.parse(JSON.parse(reviews))
-  const comments = FEEDBACK_COMMENTS_SCHEMA.parse(JSON.parse(output)).filter((comment) =>
-    isCoderabbit(comment.user?.login),
+  const parsedReviews = REVIEW_SCHEMA.parse(JSON.parse(reviews)).filter((review) =>
+    reviewTargetsCommit(review, request.commitSha),
   )
+  const comments = FEEDBACK_COMMENTS_SCHEMA.parse(JSON.parse(output))
+    .filter((comment) => isCoderabbit(comment.user?.login))
+    .filter((comment) => commentTargetsCommit(comment, request.commitSha))
   const verdict = coderabbitVerdictOf(parsedReviews)
   return {
     reviewSeen: verdict !== null || comments.length > 0,
@@ -78,9 +85,26 @@ const REVIEW_SCHEMA = z.array(
   z.object({
     state: z.string(),
     body: z.string().nullable(),
+    commit_id: z.string().nullable().optional(),
     user: z.object({ login: z.string() }).nullable(),
   }),
 )
+
+function reviewTargetsCommit(
+  review: z.infer<typeof REVIEW_SCHEMA>[number],
+  commitSha: string | undefined,
+): boolean {
+  if (commitSha === undefined || commitSha === '') return true
+  return review.commit_id === commitSha
+}
+
+function commentTargetsCommit(
+  comment: z.infer<typeof FEEDBACK_COMMENTS_SCHEMA>[number],
+  commitSha: string | undefined,
+): boolean {
+  if (commitSha === undefined || commitSha === '') return true
+  return comment.commit_id === commitSha
+}
 
 function isCoderabbit(login: string | undefined): boolean {
   return login !== undefined && CODERABBIT_LOGINS.includes(login)

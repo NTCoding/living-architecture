@@ -15,26 +15,31 @@ type Dependencies = {
 async function poll(
   dependencies: Dependencies,
   pullRequestNumber: number,
+  commitSha: string,
   remainingAttempts: number,
+  gracePeriodPending: boolean,
 ): Promise<Awaited<ReturnType<WaitForReviewer>>> {
+  if (gracePeriodPending) await dependencies.wait()
   try {
     const feedback = await readGithubPullRequestFeedback(dependencies.runCommand, {
       workingDirectory: dependencies.workingDirectory,
       pullRequestNumber,
+      commitSha,
     })
     if (feedback.reviewSeen || feedback.rateLimited || remainingAttempts <= 1) return feedback
   } catch {
     if (remainingAttempts <= 1) return didNotReview()
   }
   await dependencies.wait()
-  return poll(dependencies, pullRequestNumber, remainingAttempts - 1)
+  return poll(dependencies, pullRequestNumber, commitSha, remainingAttempts - 1, false)
 }
 
 /**
  * @riviere-role domain-port-adapter
  */
 export function waitForReviewerWithGithub(dependencies: Dependencies): WaitForReviewer {
-  return async (request) => poll(dependencies, request.pullRequestNumber, dependencies.attempts)
+  return async (request) =>
+    poll(dependencies, request.pullRequestNumber, request.commitSha, dependencies.attempts, true)
 }
 
 function didNotReview(): Awaited<ReturnType<WaitForReviewer>> {
