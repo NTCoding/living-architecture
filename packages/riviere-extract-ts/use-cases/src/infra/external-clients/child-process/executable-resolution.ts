@@ -75,7 +75,21 @@ function candidateExecutableNames(
   environment: ChildProcessResolutionEnvironment,
 ): readonly string[] {
   if (environment.platform !== 'win32') return [command]
-  return [command, ...environment.pathExtensions.map((extension) => `${command}${extension}`)]
+  const extensionCandidates = environment.pathExtensions.map(
+    (extension) => `${command}${extension}`,
+  )
+  if (endsWithConfiguredPathExtension(command, environment.pathExtensions)) {
+    return [command, ...extensionCandidates]
+  }
+  return extensionCandidates
+}
+
+function endsWithConfiguredPathExtension(
+  command: string,
+  pathExtensions: readonly string[],
+): boolean {
+  const upperCaseCommand = command.toUpperCase()
+  return pathExtensions.some((extension) => upperCaseCommand.endsWith(extension.toUpperCase()))
 }
 
 function resolveExecutablePath(

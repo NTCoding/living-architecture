@@ -134,4 +134,38 @@ describe('ChildProcessClient executable resolution', () => {
       command: 'claude',
     })
   })
+
+  it('prefers the PATHEXT candidate over an extensionless npm shell script on Windows', async () => {
+    const directory = await createDirectory()
+    const extensionlessScript = join(directory, 'claude')
+    await writeFile(extensionlessScript, '#!/bin/sh\n')
+    await chmod(extensionlessScript, 0o755)
+    const windowsClient = new ExecutableResolver(() => ({
+      platform: 'win32',
+      searchPath: directory,
+      pathExtensions: ['.CMD'],
+    }))
+
+    expect(windowsClient.resolveExecutable('claude')).toStrictEqual({
+      kind: 'not-found',
+      command: 'claude',
+    })
+  })
+
+  it('resolves the bare command on Windows when it already carries a configured extension', async () => {
+    const directory = await createDirectory()
+    const executable = join(directory, 'claude.exe')
+    await writeFile(executable, '')
+    await chmod(executable, 0o755)
+    const windowsClient = new ExecutableResolver(() => ({
+      platform: 'win32',
+      searchPath: directory,
+      pathExtensions: ['.EXE', '.CMD'],
+    }))
+
+    expect(windowsClient.resolveExecutable('claude.exe')).toStrictEqual({
+      kind: 'resolved',
+      executablePath: executable,
+    })
+  })
 })

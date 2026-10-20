@@ -60,6 +60,7 @@ import { RiviereProjectRepository } from '@living-architecture/riviere-extract-t
 import { configureExtraction } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/configure-extraction'
 import { createCodeExtractionAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ts-morph/code-extraction-adapter'
 import { createAiCliAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ai-cli/ai-cli-adapter'
+import { ChildProcessClient } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/child-process/child-process-client'
 import { createGitChangedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/git/create-git-changed-source-file-finder'
 import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-specified-source-file-finder'
 import { createConnectionDetectionTimer } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/time/create-connection-detection-timer'
@@ -139,7 +140,7 @@ export function createProgram(): Command {
   const asyncApiDocumentLoader = createAsyncApiDocumentAdapter()
   const codeExtractionLoader = createCodeExtractionAdapter()
   const extractionConfiguration = configureExtraction({})
-  const aiCli = createAiCliAdapter()
+  const aiCli = createAiCliAdapter(new ChildProcessClient())
   const riviereProjectCollaborators = {
     aiCli,
     loadEventCatalogSource: eventCatalogSourceLoader,

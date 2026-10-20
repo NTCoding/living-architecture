@@ -44,8 +44,8 @@ export class AiCliAdapter implements AiCli {
 }
 
 /** @riviere-role domain-port-adapter */
-export function createAiCliAdapter(): AiCli {
-  return new AiCliAdapter(new ChildProcessClient())
+export function createAiCliAdapter(childProcessClient: ChildProcessClient): AiCli {
+  return new AiCliAdapter(childProcessClient)
 }
 
 function childProcessInput(

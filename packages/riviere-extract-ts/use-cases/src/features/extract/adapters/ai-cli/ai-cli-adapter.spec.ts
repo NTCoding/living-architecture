@@ -320,10 +320,37 @@ describe('AiCliAdapter result mapping', () => {
 })
 
 describe('createAiCliAdapter', () => {
-  it('returns an AiCli port implementation', () => {
-    const created = createAiCliAdapter()
+  it('creates an adapter that delegates availability to the child-process client', async () => {
+    const childProcessClient = new ChildProcessClient()
+    vi.spyOn(childProcessClient, 'resolveExecutable').mockReturnValue({
+      kind: 'resolved',
+      executablePath: 'claude',
+    })
 
-    expect(created.checkAvailability).toBeTypeOf('function')
-    expect(created.run).toBeTypeOf('function')
+    const created = createAiCliAdapter(childProcessClient)
+
+    await expect(created.checkAvailability('claude')).resolves.toStrictEqual({
+      kind: 'available',
+      command: 'claude',
+    })
+  })
+
+  it('creates an adapter that delegates runs to the child-process client', async () => {
+    const childProcessClient = new ChildProcessClient()
+    vi.spyOn(childProcessClient, 'resolveExecutable').mockReturnValue({
+      kind: 'resolved',
+      executablePath: 'claude',
+    })
+    const runSpy = vi.spyOn(childProcessClient, 'run').mockResolvedValue(completedResult())
+
+    const created = createAiCliAdapter(childProcessClient)
+
+    await expect(created.run(runInput())).resolves.toStrictEqual({
+      kind: 'completed',
+      output: 'answer',
+    })
+    expect(runSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ command: 'claude', args: ['-p'] }),
+    )
   })
 })
