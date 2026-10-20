@@ -1,0 +1,111 @@
+{
+  "name": "@living-architecture/dev-workflow-v3",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "targets": {
+      "build": {
+        "executor": "@nx/esbuild:esbuild",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "defaultConfiguration": "production",
+        "options": {
+          "platform": "node",
+          "outputPath": "tools/dev-workflow-v3/dist",
+          "format": [
+            "esm"
+          ],
+          "bundle": true,
+          "main": "tools/dev-workflow-v3/src/shell/main.ts",
+          "tsConfig": "tools/dev-workflow-v3/tsconfig.app.json",
+          "esbuildOptions": {
+            "sourcemap": true,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        },
+        "configurations": {
+          "development": {},
+          "production": {
+            "esbuildOptions": {
+              "sourcemap": false,
+              "outExtension": {
+                ".js": ".js"
+              }
+            }
+          }
+        }
+      },
+      "prune-lockfile": {
+        "dependsOn": [
+          "build"
+        ],
+        "cache": true,
+        "executor": "@nx/js:prune-lockfile",
+        "outputs": [
+          "{workspaceRoot}/tools/dev-workflow-v3/dist/package.json",
+          "{workspaceRoot}/tools/dev-workflow-v3/dist/pnpm-lock.yaml"
+        ],
+        "options": {
+          "buildTarget": "build"
+        }
+      },
+      "copy-workspace-modules": {
+        "dependsOn": [
+          "build"
+        ],
+        "cache": true,
+        "outputs": [
+          "{workspaceRoot}/tools/dev-workflow-v3/dist/workspace_modules"
+        ],
+        "executor": "@nx/js:copy-workspace-modules",
+        "options": {
+          "buildTarget": "build"
+        }
+      },
+      "prune": {
+        "dependsOn": [
+          "prune-lockfile",
+          "copy-workspace-modules"
+        ],
+        "executor": "nx:noop"
+      },
+      "serve": {
+        "continuous": true,
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "@living-architecture/dev-workflow-v3:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "@living-architecture/dev-workflow-v3:build:development"
+          },
+          "production": {
+            "buildTarget": "@living-architecture/dev-workflow-v3:build:production"
+          }
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "@living-architecture/dev-workflow-v3-domain-model": "workspace:*",
+    "@living-architecture/dev-workflow-v3-use-cases": "workspace:*",
+    "@mastra/core": "1.75.0",
+    "@mastra/libsql": "1.25.1",
+    "@mastra/memory": "1.36.0",
+    "commander": "^14.0.2",
+    "zod": "^3.23.0"
+  },
+  "description": "The software factory workflow, a Mastra app that carries a GitHub issue to a pull request ready for a person.",
+  "bin": {
+    "factory": "./dist/shell/main.js"
+  },
+  "type": "module"
+}

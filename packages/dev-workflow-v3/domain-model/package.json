@@ -1,0 +1,31 @@
+{
+  "name": "@living-architecture/dev-workflow-v3-domain-model",
+  "description": "Models the software factory workflow, from a GitHub issue through planning, implementation, verification and the review cycle to a pull request ready for a person.",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "@living-architecture/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./domain/ports/*": {
+      "@living-architecture/source": "./src/domain/ports/*.ts",
+      "types": "./dist/domain/ports/*.d.ts",
+      "import": "./dist/domain/ports/*.js",
+      "default": "./dist/domain/ports/*.js"
+    },
+    "./domain/*": {
+      "@living-architecture/source": "./src/domain/*.ts",
+      "types": "./dist/domain/*.d.ts",
+      "import": "./dist/domain/*.js",
+      "default": "./dist/domain/*.js"
+    }
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  }
+}

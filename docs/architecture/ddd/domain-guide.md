@@ -12,6 +12,7 @@ For shared domain language, use the [domain glossary](../domain-terminology/cont
 - [Subdomain overview](#subdomain-overview)
 - [Subdomains](#subdomains)
   - [`dev-workflow-v2`](#dev-workflow-v2)
+  - [`dev-workflow-v3`](#dev-workflow-v3)
   - [`living-documentation`](#living-documentation)
   - [`riviere-builder`](#riviere-builder)
   - [`riviere-extract-config`](#riviere-extract-config)
@@ -25,6 +26,7 @@ For shared domain language, use the [domain glossary](../domain-terminology/cont
 | Subdomain | Purpose | Domain packages | Aggregates | Command use cases | Query use cases | CLI use cases |
 | --- | --- | --- | --- | ---: | ---: | ---: |
 | [`dev-workflow-v2`](#dev-workflow-v2) | Models the maintainer delivery workflow, including its states, allowed transitions, recorded events, and pull request decisions. | domain model: `@living-architecture/dev-workflow-v2-domain-model` | `MaintainerWorkflow` | 3 | 0 | 3 |
+| [`dev-workflow-v3`](#dev-workflow-v3) | Models the software factory workflow, from a GitHub issue through planning, implementation, verification and the review cycle to a pull request ready for a person. | domain model: `@living-architecture/dev-workflow-v3-domain-model` | `ReviewCycle` | 13 | 0 | 13 |
 | [`living-documentation`](#living-documentation) | Models source architecture, extracted architecture, and architecture differences for living documentation. | domain model: `@living-architecture/living-documentation-domain-model` | _None declared_ | 0 | 2 | 2 |
 | [`riviere-builder`](#riviere-builder) | Models the construction, enrichment, validation, querying, and serialisation of Rivière architecture graphs. | domain model: `@living-architecture/riviere-builder-domain-model`<br>published language: `@living-architecture/riviere-builder-published-language` | _None declared_ | 0 | 8 | 8 |
 | [`riviere-extract-config`](#riviere-extract-config) | Defines the public configuration language used to describe how Rivière components and connections are extracted from source code. | published language: `@living-architecture/riviere-extract-config-published-language` | _None declared_ | 0 | 0 | 0 |
@@ -95,6 +97,63 @@ _None._
 - `configureWorkflow`
 - `CreateWorkflowRoutes`
 - `PrepareImplementationBranch`
+
+### `dev-workflow-v3`
+
+Models the software factory workflow, from a GitHub issue through planning, implementation, verification and the review cycle to a pull request ready for a person.
+
+Domain model package: `@living-architecture/dev-workflow-v3-domain-model`
+
+#### Aggregates
+
+- `ReviewCycle`
+  - `start`
+  - `reviewersToRun`
+  - `recordVerdict`
+  - `beginNextCycle`
+  - `cycleNumber`
+  - `statusFor`
+  - `statuses`
+  - `isLimitReached`
+
+#### Supported use cases
+
+##### Commands
+
+- `BuildWorkflow`
+- `CheckWorkCommitted`
+- `CloseReviewCycle`
+  - Invokes aggregate operation `ReviewCycle.start`
+- `CommentOnIssue`
+- `CommentOnPullRequest`
+- `InstallDependencies`
+- `OpenPullRequest`
+- `ParseReviewers`
+- `PrepareBranch`
+- `PublishReviewFindings`
+- `PushBranch`
+- `ReadPullRequestDiff`
+- `ReplyToReviewComment`
+
+##### Queries
+
+_None._
+
+#### CLI use cases
+
+- `BuildWorkflow`
+- `CheckWorkCommitted`
+- `CloseReviewCycle`
+- `CommentOnIssue`
+- `CommentOnPullRequest`
+- `InstallDependencies`
+- `OpenPullRequest`
+- `ParseReviewers`
+- `PrepareBranch`
+- `PublishReviewFindings`
+- `PushBranch`
+- `ReadPullRequestDiff`
+- `ReplyToReviewComment`
 
 ### `living-documentation`
 

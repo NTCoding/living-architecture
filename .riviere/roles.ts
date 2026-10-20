@@ -130,6 +130,10 @@ export const allRoles = [
         name: 'MaintainerWorkflow',
         userHasApproved: true,
       },
+      {
+        name: 'ReviewCycle',
+        userHasApproved: true,
+      },
     ],
   }),
   role('aggregate-entity', {
