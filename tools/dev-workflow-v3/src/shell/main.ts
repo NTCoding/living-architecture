@@ -6,6 +6,7 @@ import { promisify } from 'node:util'
 import { Command } from 'commander'
 import type { Run, Workflow } from '@mastra/core/workflows'
 import { BuildWorkflow } from '@living-architecture/dev-workflow-v3-use-cases/commands/build-workflow'
+import { ParseReviewers } from '@living-architecture/dev-workflow-v3-use-cases/commands/parse-reviewers'
 import { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
 import { CheckWorkCommitted } from '@living-architecture/dev-workflow-v3-use-cases/commands/check-work-committed'
 import { checkWorkCommittedWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/check-work-committed'
@@ -224,32 +225,53 @@ function createCommandLine(factory: Factory): Command {
     .description('start a run and follow it until it finishes or needs you')
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
-    .option('--thinking <level>', 'off, low, medium or high', 'low')
+    .requiredOption('--thinking <level>', 'off, low, medium or high')
+    .requiredOption(
+      '--reviewers <names>',
+      'comma-separated reviewers, any of architecture-review, code-review, bug-scanner',
+    )
     .option('--no-input', 'never wait for an answer in this terminal')
-    .action(async (issue: string, options: { model: string; thinking: string; input: boolean }) => {
-      const runId = await nextRunId(factory.startImplementation, `issue-${issueNumberText(issue)}`)
-      const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
-      await follow(
-        factory.startImplementation,
-        factory.reviewCycle,
-        run,
-        () =>
-          run.start({
-            inputData: {
-              issueNumber: issueNumber(issue),
-              attempt: attemptOf(runId, `issue-${issueNumberText(issue)}`),
-              model: options.model,
-              thinking: options.thinking,
-              worktreesDirectory: `${factory.workingDirectory}/.factory/worktrees`,
-            },
-          }),
-        {
-          issue: issueNumberText(issue),
-          issueUrl: issueUrlOf(factory.repositoryUrl, issue),
-          interactive: options.input,
+    .action(
+      async (
+        issue: string,
+        options: {
+          model: string
+          thinking: string
+          reviewers: string
+          input: boolean
         },
-      )
-    })
+      ) => {
+        const reviewers = new ParseReviewers().execute({
+          names: options.reviewers.split(','),
+        }).reviewers
+        const runId = await nextRunId(
+          factory.startImplementation,
+          `issue-${issueNumberText(issue)}`,
+        )
+        const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
+        await follow(
+          factory.startImplementation,
+          factory.reviewCycle,
+          run,
+          () =>
+            run.start({
+              inputData: {
+                issueNumber: issueNumber(issue),
+                attempt: attemptOf(runId, `issue-${issueNumberText(issue)}`),
+                model: options.model,
+                thinking: options.thinking,
+                reviewers,
+                worktreesDirectory: `${factory.workingDirectory}/.factory/worktrees`,
+              },
+            }),
+          {
+            issue: issueNumberText(issue),
+            issueUrl: issueUrlOf(factory.repositoryUrl, issue),
+            interactive: options.input,
+          },
+        )
+      },
+    )
 
   program
     .command('resume')

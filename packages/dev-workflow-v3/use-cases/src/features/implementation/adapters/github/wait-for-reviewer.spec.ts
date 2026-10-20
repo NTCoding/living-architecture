@@ -11,7 +11,10 @@ const noComments = '[]'
 describe('waitForReviewerWithGithub', () => {
   it('returns as soon as the reviewer has commented', async () => {
     const waits: number[] = []
-    const runCommand = fakeCommands([{ stdout: aComment, stderr: '', exitCode: 0 }])
+    const runCommand = fakeCommands([
+      { stdout: aComment, stderr: '', exitCode: 0 },
+      { stdout: '[]', stderr: '', exitCode: 0 },
+    ])
 
     const feedback = await waitForReviewerWithGithub({
       runCommand,
@@ -30,7 +33,9 @@ describe('waitForReviewerWithGithub', () => {
     const waits: number[] = []
     const runCommand = fakeCommands([
       { stdout: noComments, stderr: '', exitCode: 0 },
+      { stdout: '[]', stderr: '', exitCode: 0 },
       { stdout: aComment, stderr: '', exitCode: 0 },
+      { stdout: '[]', stderr: '', exitCode: 0 },
     ])
 
     const feedback = await waitForReviewerWithGithub({
@@ -51,6 +56,7 @@ describe('waitForReviewerWithGithub', () => {
     const runCommand = fakeCommands([
       { stdout: '', stderr: 'read: operation timed out', exitCode: 1 },
       { stdout: aComment, stderr: '', exitCode: 0 },
+      { stdout: '[]', stderr: '', exitCode: 0 },
     ])
 
     const feedback = await waitForReviewerWithGithub({
@@ -84,7 +90,9 @@ describe('waitForReviewerWithGithub', () => {
   it('stops waiting when the attempts run out', async () => {
     const runCommand = fakeCommands([
       { stdout: noComments, stderr: '', exitCode: 0 },
+      { stdout: '[]', stderr: '', exitCode: 0 },
       { stdout: noComments, stderr: '', exitCode: 0 },
+      { stdout: '[]', stderr: '', exitCode: 0 },
     ])
 
     const feedback = await waitForReviewerWithGithub({
@@ -95,6 +103,6 @@ describe('waitForReviewerWithGithub', () => {
     })({ pullRequestNumber: 549 })
 
     expect(feedback.reviewSeen).toBe(false)
-    expect(runCommand.requests).toHaveLength(2)
+    expect(runCommand.requests).toHaveLength(4)
   })
 })

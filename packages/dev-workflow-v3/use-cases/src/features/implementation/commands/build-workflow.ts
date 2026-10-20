@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import type { Workflow } from '@mastra/core/workflows'
-import { SoftwareFactoryWorkflow } from '@living-architecture/dev-workflow-v3-domain-model'
+import {
+  Reviewer,
+  Reviewers,
+  SoftwareFactoryWorkflow,
+} from '@living-architecture/dev-workflow-v3-domain-model'
 import type { AdaptWorkflow } from '@living-architecture/dev-workflow-v3-domain-model/domain/ports/adapt-workflow'
 
 const findingSchema = z.object({
@@ -20,13 +24,16 @@ const resolutionSchema = z.object({
   response: z.string().min(1),
 })
 
-const thinkingSchema = z.enum(['off', 'low', 'medium', 'high']).default('low')
+const thinkingSchema = z.enum(['off', 'low', 'medium', 'high'])
+
+const reviewerNameSchema = z.string()
 
 const runStateSchema = z.object({
   issueNumber: z.number().int().positive(),
   attempt: z.number().int().positive().default(1),
   model: z.string(),
   thinking: thinkingSchema,
+  reviewers: z.array(reviewerNameSchema),
   worktreesDirectory: z.string(),
   issueTitle: z.string().default(''),
   issueBody: z.string().default(''),
@@ -51,6 +58,7 @@ const reviewStateSchema = z.object({
   runId: z.string(),
   model: z.string(),
   thinking: thinkingSchema,
+  reviewers: z.array(reviewerNameSchema),
   issueNumber: z.number().int().positive(),
   guidance: z.string().default(''),
   pullRequestNumber: z.number().int().positive(),
@@ -69,6 +77,9 @@ const reviewStateSchema = z.object({
   commitSha: z.string().default(''),
   changedFiles: z.array(z.string()).default([]),
   approved: z.boolean().default(false),
+  coderabbitStatus: z.enum(['reviewed', 'rate-limited', 'not-reviewed']).default('not-reviewed'),
+  coderabbitVerdict: z.enum(['approved', 'changes-requested', 'commented', 'none']).default('none'),
+  coderabbitRequest: z.string().default(''),
   limitReached: z.boolean().default(false),
   readyForHuman: z.boolean().default(false),
 })
@@ -89,7 +100,7 @@ const planSchema = z.object({
 })
 
 const implementationSchema = z.object({
-  blockedReason: z.string().nullable(),
+  blockedReason: z.string().min(1),
   allWorkComplete: z.boolean(),
   allWorkCommitted: z.boolean(),
 })
@@ -583,6 +594,8 @@ export interface BuildWorkflowInput {
   readonly waitForReviewer: (request: { readonly pullRequestNumber: number }) => Promise<{
     readonly reviewSeen: boolean
     readonly rateLimited: boolean
+    readonly verdict: 'approved' | 'changes-requested' | 'commented' | null
+    readonly summary: string | null
     readonly comments: readonly {
       readonly commentId: number
       readonly path: string
@@ -838,9 +851,10 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         return {
-          runId: `issue-${String(state.issueNumber)}`,
+          runId: `issue-${String(state.issueNumber)}-${String(state.attempt)}`,
           model: state.model,
           thinking: state.thinking,
+          reviewers: state.reviewers,
           issueNumber: state.issueNumber,
           guidance: state.guidance,
           pullRequestNumber: state.pullRequestNumber,
@@ -957,9 +971,23 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
         const feedback = await input.waitForReviewer({
           pullRequestNumber: state.pullRequestNumber,
         })
+        if (!feedback.reviewSeen && !feedback.rateLimited) {
+          await input.commentOnPullRequest({
+            pullRequestNumber: state.pullRequestNumber,
+            body: '[dev-workflow-v3] @coderabbitai please review this pull request.',
+          })
+        }
         return {
           ...state,
-          approved: state.approved && !feedback.rateLimited,
+          approved:
+            state.approved &&
+            feedback.reviewSeen &&
+            !feedback.rateLimited &&
+            feedback.verdict !== 'changes-requested',
+          coderabbitStatus: coderabbitStatusOf(feedback),
+          coderabbitVerdict: coderabbitVerdictOf(feedback),
+          coderabbitRequest:
+            feedback.verdict === 'changes-requested' ? coderabbitRequestOf(feedback.summary) : '',
           findings: [...state.findings, ...coderabbitFindings(feedback)],
         }
       },
@@ -975,7 +1003,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
         const required = state.findings.flatMap((finding) =>
           finding.commentId === null ? [] : [finding.commentId],
         )
-        if (state.findings.length === 0) return state
+        if (state.findings.length === 0 && state.coderabbitRequest === '') return state
         const feedback = await resolveFeedback({
           input,
           state: {
@@ -1059,6 +1087,8 @@ function reviewStep(input: BuildWorkflowInput, reviewer: ReviewerName): Workflow
     resumeSchema: null,
     run: async ({ data }) => {
       const state = reviewStateSchema.parse(data)
+      const reviewers = Reviewers.parse(state.reviewers)
+      if (!reviewers.includes(Reviewer.fromName(reviewer))) return state
       const previous = state.reviewerStatuses[reviewer] ?? null
       if (previous === 'APPROVED') return state
       const { diff } = await input.readPullRequestDiff({
@@ -1130,11 +1160,14 @@ async function implementUntilCommitted(request: {
     const remaining = request.timeBudgetMs - (Date.now() - progress.startedAt)
     const round = await runImplementationRound(request, progress.prompt, Math.max(remaining, 1))
     if (round.kind === 'question') return round
+    if (!round.answer.allWorkComplete) {
+      return { kind: 'question', question: round.answer.blockedReason }
+    }
     const committed = await request.input.checkWorkCommitted({
       worktreePath: request.state.worktreePath,
       from: request.state.baseSha,
     })
-    if (isFinished(round.answer, committed)) {
+    if (isFinished(committed)) {
       return {
         kind: 'committed',
         sha: committed.sha,
@@ -1145,11 +1178,11 @@ async function implementUntilCommitted(request: {
     if (progress.round >= request.rounds) {
       return {
         kind: 'unfinished',
-        reason: unfinishedMessage(round.answer, committed),
+        reason: unfinishedMessage(committed),
         missing: [],
       }
     }
-    progress.prompt = nudgePrompt(round.answer, committed)
+    progress.prompt = nudgePrompt(committed)
   }
 }
 
@@ -1306,19 +1339,11 @@ async function runImplementationRound(
   if (response.finishReason === 'tool-calls') throw new RunFailed(stepsExhaustedMessage)
   const outcome = implementationSchema.safeParse(response.object)
   if (!outcome.success) throw new RunFailed(noStructuredOutput('The implementer', response))
-  if (outcome.data.blockedReason !== null) {
-    return { kind: 'question', question: outcome.data.blockedReason }
-  }
   return { kind: 'answer', answer: outcome.data }
 }
 
-function isFinished(answer: ImplementationAnswer, committed: CommitState): boolean {
-  return answer.allWorkComplete && answer.allWorkCommitted && committed.clean && committed.hasCommit
-}
-
-type ImplementationAnswer = {
-  readonly allWorkComplete: boolean
-  readonly allWorkCommitted: boolean
+function isFinished(committed: CommitState): boolean {
+  return committed.clean && committed.hasCommit
 }
 
 type CommitState = {
@@ -1333,30 +1358,26 @@ const timeExhaustedMessage =
 const stepsExhaustedMessage =
   'The implementer used all its steps without finishing. The work in the worktree is kept. Start again on the same issue to carry on from it.'
 
-function unfinishedMessage(answer: ImplementationAnswer, committed: CommitState): string {
+function unfinishedMessage(committed: CommitState): string {
   return [
-    'The implementer did not finish the feedback and the work is not committed.',
-    answer.allWorkComplete
-      ? 'It said the work was complete.'
-      : 'It said the work was not complete.',
-    answer.allWorkCommitted
-      ? 'It said the work was committed.'
-      : 'It said the work was not committed.',
+    'The implementer said the work was complete, but the worktree disagrees.',
     committed.clean
       ? 'The worktree is clean.'
       : `Changes still not committed:\n${tailOf(committed.status)}`,
+    committed.hasCommit
+      ? 'The branch has a commit.'
+      : 'The branch has no commit of the implementer yet.',
   ].join('\n')
 }
 
-function nudgePrompt(answer: ImplementationAnswer, committed: CommitState): string {
+function nudgePrompt(committed: CommitState): string {
   return [
-    'You are not finished.',
+    'You said the work is complete, but the worktree says otherwise.',
     '',
     committed.clean
       ? 'The worktree is clean.'
       : `The worktree still has changes that are not committed:\n${tailOf(committed.status)}`,
     committed.hasCommit ? 'The branch has your commit.' : 'The branch has no commit of yours yet.',
-    `Your last answer said allWorkComplete=${String(answer.allWorkComplete)} and allWorkCommitted=${String(answer.allWorkCommitted)}.`,
     '',
     'Finish the work, run the checks, commit it with a conventional message, answer every',
     'finding, and only then return the result.',
@@ -1412,7 +1433,7 @@ function implementationPrompt(state: RunState, answer: string | null): string {
     state.guidance,
     '',
     'Your response:',
-    '- blockedReason: a question for the developer when you cannot continue, otherwise null.',
+    '- blockedReason: explain as clearly as you can why the work is not complete. Required whenever allWorkComplete is false.',
     '- allWorkComplete: true when the plan is done.',
     '- allWorkCommitted: true when you have committed your work.',
   ]
@@ -1457,6 +1478,14 @@ function feedbackPrompt(state: ReviewState): string {
           `- comment ${String(finding.commentId)} ${finding.file}:${String(finding.line)} [${finding.reviewer}] ${finding.rule ?? 'no rule'} ${finding.summary}`,
       )
       .join('\n'),
+    ...(state.coderabbitRequest === ''
+      ? []
+      : [
+          '',
+          'Coderabbit requested changes on this pull request:',
+          state.coderabbitRequest,
+          'Address this feedback in your work before finishing.',
+        ]),
     '',
     'Repository guidance:',
     state.guidance,
@@ -1567,8 +1596,45 @@ function readyComment(state: ReviewState): string {
     `Review cycles run: ${String(state.cycleNumber)}`,
     state.approved ? 'The reviewers approved the change.' : 'The review cycle limit was reached.',
     '',
+    'Verdicts:',
+    ...state.reviewers.map(
+      (reviewer) => `- ${reviewer}: ${state.reviewerStatuses[reviewer] ?? 'DID_NOT_RUN'}`,
+    ),
+    `- coderabbit: ${coderabbitVerdict(state.coderabbitStatus)}`,
+    '',
     'A person reviews and merges from here.',
   ].join('\n')
+}
+
+function coderabbitVerdict(status: 'reviewed' | 'rate-limited' | 'not-reviewed'): string {
+  if (status === 'reviewed') return 'REVIEWED'
+  if (status === 'rate-limited') return 'SKIPPED - RATE LIMITED'
+  throw new RunFailed(
+    'Coderabbit did not review the pull request. Nudge it, then start again on the same issue.',
+  )
+}
+
+function coderabbitVerdictOf(feedback: {
+  readonly verdict: 'approved' | 'changes-requested' | 'commented' | null
+}): 'approved' | 'changes-requested' | 'commented' | 'none' {
+  if (feedback.verdict === null) return 'none'
+  return feedback.verdict
+}
+
+function coderabbitRequestOf(summary: string | null): string {
+  if (summary === null) {
+    throw new RunFailed('Coderabbit requested changes but its review had no summary to address.')
+  }
+  return summary
+}
+
+function coderabbitStatusOf(feedback: {
+  readonly reviewSeen: boolean
+  readonly rateLimited: boolean
+}): 'reviewed' | 'rate-limited' | 'not-reviewed' {
+  if (feedback.rateLimited) return 'rate-limited'
+  if (feedback.reviewSeen) return 'reviewed'
+  return 'not-reviewed'
 }
 
 /** @riviere-role domain-error */

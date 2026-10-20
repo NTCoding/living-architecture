@@ -24,7 +24,7 @@ async function poll(
     })
     if (feedback.reviewSeen || feedback.rateLimited || remainingAttempts <= 1) return feedback
   } catch {
-    if (remainingAttempts <= 1) return { reviewSeen: false, rateLimited: false, comments: [] }
+    if (remainingAttempts <= 1) return didNotReview()
   }
   await dependencies.wait()
   return poll(dependencies, pullRequestNumber, remainingAttempts - 1)
@@ -35,4 +35,8 @@ async function poll(
  */
 export function waitForReviewerWithGithub(dependencies: Dependencies): WaitForReviewer {
   return async (request) => poll(dependencies, request.pullRequestNumber, dependencies.attempts)
+}
+
+function didNotReview(): Awaited<ReturnType<WaitForReviewer>> {
+  return { reviewSeen: false, rateLimited: false, verdict: null, summary: null, comments: [] }
 }

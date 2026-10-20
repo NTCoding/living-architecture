@@ -16,12 +16,20 @@ const finding = {
   summary: 'A domain decision sits in the adapter.',
 }
 
-const startInput = { issueNumber: 455, model: MODEL, worktreesDirectory: '/worktrees' }
+const startInput = {
+  issueNumber: 455,
+  model: MODEL,
+  thinking: 'low',
+  reviewers: ['architecture-review', 'code-review', 'bug-scanner'],
+  worktreesDirectory: '/worktrees',
+}
 
 function reviewInput(overrides: Record<string, unknown> = {}) {
   return {
     runId: 'issue-455',
     model: MODEL,
+    thinking: 'low',
+    reviewers: ['architecture-review', 'code-review', 'bug-scanner'],
     issueNumber: 455,
     guidance: 'the guidance',
     pullRequestNumber: 549,
@@ -58,7 +66,7 @@ function implementationAnswer(summary: string, resolutions: readonly unknown[] =
   return {
     object: {
       summary,
-      blockedReason: null,
+      blockedReason: 'The work is complete.',
       allWorkComplete: true,
       allWorkCommitted: true,
       resolutions,
@@ -143,7 +151,13 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
         commentId: index + 1,
       })),
     }),
-    waitForReviewer: async () => ({ reviewSeen: true, rateLimited: false, comments: [] }),
+    waitForReviewer: async () => ({
+      reviewSeen: true,
+      rateLimited: false,
+      verdict: 'approved',
+      summary: null,
+      comments: [],
+    }),
     replyToReviewComment: async () => undefined,
     ...overrides,
   }
@@ -470,10 +484,10 @@ describe('BuildWorkflow', () => {
         request.agentId === 'implementer'
           ? {
               object: {
-                summary: 'not done',
-                blockedReason: null,
-                allWorkComplete: false,
-                allWorkCommitted: false,
+                summary: 'done',
+                blockedReason: 'The work is complete.',
+                allWorkComplete: true,
+                allWorkCommitted: true,
               },
               text: '',
               finishReason: 'stop',
@@ -494,21 +508,56 @@ describe('BuildWorkflow', () => {
       expect.objectContaining({
         status: 'failed',
         error: expect.objectContaining({
-          message: expect.stringContaining('did not finish the feedback'),
+          message: expect.stringContaining('the worktree disagrees'),
         }),
       }),
     )
   })
 
-  it('fails when the agent says the work is not committed', async () => {
+  it('fails when the implementer claims completion without a commit', async () => {
     const { started } = await startedRun({
       generate: async (request) =>
         request.agentId === 'implementer'
           ? {
               object: {
                 summary: 'done',
-                blockedReason: null,
+                blockedReason: 'The work is complete.',
                 allWorkComplete: true,
+                allWorkCommitted: true,
+              },
+              text: '',
+              finishReason: 'stop',
+              suspendPayload: null,
+            }
+          : stubs().generate(request),
+      checkWorkCommitted: async () => ({
+        clean: true,
+        hasCommit: false,
+        sha: '',
+        status: '',
+        changedFiles: [],
+      }),
+    })
+
+    expect(started).toStrictEqual(
+      expect.objectContaining({
+        status: 'failed',
+        error: expect.objectContaining({
+          message: expect.stringContaining('no commit of the implementer yet'),
+        }),
+      }),
+    )
+  })
+
+  it('suspends with the reason when the implementer quits without finishing', async () => {
+    const { started } = await startedRun({
+      generate: async (request) =>
+        request.agentId === 'implementer'
+          ? {
+              object: {
+                summary: 'not done',
+                blockedReason: 'I could not add the port because the schema types are missing.',
+                allWorkComplete: false,
                 allWorkCommitted: false,
               },
               text: '',
@@ -517,9 +566,19 @@ describe('BuildWorkflow', () => {
             }
           : stubs().generate(request),
     })
-    const finished = started
 
-    expect(finished.status).toBe('failed')
+    expect(started).toStrictEqual(
+      expect.objectContaining({
+        status: 'suspended',
+        steps: expect.objectContaining({
+          implement: expect.objectContaining({
+            suspendPayload: expect.objectContaining({
+              question: 'I could not add the port because the schema types are missing.',
+            }),
+          }),
+        }),
+      }),
+    )
   })
 })
 
@@ -542,12 +601,32 @@ describe('review cycle', () => {
     expect(reviewers).toStrictEqual(['code-review', 'bug-scanner'])
   })
 
+  it('leaves out a reviewer that is not in the reviewer list', async () => {
+    const reviewers: string[] = []
+    const studio = await factoryFor({
+      generate: async (request) => {
+        if (!isReviewer(request.agentId)) return stubs().generate(request)
+        reviewers.push(request.agentId)
+        return verdictAnswer('APPROVED', [])
+      },
+    })
+    const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
+
+    await run.start({
+      inputData: reviewInput({ reviewers: ['code-review'] }),
+    })
+
+    expect(reviewers).toStrictEqual(['code-review'])
+  })
+
   it('addresses the coderabbit comments as feedback', async () => {
     const feedbackPrompts: string[] = []
     const studio = await factoryFor({
       waitForReviewer: async () => ({
         reviewSeen: true,
         rateLimited: false,
+        verdict: 'approved',
+        summary: null,
         comments: [{ commentId: 4306, path: 'src/order.ts', line: 3, body: 'Use the port.' }],
       }),
       generate: async (request) => {
@@ -565,9 +644,129 @@ describe('review cycle', () => {
     expect(feedbackPrompts[0]).toContain('Use the port.')
   })
 
+  it('posts every reviewer verdict when the run finishes', async () => {
+    const bodies: string[] = []
+    await startedRun({
+      commentOnPullRequest: async (request) => {
+        bodies.push(request.body)
+      },
+    })
+
+    const ready = bodies.find((body) => body.includes('has finished with this pull request'))
+
+    expect(ready).toContain('- architecture-review: APPROVED')
+    expect(ready).toContain('- code-review: APPROVED')
+    expect(ready).toContain('- bug-scanner: APPROVED')
+    expect(ready).toContain('- coderabbit: REVIEWED')
+  })
+
+  it('nudges coderabbit and refuses approval when coderabbit has not reviewed', async () => {
+    const comments: string[] = []
+    const studio = await factoryFor({
+      waitForReviewer: async () => ({
+        reviewSeen: false,
+        rateLimited: false,
+        verdict: null,
+        summary: null,
+        comments: [],
+      }),
+      commentOnPullRequest: async (request) => {
+        comments.push(request.body)
+      },
+    })
+    const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
+
+    const finished = await run.start({ inputData: reviewInput() })
+
+    expect(comments[0]).toContain('@coderabbitai please review')
+    expect(finished).toStrictEqual(
+      expect.objectContaining({
+        status: 'success',
+        result: expect.objectContaining({ approved: false, coderabbitStatus: 'not-reviewed' }),
+      }),
+    )
+  })
+
+  it('fails rather than finishing when coderabbit never reviewed', async () => {
+    const bodies: string[] = []
+    const { started } = await startedRun({
+      waitForReviewer: async () => ({
+        reviewSeen: false,
+        rateLimited: false,
+        verdict: null,
+        summary: null,
+        comments: [],
+      }),
+      commentOnPullRequest: async (request) => {
+        bodies.push(request.body)
+      },
+    })
+
+    expect(started).toStrictEqual(
+      expect.objectContaining({
+        status: 'failed',
+        error: expect.objectContaining({
+          message: expect.stringContaining('Coderabbit did not review'),
+        }),
+      }),
+    )
+    expect(bodies.some((body) => body.includes('has finished with this pull request'))).toBe(false)
+  })
+
+  it('fails when coderabbit requests changes without a summary', async () => {
+    const studio = await factoryFor({
+      waitForReviewer: async () => ({
+        reviewSeen: true,
+        rateLimited: false,
+        verdict: 'changes-requested',
+        summary: null,
+        comments: [],
+      }),
+    })
+    const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
+
+    const finished = await run.start({ inputData: reviewInput() })
+
+    expect(finished).toStrictEqual(
+      expect.objectContaining({
+        status: 'failed',
+        error: expect.objectContaining({
+          message: expect.stringContaining('no summary to address'),
+        }),
+      }),
+    )
+  })
+
+  it('gives the coderabbit change request to the implementer', async () => {
+    const feedbackPrompts: string[] = []
+    await startedRun({
+      waitForReviewer: async () => ({
+        reviewSeen: true,
+        rateLimited: false,
+        verdict: 'changes-requested',
+        summary: 'Move AI client construction to the shell.',
+        comments: [],
+      }),
+      generate: async (request) => {
+        if (request.prompt.startsWith('Here is the feedback')) {
+          feedbackPrompts.push(request.prompt)
+        }
+        return stubs().generate(request)
+      },
+    })
+
+    expect(feedbackPrompts.join('\n')).toContain('Move AI client construction to the shell.')
+  })
+
   it('does not approve when coderabbit rate limited the pull request', async () => {
     const studio = await factoryFor({
-      waitForReviewer: async () => ({ reviewSeen: true, rateLimited: true, comments: [] }),
+      waitForReviewer: async () => ({
+        reviewSeen: true,
+        rateLimited: true,
+        verdict: null,
+        summary: null,
+        comments: [],
+      }),
     })
     const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
 
@@ -579,6 +778,56 @@ describe('review cycle', () => {
         result: expect.objectContaining({ approved: false, cycleNumber: 2 }),
       }),
     )
+  })
+
+  it('reports coderabbit as skipped when it was rate limited at the end', async () => {
+    const bodies: string[] = []
+    await startedRun({
+      waitForReviewer: async () => ({
+        reviewSeen: true,
+        rateLimited: true,
+        verdict: null,
+        summary: null,
+        comments: [],
+      }),
+      closeReviewCycle: async (request) => ({
+        cycleNumber: request.cycleNumber,
+        statuses: Object.fromEntries(
+          request.verdicts.map((verdict) => [verdict.reviewer, verdict.status]),
+        ),
+        reviewersToRun: [],
+        reviewersLeftOut: [],
+        limitReached: true,
+      }),
+      commentOnPullRequest: async (request) => {
+        bodies.push(request.body)
+      },
+    })
+
+    const ready = bodies.find((body) => body.includes('has finished with this pull request'))
+
+    expect(ready).toContain('- coderabbit: SKIPPED - RATE LIMITED')
+  })
+
+  it('reports a reviewer that did not run', async () => {
+    const bodies: string[] = []
+    await startedRun({
+      closeReviewCycle: async (request) => ({
+        cycleNumber: request.cycleNumber,
+        statuses: { 'architecture-review': 'APPROVED' },
+        reviewersToRun: [],
+        reviewersLeftOut: [],
+        limitReached: true,
+      }),
+      commentOnPullRequest: async (request) => {
+        bodies.push(request.body)
+      },
+    })
+
+    const ready = bodies.find((body) => body.includes('has finished with this pull request'))
+
+    expect(ready).toContain('- architecture-review: APPROVED')
+    expect(ready).toContain('- code-review: DID_NOT_RUN')
   })
 
   it('moves to the next cycle when the reviewers have not approved', async () => {
@@ -650,6 +899,8 @@ describe('review cycle', () => {
       waitForReviewer: async () => ({
         reviewSeen: true,
         rateLimited: false,
+        verdict: 'approved',
+        summary: null,
         comments: [{ commentId: 9, path: 'src/order.ts', line: 3, body: 'Use the port.' }],
       }),
       checkWorkCommitted: async () => ({
@@ -728,7 +979,13 @@ describe('review cycle', () => {
               suspendPayload: null,
             }
           : stubs().generate(request),
-      waitForReviewer: async () => ({ reviewSeen: true, rateLimited: false, comments: [] }),
+      waitForReviewer: async () => ({
+        reviewSeen: true,
+        rateLimited: false,
+        verdict: 'approved',
+        summary: null,
+        comments: [],
+      }),
       checkWorkCommitted: async () => ({
         clean: true,
         hasCommit: true,
@@ -994,6 +1251,8 @@ describe('review cycle', () => {
       waitForReviewer: async () => ({
         reviewSeen: true,
         rateLimited: false,
+        verdict: 'approved',
+        summary: null,
         comments: [{ commentId: 4306, path: 'src/order.ts', line: 3, body: 'Use the port.' }],
       }),
     })

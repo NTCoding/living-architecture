@@ -26,28 +26,12 @@ export interface AgentGeneration {
   readonly suspendPayload: unknown
 }
 
-type DeepSeekThinking = {
-  readonly deepseek: {
-    readonly thinking?: { readonly type: 'adaptive' | 'disabled' | 'enabled' }
-    readonly reasoningEffort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max'
-  }
-}
-
-function thinkingOptions(level: string): DeepSeekThinking {
-  if (level === 'off') return { deepseek: { thinking: { type: 'disabled' } } }
-  return { deepseek: { reasoningEffort: effortOf(level) } }
-}
-
-function effortOf(level: string): 'low' | 'medium' | 'high' {
-  if (level === 'high') return 'high'
-  if (level === 'medium') return 'medium'
-  return 'low'
-}
-
 function conversationOptions(request: AgentGenerationRequest) {
   return {
     maxSteps: request.maxSteps,
-    providerOptions: thinkingOptions(request.thinking),
+    providerOptions: {
+      [providerOf(request.model)]: { reasoningEffort: reasoningEffortOf(request.thinking) },
+    },
     ...(request.threadId === null
       ? {}
       : {
@@ -104,7 +88,7 @@ async function generateOnce(
           ? await agent.generate(request.prompt, options)
           : await agent.generate(request.prompt, {
               ...options,
-              structuredOutput: { schema: request.responseSchema },
+              structuredOutput: { schema: request.responseSchema, model: request.model },
             })
       return {
         object: response.object,
@@ -118,5 +102,33 @@ async function generateOnce(
     } finally {
       clearTimeout(timer)
     }
+  }
+}
+
+function providerOf(model: string): string {
+  const provider = model.split('/')[0]
+  if (provider === undefined || provider === '' || model.includes('/') === false) {
+    throw new InvalidModelIdentifier(model)
+  }
+  return provider
+}
+
+function reasoningEffortOf(level: string): 'none' | 'low' | 'medium' | 'high' {
+  if (level === 'off') return 'none'
+  if (level === 'low' || level === 'medium' || level === 'high') return level
+  throw new InvalidThinkingLevel(level)
+}
+
+class InvalidModelIdentifier extends Error {
+  constructor(model: string) {
+    super(`The model ${model} is not provider/model.`)
+    this.name = 'InvalidModelIdentifier'
+  }
+}
+
+class InvalidThinkingLevel extends Error {
+  constructor(level: string) {
+    super(`The thinking level ${level} is not off, low, medium or high.`)
+    this.name = 'InvalidThinkingLevel'
   }
 }

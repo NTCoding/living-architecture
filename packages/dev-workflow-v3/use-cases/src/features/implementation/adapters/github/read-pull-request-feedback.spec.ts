@@ -18,6 +18,7 @@ describe('readPullRequestFeedbackWithGithub', () => {
         stderr: '',
         exitCode: 0,
       },
+      { stdout: '[]', stderr: '', exitCode: 0 },
     ])
 
     const feedback = await readPullRequestFeedbackWithGithub({
