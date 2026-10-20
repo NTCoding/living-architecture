@@ -2,7 +2,6 @@ import {
   BuilderOptions,
   RiviereBuilder,
 } from '@living-architecture/riviere-builder-published-language'
-import type { CodeExtractionConfig } from '@living-architecture/riviere-extract-config-published-language'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { DraftComponent } from './component-extraction/draft-component'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
@@ -128,6 +127,21 @@ export class RiviereProject {
     }
     const previousBuilder = this.graphBuilder()
     this.builder = RiviereBuilder.parse(BuilderOptions.fromGraph(previousBuilder.build()))
+    if (!mode.isDryRun() && !mode.isSkipAi()) {
+      for (const command of workflow.aiCliCommands()) {
+        const availability = await this.collaborators.aiCli.checkAvailability(command)
+        if (availability.kind !== 'unavailable') continue
+        this.builder = previousBuilder
+        return {
+          success: false as const,
+          errorCode: 'AI_CLI_UNAVAILABLE',
+          reason: availability.reason,
+          events: [],
+          transitions: [],
+          warnings: [],
+        }
+      }
+    }
     const run = await workflow.run(this.builder, mode, (stage, context) =>
       this.executeWorkflowStage(stage, context.diagnostics, mode),
     )
@@ -212,7 +226,11 @@ export class RiviereProject {
     stage: Extract<WorkflowStageValue, { kind: 'code-extraction' }>,
   ) {
     try {
-      const extraction = this.loadStageExtraction(stage.config, stage.configPath)
+      const extraction = ExtractionConfiguration.fromCodeExtractionStage(
+        stage.config,
+        stage.configPath,
+        this.collaborators,
+      )
       const modules = RiviereModule.fromConfiguration(
         extraction,
         [],
@@ -242,26 +260,6 @@ export class RiviereProject {
         reason: error instanceof Error ? error.message : String(error),
       }
     }
-  }
-  private loadStageExtraction(
-    config: CodeExtractionConfig,
-    configPath: string,
-  ): ExtractionConfiguration {
-    const repositoryName = this.collaborators.repositoryName
-    const useTsConfig = true
-    return ExtractionConfiguration.parse({
-      name: configPath,
-      configPath,
-      useTsConfig,
-      repositoryName,
-      resolvedConfig: config,
-      moduleContexts: this.collaborators.loadCodeExtraction({
-        config,
-        configPath,
-        repositoryName,
-        useTsConfig,
-      }),
-    })
   }
   extractDraftComponents(options: {
     sourceFileSelection?:

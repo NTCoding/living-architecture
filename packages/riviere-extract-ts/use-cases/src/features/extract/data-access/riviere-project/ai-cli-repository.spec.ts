@@ -68,7 +68,7 @@ describe('RiviereProjectRepository AI CLI collaborator supply', () => {
     const project = repository.load({ kind: 'workflow', workflowPath })
     const result = await project.rebuildGraph(WorkflowRunMode.from('run'))
 
-    expect(checkAvailability).toHaveBeenCalledTimes(1)
+    expect(checkAvailability).toHaveBeenCalledTimes(2)
     expect(checkAvailability).toHaveBeenCalledWith('claude')
     expect(result).toMatchObject({ success: false, errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE' })
   })

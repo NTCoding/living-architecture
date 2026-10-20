@@ -85,6 +85,45 @@ describe('ChildProcessClient spawn errors', () => {
 })
 
 describe('ChildProcessClient stdin write errors', () => {
+  it('kills the child process when stdin reports a non-benign write error', async () => {
+    const child = fakeChildProcess()
+    vi.mocked(spawn).mockReturnValue(child)
+    const client = new ChildProcessClient()
+    vi.spyOn(client, 'resolveExecutable').mockReturnValue({
+      kind: 'resolved',
+      executablePath: 'claude',
+    })
+
+    const result = client.run(stdinWriteInput())
+    child.stdin?.emit('error', new StdinWriteTestError('write EACCES', 'EACCES'))
+
+    await expect(result).resolves.toStrictEqual({
+      kind: 'stdin-failed',
+      reason: 'StdinWriteTestError: write EACCES',
+    })
+    expect(child.kill).toHaveBeenCalledWith('SIGKILL')
+  })
+
+  it('clears the timeout timer when the run settles without a close event', async () => {
+    const child = fakeChildProcess()
+    vi.mocked(spawn).mockReturnValue(child)
+    const client = new ChildProcessClient()
+    vi.spyOn(client, 'resolveExecutable').mockReturnValue({
+      kind: 'resolved',
+      executablePath: 'claude',
+    })
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout')
+
+    const result = client.run(stdinWriteInput())
+    child.emit('error', new SpawnTestError('spawn error'))
+
+    await expect(result).resolves.toStrictEqual({
+      kind: 'spawn-failed',
+      reason: 'SpawnTestError: spawn error',
+    })
+    expect(clearTimeoutSpy).toHaveBeenCalledWith(expect.anything())
+  })
+
   it('returns a stdin failure when stdin reports a non-benign write error', async () => {
     const child = fakeChildProcess()
     vi.mocked(spawn).mockReturnValue(child)

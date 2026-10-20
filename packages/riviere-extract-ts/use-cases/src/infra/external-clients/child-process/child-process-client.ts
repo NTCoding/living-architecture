@@ -75,6 +75,7 @@ export class ChildProcessClient {
       const finish = (result: ChildProcessRunResult): void => {
         if (runState.settled) return
         runState.settled = true
+        clearTimeout(timer)
         resolve(result)
       }
       const timer = setTimeout(() => {
@@ -93,11 +94,11 @@ export class ChildProcessClient {
       })
       child.stdin?.on('error', (error: Error) => {
         if (isBenignStdinWriteError(error)) return
+        child.kill('SIGKILL')
         finish({ kind: 'stdin-failed', reason: String(error) })
       })
       child.on('error', (error) => finish({ kind: 'spawn-failed', reason: String(error) }))
       child.on('close', (exitCode, signal) => {
-        clearTimeout(timer)
         if (exitCode === null) {
           finish({
             kind: 'terminated-by-signal',
