@@ -172,8 +172,7 @@
     "**/*.d.cts",
     "**/dist/**",
     "**/.vitepress/dist/**",
-    "**/coverage/**",
-    "spike/**"
+    "**/coverage/**"
   ],
   "rules": {
     "files": "off",
