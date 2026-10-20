@@ -3,7 +3,8 @@ import type {
   ValidatedModule,
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { Project } from 'ts-morph'
-import { ModuleContextsMismatchError } from './extraction-errors'
+import type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
+import { MissingModuleSourceError, ModuleContextsMismatchError } from './extraction-errors'
 
 interface ModuleContext {
   readonly files: readonly string[]
@@ -31,6 +32,28 @@ export class ExtractionConfiguration {
     return new ExtractionConfiguration(params)
   }
 
+  static fromCodeExtractionStage(
+    config: CodeExtractionConfig,
+    configPath: string,
+    collaborators: Pick<RiviereProjectCollaborators, 'repositoryName' | 'loadCodeExtraction'>,
+  ): ExtractionConfiguration {
+    const repositoryName = collaborators.repositoryName
+    const useTsConfig = true
+    return ExtractionConfiguration.parse({
+      name: configPath,
+      configPath,
+      useTsConfig,
+      repositoryName,
+      resolvedConfig: config,
+      moduleContexts: collaborators.loadCodeExtraction({
+        config,
+        configPath,
+        repositoryName,
+        useTsConfig,
+      }),
+    })
+  }
+
   private constructor(params: ExtractionConfigurationParams) {
     this.name = params.name
     this.configPath = params.configPath
@@ -48,6 +71,14 @@ export class ExtractionConfiguration {
   readonly allowIncomplete: boolean
   readonly resolvedConfig: ResolvedExtractionConfig
   readonly moduleContexts: readonly ModuleContext[]
+
+  assertEveryModuleHasSource(modules: ReadonlyArray<Readonly<{ name(): string }>>): void {
+    for (const configuredModule of this.resolvedConfig.modules) {
+      if (!modules.some((module) => module.name() === configuredModule.name)) {
+        throw new MissingModuleSourceError(configuredModule.name)
+      }
+    }
+  }
 }
 
 function validateModuleContexts(

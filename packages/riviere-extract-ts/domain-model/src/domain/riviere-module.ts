@@ -4,6 +4,7 @@ import type {
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { ClassDeclaration, MethodDeclaration, Project } from 'ts-morph'
 import type { DraftComponent } from './component-extraction/draft-component'
+import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
 import {
   EnrichedComponent,
   EnrichmentFailure,
@@ -83,6 +84,18 @@ export class RiviereModule {
         extractionRules,
       })
     })
+  }
+
+  static assertNoUnassignedDomains(
+    components: readonly Readonly<{ domain: string }>[],
+    modules: readonly Readonly<{ domain(): string }>[],
+  ): void {
+    if (components.length === 0) return
+    throw new OrphanedDraftComponentError(
+      [...new Set(components.map((component) => component.domain))],
+      modules.map((module) => module.domain()),
+      'domains',
+    )
   }
 
   static configurationSourceErrors(configuration: ExtractionConfiguration): readonly string[] {
@@ -205,25 +218,49 @@ export class RiviereModule {
       case 'fromFilePath':
         return this.extractionRules.evaluateFromFilePathRule(rule, draft.location.file)
       case 'fromMethodName':
-        return this.extractionRules.evaluateFromMethodNameRule(rule, findMethodAtLine(this.project, draft))
+        return this.extractionRules.evaluateFromMethodNameRule(
+          rule,
+          findMethodAtLine(this.project, draft),
+        )
       case 'fromDecoratorArg': {
         const method = requireMethodForDecoratorRule(this.project, draft, rule.kind)
-        return this.extractionRules.evaluateFromDecoratorArgRule(rule, findDecoratorOnMethod(method, rule.decoratorName))
+        return this.extractionRules.evaluateFromDecoratorArgRule(
+          rule,
+          findDecoratorOnMethod(method, rule.decoratorName),
+        )
       }
       case 'fromClassDecoratorArg':
-        return this.extractionRules.evaluateFromClassDecoratorArgRule(rule, findMethodAtLine(this.project, draft))
+        return this.extractionRules.evaluateFromClassDecoratorArgRule(
+          rule,
+          findMethodAtLine(this.project, draft),
+        )
       case 'fromDecoratorName': {
         const method = requireMethodForDecoratorRule(this.project, draft, rule.kind)
-        return this.extractionRules.evaluateFromDecoratorNameRule(rule, findDecoratorOnMethod(method))
+        return this.extractionRules.evaluateFromDecoratorNameRule(
+          rule,
+          findDecoratorOnMethod(method),
+        )
       }
       case 'fromParameterType':
-        return this.extractionRules.evaluateFromParameterTypeRule(rule, findMethodAtLine(this.project, draft))
+        return this.extractionRules.evaluateFromParameterTypeRule(
+          rule,
+          findMethodAtLine(this.project, draft),
+        )
       case 'fromGenericArg':
-        return this.extractionRules.evaluateFromGenericArgRule(rule, findContainingClass(this.project, draft))
+        return this.extractionRules.evaluateFromGenericArgRule(
+          rule,
+          findContainingClass(this.project, draft),
+        )
       case 'fromProperty':
-        return this.extractionRules.evaluateFromPropertyRule(rule, findContainingClass(this.project, draft))
+        return this.extractionRules.evaluateFromPropertyRule(
+          rule,
+          findContainingClass(this.project, draft),
+        )
       case 'fromClassName':
-        return this.extractionRules.evaluateFromClassNameRule(rule, findClassAtLine(this.project, draft))
+        return this.extractionRules.evaluateFromClassNameRule(
+          rule,
+          findClassAtLine(this.project, draft),
+        )
     }
   }
 }

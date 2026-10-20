@@ -22,6 +22,14 @@ export class WorkflowRunMode {
     return new WorkflowRunMode(value)
   }
 
+  isDryRun(): boolean {
+    return this.value === 'dry-run'
+  }
+
+  isSkipAi(): boolean {
+    return this.value === 'skip-ai'
+  }
+
   private constructor(readonly value: WorkflowRunModeValue) {}
 }
 
@@ -113,6 +121,17 @@ export class Workflow {
     return this.stages.flatMap((stage) =>
       stage.value.kind === 'code-extraction' ? [stage.value.config] : [],
     )
+  }
+
+  aiCliCommands(): readonly string[] {
+    const commands: string[] = []
+    for (const stage of this.stages) {
+      const value = stage.value
+      if (value.kind !== 'ai-extract' && value.kind !== 'ai-enrich') continue
+      const command = value.config.command
+      if (!commands.includes(command)) commands.push(command)
+    }
+    return commands
   }
 
   async run(

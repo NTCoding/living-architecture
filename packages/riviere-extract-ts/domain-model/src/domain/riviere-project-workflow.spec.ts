@@ -218,18 +218,6 @@ describe('RiviereProject Workflow rebuild', () => {
     ])
   })
 
-  it('executes AI stages during a normal Project rebuild', async () => {
-    const subject = project([WorkflowStage.fromAiExtract('discover', aiExtractConfig)])
-
-    const result = await subject.rebuildGraph(WorkflowRunMode.from('run'))
-
-    expect(result).toMatchObject({
-      success: false,
-      errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',
-      reason: "Stage behaviour is unavailable for 'ai-extract'",
-    })
-  })
-
   it('returns no completed transition when schema validation fails', async () => {
     const subject = project([WorkflowStage.fromSchemaValidation('validate')])
     const graph = subject.build()

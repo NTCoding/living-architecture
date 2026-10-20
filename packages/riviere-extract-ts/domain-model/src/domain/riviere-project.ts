@@ -2,12 +2,10 @@ import {
   BuilderOptions,
   RiviereBuilder,
 } from '@living-architecture/riviere-builder-published-language'
-import type { CodeExtractionConfig } from '@living-architecture/riviere-extract-config-published-language'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 import { DraftComponent } from './component-extraction/draft-component'
 import type { EnrichedComponent } from './value-extraction/enriched-component'
-import { InvalidModuleSourcesError, MissingModuleSourceError } from './extraction-errors'
-import { OrphanedDraftComponentError } from './orphaned-draft-component-error'
+import { InvalidModuleSourcesError } from './extraction-errors'
 import { ExtractionConfiguration } from './extraction-configuration'
 import type { RiviereProjectCollaborators } from './ports/load-event-catalog-source'
 import type { ObserveConnectionDetectionPhase } from './ports/observe-connection-detection-phase'
@@ -27,15 +25,15 @@ import {
 } from './riviere-project-start-inputs'
 import type { WorkflowStageValue } from './workflow-stage'
 
-export type {
-  RiviereProjectCollaborators,
-  RiviereProjectRepositoryCollaborators,
-} from './ports/load-event-catalog-source'
 type RiviereProjectStartInput =
   | ExtractionProjectStartInput
   | GraphOnlyProjectStartInput
   | GraphWithWorkflowStartInput
 
+export type {
+  RiviereProjectCollaborators,
+  RiviereProjectRepositoryCollaborators,
+} from './ports/load-event-catalog-source'
 /** @riviere-role aggregate */
 export class RiviereProject {
   private constructor(
@@ -129,8 +127,23 @@ export class RiviereProject {
     }
     const previousBuilder = this.graphBuilder()
     this.builder = RiviereBuilder.parse(BuilderOptions.fromGraph(previousBuilder.build()))
+    if (!mode.isDryRun() && !mode.isSkipAi()) {
+      for (const command of workflow.aiCliCommands()) {
+        const availability = await this.collaborators.aiCli.checkAvailability(command)
+        if (availability.kind !== 'unavailable') continue
+        this.builder = previousBuilder
+        return {
+          success: false as const,
+          errorCode: 'AI_CLI_UNAVAILABLE',
+          reason: availability.reason,
+          events: [],
+          transitions: [],
+          warnings: [],
+        }
+      }
+    }
     const run = await workflow.run(this.builder, mode, (stage, context) =>
-      this.executeWorkflowStage(stage, context.diagnostics),
+      this.executeWorkflowStage(stage, context.diagnostics, mode),
     )
     if (!run.value.success) {
       this.builder = previousBuilder
@@ -149,6 +162,7 @@ export class RiviereProject {
   private async executeWorkflowStage(
     stage: WorkflowStageValue,
     unresolvedDiagnostics: readonly WorkflowDiagnostic[],
+    mode: WorkflowRunMode,
   ) {
     switch (stage.kind) {
       case 'schema-validate': {
@@ -188,18 +202,35 @@ export class RiviereProject {
         return this.executeCodeExtractionStage(stage)
       case 'ai-extract':
       case 'ai-enrich':
-        return {
-          success: false as const,
-          errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',
-          reason: `Stage behaviour is unavailable for '${stage.kind}'`,
-        }
+        return this.executeAiStage(stage.kind, stage.config.command, mode)
     }
+  }
+
+  private async executeAiStage(
+    stageKind: 'ai-extract' | 'ai-enrich',
+    command: string,
+    mode: WorkflowRunMode,
+  ) {
+    if (mode.isDryRun()) return this.aiStageUnavailable(stageKind)
+    const availability = await this.collaborators.aiCli.checkAvailability(command)
+    if (availability.kind === 'unavailable') {
+      return {
+        success: false as const,
+        errorCode: 'AI_CLI_UNAVAILABLE',
+        reason: availability.reason,
+      }
+    }
+    return this.aiStageUnavailable(stageKind)
   }
   private executeCodeExtractionStage(
     stage: Extract<WorkflowStageValue, { kind: 'code-extraction' }>,
   ) {
     try {
-      const extraction = this.loadStageExtraction(stage.config, stage.configPath)
+      const extraction = ExtractionConfiguration.fromCodeExtractionStage(
+        stage.config,
+        stage.configPath,
+        this.collaborators,
+      )
       const modules = RiviereModule.fromConfiguration(
         extraction,
         [],
@@ -230,26 +261,6 @@ export class RiviereProject {
       }
     }
   }
-  private loadStageExtraction(
-    config: CodeExtractionConfig,
-    configPath: string,
-  ): ExtractionConfiguration {
-    const repositoryName = this.collaborators.repositoryName
-    const useTsConfig = true
-    return ExtractionConfiguration.parse({
-      name: configPath,
-      configPath,
-      useTsConfig,
-      repositoryName,
-      resolvedConfig: config,
-      moduleContexts: this.collaborators.loadCodeExtraction({
-        config,
-        configPath,
-        repositoryName,
-        useTsConfig,
-      }),
-    })
-  }
   extractDraftComponents(options: {
     sourceFileSelection?:
       | { readonly kind: 'all' }
@@ -258,7 +269,7 @@ export class RiviereProject {
     includeConnections: boolean
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
   }) {
-    this.assertEveryConfiguredModuleHasAnEntity()
+    this.extractionConfiguration().assertEveryModuleHasSource(this.modules)
     const selection = options.sourceFileSelection ?? { kind: 'all' as const }
     this.modules.forEach((module) =>
       selection.kind === 'all'
@@ -273,7 +284,7 @@ export class RiviereProject {
     includeConnections: boolean
     observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
   }) {
-    this.assertEveryConfiguredModuleHasAnEntity()
+    this.extractionConfiguration().assertEveryModuleHasSource(this.modules)
     return this.finishExtraction(options)
   }
   private finishExtraction(options: {
@@ -304,7 +315,7 @@ export class RiviereProject {
       observeConnectionDetectionPhase?: ObserveConnectionDetectionPhase
     },
   ) {
-    this.assertNoUnassignedDraftComponents()
+    RiviereModule.assertNoUnassignedDomains(this.unassignedDraftComponents, this.modules)
     const completion = this.collaborators.extractionBehaviour.extractCodeExtraction({
       extraction,
       modules: CodeExtractionModules.from(modules),
@@ -363,27 +374,20 @@ export class RiviereProject {
       resolveHttpLinks: behaviour.resolveHttpLinks,
     })
   }
-  private assertEveryConfiguredModuleHasAnEntity(): void {
-    for (const configuredModule of this.extractionConfiguration().resolvedConfig.modules) {
-      if (!this.modules.some((module) => module.name() === configuredModule.name)) {
-        throw new MissingModuleSourceError(configuredModule.name)
-      }
-    }
-  }
-  private assertNoUnassignedDraftComponents(): void {
-    if (this.unassignedDraftComponents.length === 0) return
-    throw new OrphanedDraftComponentError(
-      [...new Set(this.unassignedDraftComponents.map((draft) => draft.domain))],
-      this.modules.map((module) => module.domain()),
-      'domains',
-    )
-  }
   private extractionConfiguration(): ExtractionConfiguration {
     if (this.configuration === undefined) {
       throw new ExtractionConfigurationUnavailableError()
     }
     return this.configuration
   }
+  private aiStageUnavailable(stageKind: 'ai-extract' | 'ai-enrich') {
+    return {
+      success: false as const,
+      errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',
+      reason: `Stage behaviour is unavailable for '${stageKind}'`,
+    }
+  }
+
   private graphBuilder(): RiviereBuilder {
     if (this.builder === undefined) {
       throw new GraphStateUnavailableError()
