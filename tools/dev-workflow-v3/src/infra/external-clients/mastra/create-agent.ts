@@ -40,7 +40,7 @@ export function createAgentFactory(dependencies: {
       ...(request.useTools
         ? {
             inputProcessors: [
-              new ToolCallFilter(),
+              new ToolCallFilter({ preserveModelOutput: true }),
               new TokenLimiter({ limit: CONVERSATION_TOKEN_BUDGET }),
             ],
           }

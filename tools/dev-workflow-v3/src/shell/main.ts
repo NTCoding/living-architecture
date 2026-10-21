@@ -95,7 +95,7 @@ function saveRunLog(
   mkdirSync(directory, { recursive: true })
   appendFileSync(
     `${directory}/runs.log`,
-    `${new Date().toISOString()} ${outcome.workflowId} ${outcome.runId} ${outcome.status} ${outcome.message}\n`,
+    `${new Date().toISOString()} ${outcome.workflowId} ${outcome.runId} ${outcome.status} ${outcome.message.replaceAll('\n', '\\n')}\n`,
   )
 }
 
@@ -315,12 +315,13 @@ function createCommandLine(factory: Factory): Command {
         const state = await factory.startImplementation.getWorkflowRunById(runId)
         const step = suspendedStepName(state?.steps)
         if (step === 'implement' && options.answer === undefined) throw new MissingAnswer(issue)
+        const question = step === 'implement' ? questionOf(state?.steps?.['implement']) : null
         const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
         await follow(
           factory.startImplementation,
           factory.reviewCycle,
           run,
-          () => resumeStep(run, step, options),
+          () => resumeStep(run, step, options, question),
           {
             issue: issueNumberText(issue),
             issueUrl: issueUrlOf(factory.repositoryUrl, issue),
@@ -394,7 +395,7 @@ function createCommandLine(factory: Factory): Command {
           factory.startImplementation,
           factory.reviewCycle,
           run,
-          () => run.resume({ step: 'implement', resumeData: { answer } }),
+          () => run.resume({ step: 'implement', resumeData: { answer, question } }),
           {
             issue: issueNumberText(issue),
             issueUrl: issueUrlOf(factory.repositoryUrl, issue),
@@ -660,7 +661,10 @@ async function resumeRun(run: Run, waiting: Waiting, answer: string | boolean): 
   if (waiting.step === 'implement') {
     return await run.resume({
       step: 'implement',
-      resumeData: { answer: typeof answer === 'string' ? answer : '' },
+      resumeData: {
+        answer: typeof answer === 'string' ? answer : '',
+        ...(waiting.question === null ? {} : { question: waiting.question }),
+      },
     })
   }
   if (waiting.step === 'address-feedback') {
@@ -833,9 +837,20 @@ function suspendedStepName(steps: unknown): string | null {
   return null
 }
 
-function resumeStep(run: Run, step: string | null, options: { answer?: string }): Promise<unknown> {
+function resumeStep(
+  run: Run,
+  step: string | null,
+  options: { answer?: string },
+  question: string | null,
+): Promise<unknown> {
   if (step === 'implement' && options.answer !== undefined) {
-    return run.resume({ step: 'implement', resumeData: { answer: options.answer } })
+    return run.resume({
+      step: 'implement',
+      resumeData: {
+        answer: options.answer,
+        ...(question === null ? {} : { question }),
+      },
+    })
   }
   if (step === 'address-feedback') {
     return run.resume({ step: 'address-feedback' })

@@ -29,7 +29,7 @@ export type AdaptWorkflow<Built> = (request: {
     readonly outputSchema: z.ZodType<unknown>
     readonly suspendSchema: z.ZodType<unknown> | null
     readonly resumeSchema: z.ZodType<unknown> | null
-    readonly attempts: number | null
+    readonly retries: number | null
     readonly scoreWith:
       | ((judged: { readonly data: unknown; readonly outcome: unknown }) => number)
       | null

@@ -385,9 +385,42 @@ describe('BuildWorkflow', () => {
         }),
       }),
     )
+    const finished = await run.resume({
+      step: 'implement',
+      resumeData: { answer: 'the answer', question: 'Reuse the existing port, or add one?' },
+    })
+
+    expect(prompts).toStrictEqual([
+      'asking',
+      'Earlier you asked: Reuse the existing port, or add one?\n\nThe answer: the answer',
+    ])
+    expect(finished.status).toBe('success')
+  })
+
+  it('carries on with just the answer when the resume has no question', async () => {
+    const prompts: string[] = []
+    const { run } = await startedRun({
+      generate: async (request) => {
+        if (request.agentId !== 'implementer') return stubs().generate(request)
+        prompts.push(request.prompt.startsWith('Implement issue') ? 'asking' : request.prompt)
+        return prompts.length === 1
+          ? {
+              object: {
+                summary: 'blocked',
+                blockedReason: 'Which port?',
+                allWorkComplete: false,
+                allWorkCommitted: false,
+              },
+              text: '',
+              finishReason: 'stop',
+              suspendPayload: null,
+            }
+          : implementationAnswer('the change')
+      },
+    })
     const finished = await run.resume({ step: 'implement', resumeData: { answer: 'the answer' } })
 
-    expect(prompts).toStrictEqual(['asking', 'the answer'])
+    expect(prompts).toStrictEqual(['asking', 'The answer: the answer'])
     expect(finished.status).toBe('success')
   })
 

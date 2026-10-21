@@ -97,7 +97,7 @@
   "dependencies": {
     "@living-architecture/dev-workflow-v3-domain-model": "workspace:*",
     "@living-architecture/dev-workflow-v3-use-cases": "workspace:*",
-    "@mastra/core": "1.75.0",
+    "@mastra/core": "1.77.0",
     "@mastra/libsql": "1.25.1",
     "@mastra/memory": "1.36.0",
     "commander": "^14.0.2",

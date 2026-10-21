@@ -41,7 +41,7 @@ export interface MastraStepDeclaration {
   readonly outputSchema: z.ZodType<unknown>
   readonly suspendSchema: z.ZodType<unknown> | null
   readonly resumeSchema: z.ZodType<unknown> | null
-  readonly attempts: number | null
+  readonly retries: number | null
   readonly scorers: MastraScorers
   readonly run: (behaviour: MastraStepBehaviour) => Promise<unknown>
 }
@@ -180,7 +180,7 @@ function createMastraStep(declaration: MastraStepDeclaration) {
     outputSchema: declaration.outputSchema,
     ...(declaration.suspendSchema === null ? {} : { suspendSchema: declaration.suspendSchema }),
     ...(declaration.resumeSchema === null ? {} : { resumeSchema: declaration.resumeSchema }),
-    ...(declaration.attempts === null ? {} : { retries: declaration.attempts }),
+    ...(declaration.retries === null ? {} : { retries: declaration.retries }),
     scorers: declaration.scorers,
     execute: async ({ inputData, resumeData, suspend, bail, mastra }) =>
       declaration.run({

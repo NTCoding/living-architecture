@@ -110,7 +110,7 @@ const replyTaskSchema = z.object({
 
 const blockerSuspendSchema = z.object({ question: z.string() })
 
-const blockerResumeSchema = z.object({ answer: z.string() })
+const blockerResumeSchema = z.object({ answer: z.string(), question: z.string().optional() })
 
 const unaddressedFeedbackSchema = z.object({
   reason: z.string().default(''),
@@ -224,9 +224,9 @@ const REVIEW_TIME_BUDGET_MS = 30 * 60 * 1000
  * A step that makes one call to GitHub or git may be tried again: the call is flaky, not the work.
  * A step that makes many of them cannot, because a second try would post everything twice.
  */
-const ATTEMPTS_AT_A_REMOTE_CALL = 3
+const RETRIES_AT_A_REMOTE_CALL = 3
 
-const ROUTINE = { suspendSchema: null, resumeSchema: null, attempts: null, scoreWith: null }
+const ROUTINE = { suspendSchema: null, resumeSchema: null, retries: null, scoreWith: null }
 
 /** A step that reads the run state, hands the run state on, and asks for nothing unusual. */
 const OVER_THE_RUN = { inputSchema: runStateSchema, outputSchema: runStateSchema, ...ROUTINE }
@@ -420,7 +420,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     {
       id: 'load-issue',
       ...OVER_THE_RUN,
-      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
+      retries: RETRIES_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         const issue = await input.loadIssue(state.issueNumber)
@@ -491,7 +491,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     {
       id: 'publish-plan',
       ...OVER_THE_RUN,
-      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
+      retries: RETRIES_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         const posted = await input.commentOnIssue({
@@ -528,7 +528,10 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
         const implementation = await implementUntilCommitted({
           input,
           state: { ...state, baseSha: '' },
-          firstPrompt: implementationPrompt(state, answer.success ? answer.data.answer : null),
+          firstPrompt: implementationPrompt(
+            state,
+            answer.success ? { answer: answer.data.answer, question: answer.data.question } : null,
+          ),
           instructions: IMPLEMENTER_INSTRUCTIONS,
           rounds: IMPLEMENTATION_ROUNDS,
           timeBudgetMs: IMPLEMENTATION_TIME_BUDGET_MS,
@@ -547,7 +550,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     {
       id: 'push-branch',
       ...OVER_THE_RUN,
-      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
+      retries: RETRIES_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         await input.pushBranch({ worktreePath: state.worktreePath, branch: state.branch })
@@ -588,7 +591,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     {
       id: 'open-pull-request',
       ...OVER_THE_RUN,
-      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
+      retries: RETRIES_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         const opened = await input.openPullRequest({
@@ -645,7 +648,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     {
       id: 'mark-ready-for-human',
       ...OVER_THE_REVIEW,
-      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
+      retries: RETRIES_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const state = reviewStateSchema.parse(data)
         await input.commentOnPullRequest({
@@ -776,7 +779,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
     {
       id: 'push-branch',
       ...OVER_THE_REVIEW,
-      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
+      retries: RETRIES_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const state = reviewStateSchema.parse(data)
         const committed = await input.checkWorkCommitted({
@@ -817,7 +820,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
       inputSchema: replyTaskSchema,
       outputSchema: reviewStateSchema,
       ...ROUTINE,
-      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
+      retries: RETRIES_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const task = replyTaskSchema.parse(data)
         if (task.commentId !== null) {
@@ -1230,7 +1233,10 @@ function planPrompt(state: RunState): string {
   ].join('\n')
 }
 
-function implementationPrompt(state: RunState, answer: string | null): string {
+function implementationPrompt(
+  state: RunState,
+  response: { readonly question: string | undefined; readonly answer: string } | null,
+): string {
   const first = [
     `Implement issue ${String(state.issueNumber)} in this workspace.`,
     '',
@@ -1245,7 +1251,11 @@ function implementationPrompt(state: RunState, answer: string | null): string {
     '- allWorkComplete: true when the plan is done.',
     '- allWorkCommitted: true when you have committed your work.',
   ]
-  return answer ?? first.join('\n')
+  if (response === null) return first.join('\n')
+  return [
+    ...(response.question === undefined ? [] : [`Earlier you asked: ${response.question}`, '']),
+    `The answer: ${response.answer}`,
+  ].join('\n')
 }
 
 function reviewPrompt(

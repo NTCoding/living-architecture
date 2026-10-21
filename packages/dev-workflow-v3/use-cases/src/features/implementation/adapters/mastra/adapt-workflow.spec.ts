@@ -11,7 +11,7 @@ const declaration = {
   outputSchema: stateSchema,
   suspendSchema: null,
   resumeSchema: null,
-  attempts: null,
+  retries: null,
   scoreWith: null,
   run: async ({ data }: { readonly data: unknown }) => data,
 }
