@@ -20,7 +20,7 @@ describe('SoftwareFactoryWorkflow', () => {
     expect(steps.indexOf('review-cycle')).toBeLessThan(steps.indexOf('mark-ready-for-human'))
   })
 
-  it('runs nine steps in one review cycle', () => {
+  it('runs eleven steps in one review cycle', () => {
     expect(workflow.reviewCycle().id()).toBe('review-cycle')
     expect(workflow.reviewCycle().loopedStep()).toBeUndefined()
     expect(
@@ -37,7 +37,30 @@ describe('SoftwareFactoryWorkflow', () => {
       'wait-for-coderabbit',
       'address-feedback',
       'push-branch',
-      'publish-review-replies',
+      'plan-review-replies',
+      'reply-to-review-comment',
+      'close-review-replies',
     ])
+  })
+
+  it('takes the three reviews in one turn, each only when it is chosen', () => {
+    const [reviews] = workflow.reviewCycle().stages()
+
+    expect(reviews?.kind).toBe('together')
+    expect(
+      reviews?.kind === 'together' ? reviews.steps.map((step) => step.id()) : [],
+    ).toStrictEqual(['architecture-review', 'code-review', 'bug-scanner'])
+    expect(
+      reviews?.kind === 'together' ? reviews.steps.every((step) => step.isChosen()) : false,
+    ).toBe(true)
+  })
+
+  it('replies to review comments a few at a time', () => {
+    const reply = workflow
+      .reviewCycle()
+      .steps()
+      .find((step) => step.id() === 'reply-to-review-comment')
+
+    expect(reply?.atOnce()).toBe(4)
   })
 })

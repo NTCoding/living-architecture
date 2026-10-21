@@ -2,6 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { InvalidReviewerName, Reviewer, Reviewers } from './reviewer'
 
 describe('Reviewer', () => {
+  it('carries the brief that says what it looks for', () => {
+    expect(Reviewer.fromName('architecture-review').brief()).toContain('architecture gatekeeper')
+    expect(Reviewer.fromName('code-review').brief()).toContain('coding standards enforcer')
+    expect(Reviewer.fromName('bug-scanner').brief()).toContain('bug hunter')
+  })
+
   it('accepts a known reviewer name', () => {
     expect(Reviewer.fromName('code-review').name()).toBe('code-review')
   })

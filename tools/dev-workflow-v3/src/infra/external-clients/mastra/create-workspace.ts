@@ -1,13 +1,5 @@
 import { LocalFilesystem, LocalSandbox, Workspace, WORKSPACE_TOOLS } from '@mastra/core/workspace'
 
-const WRITE_TOOLS: readonly string[] = [
-  WORKSPACE_TOOLS.FILESYSTEM.WRITE_FILE,
-  WORKSPACE_TOOLS.FILESYSTEM.EDIT_FILE,
-  WORKSPACE_TOOLS.FILESYSTEM.DELETE,
-  WORKSPACE_TOOLS.FILESYSTEM.MKDIR,
-  WORKSPACE_TOOLS.FILESYSTEM.AST_EDIT,
-]
-
 /**
  * @riviere-role external-client-service
  */
@@ -16,17 +8,11 @@ export function createWorkspace(
   options: { readonly readOnly: boolean },
 ): Workspace {
   return new Workspace({
-    filesystem: new LocalFilesystem({ basePath: worktreePath }),
+    filesystem: new LocalFilesystem({ basePath: worktreePath, readOnly: options.readOnly }),
     sandbox: new LocalSandbox({ workingDirectory: worktreePath }),
     tools: {
       hooks: {
         beforeToolCall: ({ toolName, input }) => {
-          if (options.readOnly && WRITE_TOOLS.includes(toolName)) {
-            return {
-              proceed: false,
-              output: 'Refused: this agent reviews the change, it does not write it.',
-            }
-          }
           if (toolName !== WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND) return undefined
           if (isAgentCommandAllowed(commandOf(input))) return undefined
           return {

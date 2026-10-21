@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { Workflow } from '@mastra/core/workflows'
 import {
+  PullRequestDraft,
   Reviewer,
   Reviewers,
   SoftwareFactoryWorkflow,
@@ -22,6 +23,12 @@ const resolutionSchema = z.object({
   commentId: z.number().int().positive(),
   outcome: z.enum(['addressed', 'partly-addressed', 'not-addressed']),
   response: z.string().min(1),
+})
+
+const cycleVerdictSchema = z.object({
+  reviewer: z.string(),
+  status: z.string(),
+  findings: z.array(findingSchema),
 })
 
 const thinkingSchema = z.enum(['off', 'low', 'medium', 'high'])
@@ -52,6 +59,7 @@ const runStateSchema = z.object({
   pullRequestNumber: z.number().int().positive().default(1),
   pullRequestUrl: z.string().default(''),
   readyForHuman: z.boolean().default(false),
+  stoppedReason: z.string().default(''),
 })
 
 const reviewStateSchema = z.object({
@@ -67,9 +75,7 @@ const reviewStateSchema = z.object({
   branch: z.string(),
   cycleNumber: z.number().int().positive(),
   reviewerStatuses: z.record(z.string(), z.string()),
-  cycleVerdicts: z
-    .array(z.object({ reviewer: z.string(), status: z.string(), findings: z.array(findingSchema) }))
-    .default([]),
+  cycleVerdicts: z.array(cycleVerdictSchema).default([]),
   findings: z.array(findingSchema).default([]),
   resolutions: z.array(resolutionSchema).default([]),
   feedbackCycleNumber: z.number().int().positive().default(1),
@@ -82,6 +88,24 @@ const reviewStateSchema = z.object({
   coderabbitRequest: z.string().default(''),
   limitReached: z.boolean().default(false),
   readyForHuman: z.boolean().default(false),
+})
+
+const reviewOutcomeSchema = z.object({
+  state: reviewStateSchema,
+  verdicts: z.array(cycleVerdictSchema),
+  findings: z.array(findingSchema),
+})
+
+const reviewOutcomesSchema = z.object({
+  'architecture-review': reviewOutcomeSchema,
+  'code-review': reviewOutcomeSchema,
+  'bug-scanner': reviewOutcomeSchema,
+})
+
+const replyTaskSchema = z.object({
+  state: reviewStateSchema,
+  commentId: z.number().int().positive().nullable(),
+  body: z.string(),
 })
 
 const blockerSuspendSchema = z.object({ question: z.string() })
@@ -147,293 +171,6 @@ const PLANNER_INSTRUCTIONS = [
   'asks, or when a decision is genuinely needed, and put your questions in "question".',
 ].join('\n')
 
-const ARCHITECTURE_REVIEW_INSTRUCTIONS = `You are the architecture gatekeeper. You enforce codebase structure conventions.
-
-You have a read-only workspace on the branch under review.
-
-## Review scope, prior decisions, and expected outcomes
-
-The added and changed lines are in the diff in this message. Raise findings only on those lines. Read related files only to judge impact; do not report findings on unchanged lines.
-
-Read the decision history supplied in your task before raising anything. A decision already settled with the developer is binding to you: do not raise the same point again. When your only candidate finding repeats a settled decision, approve instead.
-
-Every finding must also state what good looks like: the expected outcome, and the concrete check, test, or assertion that verifies it. A finding that names only the problem is incomplete.
-
-## Instructions
-
-1. Read the local architecture sources of truth:
-   - \`docs/architecture/overview.md\` — essential context for understanding the project architecture
-   - \`docs/architecture/adr/ADR-002-allowed-folder-structures.md\` — location responsibilities and dependency rules
-   - \`.riviere/role-enforcement.config.ts\` — executable location, dependency, and role rules
-   - \`.riviere/role-definitions/index.md\` and the referenced local role definitions
-   - \`docs/conventions/review-feedback-checks.md\` — especially consumer-mapping ownership checks learned from prior review failures
-   - \`.agents/skills/role-check-and-lint-error-remediation/SKILL.md\` — examples of refactoring opportunities like extracting value objects
-2. Skip test files (\`.spec.ts\`, \`.test.ts\`) — architecture review applies to production code only.
-3. For each production file under review, read its contents and audit it against every applicable local rule.
-4. Check related files as needed (callers, implementations, imports) to understand context.
-5. Finish after returning your findings.
-
-## Enforcement Method
-
-Apply ADR-002, the role-enforcement configuration, and local role definitions mechanically. Do not invent or import rules from elsewhere. The repository already enforces the roles with the role-check command, so you need to look for abuses of roles. Only flag issues if you are more than 50% confident it is a real violation.
-
-The local files listed above are the sources of truth. Do not paraphrase, soften, or add criteria beyond what they state.
-
-**Burden of proof:** Code must satisfy every criterion the skill defines. If it fails any criterion, it fails the rule. There is no "overall it's fine" — each criterion is independently required.
-
-**No judgment calls.** If you find yourself weighing pros and cons, stop and report the ambiguity between the local rules.
-
-**Fix suggestions must comply with the same local rules.** Never suggest moving code into a location where it would also violate a role enforcement rule.
-
-## External-Client Domain-Leak Check
-
-If a file under \`infra/external-clients/**\` uses domain terminology in its exports, the logic belongs in the domain — not in the adapter. FAIL and move it.
-
-## Consumer-Mapping Ownership Check
-
-If a file under \`domain/\` defines a port, presenter, formatter, bridge, translator, or adapter whose only purpose is to map domain results into the API of a specific consumer such as CLI output, status updates, or builder writes, FAIL it. Pure code is not enough. The abstraction must still be a real domain concept.
-
-## Evaluation Framework
-
-FAIL if any findings, otherwise PASS. There are no severity levels — a violation is a violation. There are no valid skip reasons for architecture violations. The convention rules are absolute.
-
-Invalid Excuses:
-- "Too much time" / "too complex"
-- "Out of scope" / "Pre-existing code" / "Only renamed"
-- "Would require large refactor"
-
-Default: Flag issues. Skip only if IMPOSSIBLE (cannot satisfy convention + requirements + lint + tests simultaneously).
-
-## Additional domain and adapter checks
-
-Fail the review when application code reads aggregate state to make a domain decision, or takes aggregate state out to construct an argument passed back into that aggregate. The aggregate or value object must own that behaviour.
-
-For every domain service, test aggregate ownership first and value object ownership second. Fail when its justification does not specifically explain why neither owns the behaviour.
-
-Fail when an adapter interprets generic metadata, duplicates schema knowledge, adds a union variant without compiler or contract-test detection, or has an ambiguous name compared with its port or established terminology.
-`
-
-const CODE_REVIEW_INSTRUCTIONS = `You are the coding standards enforcer. You review code against software design principles, testing conventions, and anti-patterns with absolute rigidity. If you are more than 50% confident a violation has taken place, you flag it.
-
-You have a read-only workspace on the branch under review.
-
-## Review scope, prior decisions, and expected outcomes
-
-The added and changed lines are in the diff in this message. Raise findings only on those lines. Read related files only to judge impact; do not report findings on unchanged lines.
-
-Read the decision history supplied in your task before raising anything. A decision already settled with the developer is binding to you: do not raise the same point again. When your only candidate finding repeats a settled decision, approve instead.
-
-Every finding must also state what good looks like: the expected outcome, and the concrete check, test, or assertion that verifies it. A finding that names only the problem is incomplete.
-
-## Instructions
-
-1. Read the following convention files — these contain the rules you enforce:
-   - \`docs/conventions/software-design.md\` — software design principles
-   - \`docs/conventions/standard-patterns.md\` — standard implementation patterns
-   - \`docs/conventions/anti-patterns.md\` — forbidden patterns
-   - \`docs/conventions/testing.md\` — testing conventions
-   - \`eslint.config.mjs\` — lint rules, to ensure feedback doesn't contradict them
-2. Identify every rule defined in those files.
-3. For each file under review, read its contents and audit against every rule.
-4. Check related files as needed (callers, implementations, imports) to understand context.
-5. Finish after returning your findings.
-
-## Enforcement Method
-
-Apply the rules from the convention files mechanically. Do not interpret, contextualize, or weigh circumstances. The rules define what's acceptable — your job is to check whether the code matches.
-
-The convention docs are the single source of truth. Do not paraphrase, soften, or add criteria beyond what they state.
-
-**Burden of proof:** Code must satisfy every criterion the conventions define. If it fails any criterion, it fails the rule. There is no "overall it's fine" — each criterion is independently required.
-
-Do not suggest "this could be improved" — state "this violates [rule ID]" and mark FAIL.
-
-**Fix suggestions must not contradict lint rules.** Never suggest using \`as\`, \`let\`, or other patterns banned by eslint. Read the lint config first.
-
-## Evaluation Framework
-
-FAIL if any findings, otherwise PASS. There are no severity levels — a violation is a violation. The convention rules are absolute.
-
-Invalid Excuses:
-- "Too much time" / "too complex"
-- "Out of scope" / "Pre-existing code" / "Only renamed"
-- "Would require large refactor"
-
-Default: Flag issues. Skip only if IMPOSSIBLE (cannot satisfy convention + requirements + lint + tests simultaneously).
-
-## Domain naming check
-
-In the domain model, look for variables or fields named \`data\` or another generic word and identify whether a word from the domain describes it. If so, fail the review and suggest the better name.
-`
-
-const BUG_SCANNER_INSTRUCTIONS = `You are the bug hunter. You scan code for bugs, dangerous patterns, and security issues. If you are more than 50% confident a violation exists then report it.
-
-You have a read-only workspace on the branch under review.
-
-## Review scope, prior decisions, and expected outcomes
-
-The added and changed lines are in the diff in this message. Raise findings only on those lines. Read related files only to judge impact; do not report findings on unchanged lines.
-
-Read the decision history supplied in your task before raising anything. A decision already settled with the developer is binding to you: do not raise the same point again. When your only candidate finding repeats a settled decision, approve instead.
-
-Every finding must also state what good looks like: the expected outcome, and the concrete check, test, or assertion that verifies it. A finding that names only the problem is incomplete.
-
-## Instructions
-
-1. Read \`docs/conventions/anti-patterns.md\` for codebase-specific anti-patterns (AP-001 through AP-006)
-2. Read \`docs/conventions/review-feedback-checks.md\` for RFC checks (RFC-001 through RFC-009)
-3. Review every file changed in this pull request
-4. For each file, read its contents and scan for the patterns described
-5. Check related files as needed to understand context
-6. Finish after returning your findings.
-
-## Priority 1: Bug Patterns
-
-### BS-001: Silent Error Swallowing
-
-\`\`\`typescript
-// BAD - errors disappear
-.catch(() => {})
-.catch(e => console.log(e))  // log isn't handling
-try { } catch { }
-try { } catch (e) { console.log(e) }
-\`\`\`
-
-### BS-002: Dangerous Type Assertions
-
-\`\`\`typescript
-// BAD - bypassing type safety
-as any
-as unknown as SomeType
-value!  // non-null assertion without prior validation
-\`\`\`
-
-### BS-003: Incomplete Async Error Handling
-
-\`\`\`typescript
-// BAD - unhandled promise rejection
-async function foo() { await bar() }  // no try/catch
-promise.then(handler)  // no .catch()
-\`\`\`
-
-### BS-004: Dangerous Fallback Values
-
-\`\`\`typescript
-// BAD - hiding missing data
-value ?? 'default'  // without clear reason
-value || 'fallback'  // same
-config.setting ?? true  // defaulting booleans
-\`\`\`
-
-Exception: Optional parameters with documented defaults, test data.
-
-### BS-005: Race Conditions
-
-\`\`\`typescript
-// BAD - read-then-write without synchronization
-if (state.value) { state.value = newValue }
-\`\`\`
-
-### BS-006: Logic Errors
-
-- Off-by-one errors in loops/slices
-- Inverted conditions
-- Missing break/return statements
-- Unreachable code
-- Unused variables that should be used
-
-## Priority 2: Framework & Library Misuse
-
-### BS-007: Inefficient API Usage
-
-- Using multiple calls when a single batch API exists
-- Manual implementations of built-in utilities
-- Ignoring return values that contain useful data
-
-### BS-008: Deprecated Patterns
-
-- Using deprecated APIs when modern alternatives exist
-- Old syntax when newer, cleaner syntax is available
-- Patterns the library docs explicitly discourage
-
-### BS-009: Missing Library Features
-
-- Hand-rolling logic that the library provides
-- Verbose workarounds for solved problems
-- Not leveraging type utilities, helpers, or extensions
-
-### BS-010: Framework Anti-Patterns
-
-- Fighting the framework instead of working with it
-- Bypassing framework patterns without justification
-- Mixing paradigms inappropriately
-
-## Priority 3: Dangerous Config Changes
-
-### BS-011: Dangerous Config Changes
-
-Protected files that should rarely change:
-
-- \`tsconfig.base.json\`, \`tsconfig.json\`
-- \`eslint.config.mjs\`
-- \`nx.json\`
-- \`pnpm-workspace.yaml\`
-- \`.husky/*\`
-- \`.gitignore\`
-- \`.claude/settings.json\`
-- \`.claude/hooks/*\`
-
-Flag ANY modification to these files.
-
-## Priority 4: Security Issues
-
-### BS-012: Hardcoded Secrets
-
-- API keys, tokens, passwords
-- Connection strings with credentials
-- Private keys
-
-### BS-013: Sensitive Data Exposure
-
-- Logging PII, credentials, tokens
-- Exposing internal paths/system info
-- Debug code in production paths
-
-### BS-014: Injection Risks
-
-- Unescaped user input in shell commands
-- Template injection
-
-## Priority 5: Inconsistent Patterns
-
-### BS-015: Inconsistent Patterns Across Feature Files
-
-When reviewing files within the same feature/module, check for inconsistent approaches to the same concern:
-
-- Different error handling strategies in related files
-- Different resolution strategies (e.g., string-based vs symbol-based) for the same kind of lookup
-- Different naming conventions for the same concept
-- Different patterns for the same operation (e.g., one file filters before processing, another mutates during processing)
-
-**Detection:** When reviewing a file, scan sibling files in the same directory/feature for the same kind of operation. Flag inconsistencies.
-
-## Priority 6: Review Feedback Checks
-
-Read \`docs/conventions/review-feedback-checks.md\` and apply each RFC check to changed code.
-
-## Severity Levels
-
-- **critical**: Security issues, data loss, crashes. Must fix.
-- **major**: Bugs, dangerous patterns, config changes. Should fix.
-- **minor**: Framework misuse, inefficiencies. Nice to fix.
-`
-
-const REVIEWER_INSTRUCTIONS: Readonly<Record<ReviewerName, string>> = {
-  'architecture-review': ARCHITECTURE_REVIEW_INSTRUCTIONS,
-  'code-review': CODE_REVIEW_INSTRUCTIONS,
-  'bug-scanner': BUG_SCANNER_INSTRUCTIONS,
-}
-
 const FEEDBACK_INSTRUCTIONS = `You address review feedback on a pull request.
 
 The workflow gives you the feedback items. You do not fetch them, and you do not post to GitHub. The workflow posts your responses.
@@ -474,11 +211,32 @@ const IMPLEMENTER_INSTRUCTIONS = [
 
 const CODERABBIT = 'coderabbit'
 
+const NOBODY_ANSWERED_THE_PLAN =
+  'Nobody replied on the issue to the plan question. The plan is still on the issue. Start again when the answer is there.'
+
 const IMPLEMENTATION_TIME_BUDGET_MS = 60 * 60 * 1000
 const IMPLEMENTATION_ROUNDS = 3
 const FEEDBACK_TIME_BUDGET_MS = 60 * 60 * 1000
 const FEEDBACK_ROUNDS = 2
 const REVIEW_TIME_BUDGET_MS = 30 * 60 * 1000
+
+/**
+ * A step that makes one call to GitHub or git may be tried again: the call is flaky, not the work.
+ * A step that makes many of them cannot, because a second try would post everything twice.
+ */
+const ATTEMPTS_AT_A_REMOTE_CALL = 3
+
+const ROUTINE = { suspendSchema: null, resumeSchema: null, attempts: null, scoreWith: null }
+
+/** A step that reads the run state, hands the run state on, and asks for nothing unusual. */
+const OVER_THE_RUN = { inputSchema: runStateSchema, outputSchema: runStateSchema, ...ROUTINE }
+
+/** A step that reads the review state, hands the review state on, and asks for nothing unusual. */
+const OVER_THE_REVIEW = {
+  inputSchema: reviewStateSchema,
+  outputSchema: reviewStateSchema,
+  ...ROUTINE,
+}
 
 type RunState = z.infer<typeof runStateSchema>
 
@@ -606,6 +364,12 @@ export interface BuildWorkflowInput {
       readonly body: string
     }[]
   }>
+  readonly recordRunOutcome: (outcome: {
+    readonly workflowId: string
+    readonly runId: string
+    readonly status: string
+    readonly message: string
+  }) => Promise<void>
   readonly adaptWorkflow: AdaptWorkflow<Workflow>
 }
 
@@ -622,25 +386,41 @@ export class BuildWorkflow {
     const startImplementation = await input.adaptWorkflow({
       plan: workflow.startImplementation(),
       loopUntil: (state) => reviewIsComplete(reviewStateSchema.parse(state)),
+      onFailure: (failure) => sayTheRunFailed(input, failure),
+      onOutcome: (outcome) => input.recordRunOutcome({ ...outcome, message: '' }),
       steps: startImplementationSteps(input),
     })
     const reviewCycle = await input.adaptWorkflow({
       plan: workflow.reviewCycle(),
       loopUntil: null,
+      onFailure: null,
+      onOutcome: null,
       steps: reviewCycleSteps(input),
     })
     return { startImplementation: startImplementation.built, reviewCycle: reviewCycle.built }
   }
 }
 
+async function sayTheRunFailed(
+  input: BuildWorkflowInput,
+  failure: { readonly workflowId: string; readonly runId: string; readonly message: string } & {
+    readonly startedWith: unknown
+  },
+): Promise<void> {
+  const { startedWith, ...stopped } = failure
+  await input.recordRunOutcome({ ...stopped, status: 'failed' })
+  await input.commentOnIssue({
+    issueNumber: runStateSchema.parse(startedWith).issueNumber,
+    body: `[dev-workflow-v3] The run ${failure.runId} stopped.\n\n${failure.message}\n\nNothing was merged. Fix the cause, then start again on the same issue.`,
+  })
+}
+
 function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowStepDefinition[] {
   return [
     {
       id: 'load-issue',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_RUN,
+      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         const issue = await input.loadIssue(state.issueNumber)
@@ -649,10 +429,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     },
     {
       id: 'prepare-branch',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_RUN,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         const prepared = await input.prepareBranch({
@@ -666,10 +443,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     },
     {
       id: 'install-dependencies',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_RUN,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         await input.installDependencies({ worktreePath: state.worktreePath })
@@ -678,10 +452,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     },
     {
       id: 'read-guidance',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_RUN,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         return { ...state, guidance: await input.readGuidance() }
@@ -689,10 +460,8 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     },
     {
       id: 'draft-plan',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_RUN,
+      scoreWith: scorePlan,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         const response = await input.generate({
@@ -721,10 +490,8 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     },
     {
       id: 'publish-plan',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_RUN,
+      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         const posted = await input.commentOnIssue({
@@ -736,11 +503,8 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     },
     {
       id: 'wait-for-plan-clarification',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
-      run: async ({ data }) => {
+      ...OVER_THE_RUN,
+      run: async ({ data, stopEarly }) => {
         const state = runStateSchema.parse(data)
         if (!state.planNeedsInput) return state
         const { reply } = await input.waitForIssueReply({
@@ -748,17 +512,14 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           after: state.planCommentAt,
         })
         if (reply === null) {
-          throw new RunFailed(
-            'Nobody replied on the issue to the plan question. The plan is still on the issue. Start again when the answer is there.',
-          )
+          return await stopEarly({ ...state, stoppedReason: NOBODY_ANSWERED_THE_PLAN })
         }
         return { ...state, clarification: reply }
       },
     },
     {
       id: 'implement',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
+      ...OVER_THE_RUN,
       suspendSchema: blockerSuspendSchema,
       resumeSchema: blockerResumeSchema,
       run: async ({ data, resumeData, suspend }) => {
@@ -785,10 +546,8 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     },
     {
       id: 'push-branch',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_RUN,
+      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         await input.pushBranch({ worktreePath: state.worktreePath, branch: state.branch })
@@ -797,10 +556,8 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     },
     {
       id: 'draft-pull-request',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_RUN,
+      scoreWith: scorePullRequest,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         const response = await input.generate({
@@ -830,10 +587,8 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     },
     {
       id: 'open-pull-request',
-      inputSchema: runStateSchema,
-      outputSchema: runStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_RUN,
+      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         const opened = await input.openPullRequest({
@@ -849,8 +604,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
       id: 'open-review-cycle',
       inputSchema: runStateSchema,
       outputSchema: reviewStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...ROUTINE,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
         return {
@@ -875,10 +629,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     },
     {
       id: 'review-cycle',
-      inputSchema: reviewStateSchema,
-      outputSchema: reviewStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_REVIEW,
       run: async ({ data, workflow }) => {
         const state = reviewStateSchema.parse(data)
         const cycle = await workflow('review-cycle').start({
@@ -893,10 +644,8 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     },
     {
       id: 'mark-ready-for-human',
-      inputSchema: reviewStateSchema,
-      outputSchema: reviewStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_REVIEW,
+      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const state = reviewStateSchema.parse(data)
         await input.commentOnPullRequest({
@@ -916,12 +665,11 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
     reviewStep(input, 'bug-scanner'),
     {
       id: 'collect-verdicts',
-      inputSchema: reviewStateSchema,
+      inputSchema: reviewOutcomesSchema,
       outputSchema: reviewStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...ROUTINE,
       run: async ({ data }) => {
-        const state = reviewStateSchema.parse(data)
+        const state = reviewedState(reviewOutcomesSchema.parse(data))
         const closed = await input.closeReviewCycle({
           cycleNumber: state.cycleNumber,
           statuses: state.reviewerStatuses,
@@ -938,10 +686,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
     },
     {
       id: 'publish-review-findings',
-      inputSchema: reviewStateSchema,
-      outputSchema: reviewStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_REVIEW,
       run: async ({ data }) => {
         const state = reviewStateSchema.parse(data)
         const findings = state.findings.filter((finding) => finding.reviewer !== CODERABBIT)
@@ -965,10 +710,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
     },
     {
       id: 'wait-for-coderabbit',
-      inputSchema: reviewStateSchema,
-      outputSchema: reviewStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_REVIEW,
       run: async ({ data }) => {
         const state = reviewStateSchema.parse(data)
         const feedback = await input.waitForReviewer({
@@ -998,10 +740,8 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
     },
     {
       id: 'address-feedback',
-      inputSchema: reviewStateSchema,
-      outputSchema: reviewStateSchema,
+      ...OVER_THE_REVIEW,
       suspendSchema: unaddressedFeedbackSchema,
-      resumeSchema: null,
       run: async ({ data, suspend }) => {
         const state = reviewStateSchema.parse(data)
         const required = state.findings.flatMap((finding) =>
@@ -1035,10 +775,8 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
     },
     {
       id: 'push-branch',
-      inputSchema: reviewStateSchema,
-      outputSchema: reviewStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      ...OVER_THE_REVIEW,
+      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
       run: async ({ data }) => {
         const state = reviewStateSchema.parse(data)
         const committed = await input.checkWorkCommitted({
@@ -1060,21 +798,46 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
       },
     },
     {
-      id: 'publish-review-replies',
+      id: 'plan-review-replies',
       inputSchema: reviewStateSchema,
-      outputSchema: reviewStateSchema,
-      suspendSchema: null,
-      resumeSchema: null,
+      outputSchema: z.array(replyTaskSchema).nonempty(),
+      ...ROUTINE,
       run: async ({ data }) => {
         const state = reviewStateSchema.parse(data)
-        for (const resolution of state.resolutions) {
+        const replies = state.resolutions.map((resolution) => ({
+          state,
+          commentId: resolution.commentId,
+          body: renderReply(resolution, state),
+        }))
+        return replies.length === 0 ? [{ state, commentId: null, body: '' }] : replies
+      },
+    },
+    {
+      id: 'reply-to-review-comment',
+      inputSchema: replyTaskSchema,
+      outputSchema: reviewStateSchema,
+      ...ROUTINE,
+      attempts: ATTEMPTS_AT_A_REMOTE_CALL,
+      run: async ({ data }) => {
+        const task = replyTaskSchema.parse(data)
+        if (task.commentId !== null) {
           await input.replyToReviewComment({
-            pullRequestNumber: state.pullRequestNumber,
-            commentId: resolution.commentId,
-            body: renderReply(resolution, state),
+            pullRequestNumber: task.state.pullRequestNumber,
+            commentId: task.commentId,
+            body: task.body,
           })
         }
-        return { ...state, resolutions: [], findings: [] }
+        return task.state
+      },
+    },
+    {
+      id: 'close-review-replies',
+      inputSchema: z.array(reviewStateSchema).nonempty(),
+      outputSchema: reviewStateSchema,
+      ...ROUTINE,
+      run: async ({ data }) => {
+        const replied = z.array(reviewStateSchema).nonempty().parse(data)
+        return { ...replied[0], resolutions: [], findings: [] }
       },
     },
   ]
@@ -1082,19 +845,79 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
 
 type ReviewerName = 'architecture-review' | 'code-review' | 'bug-scanner'
 
+const PULL_REQUEST_HEADINGS = [
+  '## Description',
+  '## Linked Issue',
+  '## What Problem Does This PR Solve?',
+  '## Acceptance Criteria',
+  '## Key Changes',
+  '## Validation',
+]
+
+const A_SUMMARY_WORTH_READING = 80
+
+/** How much of a usable plan the planner came back with. */
+function scorePlan(judged: { readonly outcome: unknown }): number {
+  const state = runStateSchema.parse(judged.outcome)
+  return shareOf([
+    state.planMarkdown.trim() !== '',
+    state.planMarkdown.includes('1.'),
+    !state.planNeedsInput || state.planQuestion !== null,
+  ])
+}
+
+/** How much of the repository's pull request format the writer actually filled in. */
+function scorePullRequest(judged: { readonly outcome: unknown }): number {
+  const state = runStateSchema.parse(judged.outcome)
+  return shareOf([
+    PullRequestDraft.from({
+      title: state.pullRequestTitle,
+      description: state.pullRequestBody,
+    })
+      .validate()
+      .isValid(),
+    ...PULL_REQUEST_HEADINGS.map((heading) => state.pullRequestBody.includes(heading)),
+  ])
+}
+
+/** How many of a reviewer's findings say which rule they apply and what good looks like. */
+function scoreReview(judged: { readonly outcome: unknown }): number {
+  const review = reviewOutcomeSchema.parse(judged.outcome)
+  if (review.findings.length === 0) return 1
+  return shareOf(
+    review.findings.map(
+      (finding) => finding.rule !== null && finding.summary.length >= A_SUMMARY_WORTH_READING,
+    ),
+  )
+}
+
+function shareOf(checks: readonly boolean[]): number {
+  return checks.filter((passed) => passed).length / checks.length
+}
+
+/** Folds what the three reviewers found in this cycle back into one review state. */
+function reviewedState(reviews: z.infer<typeof reviewOutcomesSchema>): ReviewState {
+  const taken = [reviews['architecture-review'], reviews['code-review'], reviews['bug-scanner']]
+  const state = reviews['architecture-review'].state
+  return {
+    ...state,
+    cycleVerdicts: [...state.cycleVerdicts, ...taken.flatMap((review) => review.verdicts)],
+    findings: [...state.findings, ...taken.flatMap((review) => review.findings)],
+  }
+}
+
 function reviewStep(input: BuildWorkflowInput, reviewer: ReviewerName): WorkflowStepDefinition {
   return {
     id: reviewer,
     inputSchema: reviewStateSchema,
-    outputSchema: reviewStateSchema,
-    suspendSchema: null,
-    resumeSchema: null,
+    outputSchema: reviewOutcomeSchema,
+    ...ROUTINE,
+    scoreWith: scoreReview,
     run: async ({ data }) => {
       const state = reviewStateSchema.parse(data)
-      const reviewers = Reviewers.parse(state.reviewers)
-      if (!reviewers.includes(Reviewer.fromName(reviewer))) return state
       const previous = state.reviewerStatuses[reviewer] ?? null
-      if (previous === 'APPROVED') return state
+      const chosen = Reviewers.parse(state.reviewers).includes(Reviewer.fromName(reviewer))
+      if (!chosen || previous === 'APPROVED') return { state, verdicts: [], findings: [] }
       const { diff } = await input.readPullRequestDiff({
         pullRequestNumber: state.pullRequestNumber,
       })
@@ -1102,7 +925,7 @@ function reviewStep(input: BuildWorkflowInput, reviewer: ReviewerName): Workflow
         agentId: reviewer,
         model: state.model,
         thinking: state.thinking,
-        instructions: REVIEWER_INSTRUCTIONS[reviewer],
+        instructions: Reviewer.fromName(reviewer).brief(),
         prompt: reviewPrompt(state, reviewer, previous, diff),
         workspacePath: state.worktreePath,
         threadId: null,
@@ -1114,20 +937,11 @@ function reviewStep(input: BuildWorkflowInput, reviewer: ReviewerName): Workflow
       })
       const verdict = verdictSchema.safeParse(response.object)
       if (!verdict.success) throw new RunFailed(noStructuredOutput(`The ${reviewer}`, response))
+      const findings = verdict.data.findings.map((finding) => ({ ...finding, reviewer }))
       return {
-        ...state,
-        cycleVerdicts: [
-          ...state.cycleVerdicts,
-          {
-            reviewer,
-            status: verdict.data.status,
-            findings: verdict.data.findings.map((finding) => ({ ...finding, reviewer })),
-          },
-        ],
-        findings: [
-          ...state.findings,
-          ...verdict.data.findings.map((finding) => ({ ...finding, reviewer })),
-        ],
+        state,
+        verdicts: [{ reviewer, status: verdict.data.status, findings }],
+        findings,
       }
     },
   }
@@ -1393,21 +1207,11 @@ function tailOf(output: string): string {
 }
 
 function planComment(state: RunState): string {
-  const posted = [
-    "[dev-workflow-v3] Implementer's plan",
-    '',
-    state.planMarkdown,
-    '',
-    '---',
-    '',
-    `Run \`issue-${String(state.issueNumber)}\`.`,
-  ]
-  if (state.planNeedsInput) {
-    posted.push('', '### Needs your input', '')
-    if (state.planQuestion !== null) posted.push(state.planQuestion)
-    posted.push('', 'Reply on this issue and the run will carry on with your answer.')
-  }
-  return posted.join('\n')
+  const plan = `[dev-workflow-v3] Implementer's plan\n\n${state.planMarkdown}\n\n---\n\nRun \`issue-${String(state.issueNumber)}\`.`
+  if (!state.planNeedsInput) return plan
+  const asked = state.planQuestion === null ? [] : [state.planQuestion]
+  const answer = 'Reply on this issue and the run will carry on with your answer.'
+  return [plan, '', '### Needs your input', '', ...asked, '', answer].join('\n')
 }
 
 function planPrompt(state: RunState): string {
@@ -1547,19 +1351,17 @@ function pullRequestTitle(draft: PullRequestDraftAnswer): string {
 
 function pullRequestBody(state: RunState, draft: PullRequestDraftAnswer): string {
   return [
-    formatSection('Description', draft.description),
-    formatSection('Linked Issue', `Closes #${String(state.issueNumber)}`),
-    formatSection('What Problem Does This PR Solve?', draft.problem),
-    formatSection('Acceptance Criteria', draft.acceptanceCriteria),
-    formatSection('Key Changes', draft.keyChanges),
-    formatSection('Notable Architectural Changes / Impact', draft.architectureImpact),
-    formatSection('Validation', draft.validation),
-    formatSection('Notes', draft.notes),
-  ].join('\n\n')
-}
-
-function formatSection(heading: string, content: string): string {
-  return [`## ${heading}`, content].join('\n\n')
+    ['Description', draft.description],
+    ['Linked Issue', `Closes #${String(state.issueNumber)}`],
+    ['What Problem Does This PR Solve?', draft.problem],
+    ['Acceptance Criteria', draft.acceptanceCriteria],
+    ['Key Changes', draft.keyChanges],
+    ['Notable Architectural Changes / Impact', draft.architectureImpact],
+    ['Validation', draft.validation],
+    ['Notes', draft.notes],
+  ]
+    .map(([heading, content]) => `## ${String(heading)}\n\n${String(content)}`)
+    .join('\n\n')
 }
 
 function pullRequestPrompt(state: RunState): string {

@@ -1,7 +1,16 @@
 import { Agent } from '@mastra/core/agent'
 import type { ToolsInput } from '@mastra/core/agent'
 import type { Memory } from '@mastra/memory'
+import { TokenLimiter, ToolCallFilter } from '@mastra/core/processors'
 import { createWorkspace } from './create-workspace'
+
+/**
+ * The implementer works one issue on one thread that only grows, and the reviewers read a whole
+ * change. Both would eventually hand the model more than it can hold. This budget keeps a long
+ * coding session in the prompt while leaving room, inside a 200k context, for the instructions,
+ * the workspace description and the answer.
+ */
+const CONVERSATION_TOKEN_BUDGET = 120_000
 
 /** @riviere-role external-client-model */
 export interface AgentRequest {
@@ -28,6 +37,14 @@ export function createAgentFactory(dependencies: {
       model: request.model,
       tools: request.useTools ? dependencies.tools : {},
       memory: dependencies.memory,
+      ...(request.useTools
+        ? {
+            inputProcessors: [
+              new ToolCallFilter(),
+              new TokenLimiter({ limit: CONVERSATION_TOKEN_BUDGET }),
+            ],
+          }
+        : {}),
       ...(request.workspacePath === null
         ? {}
         : {

@@ -9,6 +9,13 @@ const goodDescription = [
 ].join('\n')
 
 describe('PullRequestDraft', () => {
+  it('builds a draft that is not valid so the caller can read what is wrong', () => {
+    const draft = PullRequestDraft.from({ title: 'Added a review cycle', description: 'short' })
+
+    expect(draft.validate().isValid()).toBe(false)
+    expect(draft.title()).toBe('Added a review cycle')
+  })
+
   it('accepts a conventional title and a description with substance', () => {
     const draft = PullRequestDraft.parse({
       title: 'feat(workflow): add the review cycle',
