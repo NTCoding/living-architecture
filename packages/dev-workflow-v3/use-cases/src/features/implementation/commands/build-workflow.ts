@@ -1253,8 +1253,12 @@ function implementationPrompt(
   ]
   if (response === null) return first.join('\n')
   return [
-    ...(response.question === undefined ? [] : [`Earlier you asked: ${response.question}`, '']),
-    `The answer: ${response.answer}`,
+    ...(response.question === undefined
+      ? []
+      : ['<question>', response.question, '</question>', '']),
+    '<answer>',
+    response.answer,
+    '</answer>',
   ].join('\n')
 }
 

@@ -392,7 +392,7 @@ describe('BuildWorkflow', () => {
 
     expect(prompts).toStrictEqual([
       'asking',
-      'Earlier you asked: Reuse the existing port, or add one?\n\nThe answer: the answer',
+      '<question>\nReuse the existing port, or add one?\n</question>\n\n<answer>\nthe answer\n</answer>',
     ])
     expect(finished.status).toBe('success')
   })
@@ -420,7 +420,7 @@ describe('BuildWorkflow', () => {
     })
     const finished = await run.resume({ step: 'implement', resumeData: { answer: 'the answer' } })
 
-    expect(prompts).toStrictEqual(['asking', 'The answer: the answer'])
+    expect(prompts).toStrictEqual(['asking', '<answer>\nthe answer\n</answer>'])
     expect(finished.status).toBe('success')
   })
 
