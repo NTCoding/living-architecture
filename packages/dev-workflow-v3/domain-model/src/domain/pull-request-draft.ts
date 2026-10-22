@@ -45,6 +45,14 @@ export class PullRequestDraft {
     private readonly draftDescription: string,
   ) {}
 
+  /** Builds a draft without demanding it be valid, so a caller can ask what is wrong with it. */
+  static from(input: { readonly title: string; readonly description: string }): PullRequestDraft {
+    return new PullRequestDraft(
+      TITLE_SCHEMA.parse(input.title),
+      DESCRIPTION_SCHEMA.parse(input.description),
+    )
+  }
+
   static parse(input: { readonly title: string; readonly description: string }): PullRequestDraft {
     const draft = new PullRequestDraft(
       TITLE_SCHEMA.parse(input.title),

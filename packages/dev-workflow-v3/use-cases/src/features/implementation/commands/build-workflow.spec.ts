@@ -159,6 +159,7 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
       comments: [],
     }),
     replyToReviewComment: async () => undefined,
+    recordRunOutcome: async () => undefined,
     ...overrides,
   }
 }
@@ -182,6 +183,83 @@ async function startedRun(overrides: Partial<Stubs> = {}, runId = 'issue-455') {
   const started = await run.start({ inputData: startInput })
   return { run, started }
 }
+
+async function scoresOf(
+  workflow: 'start-implementation' | 'review-cycle',
+  id: string,
+  output: unknown,
+) {
+  const studio = await factoryFor()
+  const scorers = await studio.getWorkflow(workflow).listScorers()
+  const scored = await Promise.all(
+    Object.entries(scorers)
+      .filter(([scorerId]) => scorerId === id)
+      .map(async ([, entry]) => (await entry.scorer.run({ input: {}, output })).score),
+  )
+  return scored
+}
+
+describe('the scorers that say whether a model was good enough', () => {
+  it('gives a full score to a plan that is a numbered list and needs nothing', async () => {
+    const output = { ...startInput, planMarkdown: '1. do the thing', planNeedsInput: false }
+
+    expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([1])
+  })
+
+  it('marks a plan down when it is prose that quietly asks for input', async () => {
+    const output = { ...startInput, planMarkdown: 'do the thing', planNeedsInput: true }
+
+    expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
+      1 / 3,
+    ])
+  })
+
+  it('gives a full score to a pull request in the repository format', async () => {
+    const output = {
+      ...startInput,
+      pullRequestTitle: 'feat(factory): add a review cycle',
+      pullRequestBody: [
+        '## Description',
+        '## Linked Issue',
+        '## What Problem Does This PR Solve?',
+        '## Acceptance Criteria',
+        '## Key Changes',
+        '## Validation',
+      ].join('\n\n'),
+    }
+
+    expect(
+      await scoresOf('start-implementation', 'draft-pull-request-quality', output),
+    ).toStrictEqual([1])
+  })
+
+  it('gives no score to a pull request with no title and no sections', async () => {
+    const output = { ...startInput, pullRequestTitle: 'Added it', pullRequestBody: '' }
+
+    expect(
+      await scoresOf('start-implementation', 'draft-pull-request-quality', output),
+    ).toStrictEqual([0])
+  })
+
+  it('gives a full score to a reviewer that approved with nothing to say', async () => {
+    const output = { state: reviewInput(), verdicts: [], findings: [] }
+
+    expect(await scoresOf('review-cycle', 'code-review-quality', output)).toStrictEqual([1])
+  })
+
+  it('marks a reviewer down for a finding with no rule and a thin summary', async () => {
+    const output = {
+      state: reviewInput(),
+      verdicts: [],
+      findings: [
+        { ...finding, rule: null, summary: 'Bad.' },
+        { ...finding, summary: `A domain decision sits in the adapter. ${'x'.repeat(60)}` },
+      ],
+    }
+
+    expect(await scoresOf('review-cycle', 'code-review-quality', output)).toStrictEqual([0.5])
+  })
+})
 
 describe('BuildWorkflow', () => {
   it('builds both workflows under the names the shell registers', async () => {
@@ -254,7 +332,7 @@ describe('BuildWorkflow', () => {
     expect(comments[0]).toContain('### Needs your input')
   })
 
-  it('fails when nobody replies on the issue', async () => {
+  it('stops the run, rather than failing it, when nobody replies on the issue', async () => {
     const { started } = await startedRun({
       generate: async (request) =>
         request.agentId === 'planner'
@@ -264,9 +342,10 @@ describe('BuildWorkflow', () => {
 
     expect(started).toStrictEqual(
       expect.objectContaining({
-        status: 'failed',
-        error: expect.objectContaining({
-          message: expect.stringContaining('Nobody replied on the issue'),
+        status: 'success',
+        result: expect.objectContaining({
+          stoppedReason: expect.stringContaining('Nobody replied on the issue'),
+          pullRequestUrl: '',
         }),
       }),
     )
@@ -306,9 +385,42 @@ describe('BuildWorkflow', () => {
         }),
       }),
     )
+    const finished = await run.resume({
+      step: 'implement',
+      resumeData: { answer: 'the answer', question: 'Reuse the existing port, or add one?' },
+    })
+
+    expect(prompts).toStrictEqual([
+      'asking',
+      '<question>\nReuse the existing port, or add one?\n</question>\n\n<answer>\nthe answer\n</answer>',
+    ])
+    expect(finished.status).toBe('success')
+  })
+
+  it('carries on with just the answer when the resume has no question', async () => {
+    const prompts: string[] = []
+    const { run } = await startedRun({
+      generate: async (request) => {
+        if (request.agentId !== 'implementer') return stubs().generate(request)
+        prompts.push(request.prompt.startsWith('Implement issue') ? 'asking' : request.prompt)
+        return prompts.length === 1
+          ? {
+              object: {
+                summary: 'blocked',
+                blockedReason: 'Which port?',
+                allWorkComplete: false,
+                allWorkCommitted: false,
+              },
+              text: '',
+              finishReason: 'stop',
+              suspendPayload: null,
+            }
+          : implementationAnswer('the change')
+      },
+    })
     const finished = await run.resume({ step: 'implement', resumeData: { answer: 'the answer' } })
 
-    expect(prompts).toStrictEqual(['asking', 'the answer'])
+    expect(prompts).toStrictEqual(['asking', '<answer>\nthe answer\n</answer>'])
     expect(finished.status).toBe('success')
   })
 
@@ -371,6 +483,41 @@ describe('BuildWorkflow', () => {
     })
 
     expect(started.status).toBe('failed')
+  })
+
+  it('records the outcome of every run that ends', async () => {
+    const recorded: { readonly runId: string; readonly status: string }[] = []
+    await startedRun({
+      recordRunOutcome: async (outcome) => {
+        recorded.push({ runId: outcome.runId, status: outcome.status })
+      },
+    })
+
+    expect(recorded).toContainEqual({ runId: 'issue-455', status: 'success' })
+  })
+
+  it('writes the failure down and says so on the issue when a run fails', async () => {
+    const recorded: { readonly status: string; readonly message: string }[] = []
+    const comments: string[] = []
+    await startedRun({
+      generate: async (request) =>
+        request.agentId === 'planner'
+          ? { object: undefined, text: 'prose', finishReason: 'stop', suspendPayload: null }
+          : stubs().generate(request),
+      recordRunOutcome: async (outcome) => {
+        recorded.push({ status: outcome.status, message: outcome.message })
+      },
+      commentOnIssue: async (request) => {
+        comments.push(request.body)
+        return { createdAt: '2026-10-18T10:00:00Z' }
+      },
+    })
+
+    expect(recorded).toContainEqual({
+      status: 'failed',
+      message: expect.stringContaining('The planner did not return the expected data'),
+    })
+    expect(comments.join('\n')).toContain('The run issue-455 stopped.')
   })
 
   it('says the implementer ran out of time, and keeps the worktree', async () => {

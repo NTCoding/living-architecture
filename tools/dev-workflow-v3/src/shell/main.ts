@@ -82,6 +82,23 @@ async function runProcess(request: CommandRequest): Promise<CommandOutput> {
   }
 }
 
+function saveRunLog(
+  workingDirectory: string,
+  outcome: {
+    readonly workflowId: string
+    readonly runId: string
+    readonly status: string
+    readonly message: string
+  },
+): void {
+  const directory = `${workingDirectory}/.factory/logs`
+  mkdirSync(directory, { recursive: true })
+  appendFileSync(
+    `${directory}/runs.log`,
+    `${new Date().toISOString()} ${outcome.workflowId} ${outcome.runId} ${outcome.status} ${outcome.message.replaceAll('\n', '\\n')}\n`,
+  )
+}
+
 function saveCommandLog(request: CommandRequest, stdout: string, stderr: string): string {
   const directory = `${request.workingDirectory}/.factory/logs`
   mkdirSync(directory, { recursive: true })
@@ -178,6 +195,9 @@ async function buildFactory(workingDirectory: string): Promise<Factory> {
         replyToReviewCommentWithGithub({ runCommand, workingDirectory }),
       ).execute(request)
     },
+    recordRunOutcome: async (outcome) => {
+      saveRunLog(workingDirectory, outcome)
+    },
     waitForReviewer: waitForReviewerWithGithub({
       runCommand,
       workingDirectory,
@@ -191,6 +211,10 @@ async function buildFactory(workingDirectory: string): Promise<Factory> {
     workflows: {
       'start-implementation': build.startImplementation,
       'review-cycle': build.reviewCycle,
+    },
+    scorers: {
+      ...(await build.startImplementation.listScorers()),
+      ...(await build.reviewCycle.listScorers()),
     },
   })
   const repositoryUrl = await readRepositoryUrl(runCommand, workingDirectory)
@@ -226,9 +250,9 @@ function createCommandLine(factory: Factory): Command {
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
     .requiredOption('--thinking <level>', 'off, low, medium or high')
-    .requiredOption(
+    .option(
       '--reviewers <names>',
-      'comma-separated reviewers, any of architecture-review, code-review, bug-scanner',
+      'comma-separated reviewers to run instead of all of them, any of architecture-review, code-review, bug-scanner',
     )
     .option('--no-input', 'never wait for an answer in this terminal')
     .action(
@@ -237,12 +261,12 @@ function createCommandLine(factory: Factory): Command {
         options: {
           model: string
           thinking: string
-          reviewers: string
+          reviewers?: string
           input: boolean
         },
       ) => {
         const reviewers = new ParseReviewers().execute({
-          names: options.reviewers.split(','),
+          names: options.reviewers?.split(','),
         }).reviewers
         const runId = await nextRunId(
           factory.startImplementation,
@@ -291,12 +315,13 @@ function createCommandLine(factory: Factory): Command {
         const state = await factory.startImplementation.getWorkflowRunById(runId)
         const step = suspendedStepName(state?.steps)
         if (step === 'implement' && options.answer === undefined) throw new MissingAnswer(issue)
+        const question = step === 'implement' ? questionOf(state?.steps?.['implement']) : null
         const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
         await follow(
           factory.startImplementation,
           factory.reviewCycle,
           run,
-          () => resumeStep(run, step, options),
+          () => resumeStep(run, step, options, question),
           {
             issue: issueNumberText(issue),
             issueUrl: issueUrlOf(factory.repositoryUrl, issue),
@@ -370,7 +395,7 @@ function createCommandLine(factory: Factory): Command {
           factory.startImplementation,
           factory.reviewCycle,
           run,
-          () => run.resume({ step: 'implement', resumeData: { answer } }),
+          () => run.resume({ step: 'implement', resumeData: { answer, question } }),
           {
             issue: issueNumberText(issue),
             issueUrl: issueUrlOf(factory.repositoryUrl, issue),
@@ -408,7 +433,7 @@ async function follow(
     }
     if (outcome.current.status === 'success') {
       await stop()
-      reportSuccess(outcome.current, run.runId)
+      reportEnded(outcome.current, run.runId)
       return
     }
     if (outcome.current.status !== 'suspended') {
@@ -636,7 +661,10 @@ async function resumeRun(run: Run, waiting: Waiting, answer: string | boolean): 
   if (waiting.step === 'implement') {
     return await run.resume({
       step: 'implement',
-      resumeData: { answer: typeof answer === 'string' ? answer : '' },
+      resumeData: {
+        answer: typeof answer === 'string' ? answer : '',
+        ...(waiting.question === null ? {} : { question: waiting.question }),
+      },
     })
   }
   if (waiting.step === 'address-feedback') {
@@ -707,6 +735,23 @@ function suspendPayloadOf(payload: unknown): string | null {
   if (!isRecord(payload)) return null
   const question = payload['question']
   return typeof question === 'string' ? question : null
+}
+
+function reportEnded(outcome: RunOutcome, runId: string): void {
+  const stopped = stoppedReasonOf(outcome)
+  if (stopped !== null) {
+    process.stdout.write(`\nThe run ${runId} stopped before it opened a pull request.\n`)
+    process.stdout.write(`${stopped}\n`)
+    process.exitCode = 3
+    return
+  }
+  reportSuccess(outcome, runId)
+}
+
+function stoppedReasonOf(outcome: RunOutcome): string | null {
+  if (!isRecord(outcome.result)) return null
+  const reason = outcome.result['stoppedReason']
+  return typeof reason === 'string' && reason !== '' ? reason : null
 }
 
 function reportSuccess(outcome: RunOutcome, runId: string): void {
@@ -792,9 +837,20 @@ function suspendedStepName(steps: unknown): string | null {
   return null
 }
 
-function resumeStep(run: Run, step: string | null, options: { answer?: string }): Promise<unknown> {
+function resumeStep(
+  run: Run,
+  step: string | null,
+  options: { answer?: string },
+  question: string | null,
+): Promise<unknown> {
   if (step === 'implement' && options.answer !== undefined) {
-    return run.resume({ step: 'implement', resumeData: { answer: options.answer } })
+    return run.resume({
+      step: 'implement',
+      resumeData: {
+        answer: options.answer,
+        ...(question === null ? {} : { question }),
+      },
+    })
   }
   if (step === 'address-feedback') {
     return run.resume({ step: 'address-feedback' })

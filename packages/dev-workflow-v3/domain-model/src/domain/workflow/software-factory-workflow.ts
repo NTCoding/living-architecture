@@ -1,5 +1,8 @@
 import { WorkflowPlan } from './workflow-plan'
 
+const WITH_THE_OTHER_REVIEWS = 'reviews'
+const REPLIES_AT_ONCE = 4
+
 /** @riviere-role value-object */
 export class SoftwareFactoryWorkflow {
   declare private readonly brand: 'SoftwareFactoryWorkflow'
@@ -14,34 +17,36 @@ export class SoftwareFactoryWorkflow {
       WorkflowPlan.parse({
         id: 'start-implementation',
         steps: [
-          { id: 'load-issue', looped: false },
-          { id: 'prepare-branch', looped: false },
-          { id: 'install-dependencies', looped: false },
-          { id: 'read-guidance', looped: false },
-          { id: 'draft-plan', looped: false },
-          { id: 'publish-plan', looped: false },
-          { id: 'wait-for-plan-clarification', looped: false },
-          { id: 'implement', looped: false },
-          { id: 'push-branch', looped: false },
-          { id: 'draft-pull-request', looped: false },
-          { id: 'open-pull-request', looped: false },
-          { id: 'open-review-cycle', looped: false },
+          { id: 'load-issue' },
+          { id: 'prepare-branch' },
+          { id: 'install-dependencies' },
+          { id: 'read-guidance' },
+          { id: 'draft-plan' },
+          { id: 'publish-plan' },
+          { id: 'wait-for-plan-clarification' },
+          { id: 'implement' },
+          { id: 'push-branch' },
+          { id: 'draft-pull-request' },
+          { id: 'open-pull-request' },
+          { id: 'open-review-cycle' },
           { id: 'review-cycle', looped: true },
-          { id: 'mark-ready-for-human', looped: false },
+          { id: 'mark-ready-for-human' },
         ],
       }),
       WorkflowPlan.parse({
         id: 'review-cycle',
         steps: [
-          { id: 'architecture-review', looped: false },
-          { id: 'code-review', looped: false },
-          { id: 'bug-scanner', looped: false },
-          { id: 'collect-verdicts', looped: false },
-          { id: 'publish-review-findings', looped: false },
-          { id: 'wait-for-coderabbit', looped: false },
-          { id: 'address-feedback', looped: false },
-          { id: 'push-branch', looped: false },
-          { id: 'publish-review-replies', looped: false },
+          { id: 'architecture-review', group: WITH_THE_OTHER_REVIEWS, chosen: true },
+          { id: 'code-review', group: WITH_THE_OTHER_REVIEWS, chosen: true },
+          { id: 'bug-scanner', group: WITH_THE_OTHER_REVIEWS, chosen: true },
+          { id: 'collect-verdicts' },
+          { id: 'publish-review-findings' },
+          { id: 'wait-for-coderabbit' },
+          { id: 'address-feedback' },
+          { id: 'push-branch' },
+          { id: 'plan-review-replies' },
+          { id: 'reply-to-review-comment', atOnce: REPLIES_AT_ONCE },
+          { id: 'close-review-replies' },
         ],
       }),
     )

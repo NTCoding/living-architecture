@@ -33,7 +33,7 @@
     "@commitlint/cli": "^20.2.0",
     "@commitlint/config-conventional": "^20.2.0",
     "@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",
-    "@mastra/core": "1.75.0",
+    "@mastra/core": "1.77.0",
     "@mastra/libsql": "1.25.1",
     "@mastra/memory": "1.36.0",
     "@nx/esbuild": "23.1.1",

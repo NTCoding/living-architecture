@@ -1,4 +1,5 @@
 import { Mastra } from '@mastra/core'
+import type { MastraScorers } from '@mastra/core/evals'
 import type { Workflow } from '@mastra/core/workflows'
 import { LibSQLStore } from '@mastra/libsql'
 import { Memory } from '@mastra/memory'
@@ -23,6 +24,13 @@ export function createMastraStorage(url: string): MastraStorage {
 export function createMastraInstance(request: {
   readonly storage: LibSQLStore
   readonly workflows: Readonly<Record<string, Workflow>>
+  readonly scorers: MastraScorers
 }): Mastra {
-  return new Mastra({ workflows: request.workflows, storage: request.storage })
+  return new Mastra({
+    workflows: request.workflows,
+    storage: request.storage,
+    scorers: Object.fromEntries(
+      Object.entries(request.scorers).map(([id, entry]) => [id, entry.scorer]),
+    ),
+  })
 }
