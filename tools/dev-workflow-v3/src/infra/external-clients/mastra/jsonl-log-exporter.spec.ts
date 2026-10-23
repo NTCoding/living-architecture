@@ -1,8 +1,9 @@
-import { mkdtempSync, readFileSync } from 'node:fs'
+import { mkdtempSync, readdirSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import type { LogEvent, TracingEvent, TracingEventType } from '@mastra/core/observability'
+import { SpanType, TracingEventType } from '@mastra/core/observability'
+import type { LogEvent, TracingEvent } from '@mastra/core/observability'
 import { JsonlLogExporter } from './jsonl-log-exporter'
 
 function logEventWith(logId: string, message: string): LogEvent {
@@ -19,7 +20,7 @@ function endedSpanTracingEvent(spanId: string): TracingEvent {
       id: spanId,
       traceId: 'a'.repeat(32),
       name: 'test span',
-      type: 'agent:run',
+      type: SpanType.AGENT_RUN,
       startTime: new Date(0),
       isRootSpan: true,
       isEvent: false,
@@ -37,15 +38,26 @@ describe('JsonlLogExporter', () => {
     await exporter.onLogEvent(logEventWith('log-2', 'second message'))
 
     const lines = readFileSync(filePath, 'utf8').trim().split('\n')
-    expect(lines).toHaveLength(2)
-    expect(JSON.parse(lines[0])).toMatchObject({
-      type: 'log',
-      log: { logId: 'log-1', message: 'first message' },
-    })
-    expect(JSON.parse(lines[1])).toMatchObject({
-      type: 'log',
-      log: { logId: 'log-2', message: 'second message' },
-    })
+    expect(lines).toStrictEqual([
+      JSON.stringify({
+        type: 'log',
+        log: {
+          logId: 'log-1',
+          timestamp: '1970-01-01T00:00:00.000Z',
+          level: 'info',
+          message: 'first message',
+        },
+      }),
+      JSON.stringify({
+        type: 'log',
+        log: {
+          logId: 'log-2',
+          timestamp: '1970-01-01T00:00:00.000Z',
+          level: 'info',
+          message: 'second message',
+        },
+      }),
+    ])
   })
 
   it('creates the log file on the first log event', async () => {
@@ -80,6 +92,6 @@ describe('JsonlLogExporter', () => {
 
     await exporter.exportTracingEvent(endedSpanTracingEvent('span-1'))
 
-    expect(readFileSync(filePath, 'utf8')).toBe('')
+    expect(readdirSync(directory)).toStrictEqual([])
   })
 })
