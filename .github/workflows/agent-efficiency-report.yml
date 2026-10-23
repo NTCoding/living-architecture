@@ -7,6 +7,10 @@ on:
 permissions:
   pull-requests: write
 
+concurrency:
+  group: agent-efficiency-report-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   report:
     if: github.event.pull_request.head.repo.full_name == github.repository
