@@ -57,7 +57,7 @@ export function guardWorkspaceCommand(context: {
  * `grep` hides the exact failure reason and the true exit code, so the agent wastes turns
  * reconstructing what the command already knew.
  */
-const VERIFICATION_TARGETS = ['lint', 'role-check', 'verify', 'test']
+const VERIFICATION_TARGETS = ['lint', 'role-check', 'verify', 'test', 'role-enforcement-bin']
 
 function isVerificationCommand(command: string): boolean {
   const invocation = /(?:nx|pnpm|npm|yarn)\s+([^|]*)/.exec(command)

@@ -66,6 +66,18 @@ describe('guardWorkspaceCommand', () => {
     expect(decision?.proceed).toBe(false)
   })
 
+  it('refuses the role check executable run directly through a pipe', () => {
+    const decision = guardWorkspaceCommand({
+      toolName: WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND,
+      input: {
+        command:
+          'pnpm exec tsx apps/cli/src/shell/role-enforcement-bin.ts .riviere/role-enforcement.config.ts --package x | tail -25',
+      },
+    })
+
+    expect(decision?.proceed).toBe(false)
+  })
+
   it('allows a piped search command that only mentions a verification word', () => {
     const decision = guardWorkspaceCommand({
       toolName: WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND,
