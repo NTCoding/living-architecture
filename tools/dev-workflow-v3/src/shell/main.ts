@@ -6,9 +6,9 @@ import { promisify } from 'node:util'
 import { Command } from 'commander'
 import type { Run, Workflow } from '@mastra/core/workflows'
 import type { Mastra } from '@mastra/core'
-import type { Agent } from '@mastra/core/agent'
 import { BuildWorkflow } from '@living-architecture/dev-workflow-v3-use-cases/commands/build-workflow'
 import { ParseReviewers } from '@living-architecture/dev-workflow-v3-use-cases/commands/parse-reviewers'
+import { ListFactoryAgents } from '@living-architecture/dev-workflow-v3-use-cases/commands/list-factory-agents'
 import { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
 import { CheckWorkCommitted } from '@living-architecture/dev-workflow-v3-use-cases/commands/check-work-committed'
 import { checkWorkCommittedWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/check-work-committed'
@@ -38,8 +38,7 @@ import type {
   CommandOutput,
   CommandRequest,
 } from '@living-architecture/dev-workflow-v3-use-cases/external-clients/process/run-command'
-import type { AgentId, AgentRequest } from '../infra/external-clients/mastra/create-agent'
-import { createAgents } from '../infra/external-clients/mastra/create-agent'
+import { agentFrom, createAgents } from '../infra/external-clients/mastra/create-agent'
 import { createAgentGeneration } from '../infra/external-clients/mastra/generate-with-agent'
 import {
   createMastraInstance,
@@ -142,20 +141,20 @@ export async function main(argv: readonly string[]): Promise<number> {
   }
 }
 
-function registeredAgentOf(agents: Record<AgentId, Agent>, id: AgentRequest['id']): Agent {
-  return agents[id]
-}
-
 /**
  * @riviere-role main
  */
 export async function buildFactory(workingDirectory: string): Promise<Factory> {
   const { storage, memory } = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
   const logFilePath = `${workingDirectory}/.factory/mastra-logs.jsonl`
-  const agents = createAgents({ memory, tools: { 'ask-user': createAskUserTool() } })
+  const agents = createAgents({
+    memory,
+    tools: { 'ask-user': createAskUserTool() },
+    agentNames: new ListFactoryAgents().execute({ names: undefined }).agents,
+  })
   const generation = createAgentGeneration({
     workingDirectory,
-    agentFor: (request) => registeredAgentOf(agents, request.id),
+    agentFor: (request) => agentFrom(agents, request.id),
   })
   const runCommand = runProcess
   const worktreesDirectory = `${workingDirectory}/.factory/worktrees`

@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import type { z } from 'zod'
 import type { RequestContext } from '@mastra/core/request-context'
 import type { AgentRequest } from './create-agent'
-import { agentIdOf, agentRequestContextOf } from './create-agent'
+import { agentRequestContextOf } from './create-agent'
 
 /** @riviere-role external-client-model */
 export interface AgentGenerationRequest {
@@ -155,7 +155,7 @@ function reasoningLevelOf(level: string): 'none' | 'low' | 'medium' | 'high' {
 
 function agentRequestOf(request: AgentGenerationRequest): AgentRequest {
   return {
-    id: agentIdOf(request.agentId),
+    id: request.agentId,
     model: request.model,
     instructions: request.instructions,
     workspacePath: request.workspacePath,

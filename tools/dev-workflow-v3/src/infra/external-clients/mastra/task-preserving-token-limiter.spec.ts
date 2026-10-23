@@ -142,6 +142,20 @@ describe('withinBudget', () => {
     expect(withinBudget(prompt, 51)).toStrictEqual([user('the task')])
   })
 
+  it('keeps the newest user message even when the history around it does not fit', () => {
+    const prompt: Prompt = [user('the task'), assistant('old work'), user('and now answer this')]
+
+    const kept = withinBudget(prompt, 30)
+
+    expect(kept).toStrictEqual([user('the task'), user('and now answer this')])
+  })
+
+  it('throws when the fixed messages alone exceed the budget', () => {
+    const prompt: Prompt = [system('behave'), user('the task')]
+
+    expect(() => withinBudget(prompt, 5)).toThrow('exceed the 5 token budget')
+  })
+
   it('keeps only the head when no user message exists', () => {
     const prompt: Prompt = [system('behave'), assistant('working')]
 

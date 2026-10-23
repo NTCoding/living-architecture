@@ -22,21 +22,9 @@ const CONVERSATION_TOKEN_BUDGET = 120_000
  */
 const RECENT_TOOL_STEPS_KEPT = 3
 
-const AGENT_IDS = [
-  'planner',
-  'implementer',
-  'pull-request-writer',
-  'architecture-review',
-  'code-review',
-  'bug-scanner',
-] as const
-
-/** @riviere-role external-client-model */
-export type AgentId = (typeof AGENT_IDS)[number]
-
 /** @riviere-role external-client-model */
 export interface AgentRequest {
-  readonly id: AgentId
+  readonly id: string
   readonly model: string
   readonly instructions: string
   readonly workspacePath: string | null
@@ -61,36 +49,33 @@ export function agentRequestContextOf(request: AgentRequest): RequestContext {
 }
 
 /**
- * Registers one agent per name on the Mastra instance, so the Studio can show the agents, their
- * threads and their transcripts, and so every model call joins the workflow trace and records its
- * token usage.
+ * Registers one agent per given name on the Mastra instance, so the Studio can show the agents,
+ * their threads and their transcripts, and so every model call joins the workflow trace and
+ * records its token usage. The names come from the caller; this wiring carries no knowledge of
+ * which agents the factory employs.
  *
  * @riviere-role external-client-service
  */
 export function createAgents(dependencies: {
   readonly memory: Memory
   readonly tools: ToolsInput
-}): Record<AgentId, Agent> {
-  return {
-    planner: registeredAgent('planner', dependencies),
-    implementer: registeredAgent('implementer', dependencies),
-    'pull-request-writer': registeredAgent('pull-request-writer', dependencies),
-    'architecture-review': registeredAgent('architecture-review', dependencies),
-    'code-review': registeredAgent('code-review', dependencies),
-    'bug-scanner': registeredAgent('bug-scanner', dependencies),
-  }
+  readonly agentNames: readonly string[]
+}): Record<string, Agent> {
+  return Object.fromEntries(
+    dependencies.agentNames.map((name) => [name, registeredAgent(name, dependencies)]),
+  )
 }
 
 /**
- * Resolves a generation request's agent name against the registered agent names, so an unknown
- * name fails before any provider call.
+ * Resolves a generation request's agent name against the registered agents, so an unknown name
+ * fails before any provider call.
  *
  * @riviere-role external-client-service
  */
-export function agentIdOf(value: string): AgentId {
-  const found = AGENT_IDS.find((id) => id === value)
-  if (found === undefined) throw new UnregisteredAgent(value)
-  return found
+export function agentFrom(agents: Record<string, Agent>, name: string): Agent {
+  const agent = agents[name]
+  if (agent === undefined) throw new UnregisteredAgent(name)
+  return agent
 }
 
 /** @riviere-role external-client-error */
@@ -102,15 +87,12 @@ export class UnregisteredAgent extends Error {
 }
 
 function registeredAgent(
-  id: AgentId,
-  dependencies: {
-    readonly memory: Memory
-    readonly tools: ToolsInput
-  },
+  name: string,
+  dependencies: { readonly memory: Memory; readonly tools: ToolsInput },
 ): Agent {
   return new Agent({
-    id,
-    name: id,
+    id: name,
+    name,
     instructions: ({ requestContext }) => requiredString(requestContext, 'instructions'),
     model: ({ requestContext }) => requiredString(requestContext, 'model'),
     tools: ({ requestContext }) =>

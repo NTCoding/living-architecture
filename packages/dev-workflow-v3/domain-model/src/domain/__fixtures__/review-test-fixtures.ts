@@ -1,5 +1,5 @@
 import { ReviewFinding } from '../review-finding'
-import { Reviewer } from '../reviewer'
+import { Reviewer } from '../agents/reviewer'
 
 export const architectureReviewer = Reviewer.fromName('architecture-review')
 

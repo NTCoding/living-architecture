@@ -37,9 +37,22 @@ export class TaskPreservingTokenLimiter implements Processor {
 /** @riviere-role external-client-service */
 export function withinBudget(prompt: Prompt, limit: number): Prompt {
   const head = fixedHeadOf(prompt)
-  const history = prompt.slice(head.length)
-  const kept = newestWithinBudget(history, limit - tokensOfPrompt(head))
-  return [...head, ...kept]
+  const tail = trailingUserOf(prompt, head.length)
+  const history = prompt.slice(head.length, prompt.length - tail.length)
+  const budget = limit - tokensOfPrompt(head) - tokensOfPrompt(tail)
+  if (budget < 0) throw new HistoryBeyondBudget(limit)
+  const kept = newestWithinBudget(history, budget)
+  return [...head, ...kept, ...tail]
+}
+
+/**
+ * The newest user message carries what the run must answer next, so it survives trimming no matter
+ * how old the exchanges around it are.
+ */
+function trailingUserOf(prompt: Prompt, headLength: number): Prompt {
+  const last = prompt[prompt.length - 1]
+  if (last?.role !== 'user') return []
+  return prompt.length > headLength ? [last] : []
 }
 
 /**
@@ -80,6 +93,14 @@ function withoutDanglingToolResults(window: Prompt): Prompt {
 
 function tokensOfPrompt(prompt: Prompt): number {
   return prompt.reduce((total, message) => total + tokensOfMessage(message), 0)
+}
+
+/** @riviere-role external-client-error */
+export class HistoryBeyondBudget extends Error {
+  constructor(limit: number) {
+    super(`The system messages and user messages alone exceed the ${String(limit)} token budget.`)
+    this.name = 'HistoryBeyondBudget'
+  }
 }
 
 function tokensOfMessage(message: PromptMessage): number {

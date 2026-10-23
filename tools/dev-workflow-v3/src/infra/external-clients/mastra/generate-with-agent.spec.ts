@@ -82,18 +82,6 @@ function recordedFailure(directory: string, agentId: string): Record<string, unk
 }
 
 describe('createAgentGeneration', () => {
-  it('rejects a request for an agent no registry carries', async () => {
-    const { agent } = agentWithResponseQueue([usefulAnswer()])
-    const generate = createAgentGeneration({
-      workingDirectory: process.cwd(),
-      agentFor: () => agent,
-    })
-
-    await expect(generate(aRequest({ agentId: 'not-registered' }))).rejects.toThrow(
-      'No agent is registered under "not-registered".',
-    )
-  })
-
   it('passes the thinking level as a Mastra reasoning model setting and builds no providerOptions', async () => {
     const { agent, calls } = agentWithResponseQueue([usefulAnswer()])
     const generate = createAgentGeneration({

@@ -80,8 +80,23 @@ describe('sanitizePrompt', () => {
     const prompt: Prompt = [
       user('the task'),
       assistantWithToolCall('call-1'),
-      toolResult('call-1', 'kept'),
-      toolResult('call-gone', 'lost'),
+      {
+        role: 'tool',
+        content: [
+          {
+            type: 'tool-result',
+            toolCallId: 'call-1',
+            toolName: 'run',
+            output: { type: 'text', value: 'kept' },
+          },
+          {
+            type: 'tool-result',
+            toolCallId: 'call-gone',
+            toolName: 'run',
+            output: { type: 'text', value: 'lost' },
+          },
+        ],
+      },
     ]
 
     const result = sanitizePrompt(prompt)
@@ -123,8 +138,23 @@ describe('ProviderMessageSanitizer', () => {
       prompt: [
         user('the task'),
         assistantWithToolCall('call-1'),
-        toolResult('call-1', 'kept'),
-        toolResult('call-gone', 'lost'),
+        {
+          role: 'tool',
+          content: [
+            {
+              type: 'tool-result',
+              toolCallId: 'call-1',
+              toolName: 'run',
+              output: { type: 'text', value: 'kept' },
+            },
+            {
+              type: 'tool-result',
+              toolCallId: 'call-gone',
+              toolName: 'run',
+              output: { type: 'text', value: 'lost' },
+            },
+          ],
+        },
       ],
     })
 

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Reviewer } from './reviewer'
+import { Reviewer } from './agents/reviewer'
 
 const FILE_PATH_SCHEMA = z.string().trim().min(1)
 const LINE_NUMBER_SCHEMA = z.number().int().positive()
