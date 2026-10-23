@@ -97,9 +97,10 @@
   "dependencies": {
     "@living-architecture/dev-workflow-v3-domain-model": "workspace:*",
     "@living-architecture/dev-workflow-v3-use-cases": "workspace:*",
-    "@mastra/core": "1.77.0",
-    "@mastra/libsql": "1.25.1",
-    "@mastra/memory": "1.36.0",
+    "@mastra/core": "1.78.0",
+    "@mastra/libsql": "1.26.2",
+    "@mastra/memory": "1.38.0",
+    "@mastra/observability": "^1.20.1",
     "commander": "^14.0.2",
     "zod": "^3.23.0"
   },
@@ -107,5 +108,8 @@
   "bin": {
     "factory": "./dist/shell/main.js"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "@mastra/deployer": "^1.78.0"
+  }
 }

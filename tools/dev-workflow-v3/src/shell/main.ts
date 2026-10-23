@@ -5,6 +5,7 @@ import { createInterface } from 'node:readline/promises'
 import { promisify } from 'node:util'
 import { Command } from 'commander'
 import type { Run, Workflow } from '@mastra/core/workflows'
+import type { Mastra } from '@mastra/core'
 import { BuildWorkflow } from '@living-architecture/dev-workflow-v3-use-cases/commands/build-workflow'
 import { ParseReviewers } from '@living-architecture/dev-workflow-v3-use-cases/commands/parse-reviewers'
 import { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
@@ -48,6 +49,7 @@ import { readRepositoryGuidance } from '../infra/external-clients/repository/rea
 const execFileAsync = promisify(execFile)
 
 type Factory = {
+  readonly mastra: Mastra
   readonly startImplementation: Workflow
   readonly reviewCycle: Workflow
   readonly workingDirectory: string
@@ -132,12 +134,20 @@ export async function main(argv: readonly string[]): Promise<number> {
     if (exitCode !== undefined) return exitCode
     process.stderr.write(`${String(error)}\n`)
     return 1
+  } finally {
+    // A short-lived CLI process would otherwise exit with spans still buffered.
+    await factory.mastra.observability.flush()
   }
 }
 
-async function buildFactory(workingDirectory: string): Promise<Factory> {
+/**
+ * @riviere-role main
+ */
+export async function buildFactory(workingDirectory: string): Promise<Factory> {
   const { storage, memory } = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
+  const logFilePath = `${workingDirectory}/.factory/mastra-logs.jsonl`
   const generation = createAgentGeneration({
+    workingDirectory,
     agentFor: createAgentFactory({ memory, tools: { askUser: createAskUserTool() } }),
   })
   const runCommand = runProcess
@@ -206,8 +216,9 @@ async function buildFactory(workingDirectory: string): Promise<Factory> {
     }),
     adaptWorkflow: adaptWorkflowToMastra(),
   })
-  createMastraInstance({
+  const mastra = createMastraInstance({
     storage,
+    logFilePath,
     workflows: {
       'start-implementation': build.startImplementation,
       'review-cycle': build.reviewCycle,
@@ -219,6 +230,7 @@ async function buildFactory(workingDirectory: string): Promise<Factory> {
   })
   const repositoryUrl = await readRepositoryUrl(runCommand, workingDirectory)
   return {
+    mastra,
     startImplementation: build.startImplementation,
     reviewCycle: build.reviewCycle,
     workingDirectory,
