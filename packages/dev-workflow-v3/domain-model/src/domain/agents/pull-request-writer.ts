@@ -3,8 +3,6 @@ const PULL_REQUEST_WRITER_BRIEF = [
   'Your prompt gives you the issue, the list of files the branch changes, and the commit on',
   'the branch. The repository checks ran when that commit was made. That is everything you',
   'know; work only from it.',
-  'Read AGENTS.md at the root of your workspace first and follow it, including the files it',
-  'references, especially the pull request format of this repository.',
   'Do not invent work that was not done, and do not claim a check or a test that did not run.',
   'When you lack evidence for a field, write exactly what is known and what is not, rather',
   'than guessing.',
