@@ -1,26 +1,8 @@
 import { Agent } from '@mastra/core/agent'
 import type { ToolsInput } from '@mastra/core/agent'
 import type { Memory } from '@mastra/memory'
-import { ToolCallFilter } from '@mastra/core/processors'
 import { RequestContext } from '@mastra/core/request-context'
 import { createWorkspace } from './create-workspace'
-import { ProviderMessageSanitizer } from './provider-message-sanitizer'
-import { TaskPreservingTokenLimiter } from './task-preserving-token-limiter'
-
-/**
- * The implementer works one issue on one thread that only grows, and the reviewers read a whole
- * change. Both would eventually hand the model more than it can hold. This budget keeps a long
- * coding session in the prompt while leaving room, inside a 200k context, for the instructions,
- * the workspace description and the answer.
- */
-const CONVERSATION_TOKEN_BUDGET = 120_000
-
-/**
- * The agent needs the most recent tool exchanges to choose its next command. Older exchanges are
- * finished work: they stay in the stored thread but leave the prompt, so a long session keeps its
- * prefix stable for provider caching instead of swelling toward the budget.
- */
-const RECENT_TOOL_STEPS_KEPT = 3
 
 /** @riviere-role external-client-model */
 export interface AgentRequest {
@@ -98,14 +80,6 @@ function registeredAgent(
     tools: ({ requestContext }) =>
       requiredBoolean(requestContext, 'useTools') ? dependencies.tools : {},
     memory: dependencies.memory,
-    inputProcessors: [
-      new ToolCallFilter({
-        preserveModelOutput: true,
-        filterAfterToolSteps: RECENT_TOOL_STEPS_KEPT,
-      }),
-      new TaskPreservingTokenLimiter({ limit: CONVERSATION_TOKEN_BUDGET }),
-      new ProviderMessageSanitizer(),
-    ],
     workspace: ({ requestContext }) => workspaceOf(requestContext),
   })
 }

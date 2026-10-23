@@ -138,6 +138,55 @@ describe('createAgentGeneration', () => {
     expect(calls[0]?.options.autoResumeSuspendedTools).toBe(true)
   })
 
+  it('sends the workspace repo guidance before the role instructions when the request carries a workspace', async () => {
+    const workspace = mkdtempSync(join(tmpdir(), 'factory-workspace-'))
+    writeFileSync(join(workspace, 'AGENTS.md'), '# Repo rules\n\nUse nx commands.\n')
+    const { agent, calls } = agentWithResponseQueue([usefulAnswer()])
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
+
+    await generate(aRequest({ workspacePath: workspace }))
+
+    const requestContext = calls[0]?.options.requestContext
+    const instructions = requestContext?.get('instructions')
+    expect(instructions).toStrictEqual(
+      [
+        '# Repo rules\n\nUse nx commands.',
+        'A subdirectory may contain its own AGENTS.md; its rules apply to the files under it.',
+        'Read the nearest one before working inside a package.',
+        '',
+        'carry the issue',
+      ].join('\n'),
+    )
+  })
+
+  it('throws MissingRepoGuidance when the workspace carries no AGENTS.md', async () => {
+    const workspace = mkdtempSync(join(tmpdir(), 'factory-workspace-'))
+    const { agent } = agentWithResponseQueue([usefulAnswer()])
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
+
+    await expect(generate(aRequest({ workspacePath: workspace }))).rejects.toThrow(
+      `The workspace at ${workspace} carries no AGENTS.md to guide the agent.`,
+    )
+  })
+
+  it('sends the role instructions unchanged when the request carries no workspace', async () => {
+    const { agent, calls } = agentWithResponseQueue([usefulAnswer()])
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
+
+    await generate(aRequest({ workspacePath: null }))
+
+    expect(calls[0]?.options.requestContext?.get('instructions')).toBe('carry the issue')
+  })
+
   it('passes the response schema and its model when a response schema is given', async () => {
     const { agent, calls } = agentWithResponseQueue([
       { object: { answer: 'yes' }, text: '', finishReason: 'stop' },

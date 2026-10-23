@@ -18,7 +18,15 @@ export interface MastraStorage {
  */
 export function createMastraStorage(url: string): MastraStorage {
   const storage = new LibSQLStore({ id: 'factory', url })
-  return { storage, memory: new Memory({ storage }) }
+  return {
+    storage,
+    memory: new Memory({
+      storage,
+      options: {
+        observationalMemory: true,
+      },
+    }),
+  }
 }
 
 /**
