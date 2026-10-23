@@ -55,17 +55,15 @@ function fixedHeadOf(prompt: Prompt): Prompt {
 }
 
 function newestWithinBudget(history: Prompt, limit: number): Prompt {
-  const window = history
-    .map((message, index) => ({ message, index, tokens: tokensOfMessage(message) }))
-    .reverse()
-    .reduce<{ kept: Prompt; used: number }>(
-      (state, entry) =>
-        state.used + entry.tokens > limit
-          ? state
-          : { kept: [entry.message, ...state.kept], used: state.used + entry.tokens },
-      { kept: [], used: 0 },
-    )
-  return withoutDanglingToolResults(window.kept)
+  const { kept } = history.reduceRight<{ kept: Prompt; used: number; stopped: boolean }>(
+    (state, message) => {
+      const tokens = tokensOfMessage(message)
+      if (state.stopped || state.used + tokens > limit) return { ...state, stopped: true }
+      return { kept: [message, ...state.kept], used: state.used + tokens, stopped: false }
+    },
+    { kept: [], used: 0, stopped: false },
+  )
+  return withoutDanglingToolResults(kept)
 }
 
 /**

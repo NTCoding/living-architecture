@@ -4,10 +4,6 @@ import type { ProcessLLMRequestArgs } from '@mastra/core/processors'
 
 type Prompt = ProcessLLMRequestArgs['prompt']
 
-function aPrompt(messages: Prompt): Prompt {
-  return messages
-}
-
 function system(text: string): Prompt[number] {
   return { role: 'system', content: text }
 }
@@ -37,58 +33,75 @@ function toolResult(toolCallId: string, text: string): Prompt[number] {
 }
 
 describe('sanitizePrompt', () => {
-  it('keeps a well-shaped history untouched', () => {
-    const prompt = aPrompt([
+  it('reports no change for a well-shaped history', () => {
+    const prompt: Prompt = [
       system('behave'),
       user('the task'),
       assistantWithText('working'),
       assistantWithToolCall('call-1'),
       toolResult('call-1', 'done'),
-    ])
+    ]
 
-    expect(sanitizePrompt(prompt)).toStrictEqual(prompt)
+    expect(sanitizePrompt(prompt)).toStrictEqual({ prompt, changed: false })
   })
 
-  it('drops assistant messages left empty by tool-call filtering', () => {
-    const prompt = aPrompt([
+  it('drops assistant messages left empty by tool-call filtering and reports the change', () => {
+    const prompt: Prompt = [
       user('the task'),
       { role: 'assistant', content: [] },
       assistantWithText('working'),
-    ])
+    ]
 
-    expect(sanitizePrompt(prompt)).toStrictEqual([user('the task'), assistantWithText('working')])
+    const result = sanitizePrompt(prompt)
+
+    expect(result.prompt).toStrictEqual([user('the task'), assistantWithText('working')])
+    expect(result.changed).toBe(true)
   })
 
-  it('drops tool results whose assistant tool call was trimmed away', () => {
-    const prompt = aPrompt([
+  it('drops tool results whose assistant tool call was trimmed away and reports the change', () => {
+    const prompt: Prompt = [
       user('the task'),
       assistantWithToolCall('call-1'),
       toolResult('call-1', 'done'),
       toolResult('call-gone', 'lost'),
-    ])
+    ]
 
-    const sanitized = sanitizePrompt(prompt)
+    const result = sanitizePrompt(prompt)
 
-    expect(sanitized).toStrictEqual([
+    expect(result.prompt).toStrictEqual([
       user('the task'),
       assistantWithToolCall('call-1'),
       toolResult('call-1', 'done'),
     ])
+    expect(result.changed).toBe(true)
   })
 
-  it('keeps only the tool result that still has its assistant tool call', () => {
-    const prompt = aPrompt([
+  it('drops the orphaned part of a tool message that still holds a kept result', () => {
+    const prompt: Prompt = [
       user('the task'),
       assistantWithToolCall('call-1'),
       toolResult('call-1', 'kept'),
       toolResult('call-gone', 'lost'),
-    ])
+    ]
 
-    expect(sanitizePrompt(prompt)).toStrictEqual([
+    const result = sanitizePrompt(prompt)
+
+    expect(result.prompt).toStrictEqual([
       user('the task'),
       assistantWithToolCall('call-1'),
       toolResult('call-1', 'kept'),
     ])
+    expect(result.changed).toBe(true)
+  })
+
+  it('reports no change when every tool result still has its assistant tool call', () => {
+    const prompt: Prompt = [
+      user('the task'),
+      assistantWithToolCall('call-1'),
+      toolResult('call-1', 'kept'),
+    ]
+
+    expect(sanitizePrompt(prompt)).toStrictEqual({ prompt, changed: false })
   })
 })
 
@@ -97,17 +110,34 @@ describe('ProviderMessageSanitizer', () => {
     const sanitizer = new ProviderMessageSanitizer()
 
     const result = sanitizer.processLLMRequest({
-      prompt: aPrompt([user('the task'), { role: 'assistant', content: [] }]),
+      prompt: [user('the task'), { role: 'assistant', content: [] }],
     })
 
     expect(result).toStrictEqual({ prompt: [user('the task')] })
+  })
+
+  it('returns the tidied prompt when only a tool result part is orphaned', () => {
+    const sanitizer = new ProviderMessageSanitizer()
+
+    const result = sanitizer.processLLMRequest({
+      prompt: [
+        user('the task'),
+        assistantWithToolCall('call-1'),
+        toolResult('call-1', 'kept'),
+        toolResult('call-gone', 'lost'),
+      ],
+    })
+
+    expect(result).toStrictEqual({
+      prompt: [user('the task'), assistantWithToolCall('call-1'), toolResult('call-1', 'kept')],
+    })
   })
 
   it('returns undefined and leaves the prompt alone when the history is well-shaped', () => {
     const sanitizer = new ProviderMessageSanitizer()
 
     const result = sanitizer.processLLMRequest({
-      prompt: aPrompt([user('the task'), assistantWithText('working')]),
+      prompt: [user('the task'), assistantWithText('working')],
     })
 
     expect(result).toBeUndefined()

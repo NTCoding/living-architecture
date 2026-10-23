@@ -152,7 +152,7 @@ function registeredAgentOf(agents: Record<AgentId, Agent>, id: AgentRequest['id'
 export async function buildFactory(workingDirectory: string): Promise<Factory> {
   const { storage, memory } = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
   const logFilePath = `${workingDirectory}/.factory/mastra-logs.jsonl`
-  const agents = createAgents({ memory, tools: { askUser: createAskUserTool() } })
+  const agents = createAgents({ memory, tools: { 'ask-user': createAskUserTool() } })
   const generation = createAgentGeneration({
     workingDirectory,
     agentFor: (request) => registeredAgentOf(agents, request.id),

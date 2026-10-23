@@ -91,6 +91,34 @@ describe('withinBudget', () => {
     expect(withinBudget(prompt, 70)).toStrictEqual([user('the task'), assistant('newest')])
   })
 
+  it('stops at the first message that does not fit, keeping the window contiguous', () => {
+    const prompt: Prompt = [
+      user('the task'),
+      {
+        role: 'assistant',
+        content: [{ type: 'tool-call', toolCallId: 'call-1', toolName: 'run', input: '{}' }],
+      },
+      {
+        role: 'tool',
+        content: [
+          {
+            type: 'tool-result',
+            toolCallId: 'call-1',
+            toolName: 'run',
+            output: { type: 'text', value: 'large result' },
+          },
+        ],
+      },
+      assistant('newest'),
+    ]
+
+    const kept = withinBudget(prompt, 40)
+
+    expect(kept).toStrictEqual([user('the task'), assistant('newest')])
+    expect(JSON.stringify(kept)).not.toContain('tool-call')
+    expect(JSON.stringify(kept)).not.toContain('tool-result')
+  })
+
   it('keeps only the head when a trimmed window would start with orphaned tool results', () => {
     const prompt: Prompt = [
       user('the task'),

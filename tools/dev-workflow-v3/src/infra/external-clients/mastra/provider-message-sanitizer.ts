@@ -22,19 +22,21 @@ export class ProviderMessageSanitizer implements Processor {
   name = 'Provider Message Sanitizer'
 
   processLLMRequest({ prompt }: { readonly prompt: Prompt }): ProcessLLMRequestResult {
-    const sanitized = sanitizePrompt(prompt)
-    if (sanitized.length === prompt.length) return undefined
+    const { prompt: sanitized, changed } = sanitizePrompt(prompt)
+    if (!changed) return undefined
     return { prompt: sanitized }
   }
 }
 
 /** @riviere-role external-client-service */
-export function sanitizePrompt(prompt: Prompt): Prompt {
-  const withCompletePairs = dropDanglingToolResults(prompt)
-  return withCompletePairs.filter((message) => !isDroppedMessage(message))
+export function sanitizePrompt(prompt: Prompt): { prompt: Prompt; changed: boolean } {
+  const { messages: withCompletePairs, changed: droppedParts } = dropDanglingToolResults(prompt)
+  const withoutEmpty = withCompletePairs.filter((message) => !isDroppedMessage(message))
+  const changed = droppedParts || withoutEmpty.length !== withCompletePairs.length
+  return { prompt: withoutEmpty, changed }
 }
 
-function dropDanglingToolResults(prompt: Prompt): Prompt {
+function dropDanglingToolResults(prompt: Prompt): { messages: Prompt; changed: boolean } {
   const calledToolCallIds = new Set(
     prompt.flatMap((message) =>
       message.role === 'assistant'
@@ -42,13 +44,14 @@ function dropDanglingToolResults(prompt: Prompt): Prompt {
         : [],
     ),
   )
-  return prompt.map((message) => {
+  const messages = prompt.map((message) => {
     if (message.role !== 'tool') return message
-    return {
-      ...message,
-      content: message.content.filter((part) => calledToolCallIds.has(part.toolCallId)),
-    }
+    const kept = message.content.filter((part) => calledToolCallIds.has(part.toolCallId))
+    if (kept.length === message.content.length) return message
+    return { ...message, content: kept }
   })
+  const changed = messages.some((message, index) => message !== prompt[index])
+  return { messages, changed }
 }
 
 function isDroppedMessage(message: PromptMessage): boolean {
