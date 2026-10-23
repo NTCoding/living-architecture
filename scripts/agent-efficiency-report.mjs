@@ -9,6 +9,7 @@
 
 import { DatabaseSync } from 'node:sqlite'
 import { mkdirSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
 import { dirname, resolve } from 'node:path'
 
 const CHECKS = [
@@ -62,6 +63,19 @@ function stripAnsi(text) {
   return text.replaceAll(/\x1b\[[0-9;]*m/g, '')
 }
 
+// Redacts local identifiers so they never reach the committed report.
+function redact(text) {
+  return text.split(homedir()).join('<home>')
+}
+
+// The stored output is whatever the agent captured, which is truncated when it
+// piped the command through `tail`. Say so rather than present it as complete.
+function outputNote(output) {
+  return output.includes('[showing last')
+    ? 'Output captured by the agent was truncated at capture time.'
+    : 'Full output as captured by the agent.'
+}
+
 function failureMarkdown(failure) {
   const time = new Date(failure.timestamp).toISOString()
   return [
@@ -69,10 +83,12 @@ function failureMarkdown(failure) {
     `<summary>${time} — exit code ${failure.exitCode}</summary>`,
     '',
     '```text',
-    `$ ${failure.command}`,
+    `$ ${redact(failure.command)}`,
     '',
-    stripAnsi(failure.output) || '(no output)',
+    redact(stripAnsi(failure.output)) || '(no output)',
     '```',
+    '',
+    `_${outputNote(failure.output)}_`,
     '',
     '</details>',
   ].join('\n')

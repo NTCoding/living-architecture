@@ -16,7 +16,7 @@ $ pnpm nx lint riviere-extract-ts-domain-model 2>&1 | tail -25
 [showing last 25 of 102 lines]
   356:18  error  Prefer `String#replaceAll()` over `String#replace()`  unicorn/prefer-string-replace-all
 
-/Users/nicktune/Documents/living-architecture/.factory/worktrees/issue-501-3-add-bounded-ai-extraction/packages/riviere-extract-ts/domain-model/src/domain/riviere-project-ai-cli.spec.ts
+<home>/Documents/living-architecture/.factory/worktrees/issue-501-3-add-bounded-ai-extraction/packages/riviere-extract-ts/domain-model/src/domain/riviere-project-ai-cli.spec.ts
   149:8   warning  '_command' is defined but never used  @typescript-eslint/no-unused-vars
   156:47  warning  '_command' is defined but never used  @typescript-eslint/no-unused-vars
   176:8   warning  '_command' is defined but never used  @typescript-eslint/no-unused-vars
@@ -42,6 +42,8 @@ Hint: run the command with --verbose for more details.
 
 Exit code: 1
 ```
+
+_Output captured by the agent was truncated at capture time._
 
 </details>
 
@@ -82,5 +84,7 @@ Hint: run the command with --verbose for more details.
 
 Exit code: 1
 ```
+
+_Output captured by the agent was truncated at capture time._
 
 </details>

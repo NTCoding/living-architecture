@@ -57,6 +57,24 @@ describe('guardWorkspaceCommand', () => {
     })
   })
 
+  it('refuses a piped lint command that does not use nx', () => {
+    const decision = guardWorkspaceCommand({
+      toolName: WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND,
+      input: { command: 'pnpm lint:md | tail -25' },
+    })
+
+    expect(decision?.proceed).toBe(false)
+  })
+
+  it('allows a piped search command that only mentions a verification word', () => {
+    const decision = guardWorkspaceCommand({
+      toolName: WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND,
+      input: { command: 'rg -n test . | head' },
+    })
+
+    expect(decision).toBeUndefined()
+  })
+
   it('allows a bare verification command', () => {
     const decision = guardWorkspaceCommand({
       toolName: WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND,

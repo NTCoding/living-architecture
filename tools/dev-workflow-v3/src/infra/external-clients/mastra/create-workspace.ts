@@ -57,10 +57,13 @@ export function guardWorkspaceCommand(context: {
  * `grep` hides the exact failure reason and the true exit code, so the agent wastes turns
  * reconstructing what the command already knew.
  */
-const VERIFICATION_COMMANDS = [/\bnx\b.*\blint\b/, /\brole.?check\b/, /\bverify\b/, /\btest\b/]
+const VERIFICATION_TARGETS = ['lint', 'role-check', 'verify', 'test']
 
 function isVerificationCommand(command: string): boolean {
-  return VERIFICATION_COMMANDS.some((pattern) => pattern.test(command))
+  const invocation = /(?:nx|pnpm|npm|yarn)\s+([^|]*)/.exec(command)
+  if (invocation?.[1] === undefined) return false
+  const invoked = invocation[1].toLowerCase()
+  return VERIFICATION_TARGETS.some((target) => invoked.includes(target))
 }
 
 function isAgentCommandAllowed(command: string): boolean {
