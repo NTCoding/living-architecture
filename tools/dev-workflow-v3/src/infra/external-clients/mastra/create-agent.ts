@@ -1,8 +1,11 @@
 import { Agent } from '@mastra/core/agent'
 import type { ToolsInput } from '@mastra/core/agent'
 import type { Memory } from '@mastra/memory'
-import { TokenLimiter, ToolCallFilter } from '@mastra/core/processors'
+import { ToolCallFilter } from '@mastra/core/processors'
+import { RequestContext } from '@mastra/core/request-context'
 import { createWorkspace } from './create-workspace'
+import { ProviderMessageSanitizer } from './provider-message-sanitizer'
+import { TaskPreservingTokenLimiter } from './task-preserving-token-limiter'
 
 /**
  * The implementer works one issue on one thread that only grows, and the reviewers read a whole
@@ -12,9 +15,29 @@ import { createWorkspace } from './create-workspace'
  */
 const CONVERSATION_TOKEN_BUDGET = 120_000
 
+/**
+ * The agent needs the most recent tool exchanges to choose its next command. Older exchanges are
+ * finished work: they stay in the stored thread but leave the prompt, so a long session keeps its
+ * prefix stable for provider caching instead of swelling toward the budget.
+ */
+const RECENT_TOOL_STEPS_KEPT = 3
+
+/** @riviere-role external-client-model */
+export const AGENT_IDS = [
+  'planner',
+  'implementer',
+  'pull-request-writer',
+  'architecture-review',
+  'code-review',
+  'bug-scanner',
+] as const
+
+/** @riviere-role external-client-model */
+export type AgentId = (typeof AGENT_IDS)[number]
+
 /** @riviere-role external-client-model */
 export interface AgentRequest {
-  readonly id: string
+  readonly id: AgentId
   readonly model: string
   readonly instructions: string
   readonly workspacePath: string | null
@@ -23,34 +46,103 @@ export interface AgentRequest {
 }
 
 /**
+ * Builds the per-call request context the registered agents resolve their model, instructions,
+ * tools and workspace from, so one registered agent per name serves every generation request.
+ *
  * @riviere-role external-client-service
  */
-export function createAgentFactory(dependencies: {
+export function agentRequestContextOf(request: AgentRequest): RequestContext {
+  const context = new RequestContext()
+  context.set('model', request.model)
+  context.set('instructions', request.instructions)
+  context.set('workspacePath', request.workspacePath)
+  context.set('useTools', request.useTools)
+  context.set('workspaceWritable', request.workspaceWritable)
+  return context
+}
+
+/**
+ * Registers one agent per name on the Mastra instance, so the Studio can show the agents, their
+ * threads and their transcripts, and so every model call joins the workflow trace and records its
+ * token usage.
+ *
+ * @riviere-role external-client-service
+ */
+export function createAgents(dependencies: {
   readonly memory: Memory
   readonly tools: ToolsInput
-}): (request: AgentRequest) => Agent {
-  return (request) =>
-    new Agent({
-      id: request.id,
-      name: request.id,
-      instructions: request.instructions,
-      model: request.model,
-      tools: request.useTools ? dependencies.tools : {},
-      memory: dependencies.memory,
-      ...(request.useTools
-        ? {
-            inputProcessors: [
-              new ToolCallFilter({ preserveModelOutput: true }),
-              new TokenLimiter({ limit: CONVERSATION_TOKEN_BUDGET }),
-            ],
-          }
-        : {}),
-      ...(request.workspacePath === null
-        ? {}
-        : {
-            workspace: createWorkspace(request.workspacePath, {
-              readOnly: !request.workspaceWritable,
-            }),
-          }),
-    })
+}): Record<AgentId, Agent> {
+  return {
+    planner: registeredAgent('planner', dependencies),
+    implementer: registeredAgent('implementer', dependencies),
+    'pull-request-writer': registeredAgent('pull-request-writer', dependencies),
+    'architecture-review': registeredAgent('architecture-review', dependencies),
+    'code-review': registeredAgent('code-review', dependencies),
+    'bug-scanner': registeredAgent('bug-scanner', dependencies),
+  }
+}
+
+function registeredAgent(
+  id: AgentId,
+  dependencies: {
+    readonly memory: Memory
+    readonly tools: ToolsInput
+  },
+): Agent {
+  return new Agent({
+    id,
+    name: id,
+    instructions: ({ requestContext }) => requiredString(requestContext, 'instructions'),
+    model: ({ requestContext }) => requiredString(requestContext, 'model'),
+    tools: ({ requestContext }) =>
+      requiredBoolean(requestContext, 'useTools') ? dependencies.tools : {},
+    memory: dependencies.memory,
+    inputProcessors: [
+      new ToolCallFilter({
+        preserveModelOutput: true,
+        filterAfterToolSteps: RECENT_TOOL_STEPS_KEPT,
+      }),
+      new TaskPreservingTokenLimiter({ limit: CONVERSATION_TOKEN_BUDGET }),
+      new ProviderMessageSanitizer(),
+    ],
+    workspace: ({ requestContext }) => workspaceOf(requestContext),
+  })
+}
+
+function workspaceOf(requestContext: RequestContext) {
+  const workspacePath = requiredStringOrNull(requestContext, 'workspacePath')
+  if (workspacePath === null) return undefined
+  return createWorkspace(workspacePath, {
+    readOnly: !requiredBoolean(requestContext, 'workspaceWritable'),
+  })
+}
+
+function requiredString(requestContext: RequestContext | undefined, key: string): string {
+  const value = requestContext?.get(key)
+  if (typeof value !== 'string' || value === '') throw new MissingAgentContextValue(key)
+  return value
+}
+
+function requiredStringOrNull(
+  requestContext: RequestContext | undefined,
+  key: string,
+): string | null {
+  const value = requestContext?.get(key)
+  if (value === null) return null
+  if (typeof value !== 'string' || value === '') throw new MissingAgentContextValue(key)
+  return value
+}
+
+function requiredBoolean(requestContext: RequestContext | undefined, key: string): boolean {
+  const value = requestContext?.get(key)
+  if (typeof value !== 'boolean') throw new MissingAgentContextValue(key)
+  return value
+}
+
+/** @riviere-role external-client-error */
+export class MissingAgentContextValue extends Error {
+  constructor(key: string) {
+    super(`The agent request context carries no usable value for "${key}".`)
+    this.name = 'MissingAgentContextValue'
+  }
 }

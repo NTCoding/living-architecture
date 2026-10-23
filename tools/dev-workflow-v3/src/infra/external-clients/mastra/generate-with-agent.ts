@@ -2,7 +2,9 @@ import { mkdirSync, renameSync, writeFileSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 import type { z } from 'zod'
-import type { AgentRequest } from './create-agent'
+import type { RequestContext } from '@mastra/core/request-context'
+import type { AgentId, AgentRequest } from './create-agent'
+import { AGENT_IDS, agentRequestContextOf } from './create-agent'
 
 /** @riviere-role external-client-model */
 export interface AgentGenerationRequest {
@@ -25,6 +27,7 @@ export interface AgentGenerationOptions {
   readonly maxSteps: number
   readonly modelSettings: { readonly reasoning: 'none' | 'low' | 'medium' | 'high' }
   readonly abortSignal: AbortSignal
+  readonly requestContext: RequestContext
   readonly memory?: { readonly thread: string; readonly resource: string }
   readonly autoResumeSuspendedTools?: boolean
   readonly structuredOutput?: { readonly schema: z.ZodType<unknown>; readonly model: string }
@@ -68,6 +71,7 @@ function conversationOptions(request: AgentGenerationRequest) {
   return {
     maxSteps: request.maxSteps,
     modelSettings: { reasoning: reasoningLevelOf(request.thinking) },
+    requestContext: agentContextOf(request),
     ...(request.threadId === null
       ? {}
       : {
@@ -110,14 +114,7 @@ async function generateOnce(
   agentFor: (request: AgentRequest) => GeneratingAgent,
   request: AgentGenerationRequest,
 ): Promise<AgentGeneration> {
-  const agent = agentFor({
-    id: request.agentId,
-    model: request.model,
-    instructions: request.instructions,
-    workspacePath: request.workspacePath,
-    useTools: request.useTools,
-    workspaceWritable: request.workspaceWritable,
-  })
+  const agent = agentFor(agentRequestOf(request))
   const abort = new AbortController()
   const timer = setTimeout(() => abort.abort(), request.timeBudgetMs)
   try {
@@ -154,6 +151,27 @@ function reasoningLevelOf(level: string): 'none' | 'low' | 'medium' | 'high' {
   if (level === 'off') return 'none'
   if (level === 'low' || level === 'medium' || level === 'high') return level
   throw new InvalidThinkingLevel(level)
+}
+
+function agentRequestOf(request: AgentGenerationRequest): AgentRequest {
+  return {
+    id: agentIdOf(request.agentId),
+    model: request.model,
+    instructions: request.instructions,
+    workspacePath: request.workspacePath,
+    useTools: request.useTools,
+    workspaceWritable: request.workspaceWritable,
+  }
+}
+
+function agentContextOf(request: AgentGenerationRequest): RequestContext {
+  return agentRequestContextOf(agentRequestOf(request))
+}
+
+function agentIdOf(value: string): AgentId {
+  const found = AGENT_IDS.find((id) => id === value)
+  if (found === undefined) throw new UnregisteredAgent(value)
+  return found
 }
 
 /**
@@ -206,5 +224,13 @@ class InvalidThinkingLevel extends Error {
   constructor(level: string) {
     super(`The thinking level ${level} is not off, low, medium or high.`)
     this.name = 'InvalidThinkingLevel'
+  }
+}
+
+/** @riviere-role external-client-error */
+export class UnregisteredAgent extends Error {
+  constructor(agentId: string) {
+    super(`No agent is registered under "${agentId}".`)
+    this.name = 'UnregisteredAgent'
   }
 }

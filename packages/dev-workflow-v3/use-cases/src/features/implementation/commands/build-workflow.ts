@@ -415,6 +415,10 @@ async function sayTheRunFailed(
   })
 }
 
+function threadFor(issueNumber: number, agentId: string): string {
+  return `issue-${String(issueNumber)}-${agentId}`
+}
+
 function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowStepDefinition[] {
   return [
     {
@@ -471,7 +475,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           instructions: PLANNER_INSTRUCTIONS,
           prompt: planPrompt(state),
           workspacePath: null,
-          threadId: null,
+          threadId: threadFor(state.issueNumber, 'planner'),
           useTools: false,
           workspaceWritable: false,
           responseSchema: planSchema,
@@ -570,7 +574,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           instructions: PULL_REQUEST_WRITER_INSTRUCTIONS,
           prompt: pullRequestPrompt(state),
           workspacePath: null,
-          threadId: null,
+          threadId: threadFor(state.issueNumber, 'pull-request-writer'),
           useTools: false,
           workspaceWritable: false,
           responseSchema: pullRequestDraftSchema,
@@ -931,7 +935,7 @@ function reviewStep(input: BuildWorkflowInput, reviewer: ReviewerName): Workflow
         instructions: Reviewer.fromName(reviewer).brief(),
         prompt: reviewPrompt(state, reviewer, previous, diff),
         workspacePath: state.worktreePath,
-        threadId: null,
+        threadId: threadFor(state.issueNumber, reviewer),
         useTools: true,
         workspaceWritable: false,
         responseSchema: verdictSchema,
@@ -1083,7 +1087,7 @@ async function runFeedbackRound(
     instructions: request.instructions,
     prompt,
     workspacePath: request.state.worktreePath,
-    threadId: `issue-${String(request.state.issueNumber)}`,
+    threadId: threadFor(request.state.issueNumber, 'implementer'),
     useTools: true,
     workspaceWritable: true,
     responseSchema: feedbackSchema,
@@ -1146,7 +1150,7 @@ async function runImplementationRound(
     instructions: request.instructions,
     prompt,
     workspacePath: request.state.worktreePath,
-    threadId: `issue-${String(request.state.issueNumber)}`,
+    threadId: threadFor(request.state.issueNumber, 'implementer'),
     useTools: true,
     workspaceWritable: true,
     responseSchema: implementationSchema,
