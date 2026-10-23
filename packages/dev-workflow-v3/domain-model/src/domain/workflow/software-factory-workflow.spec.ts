@@ -4,9 +4,9 @@ import { SoftwareFactoryWorkflow } from './software-factory-workflow'
 const workflow = SoftwareFactoryWorkflow.singleton()
 
 describe('SoftwareFactoryWorkflow', () => {
-  it('runs fourteen steps to reach a pull request ready for a person', () => {
+  it('runs thirteen steps to reach a pull request ready for a person', () => {
     expect(workflow.startImplementation().id()).toBe('start-implementation')
-    expect(workflow.startImplementation().steps()).toHaveLength(14)
+    expect(workflow.startImplementation().steps()).toHaveLength(13)
   })
 
   it('loops over the review cycle once the pull request is open', () => {

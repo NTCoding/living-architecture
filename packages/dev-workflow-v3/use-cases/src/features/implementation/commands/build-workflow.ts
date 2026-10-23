@@ -2,6 +2,9 @@ import { z } from 'zod'
 import type { Workflow } from '@mastra/core/workflows'
 import {
   PullRequestDraft,
+  Implementer,
+  Planner,
+  PullRequestWriter,
   Reviewer,
   Reviewers,
   SoftwareFactoryWorkflow,
@@ -44,7 +47,6 @@ const runStateSchema = z.object({
   worktreesDirectory: z.string(),
   issueTitle: z.string().default(''),
   issueBody: z.string().default(''),
-  guidance: z.string().default(''),
   worktreePath: z.string().default(''),
   branch: z.string().default(''),
   planMarkdown: z.string().default(''),
@@ -68,7 +70,6 @@ const reviewStateSchema = z.object({
   thinking: thinkingSchema,
   reviewers: z.array(reviewerNameSchema),
   issueNumber: z.number().int().positive(),
-  guidance: z.string().default(''),
   pullRequestNumber: z.number().int().positive(),
   pullRequestUrl: z.string().default(''),
   worktreePath: z.string(),
@@ -161,16 +162,6 @@ const verdictSchema = z.object({
   findings: z.array(reviewedFindingSchema),
 })
 
-const PLANNER_INSTRUCTIONS = [
-  'You are the planner in a software factory workflow.',
-  'Read the issue and the repository guidance, then write a plan.',
-  'Reason only. Do not write files, do not run commands, and do not open pull requests.',
-  'The plan is a short numbered list of the changes the implementer will make.',
-  'Set needsInput to false when the issue is clear enough to implement without asking',
-  'anything. Set needsInput to true only when the plan would diverge from what the issue',
-  'asks, or when a decision is genuinely needed, and put your questions in "question".',
-].join('\n')
-
 const FEEDBACK_INSTRUCTIONS = `You address review feedback on a pull request.
 
 The workflow gives you the feedback items. You do not fetch them, and you do not post to GitHub. The workflow posts your responses.
@@ -189,26 +180,6 @@ Do not resolve anything. The workflow posts the responses and resolves the threa
 Do not broaden the scope of the pull request without a person's approval.
 
 `
-const PULL_REQUEST_WRITER_INSTRUCTIONS = [
-  'You are the pull request writer in a software factory workflow.',
-  'Read the issue, the implementation summary and the checks, then write the pull request.',
-  'Follow the existing pull request format of this repository exactly.',
-  'Do not invent work that was not done, and do not claim a check or a test that did not run.',
-].join('\n')
-
-const IMPLEMENTER_INSTRUCTIONS = [
-  'You are the implementer in a software factory workflow.',
-  'Write the code in the workspace, following the plan and the repository guidance.',
-  'Run the checks, read the failures, and fix them, up to a sensible number of attempts.',
-  'When you cannot decide alone, use the ask-user tool and wait for the answer.',
-  'Do not push, do not open a pull request, and do not merge anything. The workflow does those.',
-  'You must commit your work before you finish. The commit runs the repository checks,',
-  'and if they fail you must fix them and commit again. Do not push.',
-  'When the plan is done, the checks pass and the work is committed, return the summary',
-  'with allWorkComplete and allWorkCommitted both true. If you are running low on steps,',
-  'stop calling tools, commit what you have, and return the summary saying what is left.',
-].join('\n')
-
 const CODERABBIT = 'coderabbit'
 
 const NOBODY_ANSWERED_THE_PLAN =
@@ -263,7 +234,6 @@ export interface BuildWorkflowInput {
     readonly attempt: number
   }) => Promise<{ readonly worktreePath: string; readonly branch: string }>
   readonly installDependencies: (request: { readonly worktreePath: string }) => Promise<void>
-  readonly readGuidance: () => Promise<string>
   readonly generate: (request: {
     readonly agentId: string
     readonly model: string
@@ -455,14 +425,6 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
       },
     },
     {
-      id: 'read-guidance',
-      ...OVER_THE_RUN,
-      run: async ({ data }) => {
-        const state = runStateSchema.parse(data)
-        return { ...state, guidance: await input.readGuidance() }
-      },
-    },
-    {
       id: 'draft-plan',
       ...OVER_THE_RUN,
       scoreWith: scorePlan,
@@ -472,15 +434,15 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           agentId: 'planner',
           model: state.model,
           thinking: state.thinking,
-          instructions: PLANNER_INSTRUCTIONS,
+          instructions: Planner.singleton().brief(),
           prompt: planPrompt(state),
-          workspacePath: null,
+          workspacePath: state.worktreePath,
           threadId: threadFor(state.issueNumber, 'planner'),
-          useTools: false,
+          useTools: true,
           workspaceWritable: false,
           responseSchema: planSchema,
-          maxSteps: 1,
-          timeBudgetMs: 5 * 60 * 1000,
+          maxSteps: 200,
+          timeBudgetMs: REVIEW_TIME_BUDGET_MS,
         })
         const plan = planSchema.safeParse(response.object)
         if (!plan.success) throw new RunFailed(noStructuredOutput('The planner', response))
@@ -536,7 +498,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
             state,
             answer.success ? { answer: answer.data.answer, question: answer.data.question } : null,
           ),
-          instructions: IMPLEMENTER_INSTRUCTIONS,
+          instructions: Implementer.singleton().brief(),
           rounds: IMPLEMENTATION_ROUNDS,
           timeBudgetMs: IMPLEMENTATION_TIME_BUDGET_MS,
         })
@@ -571,15 +533,15 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           agentId: 'pull-request-writer',
           model: state.model,
           thinking: state.thinking,
-          instructions: PULL_REQUEST_WRITER_INSTRUCTIONS,
+          instructions: PullRequestWriter.singleton().brief(),
           prompt: pullRequestPrompt(state),
-          workspacePath: null,
+          workspacePath: state.worktreePath,
           threadId: threadFor(state.issueNumber, 'pull-request-writer'),
-          useTools: false,
+          useTools: true,
           workspaceWritable: false,
           responseSchema: pullRequestDraftSchema,
-          maxSteps: 1,
-          timeBudgetMs: 5 * 60 * 1000,
+          maxSteps: 50,
+          timeBudgetMs: 10 * 60 * 1000,
         })
         const draft = pullRequestDraftSchema.safeParse(response.object)
         if (!draft.success) {
@@ -620,7 +582,6 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           thinking: state.thinking,
           reviewers: state.reviewers,
           issueNumber: state.issueNumber,
-          guidance: state.guidance,
           pullRequestNumber: state.pullRequestNumber,
           pullRequestUrl: state.pullRequestUrl,
           worktreePath: state.worktreePath,
@@ -762,7 +723,6 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
             model: state.model,
             thinking: state.thinking,
             worktreePath: state.worktreePath,
-            guidance: state.guidance,
             baseSha: state.beforeSha,
           },
           firstPrompt: feedbackPrompt(state),
@@ -959,7 +919,6 @@ type ImplementationTarget = {
   readonly model: string
   readonly thinking: string
   readonly worktreePath: string
-  readonly guidance: string
   readonly baseSha: string
 }
 
@@ -1227,9 +1186,6 @@ function planPrompt(state: RunState): string {
     '',
     state.issueBody,
     '',
-    'Repository guidance:',
-    state.guidance,
-    '',
     'Your response:',
     '- markdown: the plan, as a short numbered list.',
     '- needsInput: true when a decision is needed before implementation, otherwise false.',
@@ -1246,9 +1202,6 @@ function implementationPrompt(
     '',
     'Plan:',
     state.planMarkdown,
-    '',
-    'Repository guidance:',
-    state.guidance,
     '',
     'Your response:',
     '- blockedReason: explain as clearly as you can why the work is not complete. Required whenever allWorkComplete is false.',
@@ -1312,9 +1265,6 @@ function feedbackPrompt(state: ReviewState): string {
           state.coderabbitRequest,
           'Address this feedback in your work before finishing.',
         ]),
-    '',
-    'Repository guidance:',
-    state.guidance,
     '',
     'Your response:',
     '- resolutions: one per item below.',

@@ -20,7 +20,6 @@ export class SoftwareFactoryWorkflow {
           { id: 'load-issue' },
           { id: 'prepare-branch' },
           { id: 'install-dependencies' },
-          { id: 'read-guidance' },
           { id: 'draft-plan' },
           { id: 'publish-plan' },
           { id: 'wait-for-plan-clarification' },

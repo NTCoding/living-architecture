@@ -31,7 +31,6 @@ function reviewInput(overrides: Record<string, unknown> = {}) {
     thinking: 'low',
     reviewers: ['architecture-review', 'code-review', 'bug-scanner'],
     issueNumber: 455,
-    guidance: 'the guidance',
     pullRequestNumber: 549,
     worktreePath: '/worktrees/issue-455',
     branch: 'issue-455-add-a-review-cycle',
@@ -113,7 +112,6 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
       branch: 'issue-455-add-a-review-cycle',
     }),
     installDependencies: async () => undefined,
-    readGuidance: async () => 'the guidance',
     generate: async (request) => {
       if (request.agentId === 'planner') return planAnswer()
       if (request.agentId === 'implementer') {
