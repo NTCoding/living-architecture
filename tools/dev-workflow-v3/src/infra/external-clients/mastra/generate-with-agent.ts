@@ -3,8 +3,8 @@ import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 import type { z } from 'zod'
 import type { RequestContext } from '@mastra/core/request-context'
-import type { AgentId, AgentRequest } from './create-agent'
-import { AGENT_IDS, agentRequestContextOf } from './create-agent'
+import type { AgentRequest } from './create-agent'
+import { agentIdOf, agentRequestContextOf } from './create-agent'
 
 /** @riviere-role external-client-model */
 export interface AgentGenerationRequest {
@@ -168,12 +168,6 @@ function agentContextOf(request: AgentGenerationRequest): RequestContext {
   return agentRequestContextOf(agentRequestOf(request))
 }
 
-function agentIdOf(value: string): AgentId {
-  const found = AGENT_IDS.find((id) => id === value)
-  if (found === undefined) throw new UnregisteredAgent(value)
-  return found
-}
-
 /**
  * Builds the record persisted when a model provider rejects a request. The AI SDK carries the
  * complete rejected request body on `requestBodyValues` of an `APICallError`; without this record
@@ -224,13 +218,5 @@ class InvalidThinkingLevel extends Error {
   constructor(level: string) {
     super(`The thinking level ${level} is not off, low, medium or high.`)
     this.name = 'InvalidThinkingLevel'
-  }
-}
-
-/** @riviere-role external-client-error */
-export class UnregisteredAgent extends Error {
-  constructor(agentId: string) {
-    super(`No agent is registered under "${agentId}".`)
-    this.name = 'UnregisteredAgent'
   }
 }

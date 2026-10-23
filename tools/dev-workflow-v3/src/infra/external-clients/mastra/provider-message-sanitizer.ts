@@ -21,13 +21,14 @@ export class ProviderMessageSanitizer implements Processor {
   readonly id = 'provider-message-sanitizer'
   name = 'Provider Message Sanitizer'
 
-  processLLMRequest({ prompt }: ProcessLLMRequestArgs): ProcessLLMRequestResult {
+  processLLMRequest({ prompt }: { readonly prompt: Prompt }): ProcessLLMRequestResult {
     const sanitized = sanitizePrompt(prompt)
     if (sanitized.length === prompt.length) return undefined
     return { prompt: sanitized }
   }
 }
 
+/** @riviere-role external-client-service */
 export function sanitizePrompt(prompt: Prompt): Prompt {
   const withCompletePairs = dropDanglingToolResults(prompt)
   return withCompletePairs.filter((message) => !isDroppedMessage(message))

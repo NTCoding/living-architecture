@@ -22,8 +22,7 @@ const CONVERSATION_TOKEN_BUDGET = 120_000
  */
 const RECENT_TOOL_STEPS_KEPT = 3
 
-/** @riviere-role external-client-model */
-export const AGENT_IDS = [
+const AGENT_IDS = [
   'planner',
   'implementer',
   'pull-request-writer',
@@ -79,6 +78,26 @@ export function createAgents(dependencies: {
     'architecture-review': registeredAgent('architecture-review', dependencies),
     'code-review': registeredAgent('code-review', dependencies),
     'bug-scanner': registeredAgent('bug-scanner', dependencies),
+  }
+}
+
+/**
+ * Resolves a generation request's agent name against the registered agent names, so an unknown
+ * name fails before any provider call.
+ *
+ * @riviere-role external-client-service
+ */
+export function agentIdOf(value: string): AgentId {
+  const found = AGENT_IDS.find((id) => id === value)
+  if (found === undefined) throw new UnregisteredAgent(value)
+  return found
+}
+
+/** @riviere-role external-client-error */
+export class UnregisteredAgent extends Error {
+  constructor(agentId: string) {
+    super(`No agent is registered under "${agentId}".`)
+    this.name = 'UnregisteredAgent'
   }
 }
 

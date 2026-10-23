@@ -6,9 +6,10 @@ import { Agent } from '@mastra/core/agent'
 import type { ToolsInput } from '@mastra/core/agent'
 import { LibSQLStore } from '@mastra/libsql'
 import { Memory } from '@mastra/memory'
+import { RequestContext } from '@mastra/core/request-context'
 import {
+  agentIdOf,
   agentRequestContextOf,
-  AGENT_IDS,
   createAgents,
   MissingAgentContextValue,
 } from './create-agent'
@@ -30,11 +31,30 @@ function aRequest(overrides?: Partial<AgentRequest>): AgentRequest {
   }
 }
 
+describe('agentIdOf', () => {
+  it('resolves a registered agent name', () => {
+    expect(agentIdOf('implementer')).toBe('implementer')
+  })
+
+  it('rejects a name no registry carries', () => {
+    expect(() => agentIdOf('not-registered')).toThrow(
+      'No agent is registered under "not-registered".',
+    )
+  })
+})
+
 describe('createAgents', () => {
   it('registers one agent per factory name', () => {
     const agents = createAgents({ memory, tools })
 
-    expect(Object.keys(agents)).toStrictEqual([...AGENT_IDS])
+    expect(Object.keys(agents)).toStrictEqual([
+      'planner',
+      'implementer',
+      'pull-request-writer',
+      'architecture-review',
+      'code-review',
+      'bug-scanner',
+    ])
     expect(Object.values(agents).every((agent) => agent instanceof Agent)).toBe(true)
   })
 })
@@ -74,7 +94,7 @@ describe('registered agents', () => {
     const agents = createAgents({ memory, tools })
 
     expect(() =>
-      agents.implementer.getInstructions({ requestContext: new RequestContextShorn() }),
+      agents.implementer.getInstructions({ requestContext: new RequestContext() }),
     ).toThrow('carries no usable value for "instructions"')
   })
 
@@ -96,7 +116,7 @@ describe('registered agents', () => {
     const agents = createAgents({ memory, tools })
 
     await expect(
-      agents['code-review'].getToolsForExecution({ requestContext: new RequestContextShorn() }),
+      agents['code-review'].getToolsForExecution({ requestContext: new RequestContext() }),
     ).rejects.toThrow('carries no usable value for "useTools"')
   })
 
@@ -121,13 +141,7 @@ describe('registered agents', () => {
     const agents = createAgents({ memory, tools })
 
     await expect(
-      agents.implementer.getWorkspace({ requestContext: new RequestContextShorn() }),
+      agents.implementer.getWorkspace({ requestContext: new RequestContext() }),
     ).rejects.toThrow(MissingAgentContextValue)
   })
 })
-
-class RequestContextShorn {
-  get(): undefined {
-    return undefined
-  }
-}

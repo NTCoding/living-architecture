@@ -27,13 +27,14 @@ export class TaskPreservingTokenLimiter implements Processor {
     this.limit = options.limit
   }
 
-  processLLMRequest({ prompt }: ProcessLLMRequestArgs): ProcessLLMRequestResult {
+  processLLMRequest({ prompt }: { readonly prompt: Prompt }): ProcessLLMRequestResult {
     const kept = withinBudget(prompt, this.limit)
     if (kept.length === prompt.length) return undefined
     return { prompt: kept }
   }
 }
 
+/** @riviere-role external-client-service */
 export function withinBudget(prompt: Prompt, limit: number): Prompt {
   const head = fixedHeadOf(prompt)
   const history = prompt.slice(head.length)
