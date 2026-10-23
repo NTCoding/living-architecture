@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, chmodSync, mkdirSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -265,17 +265,13 @@ describe('createAgentGeneration', () => {
   it('rethrows the original error when the failure capture itself fails', async () => {
     const workingDirectory = mkdtempSync(join(tmpdir(), 'factory-capture-broken-'))
     process.chdir(workingDirectory)
-    mkdirSync(`${workingDirectory}/.factory/logs`, { recursive: true })
-    chmodSync(`${workingDirectory}/.factory/logs`, 0o500)
+    // A regular file where the log directory belongs makes mkdirSync fail for every user.
+    writeFileSync(`${workingDirectory}/.factory`, 'not a directory')
     const rejection = new RejectedProviderRequest('the real generation failure')
     const { agent } = agentWithResponseQueue([rejection])
     const generate = createAgentGeneration({ agentFor: () => agent })
 
-    try {
-      await expect(generate(aRequest())).rejects.toBe(rejection)
-    } finally {
-      chmodSync(`${workingDirectory}/.factory/logs`, 0o700)
-    }
+    await expect(generate(aRequest())).rejects.toBe(rejection)
   })
 })
 

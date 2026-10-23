@@ -35,8 +35,11 @@ export async function serveStudio(): Promise<void> {
     if (!(error instanceof Error)) throw error
   }
   mkdirSync(`${workingDirectory}/.factory`, { recursive: true })
-  // The Studio carries no authentication, so it binds to loopback unless MASTRA_HOST says otherwise.
-  process.env['MASTRA_HOST'] ??= '127.0.0.1'
+  // The Studio carries no authentication, so it binds to loopback unless MASTRA_HOST names
+  // another host. An empty value counts as unset, because an empty host binds every interface.
+  const configuredHost = process.env['MASTRA_HOST']
+  if (configuredHost === undefined || configuredHost === '')
+    process.env['MASTRA_HOST'] = '127.0.0.1'
   const factory = await buildFactory(workingDirectory)
   const options: ServerOptions = {
     studio: true,
