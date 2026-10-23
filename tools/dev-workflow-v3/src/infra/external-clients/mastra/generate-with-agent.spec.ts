@@ -84,7 +84,10 @@ function recordedFailure(directory: string, agentId: string): Record<string, unk
 describe('createAgentGeneration', () => {
   it('passes the thinking level as a Mastra reasoning model setting and builds no providerOptions', async () => {
     const { agent, calls } = agentWithResponseQueue([usefulAnswer()])
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
 
     const response = await generate(aRequest({ thinking: 'high' }))
 
@@ -100,7 +103,10 @@ describe('createAgentGeneration', () => {
 
   it('maps the off thinking level to reasoning none', async () => {
     const { agent, calls } = agentWithResponseQueue([usefulAnswer()])
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
 
     await generate(aRequest({ thinking: 'off' }))
 
@@ -109,7 +115,10 @@ describe('createAgentGeneration', () => {
 
   it('throws an invalid thinking level error when the thinking level is unknown', async () => {
     const { agent } = agentWithResponseQueue([])
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
 
     await expect(generate(aRequest({ thinking: 'maximum' }))).rejects.toThrow(
       'The thinking level maximum is not off, low, medium or high.',
@@ -118,7 +127,10 @@ describe('createAgentGeneration', () => {
 
   it('continues the remembered thread when the request carries a thread id', async () => {
     const { agent, calls } = agentWithResponseQueue([usefulAnswer()])
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
 
     await generate(aRequest({ threadId: 'issue-564' }))
 
@@ -130,7 +142,10 @@ describe('createAgentGeneration', () => {
     const { agent, calls } = agentWithResponseQueue([
       { object: { answer: 'yes' }, text: '', finishReason: 'stop' },
     ])
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
     const schema = z.object({ answer: z.string() })
 
     await generate(aRequest({ responseSchema: schema }))
@@ -141,7 +156,10 @@ describe('createAgentGeneration', () => {
 
   it('retries when the first answer is empty and returns the next answer', async () => {
     const { agent, calls } = agentWithResponseQueue([emptyAnswer(), usefulAnswer()])
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
 
     const response = await generate(aRequest())
 
@@ -151,7 +169,10 @@ describe('createAgentGeneration', () => {
 
   it('gives up after three attempts when every answer is empty', async () => {
     const { agent, calls } = agentWithResponseQueue([emptyAnswer(), emptyAnswer(), emptyAnswer()])
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
 
     const response = await generate(aRequest())
 
@@ -173,7 +194,10 @@ describe('createAgentGeneration', () => {
         throw new ProviderCrashed('The provider answered after the abort.')
       },
     }
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
 
     const response = await generate(aRequest({ timeBudgetMs: 1 }))
 
@@ -195,7 +219,10 @@ describe('createAgentGeneration', () => {
       messages: [{ role: 'user', content: 'please implement' }],
     })
     const { agent } = agentWithResponseQueue([rejection])
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
 
     await expect(generate(aRequest())).rejects.toBe(rejection)
 
@@ -212,7 +239,10 @@ describe('createAgentGeneration', () => {
         messages: [{ role: 'user', content: 'please implement' }],
       }),
     ])
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
 
     await expect(generate(aRequest())).rejects.toThrow('illegal messages')
 
@@ -236,7 +266,10 @@ describe('createAgentGeneration', () => {
       new RejectedProviderRequest('first failure', { attempt: 1 }),
       new RejectedProviderRequest('second failure', { attempt: 2 }),
     ])
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
 
     await expect(generate(aRequest())).rejects.toThrow('first failure')
     await expect(generate(aRequest())).rejects.toThrow('second failure')
@@ -253,7 +286,10 @@ describe('createAgentGeneration', () => {
     const workingDirectory = mkdtempSync(join(tmpdir(), 'factory-nobody-'))
     process.chdir(workingDirectory)
     const { agent } = agentWithResponseQueue([new ProviderCrashed('refused without a body')])
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
 
     await expect(generate(aRequest())).rejects.toThrow('refused without a body')
 
@@ -269,7 +305,10 @@ describe('createAgentGeneration', () => {
     writeFileSync(`${workingDirectory}/.factory`, 'not a directory')
     const rejection = new RejectedProviderRequest('the real generation failure')
     const { agent } = agentWithResponseQueue([rejection])
-    const generate = createAgentGeneration({ agentFor: () => agent })
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
 
     await expect(generate(aRequest())).rejects.toBe(rejection)
   })

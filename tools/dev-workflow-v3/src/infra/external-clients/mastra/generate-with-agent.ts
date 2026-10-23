@@ -81,9 +81,11 @@ function conversationOptions(request: AgentGenerationRequest) {
  * @riviere-role external-client-service
  */
 export function createAgentGeneration(dependencies: {
+  readonly workingDirectory: string
   readonly agentFor: (request: AgentRequest) => GeneratingAgent
 }): (request: AgentGenerationRequest) => Promise<AgentGeneration> {
-  return async (request) => generateWithRetry(dependencies, request, 0)
+  return async (request) =>
+    generateWithRetry(dependencies.workingDirectory, dependencies.agentFor, request, 0)
 }
 
 function isEmptyAnswer(response: AgentGeneration): boolean {
@@ -93,16 +95,18 @@ function isEmptyAnswer(response: AgentGeneration): boolean {
 }
 
 async function generateWithRetry(
+  workingDirectory: string,
   dependencies: { readonly agentFor: (request: AgentRequest) => GeneratingAgent },
   request: AgentGenerationRequest,
   attempt: number,
 ): Promise<AgentGeneration> {
-  const response = await generateOnce(dependencies, request)
+  const response = await generateOnce(workingDirectory, dependencies, request)
   if (!isEmptyAnswer(response) || attempt >= 2) return response
-  return generateWithRetry(dependencies, request, attempt + 1)
+  return generateWithRetry(workingDirectory, dependencies, request, attempt + 1)
 }
 
 async function generateOnce(
+  workingDirectory: string,
   dependencies: { readonly agentFor: (request: AgentRequest) => GeneratingAgent },
   request: AgentGenerationRequest,
 ): Promise<AgentGeneration> {
@@ -134,7 +138,7 @@ async function generateOnce(
   } catch (error) {
     if (!abort.signal.aborted) {
       try {
-        captureFailedRequest(request, error)
+        captureFailedRequest(workingDirectory, request, error)
       } catch {
         // The capture is best-effort: the original generation error matters more than the record.
       }
@@ -183,8 +187,12 @@ function requestBodyValuesOf(error: unknown): unknown {
   return null
 }
 
-function captureFailedRequest(request: AgentGenerationRequest, error: unknown): void {
-  const directory = `${process.cwd()}/.factory/logs`
+function captureFailedRequest(
+  workingDirectory: string,
+  request: AgentGenerationRequest,
+  error: unknown,
+): void {
+  const directory = `${workingDirectory}/.factory/logs`
   const record = failedProviderRequestOf(request, error, new Date().toISOString())
   mkdirSync(directory, { recursive: true })
   const destination = join(directory, `${request.agentId}-failed-request.json`)

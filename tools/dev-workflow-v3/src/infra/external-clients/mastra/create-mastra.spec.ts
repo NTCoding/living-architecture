@@ -20,7 +20,8 @@ describe('createMastraStorage', () => {
 
 describe('createObservability', () => {
   it('creates observability for the dev-workflow-v3 service', () => {
-    const observability = createObservability()
+    const directory = mkdtempSync(join(tmpdir(), 'factory-observability-'))
+    const observability = createObservability(join(directory, 'mastra-logs.jsonl'))
 
     expect(observability).toBeInstanceOf(Observability)
   })
@@ -33,6 +34,7 @@ describe('createMastraInstance', () => {
 
     const mastra = createMastraInstance({
       storage,
+      logFilePath: join(directory, 'mastra-logs.jsonl'),
       workflows: {},
       scorers: {
         effort: {

@@ -134,6 +134,9 @@ export async function main(argv: readonly string[]): Promise<number> {
     if (exitCode !== undefined) return exitCode
     process.stderr.write(`${String(error)}\n`)
     return 1
+  } finally {
+    // A short-lived CLI process would otherwise exit with spans still buffered.
+    await factory.mastra.observability.flush()
   }
 }
 
@@ -142,7 +145,9 @@ export async function main(argv: readonly string[]): Promise<number> {
  */
 export async function buildFactory(workingDirectory: string): Promise<Factory> {
   const { storage, memory } = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
+  const logFilePath = `${workingDirectory}/.factory/mastra-logs.jsonl`
   const generation = createAgentGeneration({
+    workingDirectory,
     agentFor: createAgentFactory({ memory, tools: { askUser: createAskUserTool() } }),
   })
   const runCommand = runProcess
@@ -213,6 +218,7 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
   })
   const mastra = createMastraInstance({
     storage,
+    logFilePath,
     workflows: {
       'start-implementation': build.startImplementation,
       'review-cycle': build.reviewCycle,
