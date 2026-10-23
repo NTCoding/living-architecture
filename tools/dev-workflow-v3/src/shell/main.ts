@@ -8,6 +8,7 @@ import type { Run, Workflow } from '@mastra/core/workflows'
 import type { Mastra } from '@mastra/core'
 import { BuildWorkflow } from '@living-architecture/dev-workflow-v3-use-cases/commands/build-workflow'
 import { ParseReviewers } from '@living-architecture/dev-workflow-v3-use-cases/commands/parse-reviewers'
+import { readRepoGuidance } from '../infra/external-clients/fs/read-repo-guidance'
 import { ListFactoryAgents } from '@living-architecture/dev-workflow-v3-use-cases/commands/list-factory-agents'
 import { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
 import { CheckWorkCommitted } from '@living-architecture/dev-workflow-v3-use-cases/commands/check-work-committed'
@@ -170,6 +171,7 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
     installDependencies: async (request) => {
       await new InstallDependencies(installDependenciesWithPnpm({ runCommand })).execute(request)
     },
+    readRepoGuidance,
     generate: generation,
     checkWorkCommitted: (request) =>
       new CheckWorkCommitted(

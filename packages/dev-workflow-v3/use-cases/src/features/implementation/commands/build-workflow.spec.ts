@@ -112,6 +112,7 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
       branch: 'issue-455-add-a-review-cycle',
     }),
     installDependencies: async () => undefined,
+    readRepoGuidance: () => 'REPO RULES',
     generate: async (request) => {
       if (request.agentId === 'planner') return planAnswer()
       if (request.agentId === 'implementer') {
@@ -265,6 +266,26 @@ describe('BuildWorkflow', () => {
 
     expect(studio.getWorkflow('start-implementation').id).toBe('start-implementation')
     expect(studio.getWorkflow('review-cycle').id).toBe('review-cycle')
+  })
+
+  it('sends the repo guidance before the role instructions when the generation runs in a workspace', async () => {
+    const instructions: string[] = []
+    const { started } = await startedRun({
+      readRepoGuidance: () => 'REPO RULES',
+      generate: async (request) => {
+        instructions.push(request.instructions)
+        if (request.agentId === 'planner') return planAnswer()
+        if (request.agentId === 'implementer') {
+          return implementationAnswer('the change', resolutionsFrom(request.prompt))
+        }
+        if (request.agentId === 'pull-request-writer') return pullRequestAnswer()
+        return verdictAnswer('APPROVED', [])
+      },
+    })
+
+    expect(started.status).toBe('success')
+    expect(instructions.every((entry) => entry.startsWith('REPO RULES\n\n'))).toBe(true)
+    expect(instructions.some((entry) => entry.includes('You are the planner'))).toBe(true)
   })
 
   it('posts the plan on the issue and carries on without asking', async () => {

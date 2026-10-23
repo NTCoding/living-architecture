@@ -234,6 +234,7 @@ export interface BuildWorkflowInput {
     readonly attempt: number
   }) => Promise<{ readonly worktreePath: string; readonly branch: string }>
   readonly installDependencies: (request: { readonly worktreePath: string }) => Promise<void>
+  readonly readRepoGuidance: (workspacePath: string) => string
   readonly generate: (request: {
     readonly agentId: string
     readonly model: string
@@ -371,6 +372,14 @@ export class BuildWorkflow {
   }
 }
 
+function guidedInstructions(
+  input: BuildWorkflowInput,
+  workspacePath: string,
+  instructions: string,
+): string {
+  return `${input.readRepoGuidance(workspacePath)}\n\n${instructions}`
+}
+
 async function sayTheRunFailed(
   input: BuildWorkflowInput,
   failure: { readonly workflowId: string; readonly runId: string; readonly message: string } & {
@@ -434,7 +443,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           agentId: 'planner',
           model: state.model,
           thinking: state.thinking,
-          instructions: Planner.singleton().brief(),
+          instructions: guidedInstructions(input, state.worktreePath, Planner.singleton().brief()),
           prompt: planPrompt(state),
           workspacePath: state.worktreePath,
           threadId: threadFor(state.issueNumber, 'planner'),
@@ -498,7 +507,11 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
             state,
             answer.success ? { answer: answer.data.answer, question: answer.data.question } : null,
           ),
-          instructions: Implementer.singleton().brief(),
+          instructions: guidedInstructions(
+            input,
+            state.worktreePath,
+            Implementer.singleton().brief(),
+          ),
           rounds: IMPLEMENTATION_ROUNDS,
           timeBudgetMs: IMPLEMENTATION_TIME_BUDGET_MS,
         })
@@ -533,7 +546,11 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           agentId: 'pull-request-writer',
           model: state.model,
           thinking: state.thinking,
-          instructions: PullRequestWriter.singleton().brief(),
+          instructions: guidedInstructions(
+            input,
+            state.worktreePath,
+            PullRequestWriter.singleton().brief(),
+          ),
           prompt: pullRequestPrompt(state),
           workspacePath: state.worktreePath,
           threadId: threadFor(state.issueNumber, 'pull-request-writer'),
@@ -726,7 +743,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
             baseSha: state.beforeSha,
           },
           firstPrompt: feedbackPrompt(state),
-          instructions: FEEDBACK_INSTRUCTIONS,
+          instructions: guidedInstructions(input, state.worktreePath, FEEDBACK_INSTRUCTIONS),
           requiredCommentIds: required,
           rounds: FEEDBACK_ROUNDS,
           timeBudgetMs: FEEDBACK_TIME_BUDGET_MS,
@@ -892,7 +909,11 @@ function reviewStep(input: BuildWorkflowInput, reviewer: ReviewerName): Workflow
         agentId: reviewer,
         model: state.model,
         thinking: state.thinking,
-        instructions: Reviewer.fromName(reviewer).brief(),
+        instructions: guidedInstructions(
+          input,
+          state.worktreePath,
+          Reviewer.fromName(reviewer).brief(),
+        ),
         prompt: reviewPrompt(state, reviewer, previous, diff),
         workspacePath: state.worktreePath,
         threadId: threadFor(state.issueNumber, reviewer),

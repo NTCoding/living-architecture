@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { mkdirSync, renameSync, writeFileSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 import type { z } from 'zod'
@@ -157,27 +157,11 @@ function agentRequestOf(request: AgentGenerationRequest): AgentRequest {
   return {
     id: request.agentId,
     model: request.model,
-    instructions: instructionsWithRepoGuidance(request),
+    instructions: request.instructions,
     workspacePath: request.workspacePath,
     useTools: request.useTools,
     workspaceWritable: request.workspaceWritable,
   }
-}
-
-function instructionsWithRepoGuidance(request: AgentGenerationRequest): string {
-  if (request.workspacePath === null) return request.instructions
-  return `${repoGuidanceOf(request.workspacePath)}\n\n${request.instructions}`
-}
-
-function repoGuidanceOf(workspacePath: string): string {
-  const guidancePath = join(workspacePath, 'AGENTS.md')
-  if (!existsSync(guidancePath)) throw new MissingRepoGuidance(workspacePath)
-  const guidance = readFileSync(guidancePath, 'utf8').trim()
-  return [
-    guidance,
-    'A subdirectory may contain its own AGENTS.md; its rules apply to the files under it.',
-    'Read the nearest one before working inside a package.',
-  ].join('\n')
 }
 
 function agentContextOf(request: AgentGenerationRequest): RequestContext {
@@ -227,14 +211,6 @@ function captureFailedRequest(
   const temporary = join(directory, `${request.agentId}-failed-request-${randomUUID()}.tmp`)
   writeFileSync(temporary, JSON.stringify(record, null, 2))
   renameSync(temporary, destination)
-}
-
-/** @riviere-role external-client-error */
-export class MissingRepoGuidance extends Error {
-  constructor(workspacePath: string) {
-    super(`The workspace at ${workspacePath} carries no AGENTS.md to guide the agent.`)
-    this.name = 'MissingRepoGuidance'
-  }
 }
 
 /** @riviere-role external-client-error */
