@@ -32,7 +32,6 @@ import { replyToReviewCommentWithGithub } from '@living-architecture/dev-workflo
 import { publishReviewFindingWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/publish-review-finding'
 import { readIssueWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-issue'
 import { readPullRequestDiffWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-pull-request-diff'
-import { waitForIssueReplyWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/wait-for-issue-reply'
 import { waitForReviewerWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/wait-for-reviewer'
 import { adaptWorkflowToMastra } from '@living-architecture/dev-workflow-v3-use-cases/adapters/mastra/adapt-workflow'
 import type {
@@ -188,12 +187,6 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
       new CommentOnIssue(commentOnIssueWithGithub({ runCommand, workingDirectory })).execute(
         request,
       ),
-    waitForIssueReply: waitForIssueReplyWithGithub({
-      runCommand,
-      workingDirectory,
-      wait: () => new Promise((resolve) => setTimeout(resolve, 30_000)),
-      attempts: 120,
-    }),
     commentOnPullRequest: async (request) => {
       await new CommentOnPullRequest(
         commentOnPullRequestWithGithub({ runCommand, workingDirectory }),

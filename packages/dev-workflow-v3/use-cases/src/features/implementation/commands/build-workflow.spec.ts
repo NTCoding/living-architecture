@@ -133,7 +133,6 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
     pushBranch: async () => undefined,
     openPullRequest: async () => ({ number: 549, url: 'https://github.com/o/r/pull/549' }),
     commentOnIssue: async () => ({ createdAt: '2026-10-18T10:00:00Z' }),
-    waitForIssueReply: async () => ({ reply: null }),
     commentOnPullRequest: async () => undefined,
     readPullRequestDiff: async () => ({ diff: 'diff --git a/x b/x' }),
     closeReviewCycle: async (request) => ({
@@ -338,7 +337,7 @@ describe('BuildWorkflow', () => {
     )
   })
 
-  it('asks on the issue when the plan needs input and carries on with the reply', async () => {
+  it('posts the question on the issue and suspends for the person when the plan needs input', async () => {
     const comments: string[] = []
     const { started } = await startedRun({
       generate: async (request) =>
@@ -349,49 +348,61 @@ describe('BuildWorkflow', () => {
         comments.push(request.body)
         return { createdAt: '2026-10-18T10:00:00Z' }
       },
-      waitForIssueReply: async () => ({ reply: 'Bytes, 64 KiB.' }),
     })
 
-    expect(started.status).toBe('success')
+    expect(started.status).toBe('suspended')
     expect(comments[0]).toContain('### Needs your input')
     expect(comments[0]).toContain('Should the bound be bytes or lines?')
     expect(started).toStrictEqual(
+      expect.objectContaining({
+        steps: expect.objectContaining({
+          'wait-for-plan-clarification': expect.objectContaining({
+            suspendPayload: expect.objectContaining({
+              question: 'Should the bound be bytes or lines?',
+            }),
+          }),
+        }),
+      }),
+    )
+  })
+
+  it('carries on with the answer when the person replies to the plan question', async () => {
+    const { run } = await startedRun({
+      generate: async (request) =>
+        request.agentId === 'planner'
+          ? planAnswer(true, 'Should the bound be bytes or lines?')
+          : stubs().generate(request),
+    })
+
+    const finished = await run.resume({
+      step: 'wait-for-plan-clarification',
+      resumeData: { answer: 'Bytes, 64 KiB.' },
+    })
+
+    expect(finished.status).toBe('success')
+    expect(finished).toStrictEqual(
       expect.objectContaining({ result: expect.objectContaining({ readyForHuman: true }) }),
     )
   })
 
   it('posts the question heading even when the planner gives no question text', async () => {
     const comments: string[] = []
-    await startedRun({
+    const { run, started } = await startedRun({
       generate: async (request) =>
         request.agentId === 'planner' ? planAnswer(true, null) : stubs().generate(request),
       commentOnIssue: async (request) => {
         comments.push(request.body)
         return { createdAt: '2026-10-18T10:00:00Z' }
       },
-      waitForIssueReply: async () => ({ reply: 'go ahead' }),
     })
 
+    expect(started.status).toBe('suspended')
     expect(comments[0]).toContain('### Needs your input')
-  })
 
-  it('stops the run, rather than failing it, when nobody replies on the issue', async () => {
-    const { started } = await startedRun({
-      generate: async (request) =>
-        request.agentId === 'planner'
-          ? planAnswer(true, 'Should the bound be bytes or lines?')
-          : stubs().generate(request),
+    await run.resume({
+      step: 'wait-for-plan-clarification',
+      resumeData: { answer: 'go ahead' },
     })
-
-    expect(started).toStrictEqual(
-      expect.objectContaining({
-        status: 'success',
-        result: expect.objectContaining({
-          stoppedReason: expect.stringContaining('Nobody replied on the issue'),
-          pullRequestUrl: '',
-        }),
-      }),
-    )
   })
 
   it('suspends when the implementer is blocked and carries on with the answer', async () => {

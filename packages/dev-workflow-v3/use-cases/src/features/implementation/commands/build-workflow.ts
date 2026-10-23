@@ -111,6 +111,8 @@ const replyTaskSchema = z.object({
 
 const blockerSuspendSchema = z.object({ question: z.string() })
 
+const planQuestionSuspendSchema = z.object({ question: z.string().nullable() })
+
 const blockerResumeSchema = z.object({ answer: z.string(), question: z.string().optional() })
 
 const unaddressedFeedbackSchema = z.object({
@@ -181,9 +183,6 @@ Do not broaden the scope of the pull request without a person's approval.
 
 `
 const CODERABBIT = 'coderabbit'
-
-const NOBODY_ANSWERED_THE_PLAN =
-  'Nobody replied on the issue to the plan question. The plan is still on the issue. Start again when the answer is there.'
 
 const IMPLEMENTATION_TIME_BUDGET_MS = 60 * 60 * 1000
 const IMPLEMENTATION_ROUNDS = 3
@@ -283,10 +282,6 @@ export interface BuildWorkflowInput {
     readonly issueNumber: number
     readonly body: string
   }) => Promise<{ readonly createdAt: string }>
-  readonly waitForIssueReply: (request: {
-    readonly issueNumber: number
-    readonly after: string
-  }) => Promise<{ readonly reply: string | null }>
   readonly commentOnPullRequest: (request: {
     readonly pullRequestNumber: number
     readonly body: string
@@ -486,17 +481,14 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     {
       id: 'wait-for-plan-clarification',
       ...OVER_THE_RUN,
-      run: async ({ data, stopEarly }) => {
+      suspendSchema: planQuestionSuspendSchema,
+      resumeSchema: blockerResumeSchema,
+      run: async ({ data, resumeData, suspend }) => {
         const state = runStateSchema.parse(data)
         if (!state.planNeedsInput) return state
-        const { reply } = await input.waitForIssueReply({
-          issueNumber: state.issueNumber,
-          after: state.planCommentAt,
-        })
-        if (reply === null) {
-          return await stopEarly({ ...state, stoppedReason: NOBODY_ANSWERED_THE_PLAN })
-        }
-        return { ...state, clarification: reply }
+        const answer = blockerResumeSchema.safeParse(resumeData)
+        if (answer.success) return { ...state, clarification: answer.data.answer }
+        return await suspend({ question: state.planQuestion })
       },
     },
     {
