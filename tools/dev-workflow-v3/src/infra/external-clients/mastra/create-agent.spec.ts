@@ -7,12 +7,13 @@ import type { ToolsInput } from '@mastra/core/agent'
 import { LibSQLStore } from '@mastra/libsql'
 import { Memory } from '@mastra/memory'
 import { createAgentFactory } from './create-agent'
+import { createAskUserTool } from './ask-user-tool'
 
 const memory = new Memory({ storage: new LibSQLStore({ id: 'spec', url: ':memory:' }) })
-const tools: ToolsInput = {}
+const tools: ToolsInput = { 'ask-user': createAskUserTool() }
 
 describe('createAgentFactory', () => {
-  it('creates an agent with the request name and instructions and no tools when tools are off', () => {
+  it('creates an agent with the request name and instructions and no tools when tools are off', async () => {
     const agentFor = createAgentFactory({ memory, tools })
 
     const agent = agentFor({
@@ -26,9 +27,10 @@ describe('createAgentFactory', () => {
 
     expect(agent).toBeInstanceOf(Agent)
     expect(agent.name).toBe('implementer')
+    expect(Object.keys(await agent.getToolsForExecution({}))).not.toContain('ask-user')
   })
 
-  it('creates an agent with tools when tools are on', () => {
+  it('creates an agent with tools when tools are on', async () => {
     const agentFor = createAgentFactory({ memory, tools })
 
     const agent = agentFor({
@@ -42,6 +44,7 @@ describe('createAgentFactory', () => {
 
     expect(agent).toBeInstanceOf(Agent)
     expect(agent.name).toBe('code-review')
+    expect(Object.keys(await agent.getToolsForExecution({}))).toContain('ask-user')
   })
 
   it('creates an agent with a workspace when a worktree path is given', () => {

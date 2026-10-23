@@ -1,4 +1,5 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, renameSync, writeFileSync } from 'node:fs'
+import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 import type { z } from 'zod'
 import type { AgentRequest } from './create-agent'
@@ -132,7 +133,11 @@ async function generateOnce(
     }
   } catch (error) {
     if (!abort.signal.aborted) {
-      captureFailedRequest(request, error)
+      try {
+        captureFailedRequest(request, error)
+      } catch {
+        // The capture is best-effort: the original generation error matters more than the record.
+      }
       throw error
     }
     return { object: undefined, text: '', finishReason: 'aborted', suspendPayload: null }
@@ -182,10 +187,10 @@ function captureFailedRequest(request: AgentGenerationRequest, error: unknown): 
   const directory = `${process.cwd()}/.factory/logs`
   const record = failedProviderRequestOf(request, error, new Date().toISOString())
   mkdirSync(directory, { recursive: true })
-  writeFileSync(
-    join(directory, `${request.agentId}-failed-request.json`),
-    JSON.stringify(record, null, 2),
-  )
+  const destination = join(directory, `${request.agentId}-failed-request.json`)
+  const temporary = join(directory, `${request.agentId}-failed-request-${randomUUID()}.tmp`)
+  writeFileSync(temporary, JSON.stringify(record, null, 2))
+  renameSync(temporary, destination)
 }
 
 /** @riviere-role external-client-error */

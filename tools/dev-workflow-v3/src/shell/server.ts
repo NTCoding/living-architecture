@@ -21,7 +21,8 @@ function withMastraUiAssets(): void {
 
 /**
  * Serves the same Mastra instance the factory CLI uses, so Mastra Studio can show the traces
- * and spans that observability persists to `.factory/mastra.db`.
+ * and spans that observability persists to `.factory/mastra.db`. The Studio carries no
+ * authentication, so it binds to loopback unless `MASTRA_HOST` says otherwise.
  *
  * @riviere-role main
  */
@@ -34,6 +35,8 @@ export async function serveStudio(): Promise<void> {
     if (!(error instanceof Error)) throw error
   }
   mkdirSync(`${workingDirectory}/.factory`, { recursive: true })
+  // The Studio carries no authentication, so it binds to loopback unless MASTRA_HOST says otherwise.
+  process.env['MASTRA_HOST'] ??= '127.0.0.1'
   const factory = await buildFactory(workingDirectory)
   const options: ServerOptions = {
     studio: true,

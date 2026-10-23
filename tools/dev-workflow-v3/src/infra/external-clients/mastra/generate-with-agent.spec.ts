@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, chmodSync, mkdirSync, readdirSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -244,6 +244,9 @@ describe('createAgentGeneration', () => {
     expect(recordedFailure(workingDirectory, 'implementer')['requestBody']).toStrictEqual({
       attempt: 2,
     })
+    expect(readdirSync(`${workingDirectory}/.factory/logs`)).toStrictEqual([
+      'implementer-failed-request.json',
+    ])
   })
 
   it('notes the missing request body when the error carries none', async () => {
@@ -257,6 +260,22 @@ describe('createAgentGeneration', () => {
     const recorded = recordedFailure(workingDirectory, 'implementer')
     expect(recorded['requestBody']).toBeNull()
     expect(recorded['note']).toBe('The request body was not available on the error.')
+  })
+
+  it('rethrows the original error when the failure capture itself fails', async () => {
+    const workingDirectory = mkdtempSync(join(tmpdir(), 'factory-capture-broken-'))
+    process.chdir(workingDirectory)
+    mkdirSync(`${workingDirectory}/.factory/logs`, { recursive: true })
+    chmodSync(`${workingDirectory}/.factory/logs`, 0o500)
+    const rejection = new RejectedProviderRequest('the real generation failure')
+    const { agent } = agentWithResponseQueue([rejection])
+    const generate = createAgentGeneration({ agentFor: () => agent })
+
+    try {
+      await expect(generate(aRequest())).rejects.toBe(rejection)
+    } finally {
+      chmodSync(`${workingDirectory}/.factory/logs`, 0o700)
+    }
   })
 })
 
