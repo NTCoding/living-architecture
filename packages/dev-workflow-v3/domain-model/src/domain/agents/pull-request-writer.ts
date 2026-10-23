@@ -7,6 +7,7 @@ const PULL_REQUEST_WRITER_BRIEF = [
   'Do not invent work that was not done, and do not claim a check or a test that did not run.',
   'When you lack evidence for a field, write exactly what is known and what is not, rather',
   'than guessing.',
+  'Return exactly the fields your prompt lists, with the exact names and shapes it shows.',
 ].join('\n')
 
 /** @riviere-role value-object */

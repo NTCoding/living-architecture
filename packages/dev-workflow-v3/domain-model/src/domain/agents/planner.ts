@@ -12,7 +12,10 @@ const PLANNER_BRIEF = [
   '- name the packages, files or checks each todo touches',
   '- say for every todo how to verify it: the test, check or command that proves it done',
   'Cover everything the issue asks for and nothing it does not.',
+  'Everything you need is in your prompt: the issue, and the repository guidance.',
   'Reason only. Do not write files, do not run commands, and do not open pull requests.',
+  'Return exactly this shape and nothing else:',
+  '{ "markdown": "<the plan>", "needsInput": <true or false>, "question": "<your question, or null when needsInput is false>" }',
 ].join('\n')
 
 /** @riviere-role value-object */
