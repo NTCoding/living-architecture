@@ -96,21 +96,21 @@ function isEmptyAnswer(response: AgentGeneration): boolean {
 
 async function generateWithRetry(
   workingDirectory: string,
-  dependencies: { readonly agentFor: (request: AgentRequest) => GeneratingAgent },
+  agentFor: (request: AgentRequest) => GeneratingAgent,
   request: AgentGenerationRequest,
   attempt: number,
 ): Promise<AgentGeneration> {
-  const response = await generateOnce(workingDirectory, dependencies, request)
+  const response = await generateOnce(workingDirectory, agentFor, request)
   if (!isEmptyAnswer(response) || attempt >= 2) return response
-  return generateWithRetry(workingDirectory, dependencies, request, attempt + 1)
+  return generateWithRetry(workingDirectory, agentFor, request, attempt + 1)
 }
 
 async function generateOnce(
   workingDirectory: string,
-  dependencies: { readonly agentFor: (request: AgentRequest) => GeneratingAgent },
+  agentFor: (request: AgentRequest) => GeneratingAgent,
   request: AgentGenerationRequest,
 ): Promise<AgentGeneration> {
-  const agent = dependencies.agentFor({
+  const agent = agentFor({
     id: request.agentId,
     model: request.model,
     instructions: request.instructions,
