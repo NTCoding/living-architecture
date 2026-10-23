@@ -432,6 +432,13 @@ type RunContext = {
   readonly interactive: boolean
 }
 
+function notifyThePerson(runId: string): void {
+  execFileAsync('osascript', [
+    '-e',
+    `display notification "Run ${runId} is waiting for you." with title "Software factory" sound name "Glass"`,
+  ]).catch(() => undefined)
+}
+
 async function follow(
   workflow: Workflow,
   nested: Workflow,
@@ -460,10 +467,12 @@ async function follow(
     const waiting = awaitingPerson(outcome.current)
     if (waiting === null) {
       await stop()
+      notifyThePerson(run.runId)
       reportWaiting(null, context)
       process.exitCode = 3
       return
     }
+    notifyThePerson(run.runId)
     showWaiting(waiting)
     reportWaiting(waiting, context)
     if (!context.interactive) {
