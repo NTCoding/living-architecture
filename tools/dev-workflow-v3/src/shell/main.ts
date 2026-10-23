@@ -8,6 +8,7 @@ import type { Run, Workflow } from '@mastra/core/workflows'
 import type { Mastra } from '@mastra/core'
 import { BuildWorkflow } from '@living-architecture/dev-workflow-v3-use-cases/commands/build-workflow'
 import { ParseReviewers } from '@living-architecture/dev-workflow-v3-use-cases/commands/parse-reviewers'
+import { ListFactoryAgents } from '@living-architecture/dev-workflow-v3-use-cases/commands/list-factory-agents'
 import { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
 import { CheckWorkCommitted } from '@living-architecture/dev-workflow-v3-use-cases/commands/check-work-committed'
 import { checkWorkCommittedWithGit } from '@living-architecture/dev-workflow-v3-use-cases/adapters/git/check-work-committed'
@@ -37,14 +38,13 @@ import type {
   CommandOutput,
   CommandRequest,
 } from '@living-architecture/dev-workflow-v3-use-cases/external-clients/process/run-command'
-import { createAgentFactory } from '../infra/external-clients/mastra/create-agent'
+import { agentFrom, createAgents } from '../infra/external-clients/mastra/create-agent'
 import { createAgentGeneration } from '../infra/external-clients/mastra/generate-with-agent'
 import {
   createMastraInstance,
   createMastraStorage,
 } from '../infra/external-clients/mastra/create-mastra'
 import { createAskUserTool } from '../infra/external-clients/mastra/ask-user-tool'
-import { readRepositoryGuidance } from '../infra/external-clients/repository/read-guidance'
 
 const execFileAsync = promisify(execFile)
 
@@ -146,9 +146,14 @@ export async function main(argv: readonly string[]): Promise<number> {
 export async function buildFactory(workingDirectory: string): Promise<Factory> {
   const { storage, memory } = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
   const logFilePath = `${workingDirectory}/.factory/mastra-logs.jsonl`
+  const agents = createAgents({
+    memory,
+    tools: { 'ask-user': createAskUserTool() },
+    agentNames: new ListFactoryAgents().execute({ names: undefined }).agents,
+  })
   const generation = createAgentGeneration({
     workingDirectory,
-    agentFor: createAgentFactory({ memory, tools: { askUser: createAskUserTool() } }),
+    agentFor: (request) => agentFrom(agents, request.id),
   })
   const runCommand = runProcess
   const worktreesDirectory = `${workingDirectory}/.factory/worktrees`
@@ -165,7 +170,6 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
     installDependencies: async (request) => {
       await new InstallDependencies(installDependenciesWithPnpm({ runCommand })).execute(request)
     },
-    readGuidance: () => readRepositoryGuidance(workingDirectory),
     generate: generation,
     checkWorkCommitted: (request) =>
       new CheckWorkCommitted(
@@ -219,6 +223,7 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
   const mastra = createMastraInstance({
     storage,
     logFilePath,
+    agents,
     workflows: {
       'start-implementation': build.startImplementation,
       'review-cycle': build.reviewCycle,

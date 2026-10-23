@@ -1,4 +1,4 @@
-import { Reviewer } from './reviewer'
+import { Reviewer } from './agents/reviewer'
 import { ReviewerStatus } from './reviewer-status'
 
 type ReviewerStatusEntry = readonly [Reviewer, ReviewerStatus]

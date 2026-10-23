@@ -1,5 +1,5 @@
 import { ReviewFinding } from './review-finding'
-import { Reviewer } from './reviewer'
+import { Reviewer } from './agents/reviewer'
 import { ReviewerStatus } from './reviewer-status'
 
 /** @riviere-role domain-error */

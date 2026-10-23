@@ -22,12 +22,24 @@ A session is one working copy of this repository with its own factory state in
 - **Observability** (`createObservability()` in `create-mastra.ts`): service name
   `dev-workflow-v3` with a `MastraStorageExporter`, so spans persist to the `mastra_ai_spans` table
   in the same database. No external exporters, nothing paid.
-- **Agents** (`create-agent.ts`): one factory producing `Agent` instances per request, with the ask
-  user tool, message processors and an optional workspace over the run's worktree.
+- **Agents** (`create-agent.ts`): one registered `Agent` per factory name (`planner`, `implementer`,
+  `pull-request-writer`, `architecture-review`, `code-review`, `bug-scanner`), all carried on the
+  `Mastra` instance. Registration is what makes Studio show the agents, their threads and their
+  transcripts, and what makes every model call join the workflow trace. Each request carries its
+  model, instructions, tools flag and workspace through a Mastra request context, so one
+  registered agent serves every generation request.
 - **Generation** (`generate-with-agent.ts`): the single path every model call goes through. The
   thinking level is passed to Mastra as the neutral `modelSettings.reasoning` setting (AI SDK v7
   models), and a provider that rejects a request is recorded to
   `.factory/logs/<agentId>-failed-request.json` before the error is rethrown unchanged.
+- **Prompt processors** (on every registered agent, in order): `ToolCallFilter` keeps only the most
+  recent tool exchanges in the prompt so finished work stops swelling the context;
+  `TaskPreservingTokenLimiter` trims the oldest history within a token budget but always keeps the
+  system messages and the first user message, because providers such as Z.ai GLM reject a request
+  with no user message; `ProviderMessageSanitizer` drops assistant messages left empty and tool
+  results whose matching assistant tool call was removed, both of which GLM also rejects.
+- **Threads** (`build-workflow.ts`): every generate call names a per-run thread
+  (`issue-<number>-<agentId>`), so each agent's full transcript persists to `mastra_messages`.
 
 ## Observability tips
 

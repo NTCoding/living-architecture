@@ -35,6 +35,7 @@ describe('createMastraInstance', () => {
     const mastra = createMastraInstance({
       storage,
       logFilePath: join(directory, 'mastra-logs.jsonl'),
+      agents: {},
       workflows: {},
       scorers: {
         effort: {

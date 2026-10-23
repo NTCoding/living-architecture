@@ -1,4 +1,4 @@
-import type { Reviewer } from './reviewer'
+import type { Reviewer } from './agents/reviewer'
 
 /** @riviere-role value-object */
 export class ReviewCyclePlan {
