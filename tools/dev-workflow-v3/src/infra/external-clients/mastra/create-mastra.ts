@@ -3,6 +3,7 @@ import type { MastraScorers } from '@mastra/core/evals'
 import type { Workflow } from '@mastra/core/workflows'
 import { LibSQLStore } from '@mastra/libsql'
 import { Memory } from '@mastra/memory'
+import { MastraStorageExporter, Observability } from '@mastra/observability'
 
 /** @riviere-role external-client-model */
 export interface MastraStorage {
@@ -21,6 +22,20 @@ export function createMastraStorage(url: string): MastraStorage {
 /**
  * @riviere-role external-client-service
  */
+export function createObservability(): Observability {
+  return new Observability({
+    configs: {
+      default: {
+        serviceName: 'dev-workflow-v3',
+        exporters: [new MastraStorageExporter()],
+      },
+    },
+  })
+}
+
+/**
+ * @riviere-role external-client-service
+ */
 export function createMastraInstance(request: {
   readonly storage: LibSQLStore
   readonly workflows: Readonly<Record<string, Workflow>>
@@ -29,6 +44,7 @@ export function createMastraInstance(request: {
   return new Mastra({
     workflows: request.workflows,
     storage: request.storage,
+    observability: createObservability(),
     scorers: Object.fromEntries(
       Object.entries(request.scorers).map(([id, entry]) => [id, entry.scorer]),
     ),

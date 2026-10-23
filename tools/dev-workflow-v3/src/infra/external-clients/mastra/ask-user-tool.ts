@@ -14,15 +14,22 @@ export function createAskUserTool() {
     resumeSchema: z.object({ answer: z.string() }),
     execute: async ({ question, evidence }, context) => {
       const agentContext = context?.agent
-      const resumeData = agentContext?.resumeData
-      if (resumeData === undefined || !isAnswer(resumeData)) {
-        return await agentContext?.suspend({ question, evidence })
-      }
-      return { answer: resumeData.answer }
+      const answer = answerOf(agentContext?.resumeData)
+      if (answer === null) return await agentContext?.suspend({ question, evidence })
+      return answer
     },
   })
 }
 
-function isAnswer(value: unknown): value is { answer: string } {
-  return typeof value === 'object' && value !== null && 'answer' in value
+/**
+ * Reads the answer the person gave when the run resumed.
+ *
+ * @riviere-role external-client-service
+ */
+export function answerOf(resumeData: unknown): { readonly answer: string } | null {
+  if (typeof resumeData === 'object' && resumeData !== null && 'answer' in resumeData) {
+    const answer: unknown = resumeData['answer']
+    if (typeof answer === 'string') return { answer }
+  }
+  return null
 }
