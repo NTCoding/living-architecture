@@ -44,6 +44,58 @@ describe('guardWorkspaceCommand', () => {
     expect(decision).toBeUndefined()
   })
 
+  it('refuses a piped verification command because the pipe hides the failure reason', () => {
+    const decision = guardWorkspaceCommand({
+      toolName: WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND,
+      input: { command: 'pnpm nx role-check riviere-extract-ts-domain-model 2>&1 | tail -25' },
+    })
+
+    expect(decision).toStrictEqual({
+      proceed: false,
+      output:
+        'Refused: never run checks through `tail` or `grep`, you will not see the exact failure reason and will waste time reading files. Run the command bare.',
+    })
+  })
+
+  it('refuses a piped lint command that does not use nx', () => {
+    const decision = guardWorkspaceCommand({
+      toolName: WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND,
+      input: { command: 'pnpm lint:md | tail -25' },
+    })
+
+    expect(decision?.proceed).toBe(false)
+  })
+
+  it('refuses the role check executable run directly through a pipe', () => {
+    const decision = guardWorkspaceCommand({
+      toolName: WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND,
+      input: {
+        command:
+          'pnpm exec tsx apps/cli/src/shell/role-enforcement-bin.ts .riviere/role-enforcement.config.ts --package x | tail -25',
+      },
+    })
+
+    expect(decision?.proceed).toBe(false)
+  })
+
+  it('allows a piped search command that only mentions a verification word', () => {
+    const decision = guardWorkspaceCommand({
+      toolName: WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND,
+      input: { command: 'rg -n test . | head' },
+    })
+
+    expect(decision).toBeUndefined()
+  })
+
+  it('allows a bare verification command', () => {
+    const decision = guardWorkspaceCommand({
+      toolName: WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND,
+      input: { command: 'pnpm nx role-check riviere-extract-ts-domain-model' },
+    })
+
+    expect(decision).toBeUndefined()
+  })
+
   it('refuses a git push because the workflow pushes the branch', () => {
     const decision = guardWorkspaceCommand({
       toolName: WORKSPACE_TOOLS.SANDBOX.EXECUTE_COMMAND,
