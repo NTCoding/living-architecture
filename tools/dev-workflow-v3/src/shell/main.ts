@@ -55,6 +55,7 @@ type Factory = {
   readonly reviewCycle: Workflow
   readonly workingDirectory: string
   readonly repositoryUrl: string
+  readonly setObservationalMemoryModel: (model: string) => void
 }
 
 type RunOutcome = {
@@ -145,7 +146,8 @@ export async function main(argv: readonly string[]): Promise<number> {
  * @riviere-role main
  */
 export async function buildFactory(workingDirectory: string): Promise<Factory> {
-  const { storage, memory } = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
+  const mastraStorage = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
+  const { storage, memory } = mastraStorage
   const logFilePath = `${workingDirectory}/.factory/mastra-logs.jsonl`
   const agents = createAgents({
     memory,
@@ -242,6 +244,7 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
     reviewCycle: build.reviewCycle,
     workingDirectory,
     repositoryUrl,
+    setObservationalMemoryModel: mastraStorage.setObservationalMemoryModel,
   }
 }
 
@@ -284,6 +287,7 @@ function createCommandLine(factory: Factory): Command {
           input: boolean
         },
       ) => {
+        factory.setObservationalMemoryModel(options.model)
         const reviewers = new ParseReviewers().execute({
           names: options.reviewers?.split(','),
         }).reviewers

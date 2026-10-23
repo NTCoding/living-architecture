@@ -11,4 +11,13 @@ describe('Planner', () => {
       'You are the planner in a software factory workflow.',
     )
   })
+
+  it('treats the issue as approved and asks for a todo list', () => {
+    const brief = Planner.singleton().brief()
+
+    expect(brief).toContain('Do not re-review the issue')
+    expect(brief).toContain(
+      'markdown is a numbered todo list, one todo per line, no prose paragraphs',
+    )
+  })
 })

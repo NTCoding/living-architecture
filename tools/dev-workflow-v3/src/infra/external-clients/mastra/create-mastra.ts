@@ -11,7 +11,13 @@ import { JsonlLogExporter } from './jsonl-log-exporter'
 export interface MastraStorage {
   readonly storage: LibSQLStore
   readonly memory: Memory
+  readonly setObservationalMemoryModel: (model: string) => void
 }
+
+/**
+ * @riviere-role external-client-service
+ */
+const observationalMemoryModel: { current: string | undefined } = { current: undefined }
 
 /**
  * @riviere-role external-client-service
@@ -23,9 +29,30 @@ export function createMastraStorage(url: string): MastraStorage {
     memory: new Memory({
       storage,
       options: {
-        observationalMemory: true,
+        observationalMemory: {
+          model: observationalMemoryModelOf,
+        },
       },
     }),
+    setObservationalMemoryModel: (model: string) => {
+      observationalMemoryModel.current = model
+    },
+  }
+}
+
+/**
+ * @riviere-role external-client-service
+ */
+export function observationalMemoryModelOf(): string {
+  if (observationalMemoryModel.current === undefined) throw new MissingObservationalMemoryModel()
+  return observationalMemoryModel.current
+}
+
+/** @riviere-role external-client-error */
+export class MissingObservationalMemoryModel extends Error {
+  constructor() {
+    super('No observational memory model was set. Set it from the run model before generating.')
+    this.name = 'MissingObservationalMemoryModel'
   }
 }
 

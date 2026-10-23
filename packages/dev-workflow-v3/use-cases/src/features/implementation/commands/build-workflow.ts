@@ -377,7 +377,13 @@ function guidedInstructions(
   workspacePath: string,
   instructions: string,
 ): string {
-  return `${input.readRepoGuidance(workspacePath)}\n\n${instructions}`
+  return [
+    input.readRepoGuidance(workspacePath),
+    'A subdirectory may contain its own AGENTS.md; its rules apply to the files under it.',
+    'Read the nearest one before working inside a package.',
+    '',
+    instructions,
+  ].join('\n')
 }
 
 async function sayTheRunFailed(
@@ -429,6 +435,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
       ...OVER_THE_RUN,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
+        input.readRepoGuidance(state.worktreePath)
         await input.installDependencies({ worktreePath: state.worktreePath })
         return state
       },

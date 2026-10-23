@@ -100,6 +100,8 @@ function isReviewer(agentId: string): boolean {
   return agentId.endsWith('-review') || agentId === 'bug-scanner'
 }
 
+class NoGuidanceInWorktree extends Error {}
+
 function verdictAnswer(status: 'APPROVED' | 'OPEN_FEEDBACK', findings: readonly unknown[]) {
   return { object: { status, findings }, text: '', finishReason: 'stop', suspendPayload: null }
 }
@@ -284,8 +286,30 @@ describe('BuildWorkflow', () => {
     })
 
     expect(started.status).toBe('success')
-    expect(instructions.every((entry) => entry.startsWith('REPO RULES\n\n'))).toBe(true)
+    expect(instructions.every((entry) => entry.startsWith('REPO RULES'))).toBe(true)
+    expect(
+      instructions.every((entry) =>
+        entry.includes(
+          'A subdirectory may contain its own AGENTS.md; its rules apply to the files under it.',
+        ),
+      ),
+    ).toBe(true)
     expect(instructions.some((entry) => entry.includes('You are the planner'))).toBe(true)
+  })
+
+  it('fails before installing dependencies when the workspace carries no AGENTS.md', async () => {
+    const installs: unknown[] = []
+    const { started } = await startedRun({
+      readRepoGuidance: () => {
+        throw new NoGuidanceInWorktree('The workspace carries no AGENTS.md.')
+      },
+      installDependencies: async (request) => {
+        installs.push(request)
+      },
+    })
+
+    expect(started.status).toBe('failed')
+    expect(installs).toStrictEqual([])
   })
 
   it('posts the plan on the issue and carries on without asking', async () => {

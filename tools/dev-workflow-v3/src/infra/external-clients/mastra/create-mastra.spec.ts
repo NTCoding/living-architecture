@@ -5,7 +5,13 @@ import { describe, expect, it } from 'vitest'
 import { Mastra } from '@mastra/core'
 import { createScorer } from '@mastra/core/evals'
 import { Observability } from '@mastra/observability'
-import { createMastraInstance, createMastraStorage, createObservability } from './create-mastra'
+import {
+  createMastraInstance,
+  createMastraStorage,
+  createObservability,
+  observationalMemoryModelOf,
+  MissingObservationalMemoryModel,
+} from './create-mastra'
 
 describe('createMastraStorage', () => {
   it('creates LibSQL storage and memory over one database', () => {
@@ -15,6 +21,22 @@ describe('createMastraStorage', () => {
 
     expect(storage.id).toBe('factory')
     expect(memory).toBeDefined()
+  })
+
+  it('refuses the observational memory model before the run sets one', () => {
+    expect(() => observationalMemoryModelOf()).toThrow(MissingObservationalMemoryModel)
+  })
+
+  it('resolves the observational memory model the run set from the command line', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'factory-storage-'))
+    const { setObservationalMemoryModel, memory } = createMastraStorage(
+      `file:${directory}/mastra.db`,
+    )
+
+    setObservationalMemoryModel('zai/glm-5.3-flash')
+
+    expect(memory).toBeDefined()
+    expect(observationalMemoryModelOf()).toBe('zai/glm-5.3-flash')
   })
 })
 
