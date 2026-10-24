@@ -8,6 +8,7 @@ import { assert } from 'vitest'
 import { ExtractionConfiguration } from '../extraction-configuration'
 import type { AsyncApiDocument, LoadAsyncApiDocument } from '../ports/load-asyncapi-document'
 import type { LoadCodeExtraction } from '../ports/load-code-extraction'
+import type { LoadAiExtractSources } from '../ports/load-ai-extract-sources'
 import type {
   EventCatalogSource,
   RiviereProjectCollaborators,
@@ -64,6 +65,12 @@ import { detectCodeExtractionConnections } from '../code-extraction/detect-code-
 import { extractCodeExtraction } from '../code-extraction/extract-code-extraction'
 import { executeAsyncApiImportStage } from '../asyncapi/execute-asyncapi-import-stage'
 import { executeEventCatalogImportStage } from '../event-catalog/execute-event-catalog-import-stage'
+import { executeAiExtractStage } from '../ai-extract/execute-ai-extract-stage'
+import { computeAiExtractGaps } from '../ai-extract/compute-ai-extract-gaps'
+import { validateAiExtractResponse } from '../ai-extract/validate-ai-extract-response'
+import { applyAiExtractResponse } from '../ai-extract/apply-ai-extract-response'
+import { buildAiExtractPrompt } from '../ai-extract/build-ai-extract-prompt'
+import { selectAiExtractBatches } from '../ai-extract/select-ai-extract-batches'
 import { extractComponents, resolveModuleName } from '../component-extraction/extractor'
 import {
   evaluateFromClassDecoratorArgRule,
@@ -84,6 +91,12 @@ export function extractionBehaviour(): RiviereProjectExtractionBehaviour {
     detectConnectionsFromCalls,
     detectEventPublisherConnections,
     detectSubscribeConnections,
+    executeAiExtractStage,
+    computeAiExtractGaps,
+    validateAiExtractResponse,
+    applyAiExtractResponse,
+    buildAiExtractPrompt,
+    selectAiExtractBatches,
     executeAsyncApiImportStage,
     executeEventCatalogImportStage,
     extractCodeExtraction,
@@ -127,8 +140,11 @@ export function collaborators(
   asyncApiDocument: AsyncApiDocument = { messages: [], operations: [] },
 ): RiviereProjectCollaborators {
   const loadCodeExtraction: LoadCodeExtraction = () => configuration().moduleContexts
+  const loadAiExtractSources: LoadAiExtractSources = () =>
+    Promise.resolve({ files: [], missingPaths: [] })
   return {
     aiCli: aiCli(),
+    loadAiExtractSources,
     loadEventCatalogSource: () => Promise.resolve(source),
     loadAsyncApiDocument: () => Promise.resolve(asyncApiDocument),
     loadCodeExtraction,

@@ -5,6 +5,7 @@ import type {
   AiCli,
   AiCliAvailability,
 } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/ai-cli'
+import type { LoadAiExtractSources } from '@living-architecture/riviere-extract-ts-domain-model/domain/ports/load-ai-extract-sources'
 import { WorkflowRunMode } from '@living-architecture/riviere-extract-ts-domain-model/domain/workflow'
 import {
   cleanupWorkflowWorkspaces,
@@ -38,18 +39,28 @@ const AI_EXTRACT_CONFIG = [
   '  max-batches: 2',
 ].join('\n')
 
+const componentSource: LoadAiExtractSources = () =>
+  Promise.resolve({
+    files: [{ filePath: 'component.ts', content: 'emit(OrderPlaced)' }],
+    missingPaths: [],
+  })
+
 function writeAiWorkflow(directory: string): string {
   writeWorkflow(directory, '  - kind: ai-extract\n    name: discover\n    config: ai.yaml')
   writeFileSync(join(directory, '.riviere', 'workflows', 'ai.yaml'), AI_EXTRACT_CONFIG)
   return join(directory, '.riviere', 'workflows', 'combined.yaml')
 }
 
-function repositoryWith(checkAvailability: AiCli['checkAvailability']): RiviereProjectRepository {
+function repositoryWith(
+  checkAvailability: AiCli['checkAvailability'],
+  loadAiExtractSources?: LoadAiExtractSources,
+): RiviereProjectRepository {
   return createRiviereProjectRepository(
     undefined,
     undefined,
     undefined,
     aiCli({ checkAvailability }),
+    loadAiExtractSources,
   )
 }
 
@@ -63,14 +74,14 @@ describe('RiviereProjectRepository AI CLI collaborator supply', () => {
       (command: string): Promise<AiCliAvailability> =>
         Promise.resolve({ kind: 'available', command }),
     )
-    const repository = repositoryWith(checkAvailability)
+    const repository = repositoryWith(checkAvailability, componentSource)
 
     const project = repository.load({ kind: 'workflow', workflowPath })
     const result = await project.rebuildGraph(WorkflowRunMode.from('run'))
 
     expect(checkAvailability).toHaveBeenCalledTimes(2)
     expect(checkAvailability).toHaveBeenCalledWith('claude')
-    expect(result).toMatchObject({ success: false, errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE' })
+    expect(result).toMatchObject({ success: false, errorCode: 'AI_CLI_FAILED' })
   })
 
   it('fails with a typed error when the active AI command is unavailable', async () => {
@@ -103,8 +114,7 @@ describe('RiviereProjectRepository AI CLI collaborator supply', () => {
     const result = await project.rebuildGraph(WorkflowRunMode.from('dry-run'))
 
     expect(checkAvailability).not.toHaveBeenCalled()
-    assert(!result.success)
-    expect(result.errorCode).toBe('STAGE_BEHAVIOUR_UNAVAILABLE')
+    assert(result.success)
   })
 
   it('does not check the AI command when skip-ai removes the stage', async () => {

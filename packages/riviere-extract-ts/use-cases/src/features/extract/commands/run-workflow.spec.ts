@@ -53,6 +53,7 @@ describe('RunWorkflow', () => {
         reason: error.message,
         events: [],
         warnings: [],
+        prompts: [],
       },
     })
     expect(mocks.rebuildGraph).not.toHaveBeenCalled()

@@ -1,3 +1,4 @@
+import type { WorkflowDiagnostic } from './workflow-diagnostic'
 import type { WorkflowStageValue } from './workflow-stage'
 
 type WorkflowRunEventType =
@@ -7,6 +8,13 @@ type WorkflowRunEventType =
   | 'StageFailed'
   | 'WorkflowCompleted'
   | 'WorkflowFailed'
+  | 'AiExtractCandidateAlreadyPresent'
+  | 'DiagnosticResolved'
+
+type WorkflowRunEventDetail =
+  | Readonly<{ kind: 'failure'; reason: string; errorCode: string }>
+  | Readonly<{ kind: 'candidate-already-present'; candidateId: string }>
+  | Readonly<{ kind: 'diagnostic-resolved'; diagnostic: WorkflowDiagnostic }>
 
 /** @riviere-role value-object */
 export class WorkflowRunEvent {
@@ -18,6 +26,7 @@ export class WorkflowRunEvent {
 
   static fromWorkflowFailure(reason: string, errorCode: string): WorkflowRunEvent {
     return new WorkflowRunEvent('WorkflowFailed', undefined, undefined, undefined, {
+      kind: 'failure',
       reason,
       errorCode,
     })
@@ -36,8 +45,32 @@ export class WorkflowRunEvent {
     errorCode: string,
   ): WorkflowRunEvent {
     return new WorkflowRunEvent('StageFailed', stage.name, stage.kind, stage.index, {
+      kind: 'failure',
       reason,
       errorCode,
+    })
+  }
+
+  static fromCandidateAlreadyPresent(
+    stage: WorkflowStageEventValues,
+    candidateId: string,
+  ): WorkflowRunEvent {
+    return new WorkflowRunEvent(
+      'AiExtractCandidateAlreadyPresent',
+      stage.name,
+      stage.kind,
+      stage.index,
+      { kind: 'candidate-already-present', candidateId },
+    )
+  }
+
+  static fromDiagnosticResolved(
+    stage: WorkflowStageEventValues,
+    diagnostic: WorkflowDiagnostic,
+  ): WorkflowRunEvent {
+    return new WorkflowRunEvent('DiagnosticResolved', stage.name, stage.kind, stage.index, {
+      kind: 'diagnostic-resolved',
+      diagnostic,
     })
   }
 
@@ -46,7 +79,7 @@ export class WorkflowRunEvent {
     readonly stageName?: string,
     readonly stageKind?: WorkflowStageValue['kind'],
     readonly stageIndex?: number,
-    readonly failure?: Readonly<{ reason: string; errorCode: string }>,
+    readonly detail?: WorkflowRunEventDetail,
   ) {}
 }
 
@@ -55,3 +88,5 @@ type WorkflowStageEventValues = Readonly<{
   kind: WorkflowStageValue['kind']
   index: number
 }>
+
+export type { WorkflowRunEventDetail, WorkflowRunEventType }
