@@ -1,5 +1,5 @@
-import type { OperationWarning } from '@living-architecture/riviere-builder-published-language'
 import type { WorkflowRunEvent } from '@living-architecture/riviere-extract-ts-domain-model/domain/workflow-run-event'
+import type { WorkflowWarning } from '@living-architecture/riviere-extract-ts-domain-model/domain/workflow'
 import type { RiviereGraph } from '@living-architecture/riviere-schema-published-language/schema'
 
 type WorkflowRunResultValue =
@@ -9,14 +9,14 @@ type WorkflowRunResultValue =
       outputPath: string
       runLogDirectory: string
       events: readonly WorkflowRunEvent[]
-      warnings: readonly OperationWarning[]
+      warnings: readonly WorkflowWarning[]
     }>
   | Readonly<{
       success: false
       errorCode: string
       reason: string
       events: readonly WorkflowRunEvent[]
-      warnings: readonly OperationWarning[]
+      warnings: readonly WorkflowWarning[]
     }>
 
 /** @riviere-role command-use-case-result */
