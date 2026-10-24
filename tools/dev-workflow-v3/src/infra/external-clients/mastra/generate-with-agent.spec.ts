@@ -150,7 +150,10 @@ describe('createAgentGeneration', () => {
 
     await generate(aRequest({ responseSchema: schema }))
 
-    expect(calls[0]?.options.structuredOutput?.model).toBe('zai/glm-5.3-flash')
+    expect(calls[0]?.options.structuredOutput?.model).toStrictEqual({
+      providerId: 'zai',
+      modelId: 'glm-5.3-flash',
+    })
     expect(calls[0]?.options.structuredOutput?.schema).toBe(schema)
   })
 

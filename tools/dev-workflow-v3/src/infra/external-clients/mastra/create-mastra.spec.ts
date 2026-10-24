@@ -36,7 +36,10 @@ describe('createMastraStorage', () => {
     setObservationalMemoryModel('zai/glm-5.3-flash')
 
     expect(memory).toBeDefined()
-    expect(observationalMemoryModelOf()).toBe('zai/glm-5.3-flash')
+    expect(observationalMemoryModelOf()).toStrictEqual({
+      providerId: 'zai',
+      modelId: 'glm-5.3-flash',
+    })
   })
 })
 

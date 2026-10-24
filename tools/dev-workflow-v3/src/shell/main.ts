@@ -330,7 +330,14 @@ function createCommandLine(factory: Factory): Command {
         )
         const state = await factory.startImplementation.getWorkflowRunById(runId)
         const step = suspendedStepName(state?.steps)
-        if (step === 'implement' && options.answer === undefined) throw new MissingAnswer(issue)
+        const model = modelOf(state?.steps)
+        if (model === null) throw new MissingObservationalMemoryModel(issue)
+        factory.setObservationalMemoryModel(model)
+        if (
+          (step === 'implement' || step === 'wait-for-plan-clarification') &&
+          options.answer === undefined
+        )
+          throw new MissingAnswer(issue)
         const question = step === 'implement' ? questionOf(state?.steps?.['implement']) : null
         const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
         await follow(
@@ -698,6 +705,9 @@ async function resumeRun(run: Run, waiting: Waiting, answer: string | boolean): 
       resumeData: { approved: answer === true },
     })
   }
+  if (waiting.step === 'wait-for-plan-clarification') {
+    return await run.resume({ step: waiting.step, resumeData: { answer: String(answer) } })
+  }
   return await run.resume({ step: waiting.step })
 }
 
@@ -862,6 +872,17 @@ function suspendedStepName(steps: unknown): string | null {
   return null
 }
 
+function modelOf(steps: unknown): string | null {
+  if (!isRecord(steps)) return null
+  for (const value of Object.values(steps)) {
+    const step: unknown = Array.isArray(value) ? value[0] : value
+    if (!isRecord(step)) continue
+    const state: unknown = step['output'] ?? step['data']
+    if (isRecord(state) && typeof state['model'] === 'string') return state['model']
+  }
+  return null
+}
+
 function resumeStep(
   run: Run,
   step: string | null,
@@ -876,6 +897,9 @@ function resumeStep(
         ...(question === null ? {} : { question }),
       },
     })
+  }
+  if (step === 'wait-for-plan-clarification' && options.answer !== undefined) {
+    return run.resume({ step, resumeData: { answer: options.answer } })
   }
   if (step === 'address-feedback') {
     return run.resume({ step: 'address-feedback' })
@@ -981,4 +1005,14 @@ if (
   void main(process.argv.slice(2)).then((exitCode) => {
     process.exitCode = exitCode
   })
+}
+
+/** @riviere-role cli-error */
+class MissingObservationalMemoryModel extends Error {
+  constructor(issue: string) {
+    super(
+      `The run for issue ${issue} carries no model in its state, so observational memory cannot be pinned. Start the run again on the same issue.`,
+    )
+    this.name = 'MissingObservationalMemoryModel'
+  }
 }

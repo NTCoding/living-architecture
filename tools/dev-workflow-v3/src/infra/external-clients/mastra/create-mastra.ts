@@ -1,4 +1,5 @@
 import { Mastra } from '@mastra/core'
+import type { OpenAICompatibleConfig } from '@mastra/core/llm'
 import type { Agent } from '@mastra/core/agent'
 import type { MastraScorers } from '@mastra/core/evals'
 import type { Workflow } from '@mastra/core/workflows'
@@ -6,6 +7,9 @@ import { LibSQLStore } from '@mastra/libsql'
 import { Memory } from '@mastra/memory'
 import { MastraStorageExporter, Observability } from '@mastra/observability'
 import { JsonlLogExporter } from './jsonl-log-exporter'
+import { serializableModelConfigOf } from './create-agent'
+
+const OBSERVATIONAL_MEMORY_SESSION = 'factory-observational-memory'
 
 /** @riviere-role external-client-model */
 export interface MastraStorage {
@@ -43,9 +47,9 @@ export function createMastraStorage(url: string): MastraStorage {
 /**
  * @riviere-role external-client-service
  */
-export function observationalMemoryModelOf(): string {
+export function observationalMemoryModelOf(): OpenAICompatibleConfig {
   if (observationalMemoryModel.current === undefined) throw new MissingObservationalMemoryModel()
-  return observationalMemoryModel.current
+  return serializableModelConfigOf(observationalMemoryModel.current, OBSERVATIONAL_MEMORY_SESSION)
 }
 
 /** @riviere-role external-client-error */
