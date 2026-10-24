@@ -20,6 +20,7 @@ export function collaborators(): RiviereProjectCollaborators {
   const extractionConfiguration = configureExtraction({})
   return {
     aiCli: createAiCli(),
+    loadAiExtractSources: () => ({ files: [], memory: undefined, promptAppend: undefined }),
     loadEventCatalogSource: () => Promise.resolve({ domains: [], services: [], events: [] }),
     loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
     loadCodeExtraction: () => {
@@ -35,6 +36,7 @@ export function createInitGraph(repository: RiviereProjectRepository): InitGraph
   const loaders = collaborators()
   return new InitGraph(repository, {
     aiCli: loaders.aiCli,
+    loadAiExtractSources: loaders.loadAiExtractSources,
     loadEventCatalogSource: loaders.loadEventCatalogSource,
     loadAsyncApiDocument: loaders.loadAsyncApiDocument,
     loadCodeExtraction: createCodeExtractionAdapter(),
