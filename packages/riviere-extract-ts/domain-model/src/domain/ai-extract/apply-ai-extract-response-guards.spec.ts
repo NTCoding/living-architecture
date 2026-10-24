@@ -231,11 +231,29 @@ describe('applyAiExtractResponse guards', () => {
     )
 
     expect(result).toStrictEqual({ success: true, warnings: [] })
-    const component = subject.components().find((item) => item.name === 'PlaceOrderOp')
+    const componentFound = subject.components().find((item) => item.name === 'PlaceOrderOp')
+    const component = componentFound?.type === 'DomainOp' ? componentFound : undefined
     expect(component?.type).toBe('DomainOp')
+    expect(component).toMatchObject({
+      entity: 'Order',
+      description: 'places an order',
+      operationName: 'placeOrder',
+      signature: {
+        parameters: [{ name: 'input', type: 'PlaceOrderInput', description: 'the input' }],
+        returnType: 'Order',
+      },
+      behavior: {
+        reads: ['Order'],
+        validates: ['input'],
+        modifies: ['Order'],
+        emits: ['OrderPlaced'],
+      },
+      stateChanges: [{ from: 'draft', to: 'placed', trigger: 'submit' }],
+      businessRules: ['must have items'],
+    })
   })
 
-  it('adds api, ui, event handler, and custom drafts', () => {
+  it('adds api, ui, and event handler drafts', () => {
     const subject = builder()
     const result = applyAiExtractResponse(
       subject,
@@ -302,6 +320,75 @@ describe('applyAiExtractResponse guards', () => {
     )
 
     expect(result).toStrictEqual({ success: true, warnings: [] })
-    expect(subject.components().some((item) => item.name === 'PlaceOrder')).toBe(false)
+  })
+
+  it('fails when a component source location is outside loaded sources', () => {
+    const subject = builder()
+    const result = applyAiExtractResponse(
+      subject,
+      response({
+        components: [
+          {
+            type: 'UseCase',
+            name: 'PlaceOrder',
+            domain: 'orders',
+            module: 'ordering',
+            sourceLocation: { repository: 'shop', filePath: 'src/orders/other.ts' },
+          },
+        ],
+      }),
+      {
+        repositoryName: 'shop',
+        config: config(),
+        suppressedComponentIds: [],
+        sourcePaths: ['src/orders/checkout.ts/'],
+      },
+    )
+
+    expect(result).toStrictEqual({
+      success: false,
+      errorCode: 'AI_EXTRACT_OUT_OF_SCOPE_SOURCE',
+      reason:
+        "AI response included a component with source location 'src/orders/other.ts' that is not one of the loaded sources",
+    })
+  })
+
+  it('fails when a link source location is outside loaded sources', () => {
+    const subject = builder()
+    subject.upsertUseCase({
+      name: 'PlaceOrder',
+      domain: 'orders',
+      module: 'ordering',
+      sourceLocation: { repository: 'shop', filePath: 'src/orders/checkout.ts' },
+    })
+    const firstComponent = subject.components()[0]
+    assert(firstComponent)
+    const placedId = firstComponent.id
+    const result = applyAiExtractResponse(
+      subject,
+      response({
+        links: [
+          {
+            source: placedId,
+            target: placedId,
+            type: 'sync',
+            sourceLocation: { repository: 'shop', filePath: 'src/orders/other.ts' },
+          },
+        ],
+      }),
+      {
+        repositoryName: 'shop',
+        config: config(),
+        suppressedComponentIds: [],
+        sourcePaths: ['src/orders/checkout.ts'],
+      },
+    )
+
+    expect(result).toStrictEqual({
+      success: false,
+      errorCode: 'AI_EXTRACT_OUT_OF_SCOPE_SOURCE',
+      reason:
+        "AI response included a link with source location 'src/orders/other.ts' that is not one of the loaded sources",
+    })
   })
 })

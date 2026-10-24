@@ -51,7 +51,7 @@ export function aiExtractGapContext(
   const eventsWithoutHandler = events
     .filter(
       (event) =>
-        !links.some((link) => link.target === event.id && eventHandlerIds.has(link.source)),
+        !links.some((link) => link.source === event.id && eventHandlerIds.has(link.target)),
     )
     .map((event) => ({ componentId: event.id, eventName: event.eventName }))
   const uncertainLinks = diagnostics.flatMap((diagnostic) =>

@@ -49,7 +49,7 @@ function gapInstructions(gap: AiExtractionGap, context: AiExtractGapContext): re
       ]
     case 'missing-event-handlers':
       return [
-        '- missing-event-handlers: For each event below that has no inbound link from an EventHandler, propose an EventHandler draft for the handler call sites in the source files and a link from the handler to the event.',
+        '- missing-event-handlers: For each event below that has no outbound link to an EventHandler, propose an EventHandler draft for the handler call sites in the source files and a link from the event to the handler.',
         ...context.eventsWithoutHandler.map(eventWithoutHandlerLine),
       ]
     case 'missing-use-cases':

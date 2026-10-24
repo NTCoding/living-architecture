@@ -6,6 +6,10 @@ import type { RiviereBuilder } from '@living-architecture/riviere-builder-publis
 import type { RiviereProjectCollaborators } from '../ports/load-event-catalog-source'
 import type { WorkflowDiagnostic } from '../workflow-diagnostic'
 import type { WorkflowRunMode, WorkflowWarning } from '../workflow'
+import type { AiExtractMemory } from './ai-extract-memory'
+import type { AiExtractGapContext } from './ai-extract-gap-context'
+import type { SelectAiExtractBatchesResult } from './select-ai-extract-batches'
+import type { AiExtractSources } from '../ports/load-ai-extract-sources'
 
 type ExecuteAiExtractStageResult =
   | Readonly<{
@@ -20,6 +24,7 @@ type ExecuteAiExtractStageResult =
  * @riviere-role domain-service
  * @riviere-role-justification Executes the AI extraction stage over loaded external facts and the Builder passed in, performing I/O through domain ports and returning typed diagnostics and warnings. RiviereProject owns the decision to run the stage and supplies its Builder and collaborators.
  */
+
 export async function executeAiExtractStage(
   builder: RiviereBuilder,
   config: AiExtractConfig,
@@ -65,55 +70,18 @@ export async function executeAiExtractStage(
     if (availability.kind === 'unavailable') {
       return { success: false, errorCode: 'AI_CLI_UNAVAILABLE', reason: availability.reason }
     }
-    const warnings: WorkflowWarning[] = []
-    for (const batch of batches.batches) {
-      const result = await collaborators.aiCli.run({
-        stageConfiguration: config,
-        prompt: collaborators.extractionBehaviour.buildAiExtractPrompt({
-          repositoryName: collaborators.repositoryName,
-          config,
-          context,
-          batch,
-          batchCount: batches.batches.length,
-          memory,
-          promptAppend: sources.promptAppend,
-        }),
-      })
-      if (result.kind === 'incomplete') {
-        return { success: false, errorCode: 'AI_CLI_INCOMPLETE_RESPONSE', reason: result.reason }
-      }
-      if (result.kind === 'failed') {
-        return { success: false, errorCode: 'AI_CLI_FAILED', reason: result.reason }
-      }
-      if (result.kind === 'timed-out') {
-        return {
-          success: false,
-          errorCode: 'AI_CLI_TIMED_OUT',
-          reason: `AI CLI '${config.command}' timed out after ${config.timeoutSeconds} seconds`,
-        }
-      }
-      const parsed = parseAiExtractResponse(result.output)
-      if (!parsed.success) {
-        return {
-          success: false,
-          errorCode: 'AI_EXTRACT_MALFORMED_RESPONSE',
-          reason: `AI response is not valid: ${parsed.issues.join('; ')}`,
-        }
-      }
-      const applied = collaborators.extractionBehaviour.applyAiExtractResponse(
-        builder,
-        parsed.response,
-        {
-          repositoryName: collaborators.repositoryName,
-          config,
-          suppressedComponentIds: memory.suppressedComponentIds,
-        },
-      )
-      if (!applied.success) return applied
-      warnings.push(...applied.warnings)
-    }
-    return { success: true, diagnostics: [], warnings }
+    return await runAiExtractBatches(
+      config,
+      collaborators,
+      builder,
+      batches,
+      memory,
+      sources,
+      context,
+    )
   } catch (error) {
+    const boundFailure = boundExceededFailure(error)
+    if (boundFailure !== undefined) return boundFailure
     return {
       success: false,
       errorCode: 'AI_EXTRACT_FAILED',
@@ -123,3 +91,70 @@ export async function executeAiExtractStage(
 }
 
 export type { ExecuteAiExtractStageResult }
+
+function boundExceededFailure(error: unknown): ExecuteAiExtractStageResult | undefined {
+  if (!(error instanceof Error)) return undefined
+  if (!('code' in error)) return undefined
+  if (Reflect.get(error, 'code') !== 'AI_EXTRACT_SOURCE_BOUND_EXCEEDED') return undefined
+  return { success: false, errorCode: 'AI_EXTRACT_SOURCE_BOUND_EXCEEDED', reason: error.message }
+}
+
+async function runAiExtractBatches(
+  config: AiExtractConfig,
+  collaborators: RiviereProjectCollaborators,
+  builder: RiviereBuilder,
+  batches: Extract<SelectAiExtractBatchesResult, { success: true }>,
+  memory: AiExtractMemory,
+  sources: AiExtractSources,
+  context: AiExtractGapContext,
+): Promise<ExecuteAiExtractStageResult> {
+  const warnings: WorkflowWarning[] = []
+  for (const batch of batches.batches) {
+    const result = await collaborators.aiCli.run({
+      stageConfiguration: config,
+      prompt: collaborators.extractionBehaviour.buildAiExtractPrompt({
+        repositoryName: collaborators.repositoryName,
+        config,
+        context,
+        batch,
+        batchCount: batches.batches.length,
+        memory,
+        promptAppend: sources.promptAppend,
+      }),
+    })
+    if (result.kind === 'incomplete') {
+      return { success: false, errorCode: 'AI_CLI_INCOMPLETE_RESPONSE', reason: result.reason }
+    }
+    if (result.kind === 'failed') {
+      return { success: false, errorCode: 'AI_CLI_FAILED', reason: result.reason }
+    }
+    if (result.kind === 'timed-out') {
+      return {
+        success: false,
+        errorCode: 'AI_CLI_TIMED_OUT',
+        reason: `AI CLI '${config.command}' timed out after ${config.timeoutSeconds} seconds`,
+      }
+    }
+    const parsed = parseAiExtractResponse(result.output)
+    if (!parsed.success) {
+      return {
+        success: false,
+        errorCode: 'AI_EXTRACT_MALFORMED_RESPONSE',
+        reason: `AI response is not valid: ${parsed.issues.join('; ')}`,
+      }
+    }
+    const applied = collaborators.extractionBehaviour.applyAiExtractResponse(
+      builder,
+      parsed.response,
+      {
+        repositoryName: collaborators.repositoryName,
+        config,
+        suppressedComponentIds: memory.suppressedComponentIds,
+        sourcePaths: sources.files.map((file) => file.path),
+      },
+    )
+    if (!applied.success) return applied
+    warnings.push(...applied.warnings)
+  }
+  return { success: true, diagnostics: [], warnings }
+}

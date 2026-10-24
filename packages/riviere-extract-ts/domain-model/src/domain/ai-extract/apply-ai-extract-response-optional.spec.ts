@@ -77,9 +77,27 @@ describe('applyAiExtractResponse optional fields', () => {
     )
 
     expect(result).toStrictEqual({ success: true, warnings: [] })
-    expect(subject.components().some((item) => item.name === 'MinimalApi')).toBe(true)
-    expect(subject.components().some((item) => item.name === 'MinimalOp')).toBe(true)
-    expect(subject.components().some((item) => item.name === 'MinimalEvent')).toBe(true)
+    const minimalApiComponent = subject.components().find((item) => item.name === 'MinimalApi')
+    const minimalApi = minimalApiComponent?.type === 'API' ? minimalApiComponent : undefined
+    const minimalOpComponent = subject.components().find((item) => item.name === 'MinimalOp')
+    const minimalOp = minimalOpComponent?.type === 'DomainOp' ? minimalOpComponent : undefined
+    const minimalEventComponent = subject.components().find((item) => item.name === 'MinimalEvent')
+    const minimalEvent = minimalEventComponent?.type === 'Event' ? minimalEventComponent : undefined
+    expect(Object.keys(minimalApi ?? {})).toStrictEqual(
+      expect.not.arrayContaining(['httpMethod', 'path', 'operationName']),
+    )
+    expect(Object.keys(minimalOp ?? {})).toStrictEqual(
+      expect.not.arrayContaining([
+        'entity',
+        'signature',
+        'behavior',
+        'stateChanges',
+        'businessRules',
+      ]),
+    )
+    expect(Object.keys(minimalEvent ?? {})).toStrictEqual(
+      expect.not.arrayContaining(['eventSchema']),
+    )
   })
 })
 
@@ -122,9 +140,28 @@ it('covers absent optional branches', () => {
   )
 
   expect(result).toStrictEqual({ success: true, warnings: [] })
-  expect(subject.components().some((item) => item.name === 'BareOp')).toBe(true)
-  expect(subject.components().some((item) => item.name === 'PartialOp')).toBe(true)
-  expect(subject.components().some((item) => item.name === 'SchemaEvent')).toBe(true)
+  const bareOpComponent = subject.components().find((item) => item.name === 'BareOp')
+  const bareOp = bareOpComponent?.type === 'DomainOp' ? bareOpComponent : undefined
+  const partialOpComponent = subject.components().find((item) => item.name === 'PartialOp')
+  const partialOp = partialOpComponent?.type === 'DomainOp' ? partialOpComponent : undefined
+  const schemaEventComponent = subject.components().find((item) => item.name === 'SchemaEvent')
+  const schemaEvent = schemaEventComponent?.type === 'Event' ? schemaEventComponent : undefined
+  expect(Object.keys(bareOp ?? {})).toStrictEqual(
+    expect.not.arrayContaining([
+      'entity',
+      'signature',
+      'behavior',
+      'stateChanges',
+      'businessRules',
+    ]),
+  )
+  expect(partialOp).toStrictEqual(
+    expect.objectContaining({
+      signature: { parameters: expect.any(Array) },
+      behavior: { reads: ['Order'] },
+    }),
+  )
+  expect(schemaEvent?.eventSchema).toBe('OrderSchema')
 })
 
 describe('applyAiExtractResponse custom type', () => {

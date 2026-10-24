@@ -14,7 +14,15 @@ export function createAiExtractSourceLoader(
   findFiles: typeof findAiExtractSourceFiles = findAiExtractSourceFiles,
 ): LoadAiExtractSources {
   return (config: Parameters<LoadAiExtractSources>[0]): AiExtractSources => {
-    const files = findFiles(config.sources, config.context.exclude).map((path) => ({
+    const discoveredPaths = findFiles(config.sources, config.context.exclude)
+    const bound = config.context.maxFilesPerBatch * config.context.maxBatches
+    if (discoveredPaths.length > bound) {
+      throw new FileReadError(
+        `ai-extract: source scope produced ${discoveredPaths.length} files, exceeds bound (max-files-per-batch * max-batches = ${bound}). Narrow 'sources' or raise the bounds explicitly.`,
+        'AI_EXTRACT_SOURCE_BOUND_EXCEEDED',
+      )
+    }
+    const files = discoveredPaths.map((path) => ({
       path,
       content: readTextFile(path),
     }))

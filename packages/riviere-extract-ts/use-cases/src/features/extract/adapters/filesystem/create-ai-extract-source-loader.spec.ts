@@ -100,4 +100,25 @@ describe('createAiExtractSourceLoader', () => {
     expect(findFiles).toHaveBeenCalledWith(['./src'], ['./src/skip'])
     expect(result.files).toStrictEqual([{ path: source, content: 'export const orders = 1' }])
   })
+
+  it('fails before reading when discovered files exceed the configured bound', () => {
+    const directory = tempDirectory()
+    writeFileSync(join(directory, 'a.ts'), 'export const a = 1')
+    writeFileSync(join(directory, 'b.ts'), 'export const b = 2')
+    writeFileSync(join(directory, 'c.ts'), 'export const c = 3')
+    const loader = createAiExtractSourceLoader()
+    expect(() =>
+      loader(
+        aiExtractConfig({
+          sources: [join(directory, '**', '*.ts')],
+          context: { exclude: [], 'max-files-per-batch': 1, 'max-batches': 2 },
+        }),
+      ),
+    ).toThrow(
+      new FileReadError(
+        `ai-extract: source scope produced 3 files, exceeds bound (max-files-per-batch * max-batches = 2). Narrow 'sources' or raise the bounds explicitly.`,
+        'AI_EXTRACT_SOURCE_BOUND_EXCEEDED',
+      ),
+    )
+  })
 })

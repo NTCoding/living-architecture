@@ -7,10 +7,16 @@ import type {
 } from '@living-architecture/riviere-extract-config-published-language'
 import type { WorkflowWarning } from '../workflow'
 
+function canonicalSourcePath(value: string): string {
+  const normalized = value.replaceAll('\\', '/')
+  return normalized.endsWith('/') ? canonicalSourcePath(normalized.slice(0, -1)) : normalized
+}
+
 type ApplyAiExtractResponseInput = Readonly<{
   repositoryName: string
   config: AiExtractConfig
   suppressedComponentIds: readonly string[]
+  sourcePaths?: readonly string[]
 }>
 
 type ApplyAiExtractResponseResult =
@@ -22,26 +28,19 @@ type ApplyAiExtractResponseResult =
  * @riviere-role-justification Applies supplied AI extraction drafts to the Project-owned Builder; no state is loaded or retained by the operation.
  * @riviere-design-trade-off Mutates builder violating pure function rule for domain services. User prefers this approach because it is simpler than having service return a data structure that the aggregate applies to the builder, putting more complexity in the aggregate. This choice adds no risk because neither the builder or aggregate can be put in an invalid state, and additionally the builder is a mutable object (for perf reasons) intended to be gradually built by each step.
  */
+
 export function applyAiExtractResponse(
   builder: RiviereBuilder,
   response: AiExtractResponse,
   input: ApplyAiExtractResponseInput,
 ): ApplyAiExtractResponseResult {
   const filtered = suppressEntries(response, input.suppressedComponentIds)
-  const undeclaredDomains = undeclaredDraftDomains(builder, filtered)
-  if (undeclaredDomains.length > 0) {
-    return {
-      success: false,
-      errorCode: 'UNDECLARED_IMPORT_DOMAIN',
-      reason: `AI extract writes undeclared domains: ${undeclaredDomains.join(', ')}`,
-    }
-  }
-  if (!input.config.outputs.addComponents && filtered.components.length > 0) {
-    return unrequested(`AI response included components but 'outputs.add-components' is false`)
-  }
-  if (!input.config.outputs.addLinks && filtered.links.length > 0) {
-    return unrequested(`AI response included links but 'outputs.add-links' is false`)
-  }
+  const sourcePaths = input.sourcePaths
+  const sourceFailure =
+    sourcePaths === undefined ? undefined : outOfScopeSourceFailure(filtered, sourcePaths)
+  if (sourceFailure !== undefined) return sourceFailure
+  const validationFailure = preApplyValidation(filtered, builder, input)
+  if (validationFailure !== undefined) return validationFailure
   const componentIds = new Set(builder.components().map((component) => component.id))
   const warnings: WorkflowWarning[] = []
   for (const draft of filtered.components) {
@@ -311,3 +310,53 @@ function alreadyPresent(message: string): WorkflowWarning {
 }
 
 export type { ApplyAiExtractResponseInput, ApplyAiExtractResponseResult }
+
+function outOfScopeSourceFailure(
+  filtered: AiExtractResponse,
+  sourcePaths: readonly string[],
+): ApplyAiExtractResponseResult | undefined {
+  const allowedPaths = new Set(sourcePaths.map(canonicalSourcePath))
+  const outOfScopeComponent = filtered.components.find(
+    (draft) => !allowedPaths.has(canonicalSourcePath(draft.sourceLocation.filePath)),
+  )
+  if (outOfScopeComponent !== undefined) {
+    return {
+      success: false,
+      errorCode: 'AI_EXTRACT_OUT_OF_SCOPE_SOURCE',
+      reason: `AI response included a component with source location '${outOfScopeComponent.sourceLocation.filePath}' that is not one of the loaded sources`,
+    }
+  }
+  const outOfScopeLink = filtered.links.find(
+    (link) => !allowedPaths.has(canonicalSourcePath(link.sourceLocation.filePath)),
+  )
+  if (outOfScopeLink !== undefined) {
+    return {
+      success: false,
+      errorCode: 'AI_EXTRACT_OUT_OF_SCOPE_SOURCE',
+      reason: `AI response included a link with source location '${outOfScopeLink.sourceLocation.filePath}' that is not one of the loaded sources`,
+    }
+  }
+  return undefined
+}
+
+function preApplyValidation(
+  filtered: AiExtractResponse,
+  builder: RiviereBuilder,
+  input: ApplyAiExtractResponseInput,
+): ApplyAiExtractResponseResult | undefined {
+  const undeclaredDomains = undeclaredDraftDomains(builder, filtered)
+  if (undeclaredDomains.length > 0) {
+    return {
+      success: false,
+      errorCode: 'UNDECLARED_IMPORT_DOMAIN',
+      reason: `AI extract writes undeclared domains: ${undeclaredDomains.join(', ')}`,
+    }
+  }
+  if (!input.config.outputs.addComponents && filtered.components.length > 0) {
+    return unrequested(`AI response included components but 'outputs.add-components' is false`)
+  }
+  if (!input.config.outputs.addLinks && filtered.links.length > 0) {
+    return unrequested(`AI response included links but 'outputs.add-links' is false`)
+  }
+  return undefined
+}

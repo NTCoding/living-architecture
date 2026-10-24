@@ -46,8 +46,8 @@ function buildContext() {
   if (handler === undefined || captured === undefined)
     throw new MissingComponentError('missing component')
   subject.upsertLink({
-    from: handler.id,
-    to: captured.id,
+    from: captured.id,
+    to: handler.id,
     type: 'async',
     sourceLocation: { repository: 'shop', filePath: 'src/orders/handler.ts' },
   })
@@ -77,8 +77,8 @@ describe('aiExtractGapContext', () => {
     ])
     expect(context.existingLinks).toStrictEqual([
       {
-        source: 'orders:ordering:eventhandler:handlepayment',
-        target: 'orders:ordering:event:paymentcaptured',
+        source: 'orders:ordering:event:paymentcaptured',
+        target: 'orders:ordering:eventhandler:handlepayment',
       },
     ])
     expect(context.uncertainLinks).toHaveLength(1)

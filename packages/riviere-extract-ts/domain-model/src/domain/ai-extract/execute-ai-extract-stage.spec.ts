@@ -203,7 +203,7 @@ describe('executeAiExtractStage', () => {
     expect(result.errorCode).toBe('AI_EXTRACT_MALFORMED_RESPONSE')
   })
 
-  it('applies a valid response and accumulates warnings across batches', async () => {
+  it('applies a valid response from a single file in one batch', async () => {
     const subject = builder()
     const cli = availableCli(async () => ({
       kind: 'completed',
@@ -215,7 +215,7 @@ describe('executeAiExtractStage', () => {
             domain: 'orders',
             module: 'ordering',
             eventName: 'order-placed',
-            sourceLocation: { repository: 'shop', filePath: 'src/orders/checkout.ts' },
+            sourceLocation: { repository: 'shop', filePath: '/repo/src/orders/checkout.ts' },
           },
         ],
         links: [],
@@ -254,6 +254,81 @@ describe('executeAiExtractStage', () => {
       success: false,
       errorCode: 'AI_EXTRACT_FAILED',
       reason: 'AI extract failed: Error: boom',
+    })
+  })
+
+  it('maps a thrown non-Error value to AI_EXTRACT_FAILED', async () => {
+    const subject = builder()
+    const result = await executeAiExtractStage(
+      subject,
+      config(),
+      {
+        ...collaborators(),
+        aiCli: availableCli(async () => ({ kind: 'completed', output: '{}' })),
+        loadAiExtractSources: () => {
+          throw 'boom'
+        },
+      },
+      WorkflowRunMode.from('run'),
+      [],
+    )
+
+    expect(result).toStrictEqual({
+      success: false,
+      errorCode: 'AI_EXTRACT_FAILED',
+      reason: 'AI extract failed: boom',
+    })
+  })
+
+  it('maps a thrown error with an unrelated code to AI_EXTRACT_FAILED', async () => {
+    const subject = builder()
+    const result = await executeAiExtractStage(
+      subject,
+      config(),
+      {
+        ...collaborators(),
+        aiCli: availableCli(async () => ({ kind: 'completed', output: '{}' })),
+        loadAiExtractSources: () => {
+          class CodedError extends Error {}
+          const error = new CodedError('boom')
+          Reflect.set(error, 'code', 'OTHER')
+          throw error
+        },
+      },
+      WorkflowRunMode.from('run'),
+      [],
+    )
+
+    expect(result).toStrictEqual({
+      success: false,
+      errorCode: 'AI_EXTRACT_FAILED',
+      reason: 'AI extract failed: Error: boom',
+    })
+  })
+
+  it('maps a thrown bound-exceeded error to AI_EXTRACT_SOURCE_BOUND_EXCEEDED', async () => {
+    const subject = builder()
+    const result = await executeAiExtractStage(
+      subject,
+      config(),
+      {
+        ...collaborators(),
+        aiCli: availableCli(async () => ({ kind: 'completed', output: '{}' })),
+        loadAiExtractSources: () => {
+          class BoundError extends Error {}
+          const error = new BoundError('too many files')
+          Reflect.set(error, 'code', 'AI_EXTRACT_SOURCE_BOUND_EXCEEDED')
+          throw error
+        },
+      },
+      WorkflowRunMode.from('run'),
+      [],
+    )
+
+    expect(result).toStrictEqual({
+      success: false,
+      errorCode: 'AI_EXTRACT_SOURCE_BOUND_EXCEEDED',
+      reason: 'too many files',
     })
   })
 
@@ -296,7 +371,7 @@ describe('executeAiExtractStage', () => {
             domain: 'billing',
             module: 'ordering',
             eventName: 'order-placed',
-            sourceLocation: { repository: 'shop', filePath: 'src/orders/checkout.ts' },
+            sourceLocation: { repository: 'shop', filePath: '/repo/src/orders/checkout.ts' },
           },
         ],
         links: [],
