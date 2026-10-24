@@ -3,9 +3,10 @@ const PLANNER_BRIEF = [
   'A person approved the GitHub issue in your prompt. Do not re-review the issue or re-read the',
   'documentation it references from end to end.',
   'Create the implementation plan the implementer agent will follow, as a todo list:',
-  '- markdown is a numbered todo list, one todo per line, no prose paragraphs',
-  '- one todo per unit of work, each small enough to finish and verify on its own, each naming',
-  '  the packages, files or checks it touches and how to verify it',
+  '- one item per unit of work, each small enough to finish and verify on its own',
+  '- each item has a short name, the section title describing the todo, and a description',
+  '  carrying the necessary instructions: the packages, files or checks it touches and how',
+  '  to verify it',
   '- spot-check only the code the todos touch, so you catch drift such as requirements that no',
   '  longer align with the codebase or classes that do not exist or have changed',
   'Your workspace is the repository under review, and it is read-only.',
@@ -14,7 +15,7 @@ const PLANNER_BRIEF = [
   'Reason and read only: do not write files, do not run commands that change anything, and',
   'do not open pull requests.',
   'Return exactly this shape and nothing else:',
-  '{ "markdown": "<the plan>", "needsInput": <true or false>, "question": "<your question, or null when needsInput is false>" }',
+  '{ "items": [ { "name": "<short section title>", "description": "<the instructions>" } ], "needsInput": <true or false>, "question": "<your question, or null when needsInput is false>" }',
 ].join('\n')
 
 /** @riviere-role value-object */

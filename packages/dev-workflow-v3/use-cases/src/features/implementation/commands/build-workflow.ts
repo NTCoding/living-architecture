@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { Workflow } from '@mastra/core/workflows'
 import {
+  ImplementationPlan,
   PullRequestDraft,
   Implementer,
   Planner,
@@ -38,6 +39,11 @@ const thinkingSchema = z.enum(['off', 'low', 'medium', 'high'])
 
 const reviewerNameSchema = z.string()
 
+const planItemSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+})
+
 const runStateSchema = z.object({
   issueNumber: z.number().int().positive(),
   attempt: z.number().int().positive().default(1),
@@ -50,6 +56,7 @@ const runStateSchema = z.object({
   worktreePath: z.string().default(''),
   branch: z.string().default(''),
   planMarkdown: z.string().default(''),
+  planItems: z.array(planItemSchema).default([]),
   planNeedsInput: z.boolean().default(false),
   planQuestion: z.string().nullable().default(null),
   planCommentAt: z.string().default(''),
@@ -121,7 +128,7 @@ const unaddressedFeedbackSchema = z.object({
 })
 
 const planSchema = z.object({
-  markdown: z.string().min(1),
+  items: z.array(planItemSchema).min(1),
   needsInput: z.boolean(),
   question: z.string().nullable(),
 })
@@ -459,7 +466,8 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
         if (!plan.success) throw new RunFailed(noStructuredOutput('The planner', response))
         return {
           ...state,
-          planMarkdown: plan.data.markdown,
+          planItems: plan.data.items,
+          planMarkdown: ImplementationPlan.from(plan.data.items).markdown(),
           planNeedsInput: plan.data.needsInput,
           planQuestion: plan.data.question,
         }
@@ -843,8 +851,9 @@ const A_SUMMARY_WORTH_READING = 80
 function scorePlan(judged: { readonly outcome: unknown }): number {
   const state = runStateSchema.parse(judged.outcome)
   return shareOf([
-    state.planMarkdown.trim() !== '',
-    state.planMarkdown.includes('1.'),
+    state.planItems.length > 0,
+    state.planItems.length > 0 &&
+      state.planItems.every((item) => item.name.trim() !== '' && item.description.trim() !== ''),
     !state.planNeedsInput || state.planQuestion !== null,
   ])
 }
@@ -1207,7 +1216,7 @@ function planPrompt(state: RunState): string {
     state.issueBody,
     '',
     'Your response:',
-    '- markdown: the plan, as a short numbered list.',
+    '- items: one per todo, in order. Each item has name, a short section title for the todo, and description, the instructions for that todo including the packages, files or checks it touches and how to verify it.',
     '- needsInput: true when a decision is needed before implementation, otherwise false.',
     '- question: the question for the developer when needsInput is true, otherwise null.',
   ].join('\n')

@@ -46,7 +46,11 @@ function reviewInput(overrides: Record<string, unknown> = {}) {
 
 function planAnswer(needsInput = false, question: string | null = null) {
   return {
-    object: { markdown: 'the plan', needsInput, question },
+    object: {
+      items: [{ name: 'do the thing', description: 'Change the thing, then run its checks.' }],
+      needsInput,
+      question,
+    },
     text: '',
     finishReason: 'stop',
     suspendPayload: null,
@@ -200,17 +204,58 @@ async function scoresOf(
 }
 
 describe('the scorers that say whether a model was good enough', () => {
-  it('gives a full score to a plan that is a numbered list and needs nothing', async () => {
-    const output = { ...startInput, planMarkdown: '1. do the thing', planNeedsInput: false }
+  it('gives a full score to a plan with items and nothing to ask', async () => {
+    const output = {
+      ...startInput,
+      planItems: [{ name: 'do the thing', description: 'Run the checks.' }],
+      planNeedsInput: false,
+    }
 
     expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([1])
   })
 
-  it('marks a plan down when it is prose that quietly asks for input', async () => {
-    const output = { ...startInput, planMarkdown: 'do the thing', planNeedsInput: true }
+  it('marks a plan down when it has no items', async () => {
+    const output = { ...startInput, planItems: [], planNeedsInput: false }
 
     expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
       1 / 3,
+    ])
+  })
+
+  it('marks a plan down when an item has no name', async () => {
+    const output = {
+      ...startInput,
+      planItems: [{ name: '  ', description: 'Run the checks.' }],
+      planNeedsInput: false,
+    }
+
+    expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
+      2 / 3,
+    ])
+  })
+
+  it('marks a plan down when an item has no description', async () => {
+    const output = {
+      ...startInput,
+      planItems: [{ name: 'do the thing', description: '  ' }],
+      planNeedsInput: false,
+    }
+
+    expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
+      2 / 3,
+    ])
+  })
+
+  it('marks a plan down when it quietly asks for input without a question', async () => {
+    const output = {
+      ...startInput,
+      planItems: [{ name: 'do the thing', description: 'Run the checks.' }],
+      planNeedsInput: true,
+      planQuestion: null,
+    }
+
+    expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
+      2 / 3,
     ])
   })
 
@@ -322,7 +367,9 @@ describe('BuildWorkflow', () => {
 
     expect(started.status).toBe('success')
     expect(comments).toStrictEqual([
-      expect.stringContaining("[dev-workflow-v3] Implementer's plan\n\nthe plan"),
+      expect.stringContaining(
+        "[dev-workflow-v3] Implementer's plan\n\n### 1. do the thing\n\nChange the thing, then run its checks.",
+      ),
     ])
   })
 
