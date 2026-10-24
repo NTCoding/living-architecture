@@ -1,5 +1,6 @@
 import { executeEventCatalogImportStage } from '@living-architecture/riviere-extract-ts-domain-model/domain/event-catalog/execute-event-catalog-import-stage'
 import { executeAsyncApiImportStage } from '@living-architecture/riviere-extract-ts-domain-model/domain/asyncapi/execute-asyncapi-import-stage'
+import { executeAiExtractStage } from '@living-architecture/riviere-extract-ts-domain-model/domain/ai-extract/execute-ai-extract-stage'
 import { detectEventPublisherConnections } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/async-detection/detect-event-publisher-connections'
 import { detectSubscribeConnections } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/async-detection/detect-subscribe-connections'
 import { detectConnectionsFromCalls } from '@living-architecture/riviere-extract-ts-domain-model/domain/connection-detection/call-graph/detect-connections-from-calls'
@@ -53,6 +54,7 @@ function extractionBehaviour(): RiviereProjectExtractionBehaviour {
     detectConnectionsFromCalls,
     detectEventPublisherConnections,
     detectSubscribeConnections,
+    executeAiExtractStage,
     executeAsyncApiImportStage,
     executeEventCatalogImportStage,
     extractCodeExtraction,
