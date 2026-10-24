@@ -34,6 +34,7 @@ export interface AgentGenerationOptions {
   readonly structuredOutput?: {
     readonly schema: z.ZodType<unknown>
     readonly model: OpenAICompatibleConfig
+    readonly jsonPromptInjection: boolean
   }
 }
 
@@ -131,6 +132,7 @@ async function generateOnce(
             structuredOutput: {
               schema: request.responseSchema,
               model: serializableGenerationModelOf(options.requestContext),
+              jsonPromptInjection: true,
             },
           })
     return {

@@ -14,6 +14,7 @@ const finding = {
   line: 12,
   rule: 'SD-005',
   summary: 'A domain decision sits in the adapter.',
+  commentId: null,
 }
 
 const startInput = {
@@ -1311,17 +1312,21 @@ describe('review cycle', () => {
     )
   })
 
-  it('fails when the feedback agent asks a question', async () => {
+  it('suspends for the person when the feedback agent asks a question', async () => {
+    const feedbackPrompts: string[] = []
     const studio = await factoryFor({
-      generate: async (request) =>
-        request.prompt.startsWith('Here is the feedback')
+      generate: async (request) => {
+        if (!request.prompt.startsWith('Here is the feedback')) return stubs().generate(request)
+        feedbackPrompts.push(request.prompt)
+        return feedbackPrompts.length === 1
           ? {
               object: undefined,
               text: '',
               finishReason: 'suspended',
               suspendPayload: { question: 'Which port?' },
             }
-          : stubs().generate(request),
+          : stubs().generate(request)
+      },
     })
     const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
 
@@ -1342,12 +1347,64 @@ describe('review cycle', () => {
 
     expect(finished).toStrictEqual(
       expect.objectContaining({
-        status: 'failed',
-        error: expect.objectContaining({
-          message: expect.stringContaining('The implementer is blocked: Which port?'),
+        status: 'suspended',
+        steps: expect.objectContaining({
+          'address-feedback': expect.objectContaining({
+            suspendPayload: expect.objectContaining({
+              reason: 'Which port?',
+              unaddressed: [],
+            }),
+          }),
         }),
       }),
     )
+
+    await run.resume({ step: 'address-feedback', resumeData: { answer: 'Use port X.' } })
+
+    expect(feedbackPrompts[1]).toContain('The person answered: Use port X.')
+    expect(feedbackPrompts[1]).not.toContain('You asked:')
+  })
+
+  it('passes the asked question back when the person answers a feedback question', async () => {
+    const feedbackPrompts: string[] = []
+    const studio = await factoryFor({
+      generate: async (request) => {
+        if (!request.prompt.startsWith('Here is the feedback')) return stubs().generate(request)
+        feedbackPrompts.push(request.prompt)
+        return feedbackPrompts.length === 1
+          ? {
+              object: undefined,
+              text: '',
+              finishReason: 'suspended',
+              suspendPayload: { question: 'Which port?' },
+            }
+          : stubs().generate(request)
+      },
+    })
+    const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
+
+    await run.start({
+      inputData: reviewInput({
+        findings: [
+          {
+            reviewer: 'code-review',
+            file: 'src/order.ts',
+            line: 3,
+            rule: null,
+            summary: 'One.',
+            commentId: 1,
+          },
+        ],
+      }),
+    })
+
+    await run.resume({
+      step: 'address-feedback',
+      resumeData: { answer: 'Use port X.', question: 'Which port?' },
+    })
+
+    expect(feedbackPrompts[1]).toContain('You asked: Which port?')
+    expect(feedbackPrompts[1]).toContain('The person answered: Use port X.')
   })
 
   it('fails when the feedback agent runs out of time', async () => {

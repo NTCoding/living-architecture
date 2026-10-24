@@ -264,6 +264,7 @@ function createCommandLine(factory: Factory): Command {
     .description('start a run and follow it until it finishes or needs you')
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
+    .requiredOption('--observer-model <model>', 'the model the observational memory observer uses')
     .requiredOption('--thinking <level>', 'off, low, medium or high')
     .option(
       '--reviewers <names>',
@@ -275,12 +276,13 @@ function createCommandLine(factory: Factory): Command {
         issue: string,
         options: {
           model: string
+          observerModel: string
           thinking: string
           reviewers?: string
           input: boolean
         },
       ) => {
-        factory.setObservationalMemoryModel(options.model)
+        factory.setObservationalMemoryModel(options.observerModel)
         const reviewers = new ParseReviewers().execute({
           names: options.reviewers?.split(','),
         }).reviewers
@@ -299,6 +301,7 @@ function createCommandLine(factory: Factory): Command {
                 issueNumber: issueNumber(issue),
                 attempt: attemptOf(runId, `issue-${issueNumberText(issue)}`),
                 model: options.model,
+                observerModel: options.observerModel,
                 thinking: options.thinking,
                 reviewers,
                 worktreesDirectory: `${factory.workingDirectory}/.factory/worktrees`,
@@ -330,15 +333,12 @@ function createCommandLine(factory: Factory): Command {
         )
         const state = await factory.startImplementation.getWorkflowRunById(runId)
         const step = suspendedStepName(state?.steps)
-        const model = modelOf(state?.steps)
-        if (model === null) throw new MissingObservationalMemoryModel(issue)
-        factory.setObservationalMemoryModel(model)
-        if (
-          (step === 'implement' || step === 'wait-for-plan-clarification') &&
-          options.answer === undefined
-        )
-          throw new MissingAnswer(issue)
-        const question = step === 'implement' ? questionOf(state?.steps?.['implement']) : null
+        pinObservationalMemoryModels(state?.steps, factory, issue)
+        requireAnswerFor(step, options, issue)
+        const question =
+          step === 'implement' || step === 'address-feedback'
+            ? questionOf(state?.steps?.[step])
+            : null
         const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
         await follow(
           factory.startImplementation,
@@ -700,9 +700,18 @@ async function resumeRun(run: Run, waiting: Waiting, answer: string | boolean): 
     })
   }
   if (waiting.step === 'address-feedback') {
+    if (typeof answer === 'boolean') {
+      return await run.resume({
+        step: 'address-feedback',
+        resumeData: { approved: answer },
+      })
+    }
     return await run.resume({
       step: 'address-feedback',
-      resumeData: { approved: answer === true },
+      resumeData: {
+        answer,
+        ...(waiting.question === null ? {} : { question: waiting.question }),
+      },
     })
   }
   if (waiting.step === 'wait-for-plan-clarification') {
@@ -769,7 +778,9 @@ function suspendedStep(outcome: RunOutcome): {
 function suspendPayloadOf(payload: unknown): string | null {
   if (!isRecord(payload)) return null
   const question = payload['question']
-  return typeof question === 'string' ? question : null
+  if (typeof question === 'string') return question
+  const reason = payload['reason']
+  return typeof reason === 'string' && reason !== '' ? reason : null
 }
 
 function reportEnded(outcome: RunOutcome, runId: string): void {
@@ -863,6 +874,26 @@ function issueNumberText(value: string): string {
   return String(issueNumber(value))
 }
 
+function pinObservationalMemoryModels(
+  steps: unknown,
+  factory: { setObservationalMemoryModel: (model: string) => void },
+  issue: string,
+): void {
+  const model = modelOf(steps)
+  if (model === null) throw new MissingObservationalMemoryModel(issue)
+  factory.setObservationalMemoryModel(model)
+  const observerModel = observerModelOf(steps)
+  if (observerModel !== null) factory.setObservationalMemoryModel(observerModel)
+}
+
+function requireAnswerFor(step: string | null, options: { answer?: string }, issue: string): void {
+  if (
+    (step === 'implement' || step === 'wait-for-plan-clarification') &&
+    options.answer === undefined
+  )
+    throw new MissingAnswer(issue)
+}
+
 function suspendedStepName(steps: unknown): string | null {
   if (!isRecord(steps)) return null
   for (const [name, value] of Object.entries(steps)) {
@@ -879,6 +910,22 @@ function modelOf(steps: unknown): string | null {
     if (!isRecord(step)) continue
     const state: unknown = step['output'] ?? step['data']
     if (isRecord(state) && typeof state['model'] === 'string') return state['model']
+  }
+  return null
+}
+
+function observerModelOf(steps: unknown): string | null {
+  if (!isRecord(steps)) return null
+  for (const value of Object.values(steps)) {
+    const step: unknown = Array.isArray(value) ? value[0] : value
+    if (!isRecord(step)) continue
+    const state: unknown = step['output'] ?? step['data']
+    if (
+      isRecord(state) &&
+      typeof state['observerModel'] === 'string' &&
+      state['observerModel'] !== ''
+    )
+      return state['observerModel']
   }
   return null
 }
@@ -901,8 +948,17 @@ function resumeStep(
   if (step === 'wait-for-plan-clarification' && options.answer !== undefined) {
     return run.resume({ step, resumeData: { answer: options.answer } })
   }
+  if (step === 'address-feedback' && options.answer !== undefined) {
+    return run.resume({
+      step,
+      resumeData: {
+        answer: options.answer,
+        ...(question === null ? {} : { question }),
+      },
+    })
+  }
   if (step === 'address-feedback') {
-    return run.resume({ step: 'address-feedback' })
+    return run.resume({ step })
   }
   return run.resume({})
 }

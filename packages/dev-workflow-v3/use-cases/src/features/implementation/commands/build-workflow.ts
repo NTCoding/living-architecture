@@ -15,16 +15,16 @@ import type { AdaptWorkflow } from '@living-architecture/dev-workflow-v3-domain-
 const findingSchema = z.object({
   reviewer: z.string(),
   file: z.string(),
-  line: z.number().int().positive(),
+  line: z.number().int().min(1),
   rule: z.string().nullable(),
   summary: z.string(),
-  commentId: z.number().int().nullable().default(null),
+  commentId: z.number().int().nullable(),
 })
 
-const reviewedFindingSchema = findingSchema.omit({ reviewer: true })
+const reviewedFindingSchema = findingSchema.omit({ reviewer: true, commentId: true })
 
 const resolutionSchema = z.object({
-  commentId: z.number().int().positive(),
+  commentId: z.number().int().min(1),
   outcome: z.enum(['addressed', 'partly-addressed', 'not-addressed']),
   response: z.string().min(1),
 })
@@ -32,7 +32,7 @@ const resolutionSchema = z.object({
 const cycleVerdictSchema = z.object({
   reviewer: z.string(),
   status: z.string(),
-  findings: z.array(findingSchema),
+  findings: z.array(reviewedFindingSchema),
 })
 
 const thinkingSchema = z.enum(['off', 'low', 'medium', 'high'])
@@ -48,6 +48,7 @@ const runStateSchema = z.object({
   issueNumber: z.number().int().positive(),
   attempt: z.number().int().positive().default(1),
   model: z.string(),
+  observerModel: z.string().default(''),
   thinking: thinkingSchema,
   reviewers: z.array(reviewerNameSchema),
   worktreesDirectory: z.string(),
@@ -86,6 +87,7 @@ const reviewStateSchema = z.object({
   cycleVerdicts: z.array(cycleVerdictSchema).default([]),
   findings: z.array(findingSchema).default([]),
   resolutions: z.array(resolutionSchema).default([]),
+  clarification: z.string().default(''),
   feedbackCycleNumber: z.number().int().positive().default(1),
   beforeSha: z.string().default(''),
   commitSha: z.string().default(''),
@@ -101,7 +103,7 @@ const reviewStateSchema = z.object({
 const reviewOutcomeSchema = z.object({
   state: reviewStateSchema,
   verdicts: z.array(cycleVerdictSchema),
-  findings: z.array(findingSchema),
+  findings: z.array(reviewedFindingSchema),
 })
 
 const reviewOutcomesSchema = z.object({
@@ -121,6 +123,12 @@ const blockerSuspendSchema = z.object({ question: z.string() })
 const planQuestionSuspendSchema = z.object({ question: z.string().nullable() })
 
 const blockerResumeSchema = z.object({ answer: z.string(), question: z.string().optional() })
+
+const addressFeedbackResumeSchema = z.object({
+  answer: z.string().optional(),
+  question: z.string().optional(),
+  approved: z.boolean().optional(),
+})
 
 const unaddressedFeedbackSchema = z.object({
   reason: z.string().default(''),
@@ -302,7 +310,7 @@ export interface BuildWorkflowInput {
     readonly verdicts: readonly {
       readonly reviewer: string
       readonly status: string
-      readonly findings: readonly ReviewFinding[]
+      readonly findings: readonly z.infer<typeof reviewedFindingSchema>[]
     }[]
   }) => Promise<{
     readonly cycleNumber: number
@@ -734,8 +742,19 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
       id: 'address-feedback',
       ...OVER_THE_REVIEW,
       suspendSchema: unaddressedFeedbackSchema,
-      run: async ({ data, suspend }) => {
+      resumeSchema: addressFeedbackResumeSchema,
+      run: async ({ data, resumeData, suspend }) => {
         const state = reviewStateSchema.parse(data)
+        const resume = addressFeedbackResumeSchema.safeParse(resumeData)
+        const answered =
+          resume.success && typeof resume.data.answer === 'string'
+            ? {
+                clarification: resume.data.answer,
+                ...(resume.data.question === undefined
+                  ? {}
+                  : { askedQuestion: resume.data.question }),
+              }
+            : null
         const required = state.findings.flatMap((finding) =>
           finding.commentId === null ? [] : [finding.commentId],
         )
@@ -749,14 +768,14 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
             worktreePath: state.worktreePath,
             baseSha: state.beforeSha,
           },
-          firstPrompt: feedbackPrompt(state),
+          firstPrompt: feedbackPrompt(state, answered),
           instructions: guidedInstructions(input, state.worktreePath, FEEDBACK_INSTRUCTIONS),
           requiredCommentIds: required,
           rounds: FEEDBACK_ROUNDS,
           timeBudgetMs: FEEDBACK_TIME_BUDGET_MS,
         })
         if (feedback.kind === 'question') {
-          throw new RunFailed(`The implementer is blocked: ${feedback.question}`)
+          return await suspend({ reason: feedback.question, unaddressed: [] })
         }
         if (feedback.kind === 'unfinished') {
           return await suspend({ reason: feedback.reason, unaddressed: feedback.missing })
@@ -889,12 +908,21 @@ function shareOf(checks: readonly boolean[]): number {
 
 /** Folds what the three reviewers found in this cycle back into one review state. */
 function reviewedState(reviews: z.infer<typeof reviewOutcomesSchema>): ReviewState {
-  const taken = [reviews['architecture-review'], reviews['code-review'], reviews['bug-scanner']]
+  const taken = [
+    ['architecture-review', reviews['architecture-review']],
+    ['code-review', reviews['code-review']],
+    ['bug-scanner', reviews['bug-scanner']],
+  ] as const
   const state = reviews['architecture-review'].state
   return {
     ...state,
-    cycleVerdicts: [...state.cycleVerdicts, ...taken.flatMap((review) => review.verdicts)],
-    findings: [...state.findings, ...taken.flatMap((review) => review.findings)],
+    cycleVerdicts: [...state.cycleVerdicts, ...taken.flatMap(([, review]) => review.verdicts)],
+    findings: [
+      ...state.findings,
+      ...taken.flatMap(([reviewer, review]) =>
+        review.findings.map((finding) => ({ ...finding, reviewer, commentId: null })),
+      ),
+    ],
   }
 }
 
@@ -904,6 +932,7 @@ function reviewStep(input: BuildWorkflowInput, reviewer: ReviewerName): Workflow
     inputSchema: reviewStateSchema,
     outputSchema: reviewOutcomeSchema,
     ...ROUTINE,
+    retries: RETRIES_AT_A_REMOTE_CALL,
     scoreWith: scoreReview,
     run: async ({ data }) => {
       const state = reviewStateSchema.parse(data)
@@ -933,11 +962,10 @@ function reviewStep(input: BuildWorkflowInput, reviewer: ReviewerName): Workflow
       })
       const verdict = verdictSchema.safeParse(response.object)
       if (!verdict.success) throw new RunFailed(noStructuredOutput(`The ${reviewer}`, response))
-      const findings = verdict.data.findings.map((finding) => ({ ...finding, reviewer }))
       return {
         state,
-        verdicts: [{ reviewer, status: verdict.data.status, findings }],
-        findings,
+        verdicts: [{ reviewer, status: verdict.data.status, findings: verdict.data.findings }],
+        findings: verdict.data.findings,
       }
     },
   }
@@ -1270,7 +1298,18 @@ function reviewPrompt(
   ].join('\n')
 }
 
-function feedbackPrompt(state: ReviewState): string {
+function feedbackPrompt(
+  state: ReviewState,
+  answered?: { readonly clarification: string; readonly askedQuestion?: string } | null,
+): string {
+  const answeredQuestion =
+    answered === undefined || answered === null
+      ? []
+      : [
+          '',
+          ...(answered.askedQuestion === undefined ? [] : [`You asked: ${answered.askedQuestion}`]),
+          `The person answered: ${answered.clarification}`,
+        ]
   return [
     'Here is the feedback on the pull request.',
     '',
@@ -1280,6 +1319,7 @@ function feedbackPrompt(state: ReviewState): string {
     'step until the number of responses matches the number of items.',
     '',
     'Feedback:',
+    ...answeredQuestion,
     state.findings
       .map(
         (finding) =>
