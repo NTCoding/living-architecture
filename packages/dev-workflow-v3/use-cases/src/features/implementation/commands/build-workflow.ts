@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { Workflow } from '@mastra/core/workflows'
 import {
+  ImplementationPlan,
   PullRequestDraft,
   Implementer,
   Planner,
@@ -38,6 +39,11 @@ const thinkingSchema = z.enum(['off', 'low', 'medium', 'high'])
 
 const reviewerNameSchema = z.string()
 
+const planItemSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+})
+
 const runStateSchema = z.object({
   issueNumber: z.number().int().positive(),
   attempt: z.number().int().positive().default(1),
@@ -50,6 +56,7 @@ const runStateSchema = z.object({
   worktreePath: z.string().default(''),
   branch: z.string().default(''),
   planMarkdown: z.string().default(''),
+  planItems: z.array(planItemSchema).default([]),
   planNeedsInput: z.boolean().default(false),
   planQuestion: z.string().nullable().default(null),
   planCommentAt: z.string().default(''),
@@ -111,6 +118,8 @@ const replyTaskSchema = z.object({
 
 const blockerSuspendSchema = z.object({ question: z.string() })
 
+const planQuestionSuspendSchema = z.object({ question: z.string().nullable() })
+
 const blockerResumeSchema = z.object({ answer: z.string(), question: z.string().optional() })
 
 const unaddressedFeedbackSchema = z.object({
@@ -119,7 +128,7 @@ const unaddressedFeedbackSchema = z.object({
 })
 
 const planSchema = z.object({
-  markdown: z.string().min(1),
+  items: z.array(planItemSchema).min(1),
   needsInput: z.boolean(),
   question: z.string().nullable(),
 })
@@ -182,9 +191,6 @@ Do not broaden the scope of the pull request without a person's approval.
 `
 const CODERABBIT = 'coderabbit'
 
-const NOBODY_ANSWERED_THE_PLAN =
-  'Nobody replied on the issue to the plan question. The plan is still on the issue. Start again when the answer is there.'
-
 const IMPLEMENTATION_TIME_BUDGET_MS = 60 * 60 * 1000
 const IMPLEMENTATION_ROUNDS = 3
 const FEEDBACK_TIME_BUDGET_MS = 60 * 60 * 1000
@@ -234,6 +240,7 @@ export interface BuildWorkflowInput {
     readonly attempt: number
   }) => Promise<{ readonly worktreePath: string; readonly branch: string }>
   readonly installDependencies: (request: { readonly worktreePath: string }) => Promise<void>
+  readonly readRepoGuidance: (workspacePath: string) => string
   readonly generate: (request: {
     readonly agentId: string
     readonly model: string
@@ -282,10 +289,6 @@ export interface BuildWorkflowInput {
     readonly issueNumber: number
     readonly body: string
   }) => Promise<{ readonly createdAt: string }>
-  readonly waitForIssueReply: (request: {
-    readonly issueNumber: number
-    readonly after: string
-  }) => Promise<{ readonly reply: string | null }>
   readonly commentOnPullRequest: (request: {
     readonly pullRequestNumber: number
     readonly body: string
@@ -371,6 +374,20 @@ export class BuildWorkflow {
   }
 }
 
+function guidedInstructions(
+  input: BuildWorkflowInput,
+  workspacePath: string,
+  instructions: string,
+): string {
+  return [
+    input.readRepoGuidance(workspacePath),
+    'A subdirectory may contain its own AGENTS.md; its rules apply to the files under it.',
+    'Read the nearest one before working inside a package.',
+    '',
+    instructions,
+  ].join('\n')
+}
+
 async function sayTheRunFailed(
   input: BuildWorkflowInput,
   failure: { readonly workflowId: string; readonly runId: string; readonly message: string } & {
@@ -420,6 +437,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
       ...OVER_THE_RUN,
       run: async ({ data }) => {
         const state = runStateSchema.parse(data)
+        input.readRepoGuidance(state.worktreePath)
         await input.installDependencies({ worktreePath: state.worktreePath })
         return state
       },
@@ -434,7 +452,7 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           agentId: 'planner',
           model: state.model,
           thinking: state.thinking,
-          instructions: Planner.singleton().brief(),
+          instructions: guidedInstructions(input, state.worktreePath, Planner.singleton().brief()),
           prompt: planPrompt(state),
           workspacePath: state.worktreePath,
           threadId: threadFor(state.issueNumber, 'planner'),
@@ -448,7 +466,8 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
         if (!plan.success) throw new RunFailed(noStructuredOutput('The planner', response))
         return {
           ...state,
-          planMarkdown: plan.data.markdown,
+          planItems: plan.data.items,
+          planMarkdown: ImplementationPlan.from(plan.data.items).markdown(),
           planNeedsInput: plan.data.needsInput,
           planQuestion: plan.data.question,
         }
@@ -470,17 +489,14 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
     {
       id: 'wait-for-plan-clarification',
       ...OVER_THE_RUN,
-      run: async ({ data, stopEarly }) => {
+      suspendSchema: planQuestionSuspendSchema,
+      resumeSchema: blockerResumeSchema,
+      run: async ({ data, resumeData, suspend }) => {
         const state = runStateSchema.parse(data)
         if (!state.planNeedsInput) return state
-        const { reply } = await input.waitForIssueReply({
-          issueNumber: state.issueNumber,
-          after: state.planCommentAt,
-        })
-        if (reply === null) {
-          return await stopEarly({ ...state, stoppedReason: NOBODY_ANSWERED_THE_PLAN })
-        }
-        return { ...state, clarification: reply }
+        const answer = blockerResumeSchema.safeParse(resumeData)
+        if (answer.success) return { ...state, clarification: answer.data.answer }
+        return await suspend({ question: state.planQuestion })
       },
     },
     {
@@ -498,7 +514,11 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
             state,
             answer.success ? { answer: answer.data.answer, question: answer.data.question } : null,
           ),
-          instructions: Implementer.singleton().brief(),
+          instructions: guidedInstructions(
+            input,
+            state.worktreePath,
+            Implementer.singleton().brief(),
+          ),
           rounds: IMPLEMENTATION_ROUNDS,
           timeBudgetMs: IMPLEMENTATION_TIME_BUDGET_MS,
         })
@@ -533,7 +553,11 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
           agentId: 'pull-request-writer',
           model: state.model,
           thinking: state.thinking,
-          instructions: PullRequestWriter.singleton().brief(),
+          instructions: guidedInstructions(
+            input,
+            state.worktreePath,
+            PullRequestWriter.singleton().brief(),
+          ),
           prompt: pullRequestPrompt(state),
           workspacePath: state.worktreePath,
           threadId: threadFor(state.issueNumber, 'pull-request-writer'),
@@ -726,7 +750,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
             baseSha: state.beforeSha,
           },
           firstPrompt: feedbackPrompt(state),
-          instructions: FEEDBACK_INSTRUCTIONS,
+          instructions: guidedInstructions(input, state.worktreePath, FEEDBACK_INSTRUCTIONS),
           requiredCommentIds: required,
           rounds: FEEDBACK_ROUNDS,
           timeBudgetMs: FEEDBACK_TIME_BUDGET_MS,
@@ -827,8 +851,9 @@ const A_SUMMARY_WORTH_READING = 80
 function scorePlan(judged: { readonly outcome: unknown }): number {
   const state = runStateSchema.parse(judged.outcome)
   return shareOf([
-    state.planMarkdown.trim() !== '',
-    state.planMarkdown.includes('1.'),
+    state.planItems.length > 0,
+    state.planItems.length > 0 &&
+      state.planItems.every((item) => item.name.trim() !== '' && item.description.trim() !== ''),
     !state.planNeedsInput || state.planQuestion !== null,
   ])
 }
@@ -892,7 +917,11 @@ function reviewStep(input: BuildWorkflowInput, reviewer: ReviewerName): Workflow
         agentId: reviewer,
         model: state.model,
         thinking: state.thinking,
-        instructions: Reviewer.fromName(reviewer).brief(),
+        instructions: guidedInstructions(
+          input,
+          state.worktreePath,
+          Reviewer.fromName(reviewer).brief(),
+        ),
         prompt: reviewPrompt(state, reviewer, previous, diff),
         workspacePath: state.worktreePath,
         threadId: threadFor(state.issueNumber, reviewer),
@@ -1187,7 +1216,7 @@ function planPrompt(state: RunState): string {
     state.issueBody,
     '',
     'Your response:',
-    '- markdown: the plan, as a short numbered list.',
+    '- items: one per todo, in order. Each item has name, a short section title for the todo, and description, the instructions for that todo including the packages, files or checks it touches and how to verify it.',
     '- needsInput: true when a decision is needed before implementation, otherwise false.',
     '- question: the question for the developer when needsInput is true, otherwise null.',
   ].join('\n')

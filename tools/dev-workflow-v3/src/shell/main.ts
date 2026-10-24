@@ -8,6 +8,7 @@ import type { Run, Workflow } from '@mastra/core/workflows'
 import type { Mastra } from '@mastra/core'
 import { BuildWorkflow } from '@living-architecture/dev-workflow-v3-use-cases/commands/build-workflow'
 import { ParseReviewers } from '@living-architecture/dev-workflow-v3-use-cases/commands/parse-reviewers'
+import { readRepoGuidance } from '../infra/external-clients/fs/read-repo-guidance'
 import { ListFactoryAgents } from '@living-architecture/dev-workflow-v3-use-cases/commands/list-factory-agents'
 import { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
 import { CheckWorkCommitted } from '@living-architecture/dev-workflow-v3-use-cases/commands/check-work-committed'
@@ -31,7 +32,6 @@ import { replyToReviewCommentWithGithub } from '@living-architecture/dev-workflo
 import { publishReviewFindingWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/publish-review-finding'
 import { readIssueWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-issue'
 import { readPullRequestDiffWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-pull-request-diff'
-import { waitForIssueReplyWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/wait-for-issue-reply'
 import { waitForReviewerWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/wait-for-reviewer'
 import { adaptWorkflowToMastra } from '@living-architecture/dev-workflow-v3-use-cases/adapters/mastra/adapt-workflow'
 import type {
@@ -54,6 +54,7 @@ type Factory = {
   readonly reviewCycle: Workflow
   readonly workingDirectory: string
   readonly repositoryUrl: string
+  readonly setObservationalMemoryModel: (model: string) => void
 }
 
 type RunOutcome = {
@@ -144,7 +145,8 @@ export async function main(argv: readonly string[]): Promise<number> {
  * @riviere-role main
  */
 export async function buildFactory(workingDirectory: string): Promise<Factory> {
-  const { storage, memory } = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
+  const mastraStorage = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
+  const { storage, memory } = mastraStorage
   const logFilePath = `${workingDirectory}/.factory/mastra-logs.jsonl`
   const agents = createAgents({
     memory,
@@ -170,6 +172,7 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
     installDependencies: async (request) => {
       await new InstallDependencies(installDependenciesWithPnpm({ runCommand })).execute(request)
     },
+    readRepoGuidance,
     generate: generation,
     checkWorkCommitted: (request) =>
       new CheckWorkCommitted(
@@ -184,12 +187,6 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
       new CommentOnIssue(commentOnIssueWithGithub({ runCommand, workingDirectory })).execute(
         request,
       ),
-    waitForIssueReply: waitForIssueReplyWithGithub({
-      runCommand,
-      workingDirectory,
-      wait: () => new Promise((resolve) => setTimeout(resolve, 30_000)),
-      attempts: 120,
-    }),
     commentOnPullRequest: async (request) => {
       await new CommentOnPullRequest(
         commentOnPullRequestWithGithub({ runCommand, workingDirectory }),
@@ -240,6 +237,7 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
     reviewCycle: build.reviewCycle,
     workingDirectory,
     repositoryUrl,
+    setObservationalMemoryModel: mastraStorage.setObservationalMemoryModel,
   }
 }
 
@@ -282,6 +280,7 @@ function createCommandLine(factory: Factory): Command {
           input: boolean
         },
       ) => {
+        factory.setObservationalMemoryModel(options.model)
         const reviewers = new ParseReviewers().execute({
           names: options.reviewers?.split(','),
         }).reviewers
@@ -331,7 +330,14 @@ function createCommandLine(factory: Factory): Command {
         )
         const state = await factory.startImplementation.getWorkflowRunById(runId)
         const step = suspendedStepName(state?.steps)
-        if (step === 'implement' && options.answer === undefined) throw new MissingAnswer(issue)
+        const model = modelOf(state?.steps)
+        if (model === null) throw new MissingObservationalMemoryModel(issue)
+        factory.setObservationalMemoryModel(model)
+        if (
+          (step === 'implement' || step === 'wait-for-plan-clarification') &&
+          options.answer === undefined
+        )
+          throw new MissingAnswer(issue)
         const question = step === 'implement' ? questionOf(state?.steps?.['implement']) : null
         const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
         await follow(
@@ -433,6 +439,13 @@ type RunContext = {
   readonly interactive: boolean
 }
 
+function notifyThePerson(runId: string): void {
+  execFileAsync('osascript', [
+    '-e',
+    `display notification "Run ${runId} is waiting for you." with title "Software factory" sound name "Glass"`,
+  ]).catch(() => undefined)
+}
+
 async function follow(
   workflow: Workflow,
   nested: Workflow,
@@ -461,10 +474,12 @@ async function follow(
     const waiting = awaitingPerson(outcome.current)
     if (waiting === null) {
       await stop()
+      notifyThePerson(run.runId)
       reportWaiting(null, context)
       process.exitCode = 3
       return
     }
+    notifyThePerson(run.runId)
     showWaiting(waiting)
     reportWaiting(waiting, context)
     if (!context.interactive) {
@@ -690,6 +705,9 @@ async function resumeRun(run: Run, waiting: Waiting, answer: string | boolean): 
       resumeData: { approved: answer === true },
     })
   }
+  if (waiting.step === 'wait-for-plan-clarification') {
+    return await run.resume({ step: waiting.step, resumeData: { answer: String(answer) } })
+  }
   return await run.resume({ step: waiting.step })
 }
 
@@ -854,6 +872,17 @@ function suspendedStepName(steps: unknown): string | null {
   return null
 }
 
+function modelOf(steps: unknown): string | null {
+  if (!isRecord(steps)) return null
+  for (const value of Object.values(steps)) {
+    const step: unknown = Array.isArray(value) ? value[0] : value
+    if (!isRecord(step)) continue
+    const state: unknown = step['output'] ?? step['data']
+    if (isRecord(state) && typeof state['model'] === 'string') return state['model']
+  }
+  return null
+}
+
 function resumeStep(
   run: Run,
   step: string | null,
@@ -868,6 +897,9 @@ function resumeStep(
         ...(question === null ? {} : { question }),
       },
     })
+  }
+  if (step === 'wait-for-plan-clarification' && options.answer !== undefined) {
+    return run.resume({ step, resumeData: { answer: options.answer } })
   }
   if (step === 'address-feedback') {
     return run.resume({ step: 'address-feedback' })
@@ -973,4 +1005,14 @@ if (
   void main(process.argv.slice(2)).then((exitCode) => {
     process.exitCode = exitCode
   })
+}
+
+/** @riviere-role cli-error */
+class MissingObservationalMemoryModel extends Error {
+  constructor(issue: string) {
+    super(
+      `The run for issue ${issue} carries no model in its state, so observational memory cannot be pinned. Start the run again on the same issue.`,
+    )
+    this.name = 'MissingObservationalMemoryModel'
+  }
 }

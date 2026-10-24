@@ -3,8 +3,9 @@ import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 import type { z } from 'zod'
 import type { RequestContext } from '@mastra/core/request-context'
+import type { OpenAICompatibleConfig } from '@mastra/core/llm'
 import type { AgentRequest } from './create-agent'
-import { agentRequestContextOf } from './create-agent'
+import { agentRequestContextOf, serializableGenerationModelOf } from './create-agent'
 
 /** @riviere-role external-client-model */
 export interface AgentGenerationRequest {
@@ -30,7 +31,10 @@ export interface AgentGenerationOptions {
   readonly requestContext: RequestContext
   readonly memory?: { readonly thread: string; readonly resource: string }
   readonly autoResumeSuspendedTools?: boolean
-  readonly structuredOutput?: { readonly schema: z.ZodType<unknown>; readonly model: string }
+  readonly structuredOutput?: {
+    readonly schema: z.ZodType<unknown>
+    readonly model: OpenAICompatibleConfig
+  }
 }
 
 /** @riviere-role external-client-model */
@@ -124,7 +128,10 @@ async function generateOnce(
         ? await agent.generate(request.prompt, options)
         : await agent.generate(request.prompt, {
             ...options,
-            structuredOutput: { schema: request.responseSchema, model: request.model },
+            structuredOutput: {
+              schema: request.responseSchema,
+              model: serializableGenerationModelOf(options.requestContext),
+            },
           })
     return {
       object: response.object,
@@ -159,6 +166,7 @@ function agentRequestOf(request: AgentGenerationRequest): AgentRequest {
     model: request.model,
     instructions: request.instructions,
     workspacePath: request.workspacePath,
+    threadId: request.threadId,
     useTools: request.useTools,
     workspaceWritable: request.workspaceWritable,
   }

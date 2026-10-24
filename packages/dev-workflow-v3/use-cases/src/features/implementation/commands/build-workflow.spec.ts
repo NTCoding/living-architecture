@@ -46,7 +46,11 @@ function reviewInput(overrides: Record<string, unknown> = {}) {
 
 function planAnswer(needsInput = false, question: string | null = null) {
   return {
-    object: { markdown: 'the plan', needsInput, question },
+    object: {
+      items: [{ name: 'do the thing', description: 'Change the thing, then run its checks.' }],
+      needsInput,
+      question,
+    },
     text: '',
     finishReason: 'stop',
     suspendPayload: null,
@@ -100,6 +104,8 @@ function isReviewer(agentId: string): boolean {
   return agentId.endsWith('-review') || agentId === 'bug-scanner'
 }
 
+class NoGuidanceInWorktree extends Error {}
+
 function verdictAnswer(status: 'APPROVED' | 'OPEN_FEEDBACK', findings: readonly unknown[]) {
   return { object: { status, findings }, text: '', finishReason: 'stop', suspendPayload: null }
 }
@@ -112,6 +118,7 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
       branch: 'issue-455-add-a-review-cycle',
     }),
     installDependencies: async () => undefined,
+    readRepoGuidance: () => 'REPO RULES',
     generate: async (request) => {
       if (request.agentId === 'planner') return planAnswer()
       if (request.agentId === 'implementer') {
@@ -130,7 +137,6 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
     pushBranch: async () => undefined,
     openPullRequest: async () => ({ number: 549, url: 'https://github.com/o/r/pull/549' }),
     commentOnIssue: async () => ({ createdAt: '2026-10-18T10:00:00Z' }),
-    waitForIssueReply: async () => ({ reply: null }),
     commentOnPullRequest: async () => undefined,
     readPullRequestDiff: async () => ({ diff: 'diff --git a/x b/x' }),
     closeReviewCycle: async (request) => ({
@@ -198,17 +204,58 @@ async function scoresOf(
 }
 
 describe('the scorers that say whether a model was good enough', () => {
-  it('gives a full score to a plan that is a numbered list and needs nothing', async () => {
-    const output = { ...startInput, planMarkdown: '1. do the thing', planNeedsInput: false }
+  it('gives a full score to a plan with items and nothing to ask', async () => {
+    const output = {
+      ...startInput,
+      planItems: [{ name: 'do the thing', description: 'Run the checks.' }],
+      planNeedsInput: false,
+    }
 
     expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([1])
   })
 
-  it('marks a plan down when it is prose that quietly asks for input', async () => {
-    const output = { ...startInput, planMarkdown: 'do the thing', planNeedsInput: true }
+  it('marks a plan down when it has no items', async () => {
+    const output = { ...startInput, planItems: [], planNeedsInput: false }
 
     expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
       1 / 3,
+    ])
+  })
+
+  it('marks a plan down when an item has no name', async () => {
+    const output = {
+      ...startInput,
+      planItems: [{ name: '  ', description: 'Run the checks.' }],
+      planNeedsInput: false,
+    }
+
+    expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
+      2 / 3,
+    ])
+  })
+
+  it('marks a plan down when an item has no description', async () => {
+    const output = {
+      ...startInput,
+      planItems: [{ name: 'do the thing', description: '  ' }],
+      planNeedsInput: false,
+    }
+
+    expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
+      2 / 3,
+    ])
+  })
+
+  it('marks a plan down when it quietly asks for input without a question', async () => {
+    const output = {
+      ...startInput,
+      planItems: [{ name: 'do the thing', description: 'Run the checks.' }],
+      planNeedsInput: true,
+      planQuestion: null,
+    }
+
+    expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
+      2 / 3,
     ])
   })
 
@@ -267,6 +314,48 @@ describe('BuildWorkflow', () => {
     expect(studio.getWorkflow('review-cycle').id).toBe('review-cycle')
   })
 
+  it('sends the repo guidance before the role instructions when the generation runs in a workspace', async () => {
+    const instructions: string[] = []
+    const { started } = await startedRun({
+      readRepoGuidance: () => 'REPO RULES',
+      generate: async (request) => {
+        instructions.push(request.instructions)
+        if (request.agentId === 'planner') return planAnswer()
+        if (request.agentId === 'implementer') {
+          return implementationAnswer('the change', resolutionsFrom(request.prompt))
+        }
+        if (request.agentId === 'pull-request-writer') return pullRequestAnswer()
+        return verdictAnswer('APPROVED', [])
+      },
+    })
+
+    expect(started.status).toBe('success')
+    expect(instructions.every((entry) => entry.startsWith('REPO RULES'))).toBe(true)
+    expect(
+      instructions.every((entry) =>
+        entry.includes(
+          'A subdirectory may contain its own AGENTS.md; its rules apply to the files under it.',
+        ),
+      ),
+    ).toBe(true)
+    expect(instructions.some((entry) => entry.includes('You are the planner'))).toBe(true)
+  })
+
+  it('fails before installing dependencies when the workspace carries no AGENTS.md', async () => {
+    const installs: unknown[] = []
+    const { started } = await startedRun({
+      readRepoGuidance: () => {
+        throw new NoGuidanceInWorktree('The workspace carries no AGENTS.md.')
+      },
+      installDependencies: async (request) => {
+        installs.push(request)
+      },
+    })
+
+    expect(started.status).toBe('failed')
+    expect(installs).toStrictEqual([])
+  })
+
   it('posts the plan on the issue and carries on without asking', async () => {
     const comments: string[] = []
     const { started } = await startedRun({
@@ -278,7 +367,9 @@ describe('BuildWorkflow', () => {
 
     expect(started.status).toBe('success')
     expect(comments).toStrictEqual([
-      expect.stringContaining("[dev-workflow-v3] Implementer's plan\n\nthe plan"),
+      expect.stringContaining(
+        "[dev-workflow-v3] Implementer's plan\n\n### 1. do the thing\n\nChange the thing, then run its checks.",
+      ),
     ])
   })
 
@@ -293,7 +384,7 @@ describe('BuildWorkflow', () => {
     )
   })
 
-  it('asks on the issue when the plan needs input and carries on with the reply', async () => {
+  it('posts the question on the issue and suspends for the person when the plan needs input', async () => {
     const comments: string[] = []
     const { started } = await startedRun({
       generate: async (request) =>
@@ -304,49 +395,61 @@ describe('BuildWorkflow', () => {
         comments.push(request.body)
         return { createdAt: '2026-10-18T10:00:00Z' }
       },
-      waitForIssueReply: async () => ({ reply: 'Bytes, 64 KiB.' }),
     })
 
-    expect(started.status).toBe('success')
+    expect(started.status).toBe('suspended')
     expect(comments[0]).toContain('### Needs your input')
     expect(comments[0]).toContain('Should the bound be bytes or lines?')
     expect(started).toStrictEqual(
+      expect.objectContaining({
+        steps: expect.objectContaining({
+          'wait-for-plan-clarification': expect.objectContaining({
+            suspendPayload: expect.objectContaining({
+              question: 'Should the bound be bytes or lines?',
+            }),
+          }),
+        }),
+      }),
+    )
+  })
+
+  it('carries on with the answer when the person replies to the plan question', async () => {
+    const { run } = await startedRun({
+      generate: async (request) =>
+        request.agentId === 'planner'
+          ? planAnswer(true, 'Should the bound be bytes or lines?')
+          : stubs().generate(request),
+    })
+
+    const finished = await run.resume({
+      step: 'wait-for-plan-clarification',
+      resumeData: { answer: 'Bytes, 64 KiB.' },
+    })
+
+    expect(finished.status).toBe('success')
+    expect(finished).toStrictEqual(
       expect.objectContaining({ result: expect.objectContaining({ readyForHuman: true }) }),
     )
   })
 
   it('posts the question heading even when the planner gives no question text', async () => {
     const comments: string[] = []
-    await startedRun({
+    const { run, started } = await startedRun({
       generate: async (request) =>
         request.agentId === 'planner' ? planAnswer(true, null) : stubs().generate(request),
       commentOnIssue: async (request) => {
         comments.push(request.body)
         return { createdAt: '2026-10-18T10:00:00Z' }
       },
-      waitForIssueReply: async () => ({ reply: 'go ahead' }),
     })
 
+    expect(started.status).toBe('suspended')
     expect(comments[0]).toContain('### Needs your input')
-  })
 
-  it('stops the run, rather than failing it, when nobody replies on the issue', async () => {
-    const { started } = await startedRun({
-      generate: async (request) =>
-        request.agentId === 'planner'
-          ? planAnswer(true, 'Should the bound be bytes or lines?')
-          : stubs().generate(request),
+    await run.resume({
+      step: 'wait-for-plan-clarification',
+      resumeData: { answer: 'go ahead' },
     })
-
-    expect(started).toStrictEqual(
-      expect.objectContaining({
-        status: 'success',
-        result: expect.objectContaining({
-          stoppedReason: expect.stringContaining('Nobody replied on the issue'),
-          pullRequestUrl: '',
-        }),
-      }),
-    )
   })
 
   it('suspends when the implementer is blocked and carries on with the answer', async () => {
