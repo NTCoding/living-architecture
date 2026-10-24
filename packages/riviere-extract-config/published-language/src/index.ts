@@ -105,6 +105,12 @@ export {
   type ValidationError,
 } from './published-language/validation'
 export {
+  parseAiExtractResponse,
+  type AiExtractComponentDraft,
+  type AiExtractInternalLinkEntry,
+  type AiExtractResponse,
+} from './published-language/ai-extract-response'
+export {
   AI_ENRICHABLE_FIELDS,
   AI_EXTRACTION_GAPS,
   parseAiEnrichConfig,

@@ -10,6 +10,7 @@ import type { detectCodeExtractionConnections } from '../code-extraction/detect-
 import type { extractCodeExtraction } from '../code-extraction/extract-code-extraction'
 import type { executeAsyncApiImportStage } from '../asyncapi/execute-asyncapi-import-stage'
 import type { executeEventCatalogImportStage } from '../event-catalog/execute-event-catalog-import-stage'
+import type { executeAiExtractStage } from '../ai-extract/execute-ai-extract-stage'
 
 type RiviereProjectExtractionBehaviour = Readonly<{
   readonly extractCodeExtraction: typeof extractCodeExtraction
@@ -18,6 +19,7 @@ type RiviereProjectExtractionBehaviour = Readonly<{
   readonly stripResolvedCustomTypes: typeof stripResolvedCustomTypes
   readonly executeEventCatalogImportStage: typeof executeEventCatalogImportStage
   readonly executeAsyncApiImportStage: typeof executeAsyncApiImportStage
+  readonly executeAiExtractStage: typeof executeAiExtractStage
   readonly detectConnectionsFromCalls: typeof detectConnectionsFromCalls
   readonly detectEventPublisherConnections: typeof detectEventPublisherConnections
   readonly detectSubscribeConnections: typeof detectSubscribeConnections
