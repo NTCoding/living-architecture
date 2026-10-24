@@ -3,7 +3,10 @@ import { fileExists } from './file-existence'
 
 /** @riviere-role external-client-error */
 export class FileReadError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    readonly code?: string,
+  ) {
     super(message)
     this.name = 'FileReadError'
     Error.captureStackTrace?.(this, this.constructor)
