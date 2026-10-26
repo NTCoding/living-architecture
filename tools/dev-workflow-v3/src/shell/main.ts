@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import './configure-mastra-runtime'
 import { execFile } from 'node:child_process'
 import { appendFileSync, mkdirSync } from 'node:fs'
 import { createInterface } from 'node:readline/promises'

@@ -203,7 +203,7 @@ const IMPLEMENTATION_TIME_BUDGET_MS = 60 * 60 * 1000
 const IMPLEMENTATION_ROUNDS = 3
 const FEEDBACK_TIME_BUDGET_MS = 60 * 60 * 1000
 const FEEDBACK_ROUNDS = 2
-const REVIEW_TIME_BUDGET_MS = 30 * 60 * 1000
+const REVIEW_TIME_BUDGET_MS = 45 * 60 * 1000
 
 /**
  * A step that makes one call to GitHub or git may be tried again: the call is flaky, not the work.

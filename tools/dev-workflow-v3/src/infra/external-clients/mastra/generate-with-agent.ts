@@ -108,9 +108,59 @@ async function generateWithRetry(
   request: AgentGenerationRequest,
   attempt: number,
 ): Promise<AgentGeneration> {
-  const response = await generateOnce(workingDirectory, agentFor, request)
+  const response = await withHangWatchdog(
+    generateOnce(workingDirectory, agentFor, request),
+    request,
+  )
   if (!isEmptyAnswer(response) || attempt >= 2) return response
   return generateWithRetry(workingDirectory, agentFor, request, attempt + 1)
+}
+
+/**
+ * Resolves an aborted answer when the generation promise never settles. Mastra evicts
+ * run-scoped workflows after an idle TTL, and the eviction leaves the pending await
+ * unsettled, which hung the whole run. The grace period lets the generation's own abort
+ * budget fire first; the watchdog only steps in when that has silently failed.
+ *
+ * @riviere-role external-client-service
+ */
+export function withHangWatchdog(
+  generation: Promise<AgentGeneration>,
+  request: AgentGenerationRequest,
+): Promise<AgentGeneration> {
+  const watchdog = new Resolvable<AgentGeneration>()
+  const timer = setTimeout(
+    () =>
+      watchdog.settle({
+        object: undefined,
+        text: '',
+        finishReason: 'aborted',
+        suspendPayload: null,
+      }),
+    request.timeBudgetMs + abortGraceMs(request),
+  )
+  return Promise.race([generation, watchdog.promise]).finally(() => clearTimeout(timer))
+}
+
+/** A promise whose value can be supplied later, by the watchdog timer. */
+class Resolvable<T> {
+  readonly promise: Promise<T>
+  // Assigned exactly once by the promise executor inside the constructor.
+  private resolve!: (value: T) => void
+
+  constructor() {
+    this.promise = new Promise<T>((settled) => {
+      this.resolve = settled
+    })
+  }
+
+  settle(value: T): void {
+    this.resolve(value)
+  }
+}
+
+function abortGraceMs(request: AgentGenerationRequest): number {
+  return Math.min(60_000, request.timeBudgetMs)
 }
 
 async function generateOnce(
