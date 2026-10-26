@@ -70,6 +70,7 @@ function implementationAnswer(summary: string, resolutions: readonly unknown[] =
   return {
     object: {
       outcome: 'complete',
+      blockedReason: null,
       summary,
       allWorkCommitted: true,
       resolutions,
@@ -452,6 +453,33 @@ describe('BuildWorkflow', () => {
     })
   })
 
+  it('fails when the implementer is blocked without giving a reason', async () => {
+    const { started } = await startedRun({
+      generate: async (request) => {
+        if (request.agentId !== 'implementer') return stubs().generate(request)
+        return {
+          object: {
+            outcome: 'blocked',
+            blockedReason: null,
+            allWorkCommitted: false,
+          },
+          text: '',
+          finishReason: 'stop',
+          suspendPayload: null,
+        }
+      },
+    })
+
+    expect(started).toStrictEqual(
+      expect.objectContaining({
+        status: 'failed',
+        error: expect.objectContaining({
+          message: expect.stringContaining('blocked without a reason'),
+        }),
+      }),
+    )
+  })
+
   it('suspends when the implementer is blocked and carries on with the answer', async () => {
     const prompts: string[] = []
     const { run, started } = await startedRun({
@@ -734,6 +762,7 @@ describe('BuildWorkflow', () => {
               object: {
                 summary: 'done',
                 outcome: 'complete',
+                blockedReason: null,
                 allWorkCommitted: true,
               },
               text: '',
@@ -769,6 +798,7 @@ describe('BuildWorkflow', () => {
               object: {
                 summary: 'done',
                 outcome: 'complete',
+                blockedReason: null,
                 allWorkCommitted: true,
               },
               text: '',
@@ -1128,6 +1158,7 @@ describe('review cycle', () => {
           ? {
               object: {
                 outcome: 'complete',
+                blockedReason: null,
                 allWorkCommitted: true,
                 resolutions: [
                   { commentId: 1, outcome: 'addressed', response: 'Fixed the naming.' },
@@ -1215,6 +1246,7 @@ describe('review cycle', () => {
           ? {
               object: {
                 outcome: 'complete',
+                blockedReason: null,
                 allWorkCommitted: true,
                 resolutions: [{ commentId: 1, outcome: 'addressed', response: 'Addressed.' }],
               },
@@ -1268,6 +1300,7 @@ describe('review cycle', () => {
           ? {
               object: {
                 outcome: 'complete',
+                blockedReason: null,
                 allWorkCommitted: true,
                 resolutions: [],
               },

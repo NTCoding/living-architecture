@@ -141,14 +141,11 @@ const planSchema = z.object({
   question: z.string().nullable(),
 })
 
-const implementationSchema = z.discriminatedUnion('outcome', [
-  z.object({ outcome: z.literal('complete'), allWorkCommitted: z.boolean() }),
-  z.object({
-    outcome: z.literal('blocked'),
-    blockedReason: z.string().min(1),
-    allWorkCommitted: z.boolean(),
-  }),
-])
+const implementationSchema = z.object({
+  outcome: z.enum(['complete', 'blocked']),
+  blockedReason: z.string().nullable(),
+  allWorkCommitted: z.boolean(),
+})
 
 const feedbackSchema = z.object({ resolutions: z.array(resolutionSchema) })
 
@@ -1181,6 +1178,8 @@ async function runImplementationRound(
   const outcome = implementationSchema.safeParse(response.object)
   if (!outcome.success) throw new RunFailed(noStructuredOutput('The implementer', response))
   if (outcome.data.outcome === 'blocked') {
+    if (outcome.data.blockedReason === null)
+      throw new RunFailed('The implementer is blocked without a reason.')
     return { kind: 'question', question: outcome.data.blockedReason }
   }
   return { kind: 'answer', answer: outcome.data }
@@ -1265,7 +1264,7 @@ function implementationPrompt(
     '',
     'Your response:',
     '- outcome: "complete" when the plan is done, or "blocked" when it is not.',
-    '- blockedReason: when outcome is "blocked", explain as clearly as you can why the work is not complete.',
+    '- blockedReason: when outcome is "blocked", explain as clearly as you can why the work is not complete. Otherwise null.',
     '- allWorkCommitted: true when you have committed your work.',
   ]
   if (response === null) return first.join('\n')
