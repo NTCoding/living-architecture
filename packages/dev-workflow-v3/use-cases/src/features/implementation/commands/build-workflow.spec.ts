@@ -69,9 +69,8 @@ function resolutionsFrom(prompt: string) {
 function implementationAnswer(summary: string, resolutions: readonly unknown[] = []) {
   return {
     object: {
+      outcome: 'complete',
       summary,
-      blockedReason: 'The work is complete.',
-      allWorkComplete: true,
       allWorkCommitted: true,
       resolutions,
     },
@@ -453,34 +452,6 @@ describe('BuildWorkflow', () => {
     })
   })
 
-  it('fails when the implementer is blocked without giving a reason', async () => {
-    const { started } = await startedRun({
-      generate: async (request) => {
-        if (request.agentId !== 'implementer') return stubs().generate(request)
-        return {
-          object: {
-            summary: 'blocked',
-            blockedReason: null,
-            allWorkComplete: false,
-            allWorkCommitted: false,
-          },
-          text: '',
-          finishReason: 'stop',
-          suspendPayload: null,
-        }
-      },
-    })
-
-    expect(started).toStrictEqual(
-      expect.objectContaining({
-        status: 'failed',
-        error: expect.objectContaining({
-          message: expect.stringContaining('blocked without a reason'),
-        }),
-      }),
-    )
-  })
-
   it('suspends when the implementer is blocked and carries on with the answer', async () => {
     const prompts: string[] = []
     const { run, started } = await startedRun({
@@ -491,8 +462,8 @@ describe('BuildWorkflow', () => {
           ? {
               object: {
                 summary: 'blocked',
+                outcome: 'blocked',
                 blockedReason: 'Reuse the existing port, or add one?',
-                allWorkComplete: false,
                 allWorkCommitted: false,
               },
               text: '',
@@ -537,8 +508,8 @@ describe('BuildWorkflow', () => {
           ? {
               object: {
                 summary: 'blocked',
+                outcome: 'blocked',
                 blockedReason: 'Which port?',
-                allWorkComplete: false,
                 allWorkCommitted: false,
               },
               text: '',
@@ -762,8 +733,7 @@ describe('BuildWorkflow', () => {
           ? {
               object: {
                 summary: 'done',
-                blockedReason: 'The work is complete.',
-                allWorkComplete: true,
+                outcome: 'complete',
                 allWorkCommitted: true,
               },
               text: '',
@@ -798,8 +768,7 @@ describe('BuildWorkflow', () => {
           ? {
               object: {
                 summary: 'done',
-                blockedReason: 'The work is complete.',
-                allWorkComplete: true,
+                outcome: 'complete',
                 allWorkCommitted: true,
               },
               text: '',
@@ -833,8 +802,8 @@ describe('BuildWorkflow', () => {
           ? {
               object: {
                 summary: 'not done',
+                outcome: 'blocked',
                 blockedReason: 'I could not add the port because the schema types are missing.',
-                allWorkComplete: false,
                 allWorkCommitted: false,
               },
               text: '',
@@ -1158,8 +1127,7 @@ describe('review cycle', () => {
         request.prompt.startsWith('Here is the feedback')
           ? {
               object: {
-                blockedReason: null,
-                allWorkComplete: true,
+                outcome: 'complete',
                 allWorkCommitted: true,
                 resolutions: [
                   { commentId: 1, outcome: 'addressed', response: 'Fixed the naming.' },
@@ -1246,8 +1214,7 @@ describe('review cycle', () => {
         request.prompt.startsWith('Here is the feedback')
           ? {
               object: {
-                blockedReason: null,
-                allWorkComplete: true,
+                outcome: 'complete',
                 allWorkCommitted: true,
                 resolutions: [{ commentId: 1, outcome: 'addressed', response: 'Addressed.' }],
               },
@@ -1300,8 +1267,7 @@ describe('review cycle', () => {
         request.prompt.startsWith('Here is the feedback')
           ? {
               object: {
-                blockedReason: null,
-                allWorkComplete: true,
+                outcome: 'complete',
                 allWorkCommitted: true,
                 resolutions: [],
               },
@@ -1573,7 +1539,6 @@ describe('review cycle', () => {
               object: {
                 summary: 'blocked',
                 blockedReason: 'The rule conflicts with the ADR.',
-                allWorkComplete: false,
                 allWorkCommitted: false,
               },
               text: '',

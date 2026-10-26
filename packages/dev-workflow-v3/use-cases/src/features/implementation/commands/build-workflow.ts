@@ -141,11 +141,14 @@ const planSchema = z.object({
   question: z.string().nullable(),
 })
 
-const implementationSchema = z.object({
-  blockedReason: z.string().nullable(),
-  allWorkComplete: z.boolean(),
-  allWorkCommitted: z.boolean(),
-})
+const implementationSchema = z.discriminatedUnion('outcome', [
+  z.object({ outcome: z.literal('complete'), allWorkCommitted: z.boolean() }),
+  z.object({
+    outcome: z.literal('blocked'),
+    blockedReason: z.string().min(1),
+    allWorkCommitted: z.boolean(),
+  }),
+])
 
 const feedbackSchema = z.object({ resolutions: z.array(resolutionSchema) })
 
@@ -1001,12 +1004,6 @@ async function implementUntilCommitted(request: {
     const remaining = request.timeBudgetMs - (Date.now() - progress.startedAt)
     const round = await runImplementationRound(request, progress.prompt, Math.max(remaining, 1))
     if (round.kind === 'question') return round
-    if (!round.answer.allWorkComplete) {
-      const blockedReason = round.answer.blockedReason
-      if (blockedReason === null)
-        throw new RunFailed('The implementer is blocked without a reason.')
-      return { kind: 'question', question: blockedReason }
-    }
     const committed = await request.input.checkWorkCommitted({
       worktreePath: request.state.worktreePath,
       from: request.state.baseSha,
@@ -1183,6 +1180,9 @@ async function runImplementationRound(
   if (response.finishReason === 'tool-calls') throw new RunFailed(stepsExhaustedMessage)
   const outcome = implementationSchema.safeParse(response.object)
   if (!outcome.success) throw new RunFailed(noStructuredOutput('The implementer', response))
+  if (outcome.data.outcome === 'blocked') {
+    return { kind: 'question', question: outcome.data.blockedReason }
+  }
   return { kind: 'answer', answer: outcome.data }
 }
 
@@ -1264,8 +1264,8 @@ function implementationPrompt(
     state.planMarkdown,
     '',
     'Your response:',
-    '- blockedReason: explain as clearly as you can why the work is not complete. Required whenever allWorkComplete is false.',
-    '- allWorkComplete: true when the plan is done.',
+    '- outcome: "complete" when the plan is done, or "blocked" when it is not.',
+    '- blockedReason: when outcome is "blocked", explain as clearly as you can why the work is not complete.',
     '- allWorkCommitted: true when you have committed your work.',
   ]
   if (response === null) return first.join('\n')
