@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-issue="${1:?usage: ./implement <issue>}"
+issue="${1:?usage: scripts/implement <issue>}"
 shift || true
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 exec caffeinate pnpm factory start-implementation "$issue" \
-  --model opencode-go/beam-free \
+  --model zai/glm-5.3-flash \
   --observer-model opencode-go/deepseek-v4.1-flash \
-  --thinking medium \
+  --thinking low \
   "$@"
