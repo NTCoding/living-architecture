@@ -1,7 +1,7 @@
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Agent } from '@mastra/core/agent'
 import type { ToolsInput } from '@mastra/core/agent'
 import { RequestContext } from '@mastra/core/request-context'
@@ -11,8 +11,13 @@ import {
   agentFrom,
   agentRequestContextOf,
   createAgents,
+  generationModelOf,
   MissingAgentContextValue,
+  MissingOpenCodeApiKey,
+  MissingThreadForOpenCodeSession,
+  serializableGenerationModelOf,
   UnregisteredAgent,
+  UnroutedModelId,
 } from './create-agent'
 import type { AgentRequest } from './create-agent'
 import { createAskUserTool } from './ask-user-tool'
@@ -34,11 +39,16 @@ function aRequest(overrides?: Partial<AgentRequest>): AgentRequest {
     model: 'zai/glm-5.3-flash',
     instructions: 'carry the issue',
     workspacePath: null,
+    threadId: 'issue-501-implementer',
     useTools: false,
     workspaceWritable: false,
     ...overrides,
   }
 }
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+})
 
 describe('createAgents', () => {
   it('registers one agent per given name', () => {
@@ -153,5 +163,87 @@ describe('registered agents', () => {
     await expect(
       implementer.getWorkspace({ requestContext: new RequestContext() }),
     ).rejects.toThrow(MissingAgentContextValue)
+  })
+})
+
+describe('generationModelOf', () => {
+  it('passes provider-routed model strings through unchanged', () => {
+    const model = generationModelOf(agentRequestContextOf(aRequest()))
+
+    expect(model).toStrictEqual({
+      id: 'zai/glm-5.3-flash',
+      model: { providerId: 'zai', modelId: 'glm-5.3-flash' },
+    })
+  })
+
+  it('routes opencode models through the opencode inference endpoint', () => {
+    vi.stubEnv('OPENCODE_API_KEY', 'test-key')
+
+    const model = generationModelOf(
+      agentRequestContextOf(aRequest({ model: 'opencode-go/beam-free' })),
+    )
+
+    expect(model).toStrictEqual({
+      id: 'opencode-go/beam-free',
+      model: {
+        providerId: 'opencode-go',
+        modelId: 'beam-free',
+        url: 'https://opencode.ai/inference/go/v1',
+        apiKey: 'test-key',
+        headers: { 'x-opencode-session': 'issue-501-implementer' },
+      },
+    })
+  })
+
+  it('throws when an opencode request has no OPENCODE_API_KEY', () => {
+    vi.stubEnv('OPENCODE_API_KEY', undefined)
+
+    expect(() =>
+      generationModelOf(agentRequestContextOf(aRequest({ model: 'opencode-go/beam-free' }))),
+    ).toThrow(MissingOpenCodeApiKey)
+  })
+
+  it('throws when an opencode request has no memory thread for its session', () => {
+    vi.stubEnv('OPENCODE_API_KEY', 'test-key')
+
+    expect(() =>
+      generationModelOf(
+        agentRequestContextOf(aRequest({ model: 'opencode-go/beam-free', threadId: null })),
+      ),
+    ).toThrow(MissingThreadForOpenCodeSession)
+  })
+
+  it('throws when the context carries no model', () => {
+    expect(() => generationModelOf(new RequestContext())).toThrow(MissingAgentContextValue)
+  })
+})
+
+describe('serializableGenerationModelOf', () => {
+  it('splits provider-routed model strings for serialization', () => {
+    const model = serializableGenerationModelOf(agentRequestContextOf(aRequest()))
+
+    expect(model).toStrictEqual({ providerId: 'zai', modelId: 'glm-5.3-flash' })
+  })
+
+  it('sends opencode models with their session header and endpoint', () => {
+    vi.stubEnv('OPENCODE_API_KEY', 'test-key')
+
+    const model = serializableGenerationModelOf(
+      agentRequestContextOf(aRequest({ model: 'opencode-go/beam-free' })),
+    )
+
+    expect(model).toStrictEqual({
+      providerId: 'opencode-go',
+      modelId: 'beam-free',
+      url: 'https://opencode.ai/inference/go/v1',
+      apiKey: 'test-key',
+      headers: { 'x-opencode-session': 'issue-501-implementer' },
+    })
+  })
+
+  it('throws when the model string carries no provider route prefix', () => {
+    expect(() =>
+      serializableGenerationModelOf(agentRequestContextOf(aRequest({ model: 'beam-free' }))),
+    ).toThrow(UnroutedModelId)
   })
 })

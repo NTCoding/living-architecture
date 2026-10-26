@@ -150,7 +150,10 @@ describe('createAgentGeneration', () => {
 
     await generate(aRequest({ responseSchema: schema }))
 
-    expect(calls[0]?.options.structuredOutput?.model).toBe('zai/glm-5.3-flash')
+    expect(calls[0]?.options.structuredOutput?.model).toStrictEqual({
+      providerId: 'zai',
+      modelId: 'glm-5.3-flash',
+    })
     expect(calls[0]?.options.structuredOutput?.schema).toBe(schema)
   })
 
@@ -185,12 +188,35 @@ describe('createAgentGeneration', () => {
     expect(calls).toHaveLength(3)
   })
 
+  it('resolves an aborted generation when the generation never settles', async () => {
+    const agent: GeneratingAgent = {
+      generate: () => new Promise<AgentGenerationResult>(() => undefined),
+    }
+    const generate = createAgentGeneration({
+      workingDirectory: process.cwd(),
+      agentFor: () => agent,
+    })
+
+    const response = await generate(aRequest({ timeBudgetMs: 100 }))
+
+    expect(response).toStrictEqual({
+      object: undefined,
+      text: '',
+      finishReason: 'aborted',
+      suspendPayload: null,
+    })
+  })
+
   it('returns an aborted generation and captures nothing when the time budget ran out', async () => {
     const workingDirectory = mkdtempSync(join(tmpdir(), 'factory-abort-'))
     process.chdir(workingDirectory)
     const agent: GeneratingAgent = {
-      generate: async () => {
-        await new Promise((resolve) => setTimeout(resolve, 20))
+      generate: async (_prompt, options) => {
+        await new Promise((_resolve, reject) => {
+          options.abortSignal.addEventListener('abort', () =>
+            reject(new ProviderCrashed('The provider answered after the abort.')),
+          )
+        })
         throw new ProviderCrashed('The provider answered after the abort.')
       },
     }

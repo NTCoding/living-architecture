@@ -32,12 +32,9 @@ A session is one working copy of this repository with its own factory state in
   thinking level is passed to Mastra as the neutral `modelSettings.reasoning` setting (AI SDK v7
   models), and a provider that rejects a request is recorded to
   `.factory/logs/<agentId>-failed-request.json` before the error is rethrown unchanged.
-- **Prompt processors** (on every registered agent, in order): `ToolCallFilter` keeps only the most
-  recent tool exchanges in the prompt so finished work stops swelling the context;
-  `TaskPreservingTokenLimiter` trims the oldest history within a token budget but always keeps the
-  system messages and the first user message, because providers such as Z.ai GLM reject a request
-  with no user message; `ProviderMessageSanitizer` drops assistant messages left empty and tool
-  results whose matching assistant tool call was removed, both of which GLM also rejects.
+- **Prompt handling**: history trimming and message sanitisation are left to Mastra memory; the
+  factory registers no custom prompt processors. Observational memory is enabled and needs a model
+  set through `--observer-model`.
 - **Threads** (`build-workflow.ts`): every generate call names a per-run thread
   (`issue-<number>-<agentId>`), so each agent's full transcript persists to `mastra_messages`.
 

@@ -17,13 +17,17 @@ type Dependencies = {
 export function prepareWorktreeWithGit(dependencies: Dependencies): PrepareWorktree {
   return async (request) => {
     const worktreePath = `${dependencies.worktreesDirectory}/${request.branch}`
-    if (await exists(dependencies, worktreePath)) return
+    if (await exists(dependencies, worktreePath)) {
+      await rebaseOntoRemote(dependencies, worktreePath, request.branch)
+      return
+    }
     const base = await defaultBranch(dependencies)
     if (await branchExists(dependencies, request.branch)) {
       await gitOutput(dependencies.runCommand, {
         worktreePath: dependencies.repositoryPath,
         arguments: ['worktree', 'add', worktreePath, request.branch],
       })
+      await rebaseOntoRemote(dependencies, worktreePath, request.branch)
       return
     }
     await gitOutput(dependencies.runCommand, {
@@ -56,4 +60,39 @@ async function branchExists(dependencies: Dependencies, branch: string): Promise
   })
   const output = await dependencies.runCommand(command)
   return output.exitCode === 0
+}
+
+async function rebaseOntoRemote(
+  dependencies: Dependencies,
+  worktreePath: string,
+  branch: string,
+): Promise<void> {
+  const fetched = await dependencies.runCommand(
+    toGitCommand({
+      worktreePath,
+      arguments: ['fetch', 'origin', branch],
+    }),
+  )
+  if (fetched.exitCode !== 0) {
+    if (/couldn't find remote ref/i.test(fetched.stderr)) return
+    throw new FetchFailed(branch, fetched.stderr.trim())
+  }
+  const behind = await dependencies.runCommand(
+    toGitCommand({
+      worktreePath,
+      arguments: ['log', '--oneline', `HEAD..origin/${branch}`],
+    }),
+  )
+  if (behind.stdout.trim() === '') return
+  await gitOutput(dependencies.runCommand, {
+    worktreePath,
+    arguments: ['rebase', `origin/${branch}`],
+  })
+}
+
+class FetchFailed extends Error {
+  constructor(branch: string, stderr: string) {
+    super(`The fetch of origin/${branch} failed: ${stderr}`)
+    this.name = 'FetchFailed'
+  }
 }

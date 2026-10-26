@@ -14,6 +14,7 @@ const finding = {
   line: 12,
   rule: 'SD-005',
   summary: 'A domain decision sits in the adapter.',
+  commentId: null,
 }
 
 const startInput = {
@@ -46,7 +47,11 @@ function reviewInput(overrides: Record<string, unknown> = {}) {
 
 function planAnswer(needsInput = false, question: string | null = null) {
   return {
-    object: { markdown: 'the plan', needsInput, question },
+    object: {
+      items: [{ name: 'do the thing', description: 'Change the thing, then run its checks.' }],
+      needsInput,
+      question,
+    },
     text: '',
     finishReason: 'stop',
     suspendPayload: null,
@@ -64,9 +69,9 @@ function resolutionsFrom(prompt: string) {
 function implementationAnswer(summary: string, resolutions: readonly unknown[] = []) {
   return {
     object: {
+      outcome: 'complete',
+      blockedReason: null,
       summary,
-      blockedReason: 'The work is complete.',
-      allWorkComplete: true,
       allWorkCommitted: true,
       resolutions,
     },
@@ -100,6 +105,8 @@ function isReviewer(agentId: string): boolean {
   return agentId.endsWith('-review') || agentId === 'bug-scanner'
 }
 
+class NoGuidanceInWorktree extends Error {}
+
 function verdictAnswer(status: 'APPROVED' | 'OPEN_FEEDBACK', findings: readonly unknown[]) {
   return { object: { status, findings }, text: '', finishReason: 'stop', suspendPayload: null }
 }
@@ -112,6 +119,7 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
       branch: 'issue-455-add-a-review-cycle',
     }),
     installDependencies: async () => undefined,
+    readRepoGuidance: () => 'REPO RULES',
     generate: async (request) => {
       if (request.agentId === 'planner') return planAnswer()
       if (request.agentId === 'implementer') {
@@ -130,7 +138,6 @@ function stubs(overrides: Partial<Stubs> = {}): Stubs {
     pushBranch: async () => undefined,
     openPullRequest: async () => ({ number: 549, url: 'https://github.com/o/r/pull/549' }),
     commentOnIssue: async () => ({ createdAt: '2026-10-18T10:00:00Z' }),
-    waitForIssueReply: async () => ({ reply: null }),
     commentOnPullRequest: async () => undefined,
     readPullRequestDiff: async () => ({ diff: 'diff --git a/x b/x' }),
     closeReviewCycle: async (request) => ({
@@ -198,17 +205,58 @@ async function scoresOf(
 }
 
 describe('the scorers that say whether a model was good enough', () => {
-  it('gives a full score to a plan that is a numbered list and needs nothing', async () => {
-    const output = { ...startInput, planMarkdown: '1. do the thing', planNeedsInput: false }
+  it('gives a full score to a plan with items and nothing to ask', async () => {
+    const output = {
+      ...startInput,
+      planItems: [{ name: 'do the thing', description: 'Run the checks.' }],
+      planNeedsInput: false,
+    }
 
     expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([1])
   })
 
-  it('marks a plan down when it is prose that quietly asks for input', async () => {
-    const output = { ...startInput, planMarkdown: 'do the thing', planNeedsInput: true }
+  it('marks a plan down when it has no items', async () => {
+    const output = { ...startInput, planItems: [], planNeedsInput: false }
 
     expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
       1 / 3,
+    ])
+  })
+
+  it('marks a plan down when an item has no name', async () => {
+    const output = {
+      ...startInput,
+      planItems: [{ name: '  ', description: 'Run the checks.' }],
+      planNeedsInput: false,
+    }
+
+    expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
+      2 / 3,
+    ])
+  })
+
+  it('marks a plan down when an item has no description', async () => {
+    const output = {
+      ...startInput,
+      planItems: [{ name: 'do the thing', description: '  ' }],
+      planNeedsInput: false,
+    }
+
+    expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
+      2 / 3,
+    ])
+  })
+
+  it('marks a plan down when it quietly asks for input without a question', async () => {
+    const output = {
+      ...startInput,
+      planItems: [{ name: 'do the thing', description: 'Run the checks.' }],
+      planNeedsInput: true,
+      planQuestion: null,
+    }
+
+    expect(await scoresOf('start-implementation', 'draft-plan-quality', output)).toStrictEqual([
+      2 / 3,
     ])
   })
 
@@ -267,6 +315,48 @@ describe('BuildWorkflow', () => {
     expect(studio.getWorkflow('review-cycle').id).toBe('review-cycle')
   })
 
+  it('sends the repo guidance before the role instructions when the generation runs in a workspace', async () => {
+    const instructions: string[] = []
+    const { started } = await startedRun({
+      readRepoGuidance: () => 'REPO RULES',
+      generate: async (request) => {
+        instructions.push(request.instructions)
+        if (request.agentId === 'planner') return planAnswer()
+        if (request.agentId === 'implementer') {
+          return implementationAnswer('the change', resolutionsFrom(request.prompt))
+        }
+        if (request.agentId === 'pull-request-writer') return pullRequestAnswer()
+        return verdictAnswer('APPROVED', [])
+      },
+    })
+
+    expect(started.status).toBe('success')
+    expect(instructions.every((entry) => entry.startsWith('REPO RULES'))).toBe(true)
+    expect(
+      instructions.every((entry) =>
+        entry.includes(
+          'A subdirectory may contain its own AGENTS.md; its rules apply to the files under it.',
+        ),
+      ),
+    ).toBe(true)
+    expect(instructions.some((entry) => entry.includes('You are the planner'))).toBe(true)
+  })
+
+  it('fails before installing dependencies when the workspace carries no AGENTS.md', async () => {
+    const installs: unknown[] = []
+    const { started } = await startedRun({
+      readRepoGuidance: () => {
+        throw new NoGuidanceInWorktree('The workspace carries no AGENTS.md.')
+      },
+      installDependencies: async (request) => {
+        installs.push(request)
+      },
+    })
+
+    expect(started.status).toBe('failed')
+    expect(installs).toStrictEqual([])
+  })
+
   it('posts the plan on the issue and carries on without asking', async () => {
     const comments: string[] = []
     const { started } = await startedRun({
@@ -278,7 +368,9 @@ describe('BuildWorkflow', () => {
 
     expect(started.status).toBe('success')
     expect(comments).toStrictEqual([
-      expect.stringContaining("[dev-workflow-v3] Implementer's plan\n\nthe plan"),
+      expect.stringContaining(
+        "[dev-workflow-v3] Implementer's plan\n\n### 1. do the thing\n\nChange the thing, then run its checks.",
+      ),
     ])
   })
 
@@ -293,7 +385,7 @@ describe('BuildWorkflow', () => {
     )
   })
 
-  it('asks on the issue when the plan needs input and carries on with the reply', async () => {
+  it('posts the question on the issue and suspends for the person when the plan needs input', async () => {
     const comments: string[] = []
     const { started } = await startedRun({
       generate: async (request) =>
@@ -304,46 +396,90 @@ describe('BuildWorkflow', () => {
         comments.push(request.body)
         return { createdAt: '2026-10-18T10:00:00Z' }
       },
-      waitForIssueReply: async () => ({ reply: 'Bytes, 64 KiB.' }),
     })
 
-    expect(started.status).toBe('success')
+    expect(started.status).toBe('suspended')
     expect(comments[0]).toContain('### Needs your input')
     expect(comments[0]).toContain('Should the bound be bytes or lines?')
     expect(started).toStrictEqual(
+      expect.objectContaining({
+        steps: expect.objectContaining({
+          'wait-for-plan-clarification': expect.objectContaining({
+            suspendPayload: expect.objectContaining({
+              question: 'Should the bound be bytes or lines?',
+            }),
+          }),
+        }),
+      }),
+    )
+  })
+
+  it('carries on with the answer when the person replies to the plan question', async () => {
+    const prompts: string[] = []
+    const { run } = await startedRun({
+      generate: async (request) => {
+        if (request.agentId === 'implementer') prompts.push(request.prompt)
+        return request.agentId === 'planner'
+          ? planAnswer(true, 'Should the bound be bytes or lines?')
+          : stubs().generate(request)
+      },
+    })
+
+    const finished = await run.resume({
+      step: 'wait-for-plan-clarification',
+      resumeData: { answer: 'Bytes, 64 KiB.' },
+    })
+
+    expect(finished.status).toBe('success')
+    expect(prompts[0]).toContain('Should the bound be bytes or lines?')
+    expect(prompts[0]).toContain('Bytes, 64 KiB.')
+    expect(finished).toStrictEqual(
       expect.objectContaining({ result: expect.objectContaining({ readyForHuman: true }) }),
     )
   })
 
   it('posts the question heading even when the planner gives no question text', async () => {
     const comments: string[] = []
-    await startedRun({
+    const { run, started } = await startedRun({
       generate: async (request) =>
         request.agentId === 'planner' ? planAnswer(true, null) : stubs().generate(request),
       commentOnIssue: async (request) => {
         comments.push(request.body)
         return { createdAt: '2026-10-18T10:00:00Z' }
       },
-      waitForIssueReply: async () => ({ reply: 'go ahead' }),
     })
 
+    expect(started.status).toBe('suspended')
     expect(comments[0]).toContain('### Needs your input')
+
+    await run.resume({
+      step: 'wait-for-plan-clarification',
+      resumeData: { answer: 'go ahead' },
+    })
   })
 
-  it('stops the run, rather than failing it, when nobody replies on the issue', async () => {
+  it('fails when the implementer is blocked without giving a reason', async () => {
     const { started } = await startedRun({
-      generate: async (request) =>
-        request.agentId === 'planner'
-          ? planAnswer(true, 'Should the bound be bytes or lines?')
-          : stubs().generate(request),
+      generate: async (request) => {
+        if (request.agentId !== 'implementer') return stubs().generate(request)
+        return {
+          object: {
+            outcome: 'blocked',
+            blockedReason: null,
+            allWorkCommitted: false,
+          },
+          text: '',
+          finishReason: 'stop',
+          suspendPayload: null,
+        }
+      },
     })
 
     expect(started).toStrictEqual(
       expect.objectContaining({
-        status: 'success',
-        result: expect.objectContaining({
-          stoppedReason: expect.stringContaining('Nobody replied on the issue'),
-          pullRequestUrl: '',
+        status: 'failed',
+        error: expect.objectContaining({
+          message: expect.stringContaining('blocked without a reason'),
         }),
       }),
     )
@@ -354,13 +490,17 @@ describe('BuildWorkflow', () => {
     const { run, started } = await startedRun({
       generate: async (request) => {
         if (request.agentId !== 'implementer') return stubs().generate(request)
-        prompts.push(request.prompt.startsWith('Implement issue') ? 'asking' : request.prompt)
+        prompts.push(
+          prompts.length === 0 && request.prompt.startsWith('Implement issue')
+            ? 'asking'
+            : request.prompt,
+        )
         return prompts.length === 1
           ? {
               object: {
                 summary: 'blocked',
+                outcome: 'blocked',
                 blockedReason: 'Reuse the existing port, or add one?',
-                allWorkComplete: false,
                 allWorkCommitted: false,
               },
               text: '',
@@ -383,16 +523,17 @@ describe('BuildWorkflow', () => {
         }),
       }),
     )
-    const finished = await run.resume({
+    await run.resume({
       step: 'implement',
       resumeData: { answer: 'the answer', question: 'Reuse the existing port, or add one?' },
     })
 
     expect(prompts).toStrictEqual([
       'asking',
-      '<question>\nReuse the existing port, or add one?\n</question>\n\n<answer>\nthe answer\n</answer>',
+      expect.stringContaining('<question>\nReuse the existing port, or add one?'),
     ])
-    expect(finished.status).toBe('success')
+    expect(prompts[1]).toContain('Plan:')
+    expect(prompts[1]).toContain('</question>\n\n<answer>\nthe answer\n</answer>')
   })
 
   it('carries on with just the answer when the resume has no question', async () => {
@@ -400,13 +541,17 @@ describe('BuildWorkflow', () => {
     const { run } = await startedRun({
       generate: async (request) => {
         if (request.agentId !== 'implementer') return stubs().generate(request)
-        prompts.push(request.prompt.startsWith('Implement issue') ? 'asking' : request.prompt)
+        prompts.push(
+          prompts.length === 0 && request.prompt.startsWith('Implement issue')
+            ? 'asking'
+            : request.prompt,
+        )
         return prompts.length === 1
           ? {
               object: {
                 summary: 'blocked',
+                outcome: 'blocked',
                 blockedReason: 'Which port?',
-                allWorkComplete: false,
                 allWorkCommitted: false,
               },
               text: '',
@@ -418,7 +563,8 @@ describe('BuildWorkflow', () => {
     })
     const finished = await run.resume({ step: 'implement', resumeData: { answer: 'the answer' } })
 
-    expect(prompts).toStrictEqual(['asking', '<answer>\nthe answer\n</answer>'])
+    expect(prompts[0]).toBe('asking')
+    expect(prompts[1]).toContain('<answer>\nthe answer\n</answer>')
     expect(finished.status).toBe('success')
   })
 
@@ -630,8 +776,8 @@ describe('BuildWorkflow', () => {
           ? {
               object: {
                 summary: 'done',
-                blockedReason: 'The work is complete.',
-                allWorkComplete: true,
+                outcome: 'complete',
+                blockedReason: null,
                 allWorkCommitted: true,
               },
               text: '',
@@ -666,8 +812,8 @@ describe('BuildWorkflow', () => {
           ? {
               object: {
                 summary: 'done',
-                blockedReason: 'The work is complete.',
-                allWorkComplete: true,
+                outcome: 'complete',
+                blockedReason: null,
                 allWorkCommitted: true,
               },
               text: '',
@@ -701,8 +847,8 @@ describe('BuildWorkflow', () => {
           ? {
               object: {
                 summary: 'not done',
+                outcome: 'blocked',
                 blockedReason: 'I could not add the port because the schema types are missing.',
-                allWorkComplete: false,
                 allWorkCommitted: false,
               },
               text: '',
@@ -1026,8 +1172,8 @@ describe('review cycle', () => {
         request.prompt.startsWith('Here is the feedback')
           ? {
               object: {
+                outcome: 'complete',
                 blockedReason: null,
-                allWorkComplete: true,
                 allWorkCommitted: true,
                 resolutions: [
                   { commentId: 1, outcome: 'addressed', response: 'Fixed the naming.' },
@@ -1114,8 +1260,8 @@ describe('review cycle', () => {
         request.prompt.startsWith('Here is the feedback')
           ? {
               object: {
+                outcome: 'complete',
                 blockedReason: null,
-                allWorkComplete: true,
                 allWorkCommitted: true,
                 resolutions: [{ commentId: 1, outcome: 'addressed', response: 'Addressed.' }],
               },
@@ -1168,8 +1314,8 @@ describe('review cycle', () => {
         request.prompt.startsWith('Here is the feedback')
           ? {
               object: {
+                outcome: 'complete',
                 blockedReason: null,
-                allWorkComplete: true,
                 allWorkCommitted: true,
                 resolutions: [],
               },
@@ -1208,17 +1354,21 @@ describe('review cycle', () => {
     )
   })
 
-  it('fails when the feedback agent asks a question', async () => {
+  it('suspends for the person when the feedback agent asks a question', async () => {
+    const feedbackPrompts: string[] = []
     const studio = await factoryFor({
-      generate: async (request) =>
-        request.prompt.startsWith('Here is the feedback')
+      generate: async (request) => {
+        if (!request.prompt.startsWith('Here is the feedback')) return stubs().generate(request)
+        feedbackPrompts.push(request.prompt)
+        return feedbackPrompts.length === 1
           ? {
               object: undefined,
               text: '',
               finishReason: 'suspended',
               suspendPayload: { question: 'Which port?' },
             }
-          : stubs().generate(request),
+          : stubs().generate(request)
+      },
     })
     const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
 
@@ -1239,12 +1389,64 @@ describe('review cycle', () => {
 
     expect(finished).toStrictEqual(
       expect.objectContaining({
-        status: 'failed',
-        error: expect.objectContaining({
-          message: expect.stringContaining('The implementer is blocked: Which port?'),
+        status: 'suspended',
+        steps: expect.objectContaining({
+          'address-feedback': expect.objectContaining({
+            suspendPayload: expect.objectContaining({
+              reason: 'Which port?',
+              unaddressed: [],
+            }),
+          }),
         }),
       }),
     )
+
+    await run.resume({ step: 'address-feedback', resumeData: { answer: 'Use port X.' } })
+
+    expect(feedbackPrompts[1]).toContain('The person answered: Use port X.')
+    expect(feedbackPrompts[1]).not.toContain('You asked:')
+  })
+
+  it('passes the asked question back when the person answers a feedback question', async () => {
+    const feedbackPrompts: string[] = []
+    const studio = await factoryFor({
+      generate: async (request) => {
+        if (!request.prompt.startsWith('Here is the feedback')) return stubs().generate(request)
+        feedbackPrompts.push(request.prompt)
+        return feedbackPrompts.length === 1
+          ? {
+              object: undefined,
+              text: '',
+              finishReason: 'suspended',
+              suspendPayload: { question: 'Which port?' },
+            }
+          : stubs().generate(request)
+      },
+    })
+    const run = await studio.getWorkflow('review-cycle').createRun({ runId: 'review' })
+
+    await run.start({
+      inputData: reviewInput({
+        findings: [
+          {
+            reviewer: 'code-review',
+            file: 'src/order.ts',
+            line: 3,
+            rule: null,
+            summary: 'One.',
+            commentId: 1,
+          },
+        ],
+      }),
+    })
+
+    await run.resume({
+      step: 'address-feedback',
+      resumeData: { answer: 'Use port X.', question: 'Which port?' },
+    })
+
+    expect(feedbackPrompts[1]).toContain('You asked: Which port?')
+    expect(feedbackPrompts[1]).toContain('The person answered: Use port X.')
   })
 
   it('fails when the feedback agent runs out of time', async () => {
@@ -1385,7 +1587,6 @@ describe('review cycle', () => {
               object: {
                 summary: 'blocked',
                 blockedReason: 'The rule conflicts with the ADR.',
-                allWorkComplete: false,
                 allWorkCommitted: false,
               },
               text: '',

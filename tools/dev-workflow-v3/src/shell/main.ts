@@ -1,13 +1,16 @@
 #!/usr/bin/env node
+import './configure-mastra-runtime'
 import { execFile } from 'node:child_process'
 import { appendFileSync, mkdirSync } from 'node:fs'
 import { createInterface } from 'node:readline/promises'
 import { promisify } from 'node:util'
 import { Command } from 'commander'
+import { z } from 'zod'
 import type { Run, Workflow } from '@mastra/core/workflows'
 import type { Mastra } from '@mastra/core'
 import { BuildWorkflow } from '@living-architecture/dev-workflow-v3-use-cases/commands/build-workflow'
 import { ParseReviewers } from '@living-architecture/dev-workflow-v3-use-cases/commands/parse-reviewers'
+import { readRepoGuidance } from '../infra/external-clients/fs/read-repo-guidance'
 import { ListFactoryAgents } from '@living-architecture/dev-workflow-v3-use-cases/commands/list-factory-agents'
 import { CloseReviewCycle } from '@living-architecture/dev-workflow-v3-use-cases/commands/close-review-cycle'
 import { CheckWorkCommitted } from '@living-architecture/dev-workflow-v3-use-cases/commands/check-work-committed'
@@ -31,7 +34,6 @@ import { replyToReviewCommentWithGithub } from '@living-architecture/dev-workflo
 import { publishReviewFindingWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/publish-review-finding'
 import { readIssueWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-issue'
 import { readPullRequestDiffWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/read-pull-request-diff'
-import { waitForIssueReplyWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/wait-for-issue-reply'
 import { waitForReviewerWithGithub } from '@living-architecture/dev-workflow-v3-use-cases/adapters/github/wait-for-reviewer'
 import { adaptWorkflowToMastra } from '@living-architecture/dev-workflow-v3-use-cases/adapters/mastra/adapt-workflow'
 import type {
@@ -54,6 +56,7 @@ type Factory = {
   readonly reviewCycle: Workflow
   readonly workingDirectory: string
   readonly repositoryUrl: string
+  readonly setObservationalMemoryModel: (model: string) => void
 }
 
 type RunOutcome = {
@@ -144,7 +147,8 @@ export async function main(argv: readonly string[]): Promise<number> {
  * @riviere-role main
  */
 export async function buildFactory(workingDirectory: string): Promise<Factory> {
-  const { storage, memory } = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
+  const mastraStorage = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
+  const { storage, memory } = mastraStorage
   const logFilePath = `${workingDirectory}/.factory/mastra-logs.jsonl`
   const agents = createAgents({
     memory,
@@ -170,6 +174,7 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
     installDependencies: async (request) => {
       await new InstallDependencies(installDependenciesWithPnpm({ runCommand })).execute(request)
     },
+    readRepoGuidance,
     generate: generation,
     checkWorkCommitted: (request) =>
       new CheckWorkCommitted(
@@ -184,12 +189,6 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
       new CommentOnIssue(commentOnIssueWithGithub({ runCommand, workingDirectory })).execute(
         request,
       ),
-    waitForIssueReply: waitForIssueReplyWithGithub({
-      runCommand,
-      workingDirectory,
-      wait: () => new Promise((resolve) => setTimeout(resolve, 30_000)),
-      attempts: 120,
-    }),
     commentOnPullRequest: async (request) => {
       await new CommentOnPullRequest(
         commentOnPullRequestWithGithub({ runCommand, workingDirectory }),
@@ -240,6 +239,7 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
     reviewCycle: build.reviewCycle,
     workingDirectory,
     repositoryUrl,
+    setObservationalMemoryModel: mastraStorage.setObservationalMemoryModel,
   }
 }
 
@@ -266,6 +266,7 @@ function createCommandLine(factory: Factory): Command {
     .description('start a run and follow it until it finishes or needs you')
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
+    .requiredOption('--observer-model <model>', 'the model the observational memory observer uses')
     .requiredOption('--thinking <level>', 'off, low, medium or high')
     .option(
       '--reviewers <names>',
@@ -277,11 +278,13 @@ function createCommandLine(factory: Factory): Command {
         issue: string,
         options: {
           model: string
+          observerModel: string
           thinking: string
           reviewers?: string
           input: boolean
         },
       ) => {
+        factory.setObservationalMemoryModel(options.observerModel)
         const reviewers = new ParseReviewers().execute({
           names: options.reviewers?.split(','),
         }).reviewers
@@ -300,6 +303,7 @@ function createCommandLine(factory: Factory): Command {
                 issueNumber: issueNumber(issue),
                 attempt: attemptOf(runId, `issue-${issueNumberText(issue)}`),
                 model: options.model,
+                observerModel: options.observerModel,
                 thinking: options.thinking,
                 reviewers,
                 worktreesDirectory: `${factory.workingDirectory}/.factory/worktrees`,
@@ -331,8 +335,12 @@ function createCommandLine(factory: Factory): Command {
         )
         const state = await factory.startImplementation.getWorkflowRunById(runId)
         const step = suspendedStepName(state?.steps)
-        if (step === 'implement' && options.answer === undefined) throw new MissingAnswer(issue)
-        const question = step === 'implement' ? questionOf(state?.steps?.['implement']) : null
+        pinObservationalMemoryModels(state?.steps, factory, issue)
+        requireAnswerFor(step, options, issue)
+        const question =
+          step === 'implement' || step === 'address-feedback'
+            ? questionOf(state?.steps?.[step])
+            : null
         const run = await factory.startImplementation.createRun({ runId, resourceId: 'factory' })
         await follow(
           factory.startImplementation,
@@ -433,6 +441,13 @@ type RunContext = {
   readonly interactive: boolean
 }
 
+function notifyThePerson(runId: string): void {
+  execFileAsync('osascript', [
+    '-e',
+    `display notification "Run ${runId} is waiting for you." with title "Software factory" sound name "Glass"`,
+  ]).catch(() => undefined)
+}
+
 async function follow(
   workflow: Workflow,
   nested: Workflow,
@@ -461,10 +476,12 @@ async function follow(
     const waiting = awaitingPerson(outcome.current)
     if (waiting === null) {
       await stop()
+      notifyThePerson(run.runId)
       reportWaiting(null, context)
       process.exitCode = 3
       return
     }
+    notifyThePerson(run.runId)
     showWaiting(waiting)
     reportWaiting(waiting, context)
     if (!context.interactive) {
@@ -685,10 +702,22 @@ async function resumeRun(run: Run, waiting: Waiting, answer: string | boolean): 
     })
   }
   if (waiting.step === 'address-feedback') {
+    if (typeof answer === 'boolean') {
+      return await run.resume({
+        step: 'address-feedback',
+        resumeData: { approved: answer },
+      })
+    }
     return await run.resume({
       step: 'address-feedback',
-      resumeData: { approved: answer === true },
+      resumeData: {
+        answer,
+        ...(waiting.question === null ? {} : { question: waiting.question }),
+      },
     })
+  }
+  if (waiting.step === 'wait-for-plan-clarification') {
+    return await run.resume({ step: waiting.step, resumeData: { answer: String(answer) } })
   }
   return await run.resume({ step: waiting.step })
 }
@@ -702,7 +731,7 @@ function suspendedPayloadOf(outcome: RunOutcome): Waiting | null {
   if (step === null) return null
   return {
     step: step.name,
-    question: suspendPayloadOf(step.payload),
+    question: suspendPayloadOf(step.payload, step.name),
     rejections: rejectionsOf(step.payload),
     unaddressed: unaddressedOf(step.payload),
     reason: reasonOfPayload(step.payload),
@@ -748,10 +777,15 @@ function suspendedStep(outcome: RunOutcome): {
   return null
 }
 
-function suspendPayloadOf(payload: unknown): string | null {
+function suspendPayloadOf(payload: unknown, stepName?: string): string | null {
   if (!isRecord(payload)) return null
   const question = payload['question']
-  return typeof question === 'string' ? question : null
+  if (typeof question === 'string') return question
+  // Only the plan clarification suspends with a question that may fall back to a reason;
+  // other steps select their input path from `rejections`, `unaddressed` or `reason`.
+  if (stepName !== 'wait-for-plan-clarification') return null
+  const reason = payload['reason']
+  return typeof reason === 'string' && reason !== '' ? reason : null
 }
 
 function reportEnded(outcome: RunOutcome, runId: string): void {
@@ -814,7 +848,7 @@ function planOf(executed: unknown): string | null {
 function questionOf(executed: unknown): string | null {
   const step: unknown = Array.isArray(executed) ? executed[0] : executed
   if (!isRecord(step) || !('suspendPayload' in step)) return null
-  return suspendPayloadOf(step['suspendPayload'])
+  return suspendPayloadOf(step['suspendPayload'], 'implement')
 }
 
 function isOutcome(value: unknown): value is RunOutcome {
@@ -845,11 +879,58 @@ function issueNumberText(value: string): string {
   return String(issueNumber(value))
 }
 
+function pinObservationalMemoryModels(
+  steps: unknown,
+  factory: { setObservationalMemoryModel: (model: string) => void },
+  issue: string,
+): void {
+  const model = modelOf(steps)
+  if (model === null) throw new MissingObservationalMemoryModel(issue)
+  factory.setObservationalMemoryModel(model)
+  const observerModel = observerModelOf(steps)
+  if (observerModel !== null) factory.setObservationalMemoryModel(observerModel)
+}
+
+function requireAnswerFor(step: string | null, options: { answer?: string }, issue: string): void {
+  if (
+    (step === 'implement' || step === 'wait-for-plan-clarification') &&
+    options.answer === undefined
+  )
+    throw new MissingAnswer(issue)
+}
+
 function suspendedStepName(steps: unknown): string | null {
   if (!isRecord(steps)) return null
   for (const [name, value] of Object.entries(steps)) {
     const step: unknown = Array.isArray(value) ? value[0] : value
     if (isRecord(step) && step['status'] === 'suspended') return name
+  }
+  return null
+}
+
+const persistedStepStateSchema = z.object({
+  model: z.string().optional(),
+  observerModel: z.string().optional(),
+})
+
+function modelOf(steps: unknown): string | null {
+  if (!isRecord(steps)) return null
+  for (const value of Object.values(steps)) {
+    const step: unknown = Array.isArray(value) ? value[0] : value
+    if (!isRecord(step)) continue
+    const state = persistedStepStateSchema.safeParse(step['output'] ?? step['data'])
+    if (state.success && state.data.model !== undefined) return state.data.model
+  }
+  return null
+}
+
+function observerModelOf(steps: unknown): string | null {
+  if (!isRecord(steps)) return null
+  for (const value of Object.values(steps)) {
+    const step: unknown = Array.isArray(value) ? value[0] : value
+    if (!isRecord(step)) continue
+    const state = persistedStepStateSchema.safeParse(step['output'] ?? step['data'])
+    if (state.success && state.data.observerModel) return state.data.observerModel
   }
   return null
 }
@@ -869,8 +950,20 @@ function resumeStep(
       },
     })
   }
+  if (step === 'wait-for-plan-clarification' && options.answer !== undefined) {
+    return run.resume({ step, resumeData: { answer: options.answer } })
+  }
+  if (step === 'address-feedback' && options.answer !== undefined) {
+    return run.resume({
+      step,
+      resumeData: {
+        answer: options.answer,
+        ...(question === null ? {} : { question }),
+      },
+    })
+  }
   if (step === 'address-feedback') {
-    return run.resume({ step: 'address-feedback' })
+    return run.resume({ step })
   }
   return run.resume({})
 }
@@ -973,4 +1066,14 @@ if (
   void main(process.argv.slice(2)).then((exitCode) => {
     process.exitCode = exitCode
   })
+}
+
+/** @riviere-role cli-error */
+class MissingObservationalMemoryModel extends Error {
+  constructor(issue: string) {
+    super(
+      `The run for issue ${issue} carries no model in its state, so observational memory cannot be pinned. Start the run again on the same issue.`,
+    )
+    this.name = 'MissingObservationalMemoryModel'
+  }
 }
