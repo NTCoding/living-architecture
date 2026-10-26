@@ -50,6 +50,22 @@ export class WorkflowDiagnostic {
     return new WorkflowDiagnostic({ kind: 'unmapped-record', recordKind, recordId })
   }
 
+  identity(): string {
+    switch (this.value.kind) {
+      case 'missing-field':
+        return `missing-field:${this.value.componentId}:${this.value.field}`
+      case 'uncertain-link': {
+        const location = this.value.sourceLocation
+        if (location === undefined) {
+          return `uncertain-link:${this.value.source}:${this.value.target}`
+        }
+        return `uncertain-link:${this.value.source}:${this.value.target}:${location.repository}:${location.filePath}`
+      }
+      case 'unmapped-record':
+        return `unmapped-record:${this.value.recordKind}:${this.value.recordId}`
+    }
+  }
+
   describe(): string {
     switch (this.value.kind) {
       case 'missing-field':

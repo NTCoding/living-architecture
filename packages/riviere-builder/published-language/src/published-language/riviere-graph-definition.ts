@@ -97,6 +97,14 @@ export class RiviereGraphDefinition {
     return Object.hasOwn(this.value.domains, name)
   }
 
+  hasRelationshipType(name: string): boolean {
+    return Object.hasOwn(this.value.relationshipTypes, name)
+  }
+
+  hasCustomType(name: string): boolean {
+    return Object.hasOwn(this.value.customTypes, name)
+  }
+
   ensureCustomTypeAccepts(
     name: string,
     properties: Readonly<Record<string, unknown>> | undefined,

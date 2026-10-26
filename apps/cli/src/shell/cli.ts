@@ -60,6 +60,8 @@ import { RiviereProjectRepository } from '@living-architecture/riviere-extract-t
 import { configureExtraction } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/commands/configure-extraction'
 import { createCodeExtractionAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ts-morph/code-extraction-adapter'
 import { createAiCliAdapter } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/ai-cli/ai-cli-adapter'
+import { createAiExtractSourceLoader } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/ai-extract-source-loader'
+import { createAiExtractSourceFileReader } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/ai-extract-source-file-reader'
 import { ChildProcessClient } from '@living-architecture/riviere-extract-ts-use-cases/infra/external-clients/child-process/child-process-client'
 import { createGitChangedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/git/create-git-changed-source-file-finder'
 import { createSpecifiedSourceFileFinder } from '@living-architecture/riviere-extract-ts-use-cases/features/extract/adapters/filesystem/create-specified-source-file-finder'
@@ -141,8 +143,12 @@ export function createProgram(): Command {
   const codeExtractionLoader = createCodeExtractionAdapter()
   const extractionConfiguration = configureExtraction({})
   const aiCli = createAiCliAdapter(new ChildProcessClient())
+  const aiExtractSourceLoader = createAiExtractSourceLoader(process.cwd())
+  const aiExtractSourceFileReader = createAiExtractSourceFileReader()
   const riviereProjectCollaborators = {
     aiCli,
+    loadAiExtractSources: aiExtractSourceLoader,
+    readAiExtractSourceFiles: aiExtractSourceFileReader,
     loadEventCatalogSource: eventCatalogSourceLoader,
     loadAsyncApiDocument: asyncApiDocumentLoader,
     loadCodeExtraction: codeExtractionLoader,

@@ -249,6 +249,26 @@ describe('RiviereBuilder', () => {
     })
   })
 
+  describe('hasRelationshipType', () => {
+    it('reports declared relationship types', () => {
+      const builder = RiviereBuilder.parse(createValidOptions())
+      builder.defineRelationshipType({ name: 'reads', description: 'Reads' })
+
+      expect(builder.hasRelationshipType('reads')).toBe(true)
+      expect(builder.hasRelationshipType('missing')).toBe(false)
+    })
+  })
+
+  describe('hasCustomType', () => {
+    it('reports declared custom types', () => {
+      const builder = RiviereBuilder.parse(createValidOptions())
+      builder.defineCustomType({ name: 'Queue' })
+
+      expect(builder.hasCustomType('Queue')).toBe(true)
+      expect(builder.hasCustomType('missing')).toBe(false)
+    })
+  })
+
   describe('addDomain', () => {
     it('adds domain to metadata domains', () => {
       const builder = RiviereBuilder.parse(createValidOptions())

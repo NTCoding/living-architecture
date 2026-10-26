@@ -123,6 +123,7 @@ export class RiviereProject {
         events: [],
         transitions: [],
         warnings: [],
+        prompts: [],
       }
     }
     const previousBuilder = this.graphBuilder()
@@ -139,6 +140,7 @@ export class RiviereProject {
           events: [],
           transitions: [],
           warnings: [],
+          prompts: [],
         }
       }
     }
@@ -157,6 +159,7 @@ export class RiviereProject {
       events: run.value.events,
       transitions: run.value.transitions,
       warnings: run.value.warnings,
+      prompts: run.value.prompts,
     }
   }
   private async executeWorkflowStage(
@@ -201,25 +204,19 @@ export class RiviereProject {
       case 'code-extraction':
         return this.executeCodeExtractionStage(stage)
       case 'ai-extract':
+        return this.collaborators.extractionBehaviour.executeAiExtractStage(
+          this.graphBuilder(),
+          stage.config,
+          this.collaborators,
+          mode,
+          unresolvedDiagnostics,
+        )
       case 'ai-enrich':
-        return this.executeAiStage(stage.kind, stage.config.command, mode)
+        return this.executeAiStage(stage.kind)
     }
   }
 
-  private async executeAiStage(
-    stageKind: 'ai-extract' | 'ai-enrich',
-    command: string,
-    mode: WorkflowRunMode,
-  ) {
-    if (mode.isDryRun()) return this.aiStageUnavailable(stageKind)
-    const availability = await this.collaborators.aiCli.checkAvailability(command)
-    if (availability.kind === 'unavailable') {
-      return {
-        success: false as const,
-        errorCode: 'AI_CLI_UNAVAILABLE',
-        reason: availability.reason,
-      }
-    }
+  private executeAiStage(stageKind: 'ai-enrich') {
     return this.aiStageUnavailable(stageKind)
   }
   private executeCodeExtractionStage(
@@ -380,7 +377,7 @@ export class RiviereProject {
     }
     return this.configuration
   }
-  private aiStageUnavailable(stageKind: 'ai-extract' | 'ai-enrich') {
+  private aiStageUnavailable(stageKind: 'ai-enrich') {
     return {
       success: false as const,
       errorCode: 'STAGE_BEHAVIOUR_UNAVAILABLE',

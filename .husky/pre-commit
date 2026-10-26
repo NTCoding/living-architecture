@@ -1,4 +1,9 @@
 # shellcheck source=.husky/use-repository-node
 . "$(dirname "$0")/use-repository-node"
 
+# The pre-commit hook inherits GIT_DIR/GIT_WORK_TREE from Git, which makes
+# nested git commands (and the check-generated-docs tasks) operate on the bare
+# repository instead of the worktree. Unset them so nested git works normally.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
+
 pnpm exec lint-staged && pnpm run verify

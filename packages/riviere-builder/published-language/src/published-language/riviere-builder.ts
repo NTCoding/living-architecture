@@ -413,10 +413,14 @@ export class RiviereBuilder {
   components(): readonly PublishedComponent[] {
     return this.publishedGraph().components
   }
-
-  /** @returns Whether the graph declares the domain. */
   hasDomain(name: string): boolean {
     return this.metadata.hasDomain(name)
+  }
+  hasRelationshipType(name: string): boolean {
+    return this.metadata.hasRelationshipType(name)
+  }
+  hasCustomType(name: string): boolean {
+    return this.metadata.hasCustomType(name)
   }
 
   links(): readonly PublishedLink[] {
@@ -427,7 +431,6 @@ export class RiviereBuilder {
     return this.publishedGraph().externalLinks ?? []
   }
 
-  /** @returns Non fatal issues found in the graph. */
   warnings() {
     return GraphDiagnostics.fromGraph(this.publishedGraph()).warnings()
   }
@@ -550,19 +553,17 @@ export class RiviereBuilder {
 
   private publishedMetadata(): RiviereGraph['metadata'] {
     const metadata = this.metadata.published()
-    const customTypes =
-      Object.keys(metadata.customTypes).length === 0 ? undefined : { ...metadata.customTypes }
-    const relationshipTypes =
-      Object.keys(metadata.relationshipTypes).length === 0
-        ? undefined
-        : { ...metadata.relationshipTypes }
     return {
       ...(metadata.name === undefined ? {} : { name: metadata.name }),
       ...(metadata.description === undefined ? {} : { description: metadata.description }),
       sources: [...metadata.sources],
       domains: { ...metadata.domains },
-      ...(customTypes === undefined ? {} : { customTypes }),
-      ...(relationshipTypes === undefined ? {} : { relationshipTypes }),
+      ...(Object.keys(metadata.customTypes).length === 0
+        ? {}
+        : { customTypes: { ...metadata.customTypes } }),
+      ...(Object.keys(metadata.relationshipTypes).length === 0
+        ? {}
+        : { relationshipTypes: { ...metadata.relationshipTypes } }),
     }
   }
 }
