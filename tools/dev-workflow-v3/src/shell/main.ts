@@ -5,6 +5,7 @@ import { appendFileSync, mkdirSync } from 'node:fs'
 import { createInterface } from 'node:readline/promises'
 import { promisify } from 'node:util'
 import { Command } from 'commander'
+import { z } from 'zod'
 import type { Run, Workflow } from '@mastra/core/workflows'
 import type { Mastra } from '@mastra/core'
 import { BuildWorkflow } from '@living-architecture/dev-workflow-v3-use-cases/commands/build-workflow'
@@ -904,13 +905,18 @@ function suspendedStepName(steps: unknown): string | null {
   return null
 }
 
+const persistedStepStateSchema = z.object({
+  model: z.string().optional(),
+  observerModel: z.string().optional(),
+})
+
 function modelOf(steps: unknown): string | null {
   if (!isRecord(steps)) return null
   for (const value of Object.values(steps)) {
     const step: unknown = Array.isArray(value) ? value[0] : value
     if (!isRecord(step)) continue
-    const state: unknown = step['output'] ?? step['data']
-    if (isRecord(state) && typeof state['model'] === 'string') return state['model']
+    const state = persistedStepStateSchema.safeParse(step['output'] ?? step['data'])
+    if (state.success && state.data.model !== undefined) return state.data.model
   }
   return null
 }
@@ -920,13 +926,8 @@ function observerModelOf(steps: unknown): string | null {
   for (const value of Object.values(steps)) {
     const step: unknown = Array.isArray(value) ? value[0] : value
     if (!isRecord(step)) continue
-    const state: unknown = step['output'] ?? step['data']
-    if (
-      isRecord(state) &&
-      typeof state['observerModel'] === 'string' &&
-      state['observerModel'] !== ''
-    )
-      return state['observerModel']
+    const state = persistedStepStateSchema.safeParse(step['output'] ?? step['data'])
+    if (state.success && state.data.observerModel) return state.data.observerModel
   }
   return null
 }

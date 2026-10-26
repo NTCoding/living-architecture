@@ -1,6 +1,6 @@
 ---
 name: analyze-session
-description: Analyse and optimise a dev-workflow-v3 factory session (implementer step). Use for /analyze-session <sessionId>, or when asked why a factory run was slow, where the implementer's time went, or how to make the factory agent more efficient.
+description: Analyse and optimise a dev-workflow-v3 factory session (implementer step). Use for /analyze-session <runId>, or when asked why a factory run was slow, where the implementer's time went, or how to make the factory agent more efficient.
 ---
 
 # Analyse a factory session
@@ -15,13 +15,14 @@ written analysis.
 Run the stats script from the repository root:
 
 ```bash
-node scripts/analyze-session.mjs <sessionId>
+node scripts/analyze-session.mjs <runId>
 ```
 
 An optional second argument is the path to a `mastra.db` in another working
-copy's `.factory` directory.
+copy's `.factory` directory. When you use it, run every evidence query below
+against that same database path, from that working copy.
 
-The script writes the stats report to `.factory/analysis/<sessionId>.md` and
+The script writes the stats report to `.factory/analysis/<runId>.md` and
 prints the same content. The file already has its final shape: a summary table,
 the time table, the checks table, command tables, the rework table, stuck
 signals and data gaps, all with named evidence and bold labels. Do not rewrite
@@ -42,14 +43,16 @@ decode `input`/`output`/`attributes`).
 Useful queries:
 
 ```bash
-# What the implementer said and did in a time slice
-sqlite3 .factory/mastra.db "SELECT role, createdAt, content FROM mastra_messages
-WHERE thread_id='<runId>-implementer' AND createdAt BETWEEN '<start>' AND '<end>'
+# What the implementer said and did in a time slice.
+# The thread is named after the issue, not the run: run `issue-501-9`
+# belongs to thread `issue-501-implementer`. Use <database> as above.
+sqlite3 <database> "SELECT role, createdAt, content FROM mastra_messages
+WHERE thread_id='<issueNumber>-implementer' AND createdAt BETWEEN '<start>' AND '<end>'
 ORDER BY createdAt"
 
 # Span timeline for one activity type
-sqlite3 .factory/mastra.db "SELECT name, startedAt, endedAt FROM mastra_ai_spans
-WHERE threadId='<runId>-implementer' AND startedAt BETWEEN '<start>' AND '<end>'
+sqlite3 <database> "SELECT name, startedAt, endedAt FROM mastra_ai_spans
+WHERE threadId='<issueNumber>-implementer' AND startedAt BETWEEN '<start>' AND '<end>'
 AND spanType IN ('tool_call','model_inference') ORDER BY startedAt"
 ```
 
@@ -64,8 +67,10 @@ not reach; say what is unknown.
 
 ## Write the analysis
 
-The script has already created `.factory/analysis/<sessionId>.md` with the
-stats. Append two sections to that file. Do not touch the generated stats.
+The script has already created `.factory/analysis/<runId>.md` with the
+stats. Add two sections to that file: update a section in place when it is
+already there from an earlier run, and append it only when it is absent. Do not
+touch the generated stats.
 
 ### `## What caused the numbers`
 

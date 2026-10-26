@@ -515,13 +515,13 @@ function startImplementationSteps(input: BuildWorkflowInput): readonly WorkflowS
       run: async ({ data, resumeData, suspend }) => {
         const state = runStateSchema.parse(data)
         const answer = blockerResumeSchema.safeParse(resumeData)
+        const answered = answer.success
+          ? { answer: answer.data.answer, question: answer.data.question }
+          : answerOfClarification(state)
         const implementation = await implementUntilCommitted({
           input,
           state: { ...state, baseSha: '' },
-          firstPrompt: implementationPrompt(
-            state,
-            answer.success ? { answer: answer.data.answer, question: answer.data.question } : null,
-          ),
+          firstPrompt: implementationPrompt(state, answered),
           instructions: guidedInstructions(
             input,
             state.worktreePath,
@@ -1250,6 +1250,14 @@ function planPrompt(state: RunState): string {
     '- needsInput: true when a decision is needed before implementation, otherwise false.',
     '- question: the question for the developer when needsInput is true, otherwise null.',
   ].join('\n')
+}
+
+function answerOfClarification(state: RunState): {
+  readonly answer: string
+  readonly question: string | undefined
+} | null {
+  if (state.clarification === '') return null
+  return { answer: state.clarification, question: state.planQuestion ?? undefined }
 }
 
 function implementationPrompt(

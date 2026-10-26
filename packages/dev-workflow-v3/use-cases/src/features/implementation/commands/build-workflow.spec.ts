@@ -415,11 +415,14 @@ describe('BuildWorkflow', () => {
   })
 
   it('carries on with the answer when the person replies to the plan question', async () => {
+    const prompts: string[] = []
     const { run } = await startedRun({
-      generate: async (request) =>
-        request.agentId === 'planner'
+      generate: async (request) => {
+        if (request.agentId === 'implementer') prompts.push(request.prompt)
+        return request.agentId === 'planner'
           ? planAnswer(true, 'Should the bound be bytes or lines?')
-          : stubs().generate(request),
+          : stubs().generate(request)
+      },
     })
 
     const finished = await run.resume({
@@ -428,6 +431,8 @@ describe('BuildWorkflow', () => {
     })
 
     expect(finished.status).toBe('success')
+    expect(prompts[0]).toContain('Should the bound be bytes or lines?')
+    expect(prompts[0]).toContain('Bytes, 64 KiB.')
     expect(finished).toStrictEqual(
       expect.objectContaining({ result: expect.objectContaining({ readyForHuman: true }) }),
     )

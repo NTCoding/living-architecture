@@ -123,12 +123,15 @@ if (implementSpans.length > 1) {
 const implement = implementSpans[implementSpans.length - 1]
 const implStart = toMs(implement.startedAt)
 const implEnd = Math.max(toMs(implement.endedAt ?? runSpan.endedAt ?? implement.startedAt), implStart)
+// The implementer thread is named after the issue, and the run id adds one more
+// attempt number after it: run `issue-501-9` belongs to thread `issue-501-implementer`.
+const issuePrefix = runId.replace(/-\d+$/, '')
 
 const threadRow = db
   .prepare(
-    "SELECT threadId, COUNT(*) AS c FROM mastra_ai_spans WHERE threadId LIKE ? AND startedAt BETWEEN ? AND ? GROUP BY threadId ORDER BY c DESC LIMIT 1",
+    "SELECT threadId, COUNT(*) AS c FROM mastra_ai_spans WHERE threadId = ? AND startedAt BETWEEN ? AND ? GROUP BY threadId ORDER BY c DESC LIMIT 1",
   )
-  .get(`%${IMPLEMENTER_THREAD_SUFFIX}`, implement.startedAt, implement.endedAt ?? '')
+  .get(`${issuePrefix}-implementer`, implement.startedAt, implEnd)
 if (!threadRow) {
   console.error(`No implementer thread activity found inside the implement step of ${runId}`)
   process.exit(1)
@@ -137,7 +140,7 @@ const threadId = threadRow.threadId
 
 const steps = workflowSpans
   .filter((s) => s.name.startsWith('workflow step'))
-  .map((s) => `  ${s.name.replace("workflow step: '", '').replace("'", '')}: ${fmtDuration(toMs(s.endedAt ?? s.startedAt) - toMs(s.startedAt))}`)
+  .map((s) => `  ${s.name.replace(/^workflow step: '/, '').replaceAll("'", '')}: ${fmtDuration(toMs(s.endedAt ?? s.startedAt) - toMs(s.startedAt))}`)
 
 // ---------- spans inside the implement step ----------
 
@@ -145,7 +148,7 @@ const spans = db
   .prepare(
     "SELECT name, spanType, spanId, isEvent, startedAt, endedAt, parentSpanId, entityName FROM mastra_ai_spans WHERE threadId = ? AND startedAt BETWEEN ? AND ?",
   )
-  .all(threadId, implement.startedAt, implement.endedAt ?? implement.startedAt)
+  .all(threadId, implement.startedAt, implEnd)
 
 const toolSpans = spans.filter((s) => s.spanType === 'tool_call' && s.endedAt)
 // Inference spans of the implementer agent itself; Observer and Reflector are
@@ -192,12 +195,11 @@ const hungI = hung
 const commandI = subtractIntervals(intervals.command, hungI)
 
 const windowLen = implEnd - implStart
-const lastActivity = Math.max(
-  ...spans
-    .filter((s) => s.endedAt && (s.spanType === 'tool_call' || (s.spanType === 'model_inference' && !hungSpans.includes(s))))
-    .map((s) => toMs(s.endedAt)),
+const activityCandidates = spans.filter(
+  (s) => s.endedAt && (s.spanType === 'tool_call' || (s.spanType === 'model_inference' && !hungSpans.includes(s))),
 )
-const deadTail = implEnd - lastActivity
+const lastActivity = activityCandidates.length === 0 ? null : Math.max(...activityCandidates.map((s) => toMs(s.endedAt)))
+const deadTail = lastActivity === null ? null : implEnd - lastActivity
 
 // ---------- messages inside the implement step ----------
 
@@ -467,7 +469,7 @@ try {
 
 // ---------- report ----------
 
-const models = [...new Set(generationSpans.map((s) => s.name.replace("llm: '", '').replace("'", '')))]
+const models = [...new Set(generationSpans.map((s) => s.name.replace(/^llm: '/, '').replaceAll("'", '')))]
 const lines = []
 const h = (text) => lines.push(text)
 
@@ -570,7 +572,7 @@ h('')
 
 h('## Rework')
 h('')
-h(`Every failed check starts a fix loop. This table shows each failing command and how long it took until the same check passed again. Across all loops, ${codeTouchCount} writes touched code and ${testTouchCount} touched tests or fixtures. ${editFailures} edit failed because the old text was not found.`)
+h(`Every failed check starts a fix loop. This table shows each failing command and how long it took until the same check passed again. Across the whole implement step, ${codeTouchCount} writes touched code and ${testTouchCount} touched tests or fixtures; these counts include writes outside fix loops. ${editFailures} writes failed an edit because the old text was not found.`)
 h('')
 h('| failed check | command | failures | first failed at | passed again after |')
 h('|---|---|---|---|---|')
@@ -619,7 +621,7 @@ h(`| **Turns over 1 minute of pure reasoning** | ${longThinking.length} |`)
 for (const r of longThinking.slice(0, 3)) h(`| **Long reasoning turn** | ${fmtDuration(r.duration)}, started ${timeOf(r.start)} |`)
 h(`| **Generations still open when the step ended** | ${hungSpans.length} |`)
 for (const s of hungSpans.slice(0, 4)) h(`| **Stuck generation** | ${s.entityName ?? 'unknown'}, ${fmtDuration(toMs(s.endedAt) - toMs(s.startedAt))}, opened ${timeOf(s.startedAt)} |`)
-h(`| **Last recorded activity** | ${timeOf(lastActivity)}, ${fmtDuration(deadTail)} before the step ended |`)
+h(`| **Last recorded activity** | ${lastActivity === null ? 'none recorded inside the step' : `${timeOf(lastActivity)}, ${fmtDuration(deadTail)} before the step ended`} |`)
 h(`| **Idle gaps over 30s** | ${idleGaps.length}, ${fmtDuration(totalOf(idleGaps))} in total |`)
 h(`| **Background agent turns** | ${backgroundInferences.length} |`)
 h(`| **Provider rejected requests** | ${failedRequestFiles.length} |`)
