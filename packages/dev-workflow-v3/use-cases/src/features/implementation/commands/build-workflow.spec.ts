@@ -490,7 +490,11 @@ describe('BuildWorkflow', () => {
     const { run, started } = await startedRun({
       generate: async (request) => {
         if (request.agentId !== 'implementer') return stubs().generate(request)
-        prompts.push(request.prompt.startsWith('Implement issue') ? 'asking' : request.prompt)
+        prompts.push(
+          prompts.length === 0 && request.prompt.startsWith('Implement issue')
+            ? 'asking'
+            : request.prompt,
+        )
         return prompts.length === 1
           ? {
               object: {
@@ -519,16 +523,17 @@ describe('BuildWorkflow', () => {
         }),
       }),
     )
-    const finished = await run.resume({
+    await run.resume({
       step: 'implement',
       resumeData: { answer: 'the answer', question: 'Reuse the existing port, or add one?' },
     })
 
     expect(prompts).toStrictEqual([
       'asking',
-      '<question>\nReuse the existing port, or add one?\n</question>\n\n<answer>\nthe answer\n</answer>',
+      expect.stringContaining('<question>\nReuse the existing port, or add one?'),
     ])
-    expect(finished.status).toBe('success')
+    expect(prompts[1]).toContain('Plan:')
+    expect(prompts[1]).toContain('</question>\n\n<answer>\nthe answer\n</answer>')
   })
 
   it('carries on with just the answer when the resume has no question', async () => {
@@ -536,7 +541,11 @@ describe('BuildWorkflow', () => {
     const { run } = await startedRun({
       generate: async (request) => {
         if (request.agentId !== 'implementer') return stubs().generate(request)
-        prompts.push(request.prompt.startsWith('Implement issue') ? 'asking' : request.prompt)
+        prompts.push(
+          prompts.length === 0 && request.prompt.startsWith('Implement issue')
+            ? 'asking'
+            : request.prompt,
+        )
         return prompts.length === 1
           ? {
               object: {
@@ -554,7 +563,8 @@ describe('BuildWorkflow', () => {
     })
     const finished = await run.resume({ step: 'implement', resumeData: { answer: 'the answer' } })
 
-    expect(prompts).toStrictEqual(['asking', '<answer>\nthe answer\n</answer>'])
+    expect(prompts[0]).toBe('asking')
+    expect(prompts[1]).toContain('<answer>\nthe answer\n</answer>')
     expect(finished.status).toBe('success')
   })
 

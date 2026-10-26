@@ -1277,6 +1277,8 @@ function implementationPrompt(
   ]
   if (response === null) return first.join('\n')
   return [
+    ...first,
+    '',
     ...(response.question === undefined
       ? []
       : ['<question>', response.question, '</question>', '']),

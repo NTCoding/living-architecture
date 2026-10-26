@@ -731,7 +731,7 @@ function suspendedPayloadOf(outcome: RunOutcome): Waiting | null {
   if (step === null) return null
   return {
     step: step.name,
-    question: suspendPayloadOf(step.payload),
+    question: suspendPayloadOf(step.payload, step.name),
     rejections: rejectionsOf(step.payload),
     unaddressed: unaddressedOf(step.payload),
     reason: reasonOfPayload(step.payload),
@@ -777,10 +777,13 @@ function suspendedStep(outcome: RunOutcome): {
   return null
 }
 
-function suspendPayloadOf(payload: unknown): string | null {
+function suspendPayloadOf(payload: unknown, stepName?: string): string | null {
   if (!isRecord(payload)) return null
   const question = payload['question']
   if (typeof question === 'string') return question
+  // Only the plan clarification suspends with a question that may fall back to a reason;
+  // other steps select their input path from `rejections`, `unaddressed` or `reason`.
+  if (stepName !== 'wait-for-plan-clarification') return null
   const reason = payload['reason']
   return typeof reason === 'string' && reason !== '' ? reason : null
 }
@@ -845,7 +848,7 @@ function planOf(executed: unknown): string | null {
 function questionOf(executed: unknown): string | null {
   const step: unknown = Array.isArray(executed) ? executed[0] : executed
   if (!isRecord(step) || !('suspendPayload' in step)) return null
-  return suspendPayloadOf(step['suspendPayload'])
+  return suspendPayloadOf(step['suspendPayload'], 'implement')
 }
 
 function isOutcome(value: unknown): value is RunOutcome {

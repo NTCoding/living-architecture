@@ -106,10 +106,10 @@ describe('prepareWorktreeWithGit', () => {
     ])
   })
 
-  it('carries on without rebasing when the remote branch cannot be fetched', async () => {
+  it('carries on without rebasing when the remote branch is missing', async () => {
     const runCommand = fakeCommands([
       { stdout: 'worktree /worktrees/issue-455-add-it\n', stderr: '', exitCode: 0 },
-      { stdout: '', stderr: 'no remote branch', exitCode: 1 },
+      { stdout: '', stderr: "fatal: couldn't find remote ref issue-455-add-it", exitCode: 1 },
     ])
 
     await prepareWorktreeWithGit({
@@ -119,6 +119,21 @@ describe('prepareWorktreeWithGit', () => {
     })(request)
 
     expect(runCommand.requests).toHaveLength(2)
+  })
+
+  it('fails when the fetch fails for another reason', async () => {
+    const runCommand = fakeCommands([
+      { stdout: 'worktree /worktrees/issue-455-add-it\n', stderr: '', exitCode: 0 },
+      { stdout: '', stderr: 'fatal: Authentication failed', exitCode: 128 },
+    ])
+
+    await expect(
+      prepareWorktreeWithGit({
+        runCommand,
+        repositoryPath: '/repo',
+        worktreesDirectory: '/worktrees',
+      })(request),
+    ).rejects.toThrow('The fetch of origin/issue-455-add-it failed: fatal: Authentication failed')
   })
 
   it('fails when git cannot create the worktree', async () => {

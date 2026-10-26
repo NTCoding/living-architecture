@@ -1,7 +1,7 @@
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Agent } from '@mastra/core/agent'
 import type { ToolsInput } from '@mastra/core/agent'
 import { RequestContext } from '@mastra/core/request-context'
@@ -45,6 +45,10 @@ function aRequest(overrides?: Partial<AgentRequest>): AgentRequest {
     ...overrides,
   }
 }
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+})
 
 describe('createAgents', () => {
   it('registers one agent per given name', () => {
@@ -173,7 +177,7 @@ describe('generationModelOf', () => {
   })
 
   it('routes opencode models through the opencode inference endpoint', () => {
-    process.env['OPENCODE_API_KEY'] = 'test-key'
+    vi.stubEnv('OPENCODE_API_KEY', 'test-key')
 
     const model = generationModelOf(
       agentRequestContextOf(aRequest({ model: 'opencode-go/beam-free' })),
@@ -189,11 +193,10 @@ describe('generationModelOf', () => {
         headers: { 'x-opencode-session': 'issue-501-implementer' },
       },
     })
-    delete process.env['OPENCODE_API_KEY']
   })
 
   it('throws when an opencode request has no OPENCODE_API_KEY', () => {
-    delete process.env['OPENCODE_API_KEY']
+    vi.stubEnv('OPENCODE_API_KEY', undefined)
 
     expect(() =>
       generationModelOf(agentRequestContextOf(aRequest({ model: 'opencode-go/beam-free' }))),
@@ -201,14 +204,13 @@ describe('generationModelOf', () => {
   })
 
   it('throws when an opencode request has no memory thread for its session', () => {
-    process.env['OPENCODE_API_KEY'] = 'test-key'
+    vi.stubEnv('OPENCODE_API_KEY', 'test-key')
 
     expect(() =>
       generationModelOf(
         agentRequestContextOf(aRequest({ model: 'opencode-go/beam-free', threadId: null })),
       ),
     ).toThrow(MissingThreadForOpenCodeSession)
-    delete process.env['OPENCODE_API_KEY']
   })
 
   it('throws when the context carries no model', () => {
@@ -224,7 +226,7 @@ describe('serializableGenerationModelOf', () => {
   })
 
   it('sends opencode models with their session header and endpoint', () => {
-    process.env['OPENCODE_API_KEY'] = 'test-key'
+    vi.stubEnv('OPENCODE_API_KEY', 'test-key')
 
     const model = serializableGenerationModelOf(
       agentRequestContextOf(aRequest({ model: 'opencode-go/beam-free' })),
@@ -237,7 +239,6 @@ describe('serializableGenerationModelOf', () => {
       apiKey: 'test-key',
       headers: { 'x-opencode-session': 'issue-501-implementer' },
     })
-    delete process.env['OPENCODE_API_KEY']
   })
 
   it('throws when the model string carries no provider route prefix', () => {

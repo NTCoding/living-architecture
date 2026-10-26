@@ -82,7 +82,9 @@ file.
 
 ### `## Improvement suggestions`
 
-10 to 20 subsections, numbered, ordered by expected time saved. Each one has
+Up to 20 subsections, numbered, ordered by expected time saved. Only suggest a
+change when this session's numbers back it; if fewer than 10 opportunities are
+evidenced, write fewer. Each one has
 three bullets with bold labels:
 
 - **What to do:** the change.

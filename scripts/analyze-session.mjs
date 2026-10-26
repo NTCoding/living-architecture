@@ -122,16 +122,23 @@ if (implementSpans.length > 1) {
 }
 const implement = implementSpans[implementSpans.length - 1]
 const implStart = toMs(implement.startedAt)
-const implEnd = Math.max(toMs(implement.endedAt ?? runSpan.endedAt ?? implement.startedAt), implStart)
+// startedAt and endedAt are stored as ISO text, so the query bounds stay strings.
+const implEndIso = implement.endedAt ?? runSpan.endedAt ?? implement.startedAt
+const implEnd = Math.max(toMs(implEndIso), implStart)
 // The implementer thread is named after the issue, and the run id adds one more
 // attempt number after it: run `issue-501-9` belongs to thread `issue-501-implementer`.
-const issuePrefix = runId.replace(/-\d+$/, '')
+const issueMatch = /^(issue-\d+)/.exec(runId)
+if (issueMatch === null) {
+  console.error(`The run id ${runId} does not start with an issue number such as issue-501.`)
+  process.exit(1)
+}
+const issuePrefix = issueMatch[1]
 
 const threadRow = db
   .prepare(
     "SELECT threadId, COUNT(*) AS c FROM mastra_ai_spans WHERE threadId = ? AND startedAt BETWEEN ? AND ? GROUP BY threadId ORDER BY c DESC LIMIT 1",
   )
-  .get(`${issuePrefix}-implementer`, implement.startedAt, implEnd)
+  .get(`${issuePrefix}-implementer`, implement.startedAt, implEndIso)
 if (!threadRow) {
   console.error(`No implementer thread activity found inside the implement step of ${runId}`)
   process.exit(1)
@@ -148,7 +155,7 @@ const spans = db
   .prepare(
     "SELECT name, spanType, spanId, isEvent, startedAt, endedAt, parentSpanId, entityName FROM mastra_ai_spans WHERE threadId = ? AND startedAt BETWEEN ? AND ?",
   )
-  .all(threadId, implement.startedAt, implEnd)
+  .all(threadId, implement.startedAt, implEndIso)
 
 const toolSpans = spans.filter((s) => s.spanType === 'tool_call' && s.endedAt)
 // Inference spans of the implementer agent itself; Observer and Reflector are

@@ -73,7 +73,10 @@ async function rebaseOntoRemote(
       arguments: ['fetch', 'origin', branch],
     }),
   )
-  if (fetched.exitCode !== 0) return
+  if (fetched.exitCode !== 0) {
+    if (/couldn't find remote ref/i.test(fetched.stderr)) return
+    throw new FetchFailed(branch, fetched.stderr.trim())
+  }
   const behind = await dependencies.runCommand(
     toGitCommand({
       worktreePath,
@@ -85,4 +88,11 @@ async function rebaseOntoRemote(
     worktreePath,
     arguments: ['rebase', `origin/${branch}`],
   })
+}
+
+class FetchFailed extends Error {
+  constructor(branch: string, stderr: string) {
+    super(`The fetch of origin/${branch} failed: ${stderr}`)
+    this.name = 'FetchFailed'
+  }
 }
