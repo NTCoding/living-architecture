@@ -68,6 +68,8 @@ describe('RiviereProjectRepository EventCatalog workflow', () => {
         }),
       loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
       loadCodeExtraction: () => [],
+      loadAiExtractSources: () => Promise.resolve({ filePaths: [], missingPaths: [] }),
+      readAiExtractSourceFiles: () => Promise.resolve([]),
       extractionBehaviour: extractionConfiguration.extractionBehaviour(),
       moduleExtractionRules: extractionConfiguration.moduleExtractionRules(),
     })

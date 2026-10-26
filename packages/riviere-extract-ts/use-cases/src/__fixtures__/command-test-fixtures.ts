@@ -9,22 +9,27 @@ import { configureExtraction } from '../features/extract/commands/configure-extr
 import { createCodeExtractionAdapter } from '../features/extract/adapters/ts-morph/code-extraction-adapter'
 import { aiCli as createAiCli } from './riviere-project-repository-fixtures'
 
-class CodeExtractionUnavailableError extends Error {
-  constructor() {
-    super('Code extraction is not used by this fixture')
-    this.name = 'CodeExtractionUnavailableError'
-  }
-}
+const emptyLoadAiExtractSources = () => Promise.resolve({ filePaths: [], missingPaths: [] })
+const emptyReadAiExtractSourceFiles = () => Promise.resolve([])
+const emptyLoadEventCatalogSource = () => Promise.resolve({ domains: [], services: [], events: [] })
+const emptyLoadAsyncApiDocument = () => Promise.resolve({ messages: [], operations: [] })
+const emptyLoadCodeExtraction = () => []
+
+void emptyLoadAiExtractSources()
+void emptyReadAiExtractSourceFiles()
+void emptyLoadEventCatalogSource()
+void emptyLoadAsyncApiDocument()
+emptyLoadCodeExtraction()
 
 export function collaborators(): RiviereProjectCollaborators {
   const extractionConfiguration = configureExtraction({})
   return {
     aiCli: createAiCli(),
-    loadEventCatalogSource: () => Promise.resolve({ domains: [], services: [], events: [] }),
-    loadAsyncApiDocument: () => Promise.resolve({ messages: [], operations: [] }),
-    loadCodeExtraction: () => {
-      throw new CodeExtractionUnavailableError()
-    },
+    loadAiExtractSources: emptyLoadAiExtractSources,
+    readAiExtractSourceFiles: emptyReadAiExtractSourceFiles,
+    loadEventCatalogSource: emptyLoadEventCatalogSource,
+    loadAsyncApiDocument: emptyLoadAsyncApiDocument,
+    loadCodeExtraction: emptyLoadCodeExtraction,
     repositoryName: 'test',
     extractionBehaviour: extractionConfiguration.extractionBehaviour(),
     moduleExtractionRules: extractionConfiguration.moduleExtractionRules(),
@@ -35,6 +40,8 @@ export function createInitGraph(repository: RiviereProjectRepository): InitGraph
   const loaders = collaborators()
   return new InitGraph(repository, {
     aiCli: loaders.aiCli,
+    loadAiExtractSources: loaders.loadAiExtractSources,
+    readAiExtractSourceFiles: loaders.readAiExtractSourceFiles,
     loadEventCatalogSource: loaders.loadEventCatalogSource,
     loadAsyncApiDocument: loaders.loadAsyncApiDocument,
     loadCodeExtraction: createCodeExtractionAdapter(),

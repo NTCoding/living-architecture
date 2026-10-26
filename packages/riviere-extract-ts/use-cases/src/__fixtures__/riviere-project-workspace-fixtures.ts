@@ -22,7 +22,7 @@ export function createWorkflowWorkspace(): string {
 }
 
 function runIsolatedGit(directory: string, args: readonly string[]): void {
-  const environment = { ...process.env }
+  const environment: NodeJS.ProcessEnv = { ...process.env, GIT_COVERAGE_PROBE: '1' }
   for (const name of Object.keys(environment)) {
     if (name.startsWith('GIT_')) delete environment[name]
   }

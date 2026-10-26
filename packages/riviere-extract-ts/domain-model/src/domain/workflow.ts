@@ -33,11 +33,21 @@ export class WorkflowRunMode {
   private constructor(readonly value: WorkflowRunModeValue) {}
 }
 
+type AiCandidateAlreadyPresentWarning = Readonly<{
+  code: 'AI_CANDIDATE_ALREADY_PRESENT'
+  message: string
+}>
+
+type WorkflowWarning = OperationWarning | AiCandidateAlreadyPresentWarning
+
 type WorkflowStageExecutionResult =
   | Readonly<{
       success: true
       diagnostics: readonly WorkflowDiagnostic[]
-      warnings: readonly OperationWarning[]
+      warnings: readonly WorkflowWarning[]
+      prompts?: readonly string[] | undefined
+      collisions?: readonly string[] | undefined
+      resolvedDiagnostics?: readonly WorkflowDiagnostic[] | undefined
     }>
   | Readonly<{
       success: false
@@ -50,7 +60,8 @@ type WorkflowRunResultValue =
       success: true
       events: readonly WorkflowRunEvent[]
       transitions: readonly WorkflowTransitionSnapshot[]
-      warnings: readonly OperationWarning[]
+      warnings: readonly WorkflowWarning[]
+      prompts?: readonly string[] | undefined
     }>
   | Readonly<{
       success: false
@@ -58,7 +69,8 @@ type WorkflowRunResultValue =
       reason: string
       events: readonly WorkflowRunEvent[]
       transitions: readonly WorkflowTransitionSnapshot[]
-      warnings: readonly OperationWarning[]
+      warnings: readonly WorkflowWarning[]
+      prompts?: readonly string[] | undefined
     }>
 
 /** @riviere-role value-object */
@@ -86,7 +98,8 @@ type ExecuteWorkflowStage = (
 export class Workflow {
   private state: WorkflowState = 'ready'
   private runEvents: WorkflowRunEvent[] = []
-  private runWarnings: OperationWarning[] = []
+  private runWarnings: WorkflowWarning[] = []
+  private runPrompts: string[] = []
   private runDiagnostics: WorkflowDiagnostic[] = []
   private runTransitions: WorkflowTransitionSnapshot[] = []
 
@@ -167,6 +180,7 @@ export class Workflow {
     this.state = 'running'
     this.runEvents = [WorkflowRunEvent.fromWorkflow('WorkflowStarted')]
     this.runWarnings = []
+    this.runPrompts = []
     this.runDiagnostics = []
     this.runTransitions = [WorkflowTransitionSnapshot.fromInitial(this.snapshot(builder))]
   }
@@ -198,10 +212,27 @@ export class Workflow {
     stageIndex: number,
   ): void {
     this.runWarnings.push(...result.warnings)
+    if (result.prompts !== undefined) this.runPrompts.push(...result.prompts)
+    for (const candidateId of result.collisions ?? []) {
+      this.runEvents.push(WorkflowRunEvent.fromCandidateAlreadyPresent(values, candidateId))
+    }
+    for (const resolved of result.resolvedDiagnostics ?? []) {
+      this.runEvents.push(WorkflowRunEvent.fromDiagnosticResolved(values, resolved))
+    }
     this.runDiagnostics.push(...result.diagnostics)
+    this.runDiagnostics = this.diagnosticsAfterResolution(result.resolvedDiagnostics ?? [])
     this.runEvents.push(WorkflowRunEvent.fromStage('StageCompleted', values))
     this.runTransitions.push(
       WorkflowTransitionSnapshot.fromCompletedStage(stage, stageIndex, this.snapshot(builder)),
+    )
+  }
+
+  private diagnosticsAfterResolution(
+    resolved: readonly WorkflowDiagnostic[],
+  ): WorkflowDiagnostic[] {
+    const resolvedIdentities = new Set(resolved.map((diagnostic) => diagnostic.identity()))
+    return this.runDiagnostics.filter(
+      (diagnostic) => !resolvedIdentities.has(diagnostic.identity()),
     )
   }
 
@@ -220,6 +251,7 @@ export class Workflow {
       events: [...this.runEvents],
       transitions: [...this.runTransitions],
       warnings: [...this.runWarnings],
+      ...(this.runPrompts.length === 0 ? {} : { prompts: [...this.runPrompts] }),
     })
   }
 
@@ -239,6 +271,7 @@ export class Workflow {
       events: [...this.runEvents],
       transitions: [...this.runTransitions],
       warnings: [...this.runWarnings],
+      ...(this.runPrompts.length === 0 ? {} : { prompts: [...this.runPrompts] }),
     })
   }
 }
@@ -265,3 +298,5 @@ function isAiStage(stage: WorkflowStageValue): boolean {
       return false
   }
 }
+
+export type { AiCandidateAlreadyPresentWarning, WorkflowWarning }

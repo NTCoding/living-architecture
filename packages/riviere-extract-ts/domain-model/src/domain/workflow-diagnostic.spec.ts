@@ -40,4 +40,19 @@ describe('WorkflowDiagnostic', () => {
       "unmapped service 'OrdersService'",
     )
   })
+
+  it('derives a stable identity per diagnostic kind', () => {
+    expect([
+      WorkflowDiagnostic.fromMissingField('orders:checkout:usecase:place-order', 'name').identity(),
+      WorkflowDiagnostic.fromUncertainLink({
+        source: 'place-order',
+        target: 'create-order',
+      }).identity(),
+      WorkflowDiagnostic.fromUnmappedRecord('event', 'OrderCreated').identity(),
+    ]).toStrictEqual([
+      'missing-field:orders:checkout:usecase:place-order:name',
+      'uncertain-link:place-order:create-order',
+      'unmapped-record:event:OrderCreated',
+    ])
+  })
 })

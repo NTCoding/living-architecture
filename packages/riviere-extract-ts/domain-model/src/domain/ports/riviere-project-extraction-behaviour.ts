@@ -10,6 +10,12 @@ import type { detectCodeExtractionConnections } from '../code-extraction/detect-
 import type { extractCodeExtraction } from '../code-extraction/extract-code-extraction'
 import type { executeAsyncApiImportStage } from '../asyncapi/execute-asyncapi-import-stage'
 import type { executeEventCatalogImportStage } from '../event-catalog/execute-event-catalog-import-stage'
+import type { executeAiExtractStage } from '../ai-extract/execute-ai-extract-stage'
+import type { computeAiExtractGaps } from '../ai-extract/compute-ai-extract-gaps'
+import type { validateAiExtractResponse } from '../ai-extract/validate-ai-extract-response'
+import type { applyAiExtractResponse } from '../ai-extract/apply-ai-extract-response'
+import type { buildAiExtractPrompt } from '../ai-extract/build-ai-extract-prompt'
+import type { selectAiExtractBatches } from '../ai-extract/select-ai-extract-batches'
 
 type RiviereProjectExtractionBehaviour = Readonly<{
   readonly extractCodeExtraction: typeof extractCodeExtraction
@@ -18,6 +24,12 @@ type RiviereProjectExtractionBehaviour = Readonly<{
   readonly stripResolvedCustomTypes: typeof stripResolvedCustomTypes
   readonly executeEventCatalogImportStage: typeof executeEventCatalogImportStage
   readonly executeAsyncApiImportStage: typeof executeAsyncApiImportStage
+  readonly executeAiExtractStage: typeof executeAiExtractStage
+  readonly computeAiExtractGaps: typeof computeAiExtractGaps
+  readonly validateAiExtractResponse: typeof validateAiExtractResponse
+  readonly applyAiExtractResponse: typeof applyAiExtractResponse
+  readonly buildAiExtractPrompt: typeof buildAiExtractPrompt
+  readonly selectAiExtractBatches: typeof selectAiExtractBatches
   readonly detectConnectionsFromCalls: typeof detectConnectionsFromCalls
   readonly detectEventPublisherConnections: typeof detectEventPublisherConnections
   readonly detectSubscribeConnections: typeof detectSubscribeConnections
