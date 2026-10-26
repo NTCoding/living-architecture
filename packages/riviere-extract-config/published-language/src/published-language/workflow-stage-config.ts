@@ -78,6 +78,7 @@ export interface AiExtractConfig extends AiCliConfig {
     addLinks: boolean
   }>
   readonly context: Readonly<{
+    /** Paths and glob patterns are resolved relative to the directory containing the configuration file. */
     exclude: readonly string[]
     maxFilesPerBatch: number
     maxBatches: number
@@ -105,6 +106,7 @@ export interface AiEnrichConfig extends AiCliConfig {
   }>
   readonly fields: readonly AiEnrichableField[]
   readonly context: Readonly<{
+    /** Paths and glob patterns are resolved relative to the directory containing the configuration file. */
     exclude: readonly string[]
     maxFilesPerComponent: number
   }>

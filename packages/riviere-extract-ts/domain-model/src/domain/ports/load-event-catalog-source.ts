@@ -1,4 +1,6 @@
 import type { AiCli } from './ai-cli'
+import type { LoadAiExtractSources } from './load-ai-extract-sources'
+import type { ReadAiExtractSourceFiles } from './read-ai-extract-source-files'
 import type { LoadAsyncApiDocument } from './load-asyncapi-document'
 import type { LoadCodeExtraction } from './load-code-extraction'
 import type { RiviereProjectExtractionBehaviour } from './riviere-project-extraction-behaviour'
@@ -37,6 +39,8 @@ export type LoadEventCatalogSource = (sourcePath: string) => Promise<EventCatalo
 
 type RiviereProjectCollaborators = Readonly<{
   aiCli: AiCli
+  loadAiExtractSources: LoadAiExtractSources
+  readAiExtractSourceFiles: ReadAiExtractSourceFiles
   loadEventCatalogSource: LoadEventCatalogSource
   loadAsyncApiDocument: LoadAsyncApiDocument
   loadCodeExtraction: LoadCodeExtraction

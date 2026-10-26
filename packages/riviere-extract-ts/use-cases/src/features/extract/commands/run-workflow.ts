@@ -25,6 +25,7 @@ export class RunWorkflow {
             reason: error.message,
             events: [],
             warnings: [],
+            prompts: [],
           },
         }
       }

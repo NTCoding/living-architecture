@@ -66,6 +66,18 @@ describe('RiviereGraphDefinition', () => {
     expect(definition().hasDomain('missing')).toBe(false)
   })
 
+  it('reports declared relationship types', () => {
+    const subject = definition().includingRelationshipType('reads', { description: 'Reads' })
+    expect(subject.hasRelationshipType('reads')).toBe(true)
+    expect(subject.hasRelationshipType('missing')).toBe(false)
+  })
+
+  it('reports declared custom types', () => {
+    const subject = definition().includingCustomType('Queue', {})
+    expect(subject.hasCustomType('Queue')).toBe(true)
+    expect(subject.hasCustomType('missing')).toBe(false)
+  })
+
   it('checks domains and required custom type properties', () => {
     const custom = definition().includingCustomType('Queue', {
       requiredProperties: { owner: { type: 'string' } },
