@@ -22,8 +22,14 @@ export function createWorkflowWorkspace(): string {
 }
 
 function runIsolatedGit(directory: string, args: readonly string[]): void {
+  const gitExecutable = process.env['GIT_EXECUTABLE'] ?? 'git'
   const environment: NodeJS.ProcessEnv = { ...process.env }
-  execFileSync(process.env['GIT_EXECUTABLE'] ?? 'git', args, {
+  for (const name of Object.keys(environment)) {
+    if (name.startsWith('GIT_')) {
+      delete environment[name]
+    }
+  }
+  execFileSync(gitExecutable, args, {
     cwd: directory,
     env: environment,
     stdio: 'ignore',

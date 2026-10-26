@@ -57,16 +57,26 @@ export function applyAiExtractResponse(
   return {
     warnings,
     collisions,
-    resolvedDiagnostics: resolveDiagnostics(response, input.unresolvedDiagnostics),
+    resolvedDiagnostics: resolveDiagnostics(
+      response,
+      input.unresolvedDiagnostics,
+      input.repositoryName,
+    ),
   }
 }
 
 function resolveDiagnostics(
   response: ResolvedAiExtractResponse,
   diagnostics: readonly WorkflowDiagnostic[],
+  repositoryName: string,
 ): readonly WorkflowDiagnostic[] {
   const proposedLinks = new Set(
-    response.links.map((link) => occurrenceKey(link.source, link.target, link.sourceLocation)),
+    response.links.map((link) =>
+      occurrenceKey(link.source, link.target, {
+        repository: repositoryName,
+        filePath: link.sourceLocation.filePath,
+      }),
+    ),
   )
   return diagnostics.filter((diagnostic) => {
     const value = diagnostic.value

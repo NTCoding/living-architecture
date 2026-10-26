@@ -88,12 +88,20 @@ function resolveResponse(input: ValidateAiExtractResponseInput): ResolvedAiExtra
   return {
     components: input.response.components.map((draft) => ({
       ...draft,
-      sourceLocation: draft.sourceLocation ?? defaultLocation,
+      sourceLocation: resolveSourceLocation(
+        draft.sourceLocation,
+        input.sourcePaths,
+        defaultLocation,
+      ),
     })),
     links: input.response.links.map((link) => ({
       ...link,
       type: link.type ?? 'sync',
-      sourceLocation: link.sourceLocation ?? defaultLocation,
+      sourceLocation: resolveSourceLocation(
+        link.sourceLocation,
+        input.sourcePaths,
+        defaultLocation,
+      ),
     })),
   }
 }
@@ -211,6 +219,21 @@ function duplicateFailure(
 
 function firstDuplicate(values: readonly string[]): string | undefined {
   return values.find((value, index) => values.indexOf(value) !== index)
+}
+
+function resolveSourceLocation(
+  draftLocation: AiExtractDraftSourceLocation | undefined,
+  sourcePaths: readonly string[],
+  defaultLocation: AiExtractDraftSourceLocation,
+): AiExtractDraftSourceLocation {
+  if (draftLocation === undefined) return defaultLocation
+  const matched = sourcePaths.find(
+    (candidate) => canonicalSourcePath(candidate) === canonicalSourcePath(draftLocation.filePath),
+  )
+  return {
+    repository: draftLocation.repository,
+    filePath: matched ?? draftLocation.filePath,
+  }
 }
 
 function canonicalSourcePath(value: string): string {
