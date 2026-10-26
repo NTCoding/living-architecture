@@ -453,6 +453,34 @@ describe('BuildWorkflow', () => {
     })
   })
 
+  it('fails when the implementer is blocked without giving a reason', async () => {
+    const { started } = await startedRun({
+      generate: async (request) => {
+        if (request.agentId !== 'implementer') return stubs().generate(request)
+        return {
+          object: {
+            summary: 'blocked',
+            blockedReason: null,
+            allWorkComplete: false,
+            allWorkCommitted: false,
+          },
+          text: '',
+          finishReason: 'stop',
+          suspendPayload: null,
+        }
+      },
+    })
+
+    expect(started).toStrictEqual(
+      expect.objectContaining({
+        status: 'failed',
+        error: expect.objectContaining({
+          message: expect.stringContaining('blocked without a reason'),
+        }),
+      }),
+    )
+  })
+
   it('suspends when the implementer is blocked and carries on with the answer', async () => {
     const prompts: string[] = []
     const { run, started } = await startedRun({

@@ -142,7 +142,7 @@ const planSchema = z.object({
 })
 
 const implementationSchema = z.object({
-  blockedReason: z.string().min(1),
+  blockedReason: z.string().nullable(),
   allWorkComplete: z.boolean(),
   allWorkCommitted: z.boolean(),
 })
@@ -1002,7 +1002,10 @@ async function implementUntilCommitted(request: {
     const round = await runImplementationRound(request, progress.prompt, Math.max(remaining, 1))
     if (round.kind === 'question') return round
     if (!round.answer.allWorkComplete) {
-      return { kind: 'question', question: round.answer.blockedReason }
+      const blockedReason = round.answer.blockedReason
+      if (blockedReason === null)
+        throw new RunFailed('The implementer is blocked without a reason.')
+      return { kind: 'question', question: blockedReason }
     }
     const committed = await request.input.checkWorkCommitted({
       worktreePath: request.state.worktreePath,
