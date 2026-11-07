@@ -1,0 +1,8 @@
+# PR #478 isolated peak memory benchmark
+
+Median of five isolated process runs. Each range shows the minimum and maximum measured process peak.
+
+| Approach | Median maximum resident set size | Five-run range |
+| --- | ---: | ---: |
+| Snapshot extraction and diff | 364707840 bytes | 364429312-366575616 bytes |
+| Diff graph extraction, creation, parse, and diff | 367329280 bytes | 366821376-370196480 bytes |

@@ -136,7 +136,6 @@ describe('plugin Agent Skills', () => {
 
   it.each(['workflow', 'list-review-threads'])('contains a complete %s skill', (skillName) => {
     const skill = readPluginFile(`skills/${skillName}/SKILL.md`)
-
     expect(skill).toContain(`name: ${skillName}`)
     expect(skill).not.toContain('TODO')
   })

@@ -1,0 +1,26 @@
+{
+  "extends": "../../../../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "emitDeclarationOnly": false,
+    "noEmit": true,
+    "types": ["node"],
+    "paths": {
+      "@living-architecture/living-documentation-domain-model/*": [
+        "../../../../../packages/living-documentation/domain-model/src/*"
+      ],
+      "@living-architecture/living-documentation-use-cases/*": [
+        "../../../../../packages/living-documentation/use-cases/src/*"
+      ],
+      "@living-architecture/riviere-schema-published-language/schema": [
+        "../../../../../packages/riviere-schema/published-language/src/published-language/schema.ts"
+      ],
+      "@living-architecture/riviere-schema-published-language/validation": [
+        "../../../../../packages/riviere-schema/published-language/src/published-language/validation.ts"
+      ]
+    }
+  },
+  "include": ["*.ts"]
+}

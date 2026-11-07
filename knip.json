@@ -167,6 +167,7 @@
   },
   "ignore": [
     ".riviere/**",
+    "docs/project/**",
     "**/node_modules/**",
     "**/*.d.ts",
     "**/*.d.cts",
