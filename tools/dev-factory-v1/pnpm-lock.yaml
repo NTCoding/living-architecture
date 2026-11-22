@@ -125,6 +125,9 @@ importers:
       '@mastra/core':
         specifier: 1.78.0
         version: 1.78.0(supports-color@7.2.0)(zod@3.25.76)
+      yaml:
+        specifier: ^2.7.0
+        version: 2.9.1
       zod:
         specifier: ^3.23.0
         version: 3.25.76

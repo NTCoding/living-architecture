@@ -35,6 +35,12 @@
       "types": "./dist/infra/external-clients/*.d.ts",
       "import": "./dist/infra/external-clients/*.js",
       "default": "./dist/infra/external-clients/*.js"
+    },
+    "./data-access/*": {
+      "@dev-factory-v1/source": "./src/features/planning/data-access/*/*.ts",
+      "types": "./dist/features/planning/data-access/*/*.d.ts",
+      "import": "./dist/features/planning/data-access/*/*.js",
+      "default": "./dist/features/planning/data-access/*/*.js"
     }
   },
   "scripts": {
@@ -45,6 +51,7 @@
   "dependencies": {
     "@dev-factory-v1/domain-model": "workspace:*",
     "@mastra/core": "1.78.0",
-    "zod": "^3.23.0"
+    "zod": "^3.23.0",
+    "yaml": "^2.7.0"
   }
 }
