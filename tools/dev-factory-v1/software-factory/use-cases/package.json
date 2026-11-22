@@ -18,6 +18,12 @@
       "import": "./dist/features/implementation/commands/*.js",
       "default": "./dist/features/implementation/commands/*.js"
     },
+    "./queries/*": {
+      "@dev-factory-v1/source": "./src/features/implementation/queries/*.ts",
+      "types": "./dist/features/implementation/queries/*.d.ts",
+      "import": "./dist/features/implementation/queries/*.js",
+      "default": "./dist/features/implementation/queries/*.js"
+    },
     "./adapters/*": {
       "@dev-factory-v1/source": "./src/features/implementation/adapters/*.ts",
       "types": "./dist/features/implementation/adapters/*.d.ts",
