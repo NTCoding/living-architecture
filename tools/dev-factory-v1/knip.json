@@ -1,0 +1,45 @@
+{
+  "$schema": "https://knip.dev/reference/knip-json",
+  "workspaces": {
+    "domain-model": {
+      "project": [
+        "src/**/*.ts"
+      ]
+    },
+    "use-cases": {
+      "project": [
+        "src/**/*.ts"
+      ]
+    },
+    "server": {
+      "entry": [
+        "src/shell/main.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
+    },
+    "ui": {
+      "entry": [
+        "src/main.tsx"
+      ],
+      "project": [
+        "src/**/*.{ts,tsx}"
+      ]
+    }
+  },
+  "ignore": [
+    ".riviere/**",
+    "**/node_modules/**",
+    "**/*.d.ts",
+    "**/dist/**",
+    "**/coverage/**",
+    "**/test-output/**"
+  ],
+  "rules": {
+    "files": "off",
+    "exports": "off",
+    "types": "off",
+    "dependencies": "off"
+  }
+}

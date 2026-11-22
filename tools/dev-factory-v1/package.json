@@ -1,0 +1,36 @@
+{
+  "name": "dev-factory-v1",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "lint": "eslint . --no-error-on-unmatched-pattern",
+    "typecheck": "tsc -b tsconfig.json",
+    "test": "pnpm -r --if-present test",
+    "knip": "knip",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm knip"
+  },
+  "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",
+    "@types/node": "^24.10.1",
+    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/eslint-plugin": "^1.0.1",
+    "eslint": "^9.39.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsdoc": "^61.5.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-sonarjs": "^3.0.5",
+    "eslint-plugin-unicorn": "^62.0.0",
+    "knip": "^5.21.2",
+    "prettier": "^3.7.4",
+    "tsx": "^4.19.0",
+    "typescript": "npm:typescript@5.9.3",
+    "typescript-eslint": "^8.50.1",
+    "vitest": "^4.0.8",
+    "tslib": "^2.8.0"
+  }
+}

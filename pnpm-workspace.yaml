@@ -3,6 +3,7 @@ packages:
   - packages/*/*
   - apps/*
   - tools/*
+  - '!tools/dev-factory-v1'
 
 autoInstallPeers: true
 engineStrict: true

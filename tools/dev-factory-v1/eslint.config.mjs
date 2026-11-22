@@ -1,0 +1,366 @@
+import tseslint from 'typescript-eslint'
+import noGenericNames from './.eslint-rules/no-generic-names.cjs'
+import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/configs'
+import importPlugin from 'eslint-plugin-import'
+import sonarjs from 'eslint-plugin-sonarjs'
+import jsdoc from 'eslint-plugin-jsdoc'
+import react from 'eslint-plugin-react'
+import jsxA11y from 'eslint-plugin-jsx-a11y'
+import unicorn from 'eslint-plugin-unicorn'
+import vitest from '@vitest/eslint-plugin'
+
+const customRules = {
+  plugins: {
+    custom: {
+      rules: {
+        'no-generic-names': noGenericNames,
+      },
+    },
+    import: importPlugin,
+  },
+}
+
+export default tseslint.config(
+  ...tseslint.configs.recommendedTypeChecked,
+  {
+    ignores: [
+      '**/dist',
+      '**/out-tsc',
+      '**/node_modules',
+      '**/.factory',
+      '.eslint-rules/**',
+      '*.config.ts',
+      '*.config.mjs',
+      '*.config.js',
+      'vitest.workspace.ts',
+      '**/*.d.ts',
+      '**/test-output',
+      '**/api/generated/**',
+      '**/.vitepress/cache/**',
+      '.riviere/**',
+    ],
+  },
+  eslintComments.recommended,
+  {
+    rules: {
+      '@eslint-community/eslint-comments/no-use': ['error', { allow: [] }],
+    },
+  },
+  sonarjs.configs.recommended,
+  {
+    rules: {
+      'sonarjs/void-use': 'off',
+    },
+  },
+  {
+    files: ['**/infra/cli/git.ts', '**/infra/external-clients/git/git.ts'],
+    rules: {
+      'sonarjs/os-command': 'off',
+      'sonarjs/no-os-command-from-path': 'off',
+    },
+  },
+  customRules,
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    rules: {
+      'import/extensions': [
+        'error',
+        'never',
+        { ts: 'never', tsx: 'never', js: 'never', json: 'always' },
+      ],
+
+      // Custom rule: no generic names
+      'custom/no-generic-names': 'error',
+
+      // No comments - forces self-documenting code
+      'no-warning-comments': 'off',
+      'multiline-comment-style': 'off',
+      'capitalized-comments': 'off',
+      'no-inline-comments': 'error',
+      'spaced-comment': 'off',
+
+      // Prefer positive conditions in if/else and ternaries (SonarCloud S7735)
+      'no-negated-condition': 'error',
+
+      // Ban let - use const only 
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'VariableDeclaration[kind="let"]',
+          message: 'Use const. Avoid mutation.',
+        },
+        {
+          selector: 'NewExpression[callee.name="Error"]',
+          message: 'Use custom precise error classes instead of generic Error or fail assertions in tests.',
+        },
+        {
+          selector:
+            'Identifier[name="TypeError"], ImportSpecifier[imported.name="TypeError"], MemberExpression[property.name="TypeError"], MemberExpression[property.value="TypeError"]',
+          message: 'Use custom precise error classes instead of TypeError.',
+        },
+        {
+          selector: 'LogicalExpression[operator="??"][right.type="Literal"][right.value=""]',
+          message: 'Banned: `?? \'\'` violates fail-fast principle. Never use empty string fallback. Options: (1) Fail fast if value should exist (throw descriptive error), (2) Handle undefined explicitly without empty string, (3) Create a type that represents emptiness (not string literal).',
+        }
+      ],
+      'prefer-const': 'error',
+      'no-var': 'error',
+
+      // No any types
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'error',
+      '@typescript-eslint/no-unsafe-member-access': 'error',
+      '@typescript-eslint/no-unsafe-call': 'error',
+      '@typescript-eslint/no-unsafe-return': 'error',
+
+      // No type assertions - fix the types instead
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
+
+      // No non-null assertions - handle errors properly
+      '@typescript-eslint/no-non-null-assertion': 'error',
+
+      // SonarCloud rule equivalents
+      '@typescript-eslint/prefer-includes': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
+      '@typescript-eslint/prefer-optional-chain': 'error',
+      '@typescript-eslint/await-thenable': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      'import/no-duplicates': 'error',
+
+      // Ban generic folder imports (not lib - that's NX convention)
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['*/utils/*', '*/utils', '*/utilities'],
+              message: 'No utils folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/helpers/*', '*/helpers'],
+              message: 'No helpers folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/common/*', '*/common'],
+              message: 'No common folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/shared/*', '*/shared'],
+              message: 'No shared folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/core/*', '*/core'],
+              message: 'No core folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/src/lib/*', '*/src/lib', './lib/*', './lib', '../lib/*', '../lib'],
+              message: 'No lib folders in projects. Use domain-specific names.',
+            },
+          ],
+        },
+      ],
+
+      // Complexity limits
+      'max-lines': ['error', { max: 400, skipBlankLines: true, skipComments: true }],
+      'max-depth': ['error', 3],
+      complexity: ['error', 12],
+
+      // ESM compatibility - ban CommonJS globals
+        'no-restricted-globals': [
+          'error',
+          {
+            name: '__dirname',
+            message: 'Use dirname(fileURLToPath(import.meta.url)) in ESM',
+          },
+          {
+            name: '__filename',
+            message: 'Use fileURLToPath(import.meta.url) in ESM',
+          },
+        ],
+
+      // Naming conventions
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: 'variable',
+          format: ['camelCase'],
+        },
+        {
+          selector: 'variable',
+          modifiers: ['const'],
+          format: ['camelCase', 'UPPER_CASE'],
+        },
+        {
+          selector: 'function',
+          format: ['camelCase', 'PascalCase'],
+        },
+        {
+          selector: 'parameter',
+          format: ['camelCase'],
+          leadingUnderscore: 'allow',
+        },
+        {
+          selector: 'typeLike',
+          format: ['PascalCase'],
+        },
+        {
+          selector: 'enumMember',
+          format: ['PascalCase'],
+        },
+        {
+          selector: 'objectLiteralProperty',
+          format: null,
+        },
+      ],
+    },
+  },
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  // Thin layer enforcement — entrypoints, commands, and queries are thin orchestration files
+  {
+    files: ['**/entrypoint/**/*.ts', '**/commands/**/*.ts', '**/queries/**/*.ts'],
+    ignores: ['**/*.spec.ts', '**/*.test.ts'],
+    rules: {
+      'max-lines': ['error', { max: 200, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  // Entrypoint-specific restrictions — wiring only, no private functions
+  {
+    files: ['**/entrypoint/**/entrypoint.ts'],
+    ignores: ['**/*.spec.ts', '**/*.test.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'VariableDeclaration[kind="let"]',
+          message: 'Use const. Avoid mutation.',
+        },
+        {
+          selector: 'NewExpression[callee.name="Error"]',
+          message: 'Use custom precise error classes instead of generic Error or fail assertions in tests.',
+        },
+        {
+          selector: 'FunctionDeclaration:not([parent.type="ExportNamedDeclaration"])',
+          message: 'Entrypoints must not define private functions. Move to commands/, queries/, or infra/.',
+        },
+        {
+          selector: 'VariableDeclarator > ArrowFunctionExpression',
+          message: 'Entrypoints must not define private arrow functions. Move to commands/, queries/, or infra/.',
+        },
+        {
+          selector: 'LogicalExpression[operator="??"][right.type="Literal"][right.value=""]',
+          message: 'Banned: `?? \'\'` violates fail-fast principle. Never use empty string fallback. Options: (1) Fail fast if value should exist (throw descriptive error), (2) Handle undefined explicitly without empty string, (3) Create a type that represents emptiness (not string literal).',
+        }
+      ],
+    },
+  },
+  // Unicorn rules (code quality)
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    plugins: { unicorn },
+    rules: {
+      'unicorn/prefer-string-replace-all': 'error',
+      'unicorn/prefer-type-error': 'error',
+    },
+  },
+  // The software factory is one workflow with many steps. Splitting it to satisfy
+  // the default line limits would scatter one graph across files.
+  {
+    files: ['**/build-workflow.ts', 'server/src/shell/**/*.ts'],
+    rules: {
+      'max-lines': ['error', { max: 1500, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  // React and accessibility rules (the factory UI)
+  {
+    files: ['ui/**/*.tsx'],
+    plugins: {
+      react,
+      'jsx-a11y': jsxA11y,
+    },
+    rules: {
+      'react/no-array-index-key': 'error',
+      'jsx-a11y/prefer-tag-over-role': 'error',
+      'jsx-a11y/anchor-is-valid': 'error',
+    },
+  },
+  // UI test files: larger limit for lint-staged compatibility
+  {
+    files: [
+      'ui/**/*.test.ts',
+      'ui/**/*.test.tsx',
+      'ui/**/*.spec.ts',
+      'ui/**/*.spec.tsx',
+    ],
+    rules: {
+      'max-lines': [
+        'error',
+        {
+          max: 730,
+          skipBlankLines: true,
+          skipComments: true,
+        },
+      ],
+    },
+  },
+  {
+    // Mastra names its own package folders. A path under /core is Mastra's
+    // layout, not ours, so the core folder rule does not apply to these imports.
+    files: ['domain-model/**/*.ts', 'use-cases/**/*.ts', 'server/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['*/utils/*', '*/utils', '*/utilities'],
+              message: 'No utils folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/helpers/*', '*/helpers'],
+              message: 'No helpers folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/common/*', '*/common'],
+              message: 'No common folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/shared/*', '*/shared'],
+              message: 'No shared folders. Use domain-specific names.',
+            },
+            {
+              group: ['*/src/lib/*', '*/src/lib', './lib/*', './lib', '../lib/*', '../lib'],
+              message: 'No lib folders in projects. Use domain-specific names.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
+    plugins: { vitest },
+    rules: {
+      'vitest/no-conditional-expect': 'error',
+      'vitest/no-conditional-in-test': 'error',
+      'vitest/prefer-strict-equal': 'error',
+      'vitest/consistent-test-it': ['error', { fn: 'it' }],
+      'vitest/consistent-test-filename': ['error', { pattern: '.*\\.spec\\.[tj]sx?$' }],
+      'vitest/max-expects': ['error', { max: 4 }],
+      'vitest/prefer-called-with': 'error',
+      'vitest/prefer-to-have-length': 'error',
+      'vitest/require-to-throw-message': 'error',
+      'vitest/prefer-spy-on': 'error',
+      // Allow expect.any() matchers in tests (returns any by design)
+      '@typescript-eslint/no-unsafe-assignment': 'off'
+    },
+  },
+)
