@@ -27,7 +27,15 @@ function withMastraUiAssets(): void {
  * @riviere-role main
  */
 export async function serveStudio(): Promise<void> {
-  const workingDirectory = process.cwd()
+  const targetRepo = process.env['FACTORY_TARGET_REPO']
+  if (targetRepo === undefined || targetRepo === '') {
+    process.stderr.write(
+      'FACTORY_TARGET_REPO is not set. Start the server through ./start-factory-ui.\n',
+    )
+    process.exitCode = 1
+    return
+  }
+  const workingDirectory = targetRepo
   withMastraUiAssets()
   try {
     process.loadEnvFile(`${workingDirectory}/.env`)

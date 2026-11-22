@@ -101,6 +101,17 @@ function saveRunLog(
   )
 }
 
+function readTargetRepo(): string | undefined {
+  const targetRepo = process.env['FACTORY_TARGET_REPO']
+  if (targetRepo === undefined || targetRepo === '') {
+    process.stderr.write(
+      "FACTORY_TARGET_REPO is not set. Run the factory through ./start-factory-ui or the repo's pnpm factory script.\n",
+    )
+    return undefined
+  }
+  return targetRepo
+}
+
 function saveCommandLog(request: CommandRequest, stdout: string, stderr: string): string {
   const directory = `${request.workingDirectory}/.factory/logs`
   mkdirSync(directory, { recursive: true })
@@ -121,7 +132,9 @@ function tailOf(output: string): string {
  * @riviere-role main
  */
 export async function main(argv: readonly string[]): Promise<number> {
-  const workingDirectory = process.cwd()
+  const targetRepo = readTargetRepo()
+  if (targetRepo === undefined) return 1
+  const workingDirectory = targetRepo
   loadLocalEnvironment(workingDirectory)
   mkdirSync(`${workingDirectory}/.factory`, { recursive: true })
   const factory = await buildFactory(workingDirectory)
