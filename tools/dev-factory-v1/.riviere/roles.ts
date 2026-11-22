@@ -164,6 +164,10 @@ export const allRoles = [
         name: 'ReviewCycle',
         userHasApproved: true,
       },
+      {
+        name: 'Epic',
+        userHasApproved: true,
+      },
     ],
   }),
   role('aggregate-entity', {
