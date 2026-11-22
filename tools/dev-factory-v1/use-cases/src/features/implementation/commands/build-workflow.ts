@@ -381,7 +381,7 @@ async function sayTheRunFailed(
   await input.recordRunOutcome({ ...stopped, status: 'failed' })
   await input.commentOnIssue({
     issueNumber: runStateSchema.parse(startedWith).issueNumber,
-    body: `[dev-workflow-v3] The run ${failure.runId} stopped.\n\n${failure.message}\n\nNothing was merged. Fix the cause, then start again on the same issue.`,
+    body: `[dev-factory-v1] The run ${failure.runId} stopped.\n\n${failure.message}\n\nNothing was merged. Fix the cause, then start again on the same issue.`,
   })
 }
 
@@ -688,7 +688,7 @@ function reviewCycleSteps(input: BuildWorkflowInput): readonly WorkflowStepDefin
         if (!feedback.reviewSeen && !feedback.rateLimited) {
           await input.commentOnPullRequest({
             pullRequestNumber: state.pullRequestNumber,
-            body: '[dev-workflow-v3] @coderabbitai please review this pull request.',
+            body: '[dev-factory-v1] @coderabbitai please review this pull request.',
           })
         }
         return {
@@ -1173,7 +1173,7 @@ function tailOf(output: string): string {
 }
 
 function planComment(state: RunState): string {
-  const plan = `[dev-workflow-v3] Implementer's plan\n\n${state.planMarkdown}\n\n---\n\nRun \`issue-${String(state.issueNumber)}\`.`
+  const plan = `[dev-factory-v1] Implementer's plan\n\n${state.planMarkdown}\n\n---\n\nRun \`issue-${String(state.issueNumber)}\`.`
   if (!state.planNeedsInput) return plan
   const asked = state.planQuestion === null ? [] : [state.planQuestion]
   const answer = 'Reply on this issue and the run will carry on with your answer.'
@@ -1360,12 +1360,12 @@ function pullRequestPrompt(state: RunState): string {
 }
 
 function renderReply(resolution: { readonly response: string }, state: ReviewState): string {
-  return `[dev-workflow-v3] [cycle ${String(state.feedbackCycleNumber)}] ${resolution.response}`
+  return `[dev-factory-v1] [cycle ${String(state.feedbackCycleNumber)}] ${resolution.response}`
 }
 
 function readyComment(state: ReviewState): string {
   return [
-    '[dev-workflow-v3] The software factory has finished with this pull request.',
+    '[dev-factory-v1] The software factory has finished with this pull request.',
     '',
     `Review cycles run: ${String(state.cycleNumber)}`,
     state.approved ? 'The reviewers approved the change.' : 'The review cycle limit was reached.',

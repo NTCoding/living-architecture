@@ -13,7 +13,7 @@ describe('PublishReviewFindings', () => {
     const result = await command.execute({ ...pullRequest, cycleNumber: 1, findings: [finding] })
 
     expect(postedBodies).toStrictEqual([
-      '[dev-workflow-v3] [cycle 1] [code-review] **SD-005** A domain decision sits in the adapter.',
+      '[dev-factory-v1] [cycle 1] [code-review] **SD-005** A domain decision sits in the adapter.',
     ])
     expect(result.posted).toStrictEqual([{ file: 'src/order.ts', line: 12, commentId: 991 }])
   })

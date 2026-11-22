@@ -278,7 +278,7 @@ describe('BuildWorkflow', () => {
 
     expect(started.status).toBe('success')
     expect(comments).toStrictEqual([
-      expect.stringContaining("[dev-workflow-v3] Implementer's plan\n\nthe plan"),
+      expect.stringContaining("[dev-factory-v1] Implementer's plan\n\nthe plan"),
     ])
   })
 
@@ -1100,10 +1100,10 @@ describe('review cycle', () => {
     })
 
     expect(replies).toStrictEqual([
-      { commentId: 1, body: '[dev-workflow-v3] [cycle 1] Fixed the naming.' },
-      { commentId: 2, body: '[dev-workflow-v3] [cycle 1] Left the actor alone.' },
-      { commentId: 3, body: '[dev-workflow-v3] [cycle 1] Conflicts with ADR-002.' },
-      { commentId: 9, body: '[dev-workflow-v3] [cycle 1] Answered the comment.' },
+      { commentId: 1, body: '[dev-factory-v1] [cycle 1] Fixed the naming.' },
+      { commentId: 2, body: '[dev-factory-v1] [cycle 1] Left the actor alone.' },
+      { commentId: 3, body: '[dev-factory-v1] [cycle 1] Conflicts with ADR-002.' },
+      { commentId: 9, body: '[dev-factory-v1] [cycle 1] Answered the comment.' },
     ])
   })
 
@@ -1159,7 +1159,7 @@ describe('review cycle', () => {
       }),
     })
 
-    expect(replies).toStrictEqual(['[dev-workflow-v3] [cycle 1] Addressed.'])
+    expect(replies).toStrictEqual(['[dev-factory-v1] [cycle 1] Addressed.'])
   })
 
   it('suspends when the agent does not answer every finding', async () => {

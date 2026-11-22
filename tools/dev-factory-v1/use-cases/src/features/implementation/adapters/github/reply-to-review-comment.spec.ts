@@ -9,7 +9,7 @@ describe('replyToReviewCommentWithGithub', () => {
     await replyToReviewCommentWithGithub({ runCommand, workingDirectory: '/repo' })({
       pullRequestNumber: 551,
       commentId: 4306,
-      body: '[dev-workflow-v3] Addressed.',
+      body: '[dev-factory-v1] Addressed.',
     })
 
     expect(runCommand.requests[0]?.arguments).toContain(
