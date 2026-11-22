@@ -2,7 +2,7 @@ import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { createRequire } from 'node:module'
 import { createNodeServer } from '@mastra/deployer/server'
-import { buildFactory } from './main'
+import { buildFactory } from './build-factory'
 
 const PORT = 4111
 

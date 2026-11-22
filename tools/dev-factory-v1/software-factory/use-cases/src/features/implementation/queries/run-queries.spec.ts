@@ -23,8 +23,22 @@ describe('ListRuns', () => {
         return []
       },
       read: async () => undefined,
-      start: async (runId) => ({ runId, status: 'running', createdAt: 0, steps: {} }),
-      resume: async (runId) => ({ runId, status: 'running', createdAt: 0, steps: {} }),
+      start: async (runId) => ({
+        runId,
+        status: 'running',
+        createdAt: 0,
+        steps: {},
+        result: undefined,
+        error: undefined,
+      }),
+      resume: async (runId) => ({
+        runId,
+        status: 'running',
+        createdAt: 0,
+        steps: {},
+        result: undefined,
+        error: undefined,
+      }),
     })
 
     const result = await query.execute({ status: 'suspended' })
@@ -46,6 +60,9 @@ describe('ShowRun', () => {
       status: 'suspended',
       createdAt: 1000,
       waiting: { kind: 'implementer-question', question: 'Which database?' },
+      pullRequestUrl: null,
+      stoppedReason: null,
+      failure: null,
     })
   })
 
@@ -60,6 +77,9 @@ describe('ShowRun', () => {
       status: 'success',
       createdAt: 2000,
       waiting: null,
+      pullRequestUrl: 'https://github.com/acme/repo/pull/1',
+      stoppedReason: null,
+      failure: null,
     })
   })
 
@@ -74,6 +94,9 @@ describe('ShowRun', () => {
       status: 'missing',
       createdAt: 0,
       waiting: null,
+      pullRequestUrl: null,
+      stoppedReason: null,
+      failure: null,
     })
   })
 })

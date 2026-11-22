@@ -9,7 +9,14 @@ describe('ResumeRun', () => {
       ...fakeWorkflowRuns(),
       resume: async (runId, _waiting, answer) => {
         resumed.push({ runId, answer })
-        return { runId, status: 'success', createdAt: 4000, steps: {} }
+        return {
+          runId,
+          status: 'success',
+          createdAt: 4000,
+          steps: {},
+          result: undefined,
+          error: undefined,
+        }
       },
     })
 

@@ -18,7 +18,14 @@ describe('StartRun', () => {
       ...fakeWorkflowRuns(),
       start: async (runId, start) => {
         started.push({ runId, input: start })
-        return { runId, status: 'running', createdAt: 3000, steps: {} }
+        return {
+          runId,
+          status: 'running',
+          createdAt: 3000,
+          steps: {},
+          result: undefined,
+          error: undefined,
+        }
       },
     })
 

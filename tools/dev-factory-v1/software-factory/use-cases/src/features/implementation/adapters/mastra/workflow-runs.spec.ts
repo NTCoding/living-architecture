@@ -31,6 +31,8 @@ describe('workflowRunsWithMastra', () => {
         status: 'suspended',
         createdAt: startedAt.getTime(),
         steps: { implement: [] },
+        result: undefined,
+        error: undefined,
       },
     ])
   })
@@ -88,6 +90,8 @@ describe('workflowRunsWithMastra', () => {
       status: 'unknown',
       createdAt: expect.any(Number),
       steps: {},
+      result: undefined,
+      error: undefined,
     })
   })
 

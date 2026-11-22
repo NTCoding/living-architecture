@@ -36,6 +36,8 @@ export function workflowRunsWithMastra(source: {
         status: statusOf(run.snapshot),
         createdAt: run.createdAt.getTime(),
         steps: stepsOf(run.snapshot),
+        result: fieldOf(run.snapshot, 'result'),
+        error: fieldOf(run.snapshot, 'error'),
       })),
     read: async (runId) => snapshotOf(runId, await source.readState(runId)),
     start: async (runId, input) => {
@@ -56,16 +58,15 @@ export function workflowRunsWithMastra(source: {
   }
 }
 
-function snapshotOf(
-  runId: string,
-  state: unknown,
-): {
-  readonly runId: string
-  readonly status: string
-  readonly createdAt: number
-  readonly steps: unknown
-} {
-  return { runId, status: statusOf(state), createdAt: Date.now(), steps: stepsOf(state) }
+function snapshotOf(runId: string, state: unknown) {
+  return {
+    runId,
+    status: statusOf(state),
+    createdAt: Date.now(),
+    steps: stepsOf(state),
+    result: fieldOf(state, 'result'),
+    error: fieldOf(state, 'error'),
+  }
 }
 
 function resumeOf(waiting: unknown, answer: string | boolean): Record<string, unknown> {
@@ -86,6 +87,11 @@ function runStatusOf(status: string | undefined): RunStatus | undefined {
 function statusOf(state: unknown): string {
   const parsed = parseState(state)
   return parsed !== null && typeof parsed['status'] === 'string' ? parsed['status'] : 'unknown'
+}
+
+function fieldOf(state: unknown, name: string): unknown {
+  const parsed = parseState(state)
+  return parsed === null ? undefined : parsed[name]
 }
 
 function stepsOf(state: unknown): unknown {

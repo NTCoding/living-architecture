@@ -9,4 +9,6 @@ export type RunSnapshot = {
   readonly status: string
   readonly createdAt: number
   readonly steps: unknown
+  readonly result: unknown
+  readonly error: unknown
 }
