@@ -168,6 +168,14 @@ export const allRoles = [
         name: 'Epic',
         userHasApproved: true,
       },
+      {
+        name: 'Thread',
+        userHasApproved: true,
+      },
+      {
+        name: 'Idea',
+        userHasApproved: true,
+      },
     ],
   }),
   role('aggregate-entity', {

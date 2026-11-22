@@ -29,7 +29,7 @@ type IdeaFields = {
 }
 
 /**
- * @riviere-role value-object
+ * @riviere-role aggregate
  *
  * An idea the factory might build one day. It carries the 4 fields that the overview board needs,
  * which are the front matter of its `idea.md`; the rest of the file is prose that the factory

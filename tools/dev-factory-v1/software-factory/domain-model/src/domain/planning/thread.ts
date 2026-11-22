@@ -52,7 +52,7 @@ type ThreadFields = {
 const CLOSED = 'nobody'
 
 /**
- * @riviere-role value-object
+ * @riviere-role aggregate
  *
  * A conversation about a passage of a planning document. It waits for Nick until he answers, then
  * for the agent until it replies, and it is closed when Nick resolves it.
