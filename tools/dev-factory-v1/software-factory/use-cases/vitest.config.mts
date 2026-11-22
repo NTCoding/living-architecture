@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { defineConfig } from 'vitest/config'
 
-const repoRoot = path.resolve(__dirname, '..')
+const repoRoot = path.resolve(__dirname, '../..')
 
 export default defineConfig({
   test: {
@@ -16,13 +16,7 @@ export default defineConfig({
         ['lcov', { projectRoot: string }],
       ],
       include: ['src/**/*.ts'],
-      exclude: [
-        'src/**/*.spec.ts',
-        'src/**/__fixtures__/**',
-        'src/domain/ports/**',
-        'src/index.ts',
-        'src/domain/index.ts',
-      ],
+      exclude: ['src/**/*.spec.ts', 'src/**/__fixtures__/**', 'src/index.ts'],
       thresholds: {
         lines: 100,
         statements: 100,

@@ -1,12 +1,12 @@
 {
   "$schema": "https://knip.dev/reference/knip-json",
   "workspaces": {
-    "domain-model": {
+    "software-factory/domain-model": {
       "project": [
         "src/**/*.ts"
       ]
     },
-    "use-cases": {
+    "software-factory/use-cases": {
       "project": [
         "src/**/*.ts"
       ]

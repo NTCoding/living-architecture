@@ -325,7 +325,7 @@ export default tseslint.config(
   {
     // Mastra names its own package folders. A path under /core is Mastra's
     // layout, not ours, so the core folder rule does not apply to these imports.
-    files: ['domain-model/**/*.ts', 'use-cases/**/*.ts', 'server/**/*.ts'],
+    files: ['**/*.ts', '**/*.tsx'],
     rules: {
       'no-restricted-imports': [
         'error',

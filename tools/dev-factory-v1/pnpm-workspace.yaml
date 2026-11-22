@@ -1,8 +1,6 @@
 packages:
-  - domain-model
-  - use-cases
-  - server
-  - ui
+  - '*'
+  - 'software-factory/*'
 
 autoInstallPeers: true
 engineStrict: true

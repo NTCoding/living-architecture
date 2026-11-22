@@ -1,0 +1,84 @@
+import {
+  location,
+  locationConfiguration,
+} from '@living-architecture/riviere-role-enforcement-domain-model'
+import type { RoleName } from '../roles'
+
+const entrypointRoles: RoleName[] = [
+  'cli-entrypoint',
+  'cli-entrypoint-dependencies',
+  'cli-output-formatter',
+  'cli-response-writer',
+  'command-input-factory',
+  'command-input-factory-dependencies',
+  'command-input-factory-input',
+  'entrypoint-cli-input-parser',
+  'entrypoint-cli-input-parser-dependencies',
+  'entrypoint-cli-input-parser-input',
+]
+const httpEntrypointRoles: RoleName[] = [
+  'http-entrypoint',
+  'http-request-parser',
+  'http-response-formatter',
+]
+const httpPresentationRoles: RoleName[] = [
+  'http-server',
+  'http-error-handler',
+  'http-change-stream',
+]
+const entrypointPlatformCliRoles: RoleName[] = [
+  'entrypoint-cli-input-parser',
+  'entrypoint-cli-input-parser-dependencies',
+  'cli-output-formatter',
+]
+const cliPresentationRoles: RoleName[] = [
+  'cli-error',
+  'cli-output',
+  'cli-output-formatter',
+  'cli-response-formatter',
+  'cli-response-writer',
+  'cli-error-handler',
+]
+const shellRoles: RoleName[] = ['main', 'cli-error-handler']
+const externalClientRoles: RoleName[] = [
+  'external-client-service',
+  'external-client-model',
+  'external-client-error',
+]
+
+export const app = {
+  locations: locationConfiguration<RoleName>(
+    location('/features/{feature}', {
+      entrypoint: {
+        '{entrypoint}': [...entrypointRoles, ...httpEntrypointRoles],
+        _platform: {
+          cli: entrypointPlatformCliRoles,
+          importRules: { importableFrom: 'withinParentLocation' },
+        },
+      },
+      // Features cannot import from each other. They can only import root infra and commands or queries from any subdomain.
+      importRules: {
+        allow: {
+          root: ['infra'],
+          anySubdomain: ['commands', 'queries', 'external-clients'],
+        },
+      },
+    }),
+
+    location('/infra', {
+      'cli/presentation': cliPresentationRoles,
+      'http/presentation': httpPresentationRoles,
+      'external-clients/{client}': externalClientRoles,
+      importRules: { allow: {} },
+    }),
+
+    location('/shell', shellRoles, {
+      importRules: {
+        allow: {
+          root: ['features', 'infra'],
+          anySubdomain: ['commands', 'queries', 'data-access', 'adapters', 'external-clients'],
+        },
+      },
+    }),
+  ),
+}
