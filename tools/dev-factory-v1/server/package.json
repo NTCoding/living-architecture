@@ -17,9 +17,11 @@
     "@mastra/memory": "1.38.0",
     "@mastra/observability": "^1.20.1",
     "commander": "^14.0.2",
-    "zod": "^3.23.0"
+    "zod": "^3.23.0",
+    "markdown-it": "^14.1.0"
   },
   "devDependencies": {
-    "@mastra/deployer": "^1.78.0"
+    "@mastra/deployer": "^1.78.0",
+    "@types/markdown-it": "^14.1.2"
   }
 }
