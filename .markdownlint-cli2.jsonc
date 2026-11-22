@@ -16,6 +16,7 @@
     "**/node_modules/**",
     "apps/docs/reference/api/generated/**",
     "CHANGELOG.md",
-    "reviews/**"
+    "reviews/**",
+    "tools/dev-factory-v1/**"
   ]
 }

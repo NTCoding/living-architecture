@@ -1,0 +1,44 @@
+{
+  "name": "@dev-factory-v1/use-cases",
+  "description": "Commands, queries, ports and adapters that carry a GitHub issue through the software factory workflow to a pull request ready for a person.",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "@dev-factory-v1/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json",
+    "./commands/*": {
+      "@dev-factory-v1/source": "./src/features/implementation/commands/*.ts",
+      "types": "./dist/features/implementation/commands/*.d.ts",
+      "import": "./dist/features/implementation/commands/*.js",
+      "default": "./dist/features/implementation/commands/*.js"
+    },
+    "./adapters/*": {
+      "@dev-factory-v1/source": "./src/features/implementation/adapters/*.ts",
+      "types": "./dist/features/implementation/adapters/*.d.ts",
+      "import": "./dist/features/implementation/adapters/*.js",
+      "default": "./dist/features/implementation/adapters/*.js"
+    },
+    "./external-clients/*": {
+      "@dev-factory-v1/source": "./src/infra/external-clients/*.ts",
+      "types": "./dist/infra/external-clients/*.d.ts",
+      "import": "./dist/infra/external-clients/*.js",
+      "default": "./dist/infra/external-clients/*.js"
+    }
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc -b tsconfig.lib.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@dev-factory-v1/domain-model": "workspace:*",
+    "@mastra/core": "1.78.0",
+    "zod": "^3.23.0"
+  }
+}

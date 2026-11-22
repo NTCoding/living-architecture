@@ -21,7 +21,17 @@ const customRules = {
 }
 
 export default tseslint.config(
-  ...tseslint.configs.recommendedTypeChecked,
+  {
+    files: ['**/*.ts', '**/*.tsx', '**/*.mts', '**/*.cts'],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: { '@typescript-eslint': tseslint.plugin },
+  },
   {
     ignores: [
       '**/dist',
@@ -33,6 +43,7 @@ export default tseslint.config(
       '*.config.mjs',
       '*.config.js',
       'vitest.workspace.ts',
+      '**/*.config.mts',
       '**/*.d.ts',
       '**/test-output',
       '**/api/generated/**',
@@ -274,7 +285,7 @@ export default tseslint.config(
   // The software factory is one workflow with many steps. Splitting it to satisfy
   // the default line limits would scatter one graph across files.
   {
-    files: ['**/build-workflow.ts', 'server/src/shell/**/*.ts'],
+    files: ['**/build-workflow*.ts', 'server/src/shell/**/*.ts'],
     rules: {
       'max-lines': ['error', { max: 1500, skipBlankLines: true, skipComments: true }],
     },

@@ -4,12 +4,6 @@
     "tailwindcss",
     "oxlint",
     "tsx",
-    "@mastra/core",
-    "@mastra/memory",
-    "@mastra/libsql",
-    "ai",
-    "@ai-sdk/provider",
-    "mastra",
     "@nx/node",
     "@swc/helpers"
   ],
@@ -149,14 +143,6 @@
       ]
     },
     "tools/living-documentation": {
-      "entry": [
-        "src/shell/main.ts"
-      ],
-      "project": [
-        "src/**/*.ts"
-      ]
-    },
-    "tools/dev-workflow-v3": {
       "entry": [
         "src/shell/main.ts"
       ],

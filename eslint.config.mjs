@@ -40,6 +40,7 @@ export default tseslint.config(
       '**/api/generated/**',
       '**/.vitepress/cache/**',
       '.riviere/**',
+      'tools/dev-factory-v1/**',
     ],
   },
   eslintComments.recommended,
@@ -309,14 +310,6 @@ export default tseslint.config(
       'unicorn/prefer-type-error': 'error',
     },
   },
-  // The software factory is one workflow with many steps. Splitting it to satisfy
-  // the default line limits would scatter one graph across files.
-  {
-    files: ['tools/dev-workflow-v3/**/*.ts', 'packages/dev-workflow-v3/**/*.ts'],
-    rules: {
-      'max-lines': ['error', { max: 1500, skipBlankLines: true, skipComments: true }],
-    },
-  },
   // React and accessibility rules (eclair only)
   {
     files: ['apps/eclair/**/*.tsx'],
@@ -345,40 +338,6 @@ export default tseslint.config(
           max: 730,
           skipBlankLines: true,
           skipComments: true,
-        },
-      ],
-    },
-  },
-  {
-    // Mastra names its own package folders. A path under /core is Mastra's
-    // layout, not ours, so the core folder rule does not apply to these imports.
-    files: ['tools/dev-workflow-v3/**/*.ts', 'packages/dev-workflow-v3/**/*.ts'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['*/utils/*', '*/utils', '*/utilities'],
-              message: 'No utils folders. Use domain-specific names.',
-            },
-            {
-              group: ['*/helpers/*', '*/helpers'],
-              message: 'No helpers folders. Use domain-specific names.',
-            },
-            {
-              group: ['*/common/*', '*/common'],
-              message: 'No common folders. Use domain-specific names.',
-            },
-            {
-              group: ['*/shared/*', '*/shared'],
-              message: 'No shared folders. Use domain-specific names.',
-            },
-            {
-              group: ['*/src/lib/*', '*/src/lib', './lib/*', './lib', '../lib/*', '../lib'],
-              message: 'No lib folders in projects. Use domain-specific names.',
-            },
-          ],
         },
       ],
     },

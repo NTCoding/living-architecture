@@ -2,5 +2,15 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
-  "references": []
+  "references": [
+    {
+      "path": "./domain-model"
+    },
+    {
+      "path": "./use-cases"
+    },
+    {
+      "path": "./server"
+    }
+  ]
 }

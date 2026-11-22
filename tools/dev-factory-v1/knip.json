@@ -12,9 +12,6 @@
       ]
     },
     "server": {
-      "entry": [
-        "src/shell/main.ts"
-      ],
       "project": [
         "src/**/*.ts"
       ]

@@ -7,6 +7,7 @@
     "node": "24.x"
   },
   "scripts": {
+    "factory": "NODE_OPTIONS=--conditions=@dev-factory-v1/source tsx server/src/shell/main.ts",
     "lint": "eslint . --no-error-on-unmatched-pattern",
     "typecheck": "tsc -b tsconfig.json",
     "test": "pnpm -r --if-present test",
@@ -31,6 +32,7 @@
     "typescript": "npm:typescript@5.9.3",
     "typescript-eslint": "^8.50.1",
     "vitest": "^4.0.8",
-    "tslib": "^2.8.0"
+    "tslib": "^2.8.0",
+    "vite": "^7.0.0"
   }
 }
