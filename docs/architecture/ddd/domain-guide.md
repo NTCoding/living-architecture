@@ -11,7 +11,6 @@ For shared domain language, use the [domain glossary](../domain-terminology/cont
 - [Applications](#applications)
 - [Subdomain overview](#subdomain-overview)
 - [Subdomains](#subdomains)
-  - [`dev-workflow-v2`](#dev-workflow-v2)
   - [`living-documentation`](#living-documentation)
   - [`riviere-builder`](#riviere-builder)
   - [`riviere-extract-config`](#riviere-extract-config)
@@ -24,7 +23,6 @@ For shared domain language, use the [domain glossary](../domain-terminology/cont
 
 | Subdomain | Purpose | Domain packages | Aggregates | Command use cases | Query use cases | CLI use cases |
 | --- | --- | --- | --- | ---: | ---: | ---: |
-| [`dev-workflow-v2`](#dev-workflow-v2) | Models the maintainer delivery workflow, including its states, allowed transitions, recorded events, and pull request decisions. | domain model: `@living-architecture/dev-workflow-v2-domain-model` | `MaintainerWorkflow` | 3 | 0 | 3 |
 | [`living-documentation`](#living-documentation) | Models source architecture, extracted architecture, and architecture differences for living documentation. | domain model: `@living-architecture/living-documentation-domain-model` | _None declared_ | 0 | 2 | 2 |
 | [`riviere-builder`](#riviere-builder) | Models the construction, enrichment, validation, querying, and serialisation of Rivière architecture graphs. | domain model: `@living-architecture/riviere-builder-domain-model`<br>published language: `@living-architecture/riviere-builder-published-language` | _None declared_ | 0 | 8 | 8 |
 | [`riviere-extract-config`](#riviere-extract-config) | Defines the public configuration language used to describe how Rivière components and connections are extracted from source code. | published language: `@living-architecture/riviere-extract-config-published-language` | _None declared_ | 0 | 0 | 0 |
@@ -41,60 +39,6 @@ For shared domain language, use the [domain glossary](../domain-terminology/cont
 - `tools/living-documentation`: Command line application that generates living architecture documentation.
 
 ## Subdomains
-
-### `dev-workflow-v2`
-
-Models the maintainer delivery workflow, including its states, allowed transitions, recorded events, and pull request decisions.
-
-Domain model package: `@living-architecture/dev-workflow-v2-domain-model`
-
-#### Aggregates
-
-- `MaintainerWorkflow`
-  - `build`
-  - `getPendingEvents`
-  - `getState`
-  - `getPullRequestNumber`
-  - `getSubmissionDetails`
-  - `registry`
-  - `getAgentInstructions`
-  - `appendEvent`
-  - `startSession`
-  - `getTranscriptPath`
-  - `getRecordedReviews`
-  - `getReviewDetails`
-  - `getLatestReviewByType`
-  - `registerAgent`
-  - `handleTeammateIdle`
-  - `executeRecording`
-  - `recordReviewerStatus`
-  - `createPr`
-  - `recordPullRequest`
-  - `startReviewCycle`
-  - `waitForCodeRabbitAndCloseReviewCycle`
-  - `transition`
-  - `reviewOutcome`
-
-#### Supported use cases
-
-##### Commands
-
-- `configureWorkflow`
-  - Invokes domain service operation `parseWorkflowEvent`
-  - Invokes aggregate operation `MaintainerWorkflow.build`
-  - Invokes aggregate operation `MaintainerWorkflow.registry`
-- `CreateWorkflowRoutes`
-- `PrepareImplementationBranch`
-
-##### Queries
-
-_None._
-
-#### CLI use cases
-
-- `configureWorkflow`
-- `CreateWorkflowRoutes`
-- `PrepareImplementationBranch`
 
 ### `living-documentation`
 

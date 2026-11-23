@@ -1,12 +1,8 @@
 {
   "packages": [
-    "../tools/dev-workflow-v2",
     "npm:pi-subagents"
   ],
   "subagents": {
-    "agentScanDirs": [
-      "tools/dev-workflow-v2/agents"
-    ],
     "defaultSubagentContext": "fresh"
   }
 }

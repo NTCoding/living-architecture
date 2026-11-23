@@ -40,12 +40,6 @@
       "path": "./packages/riviere-role-enforcement/use-cases"
     },
     {
-      "path": "./packages/dev-workflow-v2/domain-model"
-    },
-    {
-      "path": "./packages/dev-workflow-v2/use-cases"
-    },
-    {
       "path": "./packages/living-documentation/domain-model"
     },
     {
