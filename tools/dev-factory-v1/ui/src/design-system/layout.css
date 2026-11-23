@@ -1,0 +1,104 @@
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-3xl) var(--space-2xl);
+}
+
+.page h1 {
+  font-family: var(--font-body);
+  font-size: 1.75rem;
+  margin: 0 0 var(--space-xl);
+}
+
+.board {
+  display: flex;
+  gap: var(--space-xl);
+  overflow-x: auto;
+  padding-bottom: var(--space-xl);
+}
+
+.lane {
+  flex: 0 0 220px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-soft);
+  display: flex;
+  flex-direction: column;
+}
+
+.lane h2 {
+  margin: 0;
+  padding: var(--space-lg) var(--space-xl);
+  font-family: var(--font-ui);
+  font-size: var(--fs-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-label);
+  border-bottom: 1px solid var(--line);
+  background: var(--tint);
+  border-radius: var(--r-md) var(--r-md) 0 0;
+}
+
+.lane-count {
+  color: var(--text-2);
+  margin-left: var(--space-sm);
+}
+
+.lane-body {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.card {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: var(--space-lg);
+}
+
+.card-title {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--fs-ui);
+  font-weight: 600;
+}
+
+.card-detail {
+  margin: var(--space-sm) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+
+.card-action {
+  margin: var(--space-md) 0 0;
+  font-size: var(--fs-sm);
+}
+
+.state {
+  font-size: var(--fs-sm);
+  border-radius: var(--r-pill);
+  padding: 0 var(--space-md);
+}
+
+.state-done {
+  color: var(--state-done);
+  background: var(--accent-pale);
+}
+
+.state-doing {
+  color: var(--state-doing);
+  background: var(--surface-muted);
+}
+
+.state-todo {
+  color: var(--state-todo);
+  background: var(--surface-muted);
+}
+
+.empty {
+  font-size: var(--fs-sm);
+  color: var(--text-label);
+  margin: 0;
+}

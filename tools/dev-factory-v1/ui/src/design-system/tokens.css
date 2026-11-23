@@ -1,0 +1,51 @@
+:root {
+  --text: #1b1a18;
+  --text-2: #5c5852;
+  --text-label: #726c63;
+  --surface-reading: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-soft: #f7f5f1;
+  --surface-muted: #efece6;
+  --tint: #f2efe9;
+  --accent: #1f6f5c;
+  --accent-strong: #14503f;
+  --accent-pale: #e6f1ed;
+  --state-done: #2f7d4f;
+  --state-doing: #b5761a;
+  --state-todo: #7a746b;
+  --line: #ded9d1;
+  --line-soft: #ebe7e0;
+  --font-body: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fs-ui: 0.875rem;
+  --fs-sm: 0.8125rem;
+  --fs-md: 1rem;
+  --lh-ui: 1.45;
+  --space-xs: 2px;
+  --space-sm: 4px;
+  --space-md: 8px;
+  --space-lg: 12px;
+  --space-xl: 16px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-pill: 999px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  line-height: var(--lh-ui);
+  color: var(--text);
+  background: var(--surface-reading);
+}
+
+a {
+  color: var(--accent-strong);
+}
