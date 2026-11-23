@@ -5,7 +5,11 @@ import { refusalOf } from './same-machine'
 type Route = {
   readonly method: string
   readonly path: string
-  readonly handle: (request: IncomingMessage, response: ServerResponse) => void | Promise<void>
+  readonly handle: (
+    request: IncomingMessage,
+    response: ServerResponse,
+    params: Readonly<Record<string, string>>,
+  ) => void | Promise<void>
 }
 
 type ServeOptions = {
@@ -37,15 +41,17 @@ export async function serveFactory(options: ServeOptions): Promise<ServedFactory
       response.end(refusal)
       return
     }
-    const route = options.routes.find(
-      (candidate) => candidate.method === request.method && candidate.path === pathOf(request.url),
-    )
-    if (route === undefined) {
+    const path = pathOf(request.url)
+    const match = options.routes
+      .filter((candidate) => candidate.method === request.method)
+      .map((candidate) => ({ route: candidate, params: paramsOf(candidate.path, path) }))
+      .find((candidate) => candidate.params !== undefined)
+    if (match?.params === undefined) {
       response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' })
-      response.end(`There is no route for ${String(request.method)} ${pathOf(request.url)}.`)
+      response.end(`There is no route for ${String(request.method)} ${path}.`)
       return
     }
-    void handleSafely(route, request, response, options.log)
+    void handleSafely(match.route, request, response, match.params, options.log)
   })
   await new Promise<void>((resolve, reject) => {
     server.once('error', reject)
@@ -65,10 +71,11 @@ async function handleSafely(
   route: Route,
   request: IncomingMessage,
   response: ServerResponse,
+  params: Readonly<Record<string, string>>,
   log: (text: string) => void,
 ): Promise<void> {
   try {
-    await route.handle(request, response)
+    await route.handle(request, response, params)
   } catch (error) {
     log(`The route ${route.method} ${route.path} failed: ${String(error)}`)
     if (response.headersSent) {
@@ -78,6 +85,27 @@ async function handleSafely(
     response.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' })
     response.end('The factory could not answer that request.')
   }
+}
+
+/**
+ * @riviere-role http-server
+ *
+ * The values of the `:name` segments of a path, or nothing when the path does not fit the pattern.
+ */
+export function paramsOf(pattern: string, path: string): Record<string, string> | undefined {
+  const patternParts = pattern.split('/')
+  const pathParts = path.split('/')
+  if (patternParts.length !== pathParts.length) return undefined
+  const params: Record<string, string> = {}
+  for (const [index, part] of patternParts.entries()) {
+    const actual = String(pathParts[index])
+    if (part.startsWith(':')) {
+      params[part.slice(1)] = decodeURIComponent(actual)
+      continue
+    }
+    if (part !== actual) return undefined
+  }
+  return params
 }
 
 /** @riviere-role http-server */

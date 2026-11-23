@@ -1,5 +1,6 @@
-import type { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
+import { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
 import type { InboxEvent } from '@dev-factory-v1/domain-model/domain/planning/inbox/inbox-event'
+import type { InboxLog } from '@dev-factory-v1/domain-model/domain/ports/inbox-log'
 
 /** @riviere-role query-model-use-case-input */
 export interface ReadAgentInboxInput {
@@ -20,10 +21,10 @@ export interface AgentInboxItems {
  * replies or closes it.
  */
 export class ReadAgentInbox {
-  constructor(private readonly inbox: AgentInbox) {}
+  constructor(private readonly log: InboxLog) {}
 
   execute(input: ReadAgentInboxInput): AgentInboxItems {
-    const events = this.inbox.eventsSince(input.lastPrinted)
+    const events = new AgentInbox(this.log).eventsSince(input.lastPrinted)
     return { events, lastNumber: events.at(-1)?.number ?? input.lastPrinted }
   }
 }

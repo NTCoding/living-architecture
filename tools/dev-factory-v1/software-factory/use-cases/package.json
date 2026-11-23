@@ -37,10 +37,28 @@
       "default": "./dist/infra/external-clients/*.js"
     },
     "./data-access/*": {
-      "@dev-factory-v1/source": "./src/features/planning/data-access/*/*.ts",
-      "types": "./dist/features/planning/data-access/*/*.d.ts",
-      "import": "./dist/features/planning/data-access/*/*.js",
-      "default": "./dist/features/planning/data-access/*/*.js"
+      "@dev-factory-v1/source": "./src/features/planning/data-access/*.ts",
+      "types": "./dist/features/planning/data-access/*.d.ts",
+      "import": "./dist/features/planning/data-access/*.js",
+      "default": "./dist/features/planning/data-access/*.js"
+    },
+    "./planning-commands/*": {
+      "@dev-factory-v1/source": "./src/features/planning/commands/*.ts",
+      "types": "./dist/features/planning/commands/*.d.ts",
+      "import": "./dist/features/planning/commands/*.js",
+      "default": "./dist/features/planning/commands/*.js"
+    },
+    "./planning-queries/*": {
+      "@dev-factory-v1/source": "./src/features/planning/queries/*.ts",
+      "types": "./dist/features/planning/queries/*.d.ts",
+      "import": "./dist/features/planning/queries/*.js",
+      "default": "./dist/features/planning/queries/*.js"
+    },
+    "./planning-adapters/*": {
+      "@dev-factory-v1/source": "./src/features/planning/adapters/*.ts",
+      "types": "./dist/features/planning/adapters/*.d.ts",
+      "import": "./dist/features/planning/adapters/*.js",
+      "default": "./dist/features/planning/adapters/*.js"
     }
   },
   "scripts": {
