@@ -37,6 +37,15 @@ export class IdeaRepository {
     })
   }
 
+  create(ideaSlug: string, idea: Idea, summary: string): void {
+    const path = this.pathOf(ideaSlug)
+    mkdirSync(dirname(path), { recursive: true })
+    const body = `**Source:** ${summary.trim()}\n`
+    const temporaryPath = `${path}.${String(process.pid)}.tmp`
+    writeFileSync(temporaryPath, textOf(idea, body), 'utf8')
+    renameSync(temporaryPath, path)
+  }
+
   save(ideaSlug: string, idea: Idea): void {
     const path = this.pathOf(ideaSlug)
     mkdirSync(dirname(path), { recursive: true })
