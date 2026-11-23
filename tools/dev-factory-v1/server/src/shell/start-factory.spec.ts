@@ -85,9 +85,13 @@ function repoWithOneEpicAndOneIdea(): string {
 
 async function startedFactory(): Promise<{ factory: Started; targetRepo: string }> {
   const targetRepo = repoWithOneEpicAndOneIdea()
+  const uiFolder = mkdtempSync(join(tmpdir(), 'factory-ui-'))
+  writeFileSync(join(uiFolder, 'index.html'), '<!doctype html><title>Factory</title>')
+  writeFileSync(join(uiFolder, 'factory-ui.js'), 'document.title = "factory"')
   const factory = await startFactory({
     port: 0,
     targetRepo,
+    uiFolder,
     log: () => undefined,
     runCommand: () =>
       Promise.resolve({ exitCode: 0, stdout: '[{"number":901,"state":"OPEN"}]', stderr: '' }),
@@ -388,6 +392,46 @@ describe('startFactory', () => {
     const response = await postJson(factory, '/api/agent/epics/cross-repo-linking/stories', {})
 
     expect(response.status).toBe(500)
+  })
+
+  it('returns the page that the UI boots from', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await fetch(`http://127.0.0.1:${factory.port}/planning/one`)
+
+    expect(response.status).toBe(200)
+    expect(await response.text()).toContain('Factory')
+  })
+
+  it('returns a file of the UI bundle', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await fetch(`http://127.0.0.1:${factory.port}/assets/factory-ui.js`)
+
+    expect(response.status).toBe(200)
+    expect(await response.text()).toContain('document.title')
+  })
+
+  it('says 404 for an asset the UI does not have', async () => {
+    const { factory } = await startedFactory()
+
+    expect((await fetch(`http://127.0.0.1:${factory.port}/assets/nothing.js`)).status).toBe(404)
+    expect((await fetch(`http://127.0.0.1:${factory.port}/assets/../x.js`)).status).toBe(404)
+    expect((await fetch(`http://127.0.0.1:${factory.port}/assets/README`)).status).toBe(404)
+  })
+
+  it('says 503 when the UI has not been built', async () => {
+    const targetRepo = repoWithOneEpicAndOneIdea()
+    const factory = await startFactory({
+      port: 0,
+      targetRepo,
+      log: () => undefined,
+      uiFolder: join(targetRepo, 'no-ui'),
+      runCommand: () => Promise.resolve({ exitCode: 0, stdout: '[]', stderr: '' }),
+    })
+    started.push(factory)
+
+    expect((await fetch(`http://127.0.0.1:${factory.port}/`)).status).toBe(503)
   })
 
   it('says 404 for a route it does not have', async () => {

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { FileChangeStreams } from './change-stream'
-import { pathOf, portOf, serveFactory } from './serve'
+import { paramsOf, pathOf, portOf, serveFactory } from './serve'
 
 class RouteFailure extends Error {
   constructor(message: string) {
@@ -130,6 +130,13 @@ describe('serveFactory', () => {
   it('reads the path of a request without its query', () => {
     expect(pathOf('/api/runs?epic=one')).toBe('/api/runs')
     expect(pathOf(undefined)).toBe('/')
+  })
+
+  it('matches a path that ends in a wildcard', () => {
+    expect(paramsOf('/planning/*', '/planning/one')).toStrictEqual({ rest: 'one' })
+    expect(paramsOf('/planning/*', '/planning')).toStrictEqual({ rest: '' })
+    expect(paramsOf('/planning/*', '/prds/one')).toBeUndefined()
+    expect(paramsOf('/*', '/anything')).toStrictEqual({ rest: 'anything' })
   })
 
   it('reads 0 from an address that is not a socket', () => {

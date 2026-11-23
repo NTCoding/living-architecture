@@ -1,6 +1,9 @@
 import { mkdirSync } from 'node:fs'
 import { readIssueStatesWithGithub } from '@dev-factory-v1/use-cases/planning-adapters/github/issue-states'
+import { assetEndpoint } from '../features/planning/entrypoint/http/asset'
+import { pageEndpoint } from '../features/planning/entrypoint/http/page'
 import { FileChangeStreams } from '../infra/http/presentation/change-stream'
+import { staticFileOf } from '../infra/http/presentation/static-files'
 import { changesEndpoint } from '../infra/http/presentation/changes-endpoint'
 import { serveFactory } from '../infra/http/presentation/serve'
 import { agentClosesItemEndpoint } from '../features/planning/entrypoint/http/agent-closes-item'
@@ -23,6 +26,7 @@ type StartFactoryOptions = {
   readonly port: number
   readonly targetRepo: string
   readonly log: (text: string) => void
+  readonly uiFolder: string
   readonly runCommand: (request: {
     readonly workingDirectory: string
     readonly arguments: readonly string[]
@@ -39,6 +43,7 @@ export async function startFactory(options: StartFactoryOptions) {
   mkdirSync(`${options.targetRepo}/.factory`, { recursive: true })
   const listening = { port: options.port }
   const changes = new FileChangeStreams({ checkMilliseconds: 250, log: options.log })
+  const readUiFile = (name: string) => staticFileOf(options.uiFolder, name)
   const issueStates = readIssueStatesWithGithub({
     runCommand: options.runCommand,
     workingDirectory: options.targetRepo,
@@ -47,6 +52,11 @@ export async function startFactory(options: StartFactoryOptions) {
     port: options.port,
     log: options.log,
     routes: [
+      { method: 'GET', path: '/', handle: pageEndpoint(readUiFile) },
+      { method: 'GET', path: '/planning/*', handle: pageEndpoint(readUiFile) },
+      { method: 'GET', path: '/prds/*', handle: pageEndpoint(readUiFile) },
+      { method: 'GET', path: '/runs/*', handle: pageEndpoint(readUiFile) },
+      { method: 'GET', path: '/assets/:file', handle: assetEndpoint(readUiFile) },
       { method: 'GET', path: '/api/server', handle: serverEndpoint(() => listening.port) },
       {
         method: 'GET',

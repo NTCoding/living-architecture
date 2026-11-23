@@ -93,6 +93,7 @@ async function handleSafely(
  * The values of the `:name` segments of a path, or nothing when the path does not fit the pattern.
  */
 export function paramsOf(pattern: string, path: string): Record<string, string> | undefined {
+  if (pattern.endsWith('/*')) return restOf(pattern.slice(0, -2), path)
   const patternParts = pattern.split('/')
   const pathParts = path.split('/')
   if (patternParts.length !== pathParts.length) return undefined
@@ -106,6 +107,13 @@ export function paramsOf(pattern: string, path: string): Record<string, string> 
     if (part !== actual) return undefined
   }
   return params
+}
+
+/** @riviere-role http-server */
+export function restOf(prefix: string, path: string): Record<string, string> | undefined {
+  if (prefix === '' && path.startsWith('/')) return { rest: path.slice(1) }
+  if (path === prefix) return { rest: '' }
+  return path.startsWith(`${prefix}/`) ? { rest: path.slice(prefix.length + 1) } : undefined
 }
 
 /** @riviere-role http-server */
