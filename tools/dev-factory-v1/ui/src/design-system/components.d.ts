@@ -23,12 +23,6 @@ type CardProperties = {
 }
 /** One idea or one epic on a board. */
 export declare function Card({ title, detail, action }: CardProperties): import('react').JSX.Element
-type StateProperties = {
-  readonly state: 'done' | 'doing' | 'todo'
-  readonly children: ReactNode
-}
-/** A small word that says whether something is done, doing or still to do. */
-export declare function State({ state, children }: StateProperties): import('react').JSX.Element
 /** The message a board shows when it has nothing in it. */
 export declare function Empty({
   children,
