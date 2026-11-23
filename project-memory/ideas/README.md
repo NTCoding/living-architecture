@@ -35,11 +35,12 @@ Use one of these values:
 ## `idea.md` template
 
 ```md
-# <Idea Name>
-
-**Status:** Captured
-
-**Need level:** Probably needed / Definitely needed / Uncertain
+---
+title: <Idea Name>
+status: captured                    # captured | exploring | candidate-prd | prioritised | planned | not-now
+need: probably-needed               # probably-needed | definitely-needed | uncertain
+epic: null                          # the slug of the epic, once planning has started
+---
 
 **Source:** <PRD, planning session, discussion, issue, PR, or other source>
 

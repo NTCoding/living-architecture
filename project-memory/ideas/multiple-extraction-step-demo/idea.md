@@ -1,8 +1,9 @@
-# Multiple Extraction Step Demo
-
-**Status:** Planned
-
-**Need level:** Definitely needed
+---
+title: Multiple Extraction Step Demo
+status: planned
+need: definitely-needed
+epic: null
+---
 
 **Source:** `docs/project/PRD/riviere-extraction-workflows-v1/PRD.md` and planning discussion for `riviere-extraction-workflows-v1`
 

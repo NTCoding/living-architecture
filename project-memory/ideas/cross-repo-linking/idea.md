@@ -1,6 +1,9 @@
-# PRD: Phase 14 — Cross-Repo Linking
-
-**Status:** Not Started
+---
+title: Cross-repo linking
+status: captured
+need: uncertain
+epic: null
+---
 
 **Depends on:** Phase 13 (Extraction Workflows)
 

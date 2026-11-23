@@ -1,0 +1,26 @@
+title: "Phase 13: Extraction workflows"
+idea: null
+stage: in-progress
+history: []
+features:
+  - id: M0
+    title: Demo source groundwork is ready
+    stories: [492]
+  - id: M1
+    title: Project-owned Workflow foundation is complete
+    stories: [491, 493, 494, 495, 496]
+  - id: M2
+    title: Deterministic source and validation stages work
+    stories: [497, 498, 499]
+  - id: M3
+    title: Bounded additive AI stages work
+    stories: [500, 501, 502]
+  - id: M4
+    title: Customer CLI and guidance are complete
+    stories: [503, 504, 505]
+  - id: M5
+    title: Executable demo and immutable customer gate are complete
+    stories: [506, 507, 508, 509]
+  - id: M6
+    title: ecommerce-demo-app helps new users adopt Riviere Workflows
+    stories: [515]

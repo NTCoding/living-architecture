@@ -1,8 +1,9 @@
-# Workflow Plan Preview Mode
-
-**Status:** Captured
-
-**Need level:** Definitely needed
+---
+title: Workflow Plan Preview Mode
+status: captured
+need: definitely-needed
+epic: null
+---
 
 **Source:** `docs/project/PRD/riviere-extraction-workflows-v1/PRD.md` and planning discussion for `riviere-extraction-workflows-v1`
 
