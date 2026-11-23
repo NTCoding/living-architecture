@@ -2,7 +2,6 @@ import { existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
 import { InvalidIdea } from '@dev-factory-v1/domain-model/domain/planning/idea'
 import { InboxFile } from '../adapters/inbox/inbox-file'
 import { EpicRepository } from '../data-access/epic/epic-repository'
@@ -30,7 +29,7 @@ function factoryIn(text: string): { startPlanning: StartPlanning; folder: string
     startPlanning: new StartPlanning(
       new IdeaRepository(folder),
       new EpicRepository(folder),
-      new AgentInbox(new InboxFile(folder)),
+      new InboxFile(folder),
       () => '2026-11-24T09:02:00Z',
     ),
   }
@@ -78,11 +77,11 @@ describe('StartPlanning', () => {
 
     startPlanning.execute({ idea: 'cross-repo-linking' })
 
-    const events = new AgentInbox(new InboxFile(folder)).eventsSince(0)
+    const events = readEventsIn(folder)
     expect(events).toStrictEqual([
       {
         kind: 'planning-started',
-        number: 1,
+        n: 1,
         time: '2026-11-24T09:02:00Z',
         epic: 'cross-repo-linking',
       },
@@ -99,3 +98,8 @@ describe('StartPlanning', () => {
     ).toBe(true)
   })
 })
+
+function readEventsIn(folder: string): unknown {
+  const text = readFileSync(join(folder, '.factory', 'inbox.jsonl'), 'utf8')
+  return JSON.parse(`[${text.trim().split('\n').join(',')}]`)
+}

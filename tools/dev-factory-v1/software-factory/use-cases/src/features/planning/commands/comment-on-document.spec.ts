@@ -2,7 +2,6 @@ import { mkdtempSync, mkdirSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
 import { InboxFile } from '../adapters/inbox/inbox-file'
 import { ThreadIdsLoader } from '../data-access/thread/thread-ids-loader'
 import { ThreadRepository } from '../data-access/thread/thread-repository'
@@ -24,7 +23,7 @@ function emptyFactory(): { commentOnDocument: CommentOnDocument; folder: string 
     commentOnDocument: new CommentOnDocument(
       new ThreadRepository(folder),
       new ThreadIdsLoader(folder),
-      new AgentInbox(new InboxFile(folder)),
+      new InboxFile(folder),
       () => '2026-11-26T10:02:11Z',
     ),
   }
@@ -89,11 +88,11 @@ describe('CommentOnDocument', () => {
       text: 'Does this include private repositories?',
     })
 
-    const events = new AgentInbox(new InboxFile(folder)).eventsSince(0)
+    const events = readEventsIn(folder)
     expect(events).toStrictEqual([
       {
         kind: 'comment',
-        number: 1,
+        n: 1,
         time: '2026-11-26T10:02:11Z',
         epic: 'cross-repo-linking',
         item: 'c-1',
@@ -101,3 +100,8 @@ describe('CommentOnDocument', () => {
     ])
   })
 })
+
+function readEventsIn(folder: string): unknown {
+  const text = readFileSync(join(folder, '.factory', 'inbox.jsonl'), 'utf8')
+  return JSON.parse(`[${text.trim().split('\n').join(',')}]`)
+}

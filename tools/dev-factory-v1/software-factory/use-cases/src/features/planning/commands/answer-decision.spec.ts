@@ -2,7 +2,6 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
 import { InvalidDecision } from '@dev-factory-v1/domain-model/domain/planning/decision'
 import { InboxFile } from '../adapters/inbox/inbox-file'
 import { DecisionRepository } from '../data-access/decision/decision-repository'
@@ -31,7 +30,7 @@ function factoryIn(text: string): { answerDecision: AnswerDecision; folder: stri
     folder,
     answerDecision: new AnswerDecision(
       new DecisionRepository(folder),
-      new AgentInbox(new InboxFile(folder)),
+      new InboxFile(folder),
       () => '2026-11-27T09:41:00Z',
     ),
   }

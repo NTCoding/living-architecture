@@ -1,4 +1,5 @@
-import type { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
+import { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
+import type { InboxLog } from '@dev-factory-v1/domain-model/domain/ports/inbox-log'
 import type { DecisionRepository } from '../data-access/decision/decision-repository'
 
 /** @riviere-role command-use-case-input */
@@ -25,12 +26,13 @@ export interface AnswerDecisionResult {
 export class AnswerDecision {
   constructor(
     private readonly decisions: DecisionRepository,
-    private readonly inbox: AgentInbox,
+    private readonly log: InboxLog,
     private readonly now: () => string,
   ) {}
 
   execute(input: AnswerDecisionInput): AnswerDecisionResult {
     const time = this.now()
+    const inbox = new AgentInbox(this.log)
     const answered = this.decisions.load(input.epic, input.decision).answered({
       choice: input.choice,
       chosen: input.chosen,
@@ -38,9 +40,9 @@ export class AnswerDecision {
       time,
     })
     this.decisions.save(input.epic, answered)
-    this.inbox.append({
+    inbox.append({
       kind: 'decision',
-      number: this.inbox.lastNumber() + 1,
+      number: inbox.lastNumber() + 1,
       time,
       epic: input.epic,
       item: input.decision,

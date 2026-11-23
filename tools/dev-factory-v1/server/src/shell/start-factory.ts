@@ -3,10 +3,16 @@ import { readIssueStatesWithGithub } from '@dev-factory-v1/use-cases/planning-ad
 import { FileChangeStreams } from '../infra/http/presentation/change-stream'
 import { changesEndpoint } from '../infra/http/presentation/changes-endpoint'
 import { serveFactory } from '../infra/http/presentation/serve'
+import { answerDecisionEndpoint } from '../features/planning/entrypoint/http/answer-decision'
+import { captureIdeaEndpoint } from '../features/planning/entrypoint/http/capture-idea'
+import { commentOnDocumentEndpoint } from '../features/planning/entrypoint/http/comment-on-document'
 import { documentEndpoint } from '../features/planning/entrypoint/http/document'
 import { epicEndpoint } from '../features/planning/entrypoint/http/epic'
 import { overviewBoardEndpoint } from '../features/planning/entrypoint/http/overview-board'
 import { planningBoardEndpoint } from '../features/planning/entrypoint/http/planning-board'
+import { readJsonBody } from '../features/planning/entrypoint/http/read-body'
+import { replyToThreadEndpoint } from '../features/planning/entrypoint/http/reply-to-thread'
+import { startPlanningEndpoint } from '../features/planning/entrypoint/http/start-planning'
 import { serverEndpoint } from '../features/planning/entrypoint/http/server'
 import { waitingForYouEndpoint } from '../features/planning/entrypoint/http/waiting-for-you'
 
@@ -64,6 +70,31 @@ export async function startFactory(options: StartFactoryOptions) {
         method: 'GET',
         path: '/api/epics/:epic/documents/:document',
         handle: documentEndpoint(options.targetRepo),
+      },
+      {
+        method: 'POST',
+        path: '/api/ideas',
+        handle: captureIdeaEndpoint(options.targetRepo, readJsonBody),
+      },
+      {
+        method: 'POST',
+        path: '/api/ideas/:idea/start-planning',
+        handle: startPlanningEndpoint(options.targetRepo),
+      },
+      {
+        method: 'POST',
+        path: '/api/epics/:epic/threads',
+        handle: commentOnDocumentEndpoint(options.targetRepo, readJsonBody),
+      },
+      {
+        method: 'POST',
+        path: '/api/epics/:epic/threads/:thread/replies',
+        handle: replyToThreadEndpoint(options.targetRepo, readJsonBody),
+      },
+      {
+        method: 'POST',
+        path: '/api/epics/:epic/decisions/:decision',
+        handle: answerDecisionEndpoint(options.targetRepo, readJsonBody),
       },
     ],
   })

@@ -1,4 +1,5 @@
-import type { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
+import { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
+import type { InboxLog } from '@dev-factory-v1/domain-model/domain/ports/inbox-log'
 import type { ThreadRepository } from '../data-access/thread/thread-repository'
 
 /** @riviere-role command-use-case-input */
@@ -24,19 +25,20 @@ export interface ReplyToThreadResult {
 export class ReplyToThread {
   constructor(
     private readonly threads: ThreadRepository,
-    private readonly inbox: AgentInbox,
+    private readonly log: InboxLog,
     private readonly now: () => string,
   ) {}
 
   execute(input: ReplyToThreadInput): ReplyToThreadResult {
     const time = this.now()
+    const inbox = new AgentInbox(this.log)
     const replied = this.threads
       .load(input.epic, input.thread)
       .replying({ author: 'nick', time, text: input.text })
     this.threads.save(input.epic, replied)
-    this.inbox.append({
+    inbox.append({
       kind: 'reply',
-      number: this.inbox.lastNumber() + 1,
+      number: inbox.lastNumber() + 1,
       time,
       epic: input.epic,
       item: input.thread,

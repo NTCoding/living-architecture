@@ -1,4 +1,5 @@
-import type { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
+import { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
+import type { InboxLog } from '@dev-factory-v1/domain-model/domain/ports/inbox-log'
 import { Thread } from '@dev-factory-v1/domain-model/domain/planning/thread'
 import type { ThreadIdsLoader } from '../data-access/thread/thread-ids-loader'
 import type { ThreadRepository } from '../data-access/thread/thread-repository'
@@ -36,12 +37,13 @@ export class CommentOnDocument {
   constructor(
     private readonly threads: ThreadRepository,
     private readonly threadIds: ThreadIdsLoader,
-    private readonly inbox: AgentInbox,
+    private readonly log: InboxLog,
     private readonly now: () => string,
   ) {}
 
   execute(input: CommentOnDocumentInput): CommentOnDocumentResult {
     const time = this.now()
+    const inbox = new AgentInbox(this.log)
     const thread = Thread.from({
       id: nextThreadIdOf(this.threadIds.load(input.epic).ids),
       document: input.document,
@@ -50,9 +52,9 @@ export class CommentOnDocument {
       outcome: null,
     })
     this.threads.save(input.epic, thread)
-    this.inbox.append({
+    inbox.append({
       kind: 'comment',
-      number: this.inbox.lastNumber() + 1,
+      number: inbox.lastNumber() + 1,
       time,
       epic: input.epic,
       item: thread.id(),

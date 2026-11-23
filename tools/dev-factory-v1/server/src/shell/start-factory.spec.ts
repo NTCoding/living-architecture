@@ -62,6 +62,18 @@ function repoWithOneEpicAndOneIdea(): string {
       '    text: Yes. One file per workspace.',
     ].join('\n'),
   )
+  writeFileSync(
+    join(epic, 'threads', 'd-2.yml'),
+    [
+      'id: d-2',
+      'type: decision',
+      'document: ARCH.md',
+      'question: One file?',
+      'answer: null',
+      'followed: false',
+      'outcome: null',
+    ].join('\n'),
+  )
   const idea = join(folder, 'project-memory', 'ideas', 'preset-workflows')
   mkdirSync(idea, { recursive: true })
   writeFileSync(
@@ -82,6 +94,18 @@ async function startedFactory(): Promise<{ factory: Started; targetRepo: string 
   })
   started.push(factory)
   return { factory, targetRepo }
+}
+
+async function postJson(
+  factory: Started,
+  path: string,
+  body: Record<string, unknown>,
+): Promise<Response> {
+  return fetch(`http://127.0.0.1:${factory.port}${path}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  })
 }
 
 async function jsonOf(factory: Started, path: string): Promise<unknown> {
@@ -129,15 +153,21 @@ describe('startFactory', () => {
 
     const waiting = await jsonOf(factory, '/api/waiting-for-you')
 
-    expect(waiting).toStrictEqual({
+    expect(waiting).toMatchObject({
       items: [
         {
           epic: 'cross-repo-linking',
           item: 'c-1',
           kind: 'comment',
           document: 'ARCH.md',
-          question: null,
           last: 'Yes. One file per workspace.',
+        },
+        {
+          epic: 'cross-repo-linking',
+          item: 'd-2',
+          kind: 'decision',
+          document: 'ARCH.md',
+          question: 'One file?',
         },
       ],
     })
@@ -166,6 +196,139 @@ describe('startFactory', () => {
 
     expect(response.headers.get('content-type')).toContain('text/event-stream')
     await response.body?.cancel()
+  })
+
+  it('captures a new idea', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await postJson(factory, '/api/ideas', {
+      slug: 'cross-repo-linking',
+      title: 'Cross-repo linking',
+      summary: 'From the planning discussion.',
+    })
+
+    expect(response.status).toBe(201)
+    expect(await response.json()).toMatchObject({ idea: 'cross-repo-linking', status: 'captured' })
+  })
+
+  it('starts planning an idea', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await postJson(factory, '/api/ideas/preset-workflows/start-planning', {})
+
+    expect(response.status).toBe(201)
+    expect(await response.json()).toMatchObject({
+      epic: 'preset-workflows',
+      step: 'problem-definition',
+    })
+  })
+
+  it('opens a thread on a document', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await postJson(factory, '/api/epics/cross-repo-linking/threads', {
+      document: 'ARCH.md',
+      selectedText: 'One file',
+      prefix: '',
+      suffix: '',
+      firstLine: 3,
+      occurrence: 0,
+      text: 'Does that include the private ones?',
+    })
+
+    expect(response.status).toBe(201)
+    expect(await response.json()).toStrictEqual({ thread: 'c-2', waitsFor: 'agent' })
+  })
+
+  it('replies to a thread', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await postJson(factory, '/api/epics/cross-repo-linking/threads/c-1/replies', {
+      text: 'And the private ones?',
+    })
+
+    expect(response.status).toBe(201)
+    expect(await response.json()).toStrictEqual({ thread: 'c-1', waitsFor: 'agent' })
+  })
+
+  it('answers a decision', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await postJson(factory, '/api/epics/cross-repo-linking/decisions/d-2', {
+      choice: 'proposal',
+      chosen: 'One file per workspace.',
+      reply: null,
+    })
+
+    expect(response.status).toBe(201)
+    expect(await response.json()).toStrictEqual({ decision: 'd-2', waitsFor: 'agent' })
+  })
+
+  it('says 500 when the body is missing a field', async () => {
+    const { factory } = await startedFactory()
+
+    expect((await postJson(factory, '/api/ideas', { slug: 'one' })).status).toBe(500)
+    expect(
+      (await postJson(factory, '/api/epics/cross-repo-linking/threads', { document: 'PRD.md' }))
+        .status,
+    ).toBe(500)
+    expect(
+      (await postJson(factory, '/api/epics/cross-repo-linking/threads/c-1/replies', {})).status,
+    ).toBe(500)
+    expect(
+      (await postJson(factory, '/api/epics/cross-repo-linking/decisions/d-2', { choice: 'reply' }))
+        .status,
+    ).toBe(500)
+  })
+
+  it('records your own words when you write them', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await postJson(factory, '/api/epics/cross-repo-linking/decisions/d-2', {
+      choice: 'reply',
+      chosen: 'Ask Jo about the private repositories first.',
+      reply: 'Ask Jo about the private repositories first.',
+    })
+
+    expect(response.status).toBe(201)
+  })
+
+  it('says 500 when the passage of a comment has no line', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await postJson(factory, '/api/epics/cross-repo-linking/threads', {
+      document: 'ARCH.md',
+      selectedText: 'One file',
+      prefix: 0,
+      suffix: '',
+      text: 'Why one file?',
+    })
+
+    expect(response.status).toBe(500)
+  })
+
+  it('says 500 when the body is not a JSON object', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await fetch(`http://127.0.0.1:${factory.port}/api/ideas`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: '[]',
+    })
+
+    expect(response.status).toBe(500)
+  })
+
+  it('says 500 when the body is larger than a megabyte', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await fetch(`http://127.0.0.1:${factory.port}/api/ideas`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ summary: 'x'.repeat(1_100_000) }),
+    })
+
+    expect(response.status).toBe(500)
   })
 
   it('says 404 for a route it does not have', async () => {

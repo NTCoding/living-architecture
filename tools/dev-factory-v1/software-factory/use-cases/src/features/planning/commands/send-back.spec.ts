@@ -2,7 +2,6 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
 import { InvalidEpic } from '@dev-factory-v1/domain-model/domain/planning/epic'
 import { NotAnEarlierStep } from '@dev-factory-v1/domain-model/domain/planning/planning-step'
 import { InboxFile } from '../adapters/inbox/inbox-file'
@@ -26,7 +25,7 @@ function factoryIn(text: string): { sendBack: SendBack; folder: string } {
     folder,
     sendBack: new SendBack(
       new EpicRepository(folder),
-      new AgentInbox(new InboxFile(folder)),
+      new InboxFile(folder),
       () => '2026-11-27T10:15:00Z',
     ),
   }

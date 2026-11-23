@@ -2,7 +2,6 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
 import { InboxFile } from '../adapters/inbox/inbox-file'
 import { ThreadRepository } from '../data-access/thread/thread-repository'
 import { ReplyToThread } from './reply-to-thread'
@@ -34,7 +33,7 @@ function factoryIn(text: string): { replyToThread: ReplyToThread; folder: string
     join(folder, 'docs', 'project', 'PRD', 'cross-repo-linking', 'threads', 'c-3.yml'),
     text,
   )
-  const inbox = new AgentInbox(new InboxFile(folder))
+  const inbox = new InboxFile(folder)
   return {
     folder,
     replyToThread: new ReplyToThread(
@@ -105,15 +104,21 @@ describe('ReplyToThread', () => {
 
     replyToThread.execute({ epic: 'cross-repo-linking', thread: 'c-3', text: 'And private ones.' })
 
-    const events = new AgentInbox(new InboxFile(folder)).eventsSince(0)
-    expect(events).toHaveLength(2)
-    expect(events[1]).toStrictEqual({
-      kind: 'reply',
-      number: 8,
-      time: '2026-11-26T11:12:00Z',
-      epic: 'cross-repo-linking',
-      item: 'c-3',
-      text: 'And private ones.',
-    })
+    expect(readEventsIn(folder)).toStrictEqual([
+      { n: 7, time: 't', kind: 'comment', epic: 'e', item: 'c-1' },
+      {
+        kind: 'reply',
+        n: 8,
+        time: '2026-11-26T11:12:00Z',
+        epic: 'cross-repo-linking',
+        item: 'c-3',
+        text: 'And private ones.',
+      },
+    ])
   })
 })
+
+function readEventsIn(folder: string): unknown {
+  const text = readFileSync(join(folder, '.factory', 'inbox.jsonl'), 'utf8')
+  return JSON.parse(`[${text.trim().split('\n').join(',')}]`)
+}

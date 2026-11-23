@@ -1,4 +1,5 @@
-import type { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
+import { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
+import type { InboxLog } from '@dev-factory-v1/domain-model/domain/ports/inbox-log'
 import { InvalidEpic } from '@dev-factory-v1/domain-model/domain/planning/epic'
 import { PlanningStep } from '@dev-factory-v1/domain-model/domain/planning/planning-step'
 import type { EpicRepository } from '../data-access/epic/epic-repository'
@@ -26,12 +27,13 @@ export interface SendBackResult {
 export class SendBack {
   constructor(
     private readonly epics: EpicRepository,
-    private readonly inbox: AgentInbox,
+    private readonly log: InboxLog,
     private readonly now: () => string,
   ) {}
 
   execute(input: SendBackInput): SendBackResult {
     const time = this.now()
+    const inbox = new AgentInbox(this.log)
     const epic = this.epics.load(input.epic)
     const stage = epic.stage()
     if (stage.kind !== 'planning') {
@@ -39,9 +41,9 @@ export class SendBack {
     }
     const to = PlanningStep.from(input.to)
     this.epics.save(input.epic, epic.sendBack(to, input.reason, time))
-    this.inbox.append({
+    inbox.append({
       kind: 'sent-back',
-      number: this.inbox.lastNumber() + 1,
+      number: inbox.lastNumber() + 1,
       time,
       epic: input.epic,
       from: stage.step.name(),

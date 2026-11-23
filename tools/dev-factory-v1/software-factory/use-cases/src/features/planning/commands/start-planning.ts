@@ -1,4 +1,5 @@
-import type { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
+import { AgentInbox } from '@dev-factory-v1/domain-model/domain/planning/inbox/agent-inbox'
+import type { InboxLog } from '@dev-factory-v1/domain-model/domain/ports/inbox-log'
 import { Epic } from '@dev-factory-v1/domain-model/domain/planning/epic'
 import { PlanningStep } from '@dev-factory-v1/domain-model/domain/planning/planning-step'
 import type { EpicRepository } from '../data-access/epic/epic-repository'
@@ -26,12 +27,13 @@ export class StartPlanning {
   constructor(
     private readonly ideas: IdeaRepository,
     private readonly epics: EpicRepository,
-    private readonly inbox: AgentInbox,
+    private readonly log: InboxLog,
     private readonly now: () => string,
   ) {}
 
   execute(input: StartPlanningInput): StartPlanningResult {
     const time = this.now()
+    const inbox = new AgentInbox(this.log)
     const idea = this.ideas.load(input.idea)
     const step = PlanningStep.from('problem-definition')
     this.ideas.save(input.idea, idea.startPlanning(input.idea))
@@ -45,9 +47,9 @@ export class StartPlanning {
         history: [{ event: 'started', step: step.name(), time, reason: null }],
       }),
     )
-    this.inbox.append({
+    inbox.append({
       kind: 'planning-started',
-      number: this.inbox.lastNumber() + 1,
+      number: inbox.lastNumber() + 1,
       time,
       epic: input.idea,
     })
