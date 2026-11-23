@@ -8,6 +8,8 @@ const fields = {
     selectedText: 'every repository',
     prefix: 'Merge the graphs from ',
     suffix: ' into one view',
+    firstLine: 14,
+    occurrence: 0,
   },
   messages: [
     {

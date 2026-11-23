@@ -1,3 +1,5 @@
+import type { ThreadAnchor } from './anchor/find-anchor'
+
 /** @riviere-role domain-error */
 export class InvalidThread extends Error {
   constructor(message: string) {
@@ -40,11 +42,7 @@ export type ThreadOutcome = {
 type ThreadFields = {
   readonly id: string
   readonly document: string
-  readonly anchor: {
-    readonly selectedText: string
-    readonly prefix: string
-    readonly suffix: string
-  }
+  readonly anchor: ThreadAnchor
   readonly messages: readonly ThreadMessageFields[]
   readonly outcome: ThreadOutcomeFields | null
 }

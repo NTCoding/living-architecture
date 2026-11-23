@@ -87,7 +87,7 @@ describe('ThreadRepository', () => {
       Thread.from({
         id: 'c-1',
         document: 'PRD.md',
-        anchor: { selectedText: 'one graph', prefix: '', suffix: '' },
+        anchor: { selectedText: 'one graph', prefix: '', suffix: '', firstLine: 1, occurrence: 0 },
         messages: [{ author: 'nick', time: '2026-11-26T10:02:11Z', text: 'Which graph?' }],
         outcome: null,
       }),
