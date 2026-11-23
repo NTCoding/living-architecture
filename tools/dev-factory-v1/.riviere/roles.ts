@@ -173,6 +173,10 @@ export const allRoles = [
         userHasApproved: true,
       },
       {
+        name: 'Decision',
+        userHasApproved: true,
+      },
+      {
         name: 'Idea',
         userHasApproved: true,
       },
