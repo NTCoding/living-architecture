@@ -5,4 +5,5 @@ repo="$(cd "$(dirname "$0")" && pwd)"
 factory="$repo/tools/dev-factory-v1"
 cd "$factory"
 pnpm install --frozen-lockfile
+pnpm --dir ui build
 FACTORY_TARGET_REPO="$repo" exec pnpm start-factory
