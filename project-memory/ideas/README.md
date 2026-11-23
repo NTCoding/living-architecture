@@ -17,20 +17,20 @@ Do not create an idea folder for something that is explicitly not needed unless 
 
 Use one of these values unless the user approves another value:
 
-- Captured
-- Exploring
-- Candidate PRD
-- Prioritised
-- Planned
-- Not Now
+- captured
+- exploring
+- candidate-prd
+- prioritised
+- planned
+- not-now
 
 ## Need levels
 
 Use one of these values:
 
-- Probably needed
-- Definitely needed
-- Uncertain
+- probably-needed
+- definitely-needed
+- uncertain
 
 ## `idea.md` template
 

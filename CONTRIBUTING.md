@@ -71,9 +71,9 @@ pnpm verify
 
 If your harness supports agents, you can run these against your changes:
 
-- [`architecture-review`](tools/dev-workflow-v2/agents/architecture-review.md)
-- [`code-review`](tools/dev-workflow-v2/agents/code-review.md)
-- [`bug-scanner`](tools/dev-workflow-v2/agents/bug-scanner.md)
+- [`architecture-review`](.claude/agents/architecture-review.md)
+- [`code-review`](.claude/agents/code-review.md)
+- [`bug-scanner`](.claude/agents/bug-scanner.md)
 
 ## Pull Request Process
 

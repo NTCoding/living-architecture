@@ -16,11 +16,11 @@ packages/   - Subdomains split into domain-model, use-cases, and published-langu
 tools/      - Standalone app packages; their subdomain packages live under packages/
 ```
 
+`tools/dev-factory-v1` is the software factory and an exception to this layout. It is its own pnpm workspace with its own lockfile, outside both the repo's pnpm workspace and the Nx graph, so it can move into its own repo later. Run `pnpm verify` in that folder for its checks; the repo's `pnpm verify` does not run them.
+
 Current packages:
 - `packages/living-documentation/domain-model` - Living documentation architecture model and comparison
 - `packages/living-documentation/use-cases` - Architecture summary and pull request architecture diff queries
-- `packages/dev-workflow-v2/domain-model` - Maintainer workflow domain model
-- `packages/dev-workflow-v2/use-cases` - Maintainer workflow commands and adapters
 - `packages/riviere-builder/domain-model` - Browser-safe graph construction and querying domain model
 - `packages/riviere-builder/use-cases` - Commands, queries and data access for graph building and querying
 - `packages/riviere-schema/published-language` - Rivière graph contract
@@ -37,7 +37,7 @@ Apps:
 - `apps/docs` - Living architecture documentation website
 
 Tools:
-- `tools/dev-workflow-v2` - Maintainer workflow app and plugin entrypoints
+- `tools/dev-factory-v1` - Software factory server, UI, planning and implementation workflows (separate workspace)
 - `tools/living-documentation` - CLI for generating architecture summaries and pull request architecture diffs
 
 Key documents:
@@ -107,7 +107,7 @@ After generating a new project:
 
 There are two contribution workflows. Team membership determines the workflow, not the agent provider or harness being used.
 
-- **Maintainer workflow:** when working as part of the maintainer team, follow `docs/workflow/task-workflow.md` from start to finish. Maintainers can create GitHub issues and use `dev-workflow-v2` to run the full planning and implementation lifecycle.
+- **Maintainer workflow:** when working as part of the maintainer team, follow `docs/workflow/task-workflow.md` from start to finish. Start the factory with `./start-factory-ui`, plan epics through its UI and the `/factory` skill, create story issues, and carry implementation and review through factory runs. The planning session uses `pnpm factory <command>`.
 - **External contribution workflow:** anyone not explicitly working as part of the maintainer team follows `CONTRIBUTING.md`. This is a lightweight pull-request workflow. Do not create a GitHub issue and do not attempt to use or install the maintainer harness. The pull request description is the specification for the change.
 
 ## Testing
@@ -178,7 +178,7 @@ The CLI (`riviere-cli`) bundles several packages via esbuild. To ensure users al
 ## General Guidelines
 
 - **Process before fix** - When you encounter a problem, improve the process/tooling first, then apply the fix. This ensures the same issue won't recur and benefits future work. Never just fix the symptom without addressing the root cause.
-- **Maintainer workflow operations** - Maintainers use the scripts and `dev-workflow-v2` commands documented in `docs/workflow/task-workflow.md`. Direct `git add`/`git commit` is fine; `git push` and `gh pr` are blocked by maintainer harness hooks. External contributors instead follow `CONTRIBUTING.md` and raise their pull request normally.
+- **Maintainer workflow operations** - Maintainers use `./start-factory-ui`, the `/factory` planning skill and `pnpm factory <command>` as documented in `docs/workflow/task-workflow.md`. The repo's `factory` script passes the repo root to the factory as `FACTORY_TARGET_REPO`. Direct `git add`/`git commit` is fine; `git push` and `gh pr` are blocked by maintainer harness hooks. External contributors instead follow `CONTRIBUTING.md` and raise their pull request normally.
 - **Command failures vs code quality issues**:
   - **Command failures** (script doesn't exist, tool errors, missing dependencies) → STOP and consult with user
   - **Code quality issues** (lint errors, unused dependencies, test failures, knip warnings) → fix them directly
