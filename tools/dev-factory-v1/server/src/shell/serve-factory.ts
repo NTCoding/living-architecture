@@ -1,3 +1,4 @@
+import './configure-mastra-runtime'
 import { execFile } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { promisify } from 'node:util'

@@ -27,7 +27,6 @@ import { replyToReviewCommentWithGithub } from '@dev-factory-v1/use-cases/adapte
 import { publishReviewFindingWithGithub } from '@dev-factory-v1/use-cases/adapters/github/publish-review-finding'
 import { readIssueWithGithub } from '@dev-factory-v1/use-cases/adapters/github/read-issue'
 import { readPullRequestDiffWithGithub } from '@dev-factory-v1/use-cases/adapters/github/read-pull-request-diff'
-import { waitForIssueReplyWithGithub } from '@dev-factory-v1/use-cases/adapters/github/wait-for-issue-reply'
 import { waitForReviewerWithGithub } from '@dev-factory-v1/use-cases/adapters/github/wait-for-reviewer'
 import { adaptWorkflowToMastra } from '@dev-factory-v1/use-cases/adapters/mastra/adapt-workflow'
 import { workflowRunsWithMastra } from '@dev-factory-v1/use-cases/adapters/mastra/workflow-runs'
@@ -42,6 +41,7 @@ import {
   createMastraStorage,
 } from '../infra/external-clients/mastra/create-mastra'
 import { createAskUserTool } from '../infra/external-clients/mastra/ask-user-tool'
+import { readRepoGuidance } from '../infra/external-clients/fs/read-repo-guidance'
 
 const execFileAsync = promisify(execFile)
 
@@ -175,6 +175,7 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
     installDependencies: async (request) => {
       await new InstallDependencies(installDependenciesWithPnpm({ runCommand })).execute(request)
     },
+    readRepoGuidance,
     generate: generation,
     checkWorkCommitted: (request) =>
       new CheckWorkCommitted(
@@ -189,12 +190,6 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
       new CommentOnIssue(commentOnIssueWithGithub({ runCommand, workingDirectory })).execute(
         request,
       ),
-    waitForIssueReply: waitForIssueReplyWithGithub({
-      runCommand,
-      workingDirectory,
-      wait: () => new Promise((resolve) => setTimeout(resolve, 30_000)),
-      attempts: 120,
-    }),
     commentOnPullRequest: async (request) => {
       await new CommentOnPullRequest(
         commentOnPullRequestWithGithub({ runCommand, workingDirectory }),

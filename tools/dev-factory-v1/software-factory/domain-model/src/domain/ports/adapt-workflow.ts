@@ -37,7 +37,6 @@ export type AdaptWorkflow<Built> = (request: {
       readonly data: unknown
       readonly resumeData: unknown
       readonly suspend: (payload: unknown) => Promise<unknown>
-      readonly stopEarly: (outcome: unknown) => Promise<unknown>
       readonly workflow: (id: string) => {
         readonly start: (request: {
           readonly runId: string

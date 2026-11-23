@@ -30,7 +30,6 @@ export interface MastraStepBehaviour {
   readonly data: unknown
   readonly resumeData: unknown
   readonly suspend: (payload: unknown) => Promise<unknown>
-  readonly stopEarly: (outcome: unknown) => Promise<unknown>
   readonly workflow: (id: string) => MastraNestedWorkflow
 }
 
@@ -182,12 +181,11 @@ function createMastraStep(declaration: MastraStepDeclaration) {
     ...(declaration.resumeSchema === null ? {} : { resumeSchema: declaration.resumeSchema }),
     ...(declaration.retries === null ? {} : { retries: declaration.retries }),
     scorers: declaration.scorers,
-    execute: async ({ inputData, resumeData, suspend, bail, mastra }) =>
+    execute: async ({ inputData, resumeData, suspend, mastra }) =>
       declaration.run({
         data: inputData,
         resumeData,
         suspend: async (payload) => await suspend(payload),
-        stopEarly: async (outcome) => bail(outcome),
         workflow: (id) => ({
           start: async (request) => {
             const run = await mastra.getWorkflow(id).createRun({ runId: request.runId })

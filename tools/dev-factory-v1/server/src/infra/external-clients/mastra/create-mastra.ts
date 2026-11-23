@@ -1,4 +1,5 @@
 import { Mastra } from '@mastra/core'
+import type { OpenAICompatibleConfig } from '@mastra/core/llm'
 import type { Agent } from '@mastra/core/agent'
 import type { MastraScorers } from '@mastra/core/evals'
 import type { Workflow } from '@mastra/core/workflows'
@@ -6,19 +7,57 @@ import { LibSQLStore } from '@mastra/libsql'
 import { Memory } from '@mastra/memory'
 import { MastraStorageExporter, Observability } from '@mastra/observability'
 import { JsonlLogExporter } from './jsonl-log-exporter'
+import { serializableModelConfigOf } from './create-agent'
+
+const OBSERVATIONAL_MEMORY_SESSION = 'factory-observational-memory'
 
 /** @riviere-role external-client-model */
 export interface MastraStorage {
   readonly storage: LibSQLStore
   readonly memory: Memory
+  readonly setObservationalMemoryModel: (model: string) => void
 }
+
+/**
+ * @riviere-role external-client-service
+ */
+const observationalMemoryModel: { current: string | undefined } = { current: undefined }
 
 /**
  * @riviere-role external-client-service
  */
 export function createMastraStorage(url: string): MastraStorage {
   const storage = new LibSQLStore({ id: 'factory', url })
-  return { storage, memory: new Memory({ storage }) }
+  return {
+    storage,
+    memory: new Memory({
+      storage,
+      options: {
+        observationalMemory: {
+          model: observationalMemoryModelOf,
+        },
+      },
+    }),
+    setObservationalMemoryModel: (model: string) => {
+      observationalMemoryModel.current = model
+    },
+  }
+}
+
+/**
+ * @riviere-role external-client-service
+ */
+export function observationalMemoryModelOf(): OpenAICompatibleConfig {
+  if (observationalMemoryModel.current === undefined) throw new MissingObservationalMemoryModel()
+  return serializableModelConfigOf(observationalMemoryModel.current, OBSERVATIONAL_MEMORY_SESSION)
+}
+
+/** @riviere-role external-client-error */
+export class MissingObservationalMemoryModel extends Error {
+  constructor() {
+    super('No observational memory model was set. Set it from the run model before generating.')
+    this.name = 'MissingObservationalMemoryModel'
+  }
 }
 
 /**

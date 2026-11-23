@@ -11,6 +11,7 @@ export function createWorkspace(
     filesystem: new LocalFilesystem({ basePath: worktreePath, readOnly: options.readOnly }),
     sandbox: new LocalSandbox({ workingDirectory: worktreePath }),
     tools: {
+      [WORKSPACE_TOOLS.FILESYSTEM.READ_FILE]: { maxOutputTokens: 16_000 },
       hooks: {
         beforeToolCall: guardWorkspaceCommand,
       },
