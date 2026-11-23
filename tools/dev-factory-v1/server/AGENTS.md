@@ -43,13 +43,8 @@ A session is one working copy of this repository with its own factory state in
 
 ## Observability tips
 
-Start the server that serves the same Mastra instance with:
-
-```bash
-pnpm mastra-ui
-```
-
-Then open `http://localhost:4111` for the Mastra UI (Studio).
+`./start-factory-ui` serves Studio beside the factory server, so the traces of every run are on
+`http://localhost:4111` while the factory is running.
 
 To prove tracing is on, run any factory command and then query the spans in the database:
 
