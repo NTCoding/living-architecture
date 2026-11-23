@@ -45,6 +45,7 @@ export async function runFactory(): Promise<void> {
     log: (text) => {
       process.stdout.write(`${text}\n`)
     },
+    workflowRuns: factory.workflowRuns,
     runCommand: (request: {
       readonly workingDirectory: string
       readonly arguments: readonly string[]

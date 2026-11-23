@@ -1,4 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import { PlanningDocumentLoader } from '@dev-factory-v1/use-cases/data-access/document/planning-document-loader'
+import { ThreadIdsLoader } from '@dev-factory-v1/use-cases/data-access/thread/thread-ids-loader'
+import { ThreadRepository } from '@dev-factory-v1/use-cases/data-access/thread/thread-repository'
+import { ShowPlanningDocument } from '@dev-factory-v1/use-cases/planning-queries/planning-document'
 
 class MissingRouteParameter extends Error {
   constructor(name: string) {
@@ -6,18 +10,14 @@ class MissingRouteParameter extends Error {
     this.name = 'MissingRouteParameter'
   }
 }
-import { PlanningDocumentLoader } from '@dev-factory-v1/use-cases/data-access/document/planning-document-loader'
-import { ThreadIdsLoader } from '@dev-factory-v1/use-cases/data-access/thread/thread-ids-loader'
-import { ThreadRepository } from '@dev-factory-v1/use-cases/data-access/thread/thread-repository'
-import { ShowPlanningDocument } from '@dev-factory-v1/use-cases/planning-queries/planning-document'
 
 /**
  * @riviere-role http-entrypoint
  *
  * `GET /api/epics/:epic/documents/:document` returns a planning document with the questions it asks
- * and the comments on it.
+ * and the comments on it. The HTML is built here, so the browser only inserts it.
  */
-export function documentEndpoint(targetRepo: string) {
+export function documentEndpoint(targetRepo: string, render: (markdown: string) => string) {
   return (
     _request: IncomingMessage,
     response: ServerResponse,
@@ -27,9 +27,12 @@ export function documentEndpoint(targetRepo: string) {
       new PlanningDocumentLoader(targetRepo),
       new ThreadIdsLoader(targetRepo),
       new ThreadRepository(targetRepo),
-    ).execute({ epic: requiredParam(params, 'epic'), document: requiredParam(params, 'document') })
+    ).execute({
+      epic: requiredParam(params, 'epic'),
+      document: requiredParam(params, 'document'),
+    })
     response.writeHead(200, { 'content-type': 'application/json; charset=utf-8' })
-    response.end(JSON.stringify(view))
+    response.end(JSON.stringify({ ...view, html: render(view.markdown) }))
   }
 }
 

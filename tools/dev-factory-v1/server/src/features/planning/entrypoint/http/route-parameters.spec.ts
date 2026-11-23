@@ -46,7 +46,10 @@ describe('a route that is registered without its parameter', () => {
 
   it('says which epic and which document it needed', async () => {
     const targetRepo = mkdtempSync(join(tmpdir(), 'factory-param-'))
-    const { port, logged } = await serverWith('/api/documents', documentEndpoint(targetRepo))
+    const { port, logged } = await serverWith(
+      '/api/documents',
+      documentEndpoint(targetRepo, (markdown) => markdown),
+    )
 
     const response = await fetch(`http://127.0.0.1:${port}/api/documents`)
 

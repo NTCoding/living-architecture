@@ -92,6 +92,7 @@ async function startedFactory(): Promise<{ factory: Started; targetRepo: string 
     port: 0,
     targetRepo,
     uiFolder,
+    workflowRuns: emptyWorkflowRuns(),
     log: () => undefined,
     runCommand: () =>
       Promise.resolve({ exitCode: 0, stdout: '[{"number":901,"state":"OPEN"}]', stderr: '' }),
@@ -191,6 +192,7 @@ describe('startFactory', () => {
     const document = await jsonOf(factory, '/api/epics/cross-repo-linking/documents/ARCH.md')
 
     expect(document).toMatchObject({ decisions: [{ id: 'd-2' }], threads: [{ id: 'c-1' }] })
+    expect(JSON.stringify(document)).toContain('data-decision=\\"d-2\\"')
   })
 
   it('opens the change stream', async () => {
@@ -394,6 +396,21 @@ describe('startFactory', () => {
     expect(response.status).toBe(500)
   })
 
+  it('returns the runs of the repo', async () => {
+    const { factory } = await startedFactory()
+
+    expect(await jsonOf(factory, '/api/runs?status=success')).toStrictEqual({ runs: [] })
+    expect(await jsonOf(factory, '/api/runs')).toStrictEqual({ runs: [] })
+  })
+
+  it('returns one run', async () => {
+    const { factory } = await startedFactory()
+
+    const run = await jsonOf(factory, '/api/runs/run-1')
+
+    expect(run).toMatchObject({ found: false, runId: 'run-1' })
+  })
+
   it('returns the page that the UI boots from', async () => {
     const { factory } = await startedFactory()
 
@@ -427,6 +444,7 @@ describe('startFactory', () => {
       targetRepo,
       log: () => undefined,
       uiFolder: join(targetRepo, 'no-ui'),
+      workflowRuns: emptyWorkflowRuns(),
       runCommand: () => Promise.resolve({ exitCode: 0, stdout: '[]', stderr: '' }),
     })
     started.push(factory)
@@ -442,3 +460,19 @@ describe('startFactory', () => {
     expect(response.status).toBe(404)
   })
 })
+
+class NeverCalled extends Error {
+  constructor() {
+    super('The test never starts or resumes a run.')
+    this.name = 'NeverCalled'
+  }
+}
+
+function emptyWorkflowRuns() {
+  return {
+    list: () => Promise.resolve([]),
+    read: () => Promise.resolve(undefined),
+    start: () => Promise.reject(new NeverCalled()),
+    resume: () => Promise.reject(new NeverCalled()),
+  }
+}

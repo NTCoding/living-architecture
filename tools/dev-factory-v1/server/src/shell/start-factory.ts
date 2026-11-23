@@ -4,6 +4,7 @@ import { assetEndpoint } from '../features/planning/entrypoint/http/asset'
 import { pageEndpoint } from '../features/planning/entrypoint/http/page'
 import { FileChangeStreams } from '../infra/http/presentation/change-stream'
 import { staticFileOf } from '../infra/http/presentation/static-files'
+import { renderPlanningDocument } from '../infra/external-clients/markdown/render-planning-document'
 import { changesEndpoint } from '../infra/http/presentation/changes-endpoint'
 import { serveFactory } from '../infra/http/presentation/serve'
 import { agentClosesItemEndpoint } from '../features/planning/entrypoint/http/agent-closes-item'
@@ -16,7 +17,10 @@ import { epicEndpoint } from '../features/planning/entrypoint/http/epic'
 import { overviewBoardEndpoint } from '../features/planning/entrypoint/http/overview-board'
 import { planningBoardEndpoint } from '../features/planning/entrypoint/http/planning-board'
 import { readJsonBody } from '../features/planning/entrypoint/http/read-body'
+import { ListRuns } from '@dev-factory-v1/use-cases/queries/list-runs'
+import { ShowRun } from '@dev-factory-v1/use-cases/queries/show-run'
 import { recordStoriesEndpoint } from '../features/planning/entrypoint/http/record-stories'
+import { runEndpoint, runsEndpoint } from '../features/planning/entrypoint/http/runs'
 import { replyToThreadEndpoint } from '../features/planning/entrypoint/http/reply-to-thread'
 import { startPlanningEndpoint } from '../features/planning/entrypoint/http/start-planning'
 import { serverEndpoint } from '../features/planning/entrypoint/http/server'
@@ -27,6 +31,7 @@ type StartFactoryOptions = {
   readonly targetRepo: string
   readonly log: (text: string) => void
   readonly uiFolder: string
+  readonly workflowRuns: ConstructorParameters<typeof ListRuns>[0]
   readonly runCommand: (request: {
     readonly workingDirectory: string
     readonly arguments: readonly string[]
@@ -82,7 +87,17 @@ export async function startFactory(options: StartFactoryOptions) {
       {
         method: 'GET',
         path: '/api/epics/:epic/documents/:document',
-        handle: documentEndpoint(options.targetRepo),
+        handle: documentEndpoint(options.targetRepo, renderPlanningDocument),
+      },
+      {
+        method: 'GET',
+        path: '/api/runs',
+        handle: runsEndpoint(new ListRuns(options.workflowRuns)),
+      },
+      {
+        method: 'GET',
+        path: '/api/runs/:run',
+        handle: runEndpoint(new ShowRun(options.workflowRuns)),
       },
       {
         method: 'POST',
