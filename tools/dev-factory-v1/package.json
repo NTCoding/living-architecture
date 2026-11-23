@@ -13,7 +13,8 @@
     "typecheck": "tsc -b tsconfig.json",
     "test": "pnpm -r --if-present test",
     "knip": "knip",
-    "verify": "pnpm role-check && pnpm lint && pnpm typecheck && pnpm test && pnpm knip"
+    "verify": "pnpm role-check && pnpm lint && pnpm typecheck && pnpm test && pnpm knip",
+    "start-factory": "NODE_OPTIONS=--conditions=@dev-factory-v1/source tsx server/src/shell/serve-factory.ts"
   },
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",

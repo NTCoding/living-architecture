@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Starts the factory: its server, the pages it serves and Mastra Studio beside it.
+set -euo pipefail
+repo="$(cd "$(dirname "$0")" && pwd)"
+factory="$repo/tools/dev-factory-v1"
+cd "$factory"
+pnpm install --frozen-lockfile
+FACTORY_TARGET_REPO="$repo" exec pnpm start-factory
