@@ -9,6 +9,7 @@ import type { RunView } from '@dev-factory-v1/use-cases/queries/show-run'
 import { ParseReviewers } from '@dev-factory-v1/use-cases/commands/parse-reviewers'
 import { ResumeRun } from '@dev-factory-v1/use-cases/commands/resume-run'
 import { StartRun } from '@dev-factory-v1/use-cases/commands/start-run'
+import { addAgentCommands } from './agent-commands'
 import { buildFactory } from './build-factory'
 
 type Factory = Awaited<ReturnType<typeof buildFactory>>
@@ -62,6 +63,13 @@ function createCommandLine(factory: Factory): Command {
   const startRun = new StartRun(factory.workflowRuns)
   const resumeRun = new ResumeRun(factory.workflowRuns)
   const listRuns = new ListRuns(factory.workflowRuns)
+  addAgentCommands(program, {
+    targetRepo: factory.workingDirectory,
+    serverUrl: process.env['FACTORY_SERVER_URL'] ?? 'http://127.0.0.1:4800',
+    write: (text) => {
+      process.stdout.write(`${text}\n`)
+    },
+  })
 
   program
     .command('start-implementation')

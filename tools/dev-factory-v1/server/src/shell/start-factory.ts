@@ -3,6 +3,8 @@ import { readIssueStatesWithGithub } from '@dev-factory-v1/use-cases/planning-ad
 import { FileChangeStreams } from '../infra/http/presentation/change-stream'
 import { changesEndpoint } from '../infra/http/presentation/changes-endpoint'
 import { serveFactory } from '../infra/http/presentation/serve'
+import { agentClosesItemEndpoint } from '../features/planning/entrypoint/http/agent-closes-item'
+import { agentRepliesEndpoint } from '../features/planning/entrypoint/http/agent-replies'
 import { answerDecisionEndpoint } from '../features/planning/entrypoint/http/answer-decision'
 import { captureIdeaEndpoint } from '../features/planning/entrypoint/http/capture-idea'
 import { commentOnDocumentEndpoint } from '../features/planning/entrypoint/http/comment-on-document'
@@ -11,6 +13,7 @@ import { epicEndpoint } from '../features/planning/entrypoint/http/epic'
 import { overviewBoardEndpoint } from '../features/planning/entrypoint/http/overview-board'
 import { planningBoardEndpoint } from '../features/planning/entrypoint/http/planning-board'
 import { readJsonBody } from '../features/planning/entrypoint/http/read-body'
+import { recordStoriesEndpoint } from '../features/planning/entrypoint/http/record-stories'
 import { replyToThreadEndpoint } from '../features/planning/entrypoint/http/reply-to-thread'
 import { startPlanningEndpoint } from '../features/planning/entrypoint/http/start-planning'
 import { serverEndpoint } from '../features/planning/entrypoint/http/server'
@@ -95,6 +98,21 @@ export async function startFactory(options: StartFactoryOptions) {
         method: 'POST',
         path: '/api/epics/:epic/decisions/:decision',
         handle: answerDecisionEndpoint(options.targetRepo, readJsonBody),
+      },
+      {
+        method: 'POST',
+        path: '/api/agent/epics/:epic/threads/:thread/replies',
+        handle: agentRepliesEndpoint(options.targetRepo, readJsonBody),
+      },
+      {
+        method: 'POST',
+        path: '/api/agent/epics/:epic/items/:item/done',
+        handle: agentClosesItemEndpoint(options.targetRepo),
+      },
+      {
+        method: 'POST',
+        path: '/api/agent/epics/:epic/stories',
+        handle: recordStoriesEndpoint(options.targetRepo, readJsonBody),
       },
     ],
   })

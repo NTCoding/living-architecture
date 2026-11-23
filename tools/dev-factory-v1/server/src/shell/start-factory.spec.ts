@@ -267,18 +267,24 @@ describe('startFactory', () => {
   it('says 500 when the body is missing a field', async () => {
     const { factory } = await startedFactory()
 
-    expect((await postJson(factory, '/api/ideas', { slug: 'one' })).status).toBe(500)
-    expect(
-      (await postJson(factory, '/api/epics/cross-repo-linking/threads', { document: 'PRD.md' }))
-        .status,
-    ).toBe(500)
-    expect(
-      (await postJson(factory, '/api/epics/cross-repo-linking/threads/c-1/replies', {})).status,
-    ).toBe(500)
-    expect(
-      (await postJson(factory, '/api/epics/cross-repo-linking/decisions/d-2', { choice: 'reply' }))
-        .status,
-    ).toBe(500)
+    const statuses = await Promise.all([
+      postJson(factory, '/api/ideas', { slug: 'one' }),
+      postJson(factory, '/api/epics/cross-repo-linking/threads', { document: 'PRD.md' }),
+      postJson(factory, '/api/epics/cross-repo-linking/threads/c-1/replies', {}),
+      postJson(factory, '/api/epics/cross-repo-linking/decisions/d-2', { choice: 'reply' }),
+      postJson(factory, '/api/agent/epics/cross-repo-linking/threads/c-1/replies', {}),
+      postJson(factory, '/api/agent/epics/cross-repo-linking/stories', { features: [1] }),
+      postJson(factory, '/api/agent/epics/cross-repo-linking/stories', {
+        features: [{ id: 'M1' }],
+      }),
+      postJson(factory, '/api/agent/epics/cross-repo-linking/stories', {
+        features: [{ id: 'M1', title: 'Builder API' }],
+      }),
+    ])
+
+    expect(statuses.map((response) => response.status)).toStrictEqual([
+      500, 500, 500, 500, 500, 500, 500, 500,
+    ])
   })
 
   it('records your own words when you write them', async () => {
@@ -327,6 +333,59 @@ describe('startFactory', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ summary: 'x'.repeat(1_100_000) }),
     })
+
+    expect(response.status).toBe(500)
+  })
+
+  it('adds the reply of the planning agent', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await postJson(
+      factory,
+      '/api/agent/epics/cross-repo-linking/threads/c-1/replies',
+      { text: 'It does. I added a line about them.' },
+    )
+
+    expect(response.status).toBe(201)
+    expect(await response.json()).toStrictEqual({ thread: 'c-1', waitsFor: 'nick' })
+  })
+
+  it('closes the item the planning agent has dealt with', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await postJson(
+      factory,
+      '/api/agent/epics/cross-repo-linking/items/c-1/done',
+      {},
+    )
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toStrictEqual({ item: 'c-1', closedBy: 'agent' })
+  })
+
+  it('records the stories of an epic that is creating them', async () => {
+    const { factory, targetRepo } = await startedFactory()
+    writeFileSync(
+      join(targetRepo, 'docs', 'project', 'PRD', 'cross-repo-linking', 'epic.yml'),
+      'title: Cross-repo linking\nstage: creating-stories\nfeatures: []\nhistory: []\n',
+    )
+
+    const response = await postJson(factory, '/api/agent/epics/cross-repo-linking/stories', {
+      features: [{ id: 'M1', title: 'Builder API', stories: [901, 902] }],
+    })
+
+    expect(response.status).toBe(201)
+    expect(await response.json()).toStrictEqual({
+      epic: 'cross-repo-linking',
+      stage: 'in-progress',
+      stories: [901, 902],
+    })
+  })
+
+  it('says 500 when a story has no features', async () => {
+    const { factory } = await startedFactory()
+
+    const response = await postJson(factory, '/api/agent/epics/cross-repo-linking/stories', {})
 
     expect(response.status).toBe(500)
   })
