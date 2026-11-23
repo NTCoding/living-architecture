@@ -48,7 +48,9 @@ describe('AgentInbox', () => {
 
     inbox.append(event)
 
-    expect(log.lines).toStrictEqual([JSON.stringify(event)])
+    expect(log.lines).toStrictEqual([
+      '{"n":43,"kind":"step-approved","time":"2026-11-26T10:09:30Z","epic":"phase-14","step":"architecture"}',
+    ])
   })
 
   it('reads the events after the number it is given', () => {

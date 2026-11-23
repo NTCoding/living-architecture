@@ -21,7 +21,7 @@ export class AgentInbox {
   constructor(private readonly log: InboxLog) {}
 
   append(event: InboxEvent): void {
-    this.log.appendLine(JSON.stringify(event))
+    this.log.appendLine(JSON.stringify(lineOf(event)))
   }
 
   eventsSince(number: number): readonly InboxEvent[] {
@@ -44,6 +44,11 @@ export class AgentInbox {
   rememberPrinted(number: number): void {
     this.log.rememberPrinted(number)
   }
+}
+
+function lineOf(event: InboxEvent): Record<string, unknown> {
+  const { number, ...rest } = event
+  return { n: number, ...rest }
 }
 
 function parseLine(line: string): InboxEvent {
