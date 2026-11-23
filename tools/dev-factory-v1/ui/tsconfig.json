@@ -2,6 +2,8 @@
   "compilerOptions": {
     "composite": true,
     "emitDeclarationOnly": true,
+    "outDir": "dist/types",
+    "tsBuildInfoFile": "dist/types/tsconfig.tsbuildinfo",
     "isolatedModules": true,
     "jsx": "react-jsx",
     "lib": [
