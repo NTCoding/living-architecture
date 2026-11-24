@@ -10,6 +10,31 @@ describe('readRunWaiting', () => {
     expect(readRunWaiting({ 'open-pull-request': { status: 'success' } })).toBeNull()
   })
 
+  it('reads the question the planner asks before implementation', () => {
+    const waiting = readRunWaiting({
+      'wait-for-plan-clarification': [
+        { status: 'suspended', suspendPayload: { question: 'Bytes or lines?' } },
+      ],
+    })
+
+    expect(waiting).toStrictEqual({ kind: 'plan-question', question: 'Bytes or lines?' })
+  })
+
+  it('reports a plan clarification even when the planner did not write its question', () => {
+    expect(
+      readRunWaiting({
+        'wait-for-plan-clarification': [
+          { status: 'suspended', suspendPayload: { question: null } },
+        ],
+      }),
+    ).toStrictEqual({ kind: 'plan-question', question: null })
+    expect(
+      readRunWaiting({
+        'wait-for-plan-clarification': [{ status: 'suspended', suspendPayload: { question: '' } }],
+      }),
+    ).toStrictEqual({ kind: 'plan-question', question: '' })
+  })
+
   it('reads the question the implementer asks', () => {
     const waiting = readRunWaiting({
       implement: [{ status: 'suspended', suspendPayload: { question: 'Which database?' } }],
@@ -85,6 +110,7 @@ describe('readRunWaiting', () => {
 
   it('returns null when a suspended step carries no payload', () => {
     expect(readRunWaiting({ implement: [{ status: 'suspended' }] })).toBeNull()
+    expect(readRunWaiting({ 'wait-for-plan-clarification': [{ status: 'suspended' }] })).toBeNull()
     expect(readRunWaiting({ 'address-feedback': [{ status: 'suspended' }] })).toBeNull()
   })
 

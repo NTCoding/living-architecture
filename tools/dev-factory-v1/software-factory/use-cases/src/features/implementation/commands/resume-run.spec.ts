@@ -26,6 +26,46 @@ describe('ResumeRun', () => {
     expect(resumed).toStrictEqual([{ runId: 'issue-548', answer: 'Postgres' }])
   })
 
+  it('resumes a plan clarification with the answer', async () => {
+    const resumed: { waiting: unknown; answer: string | boolean }[] = []
+    const command = new ResumeRun({
+      ...fakeWorkflowRuns(),
+      read: async () => ({
+        runId: 'issue-550',
+        status: 'suspended',
+        createdAt: 2500,
+        result: undefined,
+        error: undefined,
+        steps: {
+          'wait-for-plan-clarification': [
+            { status: 'suspended', suspendPayload: { question: 'Bytes or lines?' } },
+          ],
+        },
+      }),
+      resume: async (runId, waiting, answer) => {
+        resumed.push({ waiting, answer })
+        return {
+          runId,
+          status: 'success',
+          createdAt: 4000,
+          steps: {},
+          result: undefined,
+          error: undefined,
+        }
+      },
+    })
+
+    const result = await command.execute({ runId: 'issue-550', answer: 'Bytes, 64 KiB.' })
+
+    expect(result).toStrictEqual({ runId: 'issue-550', status: 'success' })
+    expect(resumed).toStrictEqual([
+      {
+        waiting: { kind: 'plan-question', question: 'Bytes or lines?' },
+        answer: 'Bytes, 64 KiB.',
+      },
+    ])
+  })
+
   it('does not resume a run that is not waiting', async () => {
     const command = new ResumeRun(fakeWorkflowRuns())
 

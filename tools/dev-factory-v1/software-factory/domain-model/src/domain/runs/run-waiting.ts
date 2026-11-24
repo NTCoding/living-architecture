@@ -1,14 +1,15 @@
 /**
  * @riviere-role domain-event
  *
- * The 2 things a run can wait for.
+ * The 3 things a run can wait for.
  *
  * A run suspends in one of its steps when it needs a person. The step name says which
- * question to ask. `implement` stops when the implementer cannot finish without an
- * answer. `address-feedback` stops when the implementer could not answer every review
- * finding.
+ * question to ask. `wait-for-plan-clarification` stops when the planner needs a decision.
+ * `implement` stops when the implementer cannot finish without an answer. `address-feedback`
+ * stops when the implementer could not answer every review finding.
  */
 export type RunWaiting =
+  | { readonly kind: 'plan-question'; readonly question: string | null }
   | { readonly kind: 'implementer-question'; readonly question: string }
   | {
       readonly kind: 'feedback-question'
@@ -26,6 +27,9 @@ export type RunWaiting =
 export function readRunWaiting(steps: unknown): RunWaiting | null {
   const suspended = suspendedStepOf(steps)
   if (suspended === null) return null
+  if (suspended.step === 'wait-for-plan-clarification') {
+    return planQuestionOf(suspended.payload)
+  }
   if (suspended.step === 'implement') return implementerQuestionOf(suspended.payload)
   if (suspended.step === 'address-feedback') return feedbackQuestionOf(suspended.payload)
   return null
@@ -44,6 +48,12 @@ function suspendedStepOf(steps: unknown): SuspendedStep | null {
     return { step, payload: entry['suspendPayload'] }
   }
   return null
+}
+
+function planQuestionOf(payload: unknown): RunWaiting | null {
+  if (!isRecord(payload)) return null
+  const question = payload['question']
+  return { kind: 'plan-question', question: typeof question === 'string' ? question : null }
 }
 
 function implementerQuestionOf(payload: unknown): RunWaiting | null {

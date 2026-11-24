@@ -5,6 +5,7 @@ import type { WorkflowRuns } from '@dev-factory-v1/domain-model/domain/ports/wor
 export interface StartRunInput {
   readonly issueNumber: number
   readonly model: string
+  readonly observerModel: string
   readonly thinking: string
   readonly reviewers: readonly string[]
   readonly worktreesDirectory: string
@@ -30,6 +31,7 @@ export class StartRun {
       issueNumber: input.issueNumber,
       attempt,
       model: input.model,
+      observerModel: input.observerModel,
       thinking: input.thinking,
       reviewers: input.reviewers,
       worktreesDirectory: input.worktreesDirectory,

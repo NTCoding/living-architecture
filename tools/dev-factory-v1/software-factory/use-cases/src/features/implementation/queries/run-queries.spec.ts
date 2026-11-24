@@ -66,6 +66,28 @@ describe('ShowRun', () => {
     })
   })
 
+  it('shows the plan question a suspended run waits on', async () => {
+    const query = new ShowRun({
+      ...fakeWorkflowRuns(),
+      read: async () => ({
+        runId: 'issue-550',
+        status: 'suspended',
+        createdAt: 2500,
+        result: undefined,
+        error: undefined,
+        steps: {
+          'wait-for-plan-clarification': [
+            { status: 'suspended', suspendPayload: { question: 'Bytes or lines?' } },
+          ],
+        },
+      }),
+    })
+
+    const result = await query.execute({ runId: 'issue-550' })
+
+    expect(result.waiting).toStrictEqual({ kind: 'plan-question', question: 'Bytes or lines?' })
+  })
+
   it('shows a run that is not waiting for anybody', async () => {
     const query = new ShowRun(fakeWorkflowRuns())
 

@@ -68,6 +68,7 @@ type Factory = {
   readonly workingDirectory: string
   readonly repositoryUrl: string
   readonly workflowRuns: ReturnType<typeof workflowRunsWithMastra>
+  readonly setObservationalMemoryModel: (model: string) => void
 }
 
 async function runProcess(request: CommandRequest): Promise<CommandOutput> {
@@ -149,7 +150,8 @@ function filterOf(status: string | undefined): { readonly status?: RunStatus } {
  * @riviere-role main
  */
 export async function buildFactory(workingDirectory: string): Promise<Factory> {
-  const { storage, memory } = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
+  const mastraStorage = createMastraStorage(`file:${workingDirectory}/.factory/mastra.db`)
+  const { storage, memory } = mastraStorage
   const logFilePath = `${workingDirectory}/.factory/mastra-logs.jsonl`
   const agents = createAgents({
     memory,
@@ -240,6 +242,7 @@ export async function buildFactory(workingDirectory: string): Promise<Factory> {
     reviewCycle: build.reviewCycle,
     workingDirectory,
     repositoryUrl,
+    setObservationalMemoryModel: mastraStorage.setObservationalMemoryModel,
     workflowRuns: workflowRunsWithMastra({
       listRuns: async (status) => {
         const runs = await build.startImplementation.listWorkflowRuns(filterOf(status))

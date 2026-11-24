@@ -1,5 +1,7 @@
 import type { WorkflowRuns } from '@dev-factory-v1/domain-model/domain/ports/workflow-runs'
 
+type RunWaiting = Parameters<WorkflowRuns['resume']>[1]
+
 const RUN_STATUSES = [
   'running',
   'success',
@@ -45,6 +47,7 @@ export function workflowRunsWithMastra(source: {
         issueNumber: input.issueNumber,
         attempt: input.attempt,
         model: input.model,
+        observerModel: input.observerModel,
         thinking: input.thinking,
         reviewers: input.reviewers,
         worktreesDirectory: input.worktreesDirectory,
@@ -69,13 +72,23 @@ function snapshotOf(runId: string, state: unknown) {
   }
 }
 
-function resumeOf(waiting: unknown, answer: string | boolean): Record<string, unknown> {
-  if (!isRecord(waiting) || waiting['kind'] !== 'implementer-question') {
-    return { step: 'address-feedback' }
-  }
-  return {
-    step: 'implement',
-    resumeData: { answer: typeof answer === 'string' ? answer : '', question: waiting['question'] },
+function resumeOf(waiting: RunWaiting, answer: string | boolean): Record<string, unknown> {
+  switch (waiting.kind) {
+    case 'implementer-question':
+      return {
+        step: 'implement',
+        resumeData: {
+          answer: typeof answer === 'string' ? answer : '',
+          question: waiting.question,
+        },
+      }
+    case 'plan-question':
+      return { step: 'wait-for-plan-clarification', resumeData: { answer: String(answer) } }
+    case 'feedback-question':
+      if (typeof answer === 'boolean') {
+        return { step: 'address-feedback', resumeData: { approved: answer } }
+      }
+      return { step: 'address-feedback', resumeData: { answer } }
   }
 }
 

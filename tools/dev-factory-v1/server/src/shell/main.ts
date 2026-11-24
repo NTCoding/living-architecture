@@ -12,15 +12,11 @@ import { ResumeRun } from '@dev-factory-v1/use-cases/commands/resume-run'
 import { StartRun } from '@dev-factory-v1/use-cases/commands/start-run'
 import { addAgentCommands } from './agent-commands'
 import { buildFactory } from './build-factory'
+import { pinObservationalMemoryModels } from './pin-observational-memory-models'
 
 type Factory = Awaited<ReturnType<typeof buildFactory>>
 
-type Waiting = {
-  readonly kind: string
-  readonly question?: string
-  readonly reason?: string
-  readonly unaddressed?: readonly number[]
-}
+type Waiting = NonNullable<RunView['waiting']>
 
 function readTargetRepo(): string | undefined {
   const targetRepo = process.env['FACTORY_TARGET_REPO']
@@ -77,6 +73,7 @@ function createCommandLine(factory: Factory): Command {
     .description('start a run and follow it until it finishes or needs you')
     .argument('<issue>')
     .requiredOption('--model <model>', 'the model every agent in this run uses')
+    .requiredOption('--observer-model <model>', 'the model the observational memory observer uses')
     .requiredOption('--thinking <level>', 'off, low, medium or high')
     .option(
       '--reviewers <names>',
@@ -86,14 +83,22 @@ function createCommandLine(factory: Factory): Command {
     .action(
       async (
         issue: string,
-        options: { model: string; thinking: string; reviewers?: string; input: boolean },
+        options: {
+          model: string
+          observerModel: string
+          thinking: string
+          reviewers?: string
+          input: boolean
+        },
       ) => {
+        factory.setObservationalMemoryModel(options.observerModel)
         const reviewers = new ParseReviewers().execute({
           names: options.reviewers?.split(','),
         }).reviewers
         const started = await startRun.execute({
           issueNumber: issueNumber(issue),
           model: options.model,
+          observerModel: options.observerModel,
           thinking: options.thinking,
           reviewers,
           worktreesDirectory: `${factory.workingDirectory}/.factory/worktrees`,
@@ -123,8 +128,13 @@ function createCommandLine(factory: Factory): Command {
     .option('--no-input', 'never wait for an answer in this terminal')
     .action(async (issue: string, options: { answer?: string; input: boolean }) => {
       const runId = await newestRunIdOf(listRuns, issue)
+      const run = await factory.workflowRuns.read(runId)
+      pinObservationalMemoryModels(run?.steps, factory, issue)
       const view = await showRun.execute({ runId })
-      if (view.waiting?.kind === 'implementer-question' && options.answer === undefined) {
+      if (
+        (view.waiting?.kind === 'implementer-question' || view.waiting?.kind === 'plan-question') &&
+        options.answer === undefined
+      ) {
         throw new MissingAnswer(issue)
       }
       const answer = options.answer ?? true
@@ -189,8 +199,13 @@ function createCommandLine(factory: Factory): Command {
     .option('--no-input', 'never wait for an answer in this terminal')
     .action(async (issue: string, options: { input: boolean }) => {
       const runId = await newestRunIdOf(listRuns, issue)
+      const run = await factory.workflowRuns.read(runId)
+      pinObservationalMemoryModels(run?.steps, factory, issue)
       const view = await showRun.execute({ runId })
-      if (view.waiting?.kind !== 'implementer-question') {
+      if (
+        (view.waiting?.kind !== 'implementer-question' && view.waiting?.kind !== 'plan-question') ||
+        view.waiting.question === null
+      ) {
         process.stdout.write(`The implementer is not waiting for an answer on issue ${issue}.\n`)
         return
       }
@@ -419,9 +434,17 @@ function markOf(status: string): string {
   return '·'
 }
 
+function asksAQuestion(
+  waiting: Waiting,
+): waiting is Extract<Waiting, { readonly question: string | null }> {
+  return waiting.kind === 'implementer-question' || waiting.kind === 'plan-question'
+}
+
 function showWaiting(waiting: Waiting): void {
-  if (waiting.kind === 'implementer-question') {
-    process.stdout.write(`\nThe implementer asks:\n\n  ${waiting.question}\n`)
+  if (asksAQuestion(waiting)) {
+    if (waiting.question !== null) {
+      process.stdout.write(`\nThe implementer asks:\n\n  ${waiting.question}\n`)
+    }
     return
   }
   process.stdout.write(`\nThe implementer could not answer every finding.\n\n${waiting.reason}\n`)
@@ -439,7 +462,7 @@ function reportWaiting(waiting: Waiting | null, context: RunContext): void {
     process.stdout.write(`  Continue it:        ${resume}\n`)
     return
   }
-  if (waiting.kind === 'implementer-question') {
+  if (asksAQuestion(waiting)) {
     process.stdout.write(`  Answer it:          ${resume} --answer "...your answer..."\n`)
     process.stdout.write(`  Talk it through:    pnpm factory chat ${context.issue}\n`)
     if (context.interactive) process.stdout.write(`\nOr answer here:\n`)
@@ -452,7 +475,7 @@ function reportWaiting(waiting: Waiting | null, context: RunContext): void {
 async function ask(waiting: Waiting): Promise<string | boolean | null> {
   const terminal = createInterface({ input: process.stdin, output: process.stdout })
   try {
-    if (waiting.kind === 'implementer-question') {
+    if (asksAQuestion(waiting)) {
       const answer = await terminal.question('Your answer (or press Enter to stop): ')
       return answer.trim() === '' ? null : answer
     }

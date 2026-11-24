@@ -128,6 +128,7 @@ describe('workflowRunsWithMastra', () => {
       issueNumber: 548,
       attempt: 1,
       model: 'a-model',
+      observerModel: 'an-observer-model',
       thinking: 'high',
       reviewers: ['code-review'],
       worktreesDirectory: '/repo/.factory/worktrees',
@@ -138,6 +139,7 @@ describe('workflowRunsWithMastra', () => {
         issueNumber: 548,
         attempt: 1,
         model: 'a-model',
+        observerModel: 'an-observer-model',
         thinking: 'high',
         reviewers: ['code-review'],
         worktreesDirectory: '/repo/.factory/worktrees',
@@ -168,7 +170,54 @@ describe('workflowRunsWithMastra', () => {
     ])
   })
 
-  it('continues the feedback step without an answer', async () => {
+  it('answers a plan clarification on the step that suspended', async () => {
+    const resumed: Record<string, unknown>[] = []
+    const runs = workflowRunsWithMastra(
+      source({
+        resumeRun: async (_runId, options) => {
+          resumed.push(options)
+          return undefined
+        },
+      }),
+    )
+
+    await runs.resume(
+      'issue-548',
+      { kind: 'plan-question', question: 'Bytes or lines?' },
+      'Bytes, 64 KiB.',
+    )
+
+    expect(resumed).toStrictEqual([
+      {
+        step: 'wait-for-plan-clarification',
+        resumeData: { answer: 'Bytes, 64 KiB.' },
+      },
+    ])
+  })
+
+  it('answers a feedback question with the answer', async () => {
+    const resumed: Record<string, unknown>[] = []
+    const runs = workflowRunsWithMastra(
+      source({
+        resumeRun: async (_runId, options) => {
+          resumed.push(options)
+          return undefined
+        },
+      }),
+    )
+
+    await runs.resume(
+      'issue-548',
+      { kind: 'feedback-question', reason: 'Which port?', unaddressed: [] },
+      'Use the existing port.',
+    )
+
+    expect(resumed).toStrictEqual([
+      { step: 'address-feedback', resumeData: { answer: 'Use the existing port.' } },
+    ])
+  })
+
+  it('continues the feedback step with its approval answer', async () => {
     const resumed: Record<string, unknown>[] = []
     const runs = workflowRunsWithMastra(
       source({
@@ -185,7 +234,7 @@ describe('workflowRunsWithMastra', () => {
       false,
     )
 
-    expect(resumed).toStrictEqual([{ step: 'address-feedback' }])
+    expect(resumed).toStrictEqual([{ step: 'address-feedback', resumeData: { approved: false } }])
   })
 
   it('sends an empty answer when the question carries no text', async () => {

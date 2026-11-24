@@ -6,6 +6,7 @@ import { fakeWorkflowRuns } from '../__fixtures__/workflow-runs-fixtures'
 const input = {
   issueNumber: 548,
   model: 'a-model',
+  observerModel: 'an-observer-model',
   thinking: 'high',
   reviewers: ['code-review'],
   worktreesDirectory: '/repo/.factory/worktrees',
@@ -39,6 +40,7 @@ describe('StartRun', () => {
           issueNumber: 950,
           attempt: 1,
           model: 'a-model',
+          observerModel: 'an-observer-model',
           thinking: 'high',
           reviewers: ['code-review'],
           worktreesDirectory: '/repo/.factory/worktrees',
